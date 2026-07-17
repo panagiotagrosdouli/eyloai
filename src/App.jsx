@@ -1,12 +1,12 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { environment } from '@/lib/config/env';
 
 // Auth pages
 import Login from '@/pages/Login';
@@ -14,6 +14,7 @@ import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import AuthCallback from '@/pages/AuthCallback';
+import ConfigurationError from '@/pages/ConfigurationError';
 
 // App pages
 import AppLayout from '@/components/layout/AppLayout';
@@ -40,32 +41,35 @@ import IdeaVault from '@/pages/IdeaVault';
 import Settings from '@/pages/Settings';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, authError } = useAuth();
 
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  if (!environment.ok) {
+    return <ConfigurationError />;
+  }
+
+  if (isLoadingAuth) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white">
+      <div className="fixed inset-0 flex items-center justify-center bg-background" role="status" aria-live="polite">
         <div className="text-center">
-          <div className="mx-auto mb-3">
-            <img
-              src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/a8ecbf98b_ChatGPTImage21202609_26_48.png"
-              alt="EYLO"
-              className="h-12 w-auto object-contain"
-            />
-          </div>
-          <div className="w-6 h-6 border-2 border-border border-t-[hsl(252,85%,60%)] rounded-full animate-spin mx-auto" />
+          <div className="mb-4 text-lg font-semibold tracking-tight">EYLO AI</div>
+          <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-border border-t-foreground" />
+          <span className="sr-only">Loading authentication</span>
         </div>
       </div>
     );
   }
 
   if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      navigateToLogin();
-      return null;
-    }
+    return (
+      <main className="min-h-screen bg-background px-6 py-16 text-foreground">
+        <div className="mx-auto max-w-lg rounded-2xl border bg-card p-8 shadow-sm">
+          <h1 className="text-2xl font-semibold">Authentication unavailable</h1>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            EYLO AI could not verify your session. Refresh the page or try again shortly.
+          </p>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -76,7 +80,7 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
 
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+      <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/library" element={<Library />} />
