@@ -6,12 +6,13 @@ import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
-import { requireSupabase } from "@/lib/supabaseClient";
 import { getSafeRedirect } from "@/lib/auth/safeRedirect";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { signIn, signInWithGoogle } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,45 +20,31 @@ export default function Login() {
 
   const destination = getSafeRedirect(searchParams.get("from"));
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError("");
     setLoading(true);
 
-    try {
-      const client = requireSupabase();
-      const { error: signInError } = await client.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-      });
-
-      if (signInError) throw signInError;
-      navigate(destination, { replace: true });
-    } catch (err) {
-      setError("Unable to sign in. Check your credentials and try again.");
+    const result = await signIn(email, password);
+    if (!result.ok) {
+      setError(result.error.message);
       setLoading(false);
+      return;
     }
+
+    navigate(destination, { replace: true });
   };
 
   const handleGoogle = async () => {
     setError("");
     setLoading(true);
 
-    try {
-      const client = requireSupabase();
-      const callbackUrl = new URL("/auth/callback", window.location.origin);
-      callbackUrl.searchParams.set("from", destination);
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    callbackUrl.searchParams.set("from", destination);
 
-      const { error: oauthError } = await client.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: callbackUrl.toString(),
-        },
-      });
-
-      if (oauthError) throw oauthError;
-    } catch (err) {
-      setError("Google sign-in is currently unavailable. Please try again.");
+    const result = await signInWithGoogle(callbackUrl.toString());
+    if (!result.ok) {
+      setError(result.error.message);
       setLoading(false);
     }
   };
@@ -93,7 +80,7 @@ export default function Login() {
           <Label htmlFor="email">Email</Label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-            <Input id="email" type="email" autoComplete="email" autoFocus placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 h-12" required disabled={loading} />
+            <Input id="email" type="email" autoComplete="email" autoFocus placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} className="pl-10 h-12" required disabled={loading} />
           </div>
         </div>
         <div className="space-y-2">
@@ -103,7 +90,7 @@ export default function Login() {
           </div>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-            <Input id="password" type="password" autoComplete="current-password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 h-12" required disabled={loading} />
+            <Input id="password" type="password" autoComplete="current-password" placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} className="pl-10 h-12" required disabled={loading} />
           </div>
         </div>
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
