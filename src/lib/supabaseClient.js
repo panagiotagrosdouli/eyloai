@@ -1,23 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
+import { environment } from '@/lib/config/env';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+export const isSupabaseConfigured = environment.ok;
 
 export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
+  ? createClient(
+      environment.values.VITE_SUPABASE_URL,
+      environment.values.VITE_SUPABASE_ANON_KEY,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
       },
-    })
+    )
   : null;
 
 export function requireSupabase() {
   if (!supabase) {
-    throw new Error('Authentication is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel.');
+    const error = new Error('Authentication service is not configured.');
+    error.code = 'SUPABASE_CONFIGURATION_ERROR';
+    throw error;
   }
 
   return supabase;
