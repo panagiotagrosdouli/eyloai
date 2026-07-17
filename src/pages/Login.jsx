@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,15 +7,17 @@ import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { requireSupabase } from "@/lib/supabaseClient";
+import { getSafeRedirect } from "@/lib/auth/safeRedirect";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const destination = searchParams.get("from") || "/";
+  const destination = getSafeRedirect(searchParams.get("from"));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,14 +27,14 @@ export default function Login() {
     try {
       const client = requireSupabase();
       const { error: signInError } = await client.auth.signInWithPassword({
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         password,
       });
 
       if (signInError) throw signInError;
-      window.location.assign(destination);
+      navigate(destination, { replace: true });
     } catch (err) {
-      setError(err.message || "Invalid email or password");
+      setError("Unable to sign in. Check your credentials and try again.");
       setLoading(false);
     }
   };
@@ -43,16 +45,19 @@ export default function Login() {
 
     try {
       const client = requireSupabase();
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      callbackUrl.searchParams.set("from", destination);
+
       const { error: oauthError } = await client.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}${destination}`,
+          redirectTo: callbackUrl.toString(),
         },
       });
 
       if (oauthError) throw oauthError;
     } catch (err) {
-      setError(err.message || "Google login failed");
+      setError("Google sign-in is currently unavailable. Please try again.");
       setLoading(false);
     }
   };
@@ -81,14 +86,14 @@ export default function Login() {
         <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-3 text-muted-foreground">or</span></div>
       </div>
 
-      {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
+      {error && <div role="alert" aria-live="polite" className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-            <Input id="email" type="email" autoComplete="email" autoFocus placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 h-12" required />
+            <Input id="email" type="email" autoComplete="email" autoFocus placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 h-12" required disabled={loading} />
           </div>
         </div>
         <div className="space-y-2">
@@ -98,7 +103,7 @@ export default function Login() {
           </div>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-            <Input id="password" type="password" autoComplete="current-password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 h-12" required />
+            <Input id="password" type="password" autoComplete="current-password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 h-12" required disabled={loading} />
           </div>
         </div>
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
