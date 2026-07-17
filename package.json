@@ -9,7 +9,8 @@
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "normalize:base44": "node scripts/normalize-base44-paths.mjs"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.39",
