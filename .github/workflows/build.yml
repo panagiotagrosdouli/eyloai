@@ -10,7 +10,17 @@ on:
       - main
 
 jobs:
+  imports:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check local imports
+        run: node scripts/check-local-imports.mjs
+
   build:
+    needs: imports
     runs-on: ubuntu-latest
 
     steps:
