@@ -4,6 +4,16 @@ import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 
 const AuthContext = createContext();
+const LOCAL_USER_KEY = 'eylo_local_user';
+
+function readLocalUser() {
+  try {
+    const value = localStorage.getItem(LOCAL_USER_KEY);
+    return value ? JSON.parse(value) : null;
+  } catch {
+    return null;
+  }
+}
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -18,99 +28,82 @@ export const AuthProvider = ({ children }) => {
     checkAppState();
   }, []);
 
+  const useLocalSession = () => {
+    const localUser = readLocalUser();
+    setUser(localUser);
+    setIsAuthenticated(Boolean(localUser));
+    setIsLoadingAuth(false);
+    setIsLoadingPublicSettings(false);
+    setAuthChecked(true);
+    setAppPublicSettings({ id: 'local', public_settings: {} });
+    setAuthError(null);
+  };
+
   const checkAppState = async () => {
+    if (!appParams.appId) {
+      useLocalSession();
+      return;
+    }
+
     try {
       setIsLoadingPublicSettings(true);
       setAuthError(null);
 
       const appClient = createAxiosClient({
-        baseURL: `/api/apps/public`,
-        headers: {
-          'X-App-Id': appParams.appId
-        },
+        baseURL: '/api/apps/public',
+        headers: { 'X-App-Id': appParams.appId },
         token: appParams.token,
-        interceptResponses: true
+        interceptResponses: true,
       });
 
-      try {
-        const publicSettings = await appClient.get(`/prod/public-settings/by-id/${appParams.appId}`);
-        setAppPublicSettings(publicSettings);
+      const publicSettings = await appClient.get(`/prod/public-settings/by-id/${appParams.appId}`);
+      setAppPublicSettings(publicSettings);
 
-        if (appParams.token) {
-          await checkUserAuth();
-        } else {
-          setIsLoadingAuth(false);
-          setIsAuthenticated(false);
-          setAuthChecked(true);
-        }
-        setIsLoadingPublicSettings(false);
-      } catch (appError) {
-        console.error('App state check failed:', appError);
-
-        if (appError.status === 403 && appError.data?.extra_data?.reason) {
-          const reason = appError.data.extra_data.reason;
-          if (reason === 'auth_required') {
-            setAuthError({
-              type: 'auth_required',
-              message: 'Authentication required'
-            });
-          } else if (reason === 'user_not_registered') {
-            setAuthError({
-              type: 'user_not_registered',
-              message: 'User not registered for this app'
-            });
-          } else {
-            setAuthError({
-              type: reason,
-              message: appError.message
-            });
-          }
-        } else {
-          setAuthError({
-            type: 'unknown',
-            message: appError.message || 'Failed to load app'
-          });
-        }
-        setIsLoadingPublicSettings(false);
+      if (appParams.token) {
+        await checkUserAuth();
+      } else {
         setIsLoadingAuth(false);
+        setIsAuthenticated(false);
+        setAuthChecked(true);
       }
+      setIsLoadingPublicSettings(false);
     } catch (error) {
-      console.error('Unexpected error:', error);
-      setAuthError({
-        type: 'unknown',
-        message: error.message || 'An unexpected error occurred'
-      });
+      console.error('App state check failed:', error);
+      setAuthError({ type: 'unknown', message: error.message || 'Failed to load app' });
       setIsLoadingPublicSettings(false);
       setIsLoadingAuth(false);
+      setAuthChecked(true);
     }
   };
 
   const checkUserAuth = async () => {
+    if (!appParams.appId) {
+      useLocalSession();
+      return;
+    }
+
     try {
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
-      setIsLoadingAuth(false);
-      setAuthChecked(true);
+      setAuthError(null);
     } catch (error) {
       console.error('User auth check failed:', error);
-      setIsLoadingAuth(false);
       setIsAuthenticated(false);
-      setAuthChecked(true);
-
       if (error.status === 401 || error.status === 403) {
-        setAuthError({
-          type: 'auth_required',
-          message: 'Authentication required'
-        });
+        setAuthError({ type: 'auth_required', message: 'Authentication required' });
       }
+    } finally {
+      setIsLoadingAuth(false);
+      setAuthChecked(true);
     }
   };
 
   const clearLocalAuth = () => {
     localStorage.removeItem('base44_access_token');
     localStorage.removeItem('token');
+    localStorage.removeItem(LOCAL_USER_KEY);
   };
 
   const logout = (shouldRedirect = true) => {
@@ -144,7 +137,7 @@ export const AuthProvider = ({ children }) => {
       logout,
       navigateToLogin,
       checkUserAuth,
-      checkAppState
+      checkAppState,
     }}>
       {children}
     </AuthContext.Provider>
