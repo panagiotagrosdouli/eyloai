@@ -1,21 +1,21 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
-import { appParams } from "@/lib/app-params";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
-
-const LOCAL_USER_KEY = "eylo_local_user";
+import { requireSupabase } from "@/lib/supabaseClient";
 
 export default function Login() {
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const destination = searchParams.get("from") || "/";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,35 +23,38 @@ export default function Login() {
     setLoading(true);
 
     try {
-      if (!appParams.appId) {
-        const normalizedEmail = email.trim().toLowerCase();
-        if (!normalizedEmail || password.length < 4) {
-          throw new Error("Enter a valid email and a password with at least 4 characters.");
-        }
+      const client = requireSupabase();
+      const { error: signInError } = await client.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
-        localStorage.setItem(
-          LOCAL_USER_KEY,
-          JSON.stringify({ id: normalizedEmail, email: normalizedEmail, name: normalizedEmail.split("@")[0] }),
-        );
-        window.location.assign("/");
-        return;
-      }
-
-      await base44.auth.loginViaEmailPassword(email, password);
-      window.location.assign("/");
+      if (signInError) throw signInError;
+      window.location.assign(destination);
     } catch (err) {
       setError(err.message || "Invalid email or password");
-    } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogle = () => {
-    if (!appParams.appId) {
-      setError("Google login will be available after a real authentication provider is configured.");
-      return;
+  const handleGoogle = async () => {
+    setError("");
+    setLoading(true);
+
+    try {
+      const client = requireSupabase();
+      const { error: oauthError } = await client.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}${destination}`,
+        },
+      });
+
+      if (oauthError) throw oauthError;
+    } catch (err) {
+      setError(err.message || "Google login failed");
+      setLoading(false);
     }
-    base44.auth.loginWithProvider("google", "/");
   };
 
   return (
@@ -68,13 +71,7 @@ export default function Login() {
         </>
       }
     >
-      {!appParams.appId && (
-        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-          Temporary local access mode is active until a production auth provider is connected.
-        </div>
-      )}
-
-      <Button variant="outline" className="w-full h-12 text-sm font-medium mb-6" onClick={handleGoogle}>
+      <Button variant="outline" className="w-full h-12 text-sm font-medium mb-6" onClick={handleGoogle} disabled={loading}>
         <GoogleIcon className="w-5 h-5 mr-2" />
         Continue with Google
       </Button>
