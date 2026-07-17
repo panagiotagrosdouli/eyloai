@@ -1,0 +1,197 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Light mode ──────────────────────────────────────────── */
+:root.light {
+  --background: 210 25% 98%;
+  --foreground: 220 35% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 35% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 35% 12%;
+  --primary: 213 94% 48%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 213 18% 94%;
+  --secondary-foreground: 220 25% 28%;
+  --muted: 213 18% 94%;
+  --muted-foreground: 215 14% 50%;
+  --accent: 250 68% 56%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 50%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 213 18% 88%;
+  --input: 213 18% 88%;
+  --ring: 213 94% 48%;
+  --sidebar-background: 210 25% 98%;
+  --sidebar-foreground: 215 14% 50%;
+  --sidebar-primary: 213 94% 48%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 213 18% 94%;
+  --sidebar-accent-foreground: 220 35% 12%;
+  --sidebar-border: 213 18% 88%;
+  --sidebar-ring: 213 94% 48%;
+}
+
+/* In light mode, text gradients adapt */
+:root.light .eyra-text-gradient {
+  background: linear-gradient(135deg, hsl(210, 100%, 40%), hsl(250, 70%, 50%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+:root.light .eylo-text-gradient {
+  background: linear-gradient(90deg, hsl(224,40%,10%) 0%, hsl(210, 100%, 40%) 60%, hsl(250, 70%, 50%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+:root.light .card-glow:hover {
+  box-shadow: 0 0 20px -8px hsla(210, 100%, 50%, 0.2);
+  border-color: hsla(210, 100%, 50%, 0.3);
+}
+
+@layer base {
+  :root {
+    /* Premium dark navy — refined depth */
+    --background: 222 35% 6%;
+    --foreground: 210 28% 93%;
+    --card: 222 30% 9%;
+    --card-foreground: 210 28% 93%;
+    --popover: 222 30% 9%;
+    --popover-foreground: 210 28% 93%;
+    /* Clear confident blue */
+    --primary: 213 94% 62%;
+    --primary-foreground: 222 35% 6%;
+    --secondary: 222 24% 13%;
+    --secondary-foreground: 210 18% 72%;
+    --muted: 222 24% 13%;
+    --muted-foreground: 215 13% 48%;
+    /* Soft purple accent */
+    --accent: 250 65% 64%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 70% 56%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 222 22% 15%;
+    --input: 222 22% 15%;
+    --ring: 213 94% 62%;
+    --chart-1: 210 100% 60%;
+    --chart-2: 250 70% 62%;
+    --chart-3: 165 60% 48%;
+    --chart-4: 38 80% 60%;
+    --chart-5: 280 60% 58%;
+    --radius: 0.75rem;
+    --font-heading: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    --sidebar-background: 224 40% 5%;
+    --sidebar-foreground: 210 20% 70%;
+    --sidebar-primary: 210 100% 60%;
+    --sidebar-primary-foreground: 224 40% 5%;
+    --sidebar-accent: 224 28% 11%;
+    --sidebar-accent-foreground: 210 30% 92%;
+    --sidebar-border: 224 25% 13%;
+    --sidebar-ring: 210 100% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Scrollbar — subtle */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* Core EYRA gradient */
+.eyra-gradient {
+  background: linear-gradient(135deg, hsl(213, 94%, 56%), hsl(230, 80%, 60%), hsl(250, 65%, 64%));
+}
+
+/* Subtle glow — not neon */
+.eyra-glow {
+  box-shadow: 0 0 40px -15px hsla(210, 100%, 60%, 0.3), 0 0 80px -30px hsla(250, 70%, 62%, 0.15);
+}
+
+/* Text gradient */
+.eyra-text-gradient {
+  background: linear-gradient(135deg, hsl(210, 100%, 70%), hsl(250, 70%, 72%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.eylo-text-gradient {
+  background: linear-gradient(90deg, #fff 0%, hsl(210, 100%, 78%) 60%, hsl(250, 70%, 80%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.impact-gradient {
+  background: linear-gradient(135deg, hsl(210, 100%, 65%), hsl(250, 70%, 68%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Hero background — calm, deep, professional */
+.hero-bg {
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, hsla(222, 70%, 14%, 0.85) 0%, transparent 70%),
+    radial-gradient(ellipse 35% 35% at 15% 60%, hsla(210, 100%, 25%, 0.1) 0%, transparent 60%),
+    radial-gradient(ellipse 35% 35% at 85% 30%, hsla(250, 70%, 35%, 0.08) 0%, transparent 60%),
+    hsl(224, 40%, 5%);
+}
+
+/* Card hover — subtle */
+.card-glow:hover {
+  box-shadow: 0 0 20px -8px hsla(210, 100%, 60%, 0.15);
+  border-color: hsla(210, 100%, 60%, 0.2);
+}
+
+/* Orb for loading state */
+.eyra-orb {
+  background: conic-gradient(from 0deg, hsl(210,100%,55%), hsl(225,80%,58%), hsl(250,70%,62%), hsl(275,65%,60%), hsl(210,100%,55%));
+  filter: blur(1px);
+}
+
+/* Animations */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-spin-slow { animation: spin-slow 10s linear infinite; }
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-fade-up { animation: fade-up 0.4s ease-out both; }
