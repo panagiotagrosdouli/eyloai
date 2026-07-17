@@ -2,9 +2,20 @@ import { readdir, rename, mkdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 const root = process.cwd();
+const backupDir = path.join(root, 'legacy', 'simplified-app');
 
 function normalizeSegment(segment) {
   return segment.trim();
+}
+
+async function exists(filePath) {
+  try {
+    await stat(filePath);
+    return true;
+  } catch (error) {
+    if (error.code === 'ENOENT') return false;
+    throw error;
+  }
 }
 
 async function walk(directory) {
@@ -12,7 +23,7 @@ async function walk(directory) {
   const results = [];
 
   for (const entry of entries) {
-    if (entry.name === '.git' || entry.name === 'node_modules') continue;
+    if (entry.name === '.git' || entry.name === 'node_modules' || entry.name === 'legacy') continue;
 
     const absolute = path.join(directory, entry.name);
     if (entry.isDirectory()) {
@@ -34,6 +45,22 @@ function normalizedRelativePath(absolutePath) {
     .join(path.sep);
 }
 
+async function preserveKnownCollision(destination) {
+  const relative = path.relative(root, destination);
+
+  if (relative !== path.join('src', 'main.jsx')) return false;
+
+  const backup = path.join(backupDir, 'main.jsx');
+  await mkdir(path.dirname(backup), { recursive: true });
+
+  if (!(await exists(backup))) {
+    await rename(destination, backup);
+    console.log(`${relative} -> ${path.relative(root, backup)} (preserved simplified entrypoint)`);
+  }
+
+  return true;
+}
+
 const files = await walk(root);
 const moves = files
   .map((source) => ({ source, destination: path.join(root, normalizedRelativePath(source)) }))
@@ -46,11 +73,11 @@ if (moves.length === 0) {
 }
 
 for (const { source, destination } of moves) {
-  try {
-    await stat(destination);
-    throw new Error(`Refusing to overwrite existing path: ${path.relative(root, destination)}`);
-  } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
+  if (await exists(destination)) {
+    const preserved = await preserveKnownCollision(destination);
+    if (!preserved) {
+      throw new Error(`Refusing to overwrite existing path: ${path.relative(root, destination)}`);
+    }
   }
 
   await mkdir(path.dirname(destination), { recursive: true });

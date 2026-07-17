@@ -1,0 +1,42 @@
+name: Normalize Base44 export
+
+on:
+  push:
+    branches:
+      - migration/normalize-base44-export
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: migration/normalize-base44-export
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Normalize exported paths
+        run: npm run normalize:base44
+
+      - name: Commit normalized tree
+        shell: bash
+        run: |
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No path changes detected."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: normalize Base44 export paths"
+          git push origin HEAD:migration/normalize-base44-export
