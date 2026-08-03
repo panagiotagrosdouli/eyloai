@@ -85,9 +85,43 @@ function markdownAnalysis(prompt) {
   return `## EYRA analysis\n\n**Focus:** ${subject}\n\n### Evidence and assumptions\nUse the verified sources and project data shown in EYLO. Any programme, deadline, researcher, or publication should be confirmed at its official source before action.\n\n### Recommended next steps\n1. Define one measurable outcome and the main assumption to validate.\n2. Review the most relevant retrieved evidence and record what supports or contradicts the idea.\n3. Run a small validation milestone with a clear owner and deadline.\n4. Reassess scope, collaborators, and funding only after the result.\n\n### EYRA confidence\n**Medium** — strategic guidance is available, while factual confidence depends on the connected source data.`;
 }
 
+function extractJsonTemplate(prompt) {
+  const marker = String(prompt).search(/(?:output|return|respond)[^\n]{0,40}valid json/i);
+  if (marker < 0) return null;
+  const start = String(prompt).indexOf('{', marker);
+  if (start < 0) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let cursor = start; cursor < prompt.length; cursor += 1) {
+    const character = prompt[cursor];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (character === '\\') escaped = true;
+      else if (character === '"') inString = false;
+      continue;
+    }
+    if (character === '"') inString = true;
+    else if (character === '{') depth += 1;
+    else if (character === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        try { return JSON.parse(prompt.slice(start, cursor + 1)); }
+        catch { return null; }
+      }
+    }
+  }
+  return null;
+}
+
 export async function invokeEyra({ prompt = '', response_json_schema: schema } = {}) {
   // Keep the asynchronous contract of the original SDK.
   await Promise.resolve();
-  return schema ? fromSchema(schema, prompt) : markdownAnalysis(prompt);
-}
+  if (!schema) return markdownAnalysis(prompt);
 
+  // Several migrated EYRA tools include their complete expected response as a
+  // JSON example in the prompt. Reusing that shape keeps every nested chart,
+  // score card, and list functional without inventing factual source records.
+  return extractJsonTemplate(prompt) || fromSchema(schema, prompt);
+}
