@@ -10,7 +10,7 @@ import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
 
 /* Primary nav — always visible, max 4 items to avoid clutter */
 const PRIMARY_NAV = [
-  { label: 'Home', path: '/', icon: Home },
+  { label: 'Home', path: '/home', icon: Home },
   { label: 'Projects', path: '/projects', icon: FolderOpen },
   { label: 'EYRA Feed', path: '/foryou', icon: Sparkles },
   { label: 'Profile', path: '/profile', icon: User },
@@ -60,7 +60,7 @@ export default function AppLayout() {
   const dropdownRef = useRef(null);
 
   const isActive = (path) =>
-    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+    location.pathname === path || location.pathname.startsWith(`${path}/`);
 
   const isMoreActive = ALL_MORE_ITEMS.some(n => isActive(n.path));
 
@@ -84,7 +84,7 @@ export default function AppLayout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center h-14 gap-1">
 
           {/* Brand */}
-          <Link to="/" className="flex items-center flex-shrink-0 mr-4">
+          <Link to="/home" className="flex items-center flex-shrink-0 mr-4">
             <img
               src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/a8ecbf98b_ChatGPTImage21202609_26_48.png"
               alt="EYLO"
