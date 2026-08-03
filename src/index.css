@@ -206,6 +206,7 @@
     hsl(224 42% 5% / 0.98);
 }
 
+/* EYLO Home command deck — stable workspace surfaces, no ambient motion. */
 .eylo-command-deck {
   background:
     linear-gradient(120deg, hsla(222, 55%, 7%, 0.96), hsla(224, 45%, 8%, 0.84)),
