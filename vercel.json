@@ -6,6 +6,10 @@
   "installCommand": "npm install --no-audit --no-fund",
   "rewrites": [
     {
+      "source": "/supabase/:path*",
+      "destination": "https://kbzjngpzxpniaumlupaa.supabase.co/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
