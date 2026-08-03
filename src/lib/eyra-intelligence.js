@@ -5,6 +5,8 @@
 // analysis. Factual discovery remains grounded in the real OpenAlex/arXiv/
 // Europe PMC data already included in each prompt.
 
+import { supabase } from '@/lib/supabaseClient';
+
 const clean = (value = '') => String(value).replace(/\s+/g, ' ').trim();
 
 function quotedSubject(prompt) {
@@ -85,6 +87,26 @@ function markdownAnalysis(prompt) {
   return `## EYRA analysis\n\n**Focus:** ${subject}\n\n### Evidence and assumptions\nUse the verified sources and project data shown in EYLO. Any programme, deadline, researcher, or publication should be confirmed at its official source before action.\n\n### Recommended next steps\n1. Define one measurable outcome and the main assumption to validate.\n2. Review the most relevant retrieved evidence and record what supports or contradicts the idea.\n3. Run a small validation milestone with a clear owner and deadline.\n4. Reassess scope, collaborators, and funding only after the result.\n\n### EYRA confidence\n**Medium** — strategic guidance is available, while factual confidence depends on the connected source data.`;
 }
 
+async function requestOpenAiAnalysis(prompt) {
+  const { data } = await supabase.auth.getSession();
+  const accessToken = data.session?.access_token;
+  if (!accessToken) throw new Error('Authentication required.');
+
+  const response = await fetch('/api/eyra', {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ prompt }),
+  });
+
+  if (!response.ok) throw new Error(`EYRA API failed with status ${response.status}.`);
+  const result = await response.json();
+  if (!result.text) throw new Error('EYRA returned an empty response.');
+  return result.text;
+}
+
 function extractJsonTemplate(prompt) {
   const marker = String(prompt).search(/(?:output|return|respond)[^\n]{0,40}valid json/i);
   if (marker < 0) return null;
@@ -116,9 +138,14 @@ function extractJsonTemplate(prompt) {
 }
 
 export async function invokeEyra({ prompt = '', response_json_schema: schema } = {}) {
-  // Keep the asynchronous contract of the original SDK.
-  await Promise.resolve();
-  if (!schema) return markdownAnalysis(prompt);
+  if (!schema) {
+    try {
+      return await requestOpenAiAnalysis(prompt);
+    } catch (error) {
+      console.warn('[EYRA] OpenAI unavailable; using grounded fallback.', error);
+      return markdownAnalysis(prompt);
+    }
+  }
 
   // Several migrated EYRA tools include their complete expected response as a
   // JSON example in the prompt. Reusing that shape keeps every nested chart,
