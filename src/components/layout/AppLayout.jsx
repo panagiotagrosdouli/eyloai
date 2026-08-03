@@ -7,6 +7,7 @@ import {
   Rocket, Trophy, Award, Crown
 } from 'lucide-react';
 import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
+import NotificationsBell from '@/components/monitoring/NotificationsBell';
 
 /* Primary nav — always visible, max 4 items to avoid clutter */
 const PRIMARY_NAV = [
@@ -158,6 +159,7 @@ export default function AppLayout() {
 
           {/* Ask EYRA CTA */}
           <div className="hidden md:flex items-center gap-2 ml-auto">
+            <NotificationsBell />
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-md">
               <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
               <span className="text-[10px] text-muted-foreground font-medium">EYRA Online</span>

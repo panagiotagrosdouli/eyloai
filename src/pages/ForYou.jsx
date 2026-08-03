@@ -3,16 +3,12 @@ import { Link } from 'react-router-dom';
 import { buildUserProfile } from '@/lib/second-brain';
 import { markVisit } from '@/lib/eyra-monitor';
 import {
-  Sparkles, RefreshCw, Loader2, FileText, Users,
-  DollarSign, TrendingUp, Zap, ArrowRight, Brain,
-  Clock, ChevronRight, Lightbulb, BookOpen, Award,
-  CheckCircle2, ChevronDown, ChevronUp
+  Sparkles, Users, Brain, ChevronRight, Lightbulb, Award
 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
 import EyraDigitalTwin from '@/components/eyra/EyraDigitalTwin';
 import DailyMissions from '@/components/eyra/DailyMissions';
 import WhileYouWereAway from '@/components/eyra/WhileYouWereAway';
-import moment from 'moment';
+import LiveIntelligenceFeed from '@/components/monitoring/LiveIntelligenceFeed';
 
 const EYRA_STATUS = [
   'Monitoring OpenAlex for new papers',
@@ -93,6 +89,7 @@ export default function ForYou() {
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Main feed */}
         <div className="lg:col-span-2 space-y-5">
+          <LiveIntelligenceFeed />
 
           {/* EYRA Live Status */}
           <EyraStatusBar />

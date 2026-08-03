@@ -41,6 +41,7 @@ import ExecutiveBriefing from '@/pages/ExecutiveBriefing';
 import ForYou from '@/pages/ForYou';
 import IdeaVault from '@/pages/IdeaVault';
 import Settings from '@/pages/Settings';
+import Notifications from '@/pages/Notifications';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, authError } = useAuth();
@@ -105,6 +106,7 @@ const AuthenticatedApp = () => {
           <Route path="/foryou" element={<ForYou />} />
           <Route path="/ideas" element={<IdeaVault />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/notifications" element={<Notifications />} />
         </Route>
       </Route>
 

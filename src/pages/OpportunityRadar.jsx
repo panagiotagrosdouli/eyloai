@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  Radar, Sparkles, Bookmark, TrendingUp, AlertCircle, Clock,
+import { Sparkles, Bookmark, AlertCircle, Clock,
   DollarSign, Rocket, Trophy, GraduationCap, Award, Building2,
-  Zap, RefreshCw, Filter, ChevronRight, Star, FolderOpen
+  Zap, RefreshCw, Star, FolderOpen
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
+import WatchlistManager from '@/components/monitoring/WatchlistManager';
 
 const TYPE_CONFIG = {
   grant: { icon: DollarSign, color: 'bg-primary/15 text-primary', label: 'Grant' },
@@ -195,6 +195,7 @@ Write as a seasoned advisor to a top researcher/entrepreneur. Be direct, opinion
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="mb-6"><WatchlistManager /></div>
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>

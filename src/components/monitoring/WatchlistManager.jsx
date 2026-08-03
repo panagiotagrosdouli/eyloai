@@ -1,0 +1,19 @@
+import React, { useEffect, useState } from 'react';
+import { BellRing, Loader2, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { monitoringStore, runAllWatchlists } from '@/lib/monitoring-service';
+import { useToast } from '@/components/ui/use-toast';
+
+const TYPES = ['topic', 'keyword', 'researcher', 'institution', 'funding program', 'project'];
+
+export default function WatchlistManager() {
+  const [items, setItems] = useState([]); const [query, setQuery] = useState(''); const [type, setType] = useState('topic'); const [running, setRunning] = useState(false); const { toast } = useToast();
+  const refresh = () => setItems(monitoringStore.watchlists());
+  useEffect(() => { refresh(); return monitoringStore.subscribe(refresh); }, []);
+  const add = (event) => { event.preventDefault(); if (!query.trim()) return; monitoringStore.addWatchlist({ query, type }); setQuery(''); };
+  const run = async () => { setRunning(true); try { const result = await runAllWatchlists(); toast({ title: `${result.discovered} new discoveries`, description: `${result.notifications} high-priority notifications created.` }); } finally { setRunning(false); } };
+  return <section className="rounded-3xl border border-border bg-card p-5 sm:p-6">
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><div className="flex items-center gap-2"><BellRing size={16} className="text-primary" /><h2 className="font-heading font-semibold">EYRA Watchlists</h2></div><p className="mt-1 text-xs text-muted-foreground">Manual monitoring from real research sources — no background job.</p></div><button onClick={run} disabled={running || !items.some(x => x.active)} className="flex items-center gap-2 rounded-xl eyra-gradient px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-40">{running ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}Check for updates</button></div>
+    <form onSubmit={add} className="grid gap-2 sm:grid-cols-[160px_1fr_auto]"><select value={type} onChange={e => setType(e.target.value)} className="rounded-xl border border-border bg-secondary px-3 py-2.5 text-xs">{TYPES.map(x => <option key={x}>{x}</option>)}</select><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Topic, researcher, institution or program…" className="rounded-xl border border-border bg-secondary px-4 py-2.5 text-sm outline-none focus:border-primary/40" /><button className="flex items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-xs font-semibold text-background"><Plus size={13} />Add</button></form>
+    <div className="mt-4 space-y-2">{items.length ? items.map(item => <div key={item.id} className="flex items-center gap-3 rounded-xl border border-border/60 px-3 py-3"><input type="checkbox" checked={item.active} onChange={e => monitoringStore.updateWatchlist(item.id, { active: e.target.checked })} /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{item.query}</p><p className="text-[10px] uppercase tracking-wider text-muted-foreground">{item.type} · {item.lastCheckedAt ? `checked ${new Date(item.lastCheckedAt).toLocaleString()}` : 'not checked yet'}</p></div><button onClick={() => monitoringStore.deleteWatchlist(item.id)} aria-label="Delete watchlist" className="p-2 text-muted-foreground hover:text-destructive"><Trash2 size={13} /></button></div>) : <p className="py-5 text-center text-xs text-muted-foreground">Add your first watchlist to start monitoring.</p>}</div>
+  </section>;
+}
