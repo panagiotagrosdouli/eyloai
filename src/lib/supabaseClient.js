@@ -3,9 +3,16 @@ import { environment } from '@/lib/config/env';
 
 export const isSupabaseConfigured = environment.ok;
 
+// In deployed builds, route Supabase HTTP traffic through the EYLO domain.
+// This keeps authentication and database requests working in browsers or
+// networks that block direct navigation to *.supabase.co.
+const supabaseUrl = typeof window !== 'undefined' && import.meta.env.PROD
+  ? `${window.location.origin}/supabase`
+  : environment.values.VITE_SUPABASE_URL;
+
 export const supabase = isSupabaseConfigured
   ? createClient(
-      environment.values.VITE_SUPABASE_URL,
+      supabaseUrl,
       environment.values.VITE_SUPABASE_ANON_KEY,
       {
         auth: {
