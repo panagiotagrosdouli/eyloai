@@ -16,6 +16,7 @@ import ResetPassword from '@/pages/ResetPassword';
 import AuthCallback from '@/pages/AuthCallback';
 import ConfigurationError from '@/pages/ConfigurationError';
 import Landing from '@/pages/Landing';
+import PublicDiscovery from '@/pages/PublicDiscovery';
 
 // App pages
 import AppLayout from '@/components/layout/AppLayout';
@@ -120,6 +121,7 @@ function App() {
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/discover" element={<PublicDiscovery />} />
             <Route path="/*" element={<AuthenticatedApp />} />
           </Routes>
         </Router>

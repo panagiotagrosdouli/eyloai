@@ -22,7 +22,7 @@ export default function Landing() {
   const discover = (event) => {
     event?.preventDefault();
     const query = idea.trim();
-    const target = query ? `/register?idea=${encodeURIComponent(query)}` : '/register';
+    const target = query ? `/discover?q=${encodeURIComponent(query)}` : '/discover';
     navigate(target);
   };
 
