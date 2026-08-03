@@ -9,6 +9,7 @@ import { Github, UserPlus, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { useAuth } from "@/lib/AuthContext";
+import { navigateOAuthPopup, openOAuthPopup } from "@/lib/auth/oauthPopup";
 import { registrationSchema } from "@/lib/validation/auth";
 
 export default function Register() {
@@ -34,10 +35,23 @@ export default function Register() {
 
   const handleProvider = async (provider) => {
     setFormError("");
+    const popup = openOAuthPopup();
+    if (!popup) {
+      setFormError("Your browser blocked the sign-up window. Allow pop-ups or create an account with email.");
+      return;
+    }
     const callbackUrl = new URL("/auth/callback", window.location.origin);
     callbackUrl.searchParams.set("from", "/home");
     const result = await signInWithProvider(provider, callbackUrl.toString());
-    if (!result.ok) setFormError(result.error.message);
+    if (!result.ok) {
+      popup.close();
+      setFormError(result.error.message);
+      return;
+    }
+    if (!result.data?.url || !navigateOAuthPopup(popup, result.data.url)) {
+      popup.close();
+      setFormError("The provider sign-up page could not be opened. Please create an account with email.");
+    }
   };
 
   if (sentEmail) {

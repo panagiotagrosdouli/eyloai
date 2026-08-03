@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,19 +7,42 @@ import { Github, LogIn, Mail, Lock, Loader2, WandSparkles } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { getSafeRedirect } from "@/lib/auth/safeRedirect";
+import { navigateOAuthPopup, OAUTH_COMPLETE_MESSAGE, openOAuthPopup } from "@/lib/auth/oauthPopup";
 import { useAuth } from "@/lib/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { signIn, signInWithProvider, signInWithMagicLink } = useAuth();
+  const { refreshSession, signIn, signInWithProvider, signInWithMagicLink } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [providerPending, setProviderPending] = useState(false);
+  const popupRef = useRef(null);
 
   const destination = getSafeRedirect(searchParams.get("from"));
+
+  useEffect(() => {
+    const finishProviderSignIn = async (event) => {
+      if (event.origin !== window.location.origin || event.data?.type !== OAUTH_COMPLETE_MESSAGE) return;
+      const result = await refreshSession();
+      if (result.ok && result.data) {
+        popupRef.current?.close();
+        navigate(destination, { replace: true });
+        return;
+      }
+      setProviderPending(false);
+      setError("Sign-in finished, but the session could not be restored. Please try email sign-in.");
+    };
+
+    window.addEventListener('message', finishProviderSignIn);
+    return () => {
+      window.removeEventListener('message', finishProviderSignIn);
+      popupRef.current?.close();
+    };
+  }, [destination, navigate, refreshSession]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -44,11 +67,26 @@ export default function Login() {
 
   const handleProvider = async (provider) => {
     setError("");
-    setLoading(true);
+    setProviderPending(true);
+    const popup = openOAuthPopup();
+    popupRef.current = popup;
+    if (!popup) {
+      setProviderPending(false);
+      setError("Your browser blocked the sign-in window. Allow pop-ups or use email/password below.");
+      return;
+    }
+
     const result = await signInWithProvider(provider, callbackUrl());
     if (!result.ok) {
+      popup.close();
+      setProviderPending(false);
       setError(result.error.message);
-      setLoading(false);
+      return;
+    }
+    if (!result.data?.url || !navigateOAuthPopup(popup, result.data.url)) {
+      popup.close();
+      setProviderPending(false);
+      setError("The provider sign-in page could not be opened. Please use email/password or a magic link.");
     }
   };
 
@@ -84,10 +122,10 @@ export default function Login() {
       }
     >
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <Button variant="outline" className="h-12 text-sm font-medium" onClick={() => handleProvider('google')} disabled={loading}>
+        <Button variant="outline" className="h-12 text-sm font-medium" onClick={() => handleProvider('google')} disabled={loading || providerPending}>
           <GoogleIcon className="w-5 h-5 mr-2" />Google
         </Button>
-        <Button variant="outline" className="h-12 text-sm font-medium" onClick={() => handleProvider('github')} disabled={loading}>
+        <Button variant="outline" className="h-12 text-sm font-medium" onClick={() => handleProvider('github')} disabled={loading || providerPending}>
           <Github className="w-5 h-5 mr-2" />GitHub
         </Button>
       </div>
@@ -98,6 +136,7 @@ export default function Login() {
       </div>
 
       {error && <div role="alert" aria-live="polite" className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
+      {providerPending && <div role="status" className="mb-4 rounded-lg border border-cyan-300/20 bg-cyan-400/10 p-3 text-sm text-cyan-100">Complete sign-in in the new window. This EYLO page will stay open even if your browser blocks the provider page.</div>}
       {magicLinkSent && <div role="status" className="mb-4 rounded-lg border border-cyan-300/20 bg-cyan-400/10 p-3 text-sm text-cyan-100">Check your email — your secure sign-in link is on its way.</div>}
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>

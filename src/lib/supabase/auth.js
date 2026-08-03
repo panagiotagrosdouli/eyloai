@@ -53,7 +53,10 @@ export async function signInWithOAuth(provider, redirectTo) {
     const client = requireSupabase();
     const { data, error } = await client.auth.signInWithOAuth({
       provider,
-      options: { redirectTo },
+      options: {
+        redirectTo,
+        skipBrowserRedirect: true,
+      },
     });
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
