@@ -35,7 +35,7 @@ export default function Register() {
   const handleGoogle = async () => {
     setFormError("");
     const callbackUrl = new URL("/auth/callback", window.location.origin);
-    callbackUrl.searchParams.set("from", "/");
+    callbackUrl.searchParams.set("from", "/home");
     const result = await signInWithGoogle(callbackUrl.toString());
     if (!result.ok) setFormError(result.error.message);
   };
