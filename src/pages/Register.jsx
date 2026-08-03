@@ -5,15 +5,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Github, UserPlus, Mail, Lock, Loader2 } from "lucide-react";
+import { UserPlus, Mail, Lock, Loader2, ShieldCheck } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
-import GoogleIcon from "@/components/GoogleIcon";
 import { useAuth } from "@/lib/AuthContext";
-import { navigateOAuthPopup, openOAuthPopup } from "@/lib/auth/oauthPopup";
 import { registrationSchema } from "@/lib/validation/auth";
 
 export default function Register() {
-  const { signUp, signInWithProvider } = useAuth();
+  const { signUp } = useAuth();
   const [formError, setFormError] = useState("");
   const [sentEmail, setSentEmail] = useState("");
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
@@ -33,38 +31,13 @@ export default function Register() {
     setSentEmail(email);
   };
 
-  const handleProvider = async (provider) => {
-    setFormError("");
-    const popup = openOAuthPopup();
-    if (!popup) {
-      setFormError("Your browser blocked the sign-up window. Allow pop-ups or create an account with email.");
-      return;
-    }
-    const callbackUrl = new URL("/auth/callback", window.location.origin);
-    callbackUrl.searchParams.set("from", "/home");
-    const result = await signInWithProvider(provider, callbackUrl.toString());
-    if (!result.ok) {
-      popup.close();
-      setFormError(result.error.message);
-      return;
-    }
-    if (!result.data?.url || !navigateOAuthPopup(popup, result.data.url)) {
-      popup.close();
-      setFormError("The provider sign-up page could not be opened. Please create an account with email.");
-    }
-  };
-
   if (sentEmail) {
     return <AuthLayout icon={Mail} title="Check your email" subtitle={`We sent a confirmation link to ${sentEmail}`} footer={<Link to="/login" className="text-primary font-medium hover:underline">Back to login</Link>}><p className="text-sm text-center">Open the confirmation link to activate your account.</p></AuthLayout>;
   }
 
   return (
     <AuthLayout icon={UserPlus} title="Create your account" subtitle="Sign up to get started" footer={<>Already have an account? <Link to="/login" className="text-primary font-medium hover:underline">Log in</Link></>}>
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <Button type="button" variant="outline" className="h-12 text-sm font-medium" onClick={() => handleProvider('google')} disabled={isSubmitting}><GoogleIcon className="w-5 h-5 mr-2" />Google</Button>
-        <Button type="button" variant="outline" className="h-12 text-sm font-medium" onClick={() => handleProvider('github')} disabled={isSubmitting}><Github className="w-5 h-5 mr-2" />GitHub</Button>
-      </div>
-      <div className="relative mb-6"><div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div><div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-3 text-muted-foreground">or</span></div></div>
+      <div className="mb-6 flex items-start gap-3 rounded-xl border border-cyan-300/20 bg-cyan-400/10 p-4 text-sm text-cyan-50"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300" aria-hidden="true" /><p>Create your secure EYLO account with email. A confirmation link will be sent to you.</p></div>
       {formError && <div role="alert" aria-live="polite" className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{formError}</div>}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="space-y-2"><Label htmlFor="email">Email</Label><div className="relative"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" /><Input id="email" type="email" autoComplete="email" autoFocus placeholder="you@example.com" className="pl-10 h-12" aria-invalid={Boolean(errors.email)} disabled={isSubmitting} {...register("email")} /></div>{errors.email && <p role="alert" className="text-xs text-destructive">{errors.email.message}</p>}</div>
