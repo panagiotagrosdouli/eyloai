@@ -56,5 +56,5 @@ export default function Home() {
     );
   }
 
-  return <EyraHome onSearch={handleSearch} onEyraOpen={() => {}} />;
+  return <EyraHome onSearch={handleSearch} />;
 }

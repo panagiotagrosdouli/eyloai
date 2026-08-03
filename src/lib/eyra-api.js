@@ -150,16 +150,58 @@ export async function searchEuropePMC(query, limit = 5) {
   }
 }
 
+export async function searchCrossref(query, limit = 5) {
+  try {
+    const params = new URLSearchParams({
+      query,
+      rows: String(limit),
+      select: 'DOI,title,author,abstract,published,container-title,is-referenced-by-count,URL',
+      mailto: 'eylo@research.app',
+    });
+    const res = await fetch(`https://api.crossref.org/works?${params}`);
+    if (!res.ok) throw new Error(`Crossref request failed: ${res.status}`);
+    const data = await res.json();
+
+    return (data.message?.items || []).map((work) => {
+      const dateParts = work.published?.['date-parts']?.[0] || [];
+      const year = Number(dateParts[0]) || null;
+      const authors = (work.author || []).slice(0, 4).map((author) =>
+        [author.given, author.family].filter(Boolean).join(' ')
+      ).filter(Boolean).join(', ');
+      const citedBy = Number(work['is-referenced-by-count']) || 0;
+      const abstract = (work.abstract || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
+      return {
+        id: work.DOI || work.URL,
+        doi: work.DOI || '',
+        title: work.title?.[0] || 'Untitled',
+        authors,
+        summary: abstract.slice(0, 400),
+        year,
+        url: work.DOI ? `https://doi.org/${work.DOI}` : work.URL,
+        source: work['container-title']?.[0] || 'Crossref',
+        cited_by_count: citedBy,
+        open_access: false,
+        _score: Math.min(Math.log10(citedBy + 1) * 10, 40)
+          + Math.max(0, 10 - (new Date().getFullYear() - (year || 2000)) * 0.5),
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
 // Combine all sources, deduplicate, rank by composite score
 export async function searchAllPapers(query) {
-  const [openalex, arxiv, europepmc] = await Promise.all([
+  const [openalex, arxiv, europepmc, crossref] = await Promise.all([
     searchOpenAlexWorks(query, 8),
     searchArxiv(query, 5),
     searchEuropePMC(query, 5),
+    searchCrossref(query, 5),
   ]);
 
   const seen = new Set();
-  const all = [...openalex, ...arxiv, ...europepmc].filter(p => {
+  const all = [...openalex, ...arxiv, ...europepmc, ...crossref].filter(p => {
     const key = p.title.toLowerCase().replace(/\s+/g, ' ').slice(0, 60);
     if (seen.has(key)) return false;
     seen.add(key);
