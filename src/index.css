@@ -195,3 +195,77 @@
 .animate-spin-slow { animation: spin-slow 10s linear infinite; }
 .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
 .animate-fade-up { animation: fade-up 0.4s ease-out both; }
+
+/* EYRA Intelligence Interface — layered, calm, and computational. */
+.eyra-neural-shell {
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 12% 8%, hsla(190, 100%, 55%, 0.10), transparent 30%),
+    radial-gradient(circle at 88% 18%, hsla(258, 95%, 65%, 0.12), transparent 34%),
+    radial-gradient(circle at 50% 110%, hsla(215, 100%, 55%, 0.10), transparent 42%),
+    hsl(224 42% 5% / 0.98);
+}
+
+.eyra-neural-shell::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: '';
+  pointer-events: none;
+  opacity: 0.18;
+  background-image:
+    linear-gradient(hsla(210, 100%, 75%, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, hsla(210, 100%, 75%, 0.12) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, black, transparent 68%);
+}
+
+.eyra-intelligence-core {
+  position: relative;
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+}
+
+.eyra-intelligence-core::before,
+.eyra-intelligence-core::after {
+  position: absolute;
+  border-radius: 999px;
+  content: '';
+}
+
+.eyra-intelligence-core::before {
+  inset: 0;
+  border: 1px solid hsla(190, 100%, 70%, 0.55);
+  box-shadow: 0 0 24px hsla(205, 100%, 62%, 0.35);
+  animation: intelligence-breathe 3.2s ease-in-out infinite;
+}
+
+.eyra-intelligence-core::after {
+  inset: 0.35rem;
+  border: 1px solid hsla(262, 90%, 72%, 0.55);
+  animation: spin-slow 9s linear infinite reverse;
+}
+
+.eyra-intelligence-core img {
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 0.45rem;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px hsla(195, 100%, 65%, 0.7));
+}
+
+@keyframes intelligence-breathe {
+  0%, 100% { opacity: 0.65; transform: scale(0.94); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eyra-intelligence-core::before,
+  .eyra-intelligence-core::after,
+  .animate-spin-slow,
+  .animate-pulse-glow {
+    animation: none;
+  }
+}
