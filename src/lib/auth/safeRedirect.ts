@@ -1,4 +1,4 @@
-const FALLBACK_PATH = '/';
+const FALLBACK_PATH = '/home';
 
 const ALLOWED_PREFIXES = [
   '/',
@@ -10,7 +10,18 @@ const ALLOWED_PREFIXES = [
   '/profile',
   '/settings',
   '/ideas',
-  '/labs',
+  '/meetings',
+  '/radar',
+  '/briefing',
+  '/foryou',
+  '/notifications',
+  '/future',
+  '/futureme',
+  '/battlefield',
+  '/dreamteam',
+  '/impact',
+  '/challenges',
+  '/pricing',
 ];
 
 function decodeCandidate(candidate: string): string | null {
