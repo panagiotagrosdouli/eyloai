@@ -7,7 +7,7 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
 
       <section className="relative hidden min-h-screen items-center justify-center overflow-hidden border-r border-white/10 lg:flex">
         <img
-          src="/EYLO%20LOGO/EYLO%20LOGO.png"
+          src="https://raw.githubusercontent.com/panagiotagrosdouli/eyloai/main/EYLO%20LOGO/EYLO%20LOGO.png"
           alt="EYLO"
           className="h-full w-full object-cover object-center opacity-95"
         />
@@ -21,7 +21,7 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
         <section className="w-full max-w-md rounded-3xl border border-white/10 bg-[#07101f]/90 p-7 shadow-[0_30px_100px_-30px_rgba(0,174,255,0.45)] backdrop-blur-xl sm:p-9">
           <div className="mb-8 text-center">
             <a href="/" aria-label="EYLO home" className="mx-auto mb-6 block w-fit">
-              <img src="/brand/eylo.png" alt="EYLO" className="h-16 w-auto max-w-[220px] object-contain" />
+              <img src="https://raw.githubusercontent.com/panagiotagrosdouli/eyloai/main/EYLO%20LOGO/EYLO%20LOGO.png" alt="EYLO" className="h-16 w-auto max-w-[220px] object-contain" />
             </a>
             {Icon && (
               <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-300">
