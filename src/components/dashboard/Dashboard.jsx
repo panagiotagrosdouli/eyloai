@@ -110,7 +110,7 @@ export default function Dashboard({ onSearch }) {
         <div className="max-w-2xl mx-auto text-center">
           <div className="flex items-center justify-center mb-6">
             <img
-              src="/brand/eylo.png"
+              src="https://raw.githubusercontent.com/panagiotagrosdouli/eyloai/main/EYLO%20LOGO/EYLO%20LOGO.png"
               alt="EYLO"
               className="h-12 sm:h-16 w-auto object-contain"
             />
