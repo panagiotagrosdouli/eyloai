@@ -5,9 +5,9 @@ import { buildUserProfile } from '@/lib/second-brain';
 import { getPersona } from '@/lib/persona';
 import UserTypeOnboarding from '@/components/eyra/UserTypeOnboarding';
 import {
-  ArrowRight, Sparkles, Loader2,
+  ArrowRight, Sparkles,
   FolderOpen, Plus, ChevronRight, BookOpen, Zap,
-  TrendingUp, Play, Brain, Lightbulb
+  TrendingUp, Play, Brain, Activity, ShieldCheck, Radio
 } from 'lucide-react';
 import moment from 'moment';
 
@@ -133,15 +133,15 @@ function SearchBar({ onSearch }) {
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        <div className="flex items-center p-1.5 rounded-2xl border border-border/60 bg-card focus-within:border-primary/40 transition-all shadow-sm">
-          <Sparkles size={15} className="ml-3 text-primary flex-shrink-0" />
+        <div className="flex items-center p-1.5 rounded-2xl border border-cyan-200/15 bg-slate-950/55 focus-within:border-cyan-300/45 focus-within:shadow-[0_0_32px_rgba(34,211,238,0.08)] transition-all shadow-2xl backdrop-blur-xl">
+          <Sparkles size={15} className="ml-3 text-cyan-300 flex-shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search papers, researchers, funding..."
-            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none py-3.5 px-3"
+            className="flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 focus:outline-none py-3.5 px-3"
           />
           <button type="submit" disabled={!query.trim()}
             className="flex items-center gap-1.5 px-5 py-3 rounded-xl eyra-gradient text-white text-sm font-semibold disabled:opacity-30 hover:opacity-90 transition-opacity flex-shrink-0">
@@ -152,7 +152,7 @@ function SearchBar({ onSearch }) {
       <div className="flex flex-wrap gap-2 mt-3">
         {examples.map(ex => (
           <button key={ex} onClick={() => onSearch(ex)}
-            className="px-3 py-1.5 rounded-full border border-border/50 bg-secondary/30 text-xs text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all">
+            className="px-3 py-1.5 rounded-full border border-cyan-200/10 bg-slate-950/30 text-xs text-slate-400 hover:text-cyan-100 hover:border-cyan-300/30 transition-all">
             {ex}
           </button>
         ))}
@@ -233,88 +233,93 @@ export default function EyraHome({ onSearch }) {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
+  const shortcuts = [
+    { label: 'Daily Briefing', desc: 'Your intelligence feed', href: '/foryou', icon: Sparkles },
+    { label: 'Opportunity Radar', desc: 'Funding and active calls', href: '/radar', icon: Zap },
+    { label: 'Knowledge Library', desc: 'Saved evidence', href: '/library', icon: BookOpen },
+    { label: 'Future Me', desc: 'Your strategic trajectory', href: '/futureme', icon: TrendingUp },
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-2xl mx-auto px-4 py-12 sm:py-16">
-
-        {/* Greeting */}
-        <div className="mb-10 text-center">
-          <h1 className="font-heading font-bold text-3xl sm:text-4xl text-foreground leading-tight mb-2">
-            {userName ? (
-              <>{greeting}, <span className="eyra-text-gradient">{userName}</span></>
-            ) : (
-              <>What are we <span className="eyra-text-gradient">building today?</span></>
-            )}
-          </h1>
-          {userName && (
-            <p className="text-muted-foreground text-base">What are we building today?</p>
-          )}
-        </div>
-
-        {/* Primary Search */}
-        <div className="mb-8">
-          <SearchBar onSearch={onSearch} />
-        </div>
-
-        {/* EYRA Suggestion (returning users with projects) */}
-        {hasProjects && profile && (
-          <div className="mb-8">
-            <EyraSuggestion profile={profile} persona={persona} />
-          </div>
-        )}
-
-        {/* Projects or Quick Start */}
-        {hasProjects ? (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/50">Continue where you left off</p>
-              <Link to="/projects" className="text-xs text-primary hover:underline flex items-center gap-1">
-                All projects <ChevronRight size={11} />
-              </Link>
-            </div>
-            <div className="space-y-2">
-              {activeProjects.slice(0, 3).map(p => <ProjectCard key={p.id} project={p} />)}
-            </div>
-            <Link to="/projects" className="mt-3 flex items-center justify-center gap-2 py-3.5 rounded-2xl border border-dashed border-border/60 text-xs text-muted-foreground hover:text-primary hover:border-primary/30 transition-all">
-              <Plus size={13} /> New Project
-            </Link>
-          </div>
-        ) : (
-          loaded && <div className="mb-8"><QuickStart onSearch={onSearch} /></div>
-        )}
-
-        {/* Secondary shortcuts — always visible, compact */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {[
-            { label: 'Daily Briefing', href: '/foryou', icon: Sparkles },
-            { label: 'Opportunities', href: '/radar', icon: Zap },
-            { label: 'Library', href: '/library', icon: BookOpen },
-            { label: 'Future Me', href: '/futureme', icon: TrendingUp },
-          ].map(({ label, href, icon: Icon }) => (
-            <Link key={href} to={href}>
-              <div className="p-3 rounded-xl border border-border bg-card hover:border-primary/25 hover:bg-primary/3 transition-all group text-center">
-                <Icon size={14} className="text-primary mx-auto mb-1.5" />
-                <p className="text-xs font-medium text-foreground">{label}</p>
+    <div className="hero-bg min-h-screen overflow-hidden">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+        <section className="eylo-command-deck relative overflow-hidden rounded-[2rem] border border-cyan-200/10 px-5 py-7 sm:px-10 sm:py-10">
+          <div className="relative z-10">
+            <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.22em] text-cyan-200/75">
+                <Radio size={12} className="text-emerald-400" aria-hidden="true" />
+                EYLO Intelligence Workspace
               </div>
-            </Link>
-          ))}
-        </div>
+              <div className="flex items-center gap-2 rounded-full border border-emerald-300/15 bg-emerald-300/5 px-3 py-1.5 text-[10px] text-emerald-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                OpenAI connected
+              </div>
+            </div>
 
-        {/* Intelligence score — only once meaningful */}
-        {profile && profile.stats.activityScore > 15 && (
-          <div className="mt-8 p-4 rounded-2xl border border-border bg-card">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-foreground">EYRA Intelligence Score</p>
-              <span className="text-xs font-bold text-primary">{profile.stats.activityScore}/100</span>
+            <div className="max-w-3xl">
+              <p className="mb-3 text-sm font-medium text-slate-400">{userName ? `${greeting}, ${userName}` : greeting}</p>
+              <h1 className="font-heading text-4xl font-bold leading-[1.05] tracking-[-0.04em] text-white sm:text-6xl">
+                Turn one idea into
+                <span className="block eyra-text-gradient">research, momentum, impact.</span>
+              </h1>
+              <p className="mt-5 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
+                Ask EYRA what you want to build. EYLO connects the evidence, people, projects and opportunities needed to move forward.
+              </p>
             </div>
-            <div className="h-1.5 rounded-full bg-secondary overflow-hidden mb-2">
-              <div className="h-full rounded-full eyra-gradient transition-all" style={{ width: `${profile.stats.activityScore}%` }} />
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              {profile.stats.projects} projects · {profile.stats.papers} papers · {profile.stats.researchers} researchers
-            </p>
+
+            <div className="mt-8 max-w-4xl"><SearchBar onSearch={onSearch} /></div>
           </div>
-        )}
+        </section>
+
+        <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(280px,0.75fr)]">
+          <div className="space-y-5">
+            {hasProjects && profile && <EyraSuggestion profile={profile} persona={persona} />}
+
+            <section className="eylo-glass-panel rounded-3xl p-5 sm:p-6">
+              {hasProjects ? (
+                <>
+                  <div className="mb-4 flex items-center justify-between">
+                    <div>
+                      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-cyan-200/60">Active execution</p>
+                      <h2 className="mt-1 text-lg font-semibold text-white">Continue where you left off</h2>
+                    </div>
+                    <Link to="/projects" className="flex items-center gap-1 text-xs text-cyan-300 hover:text-cyan-100">All projects <ChevronRight size={12} /></Link>
+                  </div>
+                  <div className="space-y-2">{activeProjects.slice(0, 3).map(p => <ProjectCard key={p.id} project={p} />)}</div>
+                  <Link to="/projects" className="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-cyan-200/15 py-3.5 text-xs text-slate-400 hover:border-cyan-300/35 hover:text-cyan-200 transition-all"><Plus size={13} /> New Project</Link>
+                </>
+              ) : (
+                loaded && <QuickStart onSearch={onSearch} />
+              )}
+            </section>
+          </div>
+
+          <aside className="eylo-glass-panel rounded-3xl p-5 sm:p-6">
+            <div className="mb-5 flex items-start justify-between">
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-violet-200/60">Intelligence deck</p>
+                <h2 className="mt-1 text-lg font-semibold text-white">Your command paths</h2>
+              </div>
+              <div className="grid h-9 w-9 place-items-center rounded-xl border border-cyan-200/10 bg-cyan-300/5"><Activity size={16} className="text-cyan-300" /></div>
+            </div>
+
+            <div className="space-y-2">
+              {shortcuts.map(({ label, desc, href, icon: Icon }) => (
+                <Link key={href} to={href} className="group flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.025] p-3 hover:border-cyan-200/15 hover:bg-cyan-300/[0.04] transition-all">
+                  <div className="grid h-9 w-9 place-items-center rounded-xl bg-slate-900 text-cyan-300"><Icon size={15} /></div>
+                  <div className="min-w-0 flex-1"><p className="text-xs font-semibold text-slate-100">{label}</p><p className="mt-0.5 text-[10px] text-slate-500">{desc}</p></div>
+                  <ChevronRight size={13} className="text-slate-600 group-hover:text-cyan-300" />
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-5 border-t border-white/5 pt-5">
+              <div className="flex items-center justify-between"><span className="flex items-center gap-2 text-xs text-slate-300"><ShieldCheck size={14} className="text-emerald-400" /> Intelligence score</span><strong className="text-sm text-cyan-300">{profile?.stats.activityScore || 0}/100</strong></div>
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-800"><div className="h-full rounded-full eyra-gradient transition-all" style={{ width: `${profile?.stats.activityScore || 0}%` }} /></div>
+              <p className="mt-3 text-[10px] leading-5 text-slate-500">{profile?.stats.projects || 0} projects · {profile?.stats.papers || 0} papers · {profile?.stats.researchers || 0} researchers</p>
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
   );
