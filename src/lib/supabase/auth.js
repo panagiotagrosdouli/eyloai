@@ -48,12 +48,29 @@ export async function signUp(email, password, options = {}) {
   }
 }
 
-export async function signInWithGoogle(redirectTo) {
+export async function signInWithOAuth(provider, redirectTo) {
   try {
     const client = requireSupabase();
     const { data, error } = await client.auth.signInWithOAuth({
-      provider: 'google',
+      provider,
       options: { redirectTo },
+    });
+    if (error) return fail(mapSupabaseError(error));
+    return ok(data);
+  } catch (error) {
+    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+  }
+}
+
+export async function signInWithMagicLink(email, redirectTo) {
+  try {
+    const client = requireSupabase();
+    const { data, error } = await client.auth.signInWithOtp({
+      email: email.trim().toLowerCase(),
+      options: {
+        emailRedirectTo: redirectTo,
+        shouldCreateUser: true,
+      },
     });
     if (error) return fail(mapSupabaseError(error));
     return ok(data);

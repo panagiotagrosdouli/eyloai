@@ -5,7 +5,8 @@ import {
   refreshSession as refreshAuthSession,
   resetPassword as requestPasswordReset,
   signIn as signInWithPassword,
-  signInWithGoogle as startGoogleSignIn,
+  signInWithMagicLink as startMagicLinkSignIn,
+  signInWithOAuth as startOAuthSignIn,
   signOut as signOutSession,
   signUp as registerWithPassword,
   updatePassword as updateAccountPassword,
@@ -77,7 +78,9 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => signInWithPassword(email, password);
   const signUp = async (email, password, metadata) => registerWithPassword(email, password, metadata);
-  const signInWithGoogle = async (redirectTo) => startGoogleSignIn(redirectTo);
+  const signInWithProvider = async (provider, redirectTo) => startOAuthSignIn(provider, redirectTo);
+  const signInWithGoogle = async (redirectTo) => signInWithProvider('google', redirectTo);
+  const signInWithMagicLink = async (email, redirectTo) => startMagicLinkSignIn(email, redirectTo);
   const resetPassword = async (email, redirectTo) => requestPasswordReset(email, redirectTo);
   const updatePassword = async (password) => updateAccountPassword(password);
 
@@ -99,6 +102,8 @@ export const AuthProvider = ({ children }) => {
     signIn,
     signUp,
     signInWithGoogle,
+    signInWithProvider,
+    signInWithMagicLink,
     signOut,
     refreshSession,
     resetPassword,
