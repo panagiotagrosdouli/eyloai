@@ -1,4 +1,5 @@
 import { searchAllPapers, searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
+import { supabaseEntities } from '@/services/supabase-entities';
 
 const KEYS = { watchlists: 'eylo_watchlists_v1', discoveries: 'eylo_monitoring_discoveries_v1', notifications: 'eylo_notifications_v1' };
 const EVENT = 'eylo:monitoring-updated';
@@ -6,18 +7,67 @@ const EVENT = 'eylo:monitoring-updated';
 const read = (key) => { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; } };
 const write = (key, value) => { localStorage.setItem(key, JSON.stringify(value)); window.dispatchEvent(new CustomEvent(EVENT)); return value; };
 const id = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+let hydrationPromise;
+
+const repositories = {
+  watchlists: supabaseEntities.Watchlist,
+  discoveries: supabaseEntities.MonitoringDiscovery,
+  notifications: supabaseEntities.Notification,
+};
+
+function notify() { window.dispatchEvent(new CustomEvent(EVENT)); }
+
+async function hydrateFromSupabase() {
+  try {
+    const [watchlists, discoveries, notifications] = await Promise.all([
+      repositories.watchlists.list('-updated_date', 100),
+      repositories.discoveries.list('-created_date', 300),
+      repositories.notifications.list('-created_date', 100),
+    ]);
+    localStorage.setItem(KEYS.watchlists, JSON.stringify(watchlists));
+    localStorage.setItem(KEYS.discoveries, JSON.stringify(discoveries));
+    localStorage.setItem(KEYS.notifications, JSON.stringify(notifications));
+    notify();
+  } catch (error) {
+    // The local cache remains usable while a new Supabase migration is being
+    // applied or when the user is temporarily offline.
+    console.warn('[monitoring] Supabase sync unavailable; using local cache.', error?.message || error);
+  }
+}
+
+function hydrate() {
+  hydrationPromise ||= hydrateFromSupabase().finally(() => { hydrationPromise = null; });
+  return hydrationPromise;
+}
+
+function persistCreate(bucket, temporaryId, payload) {
+  repositories[bucket].create(payload).then(created => {
+    const current = read(KEYS[bucket]);
+    write(KEYS[bucket], current.map(item => item.id === temporaryId ? created : item));
+  }).catch(() => {});
+}
+
+function persistUpdate(bucket, itemId, patch) {
+  if (!String(itemId).includes('-') || String(itemId).split('-').length < 5) return;
+  repositories[bucket].update(itemId, patch).catch(() => {});
+}
 
 export const monitoringStore = {
   watchlists: () => read(KEYS.watchlists),
   discoveries: () => read(KEYS.discoveries),
   notifications: () => read(KEYS.notifications),
-  subscribe(callback) { window.addEventListener(EVENT, callback); return () => window.removeEventListener(EVENT, callback); },
-  addWatchlist(input) { const item = { id: id(), type: input.type || 'topic', query: input.query.trim(), active: true, createdAt: new Date().toISOString(), lastCheckedAt: null }; return write(KEYS.watchlists, [item, ...read(KEYS.watchlists)]); },
-  updateWatchlist(itemId, patch) { return write(KEYS.watchlists, read(KEYS.watchlists).map(item => item.id === itemId ? { ...item, ...patch } : item)); },
-  deleteWatchlist(itemId) { return write(KEYS.watchlists, read(KEYS.watchlists).filter(item => item.id !== itemId)); },
-  updateDiscovery(itemId, patch) { return write(KEYS.discoveries, read(KEYS.discoveries).map(item => item.id === itemId ? { ...item, ...patch } : item)); },
-  markNotification(itemId, patch) { return write(KEYS.notifications, read(KEYS.notifications).map(item => item.id === itemId ? { ...item, ...patch } : item)); },
-  markAllRead() { return write(KEYS.notifications, read(KEYS.notifications).map(item => ({ ...item, read: true }))); },
+  hydrate,
+  subscribe(callback) { window.addEventListener(EVENT, callback); void hydrate(); return () => window.removeEventListener(EVENT, callback); },
+  addWatchlist(input) {
+    const item = { id: id(), type: input.type || 'topic', query: input.query.trim(), active: true, createdAt: new Date().toISOString(), lastCheckedAt: null };
+    const result = write(KEYS.watchlists, [item, ...read(KEYS.watchlists)]);
+    const { id: _id, ...payload } = item; persistCreate('watchlists', item.id, payload); return result;
+  },
+  updateWatchlist(itemId, patch) { persistUpdate('watchlists', itemId, patch); return write(KEYS.watchlists, read(KEYS.watchlists).map(item => item.id === itemId ? { ...item, ...patch } : item)); },
+  deleteWatchlist(itemId) { if (String(itemId).split('-').length >= 5) repositories.watchlists.delete(itemId).catch(() => {}); return write(KEYS.watchlists, read(KEYS.watchlists).filter(item => item.id !== itemId)); },
+  updateDiscovery(itemId, patch) { persistUpdate('discoveries', itemId, patch); return write(KEYS.discoveries, read(KEYS.discoveries).map(item => item.id === itemId ? { ...item, ...patch } : item)); },
+  markNotification(itemId, patch) { persistUpdate('notifications', itemId, patch); return write(KEYS.notifications, read(KEYS.notifications).map(item => item.id === itemId ? { ...item, ...patch } : item)); },
+  markAllRead() { const items = read(KEYS.notifications).map(item => ({ ...item, read: true })); items.forEach(item => persistUpdate('notifications', item.id, { read: true })); return write(KEYS.notifications, items); },
 };
 
 function confidence(entity, kind) {
@@ -57,8 +107,10 @@ export async function runWatchlist(watchlist) {
   const known = new Set(existing.map(item => `${item.source}|${item.externalId}`));
   const fresh = candidates.filter(item => item.externalId && !known.has(`${item.source}|${item.externalId}`));
   write(KEYS.discoveries, [...fresh, ...existing].slice(0, 300));
+  fresh.forEach(item => { const { id: temporaryId, ...payload } = item; persistCreate('discoveries', temporaryId, payload); });
   const notifications = fresh.filter(item => item.priority === 'HIGH').map(item => ({ id: id(), discoveryId: item.id, title: item.title, description: item.priorityReason, priority: item.priority, type: item.type, sourceUrl: item.sourceUrl, read: false, createdAt: item.detectedAt }));
   write(KEYS.notifications, [...notifications, ...read(KEYS.notifications)].slice(0, 100));
+  notifications.forEach(item => { const { id: temporaryId, ...payload } = item; persistCreate('notifications', temporaryId, payload); });
   monitoringStore.updateWatchlist(watchlist.id, { lastCheckedAt: new Date().toISOString() });
   return { discovered: fresh.length, notifications: notifications.length };
 }
