@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import {
   X, Mic, MicOff, Send, Sparkles, Loader2,
-  Volume2, VolumeX, Zap, Target, FileText, Users,
+  Volume2, VolumeX, Target, FileText, Users,
   Award, Map, TrendingUp, AlertTriangle, Brain,
-  Rocket, BarChart3, BookOpen, ChevronDown
+  Rocket, BarChart3, BookOpen, Trash2
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -59,6 +59,23 @@ RESPONSE FORMAT (use markdown):
 - Use bullet points for lists
 - Use ## headers for multi-section answers
 - Keep it scannable — quality over length`;
+
+const INITIAL_MESSAGE = {
+  role: 'eyra',
+  content: "I'm online and ready. Tell me what you're working on — a research idea, project challenge, funding question, or startup goal — and I'll get to work.",
+  timestamp: Date.now(),
+  mode: 'research',
+};
+
+function loadConversation() {
+  try {
+    const saved = sessionStorage.getItem('eyra_command_conversation');
+    const parsed = saved ? JSON.parse(saved) : null;
+    return Array.isArray(parsed) && parsed.length ? parsed : [INITIAL_MESSAGE];
+  } catch {
+    return [INITIAL_MESSAGE];
+  }
+}
 
 function TypingIndicator() {
   return (
@@ -126,12 +143,7 @@ function Message({ msg, mode }) {
 }
 
 export default function EyraCommandCenter({ open, onClose }) {
-  const [messages, setMessages] = useState([{
-    role: 'eyra',
-    content: "I'm online and ready. Tell me what you're working on — a research idea, project challenge, funding question, or startup goal — and I'll get to work.",
-    timestamp: Date.now(),
-    mode: 'research',
-  }]);
+  const [messages, setMessages] = useState(loadConversation);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
@@ -149,6 +161,10 @@ export default function EyraCommandCenter({ open, onClose }) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
+
+  useEffect(() => {
+    sessionStorage.setItem('eyra_command_conversation', JSON.stringify(messages.slice(-30)));
+  }, [messages]);
 
   const speak = (text) => {
     if (!voiceEnabled) return;
@@ -194,8 +210,9 @@ export default function EyraCommandCenter({ open, onClose }) {
     const modePrompt = mode?.prompt || '';
     const history = newMessages.slice(-12).map(m => `${m.role === 'user' ? 'User' : 'EYRA'}: ${m.content}`).join('\n\n');
 
-    const response = await base44.integrations.Core.InvokeLLM({
-      prompt: `${BASE_SYSTEM}
+    try {
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `${BASE_SYSTEM}
 
 ${modePrompt}
 
@@ -203,12 +220,27 @@ Conversation history:
 ${history}
 
 Respond as EYRA. Be strategic, precise, and actionable. Use markdown for structure.`,
-    });
+      });
 
-    const eyraMsg = { role: 'eyra', content: response, timestamp: Date.now(), mode: activeMode };
-    setMessages(prev => [...prev, eyraMsg]);
-    setLoading(false);
-    speak(response);
+      const eyraMsg = { role: 'eyra', content: response, timestamp: Date.now(), mode: activeMode };
+      setMessages(prev => [...prev, eyraMsg]);
+      speak(response);
+    } catch {
+      setMessages(prev => [...prev, {
+        role: 'eyra',
+        content: '**I could not complete that analysis.** Your message is safe. Please try again or choose a different EYRA mode.',
+        timestamp: Date.now(),
+        mode: activeMode,
+      }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearConversation = () => {
+    window.speechSynthesis?.cancel();
+    setMessages([{ ...INITIAL_MESSAGE, timestamp: Date.now(), mode: activeMode }]);
+    setInput('');
   };
 
   const handleKeyDown = (e) => {
@@ -251,10 +283,15 @@ Respond as EYRA. Be strategic, precise, and actionable. Use markdown for structu
               <p className="text-[10px] text-muted-foreground">AI Co-Founder · Research · Strategy · Funding</p>
             </div>
             <button onClick={() => setVoiceEnabled(!voiceEnabled)}
+              type="button"
+              aria-label={voiceEnabled ? 'Disable EYRA voice' : 'Enable EYRA voice'}
               className={`p-2 rounded-lg transition-colors ${voiceEnabled ? 'bg-primary/15 text-primary' : 'hover:bg-secondary text-muted-foreground'}`}>
               {voiceEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
             </button>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground transition-colors">
+            <button type="button" onClick={clearConversation} aria-label="Clear EYRA conversation" className="p-2 rounded-lg hover:bg-secondary text-muted-foreground transition-colors">
+              <Trash2 size={14} />
+            </button>
+            <button type="button" onClick={onClose} aria-label="Close Ask EYRA" className="p-2 rounded-lg hover:bg-secondary text-muted-foreground transition-colors">
               <X size={14} />
             </button>
           </div>
