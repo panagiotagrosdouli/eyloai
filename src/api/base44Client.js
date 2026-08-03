@@ -1,5 +1,6 @@
 import { createClient } from '@base44/sdk';
 import { appParams } from '@/lib/app-params';
+import { supabaseEntities, supabaseProfile } from '@/services/supabase-entities';
 
 if (!appParams.appId) {
   console.warn(
@@ -7,11 +8,20 @@ if (!appParams.appId) {
   );
 }
 
-export const base44 = createClient({
+const legacyClient = createClient({
   appId: appParams.appId,
   token: appParams.token || undefined,
   baseURL: appParams.appBaseUrl || undefined,
   functionsVersion: appParams.functionsVersion || undefined,
 });
+
+// Compatibility facade: existing pages keep their stable API while persistence
+// moves from Base44 entities to Supabase PostgreSQL with per-user RLS.
+export const base44 = {
+  ...legacyClient,
+  auth: { ...legacyClient.auth, me: supabaseProfile.me.bind(supabaseProfile), updateMe: supabaseProfile.updateMe.bind(supabaseProfile) },
+  entities: supabaseEntities,
+  integrations: legacyClient.integrations,
+};
 
 export default base44;
