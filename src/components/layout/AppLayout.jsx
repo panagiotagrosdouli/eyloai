@@ -4,7 +4,7 @@ import {
   Home, FolderOpen, User, Sparkles, ChevronDown,
   Menu, X, Zap, Brain, BookOpen, Settings, MoreHorizontal,
   Lightbulb, Users, TrendingUp, Video, Globe, Target,
-  Rocket, Trophy, Award, Crown
+  Rocket, Trophy, Award, Crown, Search
 } from 'lucide-react';
 import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
 import NotificationsBell from '@/components/monitoring/NotificationsBell';
@@ -58,12 +58,20 @@ export default function AppLayout() {
   const [eyraOpen, setEyraOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [toolQuery, setToolQuery] = useState('');
   const dropdownRef = useRef(null);
 
   const isActive = (path) =>
     location.pathname === path || location.pathname.startsWith(`${path}/`);
 
   const isMoreActive = ALL_MORE_ITEMS.some(n => isActive(n.path));
+  const normalizedToolQuery = toolQuery.trim().toLowerCase();
+  const filteredMoreNav = MORE_NAV.map(section => ({
+    ...section,
+    items: section.items.filter(item =>
+      !normalizedToolQuery
+      || `${item.label} ${item.desc}`.toLowerCase().includes(normalizedToolQuery)),
+  })).filter(section => section.items.length > 0);
 
   useEffect(() => {
     const handler = (e) => {
@@ -76,6 +84,7 @@ export default function AppLayout() {
   useEffect(() => {
     setMoreOpen(false);
     setMobileOpen(false);
+    setToolQuery('');
   }, [location.pathname]);
 
   const mobilePrimary = PRIMARY_NAV.slice(0, 2);
@@ -131,7 +140,17 @@ export default function AppLayout() {
                   className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-2xl shadow-2xl z-50 p-2 space-y-3 max-h-[80vh] overflow-y-auto"
                   style={{ boxShadow: '0 24px 64px -12px rgba(0,0,0,0.5)' }}
                 >
-                  {MORE_NAV.map(section => (
+                  <label className="relative block px-1 pt-1">
+                    <Search size={13} className="pointer-events-none absolute left-4 top-1/2 mt-0.5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                    <span className="sr-only">Search EYLO tools</span>
+                    <input
+                      value={toolQuery}
+                      onChange={event => setToolQuery(event.target.value)}
+                      placeholder="Find a tool…"
+                      className="h-9 w-full rounded-xl border border-border bg-secondary/40 pl-9 pr-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/40"
+                    />
+                  </label>
+                  {filteredMoreNav.map(section => (
                     <div key={section.section}>
                       <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50 px-2 py-1">{section.section}</p>
                       {section.items.map(item => {
@@ -155,6 +174,9 @@ export default function AppLayout() {
                       })}
                     </div>
                   ))}
+                  {filteredMoreNav.length === 0 && (
+                    <p className="px-3 py-6 text-center text-xs text-muted-foreground">No tools match “{toolQuery}”.</p>
+                  )}
                 </div>
               )}
             </div>
