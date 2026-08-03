@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import {
-  ArrowLeft, Sparkles, Save, Loader2, FileText, Users,
-  Award, StickyNote, Brain, TrendingUp, Clock, Video,
-  Target, CheckCircle2, AlertTriangle, Zap, RefreshCw
+  ArrowLeft, Sparkles, Save, Loader2, FileText, Users, StickyNote, Brain, Clock, Video,
+  Target, RefreshCw
 } from 'lucide-react';
 import ProjectMeetings from '@/components/meetings/ProjectMeetings';
 import { motion } from 'framer-motion';
@@ -13,7 +12,7 @@ import ReactMarkdown from 'react-markdown';
 import moment from 'moment';
 import StartupBuilder from '@/components/projects/StartupBuilder';
 import EyraProjectTwin from '@/components/eyra/EyraProjectTwin';
-import ProjectHeaalthScore from '@/components/projects/ProjectHealthScore';
+import ProjectHealthScore from '@/components/projects/ProjectHealthScore';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 
 const TABS = [
