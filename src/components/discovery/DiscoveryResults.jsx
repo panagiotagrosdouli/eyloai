@@ -140,7 +140,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             className="mt-4 p-4 rounded-xl border border-primary/25 bg-primary/5 flex items-start gap-3">
             <div className="w-8 h-8 rounded-lg overflow-hidden bg-white flex-shrink-0">
-              <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+              <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
             </div>
             <div className="flex-1">
               <p className="text-xs font-semibold text-foreground mb-2">Project created. Explore the full report:</p>
@@ -314,7 +314,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           {!projectCreated && (
             <div className="p-5 rounded-2xl border border-primary/20 bg-primary/5 flex items-start gap-4">
               <div className="w-10 h-10 rounded-xl overflow-hidden bg-white flex-shrink-0">
-                <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+                <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-sm text-foreground mb-1">Turn this into a project workspace</p>

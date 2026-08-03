@@ -86,7 +86,7 @@ export default function AppLayout() {
           {/* Brand */}
           <Link to="/home" className="flex items-center flex-shrink-0 mr-4">
             <img
-              src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/a8ecbf98b_ChatGPTImage21202609_26_48.png"
+              src="/brand/eylo.png"
               alt="EYLO"
               className="h-8 w-auto object-contain"
             />
@@ -222,7 +222,7 @@ export default function AppLayout() {
               onClick={() => { setEyraOpen(true); setMobileOpen(false); }}
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl eyra-gradient text-white text-sm font-semibold mt-2"
             >
-              <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="h-4 w-auto" />
+              <img src="/brand/eyra.png" alt="EYRA" className="h-4 w-auto" />
               Ask EYRA
             </button>
           </div>

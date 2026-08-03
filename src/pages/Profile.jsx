@@ -293,7 +293,7 @@ export default function Profile() {
           {profilePct < 70 && (
             <div className="p-4 rounded-xl border border-primary/15 bg-primary/5 flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg overflow-hidden bg-white flex-shrink-0">
-                <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+                <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
               </div>
               <div>
                 <p className="text-xs font-semibold text-foreground mb-0.5">Complete your profile</p>

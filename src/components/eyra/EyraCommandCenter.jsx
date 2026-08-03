@@ -88,7 +88,7 @@ function Message({ msg, mode }) {
     >
       {isEyra ? (
         <div className="w-7 h-7 rounded-full overflow-hidden bg-white flex-shrink-0 mt-0.5 shadow-sm">
-          <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+          <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
         </div>
       ) : (
         <div className="w-7 h-7 rounded-full bg-secondary border border-border flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -242,7 +242,7 @@ Respond as EYRA. Be strategic, precise, and actionable. Use markdown for structu
           <div className="flex items-center gap-3 px-4 py-3 border-b border-border/60 bg-card/50 flex-shrink-0">
             <div className="relative flex-shrink-0">
               <div className="w-9 h-9 rounded-xl overflow-hidden bg-white">
-                <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+                <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 border-2 border-background" />
             </div>

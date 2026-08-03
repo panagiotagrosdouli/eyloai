@@ -262,7 +262,7 @@ Write as a seasoned advisor to a top researcher/entrepreneur. Be direct, opinion
           <div className="p-6 rounded-2xl border border-primary/20 bg-primary/5">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-xl overflow-hidden bg-white flex items-center justify-center flex-shrink-0">
-                <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+                <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
               </div>
               <div>
                 <p className="font-semibold text-sm">EYRA doesn't wait.</p>
@@ -425,7 +425,7 @@ Write as a seasoned advisor to a top researcher/entrepreneur. Be direct, opinion
             <div className="p-4 rounded-2xl border border-primary/20 bg-primary/5">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-7 h-7 rounded-lg overflow-hidden bg-white flex items-center justify-center">
-                  <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+                  <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <p className="text-xs font-bold">Personal Board Member</p>

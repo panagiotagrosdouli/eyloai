@@ -81,7 +81,7 @@ export default function ForYou() {
         <div>
           <div className="flex items-center gap-2 mb-0.5">
             <div className="w-7 h-7 rounded-lg overflow-hidden bg-white">
-              <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+              <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
             </div>
             <h1 className="font-heading font-bold text-xl text-foreground">EYRA Intelligence</h1>
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />

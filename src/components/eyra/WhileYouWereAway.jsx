@@ -140,7 +140,7 @@ export default function WhileYouWereAway({ projects, searchHistory }) {
         <div className="relative flex-shrink-0">
           <div className="w-9 h-9 rounded-xl overflow-hidden bg-white">
             <img
-              src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png"
+              src="/brand/eyra.png"
               alt="EYRA" className="w-full h-full object-contain"
             />
           </div>

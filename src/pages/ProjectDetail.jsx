@@ -225,7 +225,7 @@ Be specific, actionable, and research-oriented. Format clearly with bullet point
           {/* EYRA Next Action banner */}
           <div className="p-4 rounded-xl border border-primary/25 bg-primary/5 flex items-start gap-3">
             <div className="w-8 h-8 rounded-lg overflow-hidden bg-white flex-shrink-0">
-              <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+              <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
             </div>
             <div className="flex-1">
               <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-0.5">EYRA recommends</p>

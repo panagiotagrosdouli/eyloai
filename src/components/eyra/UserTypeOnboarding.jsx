@@ -39,7 +39,7 @@ export default function UserTypeOnboarding({ onComplete }) {
           {/* Header */}
           <div className="px-6 py-6 text-center border-b border-border/40">
             <div className="w-14 h-14 rounded-2xl overflow-hidden bg-white mx-auto mb-4 animate-pulse-glow">
-              <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+              <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
             </div>
             <h2 className="font-heading font-bold text-xl text-foreground mb-1">Welcome to EYLO</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">

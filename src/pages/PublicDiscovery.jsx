@@ -44,7 +44,7 @@ export default function PublicDiscovery() {
     <main className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-8">
-          <Link to="/" className="flex items-center gap-2 text-sm font-semibold"><ArrowLeft size={15} /> EYLO</Link>
+          <Link to="/" className="flex items-center gap-2 text-sm font-semibold"><ArrowLeft size={15} /><img src="/brand/eylo.png" alt="EYLO" className="h-8 w-8 rounded-xl object-cover object-top" /></Link>
           <form onSubmit={submit} className="ml-auto flex w-full max-w-2xl items-center rounded-2xl border border-border bg-card p-1.5">
             <Search className="ml-3 text-muted-foreground" size={15} />
             <input value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none" placeholder="What would you like to build?" />
@@ -56,7 +56,7 @@ export default function PublicDiscovery() {
 
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
         <div className="mb-10 max-w-3xl">
-          <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-primary"><Sparkles size={13} /> EYRA Discovery</div>
+          <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-primary"><img src="/brand/eyra.png" alt="EYRA" className="h-7 w-10 rounded-md object-cover" /> EYRA Discovery</div>
           <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-5xl">Real evidence for “{initialQuery}”</h1>
           <p className="mt-4 text-sm leading-6 text-muted-foreground sm:text-base">Live discovery from OpenAlex, arXiv, Crossref and Europe PMC. EYRA never invents papers or researchers.</p>
         </div>

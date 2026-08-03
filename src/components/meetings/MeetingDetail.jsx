@@ -236,7 +236,7 @@ Be concise and actionable.`,
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-5 h-5 object-contain" />
+                <img src="/brand/eyra.png" alt="EYRA" className="w-5 h-5 object-contain" />
               </div>
               <div>
                 <p className="text-sm font-semibold">EYRA Pre-Meeting Brief</p>
