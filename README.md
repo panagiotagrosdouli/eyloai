@@ -1,4 +1,5 @@
 # EYLO AI
+![Uploading image.png…]()
 
 EYLO AI is an open engineering and research platform for building transparent, reproducible AI products. The repository currently contains interface prototypes and this dependency-light official platform layer.
 
