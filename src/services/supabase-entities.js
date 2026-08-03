@@ -3,6 +3,7 @@ import { requireSupabase } from '@/lib/supabaseClient';
 const TABLES = {
   Project: 'projects', Idea: 'ideas', Meeting: 'meetings', SavedPaper: 'saved_papers',
   SavedResearcher: 'saved_researchers', SavedOpportunity: 'saved_opportunities', SearchHistory: 'search_history',
+  Watchlist: 'watchlists', MonitoringDiscovery: 'monitoring_discoveries', Notification: 'notifications',
 };
 
 const rowToEntity = (row) => row ? ({ id: row.id, created_date: row.created_date, updated_date: row.updated_date, ...row.data }) : null;
