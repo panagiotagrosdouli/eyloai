@@ -29,13 +29,17 @@ export async function signIn(email, password) {
   }
 }
 
-export async function signUp(email, password, metadata = {}) {
+export async function signUp(email, password, options = {}) {
   try {
     const client = requireSupabase();
+    const { emailRedirectTo, ...userData } = options;
     const { data, error } = await client.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
-      options: { data: metadata },
+      options: {
+        data: userData,
+        ...(emailRedirectTo ? { emailRedirectTo } : {}),
+      },
     });
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
