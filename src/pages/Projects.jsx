@@ -290,7 +290,7 @@ export default function Projects() {
         <div className="mt-8 p-5 rounded-2xl border border-border bg-card">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-lg overflow-hidden bg-white flex-shrink-0">
-              <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+              <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
             </div>
             <div>
               <p className="text-xs font-semibold text-foreground mb-1">EYRA tip</p>

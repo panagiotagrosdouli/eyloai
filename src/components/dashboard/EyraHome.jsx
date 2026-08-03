@@ -18,7 +18,7 @@ function WelcomeScreen({ onStart }) {
       <div className="max-w-md">
         <div className="flex justify-center mb-10">
           <div className="w-20 h-20 rounded-3xl overflow-hidden bg-white shadow-lg">
-            <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+            <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
           </div>
         </div>
         <h1 className="font-heading font-bold text-4xl text-foreground mb-4 leading-tight">
@@ -96,7 +96,7 @@ Return JSON: { "message": "One sentence, max 18 words, what to focus on today", 
   return (
     <div className="flex items-start gap-3 p-4 rounded-2xl border border-primary/20 bg-primary/5">
       <div className="w-8 h-8 rounded-xl overflow-hidden bg-white flex-shrink-0 mt-0.5">
-        <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+        <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">EYRA suggests</p>

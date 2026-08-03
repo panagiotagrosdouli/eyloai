@@ -110,14 +110,14 @@ export default function Dashboard({ onSearch }) {
         <div className="max-w-2xl mx-auto text-center">
           <div className="flex items-center justify-center mb-6">
             <img
-              src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/a8ecbf98b_ChatGPTImage21202609_26_48.png"
+              src="/brand/eylo.png"
               alt="EYLO"
               className="h-12 sm:h-16 w-auto object-contain"
             />
           </div>
 
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/25 bg-primary/5 mb-5">
-            <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="h-3.5 w-auto object-contain" />
+            <img src="/brand/eyra.png" alt="EYRA" className="h-3.5 w-auto object-contain" />
             <span className="text-[10px] font-semibold tracking-widest text-primary uppercase">EYRA · AI Research Intelligence</span>
             <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
           </div>
@@ -191,7 +191,7 @@ export default function Dashboard({ onSearch }) {
           <div className="p-5 rounded-2xl border border-primary/20 bg-primary/5">
             <div className="flex items-start gap-4">
               <div className="w-9 h-9 rounded-xl overflow-hidden bg-white flex items-center justify-center flex-shrink-0 animate-pulse-glow">
-                <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+                <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">{nextAction.priority}</p>
@@ -356,7 +356,7 @@ export default function Dashboard({ onSearch }) {
             <button onClick={() => setEyraOpen(true)}
               className="w-full flex items-center gap-3 p-4 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/8 transition-colors text-left group">
               <div className="w-9 h-9 rounded-lg overflow-hidden bg-white flex-shrink-0">
-                <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+                <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-primary">Talk to EYRA</p>

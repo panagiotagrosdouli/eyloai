@@ -147,7 +147,7 @@ Generate exactly 5 gaps, 5 top_recommendations. Be specific and realistic.`,
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="w-7 h-7 rounded-lg overflow-hidden bg-white">
-              <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+              <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
             </div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Future Me Engine</span>
           </div>
@@ -170,7 +170,7 @@ Generate exactly 5 gaps, 5 top_recommendations. Be specific and realistic.`,
       {analysis?.mentor_message && (
         <div className="mb-6 p-4 rounded-2xl border border-primary/20 bg-primary/5 flex items-start gap-3">
           <div className="w-8 h-8 rounded-lg overflow-hidden bg-white flex-shrink-0">
-            <img src="https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png" alt="EYRA" className="w-full h-full object-contain" />
+            <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">EYRA · Your Mentor</p>

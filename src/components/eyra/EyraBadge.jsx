@@ -1,7 +1,7 @@
 import React from 'react';
 
-const EYRA_LOGO = "https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/33f475246_image.png";
-const EYRA_FULL_LOGO = "https://media.base44.com/images/public/6a3b660e73254d1b4bf55bcb/9564f1a19_ChatGPTImage22202612_00_48.png";
+const EYRA_LOGO = "/brand/eyra.png";
+const EYRA_FULL_LOGO = "/brand/eyra.png";
 
 /**
  * EyraBadge — reusable EYRA branding badge.
