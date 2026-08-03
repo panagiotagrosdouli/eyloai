@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { requireSupabase } from '@/lib/supabaseClient';
 import { getSafeRedirect } from '@/lib/auth/safeRedirect';
+import { OAUTH_COMPLETE_MESSAGE } from '@/lib/auth/oauthPopup';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -29,6 +30,12 @@ export default function AuthCallback() {
         }
 
         const destination = getSafeRedirect(searchParams.get('from'));
+        if (window.opener && !window.opener.closed) {
+          window.opener.postMessage({ type: OAUTH_COMPLETE_MESSAGE }, window.location.origin);
+          window.opener.location.assign(destination);
+          window.close();
+          return;
+        }
         if (active) navigate(destination, { replace: true });
       } catch {
         if (active) setError('Authentication could not be completed. Please sign in again.');
