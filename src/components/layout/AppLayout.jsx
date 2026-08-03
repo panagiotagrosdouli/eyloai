@@ -78,6 +78,9 @@ export default function AppLayout() {
     setMobileOpen(false);
   }, [location.pathname]);
 
+  const mobilePrimary = PRIMARY_NAV.slice(0, 2);
+  const mobileSecondary = PRIMARY_NAV.slice(2);
+
   return (
     <div className="min-h-screen bg-background">
       {/* ── Header ───────────────────────────────────── */}
@@ -175,8 +178,11 @@ export default function AppLayout() {
 
           {/* Mobile burger */}
           <button
+            type="button"
             className="lg:hidden ml-auto p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
@@ -232,7 +238,7 @@ export default function AppLayout() {
       </header>
 
       {/* ── Page content ─────────────────────────────── */}
-      <main>
+      <main className="pb-24 lg:pb-0">
         <Outlet />
       </main>
 
@@ -240,8 +246,9 @@ export default function AppLayout() {
 
       {/* Floating EYRA button */}
       <button
+        type="button"
         onClick={() => setEyraOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-2xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-all active:scale-95"
+        className="fixed bottom-6 right-6 z-40 hidden lg:flex items-center gap-2 px-4 py-3 rounded-2xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-all active:scale-95"
         style={{ boxShadow: '0 8px 24px -6px hsla(213,94%,55%,0.4)' }}
         aria-label="Ask EYRA"
       >
@@ -251,6 +258,50 @@ export default function AppLayout() {
         </div>
         <span>Ask EYRA</span>
       </button>
+
+      {/* Mobile bottom navigation — keeps the five daily actions one tap away. */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-border/70 bg-background/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl lg:hidden"
+        aria-label="Primary mobile navigation"
+      >
+        <div className="mx-auto grid max-w-md grid-cols-5 items-end">
+          {mobilePrimary.map(item => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined}
+                className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}>
+                <Icon size={18} aria-hidden="true" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+
+          <button
+            type="button"
+            onClick={() => setEyraOpen(true)}
+            className="-mt-6 flex flex-col items-center gap-1 text-[10px] font-semibold text-primary"
+            aria-label="Ask EYRA"
+          >
+            <span className="grid h-12 w-12 place-items-center rounded-2xl eyra-gradient text-white shadow-lg shadow-primary/20">
+              <Sparkles size={20} aria-hidden="true" />
+            </span>
+            <span>EYRA</span>
+          </button>
+
+          {mobileSecondary.map(item => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined}
+                className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}>
+                <Icon size={18} aria-hidden="true" />
+                <span>{item.label === 'EYRA Feed' ? 'Feed' : item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
