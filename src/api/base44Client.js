@@ -1,6 +1,7 @@
 import { createClient } from '@base44/sdk';
 import { appParams } from '@/lib/app-params';
 import { supabaseEntities, supabaseProfile } from '@/services/supabase-entities';
+import { invokeEyra } from '@/lib/eyra-intelligence';
 
 if (!appParams.appId) {
   console.warn(
@@ -26,7 +27,9 @@ export const base44 = {
     updateMe: supabaseProfile.updateMe.bind(supabaseProfile),
   },
   entities: supabaseEntities,
-  integrations: legacyClient.integrations,
+  integrations: appParams.appId
+    ? legacyClient.integrations
+    : { Core: { InvokeLLM: invokeEyra } },
 };
 
 export default base44;
