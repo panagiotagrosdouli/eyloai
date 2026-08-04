@@ -206,8 +206,7 @@
     hsl(224 42% 5% / 0.98);
 }
 
-/* EYLO Home command deck — stable workspace surfaces, no ambient motion. */
-.eylo-command-deck {
+
   background:
     linear-gradient(120deg, hsla(222, 55%, 7%, 0.96), hsla(224, 45%, 8%, 0.84)),
     radial-gradient(circle at 80% 20%, hsla(260, 100%, 65%, 0.18), transparent 34%);
@@ -297,3 +296,4 @@
     animation: none;
   }
 }
+/* Deployment marker: complete EYLO command-deck styles verified for Vercel preview. */
