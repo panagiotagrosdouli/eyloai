@@ -96,7 +96,7 @@ function normalize(entity, kind, watchlist) {
     sourceUrl: entity.source_url || entity.url || entity.profile_url,
     authors: entity.authors, institution: entity.institution, year: entity.year,
     agency: entity.agency, deadline: entity.deadline, amount: entity.amount,
-    priority: kind === 'opportunity' && entity.is_expiring ? 'HIGH' : priority,
+    priority: kind === 'opportunity' ? (entity.is_expiring ? 'HIGH' : 'MEDIUM') : priority,
     confidence: conf.label, confidenceScore: conf.score,
     priorityReason: kind === 'opportunity'
       ? (entity.is_expiring ? 'Official deadline is within 60 days' : 'Official record matched this funding watchlist')
