@@ -135,13 +135,21 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
   };
 
   const saveOpportunity = async (opp) => {
-    await base44.entities.SavedOpportunity.create({
-      title: opp.title,
-      type: opp.type,
-      description: opp.description,
-      deadline: opp.deadline,
-    });
-    toast({ title: 'Opportunity saved to library' });
+    try {
+      await base44.entities.SavedOpportunity.create({
+        title: opp.title,
+        type: opp.type,
+        description: opp.description,
+        deadline: opp.deadline,
+      });
+      toast({ title: 'Opportunity saved to library' });
+    } catch (error) {
+      toast({
+        title: 'Could not save this opportunity',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const filteredResults = activeCategory === 'all'
@@ -174,6 +182,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Describe your research area or project goal..."
+          aria-label="Funding search"
           className="w-full h-12 pl-11 pr-36 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition-all"
         />
         <button
@@ -260,15 +269,15 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
               const config = TYPE_CONFIG[opp.type] || TYPE_CONFIG.call;
               const Icon = config.icon;
               return (
-                <div key={i} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all">
+                <div key={opp.id || i} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase ${config.color}`}>
                           <Icon size={9} /> {config.label}
                         </span>
-                        {opp.match_score && (
-                          <span className="text-[10px] font-semibold text-primary">{opp.match_score}/10 match</span>
+                        {Number.isFinite(opp.match_score) && (
+                          <span className="text-[10px] font-semibold text-primary">{Math.round(opp.match_score)}/100 relevance</span>
                         )}
                         {opp.difficulty && (
                           <span className={`text-[10px] font-medium ${difficultyColor[opp.difficulty] || 'text-muted-foreground'}`}>
@@ -293,6 +302,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
                     </div>
                     <div className="flex flex-col gap-1 flex-shrink-0">
                       <button
+                        type="button"
                         onClick={() => saveOpportunity(opp)}
                         className="p-2.5 rounded-lg hover:bg-secondary transition-colors"
                         title="Save to library"
