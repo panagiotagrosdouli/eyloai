@@ -95,14 +95,24 @@ async function authenticate(authorization) {
   };
 }
 
+function billingActive() {
+  return Boolean(
+    process.env.STRIPE_SECRET_KEY
+    && process.env.STRIPE_WEBHOOK_SECRET
+    && process.env.STRIPE_PRO_PRICE_ID
+    && process.env.STRIPE_FOUNDER_PRICE_ID
+    && process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
+
 function usageState(identity) {
   const month = new Date().toISOString().slice(0, 7);
-  const plan = PLAN_LIMITS[identity.profileData.subscription_tier] !== undefined
-    ? identity.profileData.subscription_tier
-    : 'free';
+  const plan = billingActive()
+    ? (PLAN_LIMITS[identity.profileData.subscription_tier] !== undefined ? identity.profileData.subscription_tier : 'free')
+    : 'early_access';
   const sameMonth = identity.profileData.eyra_usage_month === month;
   const used = sameMonth ? Number(identity.profileData.eyra_usage_count || 0) : 0;
-  return { month, plan, used, limit: PLAN_LIMITS[plan] };
+  return { month, plan, used, limit: plan === 'early_access' ? null : PLAN_LIMITS[plan] };
 }
 
 async function recordUsage(identity, usage) {
