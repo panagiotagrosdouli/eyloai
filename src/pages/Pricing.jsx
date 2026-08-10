@@ -100,14 +100,14 @@ export default function Pricing() {
         </div>
         <h1 className="font-heading text-4xl font-black sm:text-6xl">Plans tied to <span className="impact-gradient">real access.</span></h1>
         <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-          AI limits are enforced by the authenticated server endpoint, project limits by the workspace service, and paid access by Stripe webhook entitlements stored on your profile.
+          Once Stripe is configured, AI limits are enforced by the authenticated server endpoint, project limits by the workspace service, and paid access by verified webhook entitlements. Until then, premium tools stay open as early access.
         </p>
         {billing && <p className="mt-3 text-xs text-muted-foreground">Current plan: <span className="font-semibold uppercase text-primary">{billing.plan}</span> · status {billing.subscription_status}</p>}
       </header>
 
       {!billing?.billing_configured && (
         <div className="mx-auto mt-7 max-w-3xl rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs leading-5 text-amber-200">
-          Checkout code and webhook verification are deployed, but this deployment still needs STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRO_PRICE_ID, STRIPE_FOUNDER_PRICE_ID and SUPABASE_SERVICE_ROLE_KEY. Paid buttons remain disabled until every credential is present.
+          Checkout code and webhook verification are deployed, but this deployment still needs STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRO_PRICE_ID, STRIPE_FOUNDER_PRICE_ID and SUPABASE_SERVICE_ROLE_KEY. Paid buttons remain disabled and premium tools stay open in early access until every credential is present.
         </div>
       )}
       {error && <div className="mx-auto mt-5 max-w-3xl rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300">{error}</div>}
