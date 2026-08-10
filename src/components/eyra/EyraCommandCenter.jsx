@@ -141,9 +141,9 @@ function loadConversation() {
   }
 }
 
-function TypingIndicator() {
+function TypingIndicator({ stage }) {
   return (
-    <div className="flex items-center gap-2 px-1 py-2">
+    <div className="flex items-center gap-2 px-1 py-2" role="status" aria-live="polite">
       <div className="w-6 h-6 rounded-full eyra-gradient flex items-center justify-center flex-shrink-0">
         <Sparkles size={10} className="text-white" />
       </div>
@@ -152,7 +152,7 @@ function TypingIndicator() {
           <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
         ))}
       </div>
-      <span className="text-[10px] text-muted-foreground">EYRA is thinking...</span>
+      <span className="text-[10px] text-muted-foreground">{stage === 'retrieving' ? 'Retrieving live evidence…' : 'Synthesizing a cited answer…'}</span>
     </div>
   );
 }
@@ -198,6 +198,26 @@ function Message({ msg, onSave, onCopy, saved, copied, saving }) {
             <p>{msg.content}</p>
           )}
         </div>
+        {isEyra && msg.sources?.length > 0 && (
+          <div className="mt-2 flex max-w-full flex-wrap gap-1.5" aria-label="Sources used in this answer">
+            {msg.sources.slice(0, 8).map(source => (
+              <a
+                key={source.id}
+                href={source.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`${source.title}${source.meta ? ` — ${source.meta}` : ''}`}
+                className="inline-flex max-w-full items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-2 py-1 text-[9px] font-medium text-emerald-300 hover:border-emerald-400/50"
+              >
+                <ShieldCheck size={9} aria-hidden="true" />
+                <span>{source.id}</span>
+                <span className="max-w-36 truncate text-muted-foreground">{source.title}</span>
+                <ExternalLink size={8} aria-hidden="true" />
+              </a>
+            ))}
+            {msg.sources.length > 8 && <span className="px-2 py-1 text-[9px] text-muted-foreground">+{msg.sources.length - 8} more</span>}
+          </div>
+        )}
         <div className="mt-1 flex items-center gap-1 px-1">
           <p className="mr-auto text-[9px] text-muted-foreground">
             {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -235,10 +255,11 @@ export default function EyraCommandCenter({ open, onClose }) {
   const [messages, setMessages] = useState(loadConversation);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState('retrieving');
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [listening, setListening] = useState(false);
   const [activeMode, setActiveMode] = useState('research');
-  const [showModes, setShowModes] = useState(false);
+  const [preferences, setPreferences] = useState(loadPreferences);
   const [workspaceContext, setWorkspaceContext] = useState('');
   const [contextStatus, setContextStatus] = useState('idle');
   const [savedMessageIds, setSavedMessageIds] = useState(() => new Set());
@@ -252,6 +273,8 @@ export default function EyraCommandCenter({ open, onClose }) {
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 100);
   }, [open]);
+
+  useEffect(() => subscribePreferences(setPreferences), []);
 
   useEffect(() => {
     if (!open || contextStatus !== 'idle') return;
@@ -268,7 +291,8 @@ export default function EyraCommandCenter({ open, onClose }) {
   }, [open, contextStatus]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    messagesEndRef.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
   }, [messages, loading]);
 
   useEffect(() => {
@@ -276,29 +300,45 @@ export default function EyraCommandCenter({ open, onClose }) {
   }, [messages]);
 
   const speak = (text) => {
-    if (!voiceEnabled) return;
+    if (!voiceEnabled || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
-    const clean = text.replace(/[#*`]/g, '').replace(/\n+/g, ' ').slice(0, 600);
-    const utt = new SpeechSynthesisUtterance(clean);
-    utt.rate = 1.0; utt.pitch = 0.9; utt.volume = 0.95;
+    const clean = text.replace(/[#*`]/g, '').replace(/\[[PRIF]\d+\]/g, '').replace(/\n+/g, ' ').slice(0, 900);
+    const utterance = new SpeechSynthesisUtterance(clean);
+    const voiceConfig = {
+      academic: { rate: 0.92, pitch: 0.9 },
+      friendly: { rate: 1.02, pitch: 1.02 },
+      executive: { rate: 1.08, pitch: 0.88 },
+      professional: { rate: 1, pitch: 0.94 },
+    }[preferences.voice_style] || { rate: 1, pitch: 0.94 };
+    utterance.lang = getPreferenceLocale(preferences);
+    utterance.rate = voiceConfig.rate;
+    utterance.pitch = voiceConfig.pitch;
+    utterance.volume = 0.95;
+    const language = utterance.lang.split('-')[0];
     const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(v => v.name.includes('Google') && v.lang === 'en-US') || voices.find(v => v.lang === 'en-US') || voices[0];
-    if (preferred) utt.voice = preferred;
-    window.speechSynthesis.speak(utt);
+    const preferred = voices.find(voice => voice.lang === utterance.lang)
+      || voices.find(voice => voice.lang?.startsWith(language))
+      || voices[0];
+    if (preferred) utterance.voice = preferred;
+    window.speechSynthesis.speak(utterance);
   };
 
   const startListening = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return;
+    if (!SR) {
+      setActionError('Speech recognition is not supported by this browser. You can still type your question.');
+      return;
+    }
+    setActionError('');
     const rec = new SR();
     recognitionRef.current = rec;
-    rec.continuous = false; rec.interimResults = false; rec.lang = 'en-US';
+    rec.continuous = false; rec.interimResults = false; rec.lang = getPreferenceLocale(preferences);
     rec.onstart = () => setListening(true);
     rec.onend = () => setListening(false);
-    rec.onresult = (e) => {
-      const t = e.results[0][0].transcript;
-      setInput(t);
-      setTimeout(() => sendMessage(t), 300);
+    rec.onerror = () => setActionError('I could not hear that clearly. Try again or type your question.');
+    rec.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
     };
     rec.start();
   };
@@ -309,41 +349,75 @@ export default function EyraCommandCenter({ open, onClose }) {
     const content = (text || input).trim();
     if (!content || loading) return;
     setInput('');
+    setActionError('');
 
     const userMsg = { role: 'user', content, timestamp: Date.now() };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setLoading(true);
+    setLoadingStage('retrieving');
 
-    const mode = MODES.find(m => m.id === activeMode);
-    const modePrompt = mode?.prompt || '';
-    const history = newMessages.slice(-12).map(m => `${m.role === 'user' ? 'User' : 'EYRA'}: ${m.content}`).join('\n\n');
+    const mode = MODES.find(item => item.id === activeMode);
+    const history = newMessages.slice(-10).map(message =>
+      `${message.role === 'user' ? 'User' : 'EYRA'}: ${message.content}`
+    ).join('\n\n');
 
     try {
+      const evidence = await retrieveEvidence(content, activeMode, workspaceContext);
+      setLoadingStage('reasoning');
+      const language = LANGUAGE_NAMES[preferences.language] || 'the language used by the user';
+      const style = STYLE_INSTRUCTIONS[preferences.ai_response_style] || STYLE_INSTRUCTIONS.balanced;
+      const evidenceText = evidence.blocks.length
+        ? evidence.blocks.join('\n')
+        : evidence.attempted
+          ? 'Retrieval completed but returned no usable records.'
+          : 'No external retrieval was necessary for this planning request. Do not introduce external factual claims.';
+
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: `${BASE_SYSTEM}
 
-${modePrompt}
+ANALYSIS MODE:
+${mode?.prompt || MODES[0].prompt}
 
-WORKSPACE CONTEXT:
-${workspaceContext || 'Workspace context is not available yet. Ask a focused question and state what information is missing.'}
+USER PREFERENCES:
+- Respond in ${language}.
+- ${style}
 
-Conversation history:
+SAVED WORKSPACE CONTEXT (user-provided; not independently verified):
+${preferences.data_personalization
+  ? (workspaceContext || 'Workspace context is unavailable.')
+  : 'Personalization is disabled. Do not use workspace activity.'}
+
+LIVE RETRIEVAL QUERY:
+${evidence.query}
+
+RETRIEVED EVIDENCE:
+${evidenceText}
+
+RECENT CONVERSATION:
 ${history}
 
-Respond as EYRA. Use the workspace context when it is relevant, distinguish saved user data from verified external evidence, and never claim to have checked a source that is not present above. Be strategic, precise, and actionable. Use markdown for structure.`,
+Answer the user's latest request. Cite every externally verifiable claim with the supplied identifier. If no record supports a named claim, omit it or label it as an unverified hypothesis. Explain why each recommendation follows from evidence or workspace context. Never claim that a person is available, that a user is eligible, or that a grant is open unless the supplied record states it.`,
       });
 
-      const eyraMsg = { role: 'eyra', content: response, timestamp: Date.now(), mode: activeMode };
-      setMessages(prev => [...prev, eyraMsg]);
-      speak(response);
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : 'The live AI service did not complete the request.';
-      setMessages(prev => [...prev, {
+      const eyraMsg = {
         role: 'eyra',
-        content: `**I could not complete that live analysis.** ${reason}\n\nPlease try again in a moment or choose a different EYRA mode.`,
+        content: typeof response === 'string' ? response : String(response || ''),
         timestamp: Date.now(),
         mode: activeMode,
+        sources: evidence.sources,
+        retrievalQuery: evidence.query,
+      };
+      setMessages(previous => [...previous, eyraMsg]);
+      speak(eyraMsg.content);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'The live AI service did not complete the request.';
+      setMessages(previous => [...previous, {
+        role: 'eyra',
+        content: `**I could not complete that live analysis.** ${reason}\n\nNo evidence or recommendation has been fabricated. Please retry with a focused topic or switch EYRA mode.`,
+        timestamp: Date.now(),
+        mode: activeMode,
+        sources: [],
       }]);
     } finally {
       setLoading(false);
@@ -498,7 +572,7 @@ Respond as EYRA. Use the workspace context when it is relevant, distinguish save
                 copied={copiedMessageId === msg.timestamp}
               />
             ))}
-            {loading && <TypingIndicator />}
+            {loading && <TypingIndicator stage={loadingStage} />}
             <div ref={messagesEndRef} />
           </div>
 
@@ -520,12 +594,13 @@ Respond as EYRA. Use the workspace context when it is relevant, distinguish save
               />
               <div className="flex items-center gap-1 flex-shrink-0 pb-1">
                 <button
-                  onMouseDown={startListening} onMouseUp={stopListening}
-                  onTouchStart={startListening} onTouchEnd={stopListening}
+                  type="button"
+                  onClick={listening ? stopListening : startListening}
+                  aria-label={listening ? 'Stop voice input' : 'Start voice input'}
                   className={`p-1.5 rounded-lg transition-all ${listening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-secondary text-muted-foreground'}`}>
                   {listening ? <MicOff size={14} /> : <Mic size={14} />}
                 </button>
-                <button onClick={() => sendMessage()} disabled={!input.trim() || loading}
+                <button type="button" aria-label="Send message" onClick={() => sendMessage()} disabled={!input.trim() || loading}
                   className="p-1.5 rounded-lg eyra-gradient text-white disabled:opacity-40 hover:opacity-90 transition-opacity">
                   {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                 </button>
@@ -535,7 +610,7 @@ Respond as EYRA. Use the workspace context when it is relevant, distinguish save
               <p role="alert" className="mt-2 text-center text-[10px] text-amber-300">{actionError}</p>
             )}
             <p className="text-[9px] text-muted-foreground text-center mt-1.5">
-              Hold <span className="text-primary">mic</span> to speak · <span className="text-primary">Enter</span> to send · <span className="text-primary">Shift+Enter</span> new line
+              Tap <span className="text-primary">mic</span> to dictate · <span className="text-primary">Enter</span> to send · <span className="text-primary">Shift+Enter</span> new line
             </p>
           </div>
         </motion.div>
