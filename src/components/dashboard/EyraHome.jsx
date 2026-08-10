@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { buildUserProfile } from '@/lib/second-brain';
 import { getPersona } from '@/lib/persona';
 import UserTypeOnboarding from '@/components/eyra/UserTypeOnboarding';
+import GuidedSearch from '@/components/discovery/GuidedSearch';
 import {
   ArrowRight, Sparkles,
   FolderOpen, Plus, ChevronRight, BookOpen, Zap,
@@ -107,56 +108,6 @@ Return JSON: { "message": "One sentence, max 18 words, what to focus on today", 
           {suggestion.action} <ArrowRight size={11} />
         </Link>
       )}
-    </div>
-  );
-}
-
-/* ─── Search Bar ──────────────────────────────────────────── */
-function SearchBar({ onSearch }) {
-  const [query, setQuery] = useState('');
-  const inputRef = useRef(null);
-
-  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 200); }, []);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (query.trim()) onSearch(query.trim());
-  };
-
-  const examples = [
-    'Quantum machine learning',
-    'Climate change startups',
-    'CRISPR gene editing',
-    'Federated learning',
-  ];
-
-  return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <div className="flex items-center p-1.5 rounded-2xl border border-cyan-200/15 bg-slate-950/55 focus-within:border-cyan-300/45 focus-within:shadow-[0_0_32px_rgba(34,211,238,0.08)] transition-all shadow-2xl backdrop-blur-xl">
-          <Sparkles size={15} className="ml-3 text-cyan-300 flex-shrink-0" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search papers, researchers, funding..."
-            className="flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 focus:outline-none py-3.5 px-3"
-          />
-          <button type="submit" disabled={!query.trim()}
-            className="flex items-center gap-1.5 px-5 py-3 rounded-xl eyra-gradient text-white text-sm font-semibold disabled:opacity-30 hover:opacity-90 transition-opacity flex-shrink-0">
-            Search <ArrowRight size={13} />
-          </button>
-        </div>
-      </form>
-      <div className="flex flex-wrap gap-2 mt-3">
-        {examples.map(ex => (
-          <button key={ex} onClick={() => onSearch(ex)}
-            className="px-3 py-1.5 rounded-full border border-cyan-200/10 bg-slate-950/30 text-xs text-slate-400 hover:text-cyan-100 hover:border-cyan-300/30 transition-all">
-            {ex}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
@@ -267,7 +218,12 @@ export default function EyraHome({ onSearch }) {
               </p>
             </div>
 
-            <div className="mt-8 max-w-4xl"><SearchBar onSearch={onSearch} /></div>
+            <div className="mt-8 max-w-5xl">
+              <GuidedSearch
+                onSearch={onSearch}
+                defaultLevel={userType === 'student' ? 'student' : ['masters', 'phd'].includes(userType) ? 'researcher' : userType === 'professor' ? 'expert' : ''}
+              />
+            </div>
           </div>
         </section>
 
