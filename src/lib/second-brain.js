@@ -63,7 +63,7 @@ function buildContextString(profile) {
   
   const lines = [
     `USER PROFILE`,
-    `Name: ${user?.full_name || 'Researcher'} | Email: ${user?.email || ''}`,
+    `User type: ${user?.user_type || 'researcher'}`,
     `Organization: ${user?.organization || 'Not specified'} | Country: ${user?.country || 'Not specified'}`,
     `Research Interests: ${user?.research_interests || 'Not yet specified — learn from activity below'}`,
     `Skills: ${user?.skills || 'Not specified'}`,

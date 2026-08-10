@@ -42,13 +42,23 @@ function EyraStatusBar() {
 export default function ForYou() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   useEffect(() => {
+    let visitTimer;
+    let active = true;
     buildUserProfile().then(p => {
+      if (!active) return;
       setProfile(p);
-      setLoading(false);
-      // Mark visit AFTER we've loaded the "while you were away" data
-      setTimeout(() => markVisit(), 3000);
+      visitTimer = window.setTimeout(() => markVisit(), 3000);
+    }).catch(error => {
+      if (active) setLoadError(error instanceof Error ? error.message : 'Could not load the EYRA workspace.');
+    }).finally(() => {
+      if (active) setLoading(false);
     });
+    return () => {
+      active = false;
+      window.clearTimeout(visitTimer);
+    };
   }, []);
 
   if (loading) {
@@ -60,6 +70,18 @@ export default function ForYou() {
           </div>
           <p className="text-sm font-medium">Loading your EYRA workspace...</p>
           <p className="text-xs text-muted-foreground mt-1">Preparing saved projects, searches and source checks</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-20">
+        <div role="alert" className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
+          <h1 className="font-heading text-xl font-bold">EYRA workspace unavailable</h1>
+          <p className="mt-2 text-sm text-red-200">{loadError}</p>
+          <button type="button" onClick={() => window.location.reload()} className="mt-4 rounded-xl border border-red-400/30 px-4 py-2 text-xs font-semibold">Retry</button>
         </div>
       </div>
     );
@@ -111,7 +133,7 @@ export default function ForYou() {
               </p>
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 <Link to="/projects" className="px-4 py-2 rounded-xl eyra-gradient text-white text-xs font-semibold">Create a Project</Link>
-                <Link to="/" className="px-4 py-2 rounded-xl border border-border text-xs font-medium">Discover Research</Link>
+                <Link to="/home" className="px-4 py-2 rounded-xl border border-border text-xs font-medium">Discover Research</Link>
               </div>
             </div>
           )}
@@ -166,22 +188,22 @@ export default function ForYou() {
 
           {/* Data sources */}
           <div className="p-4 rounded-xl border border-border bg-card">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-3">Connected Data Sources</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-3">On-demand Retrieval Sources</p>
             <div className="space-y-2">
               {[
-                { name: 'OpenAlex', desc: 'Papers · Researchers · Institutions', active: true },
-                { name: 'arXiv', desc: 'Preprints · Latest research', active: true },
-                { name: 'Europe PMC', desc: 'Biomedical · Life sciences', active: true },
-                { name: 'Grants.gov', desc: 'Official grants · Deadlines', active: true },
-                { name: 'Crossref', desc: 'DOIs · Publication metadata', active: true },
+                { name: 'OpenAlex', desc: 'Papers · Researchers · Institutions' },
+                { name: 'arXiv', desc: 'Preprints · Latest research' },
+                { name: 'Europe PMC', desc: 'Biomedical · Life sciences' },
+                { name: 'Grants.gov', desc: 'Official grants · Deadlines' },
+                { name: 'Crossref', desc: 'DOIs · Publication metadata' },
               ].map(src => (
                 <div key={src.name} className="flex items-center gap-2">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${src.active ? 'bg-green-400 animate-pulse' : 'bg-border'}`} />
+                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-primary" />
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] font-medium text-foreground">{src.name}</p>
                     <p className="text-[9px] text-muted-foreground">{src.desc}</p>
                   </div>
-                  {src.label && <span className="text-[9px] px-1.5 py-0.5 rounded bg-secondary text-muted-foreground">{src.label}</span>}
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-secondary text-muted-foreground">On demand</span>
                 </div>
               ))}
             </div>

@@ -10,17 +10,16 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { environment } from '@/lib/config/env';
 import PlanGate from '@/components/billing/PlanGate';
 
-// Auth pages
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import ForgotPassword from '@/pages/ForgotPassword';
-import ResetPassword from '@/pages/ResetPassword';
-import AuthCallback from '@/pages/AuthCallback';
 import ConfigurationError from '@/pages/ConfigurationError';
-import Landing from '@/pages/Landing';
-import PublicDiscovery from '@/pages/PublicDiscovery';
 
-// Authenticated tools are loaded on demand so the first visit stays fast.
+// Every route surface is loaded on demand so visitors download only the journey they open.
+const Login = lazy(() => import('@/pages/Login'));
+const Register = lazy(() => import('@/pages/Register'));
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
+const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
+const Landing = lazy(() => import('@/pages/Landing'));
+const PublicDiscovery = lazy(() => import('@/pages/PublicDiscovery'));
 const AppLayout = lazy(() => import('@/components/layout/AppLayout'));
 const Home = lazy(() => import('@/pages/Home'));
 const Library = lazy(() => import('@/pages/Library'));
@@ -142,11 +141,13 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/discover" element={<PublicDiscovery />} />
-            <Route path="/*" element={<AuthenticatedApp />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/discover" element={<PublicDiscovery />} />
+              <Route path="/*" element={<AuthenticatedApp />} />
+            </Routes>
+          </Suspense>
         </Router>
         <Toaster />
       </QueryClientProvider>

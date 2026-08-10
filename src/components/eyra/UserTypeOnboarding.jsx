@@ -11,13 +11,20 @@ import { Sparkles, ArrowRight, Loader2 } from 'lucide-react';
 export default function UserTypeOnboarding({ onComplete }) {
   const [selected, setSelected] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const confirm = async () => {
     if (!selected || saving) return;
     setSaving(true);
-    await base44.auth.updateMe({ user_type: selected });
-    setSaving(false);
-    onComplete(selected);
+    setError('');
+    try {
+      await base44.auth.updateMe({ user_type: selected });
+      onComplete(selected);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'We could not save your role. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -33,6 +40,9 @@ export default function UserTypeOnboarding({ onComplete }) {
           initial={{ opacity: 0, y: 30, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: 'spring', damping: 25, stiffness: 280 }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="eylo-onboarding-title"
           className="w-full max-w-lg bg-background border border-border/80 rounded-2xl overflow-hidden"
           style={{ boxShadow: '0 0 80px -15px hsla(210,100%,55%,0.3)' }}
         >
@@ -41,7 +51,7 @@ export default function UserTypeOnboarding({ onComplete }) {
             <div className="w-14 h-14 rounded-2xl overflow-hidden bg-white mx-auto mb-4 animate-pulse-glow">
               <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
             </div>
-            <h2 className="font-heading font-bold text-xl text-foreground mb-1">Welcome to EYLO</h2>
+            <h2 id="eylo-onboarding-title" className="font-heading font-bold text-xl text-foreground mb-1">Welcome to EYLO</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               To personalize your experience, EYRA needs to know who you are.<br />
               <span className="text-primary font-medium">Who best describes you?</span>
@@ -49,7 +59,7 @@ export default function UserTypeOnboarding({ onComplete }) {
           </div>
 
           {/* Options */}
-          <div className="p-4 grid grid-cols-2 gap-2.5 max-h-[60vh] overflow-y-auto">
+          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[60vh] overflow-y-auto">
             {USER_TYPE_OPTIONS.map(opt => (
               <button
                 key={opt.value}
@@ -69,6 +79,7 @@ export default function UserTypeOnboarding({ onComplete }) {
 
           {/* CTA */}
           <div className="px-6 py-4 border-t border-border/40">
+            {error && <p role="alert" className="mb-3 rounded-lg border border-red-500/20 bg-red-500/5 p-2 text-xs text-red-300">{error}</p>}
             <button
               onClick={confirm}
               disabled={!selected || saving}

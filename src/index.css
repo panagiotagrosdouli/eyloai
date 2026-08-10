@@ -297,3 +297,67 @@
     animation: none;
   }
 }
+
+
+/* Product-wide interaction, accessibility, and reading defaults. */
+:root {
+  --accent-brand: 217 91% 60%;
+  color-scheme: dark;
+}
+
+html.light { color-scheme: light; }
+html { scroll-behavior: smooth; }
+body {
+  min-width: 320px;
+  background:
+    radial-gradient(circle at 12% -8%, hsl(var(--primary) / 0.07), transparent 28rem),
+    hsl(var(--background));
+}
+
+::selection {
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary) / 0.55);
+}
+
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 3px;
+}
+
+:where(button, [role='button'], a) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(input, textarea, select) {
+  font-size: max(1rem, 16px);
+}
+
+.a11y-large-text { font-size: 112.5%; }
+.a11y-high-contrast {
+  --muted-foreground: 214 30% 82%;
+  --border: 214 30% 45%;
+}
+.a11y-high-contrast :where(.text-muted-foreground) { opacity: 1; }
+.a11y-comfort body { filter: saturate(0.84); }
+.a11y-comfort .card-glow,
+.a11y-comfort .eylo-glass-panel { box-shadow: none; }
+.a11y-focus .eylo-command-deck::before,
+.a11y-focus .eyra-neural-shell::before { display: none; }
+.a11y-reading main :where(p, li) { line-height: 1.78; }
+.a11y-reading main :where(article, section) { text-wrap: pretty; }
+
+@media (min-width: 640px) {
+  :where(input, textarea, select) { font-size: inherit; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

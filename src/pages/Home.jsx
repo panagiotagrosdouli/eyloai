@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { runEyraDiscovery } from '@/lib/eyra-engine';
 import { useToast } from '@/components/ui/use-toast';
+import { useSearchParams } from 'react-router-dom';
 import { SearchHeroCompact } from '@/components/discovery/SearchHero';
 import DiscoveryResults from '@/components/discovery/DiscoveryResults';
 import LoadingState from '@/components/discovery/LoadingState';
@@ -12,6 +13,7 @@ export default function Home() {
   const [results, setResults] = useState(null);
   const [progress, setProgress] = useState(null);
   const [currentQuery, setCurrentQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
 
   const handleSearch = async (query) => {
@@ -42,6 +44,15 @@ export default function Home() {
       setState('dashboard');
     }
   };
+
+  useEffect(() => {
+    const sharedQuery = searchParams.get('q')?.trim();
+    if (!sharedQuery) return;
+    setSearchParams({}, { replace: true });
+    handleSearch(sharedQuery);
+  // This handoff runs once for each URL-provided query.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   if (state === 'loading') {
     return <LoadingState query={currentQuery} progress={progress} />;
