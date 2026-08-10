@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ArrowRight, Sparkles, ArrowLeft, X } from 'lucide-react';
+import { ArrowRight, Sparkles, ArrowLeft } from 'lucide-react';
+import GuidedSearch from '@/components/discovery/GuidedSearch';
 
 const EXAMPLES = [
   'AI for Healthcare',
@@ -31,43 +32,16 @@ function EyloSymbol({ size = 24 }) {
 
 // Compact bar shown above results
 export function SearchHeroCompact({ onSearch, currentQuery, onBack }) {
-  const [query, setQuery] = useState(currentQuery || '');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (query.trim()) onSearch(query.trim());
-  };
-
   return (
-    <div className="sticky top-14 z-40 border-b border-border/60 bg-background/90 backdrop-blur-xl px-4 py-3">
-      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex items-center gap-3">
-        <button type="button" onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex-shrink-0">
+    <div className="sticky top-14 z-40 border-b border-border/60 bg-background/92 px-4 py-3 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-5xl items-start gap-2">
+        <button type="button" onClick={onBack} aria-label="Back to dashboard" className="mt-1.5 shrink-0 rounded-xl p-3 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
           <ArrowLeft size={16} />
         </button>
-        <div className="flex-1 relative">
-          <Sparkles size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary" />
-          <input
-            type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Ask EYRA anything..."
-            className="w-full h-10 pl-9 pr-28 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition-all"
-          />
-          {query && (
-            <button type="button" onClick={() => setQuery('')} className="absolute right-24 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground">
-              <X size={12} />
-            </button>
-          )}
-          <button
-            type="submit"
-            disabled={!query.trim()}
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 py-1.5 rounded-lg eyra-gradient text-white text-xs font-semibold disabled:opacity-40 transition-opacity flex items-center gap-1.5"
-          >
-            <Sparkles size={11} />
-            Discover
-          </button>
+        <div className="min-w-0 flex-1">
+          <GuidedSearch key={currentQuery} onSearch={onSearch} initialTopic={currentQuery} compact />
         </div>
-      </form>
+      </div>
     </div>
   );
 }
