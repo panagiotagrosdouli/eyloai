@@ -1,6 +1,7 @@
 import { searchAllPapers, searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import { supabaseEntities } from '@/services/supabase-entities';
 import { searchFundingOpportunities } from '@/lib/funding-api';
+import { loadPreferences } from '@/lib/preferences';
 
 const KEYS = { watchlists: 'eylo_watchlists_v1', discoveries: 'eylo_monitoring_discoveries_v1', notifications: 'eylo_notifications_v1' };
 const EVENT = 'eylo:monitoring-updated';
@@ -111,6 +112,22 @@ function normalize(entity, kind, watchlist) {
   };
 }
 
+function pushBrowserNotifications(items) {
+  if (!items.length || !loadPreferences().notifications_browser) return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  items.slice(0, 3).forEach(item => {
+    const notification = new Notification(item.title, {
+      body: item.description,
+      tag: `eylo-${item.discoveryId}`,
+      icon: '/brand/eyra.png',
+    });
+    notification.onclick = () => {
+      window.focus();
+      window.location.assign('/notifications');
+    };
+  });
+}
+
 export async function runWatchlist(watchlist) {
   let candidates;
 
@@ -136,6 +153,7 @@ export async function runWatchlist(watchlist) {
   fresh.forEach(item => { const { id: temporaryId, ...payload } = item; persistCreate('discoveries', temporaryId, payload); });
   const notifications = fresh.filter(item => item.priority === 'HIGH').map(item => ({ id: id(), discoveryId: item.id, title: item.title, description: item.priorityReason, priority: item.priority, type: item.type, sourceUrl: item.sourceUrl, read: false, createdAt: item.detectedAt }));
   write(KEYS.notifications, [...notifications, ...read(KEYS.notifications)].slice(0, 100));
+  pushBrowserNotifications(notifications);
   notifications.forEach(item => { const { id: temporaryId, ...payload } = item; persistCreate('notifications', temporaryId, payload); });
   monitoringStore.updateWatchlist(watchlist.id, { lastCheckedAt: new Date().toISOString() });
   return { discovered: fresh.length, notifications: notifications.length };
