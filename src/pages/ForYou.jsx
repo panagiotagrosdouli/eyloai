@@ -42,16 +42,25 @@ function EyraStatusBar() {
 export default function ForYou() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
+  const [loadNotice, setLoadNotice] = useState('');
   useEffect(() => {
     let visitTimer;
     let active = true;
     buildUserProfile().then(p => {
       if (!active) return;
       setProfile(p);
+      if (p.workspaceStatus === 'partial') {
+        setLoadNotice('Some saved workspace data is temporarily unavailable. Live discovery and Ask EYRA remain available.');
+      }
       visitTimer = window.setTimeout(() => markVisit(), 3000);
-    }).catch(error => {
-      if (active) setLoadError(error instanceof Error ? error.message : 'Could not load the EYRA workspace.');
+    }).catch(() => {
+      if (!active) return;
+      setProfile({
+        activeProjects: [],
+        searches: [],
+        stats: { projects: 0, papers: 0, opportunities: 0, activityScore: 0 },
+      });
+      setLoadNotice('Saved workspace data is temporarily unavailable. You can still search live sources and use Ask EYRA.');
     }).finally(() => {
       if (active) setLoading(false);
     });
@@ -70,18 +79,6 @@ export default function ForYou() {
           </div>
           <p className="text-sm font-medium">Loading your EYRA workspace...</p>
           <p className="text-xs text-muted-foreground mt-1">Preparing saved projects, searches and source checks</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (loadError) {
-    return (
-      <div className="mx-auto max-w-xl px-4 py-20">
-        <div role="alert" className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
-          <h1 className="font-heading text-xl font-bold">EYRA workspace unavailable</h1>
-          <p className="mt-2 text-sm text-red-200">{loadError}</p>
-          <button type="button" onClick={() => window.location.reload()} className="mt-4 rounded-xl border border-red-400/30 px-4 py-2 text-xs font-semibold">Retry</button>
         </div>
       </div>
     );
@@ -107,6 +104,12 @@ export default function ForYou() {
           <p className="text-muted-foreground text-sm">On-demand source checks · OpenAlex · arXiv · Europe PMC · Grants.gov</p>
         </div>
       </div>
+
+      {loadNotice && (
+        <div role="status" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">
+          {loadNotice}
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Main feed */}
