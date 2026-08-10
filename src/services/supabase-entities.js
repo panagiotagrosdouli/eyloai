@@ -9,10 +9,19 @@ const TABLES = {
 const rowToEntity = (row) => row ? ({ id: row.id, created_date: row.created_date, updated_date: row.updated_date, ...row.data }) : null;
 
 async function currentUser() {
-  const { data, error } = await requireSupabase().auth.getUser();
-  if (error) throw error;
-  if (!data.user) throw new Error('Authentication required.');
-  return data.user;
+  const client = requireSupabase();
+  const { data: sessionData, error: sessionError } = await client.auth.getSession();
+  if (sessionError) throw sessionError;
+  if (sessionData.session?.user) return sessionData.session.user;
+
+  const { data: refreshed, error: refreshError } = await client.auth.refreshSession();
+  if (refreshError) throw refreshError;
+  if (!refreshed.session?.user) {
+    const error = new Error('Your secure session expired. Sign in again to save workspace changes.');
+    error.code = 'AUTH_SESSION_MISSING';
+    throw error;
+  }
+  return refreshed.session.user;
 }
 
 function sortEntities(items, sort = '-created_date') {

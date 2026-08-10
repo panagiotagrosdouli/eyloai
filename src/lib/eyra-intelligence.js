@@ -14,34 +14,58 @@ export class EyraRequestError extends Error {
   }
 }
 
-async function requestOpenAiAnalysis(prompt, responseSchema) {
-  const cleanPrompt = String(prompt || '').trim();
-  if (!cleanPrompt) throw new EyraRequestError('Tell EYRA what you want to analyse.', 400);
+async function getAccessToken(forceRefresh = false) {
+  if (!supabase) throw new EyraRequestError('EYRA authentication is not configured.', 503);
 
-  const { data, error: sessionError } = await supabase.auth.getSession();
-  if (sessionError) throw sessionError;
+  const initial = forceRefresh
+    ? await supabase.auth.refreshSession()
+    : await supabase.auth.getSession();
+  if (initial.error) throw initial.error;
+  if (initial.data.session?.access_token) return initial.data.session.access_token;
 
-  const accessToken = data.session?.access_token;
-  if (!accessToken) throw new EyraRequestError('Sign in to use EYRA intelligence.', 401);
+  if (!forceRefresh) {
+    const refreshed = await supabase.auth.refreshSession();
+    if (refreshed.error) throw refreshed.error;
+    if (refreshed.data.session?.access_token) return refreshed.data.session.access_token;
+  }
 
-  const response = await fetch('/api/eyra', {
+  throw new EyraRequestError('Your secure session expired. Sign in again to continue AI analysis.', 401);
+}
+
+function postAnalysis(accessToken, prompt, responseSchema) {
+  return fetch('/api/eyra', {
     method: 'POST',
     headers: {
       authorization: `Bearer ${accessToken}`,
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      prompt: cleanPrompt,
+      prompt,
       ...(responseSchema ? { response_json_schema: responseSchema } : {}),
     }),
   });
+}
+
+async function requestOpenAiAnalysis(prompt, responseSchema) {
+  const cleanPrompt = String(prompt || '').trim();
+  if (!cleanPrompt) throw new EyraRequestError('Tell EYRA what you want to analyse.', 400);
+
+  let accessToken = await getAccessToken();
+  let response = await postAnalysis(accessToken, cleanPrompt, responseSchema);
+
+  // A cached browser session can outlive its access token. Refresh once and
+  // replay the same request before surfacing an authentication failure.
+  if (response.status === 401) {
+    accessToken = await getAccessToken(true);
+    response = await postAnalysis(accessToken, cleanPrompt, responseSchema);
+  }
 
   const result = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new EyraRequestError(
-      result.error || 'EYRA could not complete this analysis. Please try again.',
-      response.status,
-    );
+    const message = response.status === 401
+      ? 'Your secure EYRA session could not be renewed. Sign in again to continue AI analysis.'
+      : result.error || 'EYRA could not complete this analysis. Please try again.';
+    throw new EyraRequestError(message, response.status);
   }
 
   if (responseSchema) {
