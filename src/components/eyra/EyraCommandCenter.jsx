@@ -2,65 +2,127 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { buildUserProfile } from '@/lib/second-brain';
+import { searchAllPapers, searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
+import { searchFundingOpportunities } from '@/lib/funding-api';
+import { getPreferenceLocale, loadPreferences, subscribePreferences } from '@/lib/preferences';
 import {
   X, Mic, MicOff, Send, Sparkles, Loader2,
   Volume2, VolumeX, Target, FileText, Users,
   Award, Map, TrendingUp, AlertTriangle, Brain,
   Rocket, BarChart3, BookOpen, Trash2, BookmarkPlus,
-  Check, Copy, Database
+  Check, Copy, Database, ExternalLink, ShieldCheck
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
-// ─── EYRA modes — each shifts her focus and tone ───────────────────────────
+// EYRA modes change the analysis lens; evidence rules stay identical.
 const MODES = [
-  { id: 'research',  label: 'Research',  icon: BookOpen,  color: 'text-primary',     prompt: 'You are acting as EYRA in Research Analyst mode. Focus on: paper discovery, research gaps, methodology, academic insights, literature strategy.' },
-  { id: 'strategy',  label: 'Strategy',  icon: Brain,     color: 'text-purple-400',  prompt: 'You are acting as EYRA in Strategic Advisor mode. Focus on: roadmaps, competitive positioning, long-term vision, risk assessment, decision frameworks.' },
-  { id: 'funding',   label: 'Funding',   icon: Award,     color: 'text-amber-400',   prompt: 'You are acting as EYRA in Funding Advisor mode. Focus on: grants, investors, applications, eligibility, pitch strategy, funding timelines. Only reference real programs.' },
-  { id: 'startup',   label: 'Startup',   icon: Rocket,    color: 'text-green-400',   prompt: 'You are acting as EYRA in Startup Co-Founder mode. Focus on: go-to-market, team building, product strategy, investor readiness, traction metrics.' },
-  { id: 'team',      label: 'Team',      icon: Users,     color: 'text-cyan-400',    prompt: 'You are acting as EYRA in Team Builder mode. Focus on: identifying skill gaps, finding collaborators, researcher compatibility, team structure.' },
-  { id: 'impact',    label: 'Impact',    icon: BarChart3, color: 'text-rose-400',    prompt: 'You are acting as EYRA in Impact Predictor mode. Focus on: scientific impact, social value, commercial potential, scalability, success probability.' },
+  { id: 'research', label: 'Research', icon: BookOpen, color: 'text-primary', prompt: 'Research analyst: synthesize retrieved literature, methods, limitations, and defensible gaps.' },
+  { id: 'strategy', label: 'Strategy', icon: Brain, color: 'text-purple-400', prompt: 'Strategic advisor: build decision options, assumptions, risks, and testable milestones.' },
+  { id: 'funding', label: 'Funding', icon: Award, color: 'text-amber-400', prompt: 'Funding advisor: use only retrieved official opportunity records and separate eligibility from relevance.' },
+  { id: 'startup', label: 'Startup', icon: Rocket, color: 'text-green-400', prompt: 'Research commercialization advisor: distinguish evidence, hypotheses, validation work, and go-to-market decisions.' },
+  { id: 'team', label: 'Team', icon: Users, color: 'text-cyan-400', prompt: 'Team builder: use retrieved researcher and institution records; assess expertise fit without inferring availability.' },
+  { id: 'impact', label: 'Impact', icon: BarChart3, color: 'text-rose-400', prompt: 'Impact analyst: assess scientific, social, and commercial pathways without inventing success probabilities.' },
 ];
 
 const QUICK_COMMANDS = [
-  { label: 'Analyze my project',   icon: Target,        prompt: 'Analyze my current research project. What are the key strengths, gaps, and your top 3 strategic recommendations?' },
-  { label: 'Find research gaps',   icon: AlertTriangle, prompt: 'What are the most important unsolved research gaps in my field right now? What novelty score would new research have?' },
-  { label: 'Find funding',         icon: Award,         prompt: 'What are the best funding opportunities for my type of research? Include real grant programs and why I qualify.' },
-  { label: 'Build my roadmap',     icon: Map,           prompt: 'Generate a dynamic 6-phase research and innovation roadmap for my current project with milestones and timelines.' },
-  { label: 'Find collaborators',   icon: Users,         prompt: 'What expertise is missing from my current team? What type of collaborators would have the highest impact?' },
-  { label: 'Startup strategy',     icon: Rocket,        prompt: 'Help me build a startup strategy from my research. What is the go-to-market, team, and funding path?' },
-  { label: 'Literature review',    icon: FileText,      prompt: 'Guide me through a systematic literature review strategy. What search terms, databases, and selection criteria should I use?' },
-  { label: 'Impact analysis',      icon: TrendingUp,    prompt: 'Estimate the research, commercial and social impact potential of my work. Give me a scored analysis with reasoning.' },
+  { label: 'Analyze my project', icon: Target, prompt: 'Analyze my current project. Separate evidence, assumptions, risks, and the top three next actions.' },
+  { label: 'Find research gaps', icon: AlertTriangle, prompt: 'Retrieve recent papers in my field and identify defensible research gaps, with citations and limitations.' },
+  { label: 'Find funding', icon: Award, prompt: 'Search current official funding records relevant to my work. Explain relevance and what eligibility I still need to verify.' },
+  { label: 'Build my roadmap', icon: Map, prompt: 'Build a six-phase research and innovation roadmap with milestones, dependencies, decision gates, and evidence needs.' },
+  { label: 'Find collaborators', icon: Users, prompt: 'Retrieve researchers and institutions relevant to my project, then map expertise fit and the evidence I should review before outreach.' },
+  { label: 'Startup strategy', icon: Rocket, prompt: 'Turn my research into a testable commercialization strategy. Separate sourced signals from market hypotheses.' },
+  { label: 'Literature review', icon: FileText, prompt: 'Retrieve literature for my topic and propose a reproducible review protocol, search strings, and inclusion criteria.' },
+  { label: 'Impact analysis', icon: TrendingUp, prompt: 'Assess scientific, commercial, and social impact pathways using retrieved evidence. Do not invent a probability of success.' },
 ];
 
-const BASE_SYSTEM = `You are EYRA — the Autonomous AI Co-Founder, Research Intelligence, and Innovation Partner of the EYLO platform.
+const LANGUAGE_NAMES = {
+  en: 'English', el: 'Greek', fr: 'French', de: 'German', es: 'Spanish', it: 'Italian',
+  pt: 'Portuguese', ar: 'Arabic', zh: 'Chinese', ja: 'Japanese', ko: 'Korean', tr: 'Turkish',
+};
 
-You are NOT a chatbot. You are an elite AI system that combines:
-- A world-class research analyst
-- A startup co-founder
-- A strategic advisor  
-- A funding expert
-- A team builder
+const STYLE_INSTRUCTIONS = {
+  concise: 'Keep the answer concise: lead with the conclusion and use no more than five bullets unless essential.',
+  balanced: 'Give a structured, decision-ready answer with enough reasoning to evaluate each recommendation.',
+  detailed: 'Give a rigorous, in-depth answer with methods, limitations, alternatives, and concrete next steps.',
+};
 
-CRITICAL RULES:
-- Never invent researcher names, paper titles, institutions, or specific grant amounts.
-- Only reference REAL funding programs (Horizon Europe, ERC, NSF, NIH, Wellcome Trust, DARPA, Innovate UK, etc.)
-- Always state your confidence: [HIGH] [MEDIUM] [LOW]
-- Every recommendation must include WHY — your explicit reasoning
-- When uncertain, say so — trust is everything
-- Be direct, strategic, and precise — never vague
+const BASE_SYSTEM = `You are EYRA, the evidence-aware research and innovation partner inside EYLO.
 
-PERSONALITY:
-- Speak like a trusted co-founder and elite advisor who genuinely cares about outcomes
-- Be confident but intellectually honest
-- Use "I" with agency — you have opinions and judgment
-- Lead with the most important insight, then supporting detail
-- End every response with a clear next action or strategic question
+NON-NEGOTIABLE INTEGRITY RULES:
+- Retrieved evidence is the only authority for named papers, researchers, institutions, funding programs, dates, amounts, metrics, or eligibility.
+- Cite supplied records inline as [P1], [R1], [I1], or [F1]. Never create a citation identifier.
+- Saved workspace context is user-provided context, not externally verified evidence.
+- If evidence is empty or insufficient, say exactly what could not be verified and propose a better query.
+- Never present relevance, novelty, impact, team fit, or funding fit as a probability of success.
+- Distinguish observed evidence, inference, and recommendation.
+- Do not expose private workspace details unless they are relevant to the user's request.
+- End with a concrete next action.
 
-RESPONSE FORMAT (use markdown):
-- Use **bold** for key insights
-- Use bullet points for lists
-- Use ## headers for multi-section answers
-- Keep it scannable — quality over length`;
+Use clear markdown. Be direct, helpful, scientifically careful, and transparent about limitations.`;
+
+function shouldRetrieve(content, mode) {
+  const text = content.toLowerCase();
+  const funding = mode === 'funding' || /(grant|funding|call for|opportunit|χρηματοδ|επιχορήγ|πρόσκλησ)/i.test(text);
+  const people = mode === 'team' || /(collaborat|researcher|author|institution|university|team|consortium|συνεργά|ερευνητ|πανεπιστήμ|ομάδα)/i.test(text);
+  const papers = ['research', 'impact'].includes(mode)
+    || /(paper|literature|evidence|study|studies|research gap|method|citation|δημοσίευ|βιβλιογραφ|έρευν|μελέτ|μεθοδολογ)/i.test(text);
+  return { funding, people, papers };
+}
+
+function compactQuery(content, workspaceContext) {
+  const generic = /\b(my|current|project|work|research|μου|έργο|έρευνα)\b/gi;
+  const cleaned = content.replace(generic, ' ').replace(/\s+/g, ' ').trim();
+  const contextHint = workspaceContext
+    .split('\n')
+    .filter(line => line.trim())
+    .slice(0, 4)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .slice(0, 220);
+  return (cleaned.length >= 12 ? cleaned : `${cleaned} ${contextHint}`).trim().slice(0, 280) || content.slice(0, 280);
+}
+
+async function retrieveEvidence(content, mode, workspaceContext) {
+  const intent = shouldRetrieve(content, mode);
+  const query = compactQuery(content, workspaceContext);
+  const tasks = [];
+
+  if (intent.papers) tasks.push(searchAllPapers(query).then(items => ({ kind: 'papers', items })));
+  if (intent.people) {
+    tasks.push(searchOpenAlexAuthors(query, 6).then(items => ({ kind: 'researchers', items })));
+    tasks.push(searchOpenAlexInstitutions(query, 4).then(items => ({ kind: 'institutions', items })));
+  }
+  if (intent.funding) tasks.push(searchFundingOpportunities(query, 10).then(result => ({ kind: 'funding', items: result.items || [] })));
+
+  if (!tasks.length) return { query, blocks: [], sources: [], attempted: false };
+
+  const settled = await Promise.allSettled(tasks);
+  const groups = Object.fromEntries(
+    settled.filter(result => result.status === 'fulfilled').map(result => [result.value.kind, result.value.items]),
+  );
+  const failed = settled.filter(result => result.status === 'rejected').map(result => result.reason?.message || 'source unavailable');
+
+  const papers = (groups.papers || []).slice(0, 8);
+  const researchers = (groups.researchers || []).slice(0, 6);
+  const institutions = (groups.institutions || []).slice(0, 4);
+  const funding = (groups.funding || []).slice(0, 8);
+  const sources = [
+    ...papers.map((item, index) => ({ id: `P${index + 1}`, type: 'Paper', title: item.title, url: item.url, meta: [item.authors, item.year, item.source].filter(Boolean).join(' · ') })),
+    ...researchers.map((item, index) => ({ id: `R${index + 1}`, type: 'Researcher', title: item.name, url: item.profile_url, meta: [item.institution, `${item.works_count || 0} works`].filter(Boolean).join(' · ') })),
+    ...institutions.map((item, index) => ({ id: `I${index + 1}`, type: 'Institution', title: item.name, url: item.url, meta: [item.country, `${item.works_count || 0} works`].filter(Boolean).join(' · ') })),
+    ...funding.map((item, index) => ({ id: `F${index + 1}`, type: 'Funding', title: item.title, url: item.source_url, meta: [item.agency, item.deadline].filter(Boolean).join(' · ') })),
+  ].filter(item => item.url);
+
+  const blocks = [
+    ...papers.map((item, index) => `[P${index + 1}] PAPER | ${item.title} | ${item.authors || 'authors unavailable'} | ${item.year || 'year unavailable'} | ${item.source || 'source unavailable'} | citations ${item.cited_by_count || 0} | ${item.summary || 'abstract unavailable'} | URL ${item.url}`),
+    ...researchers.map((item, index) => `[R${index + 1}] RESEARCHER | ${item.name} | ${item.institution || 'institution unavailable'} | ${item.research_areas || 'areas unavailable'} | ${item.works_count || 0} works | ${item.citation_count || 0} citations | URL ${item.profile_url}`),
+    ...institutions.map((item, index) => `[I${index + 1}] INSTITUTION | ${item.name} | ${item.type || 'type unavailable'} | ${item.country || 'country unavailable'} | ${item.works_count || 0} works | URL ${item.url}`),
+    ...funding.map((item, index) => `[F${index + 1}] FUNDING | ${item.title} | ${item.agency || 'agency unavailable'} | deadline ${item.deadline || 'not supplied'} | amount ${item.amount || 'not supplied'} | eligibility ${item.eligibility || 'open official record'} | ${item.description || ''} | URL ${item.source_url}`),
+  ];
+
+  if (failed.length) blocks.push(`SOURCE STATUS | ${failed.length} retrieval source(s) unavailable: ${failed.join('; ')}`);
+  return { query, blocks, sources, attempted: true };
+}
 
 const INITIAL_MESSAGE = {
   role: 'eyra',
