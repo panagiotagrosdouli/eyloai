@@ -1,5 +1,6 @@
 import { searchAllPapers, searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import { supabaseEntities } from '@/services/supabase-entities';
+import { searchFundingOpportunities } from '@/lib/funding-api';
 
 const KEYS = { watchlists: 'eylo_watchlists_v1', discoveries: 'eylo_monitoring_discoveries_v1', notifications: 'eylo_notifications_v1' };
 const EVENT = 'eylo:monitoring-updated';
@@ -71,6 +72,9 @@ export const monitoringStore = {
 };
 
 function confidence(entity, kind) {
+  if (kind === 'opportunity') {
+    return { score: 98, label: 'HIGH' };
+  }
   if (kind === 'paper') {
     const citations = entity.cited_by_count || 0;
     const age = entity.year ? new Date().getFullYear() - entity.year : 20;
@@ -87,22 +91,44 @@ function normalize(entity, kind, watchlist) {
   const priority = conf.score >= 80 ? 'HIGH' : conf.score >= 60 ? 'MEDIUM' : 'LOW';
   return {
     id: id(), externalId: entity.id, watchlistId: watchlist.id, watchQuery: watchlist.query,
-    type: kind, title: entity.title || entity.name, description: entity.summary || entity.research_areas || `${entity.type || 'Research institution'} in ${entity.country || 'an international network'}`,
-    source: kind === 'paper' ? entity.source : 'OpenAlex', sourceUrl: entity.url || entity.profile_url,
+    type: kind, title: entity.title || entity.name, description: entity.summary || entity.description || entity.research_areas || `${entity.type || 'Research institution'} in ${entity.country || 'an international network'}`,
+    source: kind === 'opportunity' ? entity.source : kind === 'paper' ? entity.source : 'OpenAlex',
+    sourceUrl: entity.source_url || entity.url || entity.profile_url,
     authors: entity.authors, institution: entity.institution, year: entity.year,
-    priority, confidence: conf.label, confidenceScore: conf.score,
-    priorityReason: priority === 'HIGH' ? 'Strong evidence and research-impact signals' : 'Relevant to this watchlist query',
-    evidence: kind === 'paper' ? `${entity.cited_by_count || 0} citations · ${entity.year || 'year unavailable'}` : `${entity.works_count || 0} works`,
-    recommendedAction: kind === 'paper' ? 'Review the source and save it to your research library.' : kind === 'researcher' ? 'Review the profile and assess collaboration fit.' : 'Explore the institution and relevant research groups.',
+    agency: entity.agency, deadline: entity.deadline, amount: entity.amount,
+    priority: kind === 'opportunity' && entity.is_expiring ? 'HIGH' : priority,
+    confidence: conf.label, confidenceScore: conf.score,
+    priorityReason: kind === 'opportunity'
+      ? (entity.is_expiring ? 'Official deadline is within 60 days' : 'Official record matched this funding watchlist')
+      : priority === 'HIGH' ? 'Strong evidence and research-impact signals' : 'Relevant to this watchlist query',
+    evidence: kind === 'opportunity'
+      ? `${entity.agency || 'Official agency'} · deadline ${entity.deadline || 'not supplied'} · ${entity.source_id || entity.id}`
+      : kind === 'paper' ? `${entity.cited_by_count || 0} citations · ${entity.year || 'year unavailable'}` : `${entity.works_count || 0} works`,
+    recommendedAction: kind === 'opportunity'
+      ? 'Open the official record, verify eligibility, and decide whether to save it.'
+      : kind === 'paper' ? 'Review the source and save it to your research library.' : kind === 'researcher' ? 'Review the profile and assess collaboration fit.' : 'Explore the institution and relevant research groups.',
     detectedAt: new Date().toISOString(), dismissed: false, saved: false,
   };
 }
 
 export async function runWatchlist(watchlist) {
-  const [papers, researchers, institutions] = await Promise.all([
-    searchAllPapers(watchlist.query), searchOpenAlexAuthors(watchlist.query, 6), searchOpenAlexInstitutions(watchlist.query, 4),
-  ]);
-  const candidates = [...papers.map(x => normalize(x, 'paper', watchlist)), ...researchers.map(x => normalize(x, 'researcher', watchlist)), ...institutions.map(x => normalize(x, 'institution', watchlist))];
+  let candidates;
+
+  if (watchlist.type === 'funding program') {
+    const fundingResult = await searchFundingOpportunities(watchlist.query, 12);
+    candidates = fundingResult.items.map((item) => normalize(item, 'opportunity', watchlist));
+  } else {
+    const [papers, researchers, institutions] = await Promise.all([
+      searchAllPapers(watchlist.query),
+      searchOpenAlexAuthors(watchlist.query, 6),
+      searchOpenAlexInstitutions(watchlist.query, 4),
+    ]);
+    candidates = [
+      ...papers.map(x => normalize(x, 'paper', watchlist)),
+      ...researchers.map(x => normalize(x, 'researcher', watchlist)),
+      ...institutions.map(x => normalize(x, 'institution', watchlist)),
+    ];
+  }
   const existing = read(KEYS.discoveries);
   const known = new Set(existing.map(item => `${item.source}|${item.externalId}`));
   const fresh = candidates.filter(item => item.externalId && !known.has(`${item.source}|${item.externalId}`));
