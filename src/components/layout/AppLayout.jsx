@@ -4,7 +4,7 @@ import {
   Home, FolderOpen, User, Sparkles, ChevronDown,
   Menu, X, Zap, Brain, BookOpen, Settings, MoreHorizontal,
   Lightbulb, Users, TrendingUp, Video, Globe, Target,
-  Rocket, Trophy, Award, Crown, Search
+  Rocket, Trophy, Award, Crown, Search, Mic, Presentation, FileEdit
 } from 'lucide-react';
 import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
 import NotificationsBell from '@/components/monitoring/NotificationsBell';
@@ -28,7 +28,8 @@ const MORE_NAV = [
       { label: 'Future Simulator', path: '/future', icon: Rocket, desc: 'Model 3 possible futures' },
       { label: 'Idea Vault', path: '/ideas', icon: Lightbulb, desc: 'Capture & develop ideas' },
       { label: 'Research Battlefield', path: '/battlefield', icon: Globe, desc: 'Competitive landscape' },
-      { label: 'Impact Predictor', path: '/impact', icon: Target, desc: 'Predict success probability' },
+      { label: 'Impact Assessment', path: '/impact', icon: Target, desc: 'Evidence-backed decision support' },
+      { label: 'EYRA Voice', path: '/voice', icon: Mic, desc: 'Speak a sourced research question' },
     ],
   },
   {
@@ -37,9 +38,11 @@ const MORE_NAV = [
       { label: 'Knowledge Library', path: '/library', icon: BookOpen, desc: 'Papers & researchers' },
       { label: 'Researchers', path: '/researchers', icon: Users, desc: 'Find collaborators' },
       { label: 'Dream Team', path: '/dreamteam', icon: Users, desc: 'Build your team' },
-      { label: 'Opportunities', path: '/opportunities', icon: Award, desc: 'Grants & accelerators' },
+      { label: 'Opportunities', path: '/opportunities', icon: Award, desc: 'Official grants & calls' },
+      { label: 'Grant Builder', path: '/grant-builder', icon: FileEdit, desc: 'Draft & track applications' },
+      { label: 'Pitch Deck AI', path: '/pitchdeck', icon: Presentation, desc: 'Sourced deck with PDF export' },
       { label: 'Meetings', path: '/meetings', icon: Video, desc: 'Calls & notes' },
-      { label: 'Challenges', path: '/challenges', icon: Trophy, desc: 'Competitions & prizes' },
+      { label: 'Challenges', path: '/challenges', icon: Trophy, desc: 'Official open funding challenges' },
     ],
   },
   {
