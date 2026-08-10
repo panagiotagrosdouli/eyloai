@@ -1,0 +1,10 @@
+{
+  "release": "2026-08-10-guided-discovery-eyra-resilience",
+  "includes": [
+    "guided multi-source discovery",
+    "personalized research paths",
+    "EYRA session refresh",
+    "partial workspace resilience",
+    "verified evidence fallback"
+  ]
+}
