@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Video, Users, FileText, Clock, X } from 'lucide-react';
+import { Calendar, Video, Users, FileText, Clock, X, Link2 } from 'lucide-react';
 
 const CALL_TYPES = [
   { value: 'project_meeting', label: 'Project Meeting' },
@@ -35,6 +35,12 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
     const proj = projects.find(p => p.id === id);
     set('project_id', id);
     set('project_title', proj?.title || '');
+  };
+
+  const createVideoRoom = () => {
+    const randomPart = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const roomName = `eylo-${randomPart}`.replace(/[^a-zA-Z0-9-]/g, '');
+    set('meeting_link', `https://meet.jit.si/${roomName}`);
   };
 
   const handleSubmit = async (e) => {
@@ -110,9 +116,16 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
       {/* Meeting Link */}
       <div>
         <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">Meeting Link (Zoom / Meet / Teams)</label>
-        <input type="url" value={form.meeting_link} onChange={e => set('meeting_link', e.target.value)}
-          placeholder="https://meet.google.com/..."
-          className="w-full px-3 py-2 rounded-lg border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
+        <div className="flex gap-2">
+          <input type="url" value={form.meeting_link} onChange={e => set('meeting_link', e.target.value)}
+            placeholder="https://meet.google.com/..."
+            className="min-w-0 flex-1 px-3 py-2 rounded-lg border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
+          <button type="button" onClick={createVideoRoom}
+            className="flex items-center gap-1.5 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/10">
+            <Link2 size={12} /> Create room
+          </button>
+        </div>
+        <p className="mt-1 text-[10px] text-muted-foreground">Creates a unique Jitsi video room, or paste an existing Zoom, Meet, or Teams link.</p>
       </div>
 
       {/* Agenda */}
