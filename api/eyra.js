@@ -71,7 +71,7 @@ function normalizeSchema(schema, depth = 0) {
 
 async function authenticate(authorization) {
   if (!authorization?.startsWith('Bearer ')) return null;
-  const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
   const supabaseUrl = process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
   if (!anonKey) return null;
 
