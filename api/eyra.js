@@ -70,15 +70,27 @@ function normalizeSchema(schema, depth = 0) {
 }
 
 async function authenticate(authorization) {
-  if (!authorization?.startsWith('Bearer ')) return null;
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  if (!anonKey) return null;
+  const bearer = Array.isArray(authorization) ? authorization[0] : authorization;
+  if (!bearer?.startsWith('Bearer ') || !bearer.slice(7).trim()) {
+    console.warn('EYRA auth rejected', { reason: 'missing_bearer' });
+    return null;
+  }
+
+  const anonKey = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+  const supabaseUrl = (process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL).replace(/\/$/, '');
+  if (!anonKey) {
+    console.error('EYRA auth rejected', { reason: 'missing_supabase_anon_key' });
+    return null;
+  }
 
   const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
-    headers: { authorization, apikey: anonKey },
+    headers: { authorization: bearer, apikey: anonKey },
+    cache: 'no-store',
   });
-  if (!authResponse.ok) return null;
+  if (!authResponse.ok) {
+    console.warn('EYRA auth rejected', { reason: 'supabase_user_rejected', status: authResponse.status });
+    return null;
+  }
   const user = await authResponse.json();
 
   const profileResponse = await fetch(
