@@ -5,7 +5,7 @@ import {
   Map, Bookmark, ExternalLink, ChevronRight,
   Award, Target, BookOpen, Sparkles, Brain,
   AlertTriangle, CheckCircle2, Plus, ArrowRight,
-  ShieldCheck, Info, Lock
+  ShieldCheck, Info, Lock, Compass, Clock3, Layers3
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import EyraBadge, { EyraSectionLabel } from '@/components/eyra/EyraBadge';
@@ -98,6 +98,13 @@ export default function DiscoveryResults({ results, onNewSearch }) {
     (results.papers?.length || 0) >= 8 ? 'HIGH' :
     (results.papers?.length || 0) >= 3 ? 'MEDIUM' : 'LOW'
   );
+  const discoveryProfile = results.discovery_profile || { level: 'researcher', goal: 'review', recency: 'balanced' };
+  const sourceIndexes = results.source_indexes || [...new Set((results.papers || []).map(paper => paper.source_index || paper.source).filter(Boolean))];
+  const startHere = (results.papers || []).filter(paper => paper.discovery_category === 'start_here').slice(0, 3);
+  const latestPapers = (results.papers || []).filter(paper => paper.discovery_category === 'latest' && !startHere.includes(paper));
+  const foundationalPapers = (results.papers || []).filter(paper => paper.discovery_category === 'foundational' && !startHere.includes(paper));
+  const usedPaperIds = new Set([...startHere, ...latestPapers, ...foundationalPapers].map(paper => paper._dedupeKey || paper.id));
+  const relevantPapers = (results.papers || []).filter(paper => !usedPaperIds.has(paper._dedupeKey || paper.id));
 
   return (
     <div className="max-w-5xl mx-auto px-4 pb-20">
@@ -113,7 +120,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
             <h2 className="font-heading font-bold text-lg text-foreground">"{results.query}"</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               {results.papers?.length || 0} papers · {results.researchers?.length || 0} researchers · {results.institutions?.length || 0} institutions
-              <span className="ml-2 text-primary/70">· Sources: OpenAlex, arXiv, Europe PMC, Crossref, Grants.gov</span>
+              <span className="ml-2 text-primary/70">· {sourceIndexes.length} scholarly indexes + official funding records</span>
             </p>
           </div>
 
@@ -179,6 +186,32 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           Research records loaded. Funding retrieval did not complete: {results.funding_error}
         </div>
       )}
+
+      <section className="relative mb-6 overflow-hidden rounded-[1.75rem] border border-cyan-200/10 bg-slate-950/75 p-5 sm:p-7">
+        <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
+        <div className="relative grid gap-5 lg:grid-cols-[1fr_auto] lg:items-start">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/20 bg-cyan-300/5 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-cyan-300"><Compass size={10} /> Your research path</span>
+              <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[9px] text-slate-400">{discoveryProfile.level}</span>
+              <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[9px] text-slate-400">{discoveryProfile.goal}</span>
+              <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[9px] text-slate-400">{String(discoveryProfile.recency).replace('_', ' ')}</span>
+            </div>
+            <h2 className="mt-4 font-heading text-xl font-bold text-white sm:text-2xl">Begin with context, then move to the frontier.</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">{results.audience_summary || results.goal_analysis || 'EYRA organized the retrieved evidence for your stated level and goal.'}</p>
+            <div className="mt-4 flex flex-wrap gap-2">{sourceIndexes.map(source => <span key={source} className="rounded-full border border-white/5 bg-white/[0.025] px-2.5 py-1 text-[9px] text-slate-400">{source}</span>)}</div>
+          </div>
+          <button type="button" onClick={() => setActiveTab('papers')} className="inline-flex items-center justify-center gap-2 rounded-xl eyra-gradient px-4 py-2.5 text-xs font-semibold text-white"><BookOpen size={13} /> Open paper path</button>
+        </div>
+        {results.recommended_next_questions?.length > 0 && (
+          <div className="relative mt-5 border-t border-white/5 pt-4">
+            <p className="mb-2 text-[9px] font-bold uppercase tracking-wider text-slate-500">Continue with</p>
+            <div className="flex flex-wrap gap-2">{results.recommended_next_questions.map(question => (
+              <button key={question} type="button" onClick={() => onNewSearch({ ...discoveryProfile, topic: question })} className="rounded-xl border border-white/5 bg-white/[0.025] px-3 py-2 text-left text-[10px] text-slate-300 hover:border-cyan-300/20 hover:text-cyan-200">{question}</button>
+            ))}</div>
+          </div>
+        )}
+      </section>
 
       {/* Tab Navigation */}
       <div className="flex items-center gap-1 overflow-x-auto pb-1 mb-6 border-b border-border/60">
@@ -277,13 +310,13 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           {results.papers?.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-sm">Top Research Papers</h3>
+                <h3 className="font-semibold text-sm">Start here · selected for your level</h3>
                 <button onClick={() => setActiveTab('papers')} className="text-xs text-primary font-medium flex items-center gap-1 hover:underline">
                   View all <ChevronRight size={12} />
                 </button>
               </div>
               <div className="space-y-3">
-                {results.papers.slice(0, 3).map((p, i) => (
+                {(startHere.length ? startHere : results.papers.slice(0, 3)).map((p, i) => (
                   <PaperCard key={i} paper={p} onSave={() => savePaper(p)} rank={i + 1} />
                 ))}
               </div>
@@ -346,7 +379,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           <div className="flex items-center justify-between mb-2">
             <div>
               <h2 className="font-heading font-bold text-lg">Research Papers</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Ranked by relevance + citation count + recency · Sources: OpenAlex, arXiv, Europe PMC</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Deduplicated and organized by purpose · {sourceIndexes.join(' · ')}</p>
             </div>
             <ConfidenceBadge level={overallConfidence} />
           </div>
@@ -354,13 +387,29 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           {results.papers?.length === 0 ? (
             <div className="p-8 rounded-xl border border-dashed border-border text-center">
               <FileText size={20} className="text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">No papers found in databases for this query.</p>
-              <p className="text-xs text-muted-foreground mt-1">Try a more specific search term.</p>
+              <p className="text-sm text-muted-foreground">No papers found in the connected indexes for this query.</p>
+              <p className="text-xs text-muted-foreground mt-1">Try a more specific topic or a different time range.</p>
             </div>
           ) : (
-            results.papers.map((p, i) => (
-              <PaperCard key={i} paper={p} onSave={() => savePaper(p)} rank={i + 1} />
-            ))
+            <div className="space-y-8">
+              {[
+                { key: 'start', title: 'Start here', desc: 'An approachable entry path for your level and goal.', icon: Compass, papers: startHere },
+                { key: 'latest', title: 'Latest research', desc: 'Recent records kept visible as a distinct frontier scan.', icon: Clock3, papers: latestPapers },
+                { key: 'foundation', title: 'Foundational & surveys', desc: 'Context, established methods, and broad synthesis.', icon: Layers3, papers: foundationalPapers },
+                { key: 'relevant', title: 'More relevant evidence', desc: 'Additional deduplicated results across the connected indexes.', icon: BookOpen, papers: relevantPapers },
+              ].filter(group => group.papers.length).map(group => {
+                const GroupIcon = group.icon;
+                return (
+                  <section key={group.key}>
+                    <div className="mb-3 flex items-start gap-3">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><GroupIcon size={14} /></span>
+                      <div><h3 className="text-sm font-semibold">{group.title}</h3><p className="mt-0.5 text-[11px] text-muted-foreground">{group.desc}</p></div>
+                    </div>
+                    <div className="space-y-3">{group.papers.map((paper, index) => <PaperCard key={paper._dedupeKey || paper.id || paper.title} paper={paper} onSave={() => savePaper(paper)} rank={index + 1} />)}</div>
+                  </section>
+                );
+              })}
+            </div>
           )}
         </motion.div>
       )}
@@ -615,8 +664,11 @@ function PaperCard({ paper, onSave, rank }) {
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            {paper.source && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-secondary text-muted-foreground uppercase">{paper.source}</span>
+            {(paper.source_index || paper.source) && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-secondary text-muted-foreground uppercase">{paper.source_index || paper.source}</span>
+            )}
+            {paper.discovery_category && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary">{paper.discovery_category.replace('_', ' ')}</span>
             )}
             {paper.year && <span className="text-xs text-muted-foreground">{paper.year}</span>}
             {paper.cited_by_count > 0 && (
