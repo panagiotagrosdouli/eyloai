@@ -25,7 +25,7 @@ function WelcomeScreen({ onStart }) {
           Meet <span className="eyra-text-gradient">EYRA</span>
         </h1>
         <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
-          Your AI co-founder for research, startups, and innovation — from first idea to funded project.
+          Your AI copilot for turning an idea into sourced research, a project plan and concrete next actions.
         </p>
         <button
           onClick={onStart}
@@ -80,7 +80,7 @@ User type: ${persona?.label || 'researcher'}
 Return JSON: { "message": "One sentence, max 18 words, what to focus on today", "action": "2-3 word label", "href": "one of: /projects, /foryou, /briefing, /ideas, /radar, /library" }`,
       response_json_schema: {
         type: 'object',
-        properties: { message: { type: 'string' }, action: { type: 'string' }, href: { type: 'string' } }
+        properties: { message: { type: 'string' }, action: { type: 'string' }, href: { type: 'string', enum: ['/projects', '/foryou', '/briefing', '/ideas', '/radar', '/library'] } }
       }
     }).then(r => {
       setSuggestion(r);
@@ -166,7 +166,7 @@ function QuickStart({ onSearch }) {
   const steps = [
     { icon: Brain, title: 'Ask EYRA anything', desc: 'Search papers, researchers, funding', action: 'Start searching', onClick: () => onSearch('recent AI breakthroughs') },
     { icon: FolderOpen, title: 'Create a project', desc: 'Keep everything in one place', action: 'New project', href: '/projects' },
-    { icon: Zap, title: 'Find funding', desc: 'Grants, accelerators & calls', action: 'Explore', href: '/radar' },
+    { icon: Zap, title: 'Find funding', desc: 'Official grants and calls', action: 'Explore', href: '/radar' },
   ];
   return (
     <div>
@@ -252,7 +252,7 @@ export default function EyraHome({ onSearch }) {
               </div>
               <div className="flex items-center gap-2 rounded-full border border-emerald-300/15 bg-emerald-300/5 px-3 py-1.5 text-[10px] text-emerald-200">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-                OpenAI connected
+                Authenticated AI workspace
               </div>
             </div>
 
@@ -314,7 +314,7 @@ export default function EyraHome({ onSearch }) {
             </div>
 
             <div className="mt-5 border-t border-white/5 pt-5">
-              <div className="flex items-center justify-between"><span className="flex items-center gap-2 text-xs text-slate-300"><ShieldCheck size={14} className="text-emerald-400" /> Intelligence score</span><strong className="text-sm text-cyan-300">{profile?.stats.activityScore || 0}/100</strong></div>
+              <div className="flex items-center justify-between"><span className="flex items-center gap-2 text-xs text-slate-300"><ShieldCheck size={14} className="text-emerald-400" /> Workspace activity</span><strong className="text-sm text-cyan-300">{profile?.stats.activityScore || 0}/100</strong></div>
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-800"><div className="h-full rounded-full eyra-gradient transition-all" style={{ width: `${profile?.stats.activityScore || 0}%` }} /></div>
               <p className="mt-3 text-[10px] leading-5 text-slate-500">{profile?.stats.projects || 0} projects · {profile?.stats.papers || 0} papers · {profile?.stats.researchers || 0} researchers</p>
             </div>
