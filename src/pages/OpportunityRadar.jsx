@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { searchFundingOpportunities } from '@/lib/funding-api';
 import { useToast } from '@/components/ui/use-toast';
 import { Sparkles, Bookmark, AlertCircle, Clock,
   DollarSign, Rocket, Trophy, GraduationCap, Award, Building2,
-  Zap, RefreshCw, Star, FolderOpen
+  Zap, RefreshCw, Star, FolderOpen, ExternalLink, ShieldCheck
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
@@ -19,7 +20,7 @@ const TYPE_CONFIG = {
   fellowship: { icon: Star, color: 'bg-purple-500/15 text-purple-400', label: 'Fellowship' },
 };
 
-const FEED_FILTERS = ['All', 'New', 'Expiring', 'High Match', 'Grants', 'Accelerators', 'Investors'];
+const FEED_FILTERS = ['All', 'New', 'Expiring', 'High Match', 'Grants', 'Calls'];
 
 export default function OpportunityRadar() {
   const [user, setUser] = useState(null);
@@ -30,6 +31,9 @@ export default function OpportunityRadar() {
   const [filter, setFilter] = useState('All');
   const [boardReport, setBoardReport] = useState('');
   const [loadingReport, setLoadingReport] = useState(false);
+  const [sourceMeta, setSourceMeta] = useState(null);
+  const [radarError, setRadarError] = useState('');
+  const [rankingError, setRankingError] = useState('');
   const { toast } = useToast();
 
   const [selectedProjectId, setSelectedProjectId] = useState('');
@@ -51,80 +55,101 @@ export default function OpportunityRadar() {
   const runRadar = async () => {
     setLoading(true);
     setHasRun(true);
+    setRadarError('');
+    setRankingError('');
+    setSourceMeta(null);
+    setFeed([]);
 
     const selectedProject = projects.find(p => p.id === selectedProjectId);
-    const projectFocus = selectedProject
-      ? `\nFocused Project:\n- ${selectedProject.title}: ${selectedProject.goal}${selectedProject.description ? '\n  Description: ' + selectedProject.description : ''}`
-      : '';
+    const searchQuery = [
+      selectedProject?.title,
+      selectedProject?.goal,
+      selectedProject?.description,
+      user?.research_interests,
+      user?.career_goal,
+    ].filter(Boolean).join(' ').trim() || 'research and innovation';
 
-    const profileContext = `
-User Profile:
-- Name: ${user?.full_name || 'Researcher'}
-- Research Interests: ${user?.research_interests || 'Not specified'}
+    try {
+      // Retrieve factual records before asking the model to reason about fit.
+      const sourceResult = await searchFundingOpportunities(searchQuery, 15);
+      setSourceMeta(sourceResult);
+
+      const verified = sourceResult.items.map((item) => ({
+        ...item,
+        match_score: null,
+        match_reason: '',
+        difficulty: 'Unranked',
+        priority: item.is_expiring ? 'high' : 'medium',
+      }));
+      setFeed(verified);
+
+      if (verified.length > 0) {
+        try {
+          const ranking = await base44.integrations.Core.InvokeLLM({
+            prompt: `You are EYRA Opportunity Radar. Rank ONLY the verified official funding records below for the supplied user and project context.
+
+USER CONTEXT:
+- Research interests: ${user?.research_interests || 'Not specified'}
 - Skills: ${user?.skills || 'Not specified'}
 - Organization: ${user?.organization || 'Not specified'}
 - Country: ${user?.country || 'Not specified'}
-- Career Goal: ${user?.career_goal || 'Not specified'}
-- Startup Interest: ${user?.startup_interest || 'Not specified'}
-${projectFocus}
+- Career goal: ${user?.career_goal || 'Not specified'}
+- Project: ${selectedProject ? `${selectedProject.title}: ${selectedProject.goal || ''}` : 'No specific project selected'}
 
-All Projects:
-${projects.map(p => `- ${p.title}: ${p.goal}`).join('\n') || '- No active projects'}
-    `.trim();
+VERIFIED RECORDS FROM ${sourceResult.source}:
+${verified.map((item) => JSON.stringify({
+  id: item.id,
+  title: item.title,
+  agency: item.agency,
+  description: item.description,
+  eligibility: item.eligibility,
+  deadline: item.deadline,
+  amount: item.amount,
+  categories: item.categories,
+})).join('\n')}
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are EYRA, a proactive intelligence system that discovers opportunities for researchers and innovators.
-
-${profileContext}
-
-Based on this profile and projects, discover 15 highly relevant opportunities. Include a mix of:
-- Research grants (Horizon Europe, ERC, national programs)
-- Accelerators and startup programs
-- Innovation competitions
-- Fellowships and scholarships
-- Investor programs (VCs, angels)
-- Industry partnership calls
-
-For each opportunity calculate a match_score (0-100) based on profile alignment.
-Mark is_expiring: true if deadline is within 60 days.
-Mark is_new: true for recently opened opportunities.
-Mark priority: "high" | "medium" | "low" based on match + deadline urgency.
-
-Be specific with real program names, amounts in EUR/USD, and concrete deadlines.`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          opportunities: {
-            type: 'array',
-            items: {
+Return one item for every supplied id. Do not create opportunities, deadlines, amounts, agencies or URLs. match_score is relevance to the supplied context, never probability of award. priority may use relevance plus the factual deadline.`,
+            response_json_schema: {
               type: 'object',
               properties: {
-                title: { type: 'string' },
-                type: { type: 'string' },
-                description: { type: 'string' },
-                amount: { type: 'string' },
-                deadline: { type: 'string' },
-                deadline_days: { type: 'number' },
-                match_score: { type: 'number' },
-                match_reason: { type: 'string' },
-                difficulty: { type: 'string' },
-                priority: { type: 'string' },
-                is_expiring: { type: 'boolean' },
-                is_new: { type: 'boolean' },
-                url_hint: { type: 'string' },
+                ranked: {
+                  type: 'array',
+                  minItems: verified.length,
+                  maxItems: verified.length,
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string', enum: verified.map((item) => item.id) },
+                      match_score: { type: 'number', minimum: 0, maximum: 100 },
+                      match_reason: { type: 'string' },
+                      difficulty: { type: 'string', enum: ['Low', 'Medium', 'High'] },
+                      priority: { type: 'string', enum: ['high', 'medium', 'low'] },
+                    },
+                  },
+                },
               },
             },
-          },
-        },
-      },
-      add_context_from_internet: true,
-      model: 'gemini_3_flash',
-    });
+          });
 
-    const sorted = (result.opportunities || []).sort((a, b) => (b.match_score || 0) - (a.match_score || 0));
-    setFeed(sorted);
-    setLoading(false);
-    toast({ title: `EYRA Radar found ${sorted.length} opportunities` });
+          const byId = new Map((ranking.ranked || []).map((item) => [item.id, item]));
+          setFeed(
+            verified
+              .map((item) => ({ ...item, ...(byId.get(item.id) || {}) }))
+              .sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1)),
+          );
+        } catch (error) {
+          setRankingError(
+            `Official records loaded, but EYRA ranking is unavailable: ${error instanceof Error ? error.message : 'unknown error'}`,
+          );
+        }
+      }
+
+      toast({ title: `Loaded ${verified.length} verified opportunities` });
+    } catch (error) {
+      setRadarError(error instanceof Error ? error.message : 'Opportunity Radar failed.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const generateBoardReport = async () => {
@@ -178,6 +203,11 @@ Write as a seasoned advisor to a top researcher/entrepreneur. Be direct, opinion
       type: opp.type || 'grant',
       description: opp.description,
       deadline: opp.deadline,
+      amount: opp.amount,
+      agency: opp.agency,
+      source: opp.source,
+      source_url: opp.source_url,
+      source_id: opp.source_id,
     });
     toast({ title: 'Saved to library' });
   };
@@ -187,9 +217,8 @@ Write as a seasoned advisor to a top researcher/entrepreneur. Be direct, opinion
     if (filter === 'New') return o.is_new;
     if (filter === 'Expiring') return o.is_expiring;
     if (filter === 'High Match') return o.match_score >= 80;
-    if (filter === 'Grants') return o.type === 'grant' || o.type === 'call' || o.type === 'fellowship';
-    if (filter === 'Accelerators') return o.type === 'accelerator';
-    if (filter === 'Investors') return o.type === 'investor';
+    if (filter === 'Grants') return o.type === 'grant';
+    if (filter === 'Calls') return o.type === 'call';
     return true;
   });
 
@@ -205,7 +234,7 @@ Write as a seasoned advisor to a top researcher/entrepreneur. Be direct, opinion
             </div>
             <h1 className="font-heading font-bold text-2xl">EYRA Opportunity Radar</h1>
           </div>
-          <p className="text-sm text-muted-foreground">EYRA continuously scans grants, funding, accelerators & investors — personalized to your profile & projects</p>
+          <p className="text-sm text-muted-foreground">Run a verified funding scan, then let EYRA rank the official records for your profile and projects</p>
         </div>
         <button
           onClick={runRadar}
@@ -216,6 +245,26 @@ Write as a seasoned advisor to a top researcher/entrepreneur. Be direct, opinion
           {loading ? 'Scanning...' : hasRun ? 'Re-scan' : 'Run Radar'}
         </button>
       </div>
+
+      {radarError && (
+        <div role="alert" className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+          {radarError}
+        </div>
+      )}
+      {rankingError && (
+        <div role="status" className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-300">
+          {rankingError}
+        </div>
+      )}
+      {sourceMeta && !loading && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+          <span className="rounded-full border border-green-500/20 bg-green-500/5 px-2 py-1 text-green-300">
+            {feed.length} verified records
+          </span>
+          <span>{sourceMeta.source}</span>
+          <span>Retrieved {new Date(sourceMeta.retrieved_at).toLocaleString()}</span>
+        </div>
+      )}
 
       {/* Project selector */}
       {projects.length > 0 && (
@@ -266,17 +315,17 @@ Write as a seasoned advisor to a top researcher/entrepreneur. Be direct, opinion
                 <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
               </div>
               <div>
-                <p className="font-semibold text-sm">EYRA doesn't wait.</p>
-                <p className="text-[10px] text-muted-foreground">EYRA discovers. EYRA advises. EYRA acts.</p>
+                <p className="font-semibold text-sm">Evidence before recommendations.</p>
+                <p className="text-[10px] text-muted-foreground">Official records · AI ranking · source links</p>
               </div>
             </div>
             <div className="space-y-2">
               {[
-                'Analyzes your profile, interests & projects',
-                'Scans Horizon Europe, ERC, national programs',
-                'Discovers accelerators, investors & competitions',
-                'Calculates personalized match scores',
-                'Alerts you to expiring deadlines',
+                'Retrieves posted and forecasted official opportunities',
+                'Preserves agency, status, amount and deadline fields',
+                'Ranks relevance against your profile and selected project',
+                'Links every result to its official source record',
+                'Flags deadlines using retrieved dates, not model guesses',
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
@@ -291,13 +340,12 @@ Write as a seasoned advisor to a top researcher/entrepreneur. Be direct, opinion
 
           {/* Radar types */}
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">What EYRA monitors</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Current verified capability</p>
             {[
-              { icon: DollarSign, label: 'Research Grants', desc: 'Horizon Europe, ERC, NSF, national programs', color: 'text-primary' },
-              { icon: Rocket, label: 'Accelerators & Startup Programs', desc: 'Y Combinator, EIT, Deep Tech programs', color: 'text-green-400' },
-              { icon: Building2, label: 'Investors & VCs', desc: 'Angel investors, VC firms, innovation funds', color: 'text-blue-400' },
-              { icon: Trophy, label: 'Innovation Competitions', desc: 'Prizes, challenges, hackathons', color: 'text-amber-400' },
-              { icon: Star, label: 'Fellowships & Scholarships', desc: 'Marie Curie, DAAD, Fulbright & more', color: 'text-purple-400' },
+              { icon: DollarSign, label: 'Official Grants', desc: 'Posted and forecasted records retrieved from Grants.gov', color: 'text-primary' },
+              { icon: ShieldCheck, label: 'Source Integrity', desc: 'Agency, deadline, amount and URL stay tied to the source record', color: 'text-green-400' },
+              { icon: Sparkles, label: 'EYRA Relevance Ranking', desc: 'AI ranks fit without inventing or rewriting opportunities', color: 'text-purple-400' },
+              { icon: Clock, label: 'Deadline Signals', desc: 'Expiring-soon flags are computed from retrieved dates', color: 'text-amber-400' },
             ].map(item => {
               const Icon = item.icon;
               return (
@@ -319,8 +367,8 @@ Write as a seasoned advisor to a top researcher/entrepreneur. Be direct, opinion
           <div className="w-16 h-16 rounded-full eyra-gradient flex items-center justify-center mb-4 animate-pulse-glow">
             <Sparkles size={24} className="text-white" />
           </div>
-          <p className="font-semibold text-sm mb-1">EYRA is scanning the landscape...</p>
-          <p className="text-xs text-muted-foreground">Analyzing your profile against grants, accelerators & investors</p>
+          <p className="font-semibold text-sm mb-1">Retrieving official funding records...</p>
+          <p className="text-xs text-muted-foreground">EYRA will rank relevance only after verified records arrive</p>
           <div className="mt-4 flex gap-1">
             {[0, 1, 2].map(i => (
               <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
@@ -346,9 +394,8 @@ Write as a seasoned advisor to a top researcher/entrepreneur. Be direct, opinion
                       {f === 'New' ? feed.filter(o => o.is_new).length :
                        f === 'Expiring' ? feed.filter(o => o.is_expiring).length :
                        f === 'High Match' ? feed.filter(o => o.match_score >= 80).length :
-                       f === 'Grants' ? feed.filter(o => ['grant','call','fellowship'].includes(o.type)).length :
-                       f === 'Accelerators' ? feed.filter(o => o.type === 'accelerator').length :
-                       feed.filter(o => o.type === 'investor').length}
+                       f === 'Grants' ? feed.filter(o => o.type === 'grant').length :
+                       feed.filter(o => o.type === 'call').length}
                     </span>
                   )}
                 </button>
@@ -407,12 +454,16 @@ Write as a seasoned advisor to a top researcher/entrepreneur. Be direct, opinion
                           opp.match_score >= 70 ? 'bg-primary/15 text-primary' :
                           'bg-secondary text-muted-foreground'
                         }`}>
-                          {opp.match_score}%
+                          {opp.match_score == null ? '—' : `${opp.match_score}%`}
                         </div>
                         <button onClick={() => saveOpportunity(opp)}
-                          className="p-1.5 rounded-lg hover:bg-secondary transition-colors">
+                          className="p-1.5 rounded-lg hover:bg-secondary transition-colors" title="Save to library">
                           <Bookmark size={12} className="text-muted-foreground" />
                         </button>
+                        <a href={opp.source_url} target="_blank" rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg hover:bg-secondary transition-colors" title="Open official source">
+                          <ExternalLink size={12} className="text-primary" />
+                        </a>
                       </div>
                     </div>
                   </motion.div>
