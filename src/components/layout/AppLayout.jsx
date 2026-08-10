@@ -82,6 +82,17 @@ export default function AppLayout() {
   }, []);
 
   useEffect(() => {
+    const openEyra = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setEyraOpen(true);
+      }
+    };
+    window.addEventListener('keydown', openEyra);
+    return () => window.removeEventListener('keydown', openEyra);
+  }, []);
+
+  useEffect(() => {
     setMoreOpen(false);
     setMobileOpen(false);
     setToolQuery('');
@@ -192,9 +203,11 @@ export default function AppLayout() {
             <button
               onClick={() => setEyraOpen(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+              title="Ask EYRA (Ctrl/⌘ K)"
             >
               <Sparkles size={13} />
               Ask EYRA
+              <span className="rounded-md border border-white/20 bg-white/10 px-1.5 py-0.5 font-mono text-[8px] font-medium text-white/70">⌘ K</span>
             </button>
           </div>
 
