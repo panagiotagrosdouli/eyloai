@@ -182,6 +182,7 @@ export default function EyraCommandCenter({ open, onClose }) {
   const [savedMessageIds, setSavedMessageIds] = useState(() => new Set());
   const [savingMessageId, setSavingMessageId] = useState(null);
   const [copiedMessageId, setCopiedMessageId] = useState(null);
+  const [actionError, setActionError] = useState('');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -274,10 +275,11 @@ Respond as EYRA. Use the workspace context when it is relevant, distinguish save
       const eyraMsg = { role: 'eyra', content: response, timestamp: Date.now(), mode: activeMode };
       setMessages(prev => [...prev, eyraMsg]);
       speak(response);
-    } catch {
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'The live AI service did not complete the request.';
       setMessages(prev => [...prev, {
         role: 'eyra',
-        content: '**I could not complete that analysis.** Your message is safe. Please try again or choose a different EYRA mode.',
+        content: `**I could not complete that live analysis.** ${reason}\n\nPlease try again in a moment or choose a different EYRA mode.`,
         timestamp: Date.now(),
         mode: activeMode,
       }]);
@@ -288,6 +290,7 @@ Respond as EYRA. Use the workspace context when it is relevant, distinguish save
 
   const saveInsight = async (msg) => {
     if (!msg?.content || savedMessageIds.has(msg.timestamp)) return;
+    setActionError('');
     setSavingMessageId(msg.timestamp);
     const plainText = msg.content.replace(/[#*\x60]/g, '').replace(/\s+/g, ' ').trim();
     try {
@@ -299,6 +302,8 @@ Respond as EYRA. Use the workspace context when it is relevant, distinguish save
         category: msg.mode || activeMode,
       });
       setSavedMessageIds((previous) => new Set([...previous, msg.timestamp]));
+    } catch {
+      setActionError('This insight could not be saved. Check your connection and try again.');
     } finally {
       setSavingMessageId(null);
     }
@@ -306,9 +311,14 @@ Respond as EYRA. Use the workspace context when it is relevant, distinguish save
 
   const copyInsight = async (msg) => {
     if (!msg?.content) return;
-    await navigator.clipboard.writeText(msg.content);
-    setCopiedMessageId(msg.timestamp);
-    window.setTimeout(() => setCopiedMessageId(null), 1600);
+    setActionError('');
+    try {
+      await navigator.clipboard.writeText(msg.content);
+      setCopiedMessageId(msg.timestamp);
+      window.setTimeout(() => setCopiedMessageId(null), 1600);
+    } catch {
+      setActionError('Copy was blocked by the browser. Select the response text and copy it manually.');
+    }
   };
 
   const clearConversation = () => {
@@ -459,6 +469,9 @@ Respond as EYRA. Use the workspace context when it is relevant, distinguish save
                 </button>
               </div>
             </div>
+            {actionError && (
+              <p role="alert" className="mt-2 text-center text-[10px] text-amber-300">{actionError}</p>
+            )}
             <p className="text-[9px] text-muted-foreground text-center mt-1.5">
               Hold <span className="text-primary">mic</span> to speak · <span className="text-primary">Enter</span> to send · <span className="text-primary">Shift+Enter</span> new line
             </p>
