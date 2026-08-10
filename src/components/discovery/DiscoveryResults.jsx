@@ -54,27 +54,35 @@ export default function DiscoveryResults({ results, onNewSearch }) {
   const navigate = useNavigate();
 
   const savePaper = async (paper) => {
-    await base44.entities.SavedPaper.create({
-      title: paper.title,
-      authors: paper.authors,
-      summary: paper.summary,
-      year: paper.year,
-      source: paper.source,
-      url: paper.url,
-    });
-    toast({ title: 'Paper saved to library' });
+    try {
+      await base44.entities.SavedPaper.create({
+        title: paper.title,
+        authors: paper.authors,
+        summary: paper.summary,
+        year: paper.year,
+        source: paper.source,
+        url: paper.url,
+      });
+      toast({ title: 'Paper saved to library' });
+    } catch (error) {
+      toast({ title: 'Could not save this paper', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    }
   };
 
   const saveResearcher = async (r) => {
-    await base44.entities.SavedResearcher.create({
+    try {
+      await base44.entities.SavedResearcher.create({
       name: r.name,
       institution: r.institution,
       research_areas: r.research_areas,
       works_count: r.works_count,
       citation_count: r.citation_count,
-      profile_url: r.profile_url,
-    });
-    toast({ title: 'Researcher saved to library' });
+        profile_url: r.profile_url,
+      });
+      toast({ title: 'Researcher saved to library' });
+    } catch (error) {
+      toast({ title: 'Could not save this researcher', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    }
   };
 
   const createProject = async () => {
