@@ -8,6 +8,25 @@ const TABLES = {
 
 const rowToEntity = (row) => row ? ({ id: row.id, created_date: row.created_date, updated_date: row.updated_date, ...row.data }) : null;
 
+const PROFILE_FIELDS = [
+  'full_name', 'user_type', 'bio', 'research_interests', 'skills',
+  'organization', 'country', 'career_goal', 'startup_interest',
+];
+
+function pickProfileFields(value = {}) {
+  return Object.fromEntries(
+    PROFILE_FIELDS
+      .filter((field) => value[field] !== undefined)
+      .map((field) => [field, value[field]]),
+  );
+}
+
+function profileWriteError(error) {
+  const wrapped = new Error(error?.message || 'We could not save your profile. Please try again.');
+  wrapped.code = error?.code || 'PROFILE_WRITE_FAILED';
+  return wrapped;
+}
+
 async function currentUser() {
   const client = requireSupabase();
   const { data: sessionData, error: sessionError } = await client.auth.getSession();
@@ -101,18 +120,68 @@ export const supabaseEntities = Object.fromEntries(Object.entries(TABLES).map(([
 export const supabaseProfile = {
   async me() {
     const user = await currentUser();
-    const { data, error } = await requireSupabase().from('profiles').select('*').eq('user_id', user.id).maybeSingle();
-    if (error) throw error;
-    return { id: user.id, email: user.email, full_name: user.user_metadata?.full_name || user.user_metadata?.name || '', ...(data?.data || {}) };
+    const authProfile = pickProfileFields(user.user_metadata || {});
+    const { data, error } = await requireSupabase()
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Profile table read failed; using authenticated metadata', { code: error.code });
+      return {
+        id: user.id,
+        email: user.email,
+        full_name: authProfile.full_name || user.user_metadata?.name || '',
+        ...authProfile,
+      };
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      full_name: data?.full_name || authProfile.full_name || user.user_metadata?.name || '',
+      ...pickProfileFields(data || {}),
+      ...authProfile,
+    };
   },
+
   async updateMe(patch) {
+    const client = requireSupabase();
     const user = await currentUser();
     const current = await this.me();
-    const { id: _id, email: _email, ...profile } = current;
-    const next = { ...profile, ...patch };
-    const { data, error } = await requireSupabase().from('profiles').upsert({ user_id: user.id, data: next }, { onConflict: 'user_id' }).select('*').single();
-    if (error) throw error;
-    await requireSupabase().auth.updateUser({ data: { full_name: next.full_name || user.user_metadata?.full_name } });
-    return { id: user.id, email: user.email, ...data.data };
+    const next = pickProfileFields({ ...current, ...patch });
+    const profileRow = { id: user.id, email: user.email, ...next };
+
+    const [profileWrite, authWrite] = await Promise.all([
+      client
+        .from('profiles')
+        .upsert(profileRow, { onConflict: 'id' })
+        .select('*')
+        .maybeSingle(),
+      client.auth.updateUser({ data: next }),
+    ]);
+
+    if (profileWrite.error && authWrite.error) {
+      throw profileWriteError(profileWrite.error || authWrite.error);
+    }
+    if (profileWrite.error) {
+      console.warn('Profile table write failed; profile persisted in authenticated metadata', {
+        code: profileWrite.error.code,
+      });
+    }
+    if (authWrite.error) {
+      console.warn('Auth metadata write failed; profile persisted in the profile table', {
+        code: authWrite.error.code,
+      });
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      ...next,
+      ...pickProfileFields(profileWrite.data || {}),
+      ...pickProfileFields(authWrite.data?.user?.user_metadata || {}),
+    };
   },
 };
