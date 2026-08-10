@@ -30,7 +30,7 @@ export default function Landing() {
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <header className="relative z-20 mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
         <Link to="/" className="flex items-center gap-3" aria-label="EYLO home">
-          <img src="https://raw.githubusercontent.com/panagiotagrosdouli/eyloai/main/EYLO%20LOGO/EYLO%20LOGO.png" alt="EYLO" className="h-12 w-12 rounded-2xl object-cover object-top shadow-lg shadow-cyan-500/10" />
+          <img src="/brand/eylo-logo.svg" alt="EYLO" className="h-14 w-20 rounded-2xl border border-white/10 bg-white/[0.03] object-contain p-1 shadow-xl shadow-cyan-500/15 sm:w-24" />
           <span className="hidden sm:block"><span className="block font-heading text-lg font-bold tracking-tight">EYLO</span><span className="block text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Research & Innovation OS</span></span>
         </Link>
         <nav className="flex items-center gap-2">
@@ -42,7 +42,7 @@ export default function Landing() {
       <section className="relative px-5 pb-24 pt-16 sm:px-8 sm:pt-24">
         <div className="pointer-events-none absolute left-1/2 top-0 h-[560px] w-[900px] -translate-x-1/2 rounded-full bg-primary/10 blur-[130px]" />
         <div className="relative mx-auto max-w-5xl text-center">
-          <img src="https://raw.githubusercontent.com/panagiotagrosdouli/eyloai/main/EYLO%20LOGO/EYLO%20LOGO.png" alt="EYLO Research and Innovation Operating System" className="mx-auto mb-8 h-24 w-24 rounded-[2rem] object-cover object-top shadow-2xl shadow-cyan-500/20 sm:h-28 sm:w-28" />
+          <img src="/brand/eylo-logo.svg" alt="EYLO Research and Innovation Operating System" className="mx-auto mb-8 h-32 w-auto max-w-[320px] rounded-[2rem] border border-white/10 bg-white/[0.03] object-contain p-3 shadow-2xl shadow-cyan-500/25 sm:h-40 sm:max-w-[420px]" />
           <div className="mx-auto mb-7 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-xs font-semibold text-primary">
             <Sparkles size={13} /> Meet EYRA — your AI research & innovation co-founder
           </div>

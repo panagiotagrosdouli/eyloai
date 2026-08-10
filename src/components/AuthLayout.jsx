@@ -7,9 +7,9 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
 
       <section className="relative hidden min-h-screen items-center justify-center overflow-hidden border-r border-white/10 lg:flex">
         <img
-          src="https://raw.githubusercontent.com/panagiotagrosdouli/eyloai/main/EYLO%20LOGO/EYLO%20LOGO.png"
+          src="/brand/eylo-logo.svg"
           alt="EYLO"
-          className="h-full w-full object-cover object-center opacity-95"
+          className="h-full w-full object-contain object-center p-12 opacity-100 drop-shadow-[0_30px_90px_rgba(0,196,255,0.25)]"
         />
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#020714] via-[#020714]/60 to-transparent px-12 pb-12 pt-32">
           <p className="text-xs font-semibold uppercase tracking-[0.32em] text-cyan-300">Research & Innovation OS</p>
@@ -21,7 +21,7 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
         <section className="w-full max-w-md rounded-3xl border border-white/10 bg-[#07101f]/90 p-7 shadow-[0_30px_100px_-30px_rgba(0,174,255,0.45)] backdrop-blur-xl sm:p-9">
           <div className="mb-8 text-center">
             <a href="/" aria-label="EYLO home" className="mx-auto mb-6 block w-fit">
-              <img src="https://raw.githubusercontent.com/panagiotagrosdouli/eyloai/main/EYLO%20LOGO/EYLO%20LOGO.png" alt="EYLO" className="h-16 w-auto max-w-[220px] object-contain" />
+              <img src="/brand/eylo-logo.svg" alt="EYLO" className="h-20 w-auto max-w-[280px] object-contain drop-shadow-[0_12px_32px_rgba(0,196,255,0.28)]" />
             </a>
             {Icon && (
               <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 text-cyan-300">
