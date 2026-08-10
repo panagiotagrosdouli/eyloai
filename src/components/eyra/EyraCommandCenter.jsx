@@ -126,6 +126,56 @@ async function retrieveEvidence(content, mode, workspaceContext) {
   return { query, blocks, sources, attempted: true };
 }
 
+function buildVerifiedEvidenceFallback(evidence, error) {
+  const sources = evidence?.sources || [];
+  const authIssue = error?.status === 401 || /auth|session|sign in/i.test(error?.message || '');
+  const lines = [
+    '## Live retrieval completed',
+    authIssue
+      ? 'The secure AI session needs renewal, so I did not invent an AI synthesis. The verified records retrieved for this request are still available below.'
+      : 'The AI synthesis service did not finish, so I kept the response strictly to the verified records retrieved for this request.',
+  ];
+
+  if (!sources.length) {
+    lines.push(
+      '',
+      evidence?.attempted
+        ? 'No usable live records were returned for this query. Try adding a method, application, population, or date range.'
+        : 'This request needs AI reasoning rather than external retrieval. Refresh the page once to renew the secure session, then resend it.',
+    );
+    return lines.join('\n');
+  }
+
+  const grouped = Object.groupBy
+    ? Object.groupBy(sources, source => source.type)
+    : sources.reduce((groups, source) => {
+        (groups[source.type] ||= []).push(source);
+        return groups;
+      }, {});
+
+  Object.entries(grouped).forEach(([type, items]) => {
+    lines.push('', `### ${type}`);
+    items.slice(0, 6).forEach(source => {
+      const details = source.meta ? ` — ${source.meta}` : '';
+      lines.push(`- [${source.id}] [${source.title}](${source.url})${details}`);
+    });
+  });
+
+  lines.push('', '### Useful next step');
+  if (grouped.Paper?.length) {
+    lines.push('Start with the first two papers, compare their methods and limitations, then refine the query around the disagreement or missing evidence.');
+  } else if (grouped.Funding?.length) {
+    lines.push('Open the official opportunity record and verify scope, eligibility, deadline, and required partners before planning an application.');
+  } else if (grouped.Researcher?.length || grouped.Institution?.length) {
+    lines.push('Review the linked publication record to confirm expertise fit before considering outreach; publication activity does not imply availability.');
+  } else {
+    lines.push('Open the linked records and refine the query with the specific outcome you want.');
+  }
+  if (authIssue) lines.push('Refresh the page once to renew the secure session and ask EYRA to synthesize these same sources.');
+
+  return lines.join('\n');
+}
+
 const INITIAL_MESSAGE = {
   role: 'eyra',
   content: "I'm online and ready. I can work with your projects, saved evidence, researchers, opportunities, and ideas. Tell me what outcome you want next.",
@@ -364,8 +414,9 @@ export default function EyraCommandCenter({ open, onClose }) {
       `${message.role === 'user' ? 'User' : 'EYRA'}: ${message.content}`
     ).join('\n\n');
 
+    let evidence = { query: content, blocks: [], sources: [], attempted: false };
     try {
-      const evidence = await retrieveEvidence(
+      evidence = await retrieveEvidence(
         content,
         activeMode,
         preferences.data_personalization ? workspaceContext : '',
@@ -417,13 +468,14 @@ Answer the user's latest request. Cite every externally verifiable claim with th
       setMessages(previous => [...previous, eyraMsg]);
       speak(eyraMsg.content);
     } catch (error) {
-      const reason = error instanceof Error ? error.message : 'The live AI service did not complete the request.';
+      const fallbackContent = buildVerifiedEvidenceFallback(evidence, error);
       setMessages(previous => [...previous, {
         role: 'eyra',
-        content: `**I could not complete that live analysis.** ${reason}\n\nNo evidence or recommendation has been fabricated. Please retry with a focused topic or switch EYRA mode.`,
+        content: fallbackContent,
         timestamp: Date.now(),
         mode: activeMode,
-        sources: [],
+        sources: evidence.sources || [],
+        retrievalQuery: evidence.query,
       }]);
     } finally {
       setLoading(false);
