@@ -75,7 +75,8 @@ export default function ResearchBattlefield() {
 
     let aiAnalysis = null;
     if (hasSufficientData) {
-      aiAnalysis = await base44.integrations.Core.InvokeLLM({
+      try {
+        aiAnalysis = await base44.integrations.Core.InvokeLLM({
         prompt: `You are EYRA Research Battlefield Analyzer. Analyze ONLY the real data below — do NOT invent any names, institutions, or statistics.
 
 Field: "${searchQuery}"
@@ -94,7 +95,7 @@ Based ONLY on this real data:
 1. field_summary: 2 sentences about the field based on what the data shows
 2. competition_level: "Highly Competitive"|"Competitive"|"Emerging"|"Limited Data" (base on how many results were found)
 3. maturity: "Early Stage"|"Growing"|"Mature" (based on publication years in the data)
-4. opportunity_score: 1-100 based on the gap between citation counts and research coverage
+4. opportunity_score: a 1-100 planning heuristic based only on the supplied result coverage, recency, and citation counts; it is not a probability or validated market metric
 5. trend_direction: "Rising"|"Stable"|"Declining" (based on recency of papers)
 6. research_gaps: array of 3-4 specific gaps visible from what the papers DO NOT cover (based on the real papers found). Each as a string.
 7. key_trends: array of 3-4 trends visible from the real paper titles and years
@@ -116,7 +117,10 @@ Funding records are retrieved separately from an official source. Do not generat
             eyra_verdict: { type: 'string' },
           },
         },
-      });
+        });
+      } catch (error) {
+        aiAnalysis = { ai_error: error?.message || 'AI analysis was unavailable; verified source records remain below.' };
+      }
     }
 
     setReport({
@@ -154,7 +158,7 @@ Funding records are retrieved separately from an official source. Do not generat
           Global <span className="impact-gradient">Intelligence Map</span>
         </h1>
         <p className="text-muted-foreground text-sm max-w-xl">
-          Real researchers, institutions, and papers from OpenAlex — analyzed by EYRA. No invented names.
+          Verified researchers, institutions, and papers from OpenAlex, plus official funding records — with AI-assisted, clearly labeled interpretation.
         </p>
       </div>
 
@@ -212,9 +216,15 @@ Funding records are retrieved separately from an official source. Do not generat
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-primary/15 bg-primary/5">
             <AlertCircle size={12} className="text-primary flex-shrink-0" />
             <p className="text-[11px] text-muted-foreground">
-              Research data: <span className="text-primary font-medium">OpenAlex</span> — {report.researchers.length} researchers, {report.institutions.length} institutions, {report.papers.length} papers. Funding: <span className="text-primary font-medium">Grants.gov</span> — {report.major_funders.length} official records.
+              Research data: <span className="text-primary font-medium">OpenAlex</span> — {report.researchers.length} researchers, {report.institutions.length} institutions, {report.papers.length} papers. Funding: <span className="text-primary font-medium">Grants.gov</span> — {report.major_funders.length} official records. Landscape labels are AI planning heuristics, not validated forecasts.
             </p>
           </div>
+
+          {report.ai_error && (
+            <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 text-xs text-amber-300">
+              {report.ai_error}
+            </div>
+          )}
 
           {!report.has_data && (
             <div className="p-5 rounded-xl border border-border bg-card text-center">
@@ -236,7 +246,7 @@ Funding records are retrieved separately from an official source. Do not generat
                     <p className="text-xs font-bold text-foreground">{report.maturity || '—'}</p>
                   </div>
                   <div className="p-3 rounded-xl border border-green-500/20 bg-green-500/10 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Opportunity</p>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">AI opportunity heuristic</p>
                     <p className="text-xl font-black text-green-400">{report.opportunity_score || '—'}</p>
                   </div>
                   <div className="p-3 rounded-xl border border-border bg-card text-center">
