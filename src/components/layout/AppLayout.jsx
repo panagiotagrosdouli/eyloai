@@ -106,7 +106,7 @@ export default function AppLayout() {
   const mobileSecondary = PRIMARY_NAV.slice(2);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="eylo-app-canvas min-h-screen bg-background">
       {/* ── Header ───────────────────────────────────── */}
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center h-14 gap-1">
@@ -277,7 +277,7 @@ export default function AppLayout() {
       </header>
 
       {/* ── Page content ─────────────────────────────── */}
-      <main className="pb-24 lg:pb-0">
+      <main className="relative z-10 pb-24 lg:pb-0">
         <Outlet />
       </main>
 
