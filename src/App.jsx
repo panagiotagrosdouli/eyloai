@@ -47,6 +47,7 @@ const Notifications = lazy(() => import('@/pages/Notifications'));
 const VoiceAssistant = lazy(() => import('@/pages/VoiceAssistant'));
 const PitchDeckBuilder = lazy(() => import('@/pages/PitchDeckBuilder'));
 const GrantBuilder = lazy(() => import('@/pages/GrantBuilder'));
+const InstitutionAdmin = lazy(() => import('@/pages/InstitutionAdmin'));
 
 const PageLoader = () => (
   <div className="grid min-h-[50vh] place-items-center" role="status" aria-live="polite">
@@ -125,6 +126,7 @@ const AuthenticatedApp = () => {
           <Route path="/voice" element={<PlanGate minimum="pro"><VoiceAssistant /></PlanGate>} />
           <Route path="/pitchdeck" element={<PlanGate minimum="founder"><PitchDeckBuilder /></PlanGate>} />
           <Route path="/grant-builder" element={<PlanGate minimum="founder"><GrantBuilder /></PlanGate>} />
+          <Route path="/institution" element={<PlanGate minimum="institution"><InstitutionAdmin /></PlanGate>} />
         </Route>
       </Route>
 
