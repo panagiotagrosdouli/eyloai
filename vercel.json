@@ -13,5 +13,11 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/monitor",
+      "schedule": "0 8 * * *"
+    }
   ]
 }
