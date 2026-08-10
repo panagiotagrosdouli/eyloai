@@ -18,6 +18,7 @@ export default function FutureMeWhatIf({ profile, goal }) {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [simulationError, setSimulationError] = useState('');
 
   const simulate = async (q) => {
     const question = q || query;
@@ -25,8 +26,10 @@ export default function FutureMeWhatIf({ profile, goal }) {
     setQuery(question);
     setLoading(true);
     setResult(null);
+    setSimulationError('');
 
-    const res = await base44.integrations.Core.InvokeLLM({
+    try {
+      const res = await base44.integrations.Core.InvokeLLM({
       prompt: `You are EYRA What-If Simulator. A researcher asks you to simulate a possible future action.
 
 Their current goal: "${goal.text}" (timeframe: ${goal.timeframe})
@@ -35,7 +38,9 @@ Projects: ${profile.stats.projects}, Papers: ${profile.stats.papers}, Researcher
 
 WHAT IF QUESTION: "${question}"
 
-Simulate the impact of this action on their journey toward their goal. Be realistic, specific, and honest.
+Build a conditional decision scenario for how this action could affect their journey. Be realistic, specific, and honest.
+
+The field "probability" is retained for interface compatibility, but it must mean model-assessed benefit plausibility, not an empirical probability. Do not present it as a forecast or guarantee.
 
 Respond as JSON:
 {
@@ -63,8 +68,12 @@ Respond as JSON:
       }
     });
 
-    setResult(res);
-    setLoading(false);
+      setResult(res);
+    } catch (error) {
+      setSimulationError(error instanceof Error ? error.message : 'What-if analysis did not complete.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const impactColor = {
@@ -80,6 +89,15 @@ Respond as JSON:
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">What If Simulator</p>
         <p className="text-xs text-muted-foreground">Ask EYRA to simulate any action or decision and see how it would affect your path to <span className="text-foreground/70">{goal.text}</span>.</p>
       </div>
+
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] text-muted-foreground">
+        This is a conditional planning scenario. Its score is an AI plausibility estimate, not a statistical probability.
+      </div>
+      {simulationError && (
+        <div role="alert" className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+          {simulationError}
+        </div>
+      )}
 
       {/* Input */}
       <form onSubmit={e => { e.preventDefault(); simulate(); }} className="flex gap-2">
@@ -132,7 +150,7 @@ Respond as JSON:
             <p className="text-sm text-foreground/85 leading-relaxed mb-3">{result.summary}</p>
             <div className="flex items-center gap-4">
               <div>
-                <p className="text-[9px] text-muted-foreground">Success Probability</p>
+                <p className="text-[9px] text-muted-foreground">Benefit Plausibility</p>
                 <p className="text-2xl font-black text-primary">{result.probability}%</p>
               </div>
               <div className="flex-1">
