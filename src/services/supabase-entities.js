@@ -1,4 +1,4 @@
-import { requireSupabase } from '@/lib/supabaseClient';
+import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 
 const TABLES = {
   Project: 'projects', Idea: 'ideas', Meeting: 'meetings', SavedPaper: 'saved_papers',
@@ -28,19 +28,11 @@ function profileWriteError(error) {
 }
 
 async function currentUser() {
-  const client = requireSupabase();
-  const { data: sessionData, error: sessionError } = await client.auth.getSession();
-  if (sessionError) throw sessionError;
-  if (sessionData.session?.user) return sessionData.session.user;
-
-  const { data: refreshed, error: refreshError } = await client.auth.refreshSession();
-  if (refreshError) throw refreshError;
-  if (!refreshed.session?.user) {
-    const error = new Error('Your secure session expired. Sign in again to save workspace changes.');
-    error.code = 'AUTH_SESSION_MISSING';
-    throw error;
-  }
-  return refreshed.session.user;
+  const session = await getUsableSession({
+    required: true,
+    validate: true,
+  });
+  return session.user;
 }
 
 function sortEntities(items, sort = '-created_date') {

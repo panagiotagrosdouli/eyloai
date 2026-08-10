@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
+import {
+  AUTH_REQUIRED_EVENT,
+  isSupabaseConfigured,
+  supabase,
+} from '@/lib/supabaseClient';
 import {
   getSession,
   refreshSession as refreshAuthSession,
@@ -32,6 +36,12 @@ export const AuthProvider = ({ children }) => {
     }
 
     let mounted = true;
+    const setAnonymous = () => {
+      if (!mounted) return;
+      setState({ status: 'anonymous', user: null, session: null, error: null });
+    };
+
+    window.addEventListener(AUTH_REQUIRED_EVENT, setAnonymous);
 
     getSession().then((result) => {
       if (!mounted) return;
@@ -47,8 +57,19 @@ export const AuthProvider = ({ children }) => {
         : { status: 'anonymous', user: null, session: null, error: null });
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
+
+      if (event === 'SIGNED_IN' && typeof window !== 'undefined') {
+        try {
+          // Remove an old failed EYRA response so it is not shown again after
+          // the user has renewed the secure session.
+          window.sessionStorage.removeItem('eyra_command_conversation');
+        } catch {
+          // Storage may be unavailable in privacy-restricted browsers.
+        }
+      }
+
       setState(session
         ? { status: 'authenticated', user: session.user, session, error: null }
         : { status: 'anonymous', user: null, session: null, error: null });
@@ -56,6 +77,7 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       mounted = false;
+      window.removeEventListener(AUTH_REQUIRED_EVENT, setAnonymous);
       listener.subscription.unsubscribe();
     };
   }, []);

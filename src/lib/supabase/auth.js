@@ -1,4 +1,4 @@
-import { requireSupabase } from '@/lib/supabaseClient';
+import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 import { createAppError, AppErrorCode, mapSupabaseError } from './errors';
 
 const ok = (data) => ({ ok: true, data });
@@ -6,10 +6,7 @@ const fail = (error) => ({ ok: false, error });
 
 export async function getSession() {
   try {
-    const client = requireSupabase();
-    const { data, error } = await client.auth.getSession();
-    if (error) return fail(mapSupabaseError(error));
-    return ok(data.session ?? null);
+    return ok(await getUsableSession({ required: false, validate: true }));
   } catch (error) {
     return fail(createAppError(AppErrorCode.CONFIGURATION, error));
   }
@@ -95,10 +92,11 @@ export async function signOut() {
 
 export async function refreshSession() {
   try {
-    const client = requireSupabase();
-    const { data, error } = await client.auth.refreshSession();
-    if (error) return fail(mapSupabaseError(error));
-    return ok(data.session ?? null);
+    return ok(await getUsableSession({
+      forceRefresh: true,
+      required: false,
+      validate: true,
+    }));
   } catch (error) {
     return fail(createAppError(AppErrorCode.CONFIGURATION, error));
   }
