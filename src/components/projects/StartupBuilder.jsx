@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { searchAllPapers } from '@/lib/eyra-api';
+import { searchFundingOpportunities } from '@/lib/funding-api';
 import { Rocket, Loader2, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -7,17 +9,39 @@ export default function StartupBuilder({ project }) {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
+  const [buildError, setBuildError] = useState('');
 
   const buildStartup = async () => {
     setLoading(true);
-    const result = await base44.integrations.Core.InvokeLLM({
+    setBuildError('');
+
+    try {
+      const searchQuery = [project.title, project.goal, project.description].filter(Boolean).join(' ');
+      const [papers, fundingResult] = await Promise.all([
+        searchAllPapers(searchQuery),
+        searchFundingOpportunities(searchQuery, 5).catch(() => ({ items: [] })),
+      ]);
+      const paperContext = papers.slice(0, 8).map((paper, index) =>
+        `[P${index + 1}] "${paper.title}" — ${paper.authors || 'Unknown'} (${paper.year || 'n/a'}) — ${paper.url}`
+      ).join('\n');
+      const fundingContext = fundingResult.items.map((item, index) =>
+        `[F${index + 1}] "${item.title}" — ${item.agency} — ${item.deadline || 'deadline not supplied'} — ${item.source_url}`
+      ).join('\n');
+
+      const result = await base44.integrations.Core.InvokeLLM({
       prompt: `You are EYRA, AI Co-Founder on the EYLO platform. Convert this research project into a startup concept.
 
 Project: ${project.title}
 Goal: ${project.goal}
 Description: ${project.description || 'Not provided'}
 
-Generate a full startup plan in markdown:
+VERIFIED SCHOLARLY RECORDS:
+${paperContext || 'No matching records were retrieved.'}
+
+VERIFIED FUNDING RECORDS:
+${fundingContext || 'No matching official funding records were retrieved.'}
+
+Generate an evidence-informed startup hypothesis in markdown:
 
 ## Startup Concept
 Core idea and value proposition (2-3 sentences).
@@ -26,13 +50,13 @@ Core idea and value proposition (2-3 sentences).
 What problem does it solve and how.
 
 ## Target Market
-Primary customer segments and market size.
+Customer hypotheses and the exact research needed to estimate market size. Do not invent market figures.
 
 ## Business Model
 How it makes money (3-4 revenue streams).
 
 ## Competitive Landscape
-3-4 competitors and your key differentiators.
+Categories of alternatives and differentiators. Do not invent named competitors.
 
 ## Team Requirements
 Critical roles needed to launch.
@@ -41,7 +65,7 @@ Critical roles needed to launch.
 3 phases, 4 weeks each.
 
 ## Funding Strategy
-Recommended funding path (bootstrap, grants, angels, VC).
+A staged funding path. Reference only supplied [F] records when naming a grant.
 
 ## Go-to-Market
 First 90-day launch strategy.
@@ -49,10 +73,14 @@ First 90-day launch strategy.
 ## Key Risks
 Top 3 risks and mitigations.
 
-Be specific, realistic, and actionable. Think like a seasoned startup advisor.`,
+Be specific, realistic, and actionable. Reference supplied [P] and [F] records where relevant. Separate verified evidence, user assumptions, and recommendations. Never invent companies, market statistics, grants, deadlines, customers, or validation results.`,
     });
-    setPlan(result);
-    setLoading(false);
+      setPlan(result);
+    } catch (error) {
+      setBuildError(error instanceof Error ? error.message : 'Startup analysis did not complete.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,7 +92,7 @@ Be specific, realistic, and actionable. Think like a seasoned startup advisor.`,
           </div>
           <div>
             <p className="text-sm font-bold text-foreground">Startup Builder</p>
-            <p className="text-[10px] text-muted-foreground">EYRA converts your project into a startup plan</p>
+            <p className="text-[10px] text-muted-foreground">Evidence-informed startup hypothesis from your project</p>
           </div>
         </div>
         {plan && (
@@ -73,6 +101,12 @@ Be specific, realistic, and actionable. Think like a seasoned startup advisor.`,
           </button>
         )}
       </div>
+
+      {buildError && (
+        <div role="alert" className="mb-3 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+          {buildError}
+        </div>
+      )}
 
       {!plan && !loading && (
         <button
