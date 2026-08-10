@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
-  User, Globe, Palette, Bell, Brain, Mic, Layout,
-  Shield, CreditCard, Zap, Eye, ChevronRight, Check,
-  Sun, Moon, Monitor, Volume2, Languages, Sliders
+  User, Palette, Bell, Brain, Mic, Shield, CreditCard,
+  Eye, ChevronRight, Check, Sun, Moon, Monitor, Volume2, Languages
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { loadPreferences, savePreferences } from '@/lib/preferences';
@@ -75,23 +74,10 @@ function SectionHeader({ title, desc }) {
   );
 }
 
-function OptionCard({ selected, onClick, children, className = '' }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`relative w-full text-left p-4 rounded-xl border transition-all ${selected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30 bg-card'} ${className}`}
-    >
-      {children}
-      {selected && <Check size={12} className="text-primary absolute top-3 right-3" />}
-    </button>
-  );
-}
-
 export default function Settings() {
   const [active, setActive] = useState('profile');
   const [prefs, setPrefs] = useState(loadPreferences);
   const [user, setUser] = useState(null);
-  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -99,10 +85,8 @@ export default function Settings() {
   }, []);
 
   const savePrefs = (newPrefs) => {
-    setSaving(true);
     const updated = savePreferences(newPrefs);
     setPrefs(updated);
-    setSaving(false);
     toast({ title: 'Settings applied', description: 'Saved on this device and active now.' });
   };
 
