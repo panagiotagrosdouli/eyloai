@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { searchFundingOpportunities } from '@/lib/funding-api';
 import {
   Trophy, Sparkles, Loader2, Search, ExternalLink, Bookmark,
   Calendar, DollarSign, Globe, RefreshCw, AlertCircle
@@ -11,6 +12,7 @@ import { buildUserProfile } from '@/lib/second-brain';
 const TYPE_CONFIG = {
   competition: { color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', label: 'Competition' },
   grant: { color: 'text-primary bg-primary/10 border-primary/20', label: 'Grant' },
+  call: { color: 'text-chart-3 bg-chart-3/10 border-chart-3/20', label: 'Open Call' },
   accelerator: { color: 'text-green-400 bg-green-500/10 border-green-500/20', label: 'Accelerator' },
   fellowship: { color: 'text-purple-400 bg-purple-500/10 border-purple-500/20', label: 'Fellowship' },
   challenge: { color: 'text-rose-400 bg-rose-500/10 border-rose-500/20', label: 'Challenge' },
@@ -23,6 +25,9 @@ export default function Challenges() {
   const [loading, setLoading] = useState(false);
   const [hasRun, setHasRun] = useState(false);
   const [manualQuery, setManualQuery] = useState('');
+  const [sourceMeta, setSourceMeta] = useState(null);
+  const [searchError, setSearchError] = useState('');
+  const [rankingError, setRankingError] = useState('');
   const { toast } = useToast();
 
   useEffect(() => { loadProfile(); }, []);
@@ -35,73 +40,92 @@ export default function Challenges() {
   const findChallenges = async (query) => {
     setLoading(true);
     setHasRun(true);
-
-    const context = profile ? `
-User Profile:
-- Research Interests: ${profile.user?.research_interests || 'Not specified'}
-- Skills: ${profile.user?.skills || 'Not specified'}
-- Country: ${profile.user?.country || 'Not specified'}
-- Career Goal: ${profile.user?.career_goal || 'Not specified'}
-- Active Projects: ${profile.activeProjects?.map(p => p.title).join(', ') || 'None'}
-` : '';
+    setSearchError('');
+    setRankingError('');
+    setSourceMeta(null);
+    setChallenges([]);
 
     const searchFocus = query || profile?.activeProjects?.[0]?.goal || profile?.user?.research_interests || 'research and innovation';
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are EYRA, searching for real innovation challenges, competitions, grants, and prizes for a researcher/innovator.
+    try {
+      const sourceResult = await searchFundingOpportunities(searchFocus, 12);
+      setSourceMeta(sourceResult);
 
-${context}
-Search focus: "${searchFocus}"
+      const verified = sourceResult.items.map((item) => ({
+        id: item.id,
+        title: item.title,
+        type: item.type,
+        organizer: item.agency,
+        description: item.description,
+        amount: item.amount,
+        deadline: item.deadline,
+        url_hint: item.source_url,
+        match_reason: '',
+        eligibility: item.eligibility,
+        source: item.source,
+        source_id: item.source_id,
+      }));
+      setChallenges(verified);
 
-Find 12 REAL, currently open or recently announced opportunities. Use your knowledge of real programs:
-- Real innovation competitions (XPRIZE, Innovate UK challenges, EIC Accelerator, Hello Tomorrow, MIT Solve, etc.)
-- Real EU/national grant calls (Horizon Europe calls, ERC, national innovation agencies)
-- Real accelerator programs (EIT, Startupbootcamp, Y Combinator, Entrepreneur First)
-- Real fellowships (Marie Skłodowska-Curie, Fulbright, Royal Society)
-- Real prize competitions (Wellcome Prize, Newton Prize, etc.)
+      if (verified.length > 0) {
+        try {
+          const ranking = await base44.integrations.Core.InvokeLLM({
+            prompt: `You are EYRA. Explain the relevance of ONLY the verified official funding records below.
 
-CRITICAL: Only include REAL programs that actually exist. If you're not confident a specific current deadline is accurate, leave deadline as "Check official website" but the program must be real.
+USER PROFILE:
+- Interests: ${profile?.user?.research_interests || 'Not specified'}
+- Skills: ${profile?.user?.skills || 'Not specified'}
+- Country: ${profile?.user?.country || 'Not specified'}
+- Career goal: ${profile?.user?.career_goal || 'Not specified'}
+- Projects: ${profile?.activeProjects?.map((project) => project.title).join(', ') || 'None'}
+SEARCH FOCUS: "${searchFocus}"
 
-For each, return:
-- title: exact real program name
-- type: "competition"|"grant"|"accelerator"|"fellowship"|"challenge"|"prize"  
-- organizer: real organization name
-- description: what it funds/rewards (based on real program knowledge)
-- amount: prize/funding amount if known, or "Varies"
-- deadline: deadline if known, or "Check official website"
-- url_hint: the real website domain (e.g., "xprize.org", "eic.ec.europa.eu")
-- match_reason: why this matches the user's profile/focus
-- eligibility: key eligibility criteria`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          opportunities: {
-            type: 'array',
-            items: {
+VERIFIED RECORDS:
+${verified.map((item) => JSON.stringify({
+  id: item.id,
+  title: item.title,
+  organizer: item.organizer,
+  description: item.description,
+  eligibility: item.eligibility,
+  deadline: item.deadline,
+  amount: item.amount,
+})).join('\n')}
+
+Return one result for every supplied id. Do not add programs or change factual fields.`,
+            response_json_schema: {
               type: 'object',
               properties: {
-                title: { type: 'string' },
-                type: { type: 'string' },
-                organizer: { type: 'string' },
-                description: { type: 'string' },
-                amount: { type: 'string' },
-                deadline: { type: 'string' },
-                url_hint: { type: 'string' },
-                match_reason: { type: 'string' },
-                eligibility: { type: 'string' },
+                ranked: {
+                  type: 'array',
+                  minItems: verified.length,
+                  maxItems: verified.length,
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string', enum: verified.map((item) => item.id) },
+                      match_reason: { type: 'string' },
+                    },
+                  },
+                },
               },
             },
-          },
-        },
-      },
-      add_context_from_internet: true,
-      model: 'gemini_3_flash',
-    });
+          });
+          const byId = new Map((ranking.ranked || []).map((item) => [item.id, item]));
+          setChallenges(verified.map((item) => ({ ...item, ...(byId.get(item.id) || {}) })));
+        } catch (error) {
+          setRankingError(
+            `Verified calls loaded, but EYRA analysis is unavailable: ${error instanceof Error ? error.message : 'unknown error'}`,
+          );
+        }
+      }
 
-    setChallenges(result.opportunities || []);
-    setLoading(false);
-    if ((result.opportunities || []).length === 0) {
-      toast({ title: 'No results found — try a different search', variant: 'destructive' });
+      if (verified.length === 0) {
+        toast({ title: 'No official records matched — try a broader search', variant: 'destructive' });
+      }
+    } catch (error) {
+      setSearchError(error instanceof Error ? error.message : 'Official call search failed.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -111,8 +135,11 @@ For each, return:
       type: c.type || 'competition',
       description: c.description,
       deadline: c.deadline,
-      url: c.url_hint ? `https://${c.url_hint}` : '',
-      source: c.organizer,
+      url: c.url_hint || '',
+      source: c.source || c.organizer,
+      amount: c.amount,
+      agency: c.organizer,
+      source_id: c.source_id,
     });
     toast({ title: 'Saved to your library' });
   };
@@ -128,9 +155,29 @@ For each, return:
             </div>
             <h1 className="font-heading font-bold text-2xl">Innovation Challenges</h1>
           </div>
-          <p className="text-sm text-muted-foreground">EYRA finds real competitions, grants, and prizes matched to your research profile</p>
+          <p className="text-sm text-muted-foreground">Official open funding calls retrieved first; EYRA then explains their relevance to your profile</p>
         </div>
       </div>
+
+      {searchError && (
+        <div role="alert" className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+          {searchError}
+        </div>
+      )}
+      {rankingError && (
+        <div role="status" className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-300">
+          {rankingError}
+        </div>
+      )}
+      {sourceMeta && !loading && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+          <span className="rounded-full border border-green-500/20 bg-green-500/5 px-2 py-1 text-green-300">
+            {challenges.length} verified records
+          </span>
+          <span>{sourceMeta.source}</span>
+          <span>Retrieved {new Date(sourceMeta.retrieved_at).toLocaleString()}</span>
+        </div>
+      )}
 
       {/* Search bar */}
       <div className="mb-6">
@@ -181,9 +228,9 @@ For each, return:
           <div className="w-16 h-16 rounded-2xl eyra-gradient flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
             <Trophy size={24} className="text-white" />
           </div>
-          <h3 className="font-semibold text-sm mb-2">Find real competitions & grants</h3>
+          <h3 className="font-semibold text-sm mb-2">Find verified open calls</h3>
           <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed mb-5">
-            EYRA searches for real programs — XPRIZE, Horizon Europe, EIC, fellowships, accelerators — matched to your profile.
+            EYRA retrieves posted and forecasted records from an official funding database, then analyzes their fit without inventing programs or deadlines.
           </p>
           {profile?.activeProjects?.[0] && (
             <button onClick={() => findChallenges(profile.activeProjects[0].goal)}
@@ -199,8 +246,8 @@ For each, return:
           <div className="w-14 h-14 rounded-2xl eyra-gradient flex items-center justify-center mb-4 animate-pulse-glow">
             <Sparkles size={20} className="text-white" />
           </div>
-          <p className="font-semibold text-sm mb-1">Searching for real opportunities...</p>
-          <p className="text-xs text-muted-foreground">EYRA is scanning competitions, grants, and fellowships</p>
+          <p className="font-semibold text-sm mb-1">Retrieving official open calls...</p>
+          <p className="text-xs text-muted-foreground">Official records first; EYRA relevance analysis second</p>
         </div>
       )}
 
@@ -208,7 +255,7 @@ For each, return:
       {hasRun && !loading && challenges.length > 0 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-muted-foreground">{challenges.length} real opportunities found</p>
+            <p className="text-xs text-muted-foreground">{challenges.length} verified official records found</p>
             <button onClick={() => findChallenges(manualQuery)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
               <RefreshCw size={11} /> Refresh
             </button>
@@ -217,7 +264,7 @@ For each, return:
           <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 mb-4">
             <AlertCircle size={13} className="text-amber-400 flex-shrink-0 mt-0.5" />
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Always verify deadlines and eligibility on the official website before applying. EYRA finds real programs but deadline information may have changed.
+              Deadlines, agencies and eligibility text come from the official record. Open the source record before applying; EYRA only explains relevance.
             </p>
           </div>
 
@@ -254,7 +301,7 @@ For each, return:
                   </div>
                   <div className="flex flex-col gap-2 flex-shrink-0">
                     {c.url_hint && (
-                      <a href={`https://${c.url_hint}`} target="_blank" rel="noopener noreferrer"
+                      <a href={c.url_hint} target="_blank" rel="noopener noreferrer"
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border text-xs font-medium text-foreground hover:border-primary/30 transition-colors">
                         <Globe size={11} /> Visit <ExternalLink size={9} />
                       </a>
