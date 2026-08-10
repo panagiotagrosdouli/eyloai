@@ -26,6 +26,13 @@ function sortEntities(items, sort = '-created_date') {
 
 async function assertCreateAllowed(table, user) {
   if (table !== 'projects') return;
+  try {
+    const capabilityResponse = await fetch('/api/capabilities');
+    const capabilities = await capabilityResponse.json();
+    if (!capabilities.billing) return;
+  } catch {
+    return;
+  }
   const client = requireSupabase();
   const [{ data: profile, error: profileError }, { count, error: countError }] = await Promise.all([
     client.from('profiles').select('data').eq('user_id', user.id).maybeSingle(),
