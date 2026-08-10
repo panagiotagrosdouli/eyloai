@@ -76,8 +76,14 @@ export async function runEyraDiscovery(query, onProgress) {
   partial.status = 'analyzing';
   onProgress && onProgress({ ...partial });
 
-  // AI analyzes the real data
-  const aiAnalysis = await generateEvidenceBasedAnalysis(query, papers, researchers, institutions);
+  // AI analyzes the real data. A model failure must not hide retrieved evidence.
+  let aiAnalysis = {};
+  let aiError = '';
+  try {
+    aiAnalysis = await generateEvidenceBasedAnalysis(query, papers, researchers, institutions);
+  } catch (error) {
+    aiError = error instanceof Error ? error.message : 'EYRA analysis unavailable';
+  }
 
   const verifiedFunding = (fundingResult.items || []).map((item) => ({
     id: item.id,
@@ -101,6 +107,8 @@ export async function runEyraDiscovery(query, onProgress) {
     ...aiAnalysis,
     funding_opportunities: verifiedFunding,
     funding_error: fundingResult.error || '',
+    ai_status: aiError ? 'failed' : 'complete',
+    ai_error: aiError,
     status: 'complete',
   };
   setCache(cacheKey, result);
