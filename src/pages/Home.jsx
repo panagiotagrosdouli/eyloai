@@ -16,20 +16,22 @@ export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
 
-  const handleSearch = async (query) => {
+  const handleSearch = async (request) => {
+    const topic = typeof request === 'string' ? request.trim() : String(request?.topic || request?.query || '').trim();
+    if (!topic) return;
     setState('loading');
-    setCurrentQuery(query);
+    setCurrentQuery(topic);
     setProgress({ status: 'loading', papers: [], researchers: [], institutions: [] });
 
     try {
-      const finalResults = await runEyraDiscovery(query, (partial) => {
+      const finalResults = await runEyraDiscovery(request, (partial) => {
         setProgress({ ...partial });
         // As soon as we have real data + AI done, switch to results view
         if (partial.status === 'complete') {
           setResults(partial);
           setState('results');
           base44.entities.SearchHistory.create({
-            query,
+            query: topic,
             results_summary: `${partial.papers?.length || 0} papers, ${partial.researchers?.length || 0} researchers`,
           }).catch(() => {});
         }
