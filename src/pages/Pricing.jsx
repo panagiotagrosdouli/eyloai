@@ -1,213 +1,162 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  Check, Sparkles, Rocket, Building2, Zap, Crown, ArrowRight, Star
+  ArrowRight, BookOpen, Brain, Check, Database, FlaskConical,
+  FolderOpen, Search, ShieldCheck, Sparkles, Video,
 } from 'lucide-react';
 
-const PLANS = [
+const LIVE_CAPABILITIES = [
   {
-    key: 'free',
-    name: 'Free',
-    price: '$0',
-    period: 'forever',
-    tagline: 'Start your research journey',
-    icon: Sparkles,
-    color: 'border-border',
-    highlight: false,
-    features: [
-      '5 EYRA discoveries per month',
-      '1 active project workspace',
-      'Basic research library',
-      'Save papers & researchers',
-      'Basic EYRA intelligence',
-      'Community access',
-    ],
-    cta: 'Get Started Free',
-    ctaClass: 'border border-border text-foreground hover:bg-secondary',
+    icon: Search,
+    title: 'Live research discovery',
+    text: 'Searches OpenAlex, arXiv, Europe PMC and Crossref, with links back to source records.',
   },
   {
-    key: 'pro',
-    name: 'Pro',
-    price: '$19',
-    period: 'per month',
-    tagline: 'For serious researchers & innovators',
-    icon: Zap,
-    color: 'border-primary/40',
-    highlight: true,
-    badge: 'Most Popular',
-    features: [
-      'Unlimited EYRA discoveries',
-      'Unlimited project workspaces',
-      'Project Twin (live monitoring)',
-      'Funding Intelligence engine',
-      'Voice EYRA assistant',
-      'Advanced intelligence reports',
-      'Research Battlefield access',
-      'Future Simulator',
-      'Impact Predictor',
-      'Priority support',
-    ],
-    cta: 'Start Pro Trial',
-    ctaClass: 'eyra-gradient text-white hover:opacity-90',
+    icon: Brain,
+    title: 'Authenticated EYRA AI',
+    text: 'Uses structured AI analysis while separating retrieved evidence, inference and assumptions.',
   },
   {
-    key: 'founder',
-    name: 'Founder',
-    price: '$49',
-    period: 'per month',
-    tagline: 'For startup founders & deep innovators',
-    icon: Rocket,
-    color: 'border-accent/40',
-    highlight: false,
-    features: [
-      'Everything in Pro',
-      'Startup Builder (full plan)',
-      'Grant Builder & tracker',
-      'Dream Team Builder',
-      'Investor Readiness Score',
-      'Pitch deck AI assistance',
-      'Competitor intelligence',
-      'Dedicated EYRA agent',
-    ],
-    cta: 'Start Founder Trial',
-    ctaClass: 'border border-accent/40 text-accent hover:bg-accent/10',
+    icon: Database,
+    title: 'Official funding search',
+    text: 'Retrieves current Grants.gov notices, deadlines and official links before AI ranks relevance.',
   },
   {
-    key: 'institution',
-    name: 'Institution',
-    price: 'Custom',
-    period: 'per seat',
-    tagline: 'For universities & research centers',
-    icon: Building2,
-    color: 'border-border',
-    highlight: false,
-    features: [
-      'Everything in Founder',
-      'Multi-user team workspaces',
-      'Admin dashboard & analytics',
-      'Institution-wide library',
-      'Collaboration tools',
-      'Custom integrations',
-      'Dedicated account manager',
-      'SLA & compliance support',
-    ],
-    cta: 'Contact Sales',
-    ctaClass: 'border border-border text-foreground hover:bg-secondary',
+    icon: FolderOpen,
+    title: 'Private research workspace',
+    text: 'Stores projects, papers, researchers, ideas, opportunities and meetings in your account.',
   },
+  {
+    icon: FlaskConical,
+    title: 'Evidence-backed tools',
+    text: 'Project intelligence, scenarios, team planning and impact assessment operate on supplied or retrieved evidence.',
+  },
+  {
+    icon: Video,
+    title: 'Working meeting actions',
+    text: 'Creates joinable Jitsi rooms and provides a Google Calendar handoff for scheduled meetings.',
+  },
+];
+
+const INCLUDED = [
+  'Public multi-source paper discovery',
+  'EYRA research and strategy analysis',
+  'Projects, library, ideas and saved opportunities',
+  'Official funding records and on-demand watchlists',
+  'Researcher and institution discovery through OpenAlex',
+  'Project Twin and Battlefield source scans',
+  'Scenario, impact, team and startup planning tools',
+  'Meeting preparation, debrief, video room and calendar handoff',
 ];
 
 const FAQS = [
-  { q: 'Can I use EYLO without paying?', a: 'Yes. The Free plan gives you 5 discoveries per month, 1 project, and basic library access. No credit card required.' },
-  { q: 'When will I see upgrade prompts?', a: 'Only when you try to use a premium feature. We never interrupt your research flow with paywalls.' },
-  { q: 'What is a "discovery"?', a: 'A discovery is when you run an EYRA search — it finds papers, researchers, institutions, opportunities and builds a roadmap for your idea.' },
-  { q: 'What is the Project Twin?', a: 'Every Pro project gets an AI twin that continuously monitors new papers, researchers, grants and trends related to your project — and alerts you automatically.' },
-  { q: 'Can I cancel anytime?', a: 'Yes, no lock-in. Cancel from your profile settings at any time.' },
+  {
+    q: 'Does EYLO charge today?',
+    a: 'No. EYLO is currently in early access and the available product is free to use while reliability, source coverage and researcher workflows are being validated.',
+  },
+  {
+    q: 'Are there paid limits or trials?',
+    a: 'No billing or paid entitlement system is active. EYLO does not claim monthly limits, trials or premium access that the product does not enforce.',
+  },
+  {
+    q: 'Does EYRA invent papers or grants?',
+    a: 'Specific papers, researchers and funding records come from connected sources. AI is used for analysis and ranking; source links and uncertainty remain visible so you can verify decisions.',
+  },
+  {
+    q: 'Is monitoring automatic?',
+    a: 'Not yet. Watchlists run an on-demand source check when you open or refresh them. The interface does not claim a background monitoring service.',
+  },
+  {
+    q: 'What will happen before paid plans launch?',
+    a: 'Billing, quotas, plan entitlements, cancellation and support commitments will be implemented and tested before prices or paid promises are published.',
+  },
 ];
 
 export default function Pricing() {
-  const [openFaq, setOpenFaq] = useState(null);
-
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-5">
-          <Crown size={12} className="text-primary" />
-          <span className="text-[10px] font-semibold tracking-widest text-primary uppercase">Transparent Pricing</span>
+    <div className="mx-auto max-w-6xl px-4 py-12">
+      <section className="mx-auto max-w-3xl text-center">
+        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/5 px-3 py-1.5">
+          <ShieldCheck size={12} className="text-emerald-400" />
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-emerald-300">Honest early access</span>
         </div>
-        <h1 className="font-heading font-black text-3xl sm:text-5xl mb-4">
-          Start free. <span className="impact-gradient">Grow with EYRA.</span>
+        <h1 className="font-heading text-4xl font-black sm:text-6xl">
+          Use what is real. <span className="impact-gradient">Pay nothing today.</span>
         </h1>
-        <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto">
-          No paywalls before you understand what EYLO can do. Sign up free, explore, upgrade only when you need more power.
+        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+          EYLO is in early access. Every capability listed here is available in the current product; paid plans will appear only after billing and access controls are genuinely implemented.
         </p>
-      </div>
+      </section>
 
-      {/* Plans grid */}
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-14">
-        {PLANS.map((plan, i) => {
-          const Icon = plan.icon;
-          return (
-            <motion.div
-              key={plan.key}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 }}
-              className={`relative flex flex-col p-6 rounded-2xl border bg-card ${plan.color} ${plan.highlight ? 'ring-1 ring-primary/40' : ''}`}
-            >
-              {plan.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="flex items-center gap-1 px-3 py-1 rounded-full eyra-gradient text-white text-[10px] font-bold uppercase tracking-wider shadow-lg">
-                    <Star size={9} /> {plan.badge}
-                  </span>
-                </div>
-              )}
-
-              <div className="mb-4">
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${plan.highlight ? 'eyra-gradient' : 'bg-secondary'}`}>
-                  <Icon size={16} className={plan.highlight ? 'text-white' : 'text-muted-foreground'} />
-                </div>
-                <h2 className="font-heading font-bold text-lg text-foreground">{plan.name}</h2>
-                <p className="text-[11px] text-muted-foreground mb-3">{plan.tagline}</p>
-                <div className="flex items-end gap-1.5">
-                  <span className="font-black text-3xl text-foreground">{plan.price}</span>
-                  {plan.period && <span className="text-xs text-muted-foreground mb-1">{plan.period}</span>}
-                </div>
-              </div>
-
-              <ul className="space-y-2.5 flex-1 mb-6">
-                {plan.features.map((f, j) => (
-                  <li key={j} className="flex items-start gap-2 text-xs text-foreground/80">
-                    <Check size={13} className={`flex-shrink-0 mt-0.5 ${plan.highlight ? 'text-primary' : 'text-green-400'}`} />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              <Link
-                to={plan.key === 'institution' ? '/profile' : '/register'}
-                className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold transition-all ${plan.ctaClass}`}
-              >
-                {plan.cta}
-                <ArrowRight size={13} />
-              </Link>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* Philosophy banner */}
-      <div className="p-6 sm:p-8 rounded-2xl border border-primary/20 bg-primary/5 text-center mb-14">
-        <Sparkles size={20} className="text-primary mx-auto mb-3" />
-        <h3 className="font-heading font-bold text-lg mb-2">Our Monetization Philosophy</h3>
-        <p className="text-sm text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          We believe every researcher deserves to understand their idea's potential before committing. EYLO is free to explore. Upgrade prompts only appear when you genuinely need more power — never as a gate to learning.
-        </p>
-      </div>
-
-      {/* FAQ */}
-      <div className="max-w-2xl mx-auto">
-        <h2 className="font-heading font-bold text-xl text-center mb-6">Common questions</h2>
-        <div className="space-y-2">
-          {FAQS.map((faq, i) => (
-            <div key={i} className="border border-border rounded-xl overflow-hidden">
-              <button
-                onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-secondary/40 transition-colors"
-              >
-                <span className="text-sm font-medium text-foreground">{faq.q}</span>
-                <span className={`text-muted-foreground flex-shrink-0 text-lg leading-none transition-transform ${openFaq === i ? 'rotate-45' : ''}`}>+</span>
-              </button>
-              {openFaq === i && (
-                <div className="px-5 pb-4">
-                  <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
-                </div>
-              )}
+      <motion.section
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-3xl border border-primary/30 bg-card"
+      >
+        <div className="grid gap-8 p-7 sm:p-10 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl eyra-gradient">
+              <Sparkles size={19} className="text-white" />
             </div>
+            <p className="mt-5 text-xs font-semibold uppercase tracking-widest text-primary">EYLO Early Access</p>
+            <div className="mt-2 flex items-end gap-2">
+              <span className="font-heading text-5xl font-black">$0</span>
+              <span className="mb-1 text-sm text-muted-foreground">during early access</span>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">
+              Build a real research workspace, test EYRA on your topics, and help shape a product researchers can trust.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <Link to="/register" className="inline-flex items-center gap-2 rounded-xl eyra-gradient px-5 py-3 text-sm font-semibold text-white">
+                Create workspace <ArrowRight size={14} />
+              </Link>
+              <Link to="/discover" className="inline-flex items-center gap-2 rounded-xl border border-border px-5 py-3 text-sm font-semibold hover:bg-secondary">
+                Try discovery <BookOpen size={14} />
+              </Link>
+            </div>
+          </div>
+
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {INCLUDED.map((feature) => (
+              <li key={feature} className="flex items-start gap-2 rounded-xl bg-secondary/30 p-3 text-xs leading-5 text-foreground/85">
+                <Check size={14} className="mt-0.5 shrink-0 text-emerald-400" />
+                {feature}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </motion.section>
+
+      <section className="mt-16">
+        <div className="mb-7 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Available now</p>
+          <h2 className="mt-3 font-heading text-2xl font-bold sm:text-4xl">The current, verifiable product</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {LIVE_CAPABILITIES.map(({ icon: Icon, title, text }) => (
+            <article key={title} className="rounded-2xl border border-border bg-card p-5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Icon size={16} />
+              </div>
+              <h3 className="mt-4 font-heading text-sm font-semibold">{title}</h3>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">{text}</p>
+            </article>
           ))}
         </div>
-      </div>
+      </section>
+
+      <section className="mx-auto mt-16 max-w-3xl">
+        <h2 className="mb-6 text-center font-heading text-2xl font-bold">Common questions</h2>
+        <div className="space-y-3">
+          {FAQS.map((faq) => (
+            <details key={faq.q} className="group rounded-xl border border-border bg-card px-5 py-4">
+              <summary className="cursor-pointer list-none text-sm font-semibold">{faq.q}</summary>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">{faq.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
