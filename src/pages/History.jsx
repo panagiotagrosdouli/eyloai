@@ -146,7 +146,7 @@ export default function History() {
                             </div>
                           </div>
                           <div className="flex items-center gap-1 flex-shrink-0">
-                            <Link to="/" className="p-2 rounded-lg hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100" title="Re-run discovery">
+                            <Link to={`/home?q=${encodeURIComponent(item.query)}`} className="p-2 rounded-lg hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100" title="Re-run discovery">
                               <RotateCcw size={12} className="text-muted-foreground" />
                             </Link>
                             <button
