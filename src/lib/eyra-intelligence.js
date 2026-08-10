@@ -4,7 +4,10 @@
 // server-side OpenAI endpoint. EYLO never substitutes template content and
 // presents it as live AI.
 
-import { supabase } from '@/lib/supabaseClient';
+import {
+  getUsableSession,
+  invalidateAuthentication,
+} from '@/lib/supabaseClient';
 
 export class EyraRequestError extends Error {
   constructor(message, status) {
@@ -15,21 +18,12 @@ export class EyraRequestError extends Error {
 }
 
 async function getAccessToken(forceRefresh = false) {
-  if (!supabase) throw new EyraRequestError('EYRA authentication is not configured.', 503);
-
-  const initial = forceRefresh
-    ? await supabase.auth.refreshSession()
-    : await supabase.auth.getSession();
-  if (initial.error) throw initial.error;
-  if (initial.data.session?.access_token) return initial.data.session.access_token;
-
-  if (!forceRefresh) {
-    const refreshed = await supabase.auth.refreshSession();
-    if (refreshed.error) throw refreshed.error;
-    if (refreshed.data.session?.access_token) return refreshed.data.session.access_token;
-  }
-
-  throw new EyraRequestError('Your secure session expired. Sign in again to continue AI analysis.', 401);
+  const session = await getUsableSession({
+    forceRefresh,
+    required: true,
+    validate: true,
+  });
+  return session.access_token;
 }
 
 function postAnalysis(accessToken, prompt, responseSchema) {
@@ -54,18 +48,23 @@ async function requestOpenAiAnalysis(prompt, responseSchema) {
   let response = await postAnalysis(accessToken, cleanPrompt, responseSchema);
 
   // A cached browser session can outlive its access token. Refresh once and
-  // replay the same request before surfacing an authentication failure.
+  // replay exactly the same request before requiring a new sign-in.
   if (response.status === 401) {
     accessToken = await getAccessToken(true);
     response = await postAnalysis(accessToken, cleanPrompt, responseSchema);
   }
 
+  if (response.status === 401) {
+    const authError = await invalidateAuthentication();
+    throw new EyraRequestError(authError.message, 401);
+  }
+
   const result = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = response.status === 401
-      ? 'Your secure EYRA session could not be renewed. Sign in again to continue AI analysis.'
-      : result.error || 'EYRA could not complete this analysis. Please try again.';
-    throw new EyraRequestError(message, response.status);
+    throw new EyraRequestError(
+      result.error || 'EYRA could not complete this analysis. Please try again.',
+      response.status,
+    );
   }
 
   if (responseSchema) {
