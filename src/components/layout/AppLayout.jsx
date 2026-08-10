@@ -4,7 +4,7 @@ import {
   Home, FolderOpen, User, Sparkles, ChevronDown,
   Menu, X, Zap, Brain, BookOpen, Settings, MoreHorizontal,
   Lightbulb, Users, TrendingUp, Video, Globe, Target,
-  Rocket, Trophy, Award, Crown, Search, Mic, Presentation, FileEdit
+  Rocket, Trophy, Award, Crown, Search, Mic, Presentation, FileEdit, LayoutDashboard
 } from 'lucide-react';
 import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
 import NotificationsBell from '@/components/monitoring/NotificationsBell';
@@ -49,7 +49,8 @@ const MORE_NAV = [
     section: 'Account',
     items: [
       { label: 'Settings', path: '/settings', icon: Settings, desc: 'Preferences & account' },
-      { label: 'Pricing', path: '/pricing', icon: Crown, desc: 'Plans & features' },
+      { label: 'Institution Admin', path: '/institution', icon: LayoutDashboard, desc: 'Aggregated organization analytics' },
+      { label: 'Pricing', path: '/pricing', icon: Crown, desc: 'Plans & real entitlements' },
     ],
   },
 ];
