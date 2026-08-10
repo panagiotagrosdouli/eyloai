@@ -24,6 +24,23 @@ function sortEntities(items, sort = '-created_date') {
   });
 }
 
+async function assertCreateAllowed(table, user) {
+  if (table !== 'projects') return;
+  const client = requireSupabase();
+  const [{ data: profile, error: profileError }, { count, error: countError }] = await Promise.all([
+    client.from('profiles').select('data').eq('user_id', user.id).maybeSingle(),
+    client.from('projects').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+  ]);
+  if (profileError) throw profileError;
+  if (countError) throw countError;
+  const plan = profile?.data?.subscription_tier || 'free';
+  if (plan === 'free' && Number(count || 0) >= 1) {
+    const error = new Error('The free plan includes one project workspace. Upgrade to create another.');
+    error.code = 'PLAN_LIMIT_REACHED';
+    throw error;
+  }
+}
+
 function entityRepository(table) {
   return {
     async list(sort = '-created_date', limit = 100) {
@@ -43,6 +60,7 @@ function entityRepository(table) {
     },
     async create(payload) {
       const user = await currentUser();
+      await assertCreateAllowed(table, user);
       const { data, error } = await requireSupabase().from(table).insert({ user_id: user.id, data: payload || {} }).select('*').single();
       if (error) throw error;
       return rowToEntity(data);
