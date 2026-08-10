@@ -9,15 +9,25 @@ import { base44 } from '@/api/base44Client';
  * Returns a structured context object + prompt-ready string.
  */
 export async function buildUserProfile() {
-  const [user, projects, papers, researchers, opportunities, searches, ideas] = await Promise.all([
-    base44.auth.me(),
-    base44.entities.Project.list('-updated_date', 20),
-    base44.entities.SavedPaper.list('-created_date', 30),
-    base44.entities.SavedResearcher.list('-created_date', 20),
-    base44.entities.SavedOpportunity.list('-created_date', 20),
-    base44.entities.SearchHistory.list('-created_date', 20),
-    base44.entities.Idea.list('-created_date', 10).catch(() => []),
-  ]);
+  const requests = [
+    ['profile', base44.auth.me(), null],
+    ['projects', base44.entities.Project.list('-updated_date', 20), []],
+    ['papers', base44.entities.SavedPaper.list('-created_date', 30), []],
+    ['researchers', base44.entities.SavedResearcher.list('-created_date', 20), []],
+    ['opportunities', base44.entities.SavedOpportunity.list('-created_date', 20), []],
+    ['searches', base44.entities.SearchHistory.list('-created_date', 20), []],
+    ['ideas', base44.entities.Idea.list('-created_date', 10), []],
+  ];
+  const settled = await Promise.allSettled(requests.map(([, request]) => request));
+  const values = settled.map((result, index) => (
+    result.status === 'fulfilled' ? result.value : requests[index][2]
+  ));
+  const workspaceWarnings = settled.flatMap((result, index) => (
+    result.status === 'rejected'
+      ? [{ source: requests[index][0], message: result.reason?.message || 'Temporarily unavailable' }]
+      : []
+  ));
+  const [user, projects, papers, researchers, opportunities, searches, ideas] = values;
 
   // Derive top research topics from searches + paper titles
   const searchTerms = searches.map(s => s.query).filter(Boolean);
@@ -34,6 +44,8 @@ export async function buildUserProfile() {
 
   const profile = {
     user,
+    workspaceStatus: workspaceWarnings.length ? 'partial' : 'ready',
+    workspaceWarnings,
     projects,
     activeProjects,
     papers,
