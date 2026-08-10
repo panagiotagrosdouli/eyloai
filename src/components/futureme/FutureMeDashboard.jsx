@@ -19,9 +19,11 @@ export default function FutureMeDashboard({ profile, goal, onResetGoal }) {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('overview');
+  const [analysisError, setAnalysisError] = useState('');
+  const goalCacheKey = `eyra_future_me_analysis_v3_${encodeURIComponent(goal.text).slice(0, 100)}`;
 
   useEffect(() => {
-    const cacheKey = `eyra_future_me_analysis_v2`;
+    const cacheKey = goalCacheKey;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       try { setAnalysis(JSON.parse(cached)); setLoading(false); return; } catch {}
@@ -31,92 +33,119 @@ export default function FutureMeDashboard({ profile, goal, onResetGoal }) {
 
   const generate = async (cacheKey) => {
     setLoading(true);
-    const key = cacheKey || `eyra_future_me_analysis_v2`;
+    setAnalysisError('');
+    const key = cacheKey || goalCacheKey;
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are EYRA Future Me Engine. Analyze this user's profile and generate a comprehensive Future Me plan.
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `You are EYRA Future Me Planner. Build a conditional, evidence-honest development plan from the user's saved workspace activity.
 
 GOAL: "${goal.text}"
 TIMEFRAME: ${goal.timeframe}
 MOTIVATION: "${goal.motivation || 'Not specified'}"
 
-USER PROFILE:
-- Projects: ${profile.stats.projects} projects (${profile.activeProjects.map(p => p.title).join(', ') || 'none'})
-- Papers Saved: ${profile.stats.papers}
-- Researchers Saved: ${profile.stats.researchers}
-- Opportunities Saved: ${profile.stats.opportunities}
-- Recent Searches: ${profile.searches.slice(0,5).map(s => s.query).join(', ') || 'none'}
-- Activity Score: ${profile.stats.activityScore}/100
+WORKSPACE PROFILE:
+- Projects: ${profile.stats.projects} (${profile.activeProjects.map(p => p.title).join(', ') || 'none'})
+- Papers saved: ${profile.stats.papers}
+- Researchers saved: ${profile.stats.researchers}
+- Opportunities saved: ${profile.stats.opportunities}
+- Recent searches: ${profile.searches.slice(0,5).map(s => s.query).join(', ') || 'none'}
+- Workspace activity score: ${profile.stats.activityScore}/100
 
-Generate a structured JSON analysis:
+Rules:
+- overall_progress and category scores are model-assessed planning indicators based only on these workspace signals, not objective measurements or forecasts.
+- Do not invent named papers, people, grants, events, employers, statistics, or achievements.
+- Recommendations must be actions, skills, or projects; never fabricated external records.
+- Clearly describe missing information as a gap.
+- Produce exactly five gaps and five recommendations.
 
-{
-  "current_summary": "2-sentence honest summary of where this user is today",
-  "future_summary": "2-sentence vivid description of who they'll become if they hit the goal",
-  "overall_progress": number (0-100, current % toward their goal based on profile),
-  "scores": {
-    "learning": number (0-100),
-    "research": number (0-100),
-    "collaboration": number (0-100),
-    "funding": number (0-100),
-    "innovation": number (0-100),
-    "leadership": number (0-100)
-  },
-  "score_labels": {
-    "learning": "1 sentence on learning status",
-    "research": "1 sentence",
-    "collaboration": "1 sentence",
-    "funding": "1 sentence",
-    "innovation": "1 sentence",
-    "leadership": "1 sentence"
-  },
-  "gaps": [
-    {
-      "area": "area name",
-      "current": "current state",
-      "target": "target state",
-      "priority": "high|medium|low",
-      "actions": ["action 1", "action 2"]
+Return current_summary, future_summary, overall_progress, scores, score_labels, gaps, milestones, top_recommendations, mentor_message, and daily_action.`,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            current_summary: { type: 'string' },
+            future_summary: { type: 'string' },
+            overall_progress: { type: 'number', minimum: 0, maximum: 100 },
+            scores: {
+              type: 'object',
+              properties: {
+                learning: { type: 'number', minimum: 0, maximum: 100 },
+                research: { type: 'number', minimum: 0, maximum: 100 },
+                collaboration: { type: 'number', minimum: 0, maximum: 100 },
+                funding: { type: 'number', minimum: 0, maximum: 100 },
+                innovation: { type: 'number', minimum: 0, maximum: 100 },
+                leadership: { type: 'number', minimum: 0, maximum: 100 },
+              },
+            },
+            score_labels: {
+              type: 'object',
+              properties: {
+                learning: { type: 'string' },
+                research: { type: 'string' },
+                collaboration: { type: 'string' },
+                funding: { type: 'string' },
+                innovation: { type: 'string' },
+                leadership: { type: 'string' },
+              },
+            },
+            gaps: {
+              type: 'array',
+              minItems: 5,
+              maxItems: 5,
+              items: {
+                type: 'object',
+                properties: {
+                  area: { type: 'string' },
+                  current: { type: 'string' },
+                  target: { type: 'string' },
+                  priority: { type: 'string', enum: ['high', 'medium', 'low'] },
+                  actions: { type: 'array', items: { type: 'string' } },
+                },
+              },
+            },
+            milestones: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  phase: { type: 'string' },
+                  title: { type: 'string' },
+                  goals: { type: 'array', items: { type: 'string' } },
+                  expected_outcome: { type: 'string' },
+                },
+              },
+            },
+            top_recommendations: {
+              type: 'array',
+              minItems: 5,
+              maxItems: 5,
+              items: {
+                type: 'object',
+                properties: {
+                  type: { type: 'string', enum: ['action', 'skill', 'project'] },
+                  title: { type: 'string' },
+                  reason: { type: 'string' },
+                  action: { type: 'string' },
+                },
+              },
+            },
+            mentor_message: { type: 'string' },
+            daily_action: { type: 'string' },
+          },
+        },
+      });
+
+      localStorage.setItem(key, JSON.stringify(result));
+      setAnalysis(result);
+    } catch (error) {
+      setAnalysisError(error instanceof Error ? error.message : 'Future Me plan did not complete.');
+    } finally {
+      setLoading(false);
     }
-  ],
-  "milestones": [
-    { "phase": "6 Months", "title": "milestone title", "goals": ["goal 1", "goal 2", "goal 3"], "expected_outcome": "what success looks like" },
-    { "phase": "1 Year", "title": "milestone title", "goals": ["goal 1", "goal 2", "goal 3"], "expected_outcome": "what success looks like" },
-    { "phase": "3 Years", "title": "milestone title", "goals": ["goal 1", "goal 2", "goal 3"], "expected_outcome": "what success looks like" },
-    { "phase": "5 Years", "title": "milestone title", "goals": ["goal 1", "goal 2", "goal 3"], "expected_outcome": "what success looks like" }
-  ],
-  "top_recommendations": [
-    { "type": "paper|skill|person|grant|project|event", "title": "recommendation title", "reason": "why this helps reach their goal", "action": "specific action to take" }
-  ],
-  "mentor_message": "A warm, encouraging, strategic 2-3 sentence message from EYRA as a mentor. Be specific to their goal.",
-  "daily_action": "The single most impactful thing they can do TODAY to move toward their goal"
-}
-
-Generate exactly 5 gaps, 5 top_recommendations. Be specific and realistic.`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          current_summary: { type: 'string' },
-          future_summary: { type: 'string' },
-          overall_progress: { type: 'number' },
-          scores: { type: 'object' },
-          score_labels: { type: 'object' },
-          gaps: { type: 'array', items: { type: 'object' } },
-          milestones: { type: 'array', items: { type: 'object' } },
-          top_recommendations: { type: 'array', items: { type: 'object' } },
-          mentor_message: { type: 'string' },
-          daily_action: { type: 'string' },
-        }
-      }
-    });
-
-    localStorage.setItem(key, JSON.stringify(result));
-    setAnalysis(result);
-    setLoading(false);
   };
 
   const refresh = () => {
-    localStorage.removeItem(`eyra_future_me_analysis_v2`);
+    localStorage.removeItem(goalCacheKey);
     setAnalysis(null);
     generate();
   };
@@ -154,7 +183,7 @@ Generate exactly 5 gaps, 5 top_recommendations. Be specific and realistic.`,
           <h1 className="font-heading font-black text-2xl text-foreground">
             Your Future: <span className="eyra-text-gradient">{goal.text}</span>
           </h1>
-          <p className="text-muted-foreground text-xs mt-0.5">Goal timeframe: {goal.timeframe} · EYRA is your personal strategist</p>
+          <p className="text-muted-foreground text-xs mt-0.5">Goal timeframe: {goal.timeframe} · Planning indicators are based on saved workspace activity</p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
           <button onClick={refresh} className="p-2 rounded-lg border border-border hover:bg-secondary transition-colors text-muted-foreground" title="Refresh analysis">
@@ -165,6 +194,15 @@ Generate exactly 5 gaps, 5 top_recommendations. Be specific and realistic.`,
           </button>
         </div>
       </div>
+
+      <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] text-muted-foreground">
+        Progress scores are AI planning indicators, not objective measurements or predictions.
+      </div>
+      {analysisError && (
+        <div role="alert" className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+          {analysisError}
+        </div>
+      )}
 
       {/* EYRA Mentor Message */}
       {analysis?.mentor_message && (
