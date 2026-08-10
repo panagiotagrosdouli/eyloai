@@ -99,9 +99,9 @@ export default function AppLayout() {
           {/* Brand */}
           <Link to="/home" className="flex items-center flex-shrink-0 mr-4">
             <img
-              src="https://raw.githubusercontent.com/panagiotagrosdouli/eyloai/main/EYLO%20LOGO/EYLO%20LOGO.png"
+              src="/brand/eylo-logo.svg"
               alt="EYLO"
-              className="h-8 w-auto object-contain"
+              className="h-9 w-auto max-w-[150px] rounded-lg bg-white/[0.03] object-contain px-1.5"
             />
           </Link>
 
