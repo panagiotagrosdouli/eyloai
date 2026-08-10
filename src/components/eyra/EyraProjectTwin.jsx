@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
+import { searchFundingOpportunities } from '@/lib/funding-api';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import {
   Sparkles, Loader2, RefreshCw, Zap, Bell, TrendingUp,
-  AlertTriangle, FileText, Users, Award, Lightbulb, ChevronRight
+  AlertTriangle, FileText, Users, Award, Lightbulb, ChevronRight, ExternalLink
 } from 'lucide-react';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 
@@ -12,6 +14,7 @@ export default function EyraProjectTwin({ project }) {
   const [twinReport, setTwinReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [alerts, setAlerts] = useState([]);
+  const [scanError, setScanError] = useState('');
 
   useEffect(() => {
     if (project?.twin_report) {
@@ -36,68 +39,116 @@ export default function EyraProjectTwin({ project }) {
     if (!project?.milestones) {
       generatedAlerts.push({ type: 'suggestion', icon: Lightbulb, text: 'No milestones defined — EYRA recommends setting 3-5 key milestones', color: 'text-chart-3', bg: 'bg-chart-3/10' });
     }
-    generatedAlerts.push({ type: 'monitor', icon: TrendingUp, text: 'Twin is monitoring for new papers, researchers & opportunities in your field', color: 'text-green-400', bg: 'bg-green-500/10' });
+    generatedAlerts.push({ type: 'monitor', icon: TrendingUp, text: 'Run a Twin Scan to check current papers, researchers, and official funding records', color: 'text-green-400', bg: 'bg-green-500/10' });
 
     setAlerts(generatedAlerts);
   };
 
   const runTwinScan = async () => {
     setLoading(true);
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are EYRA Project Twin — an autonomous monitoring and intelligence system for a specific research project.
+    setScanError('');
 
-Project: ${project.title}
-Goal: ${project.goal}
-Description: ${project.description || 'Not provided'}
-Current Status: ${project.status || 'planning'}
-Milestones: ${project.milestones || 'None defined'}
+    try {
+      const searchQuery = [project.title, project.goal, project.description].filter(Boolean).join(' ');
+      const [papers, researchers, fundingResult] = await Promise.all([
+        searchAllPapers(searchQuery),
+        searchOpenAlexAuthors(searchQuery, 6),
+        searchFundingOpportunities(searchQuery, 6).catch((error) => ({
+          items: [],
+          error: error instanceof Error ? error.message : 'Funding source unavailable',
+        })),
+      ]);
 
-You are the project's living intelligence system. Perform a full autonomous scan and output ONLY valid JSON:
+      const paperContext = papers.slice(0, 8).map((paper, index) =>
+        `[P${index + 1}] "${paper.title}" — ${paper.authors || 'Unknown'} (${paper.year || 'n/a'}) — ${paper.cited_by_count || 0} citations — ${paper.url}`
+      ).join('\n');
+      const researcherContext = researchers.map((researcher, index) =>
+        `[R${index + 1}] ${researcher.name} — ${researcher.institution} — ${researcher.works_count} works — ${researcher.profile_url}`
+      ).join('\n');
+      const fundingContext = fundingResult.items.map((item, index) =>
+        `[F${index + 1}] "${item.title}" — ${item.agency} — deadline ${item.deadline || 'not supplied'} — ${item.source_url}`
+      ).join('\n');
 
-{
-  "scan_date": "${new Date().toISOString()}",
-  "overall_health": "Strong|Good|Needs Attention|At Risk",
-  "health_score": 72,
-  "health_reasoning": "One sentence on overall project health.",
-  "new_paper_directions": [
-    {"title": "Paper/Research Direction 1", "relevance": "Why it matters to this project"},
-    {"title": "Paper/Research Direction 2", "relevance": "Why it matters"},
-    {"title": "Paper/Research Direction 3", "relevance": "Why it matters"}
-  ],
-  "emerging_researchers": [
-    {"profile": "Type of researcher profile 1", "why": "How they'd help the project"},
-    {"profile": "Type of researcher profile 2", "why": "How they'd help"}
-  ],
-  "new_opportunities": [
-    {"name": "Funding/Grant opportunity 1", "type": "grant|competition|accelerator", "urgency": "Apply now|This quarter|Ongoing"},
-    {"name": "Opportunity 2", "type": "grant", "urgency": "This quarter"}
-  ],
-  "risk_alerts": [
-    {"risk": "Risk 1 description", "severity": "High|Medium|Low", "mitigation": "What to do"}
-  ],
-  "strategic_insight": "One paragraph of strategic intelligence — what EYRA thinks about the project direction, what's working, what needs to change, and one bold recommendation.",
-  "next_action": "The single most important action to take right now."
-}`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          scan_date: { type: 'string' },
-          overall_health: { type: 'string' },
-          health_score: { type: 'number' },
-          health_reasoning: { type: 'string' },
-          new_paper_directions: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, relevance: { type: 'string' } } } },
-          emerging_researchers: { type: 'array', items: { type: 'object', properties: { profile: { type: 'string' }, why: { type: 'string' } } } },
-          new_opportunities: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, type: { type: 'string' }, urgency: { type: 'string' } } } },
-          risk_alerts: { type: 'array', items: { type: 'object', properties: { risk: { type: 'string' }, severity: { type: 'string' }, mitigation: { type: 'string' } } } },
-          strategic_insight: { type: 'string' },
-          next_action: { type: 'string' },
-        }
-      }
-    });
+      const analysis = await base44.integrations.Core.InvokeLLM({
+        prompt: `You are EYRA Project Twin, running an on-demand evidence scan.
 
-    setTwinReport(result);
-    await base44.entities.Project.update(project.id, { twin_report: JSON.stringify(result) });
-    setLoading(false);
+PROJECT:
+- Title: ${project.title}
+- Goal: ${project.goal}
+- Description: ${project.description || 'Not provided'}
+- Status: ${project.status || 'planning'}
+- Milestones: ${project.milestones || 'None defined'}
+
+VERIFIED PAPERS:
+${paperContext || 'None retrieved.'}
+
+VERIFIED RESEARCHERS:
+${researcherContext || 'None retrieved.'}
+
+VERIFIED FUNDING:
+${fundingContext || 'None retrieved.'}
+
+Assess project completeness, evidence coverage, risks, and the next action. Do not invent source records, grants, people, deadlines, or statistics. health_score is a model-assessed project-readiness score, not an empirical probability.
+
+Return overall_health, health_score, health_reasoning, risk_alerts, strategic_insight, and next_action.`,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            overall_health: { type: 'string', enum: ['Strong', 'Good', 'Needs Attention', 'At Risk'] },
+            health_score: { type: 'number', minimum: 0, maximum: 100 },
+            health_reasoning: { type: 'string' },
+            risk_alerts: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  risk: { type: 'string' },
+                  severity: { type: 'string', enum: ['High', 'Medium', 'Low'] },
+                  mitigation: { type: 'string' },
+                },
+              },
+            },
+            strategic_insight: { type: 'string' },
+            next_action: { type: 'string' },
+          },
+        },
+      });
+
+      const result = {
+        ...analysis,
+        scan_date: new Date().toISOString(),
+        new_paper_directions: papers.slice(0, 5).map((paper) => ({
+          title: paper.title,
+          relevance: `${paper.source} · ${paper.year || 'year unavailable'} · ${paper.cited_by_count || 0} citations`,
+          url: paper.url,
+        })),
+        emerging_researchers: researchers.slice(0, 5).map((researcher) => ({
+          profile: researcher.name,
+          why: `${researcher.institution} · ${researcher.works_count} works · ${researcher.citation_count} citations`,
+          url: researcher.profile_url,
+        })),
+        new_opportunities: fundingResult.items.slice(0, 5).map((item) => ({
+          name: item.title,
+          type: item.type,
+          urgency: item.is_expiring ? 'Apply now' : item.status === 'forecasted' ? 'Forecasted' : 'Open',
+          url: item.source_url,
+          deadline: item.deadline,
+        })),
+        source_counts: {
+          papers: papers.length,
+          researchers: researchers.length,
+          funding: fundingResult.items.length,
+        },
+        funding_error: fundingResult.error || '',
+      };
+
+      setTwinReport(result);
+      await base44.entities.Project.update(project.id, { twin_report: JSON.stringify(result) });
+    } catch (error) {
+      setScanError(error instanceof Error ? error.message : 'Twin scan did not complete.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const healthColor = {
@@ -126,9 +177,9 @@ You are the project's living intelligence system. Perform a full autonomous scan
           <div>
             <div className="flex items-center gap-2 mb-0.5">
               <EyraSectionLabel label="EYRA Project Twin" />
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 font-medium">Active</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 font-medium">On demand</span>
             </div>
-            <p className="text-xs text-muted-foreground">Monitoring continuously · Discovered by EYRA</p>
+            <p className="text-xs text-muted-foreground">Checks connected sources when you run a scan</p>
           </div>
         </div>
         <button
@@ -140,6 +191,12 @@ You are the project's living intelligence system. Perform a full autonomous scan
           {loading ? 'Scanning...' : twinReport ? 'Rescan' : 'Run Twin Scan'}
         </button>
       </div>
+
+      {scanError && (
+        <div role="alert" className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+          {scanError}
+        </div>
+      )}
 
       {/* Alerts */}
       {alerts.length > 0 && !twinReport && (
@@ -165,7 +222,7 @@ You are the project's living intelligence system. Perform a full autonomous scan
           </div>
           <p className="text-sm font-semibold">Twin is scanning your project...</p>
           <p className="text-xs text-muted-foreground text-center max-w-xs">
-            Searching for new papers, researchers, opportunities, and risks relevant to your project
+            Retrieving papers, researchers and official funding records, then assessing project risks
           </p>
           <div className="flex gap-1.5 mt-1">
             {[0, 1, 2, 3, 4].map(i => (
@@ -217,10 +274,11 @@ You are the project's living intelligence system. Perform a full autonomous scan
                     <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <FileText size={10} className="text-primary" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold text-foreground">{p.title}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">{p.relevance}</p>
                     </div>
+                    {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-primary"><ExternalLink size={10} /></a>}
                   </div>
                 ))}
               </div>
@@ -239,10 +297,11 @@ You are the project's living intelligence system. Perform a full autonomous scan
                     <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
                       <Users size={10} className="text-accent" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold text-foreground">{r.profile}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">{r.why}</p>
                     </div>
+                    {r.url && <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-primary"><ExternalLink size={10} /></a>}
                   </div>
                 ))}
               </div>
@@ -267,7 +326,10 @@ You are the project's living intelligence system. Perform a full autonomous scan
                         <p className="text-[10px] text-muted-foreground capitalize">{o.type}</p>
                       </div>
                     </div>
-                    <span className={`text-[10px] font-semibold ${urgencyColor[o.urgency] || 'text-muted-foreground'}`}>{o.urgency}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-semibold ${urgencyColor[o.urgency] || 'text-muted-foreground'}`}>{o.urgency}</span>
+                      {o.url && <a href={o.url} target="_blank" rel="noopener noreferrer" className="text-primary"><ExternalLink size={10} /></a>}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -307,7 +369,7 @@ You are the project's living intelligence system. Perform a full autonomous scan
         <div className="p-8 rounded-2xl border border-dashed border-border/60 text-center">
           <Zap size={24} className="text-muted-foreground mx-auto mb-3" />
           <p className="text-sm font-medium mb-1">Digital Twin not yet activated</p>
-          <p className="text-xs text-muted-foreground">Run a Twin Scan to start monitoring your project for new papers, researchers, opportunities, and risks.</p>
+          <p className="text-xs text-muted-foreground">Run a Twin Scan to retrieve current papers, researchers and official funding records, then analyze project risks.</p>
         </div>
       )}
     </div>
