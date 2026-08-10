@@ -23,11 +23,13 @@ function scoreWork(w) {
   return recencyScore + citationScore + relevanceScore;
 }
 
-export async function searchOpenAlexWorks(query, limit = 10) {
+export async function searchOpenAlexWorks(query, limit = 10, sort = 'relevance') {
   try {
+    const sortValue = sort === 'recent' ? 'publication_date:desc' : 'relevance_score:desc';
     const res = await fetch(
-      `${OPENALEX_BASE}/works?search=${encodeURIComponent(query)}&per_page=${limit}&sort=relevance_score:desc&${MAILTO}`
+      `${OPENALEX_BASE}/works?search=${encodeURIComponent(query)}&per_page=${limit}&sort=${sortValue}&${MAILTO}`
     );
+    if (!res.ok) throw new Error(`OpenAlex request failed: ${res.status}`);
     const data = await res.json();
     return (data.results || []).map(w => ({
       id: w.id,
@@ -93,11 +95,13 @@ export async function searchOpenAlexInstitutions(query, limit = 6) {
   }
 }
 
-export async function searchArxiv(query, limit = 5) {
+export async function searchArxiv(query, limit = 5, sort = 'relevance') {
   try {
+    const sortBy = sort === 'recent' ? 'submittedDate' : 'relevance';
     const res = await fetch(
-      `https://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(query)}&start=0&max_results=${limit}&sortBy=relevance`
+      `https://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(query)}&start=0&max_results=${limit}&sortBy=${sortBy}&sortOrder=descending`
     );
+    if (!res.ok) throw new Error(`arXiv request failed: ${res.status}`);
     const text = await res.text();
     const parser = new DOMParser();
     const xml = parser.parseFromString(text, 'text/xml');
@@ -150,7 +154,7 @@ export async function searchEuropePMC(query, limit = 5) {
   }
 }
 
-export async function searchCrossref(query, limit = 5) {
+export async function searchCrossref(query, limit = 5, sort = 'relevance') {
   try {
     const params = new URLSearchParams({
       query,
@@ -158,6 +162,10 @@ export async function searchCrossref(query, limit = 5) {
       select: 'DOI,title,author,abstract,published,container-title,is-referenced-by-count,URL',
       mailto: 'eylo@research.app',
     });
+    if (sort === 'recent') {
+      params.set('sort', 'published');
+      params.set('order', 'desc');
+    }
     const res = await fetch(`https://api.crossref.org/works?${params}`);
     if (!res.ok) throw new Error(`Crossref request failed: ${res.status}`);
     const data = await res.json();
@@ -191,24 +199,139 @@ export async function searchCrossref(query, limit = 5) {
   }
 }
 
-// Combine all sources, deduplicate, rank by composite score
-export async function searchAllPapers(query) {
-  const [openalex, arxiv, europepmc, crossref] = await Promise.all([
-    searchOpenAlexWorks(query, 8),
-    searchArxiv(query, 5),
-    searchEuropePMC(query, 5),
-    searchCrossref(query, 5),
+export async function searchSemanticScholar(query, limit = 8) {
+  try {
+    const fields = [
+      'paperId', 'title', 'authors', 'year', 'abstract', 'url', 'venue',
+      'citationCount', 'openAccessPdf', 'externalIds', 'publicationDate',
+    ].join(',');
+    const params = new URLSearchParams({ query, limit: String(limit), fields });
+    const response = await fetch(`https://api.semanticscholar.org/graph/v1/paper/search?${params}`);
+    if (!response.ok) throw new Error(`Semantic Scholar request failed: ${response.status}`);
+    const data = await response.json();
+    return (data.data || []).map(paper => {
+      const doi = paper.externalIds?.DOI || '';
+      return {
+        id: paper.paperId,
+        doi,
+        title: paper.title || 'Untitled',
+        authors: (paper.authors || []).slice(0, 4).map(author => author.name).filter(Boolean).join(', '),
+        summary: (paper.abstract || '').slice(0, 400),
+        year: paper.year || (paper.publicationDate ? new Date(paper.publicationDate).getFullYear() : null),
+        url: doi ? `https://doi.org/${doi}` : paper.openAccessPdf?.url || paper.url,
+        source: paper.venue || 'Semantic Scholar',
+        source_index: 'Semantic Scholar',
+        cited_by_count: paper.citationCount || 0,
+        open_access: Boolean(paper.openAccessPdf?.url),
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+function normalizedTitle(title) {
+  return String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 100);
+}
+
+function discoveryScore(paper, index, profile) {
+  const year = Number(paper.year) || 0;
+  const age = year ? Math.max(0, new Date().getFullYear() - year) : 30;
+  const citations = Math.log10((Number(paper.cited_by_count) || 0) + 1);
+  const title = String(paper.title || '').toLowerCase();
+  const isSurvey = /(survey|review|overview|systematic|tutorial|state of the art|primer)/i.test(title);
+  const recencyWeight = profile.recency === 'latest' ? 38 : profile.recency === 'five_years' ? 27 : profile.recency === 'foundational' ? 4 : 18;
+  const citationWeight = profile.recency === 'foundational' ? 22 : profile.level === 'beginner' ? 13 : 9;
+  const surveyBoost = ['beginner', 'student'].includes(profile.level) || profile.goal === 'understand' ? (isSurvey ? 24 : 0) : (isSurvey ? 6 : 0);
+  const ageScore = Math.max(0, 12 - age) / 12;
+  return (100 - index * 2.5) + ageScore * recencyWeight + citations * citationWeight + surveyBoost + (paper.open_access ? 4 : 0);
+}
+
+function categorizePaper(paper, profile) {
+  const year = Number(paper.year) || 0;
+  const age = year ? new Date().getFullYear() - year : 99;
+  const title = String(paper.title || '');
+  const survey = /(survey|review|overview|systematic|tutorial|state of the art|primer)/i.test(title);
+  if (survey && (['beginner', 'student'].includes(profile.level) || profile.goal === 'understand')) return 'start_here';
+  if (age <= 2) return 'latest';
+  if ((paper.cited_by_count || 0) >= 100 || survey) return 'foundational';
+  return 'relevant';
+}
+
+function diversifyPapers(papers, limit) {
+  const selected = [];
+  const selectedIds = new Set();
+  const byIndex = new Map();
+  papers.forEach(paper => {
+    const index = paper.source_index || paper.source || 'Other';
+    if (!byIndex.has(index)) byIndex.set(index, []);
+    byIndex.get(index).push(paper);
+  });
+
+  // Guarantee breadth before filling by score.
+  for (let round = 0; round < 2; round += 1) {
+    for (const group of byIndex.values()) {
+      const paper = group[round];
+      if (paper && selected.length < limit && !selectedIds.has(paper._dedupeKey)) {
+        selected.push(paper);
+        selectedIds.add(paper._dedupeKey);
+      }
+    }
+  }
+  papers.forEach(paper => {
+    if (selected.length < limit && !selectedIds.has(paper._dedupeKey)) {
+      selected.push(paper);
+      selectedIds.add(paper._dedupeKey);
+    }
+  });
+  return selected.sort((a, b) => b.discovery_score - a.discovery_score);
+}
+
+// Retrieve broadly, deduplicate across indexes, then rank for the user's level and goal.
+export async function searchAllPapers(query, options = {}) {
+  const profile = typeof options === 'number'
+    ? { limit: options }
+    : options;
+  const normalizedProfile = {
+    level: profile.level || 'researcher',
+    goal: profile.goal || 'review',
+    recency: profile.recency || 'balanced',
+    limit: Math.min(30, Math.max(8, Number(profile.limit) || 20)),
+  };
+  const sort = ['latest', 'five_years'].includes(normalizedProfile.recency) ? 'recent' : 'relevance';
+
+  const sources = await Promise.all([
+    searchOpenAlexWorks(query, 12, sort).then(items => items.map(item => ({ ...item, source_index: 'OpenAlex' }))),
+    searchArxiv(query, 8, sort).then(items => items.map(item => ({ ...item, source_index: 'arXiv' }))),
+    searchEuropePMC(query, 8).then(items => items.map(item => ({ ...item, source_index: 'Europe PMC' }))),
+    searchCrossref(query, 8, sort).then(items => items.map(item => ({ ...item, source_index: 'Crossref' }))),
+    searchSemanticScholar(query, 10),
   ]);
 
   const seen = new Set();
-  const all = [...openalex, ...arxiv, ...europepmc, ...crossref].filter(p => {
-    const key = p.title.toLowerCase().replace(/\s+/g, ' ').slice(0, 60);
-    if (seen.has(key)) return false;
+  const all = sources.flat().filter(paper => {
+    const key = paper.doi ? `doi:${String(paper.doi).toLowerCase()}` : `title:${normalizedTitle(paper.title)}`;
+    if (!paper.title || seen.has(key)) return false;
     seen.add(key);
+    paper._dedupeKey = key;
     return true;
   });
 
-  // Sort by composite score (relevance + recency + citations)
-  all.sort((a, b) => (b._score || 0) - (a._score || 0));
-  return all.slice(0, 15);
+  const ranked = all.map((paper, index) => ({
+    ...paper,
+    discovery_score: Math.round(discoveryScore(paper, index, normalizedProfile)),
+    discovery_category: categorizePaper(paper, normalizedProfile),
+  })).sort((a, b) => b.discovery_score - a.discovery_score);
+
+  const selected = diversifyPapers(ranked, normalizedProfile.limit);
+  const startCandidates = selected
+    .filter(paper => paper.discovery_category === 'start_here')
+    .concat(selected.filter(paper => paper.discovery_category !== 'start_here'))
+    .slice(0, 3);
+  const startIds = new Set(startCandidates.map(paper => paper._dedupeKey));
+
+  return selected.map(paper => ({
+    ...paper,
+    discovery_category: startIds.has(paper._dedupeKey) ? 'start_here' : paper.discovery_category,
+  }));
 }

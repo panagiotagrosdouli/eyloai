@@ -361,3 +361,64 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Unified product canvas: every tool sits in the same research-intelligence world. */
+.eylo-app-canvas {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 8% 3%, hsl(var(--primary) / 0.09), transparent 24rem),
+    radial-gradient(circle at 92% 18%, hsl(var(--accent) / 0.07), transparent 28rem),
+    linear-gradient(180deg, hsl(var(--background)), hsl(224 38% 5%));
+}
+
+.eylo-app-canvas::before {
+  position: fixed;
+  inset: 3.5rem 0 0;
+  z-index: 0;
+  content: '';
+  pointer-events: none;
+  opacity: 0.16;
+  background-image:
+    linear-gradient(hsl(var(--foreground) / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--foreground) / 0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(to bottom, black, transparent 72%);
+}
+
+.eylo-app-canvas main :where(.bg-card) {
+  box-shadow:
+    inset 0 1px 0 hsl(var(--foreground) / 0.025),
+    0 22px 55px -48px rgb(0 0 0 / 0.95);
+}
+
+.eylo-app-canvas main :where(h1, h2) {
+  text-wrap: balance;
+}
+
+.eylo-app-canvas main :where(p) {
+  text-wrap: pretty;
+}
+
+.guided-discovery fieldset button {
+  min-height: 5.25rem;
+}
+
+.guided-discovery--compact fieldset button {
+  min-height: 4.5rem;
+}
+
+:root.light .eylo-app-canvas {
+  background:
+    radial-gradient(circle at 8% 3%, hsl(var(--primary) / 0.08), transparent 24rem),
+    radial-gradient(circle at 92% 18%, hsl(var(--accent) / 0.06), transparent 28rem),
+    hsl(var(--background));
+}
+
+@media (max-width: 639px) {
+  .eylo-app-canvas::before {
+    background-size: 42px 42px;
+    opacity: 0.1;
+  }
+}

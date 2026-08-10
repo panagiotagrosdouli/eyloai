@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, FileText, Users, Building2, Brain, CheckCircle2, Loader2 } from 'lucide-react';
+import { Sparkles, FileText, Users, Building2, Brain, CheckCircle2, Loader2, Award } from 'lucide-react';
 
 const SOURCES = [
-  { id: 'papers', label: 'Searching papers', sublabel: 'OpenAlex · arXiv · Europe PMC', icon: FileText, key: 'papersLoaded' },
+  { id: 'papers', label: 'Cross-checking papers', sublabel: 'OpenAlex · arXiv · Europe PMC · Crossref · Semantic Scholar', icon: FileText, key: 'papersLoaded' },
   { id: 'researchers', label: 'Finding researchers', sublabel: 'OpenAlex profiles', icon: Users, key: 'researchersLoaded' },
   { id: 'institutions', label: 'Scanning institutions', sublabel: 'OpenAlex database', icon: Building2, key: 'institutionsLoaded' },
+  { id: 'funding', label: 'Checking official funding', sublabel: 'Grants.gov records', icon: Award, key: 'fundingLoaded' },
   { id: 'ai', label: 'EYRA analyzing data', sublabel: 'Evidence-based intelligence', icon: Brain, key: null },
 ];
 
@@ -15,6 +16,7 @@ export default function LoadingState({ query, progress }) {
   const papersCount = progress?.papers?.length || 0;
   const researchersCount = progress?.researchers?.length || 0;
   const institutionsCount = progress?.institutions?.length || 0;
+  const fundingCount = progress?.funding_opportunities?.length || 0;
 
   return (
     <div className="min-h-[calc(100vh-56px)] flex flex-col items-center justify-center px-4 py-16">
@@ -42,7 +44,15 @@ export default function LoadingState({ query, progress }) {
           const isAi = src.id === 'ai';
           const done = isAi ? isAnalyzing || isComplete : progress?.[src.key];
           const active = isAi ? isAnalyzing : !done;
-          const count = src.id === 'papers' ? papersCount : src.id === 'researchers' ? researchersCount : src.id === 'institutions' ? institutionsCount : null;
+          const count = src.id === 'papers'
+            ? papersCount
+            : src.id === 'researchers'
+              ? researchersCount
+              : src.id === 'institutions'
+                ? institutionsCount
+                : src.id === 'funding'
+                  ? fundingCount
+                  : null;
 
           return (
             <div key={src.id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-500 ${
