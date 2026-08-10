@@ -6,6 +6,7 @@ import {
   DollarSign, TrendingUp, Target, ChevronRight, Search, ExternalLink, AlertCircle
 } from 'lucide-react';
 import { searchOpenAlexAuthors, searchOpenAlexInstitutions, searchOpenAlexWorks } from '@/lib/eyra-api';
+import { searchFundingOpportunities } from '@/lib/funding-api';
 
 const EXAMPLES = [
   'AI for drug discovery',
@@ -37,11 +38,25 @@ export default function ResearchBattlefield() {
     setReport(null);
 
     // Step 1: Fetch REAL data from OpenAlex
-    const [researchers, institutions, papers] = await Promise.all([
+    const [researchers, institutions, papers, fundingResult] = await Promise.all([
       searchOpenAlexAuthors(searchQuery, 10),
       searchOpenAlexInstitutions(searchQuery, 6),
       searchOpenAlexWorks(searchQuery, 8),
+      searchFundingOpportunities(searchQuery, 6).catch((error) => ({
+        items: [],
+        error: error instanceof Error ? error.message : 'Funding source unavailable',
+      })),
     ]);
+
+    const verifiedFunders = (fundingResult.items || []).map((item) => ({
+      name: item.title,
+      type: item.agency || 'Official funding opportunity',
+      focus: item.description || item.categories?.join(', ') || 'Open the official record for details.',
+      typical_amount: item.amount,
+      deadline: item.deadline,
+      url: item.source_url,
+      source_id: item.source_id,
+    }));
 
     // Step 2: AI analyzes ONLY the real data
     const researcherContext = researchers.map((r, i) =>
@@ -82,10 +97,11 @@ Based ONLY on this real data:
 4. opportunity_score: 1-100 based on the gap between citation counts and research coverage
 5. trend_direction: "Rising"|"Stable"|"Declining" (based on recency of papers)
 6. research_gaps: array of 3-4 specific gaps visible from what the papers DO NOT cover (based on the real papers found). Each as a string.
-7. major_funders: array of 4-5 REAL funding programs suitable for this field. Only use real program names (Horizon Europe, NSF, NIH, ERC, Wellcome Trust, etc.). Each: {name, type, focus, typical_amount}
-8. key_trends: array of 3-4 trends visible from the real paper titles and years
-9. strategic_entry_points: one paragraph on where opportunity exists based on the real data gaps
-10. eyra_verdict: one honest sentence summarizing the competitive landscape`,
+7. key_trends: array of 3-4 trends visible from the real paper titles and years
+8. strategic_entry_points: one paragraph on where opportunity exists based on the real data gaps
+9. eyra_verdict: one honest sentence summarizing the competitive landscape
+
+Funding records are retrieved separately from an official source. Do not generate or recommend funding programs in this response.`,
         response_json_schema: {
           type: 'object',
           properties: {
@@ -95,7 +111,6 @@ Based ONLY on this real data:
             opportunity_score: { type: 'number' },
             trend_direction: { type: 'string' },
             research_gaps: { type: 'array', items: { type: 'string' } },
-            major_funders: { type: 'array' },
             key_trends: { type: 'array', items: { type: 'string' } },
             strategic_entry_points: { type: 'string' },
             eyra_verdict: { type: 'string' },
@@ -109,6 +124,8 @@ Based ONLY on this real data:
       institutions,
       papers,
       ...(aiAnalysis || {}),
+      major_funders: verifiedFunders,
+      funding_error: fundingResult.error || '',
       has_data: hasSufficientData,
     });
     setLoading(false);
@@ -195,7 +212,7 @@ Based ONLY on this real data:
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-primary/15 bg-primary/5">
             <AlertCircle size={12} className="text-primary flex-shrink-0" />
             <p className="text-[11px] text-muted-foreground">
-              Data sourced from <span className="text-primary font-medium">OpenAlex</span> — {report.researchers.length} researchers, {report.institutions.length} institutions, {report.papers.length} papers found.
+              Research data: <span className="text-primary font-medium">OpenAlex</span> — {report.researchers.length} researchers, {report.institutions.length} institutions, {report.papers.length} papers. Funding: <span className="text-primary font-medium">Grants.gov</span> — {report.major_funders.length} official records.
             </p>
           </div>
 
@@ -316,11 +333,20 @@ Based ONLY on this real data:
                         <div>
                           <p className="text-sm font-semibold text-foreground">{f.name}</p>
                           <p className="text-xs text-muted-foreground">{f.type} · {f.focus}</p>
+                          <div className="mt-2 flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
+                            {f.deadline && <span>Deadline: {f.deadline}</span>}
+                            {f.source_id && <span>{f.source_id}</span>}
+                            {f.url && (
+                              <a href={f.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                                Official record <ExternalLink size={9} />
+                              </a>
+                            )}
+                          </div>
                         </div>
                         {f.typical_amount && <p className="text-xs font-bold text-chart-3 flex-shrink-0">{f.typical_amount}</p>}
                       </div>
                     </div>
-                  )) : <p className="text-sm text-muted-foreground text-center py-6">Run analysis to see funding recommendations.</p>
+                  )) : <p className="text-sm text-muted-foreground text-center py-6">{report.funding_error || 'No matching official funding records were returned.'}</p>
                 )}
 
                 {activeCategory === 'research_gaps' && (
