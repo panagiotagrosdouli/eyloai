@@ -30,12 +30,14 @@ export default function ExecutiveBriefing() {
     setProjects(projs);
     // Check cache — regenerate once per day
     const today = new Date().toDateString();
-    const cachedDate = localStorage.getItem('eyra_briefing_full_date');
-    const cachedBriefing = localStorage.getItem('eyra_briefing_full');
+    const cachedDate = localStorage.getItem('eyra_briefing_grounded_v2_date');
+    const cachedBriefing = localStorage.getItem('eyra_briefing_grounded_v2');
     if (cachedDate === today && cachedBriefing) {
       try {
-        setBriefing(JSON.parse(cachedBriefing));
-        setLastGenerated(new Date(localStorage.getItem('eyra_briefing_full_ts') || Date.now()));
+        const parsedBriefing = JSON.parse(cachedBriefing);
+        setBriefing(parsedBriefing);
+        setSourceCounts(parsedBriefing._source_counts || { papers: 0, funding: 0 });
+        setLastGenerated(new Date(localStorage.getItem('eyra_briefing_grounded_v2_ts') || Date.now()));
         return;
       } catch {}
     }
@@ -136,6 +138,7 @@ Rules:
 
       const groundedBriefing = {
         ...result,
+        _source_counts: { papers: livePapers.length, funding: liveFunding.length },
         new_discoveries: (result.paper_signals || []).map(signal => {
           const index = Number(String(signal.source_id).replace(/\D/g, '')) - 1;
           const paper = livePapers[index];
@@ -164,9 +167,9 @@ Rules:
       setProjects(projs);
       const now = new Date();
       setLastGenerated(now);
-      localStorage.setItem('eyra_briefing_full_date', now.toDateString());
-      localStorage.setItem('eyra_briefing_full', JSON.stringify(groundedBriefing));
-      localStorage.setItem('eyra_briefing_full_ts', now.toISOString());
+      localStorage.setItem('eyra_briefing_grounded_v2_date', now.toDateString());
+      localStorage.setItem('eyra_briefing_grounded_v2', JSON.stringify(groundedBriefing));
+      localStorage.setItem('eyra_briefing_grounded_v2_ts', now.toISOString());
     } catch (briefingError) {
       setError(briefingError?.message || 'The briefing could not be generated.');
     } finally {
