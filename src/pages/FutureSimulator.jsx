@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { searchAllPapers } from '@/lib/eyra-api';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import {
@@ -45,11 +46,31 @@ const EXAMPLES = [
   'EdTech platform for personalized learning',
 ];
 
+const scenarioSchema = () => ({
+  type: 'object',
+  properties: {
+    label: { type: 'string' },
+    tagline: { type: 'string' },
+    success_probability: { type: 'number', minimum: 0, maximum: 100 },
+    timeline: { type: 'string' },
+    funding_required: { type: 'string' },
+    team_size: { type: 'string' },
+    key_milestones: { type: 'array', items: { type: 'string' } },
+    top_risks: { type: 'array', items: { type: 'string' } },
+    key_strengths: { type: 'array', items: { type: 'string' } },
+    ideal_team: { type: 'array', items: { type: 'string' } },
+    funding_path: { type: 'string' },
+    strategic_insight: { type: 'string' },
+  },
+});
+
 export default function FutureSimulator() {
   const [query, setQuery] = useState('');
   const [futures, setFutures] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activePath, setActivePath] = useState('growth');
+  const [evidenceCount, setEvidenceCount] = useState(0);
+  const [simulationError, setSimulationError] = useState('');
 
   const simulate = async (q) => {
     const searchQuery = q || query;
@@ -57,77 +78,52 @@ export default function FutureSimulator() {
     setQuery(searchQuery);
     setLoading(true);
     setFutures(null);
+    setSimulationError('');
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are EYRA Future Simulator — an advanced AI system that models possible futures for research and innovation projects.
+    try {
+      const papers = await searchAllPapers(searchQuery);
+      setEvidenceCount(papers.length);
+      const evidenceContext = papers.slice(0, 10).map((paper, index) =>
+        `[P${index + 1}] "${paper.title}" — ${paper.authors || 'Unknown'} (${paper.year || 'n/a'}) — ${paper.cited_by_count || 0} citations — ${paper.url}`
+      ).join('\n');
 
-Project/Idea: "${searchQuery}"
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `You are EYRA Scenario Planner.
 
-Simulate 3 distinct future scenarios. Output ONLY valid JSON:
+PROJECT OR IDEA: "${searchQuery}"
 
-{
-  "project_summary": "One sentence describing the project.",
-  "simulation_date": "${new Date().toISOString()}",
-  "conservative": {
-    "label": "Conservative Path",
-    "tagline": "Safe, validated, steady growth",
-    "success_probability": 72,
-    "timeline": "4-6 years to impact",
-    "funding_required": "$500K - $2M",
-    "team_size": "3-5 people",
-    "key_milestones": ["Milestone 1 at 6mo", "Milestone 2 at 18mo", "Milestone 3 at 36mo", "Milestone 4 at 60mo"],
-    "top_risks": ["Risk A", "Risk B"],
-    "key_strengths": ["Strength 1", "Strength 2"],
-    "ideal_team": ["Role 1", "Role 2", "Role 3"],
-    "funding_path": "Grants → Angel round → Series A",
-    "strategic_insight": "Two sentences on why this path makes sense and what it requires to succeed."
-  },
-  "growth": {
-    "label": "Growth Path",
-    "tagline": "Balanced risk with strong momentum",
-    "success_probability": 58,
-    "timeline": "2-4 years to impact",
-    "funding_required": "$2M - $8M",
-    "team_size": "8-15 people",
-    "key_milestones": ["Milestone 1 at 3mo", "Milestone 2 at 9mo", "Milestone 3 at 18mo", "Milestone 4 at 36mo"],
-    "top_risks": ["Risk A", "Risk B"],
-    "key_strengths": ["Strength 1", "Strength 2"],
-    "ideal_team": ["Role 1", "Role 2", "Role 3", "Role 4"],
-    "funding_path": "Pre-seed → Seed → Series A",
-    "strategic_insight": "Two sentences on why this path makes sense and what it requires to succeed."
-  },
-  "aggressive": {
-    "label": "Aggressive Path",
-    "tagline": "High risk, high reward, fast execution",
-    "success_probability": 31,
-    "timeline": "12-24 months to market",
-    "funding_required": "$8M - $25M",
-    "team_size": "20-40 people",
-    "key_milestones": ["Milestone 1 at 1mo", "Milestone 2 at 4mo", "Milestone 3 at 9mo", "Milestone 4 at 18mo"],
-    "top_risks": ["Risk A", "Risk B", "Risk C"],
-    "key_strengths": ["Strength 1", "Strength 2"],
-    "ideal_team": ["Role 1", "Role 2", "Role 3", "Role 4", "Role 5"],
-    "funding_path": "Series A → Series B fast track",
-    "strategic_insight": "Two sentences on why this path makes sense and what it requires to succeed."
-  },
-  "eyra_recommendation": "Which path EYRA recommends and why — one clear paragraph.",
-  "critical_decision": "The single most important decision that will determine which path succeeds."
-}`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          project_summary: { type: 'string' },
-          conservative: { type: 'object' },
-          growth: { type: 'object' },
-          aggressive: { type: 'object' },
-          eyra_recommendation: { type: 'string' },
-          critical_decision: { type: 'string' },
-        }
-      }
-    });
+VERIFIED SCHOLARLY RECORDS:
+${evidenceContext || 'No matching records were retrieved.'}
 
-    setFutures(result);
-    setLoading(false);
+Build three conditional planning scenarios: conservative, growth, and aggressive.
+
+Important:
+- These are scenarios, not forecasts or guarantees.
+- The JSON field success_probability is retained for interface compatibility, but its value must mean model-assessed feasibility (0-100), not empirical probability.
+- Base research claims only on supplied [P] records.
+- Funding, timelines, team sizes and milestones are planning estimates. Label uncertainty in strategic_insight.
+- Do not invent specific grants, deadlines, researchers, customers or market statistics.
+
+Return project_summary, conservative, growth, aggressive, eyra_recommendation, and critical_decision. Each scenario needs label, tagline, success_probability, timeline, funding_required, team_size, key_milestones, top_risks, key_strengths, ideal_team, funding_path, and strategic_insight.`,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            project_summary: { type: 'string' },
+            conservative: scenarioSchema(),
+            growth: scenarioSchema(),
+            aggressive: scenarioSchema(),
+            eyra_recommendation: { type: 'string' },
+            critical_decision: { type: 'string' },
+          },
+        },
+      });
+
+      setFutures(result);
+    } catch (error) {
+      setSimulationError(error instanceof Error ? error.message : 'Scenario analysis did not complete.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const activeFuture = futures?.[activePath];
@@ -144,12 +140,21 @@ Simulate 3 distinct future scenarios. Output ONLY valid JSON:
           <span className="text-[10px] font-semibold uppercase tracking-widest text-primary">EYRA Future Simulator</span>
         </div>
         <h1 className="font-heading font-black text-2xl sm:text-3xl mb-2 text-foreground">
-          Simulate Your <span className="impact-gradient">Future</span>
+          Explore Your <span className="impact-gradient">Scenarios</span>
         </h1>
         <p className="text-muted-foreground text-sm max-w-xl">
-          Describe your idea or project. EYRA models 3 possible futures — Conservative, Growth, and Aggressive — with probabilities, team needs, funding, and timelines.
+          Describe your idea or project. EYRA retrieves relevant research and builds three conditional planning paths with assumptions, risks, resources, and milestones.
         </p>
       </div>
+
+      <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] text-muted-foreground">
+        Scenario scores are model-assessed feasibility estimates, not statistical probabilities or guarantees.
+      </div>
+      {simulationError && (
+        <div role="alert" className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+          {simulationError}
+        </div>
+      )}
 
       {/* Input */}
       <div className="mb-6">
@@ -195,8 +200,8 @@ Simulate 3 distinct future scenarios. Output ONLY valid JSON:
           <div className="w-16 h-16 rounded-2xl eyra-gradient flex items-center justify-center mb-5 animate-pulse-glow">
             <Rocket size={26} className="text-white" />
           </div>
-          <p className="text-sm font-semibold text-foreground mb-1">EYRA is simulating your futures...</p>
-          <p className="text-xs text-muted-foreground mb-4">Modeling 3 scenarios with probability, team, funding & timeline</p>
+          <p className="text-sm font-semibold text-foreground mb-1">EYRA is building evidence-informed scenarios...</p>
+          <p className="text-xs text-muted-foreground mb-4">Retrieving scholarly records, then mapping assumptions, risks and milestones</p>
           <div className="flex gap-1.5">
             {[0, 1, 2, 3, 4].map(i => (
               <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${i * 0.1}s` }} />
@@ -208,6 +213,11 @@ Simulate 3 distinct future scenarios. Output ONLY valid JSON:
       {/* Results */}
       {futures && !loading && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          <div className="flex items-center gap-2 rounded-xl border border-green-500/20 bg-green-500/5 px-3 py-2 text-[11px] text-muted-foreground">
+            <Target size={11} className="text-green-400" />
+            Scenario analysis used {evidenceCount} retrieved scholarly records. Resource and feasibility values remain planning estimates.
+          </div>
+
           {/* Project summary */}
           <div className="p-4 rounded-xl border border-border/60 bg-secondary/20 flex items-start gap-3">
             <Target size={14} className="text-primary mt-0.5 flex-shrink-0" />
@@ -264,7 +274,7 @@ Simulate 3 distinct future scenarios. Output ONLY valid JSON:
                   </div>
                   <div className="text-right">
                     <p className={`text-3xl font-black ${pathConfig.color}`}>{activeFuture.success_probability}%</p>
-                    <p className="text-[10px] text-muted-foreground">success probability</p>
+                    <p className="text-[10px] text-muted-foreground">feasibility estimate</p>
                   </div>
                 </div>
 
@@ -361,7 +371,7 @@ Simulate 3 distinct future scenarios. Output ONLY valid JSON:
             onClick={() => simulate()}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
           >
-            <RefreshCw size={11} /> Resimulate with new parameters
+            <RefreshCw size={11} /> Rebuild scenarios with new parameters
           </button>
         </motion.div>
       )}

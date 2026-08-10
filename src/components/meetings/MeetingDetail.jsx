@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Video, Sparkles, Edit2, Trash2, ExternalLink, Users, Calendar, Clock, FileText, CheckSquare, AlertTriangle, ChevronRight } from 'lucide-react';
+import { searchAllPapers } from '@/lib/eyra-api';
+import { ArrowLeft, Video, Sparkles, Edit2, Trash2, ExternalLink, Users, Calendar, Clock, FileText, CheckSquare, AlertTriangle, ChevronRight, CalendarPlus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import MeetingForm from './MeetingForm';
 import ReactMarkdown from 'react-markdown';
@@ -20,7 +21,13 @@ export default function MeetingDetail({ meeting, projects, onBack, onSave, onDel
 
   const generatePrep = async () => {
     setLoadingPrep(true);
-    const res = await base44.integrations.Core.InvokeLLM({
+    try {
+      const papers = await searchAllPapers(`${meeting.project_title || ''} ${meeting.title}`.trim());
+      const paperContext = papers.slice(0, 6).map((paper, index) =>
+        `[P${index + 1}] "${paper.title}" — ${paper.authors || 'Unknown'} (${paper.year || 'n/a'}) — ${paper.url}`
+      ).join('\n');
+
+      const res = await base44.integrations.Core.InvokeLLM({
       prompt: `You are EYRA, an AI research and startup intelligence assistant. Generate a comprehensive pre-meeting brief for the following meeting:
 
 Title: ${meeting.title}
@@ -30,21 +37,32 @@ Participants: ${meeting.participants || 'Not specified'}
 Agenda: ${meeting.agenda || 'Not specified'}
 ${meeting.project_title ? `Linked Project: ${meeting.project_title}` : ''}
 
+VERIFIED RESEARCH RECORDS:
+${paperContext || 'No matching records were retrieved.'}
+
 Generate:
 1. **Meeting Agenda** (structured, with time estimates)
 2. **Suggested Questions** (5-7 key questions to ask)
 3. **Project Context** (what to know going in)
-4. **Relevant Research Angles** (papers or findings to reference)
-5. **Funding/Opportunity Updates** (if relevant to the call type)
+4. **Relevant Research** (reference only [P1]-[P6] records supplied above; do not invent papers)
+5. **Information to Verify** (facts or funding information not present in the meeting context)
 6. **Success Criteria** (what a good outcome looks like)
 
-Be specific, actionable, and tailored to the meeting type.`,
+Be specific, actionable, and tailored to the meeting type. Clearly separate supplied facts from suggestions.`,
     });
-    await base44.entities.Meeting.update(meeting.id, { eyra_prep: res });
-    meeting.eyra_prep = res;
-    setLoadingPrep(false);
-    toast({ title: 'EYRA prep brief ready' });
-    onUpdate();
+      await base44.entities.Meeting.update(meeting.id, { eyra_prep: res });
+      meeting.eyra_prep = res;
+      toast({ title: 'EYRA prep brief ready' });
+      onUpdate();
+    } catch (error) {
+      toast({
+        title: 'EYRA prep did not complete',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingPrep(false);
+    }
   };
 
   const generateDebrief = async () => {
@@ -53,7 +71,8 @@ Be specific, actionable, and tailored to the meeting type.`,
       return;
     }
     setLoadingDebrief(true);
-    const res = await base44.integrations.Core.InvokeLLM({
+    try {
+      const res = await base44.integrations.Core.InvokeLLM({
       prompt: `You are EYRA, an AI research and startup intelligence assistant. Analyze the following meeting and generate a comprehensive debrief.
 
 Meeting: ${meeting.title}
@@ -86,18 +105,50 @@ Generate a structured debrief with:
 Be concise and actionable.`,
     });
 
-    const update = {
-      summary: res,
-      notes,
-      transcription,
-      status: 'completed',
-    };
-    await base44.entities.Meeting.update(meeting.id, update);
-    Object.assign(meeting, update);
-    setLoadingDebrief(false);
-    toast({ title: 'EYRA debrief generated' });
-    onUpdate();
+      const update = {
+        summary: res,
+        notes,
+        transcription,
+        status: 'completed',
+      };
+      await base44.entities.Meeting.update(meeting.id, update);
+      Object.assign(meeting, update);
+      toast({ title: 'EYRA debrief generated' });
+      onUpdate();
+    } catch (error) {
+      toast({
+        title: 'EYRA debrief did not complete',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingDebrief(false);
+    }
   };
+
+  const googleCalendarUrl = (() => {
+    if (!meeting.date) return '';
+    const start = `${meeting.date.replaceAll('-', '')}T${(meeting.time || '09:00').replace(':', '')}00`;
+    const endDate = new Date(`${meeting.date}T${meeting.time || '09:00'}:00`);
+    endDate.setMinutes(endDate.getMinutes() + Number(meeting.duration_minutes || 60));
+    const end = [
+      endDate.getFullYear(),
+      String(endDate.getMonth() + 1).padStart(2, '0'),
+      String(endDate.getDate()).padStart(2, '0'),
+    ].join('') + 'T' + [
+      String(endDate.getHours()).padStart(2, '0'),
+      String(endDate.getMinutes()).padStart(2, '0'),
+      '00',
+    ].join('');
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: meeting.title || 'EYLO meeting',
+      dates: `${start}/${end}`,
+      details: [meeting.agenda, meeting.meeting_link].filter(Boolean).join('\n\n'),
+      location: meeting.meeting_link || '',
+    });
+    return `https://calendar.google.com/calendar/render?${params}`;
+  })();
 
   const saveNotes = async () => {
     setSavingNotes(true);
@@ -164,6 +215,12 @@ Be concise and actionable.`,
             )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
+            {googleCalendarUrl && (
+              <a href={googleCalendarUrl} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-secondary text-foreground text-xs font-semibold hover:border-primary/30 transition-colors">
+                <CalendarPlus size={12} /> Add to Calendar
+              </a>
+            )}
             {meeting.meeting_link && (
               <a href={meeting.meeting_link} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg eyra-gradient text-white text-xs font-semibold hover:opacity-90 transition-opacity">

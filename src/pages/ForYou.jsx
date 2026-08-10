@@ -11,12 +11,12 @@ import WhileYouWereAway from '@/components/eyra/WhileYouWereAway';
 import LiveIntelligenceFeed from '@/components/monitoring/LiveIntelligenceFeed';
 
 const EYRA_STATUS = [
-  'Monitoring OpenAlex for new papers',
-  'Scanning arXiv for preprints',
-  'Tracking funding opportunities',
-  'Analyzing collaboration matches',
-  'Detecting research gaps',
-  'Watching Europe PMC for publications',
+  'Ready to check OpenAlex for new papers',
+  'Ready to search arXiv and Europe PMC',
+  'Funding watchlists use official records',
+  'Source checks run when you open this workspace',
+  'AI analysis runs after evidence retrieval',
+  'Last results remain available in your workspace',
 ];
 
 function EyraStatusBar() {
@@ -58,8 +58,8 @@ export default function ForYou() {
           <div className="w-12 h-12 rounded-2xl eyra-gradient flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
             <Sparkles size={20} className="text-white" />
           </div>
-          <p className="text-sm font-medium">EYRA is scanning your field...</p>
-          <p className="text-xs text-muted-foreground mt-1">Fetching real data from OpenAlex · arXiv · Europe PMC</p>
+          <p className="text-sm font-medium">Loading your EYRA workspace...</p>
+          <p className="text-xs text-muted-foreground mt-1">Preparing saved projects, searches and source checks</p>
         </div>
       </div>
     );
@@ -82,7 +82,7 @@ export default function ForYou() {
             <h1 className="font-heading font-bold text-xl text-foreground">EYRA Intelligence</h1>
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
           </div>
-          <p className="text-muted-foreground text-sm">Real-time monitoring · OpenAlex · arXiv · Europe PMC · No fabricated data</p>
+          <p className="text-muted-foreground text-sm">On-demand source checks · OpenAlex · arXiv · Europe PMC · Grants.gov</p>
         </div>
       </div>
 
@@ -107,7 +107,7 @@ export default function ForYou() {
               </div>
               <h3 className="font-semibold text-sm mb-2">EYRA needs a project to monitor</h3>
               <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed mb-4">
-                Create a project and EYRA will autonomously monitor OpenAlex, arXiv, and Europe PMC for relevant papers, researchers, and opportunities.
+                Create a project. When you open this workspace, EYRA checks OpenAlex, arXiv, and Europe PMC for relevant papers and researchers. Funding watchlists query official grant records.
               </p>
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 <Link to="/projects" className="px-4 py-2 rounded-xl eyra-gradient text-white text-xs font-semibold">Create a Project</Link>
@@ -166,14 +166,14 @@ export default function ForYou() {
 
           {/* Data sources */}
           <div className="p-4 rounded-xl border border-border bg-card">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-3">Live Data Sources</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-3">Connected Data Sources</p>
             <div className="space-y-2">
               {[
                 { name: 'OpenAlex', desc: 'Papers · Researchers · Institutions', active: true },
                 { name: 'arXiv', desc: 'Preprints · Latest research', active: true },
                 { name: 'Europe PMC', desc: 'Biomedical · Life sciences', active: true },
-                { name: 'CORDIS / Horizon', desc: 'EU grants · Funding', active: false, label: 'Coming' },
-                { name: 'PubMed', desc: 'Medical · Clinical research', active: false, label: 'Coming' },
+                { name: 'Grants.gov', desc: 'Official grants · Deadlines', active: true },
+                { name: 'Crossref', desc: 'DOIs · Publication metadata', active: true },
               ].map(src => (
                 <div key={src.name} className="flex items-center gap-2">
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${src.active ? 'bg-green-400 animate-pulse' : 'bg-border'}`} />

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import { motion } from 'framer-motion';
 import {
   Sparkles, Loader2, Users, Brain, Code, Briefcase,
   Star, ChevronRight, Target, Lightbulb,
-  Building2, UserPlus, RefreshCw, FolderOpen
+  Building2, UserPlus, RefreshCw, FolderOpen, ExternalLink
 } from 'lucide-react';
 
 const EXAMPLES = [
@@ -28,6 +29,7 @@ export default function DreamTeam() {
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState([]);
   const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [buildError, setBuildError] = useState('');
 
   useEffect(() => {
     base44.entities.Project.list('-updated_date', 10).then(projs => {
@@ -58,56 +60,94 @@ export default function DreamTeam() {
     setQuery(searchQuery);
     setLoading(true);
     setTeam(null);
+    setBuildError('');
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are EYRA Dream Team Builder — an AI system that identifies exactly who you need on your team and how to find them.
+    try {
+      const [researchers, institutions] = await Promise.all([
+        searchOpenAlexAuthors(searchQuery, 8),
+        searchOpenAlexInstitutions(searchQuery, 5),
+      ]);
 
-Project/Startup: "${searchQuery}"
+      const researcherContext = researchers.map((researcher, index) =>
+        `[R${index + 1}] ${researcher.name} — ${researcher.institution} — ${researcher.works_count} works, ${researcher.citation_count} citations — ${researcher.profile_url}`
+      ).join('\n');
+      const institutionContext = institutions.map((institution, index) =>
+        `[I${index + 1}] ${institution.name} (${institution.country}) — ${institution.works_count} works — ${institution.url}`
+      ).join('\n');
 
-Build a comprehensive dream team analysis. Output ONLY valid JSON:
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `You are EYRA Team Design Analyst.
 
-{
-  "project_summary": "One sentence on the project.",
-  "team_health_score": 0,
-  "current_gaps": ["Gap 1: Missing domain expertise", "Gap 2: Missing skill", "Gap 3: Missing role"],
-  "dream_team": [
-    {
-      "role": "Lead AI Researcher",
-      "category": "AI/ML",
-      "priority": "Critical",
-      "why_needed": "Will own the core model architecture and training pipeline",
-      "key_skills": ["Deep learning", "PyTorch", "Research publications"],
-      "ideal_background": "PhD in ML/CV, 3+ years research experience, ideally from a top lab",
-      "where_to_find": "NeurIPS/ICML community, academic lab alumni networks, LinkedIn AI groups",
-      "outreach_hook": "Strong research culture, real-world impact, equity upside",
-      "seniority": "Senior / Principal",
-      "equity_range": "1-3%"
+PROJECT: "${searchQuery}"
+
+VERIFIED RESEARCHER RECORDS FROM OPENALEX:
+${researcherContext || 'No matching researchers were retrieved.'}
+
+VERIFIED INSTITUTION RECORDS FROM OPENALEX:
+${institutionContext || 'No matching institutions were retrieved.'}
+
+Design the roles and partner capabilities needed for this project.
+
+Rules:
+- Do not invent named people or institutions.
+- Named candidates shown in the interface come only from [R] and [I] records.
+- team_health_score means completeness of the proposed team design, not an evaluation of an existing team.
+- Equity ranges, seniority and hiring order are planning suggestions, not factual market data.
+- Distinguish required roles from verified candidate records.
+
+Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequence, consortium_partners, eyra_team_insight, and first_hire_advice.`,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            project_summary: { type: 'string' },
+            team_health_score: { type: 'number', minimum: 0, maximum: 100 },
+            current_gaps: { type: 'array', items: { type: 'string' } },
+            dream_team: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  role: { type: 'string' },
+                  category: { type: 'string', enum: ['AI/ML', 'Research', 'Engineering', 'Business', 'Clinical', 'Other'] },
+                  priority: { type: 'string', enum: ['Critical', 'High', 'Medium'] },
+                  why_needed: { type: 'string' },
+                  key_skills: { type: 'array', items: { type: 'string' } },
+                  ideal_background: { type: 'string' },
+                  where_to_find: { type: 'string' },
+                  outreach_hook: { type: 'string' },
+                  seniority: { type: 'string' },
+                  equity_range: { type: 'string' },
+                },
+              },
+            },
+            hiring_sequence: { type: 'array', items: { type: 'string' } },
+            consortium_partners: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  type: { type: 'string' },
+                  role: { type: 'string' },
+                  ideal: { type: 'string' },
+                },
+              },
+            },
+            eyra_team_insight: { type: 'string' },
+            first_hire_advice: { type: 'string' },
+          },
+        },
+      });
+
+      setTeam({
+        ...result,
+        candidate_researchers: researchers,
+        candidate_institutions: institutions,
+      });
+    } catch (error) {
+      setBuildError(error instanceof Error ? error.message : 'Team analysis did not complete.');
+    } finally {
+      setLoading(false);
     }
-  ],
-  "hiring_sequence": ["Role to hire first and why", "Role to hire second", "Role to hire third"],
-  "consortium_partners": [
-    {"type": "University Partner", "role": "Research validation and academic credibility", "ideal": "Top-10 university in your field"}
-  ],
-  "eyra_team_insight": "One paragraph: EYRA's honest assessment of the most critical team decisions for this specific project.",
-  "first_hire_advice": "One concrete piece of advice on making the first critical hire."
-}`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          project_summary: { type: 'string' },
-          team_health_score: { type: 'number' },
-          current_gaps: { type: 'array' },
-          dream_team: { type: 'array' },
-          hiring_sequence: { type: 'array' },
-          consortium_partners: { type: 'array' },
-          eyra_team_insight: { type: 'string' },
-          first_hire_advice: { type: 'string' },
-        }
-      }
-    });
-
-    setTeam(result);
-    setLoading(false);
   };
 
   const priorityColor = {
@@ -129,9 +169,18 @@ Build a comprehensive dream team analysis. Output ONLY valid JSON:
           Build Your <span className="impact-gradient">Dream Team</span>
         </h1>
         <p className="text-muted-foreground text-sm max-w-xl">
-          EYRA identifies every missing skill, recommends specific profiles, and tells you where to find them.
+          EYRA designs the required roles and retrieves real researcher and institution profiles from OpenAlex for you to evaluate.
         </p>
       </div>
+
+      <div className="mb-4 rounded-xl border border-border bg-secondary/20 p-3 text-[11px] text-muted-foreground">
+        Role design is AI analysis. Named researcher and institution profiles are retrieved records, not generated people.
+      </div>
+      {buildError && (
+        <div role="alert" className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+          {buildError}
+        </div>
+      )}
 
       {/* Project selector — connect to existing projects */}
       {projects.length > 0 && (
@@ -193,7 +242,7 @@ Build a comprehensive dream team analysis. Output ONLY valid JSON:
             <Users size={26} className="text-white" />
           </div>
           <p className="text-sm font-semibold mb-1">Building your dream team...</p>
-          <p className="text-xs text-muted-foreground">Identifying gaps, roles, profiles, and where to find them</p>
+          <p className="text-xs text-muted-foreground">Retrieving real profiles, then designing roles and partner needs</p>
           <div className="flex gap-1.5 mt-4">
             {[0,1,2,3,4].map(i => (
               <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${i * 0.1}s` }} />
@@ -210,11 +259,33 @@ Build a comprehensive dream team analysis. Output ONLY valid JSON:
               <p className="text-sm text-foreground/80">{team.project_summary}</p>
             </div>
             <div className="p-4 rounded-xl border border-border bg-card text-center">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Team Score</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Plan Completeness</p>
               <p className="text-4xl font-black text-primary">{team.team_health_score}</p>
               <p className="text-[10px] text-muted-foreground">/ 100 today</p>
             </div>
           </div>
+
+          {(team.candidate_researchers?.length > 0 || team.candidate_institutions?.length > 0) && (
+            <div className="rounded-2xl border border-green-500/20 bg-green-500/5 p-5">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-green-400">Verified OpenAlex Matches</p>
+              <p className="mb-4 text-xs text-muted-foreground">Review relevance yourself before outreach. These are retrieved profiles, not AI-generated people.</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {team.candidate_researchers?.slice(0, 6).map((researcher) => (
+                  <a key={researcher.id} href={researcher.profile_url} target="_blank" rel="noopener noreferrer"
+                    className="rounded-xl border border-border bg-card p-3 hover:border-primary/30">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">{researcher.name}</p>
+                        <p className="mt-0.5 text-[10px] text-muted-foreground">{researcher.institution}</p>
+                        <p className="mt-1 text-[10px] text-muted-foreground">{researcher.works_count} works · {researcher.citation_count} citations</p>
+                      </div>
+                      <ExternalLink size={11} className="text-primary" />
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Gaps */}
           {team.current_gaps?.length > 0 && (

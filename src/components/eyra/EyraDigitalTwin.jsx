@@ -65,7 +65,10 @@ export default function EyraDigitalTwin({ project }) {
       `[Researcher ${i + 1}] ${r.name} — ${r.institution} — ${r.works_count} works, ${r.citation_count} citations`
     ).join('\n');
 
-    const analysis = await base44.integrations.Core.InvokeLLM({
+    let analysis = { highlights: [], next_recommendation: '' };
+    let aiError = '';
+    try {
+      analysis = await base44.integrations.Core.InvokeLLM({
       prompt: `You are EYRA. Analyze ONLY the real data below for this project and produce a brief intelligence summary.
 
 Project: "${project.title}"
@@ -89,13 +92,17 @@ Do NOT invent papers, researcher names, or statistics not in the data above.`,
           next_recommendation: { type: 'string' },
         },
       },
-    });
+      });
+    } catch (error) {
+      aiError = error instanceof Error ? error.message : 'EYRA analysis unavailable';
+    }
 
     const result = {
       papers,
       researchers,
       highlights: analysis.highlights || [],
       next_recommendation: analysis.next_recommendation || '',
+      ai_error: aiError,
       no_data: false,
     };
 
@@ -155,6 +162,12 @@ Do NOT invent papers, researcher names, or statistics not in the data above.`,
 
           {report && !loading && !report.no_data && (
             <div className="space-y-4">
+              {report.ai_error && (
+                <div role="status" className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] text-amber-300">
+                  Source records loaded, but EYRA analysis did not complete: {report.ai_error}
+                </div>
+              )}
+
               {/* Real stats */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="text-center p-3 rounded-xl bg-secondary/30">

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { searchFundingOpportunities } from '@/lib/funding-api';
 import {
   Search, Bookmark, Award, Loader2, DollarSign, Trophy,
   Rocket, GraduationCap, Sparkles, TrendingUp, Target,
-  CheckCircle2, Filter
+  CheckCircle2, Filter, ExternalLink, ShieldCheck
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
@@ -39,6 +40,9 @@ export default function Opportunities() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [sourceMeta, setSourceMeta] = useState(null);
+  const [searchError, setSearchError] = useState('');
+  const [rankingError, setRankingError] = useState('');
   const { toast } = useToast();
 
   const handleSearch = async (searchQuery) => {
@@ -48,49 +52,86 @@ export default function Opportunities() {
     setLoading(true);
     setHasSearched(true);
     setActiveCategory('all');
+    setSearchError('');
+    setRankingError('');
+    setSourceMeta(null);
+    setResults([]);
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are EYRA, an AI specialized in research and innovation funding intelligence.
+    try {
+      // Retrieval first: these fields come directly from the official source.
+      const sourceResult = await searchFundingOpportunities(q, 12);
+      setSourceMeta(sourceResult);
 
-The user is interested in: "${q}"
+      const verified = sourceResult.items.map((item) => ({
+        ...item,
+        typical_amount: item.amount,
+        match_score: null,
+        match_reason: '',
+        difficulty: 'Unranked',
+      }));
+      setResults(verified);
 
-Find and describe 12 specific, realistic funding opportunities, grants, competitions, accelerators, scholarships, and innovation programs that would match this interest. Be specific about real program names, funding amounts, and deadlines where known.
+      if (verified.length === 0) return;
 
-For each opportunity provide:
-- title: Specific name of the program
-- type: one of "grant", "competition", "accelerator", "scholarship", "call"
-- description: What it funds and who it's for (2-3 sentences)
-- eligibility: Who can apply (students, startups, researchers, companies)
-- typical_amount: Funding amount or benefit (e.g. "$50,000", "€200,000", "Equity + $120k")
-- deadline: Approximate deadline or cycle (e.g. "Rolling", "March 2025", "Annual")
-- match_score: How well it matches the query (1-10)
-- difficulty: "Low" | "Medium" | "High"`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          opportunities: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                title: { type: 'string' },
-                type: { type: 'string' },
-                description: { type: 'string' },
-                eligibility: { type: 'string' },
-                typical_amount: { type: 'string' },
-                deadline: { type: 'string' },
-                match_score: { type: 'number' },
-                difficulty: { type: 'string' },
+      try {
+        // AI may rank and explain verified records, but cannot create or rewrite them.
+        const ranking = await base44.integrations.Core.InvokeLLM({
+          prompt: `You are EYRA Funding Intelligence. Rank ONLY the verified funding records below for this user query.
+
+USER QUERY: "${q}"
+RETRIEVED AT: ${sourceResult.retrieved_at}
+OFFICIAL SOURCE: ${sourceResult.source}
+
+VERIFIED RECORDS:
+${verified.map((item) => JSON.stringify({
+  id: item.id,
+  title: item.title,
+  agency: item.agency,
+  description: item.description,
+  eligibility: item.eligibility,
+  deadline: item.deadline,
+  amount: item.amount,
+  categories: item.categories,
+})).join('\n')}
+
+Return one ranking object for every supplied id. Do not add opportunities or change factual fields. match_score measures relevance to the query, not probability of winning. difficulty is an eligibility/application-complexity assessment.`,
+          response_json_schema: {
+            type: 'object',
+            properties: {
+              ranked: {
+                type: 'array',
+                minItems: verified.length,
+                maxItems: verified.length,
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string', enum: verified.map((item) => item.id) },
+                    match_score: { type: 'number', minimum: 0, maximum: 100 },
+                    match_reason: { type: 'string' },
+                    difficulty: { type: 'string', enum: ['Low', 'Medium', 'High'] },
+                  },
+                },
               },
             },
           },
-        },
-      },
-    });
+        });
 
-    const sorted = (result.opportunities || []).sort((a, b) => (b.match_score || 0) - (a.match_score || 0));
-    setResults(sorted);
-    setLoading(false);
+        const byId = new Map((ranking.ranked || []).map((item) => [item.id, item]));
+        const ranked = verified
+          .map((item) => ({ ...item, ...(byId.get(item.id) || {}) }))
+          .sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1));
+        setResults(ranked);
+      } catch (error) {
+        setRankingError(
+          `Verified opportunities loaded, but EYRA ranking is unavailable: ${error instanceof Error ? error.message : 'unknown error'}`,
+        );
+      }
+    } catch (error) {
+      setSearchError(error instanceof Error ? error.message : 'Funding search failed.');
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const saveOpportunity = async (opp) => {
@@ -114,14 +155,14 @@ For each opportunity provide:
       {/* Header */}
       <div className="mb-6">
         <h1 className="font-heading font-bold text-2xl sm:text-3xl mb-1 text-foreground">Funding Intelligence</h1>
-        <p className="text-muted-foreground text-sm">EYRA discovers and ranks grants, accelerators, and competitions matched to your project</p>
+        <p className="text-muted-foreground text-sm">Official funding records first; EYRA then ranks their relevance to your project</p>
       </div>
 
-      {/* Reality disclaimer */}
-      <div className="flex items-start gap-2 p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 mb-4 max-w-2xl">
-        <span className="text-amber-400 text-[11px] flex-shrink-0 mt-0.5">⚠️</span>
+      {/* Source contract */}
+      <div className="flex items-start gap-2 p-3 rounded-xl border border-green-500/20 bg-green-500/5 mb-4 max-w-2xl">
+        <ShieldCheck size={13} className="text-green-400 flex-shrink-0 mt-0.5" />
         <p className="text-[11px] text-muted-foreground leading-relaxed">
-          <span className="font-semibold text-amber-400">🧠 EYRA Analysis</span> — Opportunities are AI-matched based on real program knowledge. Always verify deadlines and eligibility at the official source before applying.
+          Opportunity names, agencies, statuses and deadlines are retrieved from the official source. EYRA only ranks relevance and explains fit. Always open the source record before applying.
         </p>
       </div>
 
@@ -160,13 +201,35 @@ For each opportunity provide:
         </div>
       )}
 
+      {searchError && (
+        <div role="alert" className="mb-5 max-w-2xl rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+          {searchError}
+        </div>
+      )}
+
+      {rankingError && (
+        <div role="status" className="mb-5 max-w-2xl rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-300">
+          {rankingError}
+        </div>
+      )}
+
+      {sourceMeta && !loading && (
+        <div className="mb-5 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+          <span className="rounded-full border border-green-500/20 bg-green-500/5 px-2 py-1 text-green-300">
+            {results.length} verified records
+          </span>
+          <span>Source: {sourceMeta.source}</span>
+          <span>Retrieved {new Date(sourceMeta.retrieved_at).toLocaleString()}</span>
+        </div>
+      )}
+
       {loading && (
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-12 h-12 rounded-full eyra-gradient flex items-center justify-center mb-4 animate-pulse-glow">
             <Sparkles size={20} className="text-white" />
           </div>
-          <p className="text-sm font-medium text-foreground">EYRA is matching opportunities...</p>
-          <p className="text-xs text-muted-foreground mt-1">Analyzing grants, programs, and competitions</p>
+          <p className="text-sm font-medium text-foreground">Searching the official funding database...</p>
+          <p className="text-xs text-muted-foreground mt-1">Retrieving active records, then EYRA ranks their relevance</p>
         </div>
       )}
 
@@ -214,7 +277,8 @@ For each opportunity provide:
                         )}
                       </div>
                       <h4 className="font-semibold text-sm text-foreground mb-1">{opp.title}</h4>
-                      <p className="text-xs text-muted-foreground leading-relaxed mb-3">{opp.description}</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed mb-2">{opp.description || 'Open the official record for the full announcement.'}</p>
+                      {opp.match_reason && <p className="text-[11px] text-primary/90 mb-3"><span className="font-semibold">EYRA fit:</span> {opp.match_reason}</p>}
                       <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
                         {opp.eligibility && (
                           <span><span className="font-medium text-foreground">Eligible:</span> {opp.eligibility}</span>
@@ -227,13 +291,24 @@ For each opportunity provide:
                         )}
                       </div>
                     </div>
-                    <button
-                      onClick={() => saveOpportunity(opp)}
-                      className="p-2.5 rounded-lg hover:bg-secondary transition-colors flex-shrink-0"
-                      title="Save to library"
-                    >
-                      <Bookmark size={14} className="text-muted-foreground" />
-                    </button>
+                    <div className="flex flex-col gap-1 flex-shrink-0">
+                      <button
+                        onClick={() => saveOpportunity(opp)}
+                        className="p-2.5 rounded-lg hover:bg-secondary transition-colors"
+                        title="Save to library"
+                      >
+                        <Bookmark size={14} className="text-muted-foreground" />
+                      </button>
+                      <a
+                        href={opp.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2.5 rounded-lg hover:bg-secondary transition-colors"
+                        title="Open official source"
+                      >
+                        <ExternalLink size={14} className="text-primary" />
+                      </a>
+                    </div>
                   </div>
                 </div>
               );

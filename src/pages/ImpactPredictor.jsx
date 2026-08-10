@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { searchAllPapers } from '@/lib/eyra-api';
 import { motion } from 'framer-motion';
 import {
   Sparkles, Loader2, Target, TrendingUp, DollarSign,
@@ -40,6 +41,8 @@ export default function ImpactPredictor() {
   const [predictType, setPredictType] = useState('startup');
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [evidenceCount, setEvidenceCount] = useState(0);
+  const [analysisError, setAnalysisError] = useState('');
 
   const predict = async (q) => {
     const searchQuery = q || query;
@@ -47,72 +50,92 @@ export default function ImpactPredictor() {
     setQuery(searchQuery);
     setLoading(true);
     setPrediction(null);
+    setAnalysisError('');
 
-    const typeLabel = PREDICT_TYPES.find(t => t.key === predictType)?.label || 'Success';
+    const typeLabel = PREDICT_TYPES.find(t => t.key === predictType)?.label || 'Impact';
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are EYRA Impact Predictor — a sophisticated AI prediction system for research and innovation outcomes.
+    try {
+      const papers = await searchAllPapers(searchQuery);
+      setEvidenceCount(papers.length);
+      const evidenceContext = papers.slice(0, 10).map((paper, index) =>
+        `[P${index + 1}] "${paper.title}" — ${paper.authors || 'Unknown'} (${paper.year || 'n/a'}) — ${paper.cited_by_count || 0} citations — ${paper.url}`
+      ).join('\n');
 
-Prediction type: ${typeLabel}
-Input: "${searchQuery}"
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `You are EYRA Evidence & Impact Assessor.
 
-Generate a comprehensive impact prediction. Output ONLY valid JSON:
+ASSESSMENT TYPE: ${typeLabel}
+USER INPUT: "${searchQuery}"
 
-{
-  "subject_summary": "One sentence describing what is being predicted.",
-  "overall_score": 67,
-  "confidence": 78,
-  "verdict": "Promising|Strong|Moderate|Weak|High Risk",
-  "predictions": {
-    "primary_score": 67,
-    "primary_label": "${typeLabel} Probability",
-    "primary_reasoning": "Two sentences explaining the score.",
-    "secondary_scores": [
-      {"label": "Market Timing", "score": 72, "note": "One sentence"},
-      {"label": "Team Readiness", "score": 45, "note": "One sentence"},
-      {"label": "Technology Readiness", "score": 81, "note": "One sentence"},
-      {"label": "Competitive Position", "score": 58, "note": "One sentence"},
-      {"label": "Funding Climate", "score": 69, "note": "One sentence"}
-    ]
-  },
-  "strengths": [
-    {"factor": "Strength 1 title", "detail": "Why this is a strength"},
-    {"factor": "Strength 2 title", "detail": "Why this is a strength"},
-    {"factor": "Strength 3 title", "detail": "Why this is a strength"}
-  ],
-  "weaknesses": [
-    {"factor": "Weakness 1 title", "detail": "What the risk is and how to mitigate"},
-    {"factor": "Weakness 2 title", "detail": "What the risk is and how to mitigate"}
-  ],
-  "key_success_factors": ["Factor 1 that will determine success", "Factor 2", "Factor 3"],
-  "risk_score": 42,
-  "top_risk": "The single biggest risk in one sentence.",
-  "timeline_to_outcome": "Expected timeline to meaningful outcome",
-  "eyra_prediction": "EYRA's honest, direct prediction in 2-3 sentences. Be specific about what needs to happen for success.",
-  "three_actions": ["Action 1 to improve odds", "Action 2", "Action 3"]
-}`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          subject_summary: { type: 'string' },
-          overall_score: { type: 'number' },
-          confidence: { type: 'number' },
-          verdict: { type: 'string' },
-          predictions: { type: 'object' },
-          strengths: { type: 'array' },
-          weaknesses: { type: 'array' },
-          key_success_factors: { type: 'array' },
-          risk_score: { type: 'number' },
-          top_risk: { type: 'string' },
-          timeline_to_outcome: { type: 'string' },
-          eyra_prediction: { type: 'string' },
-          three_actions: { type: 'array' },
-        }
-      }
-    });
+VERIFIED SCHOLARLY RECORDS:
+${evidenceContext || 'No matching records were retrieved.'}
 
-    setPrediction(result);
-    setLoading(false);
+This is decision support, not a statistically calibrated forecast. Never claim that a score is an empirical probability of success.
+
+Score rubric:
+- overall_score and primary_score: evidence readiness and execution plausibility, 0-100
+- confidence: confidence in this assessment given the amount and relevance of supplied evidence, 0-100
+- risk_score: model-assessed risk severity, 0-100
+Every factual research claim must reference [P] records. Clearly identify user assumptions and missing evidence.
+
+Return:
+- subject_summary
+- overall_score
+- confidence
+- verdict: "Promising"|"Strong"|"Moderate"|"Weak"|"High Risk"
+- predictions: { primary_score, primary_label, primary_reasoning, secondary_scores: [{label, score, note}] }
+- strengths: [{factor, detail}]
+- weaknesses: [{factor, detail}]
+- key_success_factors: string[]
+- risk_score
+- top_risk
+- timeline_to_outcome
+- eyra_prediction: a conditional assessment, never a certainty
+- three_actions: string[]`,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            subject_summary: { type: 'string' },
+            overall_score: { type: 'number', minimum: 0, maximum: 100 },
+            confidence: { type: 'number', minimum: 0, maximum: 100 },
+            verdict: { type: 'string', enum: ['Promising', 'Strong', 'Moderate', 'Weak', 'High Risk'] },
+            predictions: {
+              type: 'object',
+              properties: {
+                primary_score: { type: 'number', minimum: 0, maximum: 100 },
+                primary_label: { type: 'string' },
+                primary_reasoning: { type: 'string' },
+                secondary_scores: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      label: { type: 'string' },
+                      score: { type: 'number', minimum: 0, maximum: 100 },
+                      note: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+            strengths: { type: 'array', items: { type: 'object', properties: { factor: { type: 'string' }, detail: { type: 'string' } } } },
+            weaknesses: { type: 'array', items: { type: 'object', properties: { factor: { type: 'string' }, detail: { type: 'string' } } } },
+            key_success_factors: { type: 'array', items: { type: 'string' } },
+            risk_score: { type: 'number', minimum: 0, maximum: 100 },
+            top_risk: { type: 'string' },
+            timeline_to_outcome: { type: 'string' },
+            eyra_prediction: { type: 'string' },
+            three_actions: { type: 'array', items: { type: 'string' } },
+          },
+        },
+      });
+
+      setPrediction(result);
+    } catch (error) {
+      setAnalysisError(error instanceof Error ? error.message : 'Impact assessment did not complete.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const verdictConfig = {
@@ -136,12 +159,21 @@ Generate a comprehensive impact prediction. Output ONLY valid JSON:
           <span className="text-[10px] font-semibold uppercase tracking-widest text-primary">Impact Predictor</span>
         </div>
         <h1 className="font-heading font-black text-2xl sm:text-3xl mb-2 text-foreground">
-          Predict Your <span className="impact-gradient">Impact</span>
+          Assess Your <span className="impact-gradient">Impact</span>
         </h1>
         <p className="text-muted-foreground text-sm max-w-xl">
-          EYRA calculates success probabilities, identifies your strengths and risks, and tells you exactly what to do to improve your odds.
+          EYRA retrieves relevant research, evaluates evidence readiness and risks, and produces a transparent decision-support assessment.
         </p>
       </div>
+
+      <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] text-muted-foreground">
+        Scores are model-based decision-support estimates, not statistically calibrated probabilities or guarantees.
+      </div>
+      {analysisError && (
+        <div role="alert" className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+          {analysisError}
+        </div>
+      )}
 
       {/* Type selector */}
       <div className="flex gap-2 mb-4 flex-wrap">
@@ -178,7 +210,7 @@ Generate a comprehensive impact prediction. Output ONLY valid JSON:
           </div>
           <button type="submit" disabled={!query.trim() || loading} className="flex items-center gap-2 px-6 py-3 rounded-xl eyra-gradient text-white text-sm font-semibold disabled:opacity-40">
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Target size={14} />}
-            Predict
+            Assess
           </button>
         </form>
         {!prediction && !loading && (
@@ -197,8 +229,8 @@ Generate a comprehensive impact prediction. Output ONLY valid JSON:
           <div className="w-16 h-16 rounded-2xl eyra-gradient flex items-center justify-center mb-5 animate-pulse-glow">
             <Brain size={26} className="text-white" />
           </div>
-          <p className="text-sm font-semibold mb-1">EYRA is calculating your prediction...</p>
-          <p className="text-xs text-muted-foreground">Analyzing strengths, risks, market, timing & probability</p>
+          <p className="text-sm font-semibold mb-1">EYRA is assessing evidence and execution readiness...</p>
+          <p className="text-xs text-muted-foreground">Retrieving scholarly records, then evaluating assumptions and risks</p>
           <div className="flex gap-1.5 mt-4">
             {[0,1,2,3,4].map(i => (
               <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${i * 0.1}s` }} />
@@ -209,6 +241,11 @@ Generate a comprehensive impact prediction. Output ONLY valid JSON:
 
       {prediction && !loading && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          <div className="flex items-center gap-2 rounded-xl border border-green-500/20 bg-green-500/5 px-3 py-2 text-[11px] text-muted-foreground">
+            <FileText size={11} className="text-green-400" />
+            Assessment grounded in {evidenceCount} retrieved scholarly records. Scores remain model estimates.
+          </div>
+
           {/* Hero score */}
           <div className="p-6 rounded-2xl border border-border bg-card flex flex-col sm:flex-row items-center gap-6">
             <div className="flex flex-col items-center">

@@ -3,6 +3,7 @@
 
 import { base44 } from '@/api/base44Client';
 import { searchAllPapers, searchOpenAlexAuthors, searchOpenAlexInstitutions } from './eyra-api';
+import { searchFundingOpportunities } from './funding-api';
 
 // ── Simple session cache ─────────────────────────────────────
 const CACHE_TTL = 15 * 60 * 1000; // 15 min
@@ -26,7 +27,7 @@ export async function runEyraDiscovery(query, onProgress) {
     return cached;
   }
 
-  const partial = { query, papers: [], researchers: [], institutions: [], status: 'loading' };
+  const partial = { query, papers: [], researchers: [], institutions: [], funding_opportunities: [], status: 'loading' };
   onProgress && onProgress({ ...partial });
 
   // Fire all real-data fetches in parallel, each updating as it resolves
@@ -51,17 +52,65 @@ export async function runEyraDiscovery(query, onProgress) {
     return institutions || [];
   }).catch(() => { partial.institutionsLoaded = true; onProgress && onProgress({ ...partial }); return []; });
 
+  const fundingPromise = searchFundingOpportunities(query, 5).then((fundingResult) => {
+    partial.funding_opportunities = fundingResult.items || [];
+    partial.fundingLoaded = true;
+    onProgress && onProgress({ ...partial });
+    return fundingResult;
+  }).catch((error) => {
+    partial.fundingLoaded = true;
+    partial.fundingError = error instanceof Error ? error.message : 'Funding source unavailable';
+    onProgress && onProgress({ ...partial });
+    return { items: [], error: partial.fundingError };
+  });
+
   // Wait for all real data
-  const [papers, researchers, institutions] = await Promise.all([papersPromise, researchersPromise, institutionsPromise]);
+  const [papers, researchers, institutions, fundingResult] = await Promise.all([
+    papersPromise,
+    researchersPromise,
+    institutionsPromise,
+    fundingPromise,
+  ]);
 
   // Signal AI analysis starting
   partial.status = 'analyzing';
   onProgress && onProgress({ ...partial });
 
-  // AI analyzes the real data
-  const aiAnalysis = await generateEvidenceBasedAnalysis(query, papers, researchers, institutions);
+  // AI analyzes the real data. A model failure must not hide retrieved evidence.
+  let aiAnalysis = {};
+  let aiError = '';
+  try {
+    aiAnalysis = await generateEvidenceBasedAnalysis(query, papers, researchers, institutions);
+  } catch (error) {
+    aiError = error instanceof Error ? error.message : 'EYRA analysis unavailable';
+  }
 
-  const result = { query, papers, researchers, institutions, ...aiAnalysis, status: 'complete' };
+  const verifiedFunding = (fundingResult.items || []).map((item) => ({
+    id: item.id,
+    title: item.title,
+    type: item.type,
+    description: item.description || `Official opportunity from ${item.agency || item.source}.`,
+    match_reason: `Retrieved for the query "${query}". Open the source to verify eligibility.`,
+    source: item.source,
+    url: item.source_url,
+    deadline: item.deadline,
+    amount: item.amount,
+    agency: item.agency,
+    source_id: item.source_id,
+  }));
+
+  const result = {
+    query,
+    papers,
+    researchers,
+    institutions,
+    ...aiAnalysis,
+    funding_opportunities: verifiedFunding,
+    funding_error: fundingResult.error || '',
+    ai_status: aiError ? 'failed' : 'complete',
+    ai_error: aiError,
+    status: 'complete',
+  };
   setCache(cacheKey, result);
   onProgress && onProgress({ ...result });
   return result;
@@ -87,7 +136,7 @@ CRITICAL RULES:
 - Only reference researchers, papers, and institutions from the data below. Never invent names.
 - Every insight must cite specific evidence from the data.
 - If data is insufficient, state confidence as LOW.
-- Funding opportunities must be REAL named programs (Horizon Europe, ERC, NSF, NIH, Wellcome Trust, DARPA, etc.)
+- Do not generate funding opportunities. Funding records are retrieved separately from an official source.
 
 USER QUERY: "${query}"
 
@@ -108,7 +157,6 @@ Return JSON with:
 - key_findings: array of 4 objects { finding, evidence (cite real paper/researcher), confidence ("HIGH"/"MEDIUM"/"LOW") }
 - research_gaps: array of 3 strings (gaps from what papers DON'T cover)
 - trends: array of 4 objects { title, description, evidence (real paper), year_range }
-- funding_opportunities: array of 5 objects { title (real program), type, description, match_reason, source, url }
 - suggested_roles: array of 4 objects { role, expertise, why_needed, evidence }
 - roadmap: array of 5 objects { timeframe, title, tasks (array of 3) }
 - keywords: array of 8 strings (from real paper titles/abstracts)
@@ -121,7 +169,6 @@ Return JSON with:
         key_findings: { type: 'array', items: { type: 'object', properties: { finding: { type: 'string' }, evidence: { type: 'string' }, confidence: { type: 'string' } } } },
         research_gaps: { type: 'array', items: { type: 'string' } },
         trends: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, description: { type: 'string' }, evidence: { type: 'string' }, year_range: { type: 'string' } } } },
-        funding_opportunities: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, type: { type: 'string' }, description: { type: 'string' }, match_reason: { type: 'string' }, source: { type: 'string' }, url: { type: 'string' } } } },
         suggested_roles: { type: 'array', items: { type: 'object', properties: { role: { type: 'string' }, expertise: { type: 'string' }, why_needed: { type: 'string' }, evidence: { type: 'string' } } } },
         roadmap: { type: 'array', items: { type: 'object', properties: { timeframe: { type: 'string' }, title: { type: 'string' }, tasks: { type: 'array', items: { type: 'string' } } } } },
         keywords: { type: 'array', items: { type: 'string' } },
