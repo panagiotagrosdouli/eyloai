@@ -7,7 +7,7 @@ import {
   Sun, Moon, Monitor, Volume2, Languages, Sliders
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { applyTheme } from '@/lib/theme';
+import { loadPreferences, savePreferences } from '@/lib/preferences';
 
 const SECTIONS = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -66,39 +66,6 @@ const ACCESSIBILITY_MODES = [
   { id: 'reading', label: 'Reading Mode', desc: 'Optimized for long reading sessions' },
 ];
 
-const PLANS = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: '€0',
-    features: ['Basic discovery', '3 projects', 'Limited AI calls', 'Knowledge Library'],
-    color: 'border-border',
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: '€29/mo',
-    badge: 'Most Popular',
-    features: ['Unlimited discoveries', 'Unlimited projects', 'Advanced AI', 'Project Twin', 'Voice EYRA', 'Advanced reports', 'Opportunity Radar'],
-    color: 'border-primary',
-    highlight: true,
-  },
-  {
-    id: 'founder',
-    name: 'Founder',
-    price: '€79/mo',
-    features: ['Everything in Pro', 'Startup Builder', 'Grant Builder', 'Dream Team Builder', 'Future Simulator', 'Investor Intelligence', 'Priority AI'],
-    color: 'border-accent',
-  },
-  {
-    id: 'institution',
-    name: 'Institution',
-    price: 'Custom',
-    features: ['Multi-user workspaces', 'Admin controls', 'Analytics dashboard', 'Custom integrations', 'Dedicated support', 'SSO / SAML'],
-    color: 'border-amber-500/50',
-  },
-];
-
 function SectionHeader({ title, desc }) {
   return (
     <div className="mb-6">
@@ -122,37 +89,40 @@ function OptionCard({ selected, onClick, children, className = '' }) {
 
 export default function Settings() {
   const [active, setActive] = useState('profile');
-  const [prefs, setPrefs] = useState({
-    language: 'en',
-    theme: 'dark',
-    accent: 'blue',
-    voice_style: 'professional',
-    accessibility: [],
-    ai_response_style: 'balanced',
-    notifications_email: true,
-    notifications_browser: true,
-    data_personalization: true,
-  });
+  const [prefs, setPrefs] = useState(loadPreferences);
   const [user, setUser] = useState(null);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    base44.auth.me().then(me => {
-      setUser(me);
-      const stored = localStorage.getItem('eylo_prefs');
-      if (stored) try { setPrefs(p => ({ ...p, ...JSON.parse(stored) })); } catch {}
-    });
+    base44.auth.me().then(setUser).catch(() => setUser(null));
   }, []);
 
-  const savePrefs = async (newPrefs) => {
-    const updated = { ...prefs, ...newPrefs };
-    setPrefs(updated);
-    localStorage.setItem('eylo_prefs', JSON.stringify(updated));
-    // Apply theme immediately if it changed
-    if (newPrefs.theme) applyTheme(newPrefs.theme);
+  const savePrefs = (newPrefs) => {
     setSaving(true);
-    setTimeout(() => { setSaving(false); toast({ title: 'Settings saved' }); }, 400);
+    const updated = savePreferences(newPrefs);
+    setPrefs(updated);
+    setSaving(false);
+    toast({ title: 'Settings applied', description: 'Saved on this device and active now.' });
+  };
+
+  const enableBrowserNotifications = async () => {
+    if (!('Notification' in window)) {
+      toast({ title: 'Browser notifications are not supported here.', variant: 'destructive' });
+      return;
+    }
+    if (prefs.notifications_browser) {
+      savePrefs({ notifications_browser: false });
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      savePrefs({ notifications_browser: true });
+      new Notification('EYLO alerts enabled', { body: 'High-priority watchlist findings can now appear on this device.' });
+    } else {
+      savePrefs({ notifications_browser: false });
+      toast({ title: 'Permission was not granted', description: 'You can still see every alert inside EYLO.' });
+    }
   };
 
   const toggleAccessibility = (mode) => {
@@ -185,7 +155,7 @@ export default function Settings() {
       case 'language':
         return (
           <div>
-            <SectionHeader title="Language" desc="EYRA responds in your preferred language. All content adapts automatically." />
+            <SectionHeader title="Language" desc="EYRA replies, speech recognition, and voice playback use this language. Interface translation is not claimed here." />
             <div className="grid sm:grid-cols-2 gap-2">
               {LANGUAGES.map(lang => (
                 <button
@@ -303,25 +273,26 @@ export default function Settings() {
       case 'notifications':
         return (
           <div>
-            <SectionHeader title="Notifications" desc="Control when and how EYRA updates you." />
+            <SectionHeader title="Notifications" desc="Control verified in-app and browser alerts from your watchlists." />
             <div className="space-y-3">
-              {[
-                { key: 'notifications_email', label: 'Email Notifications', desc: 'Weekly digest of new opportunities and insights' },
-                { key: 'notifications_browser', label: 'Browser Notifications', desc: 'Real-time alerts for urgent opportunities' },
-              ].map(n => (
-                <div key={n.key} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{n.label}</p>
-                    <p className="text-xs text-muted-foreground">{n.desc}</p>
-                  </div>
-                  <button
-                    onClick={() => savePrefs({ [n.key]: !prefs[n.key] })}
-                    className={`w-10 h-6 rounded-full transition-all flex-shrink-0 ${prefs[n.key] ? 'bg-primary' : 'bg-border'}`}
-                  >
-                    <div className={`w-4 h-4 rounded-full bg-white mx-1 transition-transform ${prefs[n.key] ? 'translate-x-4' : 'translate-x-0'}`} />
-                  </button>
+              <div className="flex items-center justify-between gap-4 p-4 rounded-xl border border-border bg-card">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Browser Notifications</p>
+                  <p className="text-xs text-muted-foreground">Show high-priority findings while EYLO is open. Your browser controls permission.</p>
                 </div>
-              ))}
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={prefs.notifications_browser}
+                  onClick={enableBrowserNotifications}
+                  className={`w-10 h-6 rounded-full transition-all flex-shrink-0 ${prefs.notifications_browser ? 'bg-primary' : 'bg-border'}`}
+                >
+                  <span className={`block w-4 h-4 rounded-full bg-white mx-1 transition-transform ${prefs.notifications_browser ? 'translate-x-4' : 'translate-x-0'}`} />
+                </button>
+              </div>
+              <div className="rounded-xl border border-border bg-secondary/20 p-4 text-xs leading-5 text-muted-foreground">
+                All monitoring results remain available in the EYLO Notifications page. Email digests are not advertised because no email delivery provider is connected.
+              </div>
             </div>
           </div>
         );
@@ -357,8 +328,7 @@ export default function Settings() {
               <div className="p-4 rounded-xl border border-border bg-card">
                 <p className="text-sm font-semibold text-foreground mb-1">Your Data</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  EYLO stores only what you save: projects, papers, researchers, opportunities, and ideas. 
-                  We never share your data with third parties. EYRA uses your activity to personalize recommendations — this stays within your account.
+                  EYLO stores the workspace records you save. When you ask EYRA or run discovery, the request may be processed by configured AI, database, and public research-source providers. Personalization can be disabled at any time.
                 </p>
               </div>
               <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card">
@@ -380,44 +350,21 @@ export default function Settings() {
       case 'subscription':
         return (
           <div>
-            <SectionHeader title="Subscription" desc="Choose the plan that fits your research ambitions." />
-            <div className="grid sm:grid-cols-2 gap-4">
-              {PLANS.map(plan => (
-                <div key={plan.id} className={`relative p-5 rounded-2xl border ${plan.color} ${plan.highlight ? 'bg-primary/5' : 'bg-card'}`}>
-                  {plan.badge && (
-                    <span className="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary text-white">
-                      {plan.badge}
-                    </span>
-                  )}
-                  <div className="flex items-baseline justify-between mb-3">
-                    <h3 className="font-bold text-base text-foreground">{plan.name}</h3>
-                    <span className="font-bold text-lg text-primary">{plan.price}</span>
-                  </div>
-                  <ul className="space-y-1.5 mb-4">
-                    {plan.features.map(f => (
-                      <li key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Check size={11} className="text-green-400 flex-shrink-0" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  {plan.id === 'institution' ? (
-                    <a
-                      href="mailto:hello@eylo.io"
-                      className="block w-full py-2 rounded-xl text-xs font-semibold text-center transition-colors border border-border hover:bg-secondary text-foreground"
-                    >
-                      Contact Us
-                    </a>
-                  ) : (
-                    <Link
-                      to="/pricing"
-                      className={`block w-full py-2 rounded-xl text-xs font-semibold text-center transition-colors ${plan.highlight ? 'eyra-gradient text-white' : 'border border-border hover:bg-secondary text-foreground'}`}
-                    >
-                      {plan.id === 'free' ? 'Current Plan' : 'See Plans →'}
-                    </Link>
-                  )}
-                </div>
-              ))}
+            <SectionHeader title="Subscription" desc="One source of truth for plans, checkout readiness, limits, and entitlements." />
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <CreditCard size={19} />
+              </div>
+              <h3 className="mt-4 font-heading text-lg font-bold">Manage your plan</h3>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+                Pricing and availability are loaded from the authenticated billing service. If Stripe is not configured, premium tools remain clearly marked as early access and checkout stays disabled.
+              </p>
+              <Link to="/pricing" className="mt-5 inline-flex items-center gap-2 rounded-xl eyra-gradient px-5 py-2.5 text-sm font-semibold text-white">
+                Open plans and billing <ChevronRight size={14} />
+              </Link>
+              <a href="mailto:eylo@research.app?subject=EYLO%20Institution%20plan" className="ml-3 mt-5 inline-flex items-center gap-2 rounded-xl border border-border px-5 py-2.5 text-sm font-semibold text-foreground">
+                Institution access
+              </a>
             </div>
           </div>
         );
