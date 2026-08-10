@@ -424,9 +424,9 @@ Be specific, actionable, and research-oriented. Format clearly with bullet point
           <div className="border-t border-border/60 pt-6">
             <div className="flex items-center gap-2 mb-1">
               <EyraSectionLabel label="EYRA Project Twin" />
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 font-medium">Live Monitor</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 font-medium">On-demand scan</span>
             </div>
-            <p className="text-xs text-muted-foreground mb-4">Monitoring continuously · Discovered by EYRA</p>
+            <p className="text-xs text-muted-foreground mb-4">Checks connected sources when you run a scan</p>
             <EyraProjectTwin project={project} />
           </div>
         </motion.div>
