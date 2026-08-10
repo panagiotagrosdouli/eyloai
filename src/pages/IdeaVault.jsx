@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { searchAllPapers } from '@/lib/eyra-api';
+import { searchFundingOpportunities } from '@/lib/funding-api';
+import { monitoringStore } from '@/lib/monitoring-service';
 import { Lightbulb, Plus, X, Sparkles, Loader2, Trash2, ArrowRight, Tag } from 'lucide-react';
 import { EyraSectionLabel, EyraPoweredBy } from '@/components/eyra/EyraBadge';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,6 +39,9 @@ export default function IdeaVault() {
   const createIdea = async () => {
     if (!form.title.trim()) return;
     await base44.entities.Idea.create({ ...form, status: 'active' });
+    const watchQuery = [form.title, form.description, form.tags].filter(Boolean).join(' ').trim();
+    monitoringStore.addWatchlist({ query: watchQuery, type: 'topic' });
+    monitoringStore.addWatchlist({ query: watchQuery, type: 'funding program' });
     setForm({ title: '', description: '', category: 'research', tags: '' });
     setShowNew(false);
     loadIdeas();
@@ -50,40 +56,66 @@ export default function IdeaVault() {
 
   const analyzeIdea = async (idea) => {
     setAnalyzing(idea.id);
-    let user;
-    try { user = await base44.auth.me(); } catch { user = {}; }
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are EYRA, an evidence-based research AI. Analyze this idea and provide strategic intelligence.
+    try {
+      let user;
+      try { user = await base44.auth.me(); } catch { user = {}; }
+
+      const evidenceQuery = [idea.title, idea.description, idea.tags].filter(Boolean).join(' ');
+      const [papers, fundingResult] = await Promise.all([
+        searchAllPapers(evidenceQuery),
+        searchFundingOpportunities(evidenceQuery, 5).catch(() => ({ items: [] })),
+      ]);
+
+      const paperContext = papers.slice(0, 6).map((paper, index) =>
+        `[P${index + 1}] "${paper.title}" — ${paper.authors || 'Unknown'} (${paper.year || 'n/a'}) — ${paper.url}`
+      ).join('\n');
+      const fundingContext = fundingResult.items.slice(0, 5).map((item, index) =>
+        `[F${index + 1}] "${item.title}" — ${item.agency} — deadline ${item.deadline || 'not supplied'} — ${item.source_url}`
+      ).join('\n');
+
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `You are EYRA, an evidence-based research AI. Analyze this idea using the retrieved records below.
 
 IDEA: "${idea.title}"
 DESCRIPTION: "${idea.description || 'Not provided'}"
 CATEGORY: ${idea.category}
 USER CONTEXT: Research interests: ${user.research_interests || 'unspecified'}, Goal: ${user.career_goal || 'unspecified'}
 
-Provide a concise markdown analysis (max 200 words):
+VERIFIED PAPERS:
+${paperContext || 'No matching scholarly records were retrieved.'}
 
-## Opportunity Assessment
-Is this a strong idea? What's the potential?
+VERIFIED FUNDING RECORDS:
+${fundingContext || 'No matching official funding records were retrieved.'}
+
+Provide a concise markdown analysis:
+
+## Evidence Assessment
+Assess the idea using only [P] records. Separate evidence from inference.
 
 ## Key Actions
-3 specific steps to develop this idea further.
+Three specific next steps.
 
-## Real Funding to Explore
-1-2 real funding programs that could support this (Horizon Europe, ERC, NSF, etc.)
+## Funding Records
+Reference only supplied [F] records. If none were supplied, say that no official match was retrieved.
 
 ## Risks & Uncertainties
-What are the main challenges?
+Main scientific, execution, and evidence gaps.
 
-RULES: Only reference real programs and verifiable information. State any uncertainty clearly.`,
-    });
-    try {
+Never invent papers, programs, deadlines, statistics, or URLs.`,
+      });
+
       await base44.entities.Idea.update(idea.id, { eyra_notes: result });
       setIdeas(prev => prev.map(i => i.id === idea.id ? { ...i, eyra_notes: result } : i));
-      toast({ title: 'EYRA analysis complete' });
-    } catch {
-      toast({ title: 'Could not save analysis', variant: 'destructive' });
+      toast({ title: 'EYRA evidence analysis complete' });
+    } catch (error) {
+      toast({
+        title: 'EYRA analysis did not complete',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setAnalyzing(null);
     }
-    setAnalyzing(null);
   };
 
   return (
@@ -96,8 +128,8 @@ RULES: Only reference real programs and verifiable information. State any uncert
             <Lightbulb size={18} className="text-primary" />
             <h1 className="font-heading font-bold text-2xl text-foreground">Idea Vault</h1>
           </div>
-          <p className="text-muted-foreground text-sm">Store ideas. EYRA monitors them and alerts you when new opportunities match.</p>
-          <EyraPoweredBy label="Monitored by EYRA" className="justify-start mt-1" />
+          <p className="text-muted-foreground text-sm">Store ideas, analyze real evidence, and create on-demand research and funding watchlists.</p>
+          <EyraPoweredBy label="Watchlists powered by EYRA" className="justify-start mt-1" />
         </div>
         <button
           onClick={() => setShowNew(true)}
@@ -136,7 +168,7 @@ RULES: Only reference real programs and verifiable information. State any uncert
               <textarea
                 value={form.description}
                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                placeholder="Describe it briefly. EYRA will monitor opportunities matching this idea."
+                placeholder="Describe it briefly. EYLO will create research and official-funding watchlists for this idea."
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl border border-border bg-secondary/60 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 resize-none"
               />
@@ -181,7 +213,7 @@ RULES: Only reference real programs and verifiable information. State any uncert
           </div>
           <p className="font-semibold text-sm text-foreground mb-2">Your Idea Vault is empty</p>
           <p className="text-xs text-muted-foreground max-w-xs leading-relaxed mb-4">
-            Capture research ideas, startup concepts, or collaboration opportunities. EYRA will monitor new papers, funding, and researchers that match each idea.
+            Capture an idea and EYLO will create research and official-funding watchlists. Run a watchlist check whenever you want fresh records.
           </p>
           <button onClick={() => setShowNew(true)} className="px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold">
             Add your first idea
