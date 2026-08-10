@@ -44,13 +44,14 @@ export default function GuidedSearch({
   defaultLevel = '',
   compact = false,
   autoRefine = true,
+  initialRefine = false,
 }) {
   const [topic, setTopic] = useState(initialTopic);
   const [draftTopic, setDraftTopic] = useState(initialTopic);
   const [level, setLevel] = useState(defaultLevel);
   const [goal, setGoal] = useState('');
   const [recency, setRecency] = useState('latest');
-  const [refining, setRefining] = useState(false);
+  const [refining, setRefining] = useState(initialRefine && Boolean(initialTopic));
 
   const isBroad = useMemo(() => draftTopic.trim().split(/\s+/).filter(Boolean).length <= 3, [draftTopic]);
 
