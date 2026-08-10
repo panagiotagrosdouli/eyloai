@@ -58,8 +58,8 @@ export default function ForYou() {
           <div className="w-12 h-12 rounded-2xl eyra-gradient flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
             <Sparkles size={20} className="text-white" />
           </div>
-          <p className="text-sm font-medium">EYRA is scanning your field...</p>
-          <p className="text-xs text-muted-foreground mt-1">Fetching real data from OpenAlex · arXiv · Europe PMC</p>
+          <p className="text-sm font-medium">Loading your EYRA workspace...</p>
+          <p className="text-xs text-muted-foreground mt-1">Preparing saved projects, searches and source checks</p>
         </div>
       </div>
     );
@@ -107,7 +107,7 @@ export default function ForYou() {
               </div>
               <h3 className="font-semibold text-sm mb-2">EYRA needs a project to monitor</h3>
               <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed mb-4">
-                Create a project and When you open this workspace, EYRA checks OpenAlex, arXiv, and Europe PMC for relevant papers and researchers. Funding watchlists query official grant records.
+                Create a project. When you open this workspace, EYRA checks OpenAlex, arXiv, and Europe PMC for relevant papers and researchers. Funding watchlists query official grant records.
               </p>
               <div className="flex items-center justify-center gap-3 flex-wrap">
                 <Link to="/projects" className="px-4 py-2 rounded-xl eyra-gradient text-white text-xs font-semibold">Create a Project</Link>
@@ -166,13 +166,13 @@ export default function ForYou() {
 
           {/* Data sources */}
           <div className="p-4 rounded-xl border border-border bg-card">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-3">Live Data Sources</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-3">Connected Data Sources</p>
             <div className="space-y-2">
               {[
                 { name: 'OpenAlex', desc: 'Papers · Researchers · Institutions', active: true },
                 { name: 'arXiv', desc: 'Preprints · Latest research', active: true },
                 { name: 'Europe PMC', desc: 'Biomedical · Life sciences', active: true },
-                { name: 'Grants.gov', desc: 'Official grants · Deadlines', active: true' },
+                { name: 'Grants.gov', desc: 'Official grants · Deadlines', active: true },
                 { name: 'Crossref', desc: 'DOIs · Publication metadata', active: true },
               ].map(src => (
                 <div key={src.name} className="flex items-center gap-2">
