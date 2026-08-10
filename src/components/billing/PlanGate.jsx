@@ -13,6 +13,16 @@ export default function PlanGate({ minimum = 'pro', children }) {
 
   if (!status && !error) return <div className="grid min-h-[50vh] place-items-center"><Loader2 className="animate-spin text-primary" /></div>;
   if (error) return <div className="mx-auto max-w-lg px-4 py-20"><div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6 text-sm text-red-300">{error}</div></div>;
+  if (!status.billing_configured) {
+    return (
+      <>
+        <div className="mx-auto mt-4 max-w-6xl rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-2 text-center text-[10px] text-emerald-300">
+          Early-access entitlement: this premium tool remains open until Stripe billing is activated.
+        </div>
+        {children}
+      </>
+    );
+  }
   if (hasPlan(status.plan, minimum)) return children;
 
   return (
