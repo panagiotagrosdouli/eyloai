@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import { buildUserProfile } from '@/lib/second-brain';
 import {
   X, Mic, MicOff, Send, Sparkles, Loader2,
   Volume2, VolumeX, Target, FileText, Users,
   Award, Map, TrendingUp, AlertTriangle, Brain,
-  Rocket, BarChart3, BookOpen, Trash2
+  Rocket, BarChart3, BookOpen, Trash2, BookmarkPlus,
+  Check, Copy, Database
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -62,7 +64,7 @@ RESPONSE FORMAT (use markdown):
 
 const INITIAL_MESSAGE = {
   role: 'eyra',
-  content: "I'm online and ready. Tell me what you're working on — a research idea, project challenge, funding question, or startup goal — and I'll get to work.",
+  content: "I'm online and ready. I can work with your projects, saved evidence, researchers, opportunities, and ideas. Tell me what outcome you want next.",
   timestamp: Date.now(),
   mode: 'research',
 };
@@ -93,7 +95,7 @@ function TypingIndicator() {
   );
 }
 
-function Message({ msg, mode }) {
+function Message({ msg, onSave, onCopy, saved, copied, saving }) {
   const isEyra = msg.role === 'eyra';
   const modeColor = MODES.find(m => m.id === msg.mode)?.color || 'text-primary';
   return (
@@ -134,9 +136,34 @@ function Message({ msg, mode }) {
             <p>{msg.content}</p>
           )}
         </div>
-        <p className="text-[9px] text-muted-foreground mt-1 px-1">
-          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </p>
+        <div className="mt-1 flex items-center gap-1 px-1">
+          <p className="mr-auto text-[9px] text-muted-foreground">
+            {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </p>
+          {isEyra && (
+            <>
+              <button
+                type="button"
+                onClick={() => onCopy(msg)}
+                className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[9px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                aria-label="Copy EYRA response"
+              >
+                {copied ? <Check size={10} /> : <Copy size={10} />}
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+              <button
+                type="button"
+                onClick={() => onSave(msg)}
+                disabled={saved || saving}
+                className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[9px] text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary disabled:opacity-70"
+                aria-label="Save EYRA response to Idea Vault"
+              >
+                {saved ? <Check size={10} /> : <BookmarkPlus size={10} />}
+                {saved ? 'Saved' : saving ? 'Saving…' : 'Save insight'}
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </motion.div>
   );
@@ -150,6 +177,11 @@ export default function EyraCommandCenter({ open, onClose }) {
   const [listening, setListening] = useState(false);
   const [activeMode, setActiveMode] = useState('research');
   const [showModes, setShowModes] = useState(false);
+  const [workspaceContext, setWorkspaceContext] = useState('');
+  const [contextStatus, setContextStatus] = useState('idle');
+  const [savedMessageIds, setSavedMessageIds] = useState(() => new Set());
+  const [savingMessageId, setSavingMessageId] = useState(null);
+  const [copiedMessageId, setCopiedMessageId] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -157,6 +189,20 @@ export default function EyraCommandCenter({ open, onClose }) {
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 100);
   }, [open]);
+
+  useEffect(() => {
+    if (!open || contextStatus !== 'idle') return;
+    setContextStatus('loading');
+    buildUserProfile()
+      .then((profile) => {
+        setWorkspaceContext(profile.contextString.slice(0, 12_000));
+        setContextStatus('ready');
+      })
+      .catch(() => {
+        setWorkspaceContext('');
+        setContextStatus('unavailable');
+      });
+  }, [open, contextStatus]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -216,10 +262,13 @@ export default function EyraCommandCenter({ open, onClose }) {
 
 ${modePrompt}
 
+WORKSPACE CONTEXT:
+${workspaceContext || 'Workspace context is not available yet. Ask a focused question and state what information is missing.'}
+
 Conversation history:
 ${history}
 
-Respond as EYRA. Be strategic, precise, and actionable. Use markdown for structure.`,
+Respond as EYRA. Use the workspace context when it is relevant, distinguish saved user data from verified external evidence, and never claim to have checked a source that is not present above. Be strategic, precise, and actionable. Use markdown for structure.`,
       });
 
       const eyraMsg = { role: 'eyra', content: response, timestamp: Date.now(), mode: activeMode };
@@ -235,6 +284,31 @@ Respond as EYRA. Be strategic, precise, and actionable. Use markdown for structu
     } finally {
       setLoading(false);
     }
+  };
+
+  const saveInsight = async (msg) => {
+    if (!msg?.content || savedMessageIds.has(msg.timestamp)) return;
+    setSavingMessageId(msg.timestamp);
+    const plainText = msg.content.replace(/[#*\x60]/g, '').replace(/\s+/g, ' ').trim();
+    try {
+      await base44.entities.Idea.create({
+        title: `EYRA · ${plainText.slice(0, 72) || 'Saved insight'}`,
+        description: msg.content,
+        status: 'saved',
+        source: 'eyra',
+        category: msg.mode || activeMode,
+      });
+      setSavedMessageIds((previous) => new Set([...previous, msg.timestamp]));
+    } finally {
+      setSavingMessageId(null);
+    }
+  };
+
+  const copyInsight = async (msg) => {
+    if (!msg?.content) return;
+    await navigator.clipboard.writeText(msg.content);
+    setCopiedMessageId(msg.timestamp);
+    window.setTimeout(() => setCopiedMessageId(null), 1600);
   };
 
   const clearConversation = () => {
@@ -267,7 +341,7 @@ Respond as EYRA. Be strategic, precise, and actionable. Use markdown for structu
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-          className="eyra-neural-shell relative w-full sm:w-[520px] h-[90vh] sm:h-[740px] max-h-screen border border-cyan-300/15 rounded-t-3xl sm:rounded-[1.75rem] flex flex-col overflow-hidden"
+          className="eyra-neural-shell relative h-[92vh] max-h-screen w-full overflow-hidden rounded-t-3xl border border-cyan-300/15 sm:h-[780px] sm:w-[720px] sm:max-w-[calc(100vw-2rem)] sm:rounded-[1.75rem] flex flex-col"
           style={{ boxShadow: '0 0 80px -15px hsla(210,100%,55%,0.35), 0 0 0 1px hsl(var(--border))' }}
         >
           {/* Header */}
@@ -281,7 +355,10 @@ Respond as EYRA. Be strategic, precise, and actionable. Use markdown for structu
                 <p className="text-sm font-bold tracking-[0.16em] text-white">EYRA</p>
                 <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2 py-0.5 font-mono text-[8px] uppercase tracking-wider text-cyan-200">OpenAI Intelligence</span>
               </div>
-              <p className="mt-0.5 text-[10px] text-slate-400">Research co-founder · Evidence-aware · Live reasoning</p>
+              <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
+                <Database size={10} className={contextStatus === 'ready' ? 'text-emerald-400' : 'text-slate-500'} />
+                <span>{contextStatus === 'ready' ? 'Workspace context active' : contextStatus === 'loading' ? 'Connecting workspace…' : 'Evidence-aware research co-founder'}</span>
+              </div>
             </div>
             <button onClick={() => setVoiceEnabled(!voiceEnabled)}
               type="button"
@@ -321,7 +398,7 @@ Respond as EYRA. Be strategic, precise, and actionable. Use markdown for structu
           {messages.length <= 1 && (
             <div className="relative z-10 flex-shrink-0 px-3 pt-3 pb-2">
               <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2 px-1">Quick Start</p>
-              <div className="grid grid-cols-2 gap-1.5">
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
                 {QUICK_COMMANDS.map((cmd) => {
                   const Icon = cmd.icon;
                   return (
@@ -338,7 +415,17 @@ Respond as EYRA. Be strategic, precise, and actionable. Use markdown for structu
 
           {/* Messages */}
           <div className="relative z-10 flex-1 overflow-y-auto px-4 py-3 space-y-4">
-            {messages.map((msg, i) => <Message key={i} msg={msg} />)}
+            {messages.map((msg) => (
+              <Message
+                key={msg.timestamp}
+                msg={msg}
+                onSave={saveInsight}
+                onCopy={copyInsight}
+                saved={savedMessageIds.has(msg.timestamp)}
+                saving={savingMessageId === msg.timestamp}
+                copied={copiedMessageId === msg.timestamp}
+              />
+            ))}
             {loading && <TypingIndicator />}
             <div ref={messagesEndRef} />
           </div>
