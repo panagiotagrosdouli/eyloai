@@ -306,6 +306,15 @@ function matchesLeadConcept(paper, query) {
   return termMatches(searchable, leadTerm);
 }
 
+function negatesLeadConcept(paper, query) {
+  const [leadTerm] = queryTerms(query);
+  if (!leadTerm) return false;
+  const searchable = `${paper.title || ''} ${paper.summary || ''}`.toLowerCase();
+  const root = queryRoot(leadTerm);
+  return [`without ${leadTerm}`, `without ${root}`, `non-${leadTerm}`, `non ${leadTerm}`]
+    .some(pattern => searchable.includes(pattern));
+}
+
 function discoveryScore(paper, index, profile) {
   const year = Number(paper.year) || 0;
   const age = year ? Math.max(0, new Date().getFullYear() - year) : 30;
@@ -402,10 +411,11 @@ export function rankPaperRecords(records, query, options = {}) {
     ...paper,
     query_coverage: Number(queryCoverage(paper, profile.query).toFixed(2)),
     lead_query_match: matchesLeadConcept(paper, profile.query),
+    lead_query_negated: negatesLeadConcept(paper, profile.query),
     discovery_score: Math.round(discoveryScore(paper, index, profile)),
     discovery_category: categorizePaper(paper, profile),
   }))
-    .filter(paper => paper.query_coverage >= minimumCoverage && paper.lead_query_match)
+    .filter(paper => paper.query_coverage >= minimumCoverage && paper.lead_query_match && !paper.lead_query_negated)
     .sort((a, b) => b.discovery_score - a.discovery_score);
 
   const selected = diversifyPapers(ranked, profile.limit);
