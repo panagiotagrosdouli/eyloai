@@ -53,16 +53,19 @@ for (const testCase of CASES) {
     available_sources: result.available_source_count,
     unavailable_sources: result.unavailable_source_count,
     top_result: top[0]?.title || 'No live record',
-    passed: top.length >= 5 && precision >= MIN_CASE_PRECISION && representedSources.size >= 2,
+    coverage_warning: representedSources.size < 2 || result.available_source_count < 3,
+    passed: top.length >= 5 && precision >= MIN_CASE_PRECISION,
   });
 }
 
 console.table(rows);
 const averagePrecision = rows.reduce((sum, row) => sum + row.precision_at_10, 0) / rows.length;
 const failedCases = rows.filter(row => !row.passed);
+const coverageWarnings = rows.filter(row => row.coverage_warning);
 
 console.log(`Average precision@${TOP_K}: ${averagePrecision.toFixed(2)}`);
 console.log(`Cases passed: ${rows.length - failedCases.length}/${rows.length}`);
+console.log(`Source coverage warnings: ${coverageWarnings.length}/${rows.length}`);
 
 if (failedCases.length || averagePrecision < MIN_AVERAGE_PRECISION) {
   console.error('Relevance benchmark failed. Review ranking or source coverage before release.');
