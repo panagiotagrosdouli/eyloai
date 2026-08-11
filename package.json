@@ -12,7 +12,8 @@
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
     "normalize:base44": "node scripts/normalize-base44-paths.mjs",
-    "benchmark:relevance": "node scripts/benchmark-relevance.mjs"
+    "benchmark:relevance": "node scripts/benchmark-relevance.mjs",
+    "benchmark:relevance:live": "node scripts/benchmark-live-retrieval.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
