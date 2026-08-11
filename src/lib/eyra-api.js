@@ -253,14 +253,29 @@ function normalizedTitle(title) {
   return String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 100);
 }
 
+const QUERY_STOP_WORDS = new Set([
+  'and', 'for', 'from', 'into', 'the', 'this', 'that', 'using', 'with', 'aware',
+]);
+
+function queryRoot(term) {
+  if (term.endsWith('ics') && term.length > 6) return term.slice(0, -3);
+  if (term.endsWith('ing') && term.length > 6) return term.slice(0, -3);
+  if (term.endsWith('ed') && term.length > 5) return term.slice(0, -2);
+  if (term.endsWith('es') && term.length > 5) return term.slice(0, -2);
+  if (term.endsWith('s') && term.length > 4) return term.slice(0, -1);
+  return term;
+}
+
 function queryCoverage(paper, query) {
-  const terms = [...new Set(normalizedTitle(query).split(' ').filter(term => term.length > 2))];
+  const terms = [...new Set(
+    normalizedTitle(query).split(' ')
+      .filter(term => term.length > 2 && !QUERY_STOP_WORDS.has(term))
+  )];
   if (!terms.length) return 0.5;
   const searchable = `${paper.title || ''} ${paper.summary || ''}`.toLowerCase();
-  const matches = terms.filter(term => {
-    const root = term.length > 5 ? term.slice(0, -2) : term;
-    return searchable.includes(term) || searchable.includes(root);
-  }).length;
+  const matches = terms.filter(term =>
+    searchable.includes(term) || searchable.includes(queryRoot(term))
+  ).length;
   return matches / terms.length;
 }
 
@@ -276,13 +291,17 @@ function discoveryScore(paper, index, profile) {
   const ageScore = Math.max(0, 12 - age) / 12;
   const sourceRank = Math.max(0, 1 - (Number(paper._source_rank ?? index) / 12));
   const providerRelevance = Math.min(1, Math.max(0, Number(paper.relevance_score) || 0));
-  return queryCoverage(paper, profile.query) * 55
-    + providerRelevance * 30
-    + sourceRank * 20
+  const coverage = queryCoverage(paper, profile.query);
+  const lowCoveragePenalty = coverage < 0.34 ? 55 : 0;
+  const adjustedCitationWeight = profile.recency === 'foundational' ? citationWeight : Math.min(citationWeight, 6);
+  return coverage * 150
+    + providerRelevance * 12
+    + sourceRank * 16
     + ageScore * recencyWeight
-    + citations * citationWeight
+    + citations * adjustedCitationWeight
     + surveyBoost
-    + (paper.open_access ? 4 : 0);
+    + (paper.open_access ? 4 : 0)
+    - lowCoveragePenalty;
 }
 
 function categorizePaper(paper, profile) {
