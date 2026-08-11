@@ -8,6 +8,7 @@ import {
   getUsableSession,
   invalidateAuthentication,
 } from '@/lib/supabaseClient';
+import { trackEyraActionCompleted } from '@/lib/product-analytics';
 
 export class EyraRequestError extends Error {
   constructor(message, status) {
@@ -84,5 +85,7 @@ async function requestOpenAiAnalysis(prompt, responseSchema) {
 }
 
 export async function invokeEyra({ prompt = '', response_json_schema: responseSchema } = {}) {
-  return requestOpenAiAnalysis(prompt, responseSchema);
+  const result = await requestOpenAiAnalysis(prompt, responseSchema);
+  trackEyraActionCompleted();
+  return result;
 }
