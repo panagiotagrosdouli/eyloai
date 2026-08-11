@@ -266,17 +266,33 @@ function queryRoot(term) {
   return term;
 }
 
-function queryCoverage(paper, query) {
-  const terms = [...new Set(
+function queryTerms(query) {
+  return [...new Set(
     normalizedTitle(query).split(' ')
       .filter(term => (term.length > 2 || term === 'ai') && !QUERY_STOP_WORDS.has(term))
   )];
+}
+
+function termMatches(searchable, term) {
+  if (term === 'ai') {
+    return /\bai\b/i.test(searchable) || searchable.includes('artificial intelligence');
+  }
+  return searchable.includes(term) || searchable.includes(queryRoot(term));
+}
+
+function queryCoverage(paper, query) {
+  const terms = queryTerms(query);
   if (!terms.length) return 0.5;
   const searchable = `${paper.title || ''} ${paper.summary || ''}`.toLowerCase();
-  const matches = terms.filter(term =>
-    searchable.includes(term) || searchable.includes(queryRoot(term))
-  ).length;
+  const matches = terms.filter(term => termMatches(searchable, term)).length;
   return matches / terms.length;
+}
+
+function matchesLeadConcept(paper, query) {
+  const [leadTerm] = queryTerms(query);
+  if (!leadTerm) return true;
+  const searchable = `${paper.title || ''} ${paper.summary || ''}`.toLowerCase();
+  return termMatches(searchable, leadTerm);
 }
 
 function discoveryScore(paper, index, profile) {
@@ -392,10 +408,11 @@ export async function searchAllPapersWithStatus(query, options = {}) {
   const ranked = all.map((paper, index) => ({
     ...paper,
     query_coverage: Number(queryCoverage(paper, normalizedProfile.query).toFixed(2)),
+    lead_query_match: matchesLeadConcept(paper, normalizedProfile.query),
     discovery_score: Math.round(discoveryScore(paper, index, normalizedProfile)),
     discovery_category: categorizePaper(paper, normalizedProfile),
   }))
-    .filter(paper => paper.query_coverage >= 0.5)
+    .filter(paper => paper.query_coverage >= 0.5 && paper.lead_query_match)
     .sort((a, b) => b.discovery_score - a.discovery_score);
 
   const selected = diversifyPapers(ranked, normalizedProfile.limit);
