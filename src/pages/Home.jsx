@@ -30,17 +30,30 @@ export default function Home() {
         if (partial.status === 'complete') {
           setResults(partial);
           setState('results');
+          const profile = partial.discovery_profile || {};
           base44.entities.SearchHistory.create({
             query: topic,
+            level: profile.level || 'researcher',
+            goal: profile.goal || 'review',
+            recency: profile.recency || 'balanced',
+            source_indexes: partial.source_indexes || [],
+            retrieval_status: partial.retrieval_status || 'complete',
             results_summary: `${partial.papers?.length || 0} papers, ${partial.researchers?.length || 0} researchers`,
+            saved: false,
+          }).then((entry) => {
+            if (entry?.id) {
+              setResults(current => ({ ...(current || partial), search_history_id: entry.id }));
+            }
           }).catch(() => {});
+
         }
       });
-      // Fallback in case onProgress didn't fire complete
-      if (state !== 'results') {
-        setResults(finalResults);
-        setState('results');
-      }
+      // Keep any history id that completed during the final progress update.
+      setResults(current => ({
+        ...finalResults,
+        ...(current?.search_history_id ? { search_history_id: current.search_history_id } : {}),
+      }));
+      setState('results');
     } catch (err) {
       toast({ title: 'Something went wrong', description: 'Please try again.', variant: 'destructive' });
       setState('dashboard');
@@ -50,8 +63,14 @@ export default function Home() {
   useEffect(() => {
     const sharedQuery = searchParams.get('q')?.trim();
     if (!sharedQuery) return;
+    const sharedRequest = {
+      topic: sharedQuery,
+      level: searchParams.get('level') || 'researcher',
+      goal: searchParams.get('goal') || 'review',
+      recency: searchParams.get('recency') || 'balanced',
+    };
     setSearchParams({}, { replace: true });
-    handleSearch(sharedQuery);
+    handleSearch(sharedRequest);
   // This handoff runs once for each URL-provided query.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
