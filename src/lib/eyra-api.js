@@ -412,7 +412,7 @@ export async function searchAllPapersWithStatus(query, options = {}) {
     discovery_score: Math.round(discoveryScore(paper, index, normalizedProfile)),
     discovery_category: categorizePaper(paper, normalizedProfile),
   }))
-    .filter(paper => paper.query_coverage >= 0.5 && paper.lead_query_match)
+    .filter(paper => paper.query_coverage >= 0.67 && paper.lead_query_match)
     .sort((a, b) => b.discovery_score - a.discovery_score);
 
   const selected = diversifyPapers(ranked, normalizedProfile.limit);
