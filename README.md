@@ -39,6 +39,21 @@ Public evidence discovery is available before account creation. Saving work, pro
 - Official US funding records from Grants.gov
 - Stripe Checkout, webhook and entitlement foundations
 
+### Discovery resilience
+
+- Each scholarly source has an independent timeout and availability state.
+- Records from responding sources remain usable when another source fails.
+- Low-coverage matches are excluded before ranking, even when they are highly cited.
+- EYRA skips synthesis when no live paper evidence was retrieved.
+- Empty and partial states explain what happened and allow a focused retry.
+
+### Quality gates
+
+- `npm run build` validates the production bundle.
+- `npm run test:retrieval` simulates a partial scholarly-source outage.
+- `npm run benchmark:relevance` runs deterministic question-coverage cases.
+- `npm run benchmark:relevance:live` checks live source coverage separately from deterministic ranking quality.
+
 ## Trust model
 
 EYLO is designed to support research judgment, not replace it.
