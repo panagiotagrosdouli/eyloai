@@ -1,3 +1,10 @@
+function supabaseServerConfigured() {
+  return Boolean(
+    process.env.SUPABASE_SECRET_KEY
+    || process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
+
 export default function handler(request, response) {
   if (request.method !== 'GET') return response.status(405).json({ error: 'Method not allowed.' });
   response.setHeader('Cache-Control', 'no-store');
@@ -8,9 +15,9 @@ export default function handler(request, response) {
       && process.env.STRIPE_WEBHOOK_SECRET
       && process.env.STRIPE_PRO_PRICE_ID
       && process.env.STRIPE_FOUNDER_PRICE_ID
-      && process.env.SUPABASE_SERVICE_ROLE_KEY
+      && supabaseServerConfigured()
     ),
-    scheduled_monitoring: Boolean(process.env.CRON_SECRET && process.env.SUPABASE_SERVICE_ROLE_KEY),
-    institution_analytics: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+    scheduled_monitoring: Boolean(process.env.CRON_SECRET && supabaseServerConfigured()),
+    institution_analytics: supabaseServerConfigured(),
   });
 }
