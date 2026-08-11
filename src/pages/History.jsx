@@ -3,11 +3,25 @@ import { base44 } from '@/api/base44Client';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Sparkles, Trash2, Search, FileText, Users, Award,
-  TrendingUp, Calendar, Activity, ArrowRight, RotateCcw
+  TrendingUp, Calendar, Activity, ArrowRight, RotateCcw, Bookmark
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import moment from 'moment';
+
+function discoveryHref(search) {
+  const params = new URLSearchParams({
+    q: search.query || '',
+    level: search.level || 'researcher',
+    goal: search.goal || 'review',
+    recency: search.recency || 'balanced',
+  });
+  return `/home?${params.toString()}`;
+}
+
+function profileLabel(value) {
+  return String(value || '').replaceAll('_', ' ');
+}
 
 export default function History() {
   const [searches, setSearches] = useState([]);
@@ -39,8 +53,29 @@ export default function History() {
     toast({ title: 'Entry removed' });
   };
 
+  const toggleSearchSaved = async (search) => {
+    const saved = !search.saved;
+    try {
+      await base44.entities.SearchHistory.update(search.id, {
+        saved,
+        saved_at: saved ? new Date().toISOString() : null,
+      });
+      setSearches(prev => prev.map(item => item.id === search.id ? { ...item, saved } : item));
+      toast({ title: saved ? 'Search saved' : 'Removed from saved searches' });
+    } catch (error) {
+      toast({
+        title: 'Could not update this search',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const savedSearches = searches.filter(search => search.saved);
+
   const TABS = [
     { key: 'discoveries', label: 'Discoveries', icon: Sparkles, count: searches.length },
+    { key: 'saved', label: 'Saved searches', icon: Bookmark, count: savedSearches.length },
     { key: 'papers', label: 'Papers', icon: FileText, count: papers.length },
     { key: 'researchers', label: 'Researchers', icon: Users, count: researchers.length },
     { key: 'opportunities', label: 'Opportunities', icon: Award, count: opportunities.length },
@@ -73,7 +108,7 @@ export default function History() {
       {/* Summary stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
-          { label: 'Discoveries', value: searches.length, icon: Search, color: 'text-primary bg-primary/10' },
+          { label: 'Searches Saved', value: savedSearches.length, icon: Bookmark, color: 'text-primary bg-primary/10' },
           { label: 'Papers Saved', value: papers.length, icon: FileText, color: 'text-accent bg-accent/10' },
           { label: 'Researchers', value: researchers.length, icon: Users, color: 'text-chart-3 bg-chart-3/10' },
           { label: 'Opportunities', value: opportunities.length, icon: Award, color: 'text-chart-4 bg-chart-4/10' },
@@ -140,24 +175,96 @@ export default function History() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm text-foreground truncate">{s.query}</p>
-                            <div className="flex items-center gap-2 mt-0.5">
+                            <div className="flex flex-wrap items-center gap-2 mt-0.5">
                               <span className="text-xs text-muted-foreground">{moment(s.created_date).fromNow()}</span>
                               {s.results_summary && <span className="text-xs text-muted-foreground">· {s.results_summary}</span>}
                             </div>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {[s.level || 'researcher', s.goal || 'review', s.recency || 'balanced'].map(value => (
+                                <span key={value} className="rounded-full bg-secondary px-2 py-0.5 text-[10px] capitalize text-muted-foreground">
+                                  {profileLabel(value)}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                           <div className="flex items-center gap-1 flex-shrink-0">
-                            <Link to={`/home?q=${encodeURIComponent(s.query)}`} className="p-2 rounded-lg hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100" title="Re-run discovery">
+                            <button
+                              type="button"
+                              onClick={() => toggleSearchSaved(s)}
+                              aria-pressed={Boolean(s.saved)}
+                              className={`p-2 rounded-lg transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 ${s.saved ? 'bg-primary/10 text-primary' : 'hover:bg-secondary text-muted-foreground'}`}
+                              title={s.saved ? 'Remove from saved searches' : 'Save this search'}
+                            >
+                              <Bookmark size={12} fill={s.saved ? 'currentColor' : 'none'} />
+                            </button>
+                            <Link to={discoveryHref(s)} className="p-2 rounded-lg hover:bg-secondary transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100" title="Re-run with the same research profile">
                               <RotateCcw size={12} className="text-muted-foreground" />
                             </Link>
                             <button
+                              type="button"
                               onClick={() => deleteSearch(s.id)}
-                              className="p-2 rounded-lg hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
+                              className="p-2 rounded-lg hover:bg-destructive/10 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100"
+                              title="Delete search"
                             >
                               <Trash2 size={12} className="text-destructive/60" />
                             </button>
                           </div>
                         </div>
                       ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+
+          {/* Saved searches tab */}
+          {activeTab === 'saved' && (
+            savedSearches.length === 0 ? (
+              <EmptyState
+                icon={Bookmark}
+                label="No saved searches yet"
+                sub="Save a useful discovery report and repeat the same level, goal and recency later"
+                actionLabel="Start Discovering"
+                actionHref="/home"
+              />
+            ) : (
+              <div className="space-y-3">
+                {savedSearches.map(s => (
+                  <div key={s.id} className="group rounded-xl border border-primary/20 bg-card p-4 transition-all hover:border-primary/40 card-glow">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                        <Bookmark size={14} className="text-primary" fill="currentColor" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm text-foreground">{s.query}</p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {[s.level || 'researcher', s.goal || 'review', s.recency || 'balanced'].map(value => (
+                            <span key={value} className="rounded-full bg-secondary px-2 py-0.5 text-[10px] capitalize text-muted-foreground">
+                              {profileLabel(value)}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {s.results_summary || 'Saved research profile'} · {moment(s.saved_at || s.created_date).fromNow()}
+                        </p>
+                      </div>
+                      <div className="flex flex-shrink-0 items-center gap-1">
+                        <Link
+                          to={discoveryHref(s)}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                        >
+                          <RotateCcw size={12} /> Run again
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => toggleSearchSaved(s)}
+                          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                          title="Remove from saved searches"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
