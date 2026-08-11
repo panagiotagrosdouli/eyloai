@@ -391,9 +391,12 @@ export async function searchAllPapersWithStatus(query, options = {}) {
 
   const ranked = all.map((paper, index) => ({
     ...paper,
+    query_coverage: Number(queryCoverage(paper, normalizedProfile.query).toFixed(2)),
     discovery_score: Math.round(discoveryScore(paper, index, normalizedProfile)),
     discovery_category: categorizePaper(paper, normalizedProfile),
-  })).sort((a, b) => b.discovery_score - a.discovery_score);
+  }))
+    .filter(paper => paper.query_coverage >= 0.5)
+    .sort((a, b) => b.discovery_score - a.discovery_score);
 
   const selected = diversifyPapers(ranked, normalizedProfile.limit);
   const startCandidates = selected
