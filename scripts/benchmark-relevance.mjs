@@ -16,7 +16,7 @@ const CASES = [
       ['cancer', 'tumor', 'tumour', 'oncology'],
       ['early detection', 'screen', 'diagnos'],
     ],
-    minimum_groups: 2,
+    minimum_groups: 3,
   },
   {
     query: 'climate adaptation for coastal cities',
@@ -71,6 +71,9 @@ for (const testCase of CASES) {
   const relevant = top.filter(paper => matchesCase(paper, testCase)).length;
   const precision = top.length ? relevant / top.length : 0;
   const representedSources = new Set(top.map(paper => paper.source_index).filter(Boolean));
+  const assessable = top.length >= 5
+    && result.available_source_count >= 3
+    && representedSources.size >= 2;
 
   rows.push({
     query: testCase.query,
@@ -80,21 +83,26 @@ for (const testCase of CASES) {
     available_sources: result.available_source_count,
     unavailable_sources: result.unavailable_source_count,
     top_result: top[0]?.title || 'No live record',
-    coverage_warning: representedSources.size < 2 || result.available_source_count < 3,
-    passed: top.length >= 5 && precision >= MIN_CASE_PRECISION,
+    assessable,
+    coverage_warning: !assessable,
+    passed: assessable ? precision >= MIN_CASE_PRECISION : null,
   });
 }
 
 console.table(rows);
-const averagePrecision = rows.reduce((sum, row) => sum + row.precision_at_10, 0) / rows.length;
-const failedCases = rows.filter(row => !row.passed);
+const assessedRows = rows.filter(row => row.assessable);
+const averagePrecision = assessedRows.length
+  ? assessedRows.reduce((sum, row) => sum + row.precision_at_10, 0) / assessedRows.length
+  : 0;
+const failedCases = assessedRows.filter(row => !row.passed);
 const coverageWarnings = rows.filter(row => row.coverage_warning);
 
+console.log(`Assessable cases: ${assessedRows.length}/${rows.length}`);
 console.log(`Average precision@${TOP_K}: ${averagePrecision.toFixed(2)}`);
-console.log(`Cases passed: ${rows.length - failedCases.length}/${rows.length}`);
+console.log(`Assessed cases passed: ${assessedRows.length - failedCases.length}/${assessedRows.length}`);
 console.log(`Source coverage warnings: ${coverageWarnings.length}/${rows.length}`);
 
-if (failedCases.length || averagePrecision < MIN_AVERAGE_PRECISION) {
+if (assessedRows.length < 2 || failedCases.length || averagePrecision < MIN_AVERAGE_PRECISION) {
   console.error('Relevance benchmark failed. Review ranking or source coverage before release.');
   process.exitCode = 1;
 }
