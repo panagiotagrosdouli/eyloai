@@ -1,5 +1,6 @@
 import { getBillingStatus } from '@/lib/billing';
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
+import { recordActivation, trackEyraFollowthrough } from '@/lib/product-analytics';
 
 const TABLES = {
   Project: 'projects', Idea: 'ideas', Meeting: 'meetings', SavedPaper: 'saved_papers',
@@ -8,6 +9,10 @@ const TABLES = {
 };
 
 const rowToEntity = (row) => row ? ({ id: row.id, created_date: row.created_date, updated_date: row.updated_date, ...row.data }) : null;
+
+function containsSavedEyraOutput(value = {}) {
+  return Boolean(value.eyra_analysis || value.eyra_notes || value.eyra_output);
+}
 
 const PROFILE_FIELDS = [
   'full_name', 'user_type', 'bio', 'research_interests', 'skills',
@@ -86,13 +91,22 @@ function entityRepository(table) {
       await assertCreateAllowed(table, user);
       const { data, error } = await requireSupabase().from(table).insert({ user_id: user.id, data: payload || {} }).select('*').single();
       if (error) throw error;
-      return rowToEntity(data);
+      const entity = rowToEntity(data);
+      if (table === 'saved_papers') recordActivation('paper');
+      if (table === 'projects') {
+        recordActivation('project');
+        if (containsSavedEyraOutput(payload)) trackEyraFollowthrough('project');
+      }
+      return entity;
     },
     async update(entityId, patch) {
       const existing = await this.get(entityId);
       const { id: _id, created_date: _created, updated_date: _updated, ...current } = existing;
       const { data, error } = await requireSupabase().from(table).update({ data: { ...current, ...patch } }).eq('id', entityId).select('*').single();
       if (error) throw error;
+      if (table === 'projects' && containsSavedEyraOutput(patch)) {
+        trackEyraFollowthrough('project');
+      }
       return rowToEntity(data);
     },
     async delete(entityId) {
