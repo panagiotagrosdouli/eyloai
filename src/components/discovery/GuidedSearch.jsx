@@ -3,6 +3,7 @@ import {
   ArrowRight, BookOpen, Compass, GraduationCap, Layers3, Search, Sparkles,
   Target, Wrench, X,
 } from 'lucide-react';
+import { trackGuidedSearchCompleted } from '@/lib/product-analytics';
 
 export const DISCOVERY_LEVELS = [
   { id: 'beginner', label: 'New to the topic', desc: 'Explain terms and choose approachable starting papers', icon: Compass },
@@ -55,18 +56,27 @@ export default function GuidedSearch({
 
   const isBroad = useMemo(() => draftTopic.trim().split(/\s+/).filter(Boolean).length <= 3, [draftTopic]);
 
+  const complete = request => {
+    trackGuidedSearchCompleted({
+      level: request.level,
+      goal: request.goal,
+      recency: request.recency,
+    });
+    onSearch(request);
+  };
+
   const start = event => {
     event?.preventDefault();
     const value = draftTopic.trim();
     if (!value) return;
     setTopic(value);
     if (autoRefine || isBroad) setRefining(true);
-    else onSearch(normalizeDiscoveryRequest({ topic: value, level: defaultLevel, goal: 'review', recency: 'balanced' }));
+    else complete(normalizeDiscoveryRequest({ topic: value, level: defaultLevel, goal: 'review', recency: 'balanced' }));
   };
 
   const submit = () => {
     if (!topic || !level || !goal) return;
-    onSearch(normalizeDiscoveryRequest({ topic, level, goal, recency }));
+    complete(normalizeDiscoveryRequest({ topic, level, goal, recency }));
     setRefining(false);
   };
 
@@ -77,7 +87,7 @@ export default function GuidedSearch({
       goal: goal || 'review',
       recency: 'balanced',
     });
-    onSearch(request);
+    complete(request);
     setRefining(false);
   };
 
