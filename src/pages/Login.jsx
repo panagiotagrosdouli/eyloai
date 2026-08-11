@@ -22,6 +22,9 @@ export default function Login() {
   const registerHref = destination === "/home"
     ? "/register"
     : `/register?from=${encodeURIComponent(destination)}`;
+  const forgotHref = destination === "/home"
+    ? "/forgot-password"
+    : `/forgot-password?from=${encodeURIComponent(destination)}`;
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -117,7 +120,7 @@ export default function Login() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password" className="text-slate-300">Password</Label>
-            <Link to="/forgot-password" className="text-xs text-cyan-300 hover:underline">
+            <Link to={forgotHref} className="text-xs text-cyan-300 hover:underline">
               Forgot password?
             </Link>
           </div>
