@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ShieldCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import AuthLayout from '@/components/AuthLayout';
 import { requireSupabase } from '@/lib/supabaseClient';
 import { getSafeRedirect } from '@/lib/auth/safeRedirect';
 import { OAUTH_COMPLETE_MESSAGE } from '@/lib/auth/oauthPopup';
@@ -16,7 +18,7 @@ export default function AuthCallback() {
     const completeAuth = async () => {
       const providerError = searchParams.get('error_description') || searchParams.get('error');
       if (providerError) {
-        if (active) setError('Authentication could not be completed. Please return to login and try again.');
+        if (active) setError('Authentication could not be completed. Please return to sign in and try again.');
         return;
       }
 
@@ -50,28 +52,23 @@ export default function AuthCallback() {
 
   if (error) {
     return (
-      <main className="min-h-screen grid place-items-center bg-background px-6">
-        <section className="w-full max-w-md rounded-xl border bg-card p-6 text-center shadow-sm">
-          <h1 className="text-xl font-semibold">Sign-in failed</h1>
-          <p role="alert" className="mt-2 text-sm text-muted-foreground">{error}</p>
-          <button
-            type="button"
-            className="mt-6 inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
-            onClick={() => navigate('/login', { replace: true })}
-          >
-            Back to login
-          </button>
-        </section>
-      </main>
+      <AuthLayout icon={ShieldCheck} title="Sign-in was not completed" subtitle="Your workspace was not opened and no research data was changed.">
+        <div role="alert" className="rounded-xl border border-red-400/15 bg-red-400/[0.06] p-4 text-sm leading-6 text-red-100">
+          {error}
+        </div>
+        <Button type="button" className="mt-5 h-12 w-full font-semibold" onClick={() => navigate('/login', { replace: true })}>
+          Return to sign in
+        </Button>
+      </AuthLayout>
     );
   }
 
   return (
-    <main className="min-h-screen grid place-items-center bg-background">
-      <div className="text-center" aria-live="polite">
-        <Loader2 className="mx-auto h-7 w-7 animate-spin" aria-hidden="true" />
-        <p className="mt-3 text-sm text-muted-foreground">Completing sign-in…</p>
+    <AuthLayout icon={ShieldCheck} title="Opening your workspace" subtitle="Verifying the secure session and restoring your original destination.">
+      <div className="flex items-center gap-4 rounded-xl border border-cyan-300/15 bg-cyan-300/[0.05] p-4 text-sm text-slate-300" aria-live="polite">
+        <Loader2 className="h-5 w-5 shrink-0 animate-spin text-cyan-300" aria-hidden="true" />
+        <p>Completing sign-in…</p>
       </div>
-    </main>
+    </AuthLayout>
   );
 }
