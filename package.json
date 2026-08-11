@@ -11,7 +11,8 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-    "normalize:base44": "node scripts/normalize-base44-paths.mjs"
+    "normalize:base44": "node scripts/normalize-base44-paths.mjs",
+    "benchmark:relevance": "node scripts/benchmark-relevance.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
