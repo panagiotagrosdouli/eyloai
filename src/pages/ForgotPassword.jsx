@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,11 @@ import { Mail, ArrowLeft, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import { useAuth } from "@/lib/AuthContext";
 import { forgotPasswordSchema } from "@/lib/validation/auth";
+import { getSafeRedirect } from "@/lib/auth/safeRedirect";
 
 export default function ForgotPassword() {
   const { resetPassword } = useAuth();
+  const [searchParams] = useSearchParams();
   const [sent, setSent] = useState(false);
   const [formError, setFormError] = useState("");
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
@@ -19,9 +21,16 @@ export default function ForgotPassword() {
     defaultValues: { email: "" },
   });
 
+  const destination = getSafeRedirect(searchParams.get("from"));
+  const loginHref = destination === "/home"
+    ? "/login"
+    : `/login?from=${encodeURIComponent(destination)}`;
+
   const onSubmit = async ({ email }) => {
     setFormError("");
-    const result = await resetPassword(email, `${window.location.origin}/reset-password`);
+    const resetUrl = new URL("/reset-password", window.location.origin);
+    resetUrl.searchParams.set("from", destination);
+    const result = await resetPassword(email, resetUrl.toString());
     if (!result.ok) {
       setFormError(result.error.message);
       return;
@@ -35,7 +44,7 @@ export default function ForgotPassword() {
       title="Recover workspace access"
       subtitle="Request a secure link to choose a new password."
       footer={
-        <Link to="/login" className="font-medium text-cyan-300 hover:underline">
+        <Link to={loginHref} className="font-medium text-cyan-300 hover:underline">
           <ArrowLeft className="mr-1 inline h-3 w-3" />Back to sign in
         </Link>
       }
