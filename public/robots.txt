@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+Disallow: /home
+Disallow: /library
+Disallow: /projects
+Disallow: /researchers
+Disallow: /opportunities
+Disallow: /history
+Disallow: /profile
+Disallow: /settings
+Disallow: /notifications
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://eyloai.vercel.app/sitemap.xml

@@ -71,7 +71,7 @@ export default function PublicDiscovery() {
     ]).then(([papers, researchers, institutions]) => {
       if (active) setData({ papers, researchers, institutions });
     }).catch(() => {
-      if (active) setError('EYRA could not reach the research indexes. Please try again.');
+      if (active) setError('EYLO could not reach the research indexes. Please try again.');
     }).finally(() => {
       if (active) setLoading(false);
     });
@@ -126,7 +126,7 @@ export default function PublicDiscovery() {
             <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl eyra-gradient text-white"><Sparkles size={22} /></div>
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Guided evidence discovery</p>
             <h1 className="mt-3 font-heading text-4xl font-black tracking-tight sm:text-6xl">One topic. A research path built for you.</h1>
-            <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">Tell EYRA your level and goal. It will retrieve, deduplicate, and organize papers instead of dropping an unexplained list on you.</p>
+            <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">Tell EYLO your level and goal. The discovery flow retrieves, deduplicates and organizes papers instead of dropping an unexplained list on you.</p>
             <div className="mx-auto mt-8 max-w-5xl text-left"><GuidedSearch onSearch={runGuidedSearch} /></div>
           </section>
         )}
@@ -134,7 +134,7 @@ export default function PublicDiscovery() {
         {initialQuery && !refined && (
           <section className="mx-auto max-w-5xl py-8 sm:py-14">
             <div className="mb-7 max-w-3xl">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Before EYRA searches</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Before the search</p>
               <h1 className="mt-2 font-heading text-3xl font-black sm:text-5xl">Make “{initialQuery}” useful for you.</h1>
               <p className="mt-4 text-sm leading-6 text-muted-foreground">The same topic needs a different result set for a beginner, a thesis student, and a faculty researcher.</p>
             </div>
@@ -145,8 +145,8 @@ export default function PublicDiscovery() {
         {loading && (
           <div className="flex min-h-[480px] flex-col items-center justify-center text-center">
             <div className="relative mb-6 grid h-20 w-20 place-items-center rounded-3xl eyra-gradient text-white shadow-2xl shadow-primary/20"><Loader2 className="animate-spin" size={28} /></div>
-            <p className="font-semibold">Searching and cross-checking scholarly indexes…</p>
-            <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">OpenAlex, arXiv, Europe PMC, Crossref, and Semantic Scholar are being deduplicated and ranked for your level.</p>
+            <p className="font-semibold">Searching and organizing scholarly indexes…</p>
+            <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">Records from OpenAlex, arXiv, Europe PMC, Crossref and Semantic Scholar are being retrieved, deduplicated and organized for your level.</p>
           </div>
         )}
 
