@@ -269,7 +269,7 @@ function queryRoot(term) {
 function queryCoverage(paper, query) {
   const terms = [...new Set(
     normalizedTitle(query).split(' ')
-      .filter(term => term.length > 2 && !QUERY_STOP_WORDS.has(term))
+      .filter(term => (term.length > 2 || term === 'ai') && !QUERY_STOP_WORDS.has(term))
   )];
   if (!terms.length) return 0.5;
   const searchable = `${paper.title || ''} ${paper.summary || ''}`.toLowerCase();
