@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -9,15 +9,22 @@ import { Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import { useAuth } from "@/lib/AuthContext";
 import { resetPasswordSchema } from "@/lib/validation/auth";
+import { getSafeRedirect } from "@/lib/auth/safeRedirect";
 
 export default function ResetPassword() {
   const { updatePassword } = useAuth();
+  const [searchParams] = useSearchParams();
   const [formError, setFormError] = useState("");
   const [done, setDone] = useState(false);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { password: "", confirmPassword: "" },
   });
+
+  const destination = getSafeRedirect(searchParams.get("from"));
+  const loginHref = destination === "/home"
+    ? "/login"
+    : `/login?from=${encodeURIComponent(destination)}`;
 
   const onSubmit = async ({ password }) => {
     setFormError("");
@@ -35,7 +42,7 @@ export default function ResetPassword() {
         icon={Lock}
         title="Workspace access restored"
         subtitle="Your password has been updated."
-        footer={<Link to="/login" className="font-medium text-cyan-300 hover:underline">Continue to sign in</Link>}
+        footer={<Link to={loginHref} className="font-medium text-cyan-300 hover:underline">Continue to sign in</Link>}
       >
         <div role="status" className="rounded-xl border border-emerald-300/15 bg-emerald-300/[0.05] p-4 text-sm leading-6 text-emerald-100">
           You can now return to your saved evidence, projects and EYRA work with the new password.
