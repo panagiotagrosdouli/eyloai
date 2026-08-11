@@ -1,3 +1,4 @@
+import { getBillingStatus } from '@/lib/billing';
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 
 const TABLES = {
@@ -46,25 +47,20 @@ function sortEntities(items, sort = '-created_date') {
 
 async function assertCreateAllowed(table, user) {
   if (table !== 'projects') return;
-  try {
-    const capabilityResponse = await fetch('/api/capabilities');
-    const capabilities = await capabilityResponse.json();
-    if (!capabilities.billing) return;
-  } catch {
-    return;
-  }
-  const client = requireSupabase();
-  const [{ data: profile, error: profileError }, { count, error: countError }] = await Promise.all([
-    client.from('profiles').select('data').eq('user_id', user.id).maybeSingle(),
-    client.from('projects').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-  ]);
-  if (profileError) throw profileError;
-  if (countError) throw countError;
-  const plan = profile?.data?.subscription_tier || 'free';
-  if (plan === 'free' && Number(count || 0) >= 1) {
-    const error = new Error('The free plan includes one project workspace. Upgrade to create another.');
-    error.code = 'PLAN_LIMIT_REACHED';
-    throw error;
+
+  const billing = await getBillingStatus();
+  if (!billing.billing_configured || billing.plan !== 'free') return;
+
+  const { count, error } = await requireSupabase()
+    .from('projects')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id);
+  if (error) throw error;
+
+  if (Number(count || 0) >= 1) {
+    const limitError = new Error('The free plan includes one project workspace. Upgrade to create another.');
+    limitError.code = 'PLAN_LIMIT_REACHED';
+    throw limitError;
   }
 }
 
