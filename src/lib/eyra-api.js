@@ -360,18 +360,57 @@ function diversifyPapers(papers, limit) {
   return selected.sort((a, b) => b.discovery_score - a.discovery_score);
 }
 
-// Retrieve broadly, preserve source health, deduplicate, then rank for the user's level and goal.
-export async function searchAllPapersWithStatus(query, options = {}) {
-  const profile = typeof options === 'number'
-    ? { limit: options }
-    : options;
-  const normalizedProfile = {
+function normalizeRankingProfile(query, options = {}) {
+  const profile = typeof options === 'number' ? { limit: options } : options;
+  return {
     query,
     level: profile.level || 'researcher',
     goal: profile.goal || 'review',
     recency: profile.recency || 'balanced',
-    limit: Math.min(30, Math.max(8, Number(profile.limit) || 20)),
+    limit: Math.min(30, Math.max(1, Number(profile.limit) || 20)),
   };
+}
+
+export function rankPaperRecords(records, query, options = {}) {
+  const profile = normalizeRankingProfile(query, options);
+  const seen = new Set();
+  const uniqueRecords = (records || []).flat().filter(Boolean).map(paper => {
+    const key = paper.doi
+      ? `doi:${String(paper.doi).toLowerCase()}`
+      : `title:${normalizedTitle(paper.title)}`;
+    return { ...paper, _dedupeKey: key };
+  }).filter(paper => {
+    if (!paper.title || seen.has(paper._dedupeKey)) return false;
+    seen.add(paper._dedupeKey);
+    return true;
+  });
+
+  const ranked = uniqueRecords.map((paper, index) => ({
+    ...paper,
+    query_coverage: Number(queryCoverage(paper, profile.query).toFixed(2)),
+    lead_query_match: matchesLeadConcept(paper, profile.query),
+    discovery_score: Math.round(discoveryScore(paper, index, profile)),
+    discovery_category: categorizePaper(paper, profile),
+  }))
+    .filter(paper => paper.query_coverage >= 0.67 && paper.lead_query_match)
+    .sort((a, b) => b.discovery_score - a.discovery_score);
+
+  const selected = diversifyPapers(ranked, profile.limit);
+  const startCandidates = selected
+    .filter(paper => paper.discovery_category === 'start_here')
+    .concat(selected.filter(paper => paper.discovery_category !== 'start_here'))
+    .slice(0, 3);
+  const startIds = new Set(startCandidates.map(paper => paper._dedupeKey));
+
+  return selected.map(paper => ({
+    ...paper,
+    discovery_category: startIds.has(paper._dedupeKey) ? 'start_here' : paper.discovery_category,
+  }));
+}
+
+// Retrieve broadly, preserve source health, deduplicate, then rank for the user's level and goal.
+export async function searchAllPapersWithStatus(query, options = {}) {
+  const normalizedProfile = normalizeRankingProfile(query, options);
   const sort = ['latest', 'five_years'].includes(normalizedProfile.recency) ? 'recent' : 'relevance';
   const definitions = [
     { id: 'openalex', label: 'OpenAlex', load: () => searchOpenAlexWorks(query, 12, sort, { throwOnError: true }) },
@@ -396,38 +435,8 @@ export async function searchAllPapersWithStatus(query, options = {}) {
       }))
     : []);
 
-  const seen = new Set();
-  const all = sources.flat().filter(paper => {
-    const key = paper.doi ? `doi:${String(paper.doi).toLowerCase()}` : `title:${normalizedTitle(paper.title)}`;
-    if (!paper.title || seen.has(key)) return false;
-    seen.add(key);
-    paper._dedupeKey = key;
-    return true;
-  });
-
-  const ranked = all.map((paper, index) => ({
-    ...paper,
-    query_coverage: Number(queryCoverage(paper, normalizedProfile.query).toFixed(2)),
-    lead_query_match: matchesLeadConcept(paper, normalizedProfile.query),
-    discovery_score: Math.round(discoveryScore(paper, index, normalizedProfile)),
-    discovery_category: categorizePaper(paper, normalizedProfile),
-  }))
-    .filter(paper => paper.query_coverage >= 0.67 && paper.lead_query_match)
-    .sort((a, b) => b.discovery_score - a.discovery_score);
-
-  const selected = diversifyPapers(ranked, normalizedProfile.limit);
-  const startCandidates = selected
-    .filter(paper => paper.discovery_category === 'start_here')
-    .concat(selected.filter(paper => paper.discovery_category !== 'start_here'))
-    .slice(0, 3);
-  const startIds = new Set(startCandidates.map(paper => paper._dedupeKey));
-  const papers = selected.map(paper => ({
-    ...paper,
-    discovery_category: startIds.has(paper._dedupeKey) ? 'start_here' : paper.discovery_category,
-  }));
-
   return {
-    papers,
+    papers: rankPaperRecords(sources.flat(), query, normalizedProfile),
     source_status: sourceStatus,
     available_source_count: sourceStatus.filter(source => source.status === 'available').length,
     unavailable_source_count: sourceStatus.filter(source => source.status === 'unavailable').length,
