@@ -1,6 +1,10 @@
 import crypto from 'node:crypto';
 
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
+// Supabase publishable keys are browser-safe identifiers. This is the same
+// public fallback used by the web client; authorization still comes from the
+// user's bearer token and database access remains protected by RLS.
+const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_QOF_tW8ve4IFUsflluOhww_aRubMF0V';
 const MAX_PROMPT_LENGTH = 24_000;
 const MAX_SCHEMA_LENGTH = 32_000;
 const MAX_SCHEMA_DEPTH = 8;
@@ -107,7 +111,7 @@ async function authenticate(authorization) {
     process.env.SUPABASE_PUBLISHABLE_KEY
     || process.env.SUPABASE_ANON_KEY
     || process.env.VITE_SUPABASE_ANON_KEY
-    || ''
+    || DEFAULT_SUPABASE_PUBLISHABLE_KEY
   ).trim();
   const supabaseUrl = (process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL).replace(/\/$/, '');
   if (!publicKey) {
