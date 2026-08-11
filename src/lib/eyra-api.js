@@ -258,6 +258,7 @@ const QUERY_STOP_WORDS = new Set([
 ]);
 
 function queryRoot(term) {
+  if (term.endsWith('ies') && term.length > 5) return `${term.slice(0, -3)}y`;
   if (term.endsWith('ics') && term.length > 6) return term.slice(0, -3);
   if (term.endsWith('ing') && term.length > 6) return term.slice(0, -3);
   if (term.endsWith('ed') && term.length > 5) return term.slice(0, -2);
@@ -273,11 +274,21 @@ function queryTerms(query) {
   )];
 }
 
+const TERM_SYNONYMS = {
+  ageing: ['aging', 'older adult', 'elderly'],
+  trustworthy: ['trust', 'responsib', 'ethic', 'fair', 'explain'],
+  uncertainty: ['probabili', 'stochastic', 'confidence'],
+  vulnerable: ['pedestrian', 'cyclist'],
+};
+
 function termMatches(searchable, term) {
   if (term === 'ai') {
     return /\bai\b/i.test(searchable) || searchable.includes('artificial intelligence');
   }
-  return searchable.includes(term) || searchable.includes(queryRoot(term));
+  const alternatives = TERM_SYNONYMS[term] || [];
+  return searchable.includes(term)
+    || searchable.includes(queryRoot(term))
+    || alternatives.some(alternative => searchable.includes(alternative));
 }
 
 function queryCoverage(paper, query) {
@@ -385,6 +396,8 @@ export function rankPaperRecords(records, query, options = {}) {
     return true;
   });
 
+  const queryTermCount = queryTerms(profile.query).length;
+  const minimumCoverage = queryTermCount > 0 && queryTermCount <= 4 ? 1 : 0.67;
   const ranked = uniqueRecords.map((paper, index) => ({
     ...paper,
     query_coverage: Number(queryCoverage(paper, profile.query).toFixed(2)),
@@ -392,7 +405,7 @@ export function rankPaperRecords(records, query, options = {}) {
     discovery_score: Math.round(discoveryScore(paper, index, profile)),
     discovery_category: categorizePaper(paper, profile),
   }))
-    .filter(paper => paper.query_coverage >= 0.67 && paper.lead_query_match)
+    .filter(paper => paper.query_coverage >= minimumCoverage && paper.lead_query_match)
     .sort((a, b) => b.discovery_score - a.discovery_score);
 
   const selected = diversifyPapers(ranked, profile.limit);
