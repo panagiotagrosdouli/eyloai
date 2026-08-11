@@ -1,3 +1,5 @@
+import crypto from 'node:crypto';
+
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 const MAX_PROMPT_LENGTH = 24_000;
 const MAX_SCHEMA_LENGTH = 32_000;
@@ -69,42 +71,19 @@ function normalizeSchema(schema, depth = 0) {
   return normalized;
 }
 
-async function authenticate(authorization) {
-  const bearer = Array.isArray(authorization) ? authorization[0] : authorization;
-  if (!bearer?.startsWith('Bearer ') || !bearer.slice(7).trim()) {
-    console.warn('EYRA auth rejected', { reason: 'missing_bearer' });
-    return null;
-  }
+function supabaseServerKey() {
+  return process.env.SUPABASE_SECRET_KEY
+    || process.env.SUPABASE_SERVICE_ROLE_KEY;
+}
 
-  const anonKey = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
-  const supabaseUrl = (process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL).replace(/\/$/, '');
-  if (!anonKey) {
-    console.error('EYRA auth rejected', { reason: 'missing_supabase_anon_key' });
-    return null;
-  }
-
-  const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
-    headers: { authorization: bearer, apikey: anonKey },
-    cache: 'no-store',
-  });
-  if (!authResponse.ok) {
-    console.warn('EYRA auth rejected', { reason: 'supabase_user_rejected', status: authResponse.status });
-    return null;
-  }
-  const user = await authResponse.json();
-
-  const profileResponse = await fetch(
-    `${supabaseUrl}/rest/v1/profiles?user_id=eq.${encodeURIComponent(user.id)}&select=data&limit=1`,
-    { headers: { authorization, apikey: anonKey } },
-  );
-  const rows = profileResponse.ok ? await profileResponse.json() : [];
-  return {
-    user,
-    profileData: rows?.[0]?.data || {},
-    authorization,
-    anonKey,
-    supabaseUrl,
+function serverHeaders(key) {
+  const headers = {
+    apikey: key,
+    accept: 'application/json',
+    'content-type': 'application/json',
   };
+  if (!key.startsWith('sb_')) headers.authorization = `Bearer ${key}`;
+  return headers;
 }
 
 function billingActive() {
@@ -113,37 +92,116 @@ function billingActive() {
     && process.env.STRIPE_WEBHOOK_SECRET
     && process.env.STRIPE_PRO_PRICE_ID
     && process.env.STRIPE_FOUNDER_PRICE_ID
-    && process.env.SUPABASE_SERVICE_ROLE_KEY
+    && supabaseServerKey()
   );
+}
+
+async function authenticate(authorization) {
+  const bearer = Array.isArray(authorization) ? authorization[0] : authorization;
+  if (!bearer?.startsWith('Bearer ') || !bearer.slice(7).trim()) {
+    console.warn('EYRA auth rejected', { reason: 'missing_bearer' });
+    return null;
+  }
+
+  const publicKey = (
+    process.env.SUPABASE_PUBLISHABLE_KEY
+    || process.env.SUPABASE_ANON_KEY
+    || process.env.VITE_SUPABASE_ANON_KEY
+    || ''
+  ).trim();
+  const supabaseUrl = (process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL).replace(/\/$/, '');
+  if (!publicKey) {
+    console.error('EYRA auth rejected', { reason: 'missing_supabase_public_key' });
+    return null;
+  }
+
+  const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: { authorization: bearer, apikey: publicKey },
+    cache: 'no-store',
+  });
+  if (!authResponse.ok) {
+    console.warn('EYRA auth rejected', { reason: 'supabase_user_rejected', status: authResponse.status });
+    return null;
+  }
+  const user = await authResponse.json();
+
+  let entitlement = {};
+  const serverKey = supabaseServerKey();
+  if (billingActive()) {
+    const entitlementResponse = await fetch(
+      `${supabaseUrl}/rest/v1/billing_entitlements?user_id=eq.${encodeURIComponent(user.id)}&select=*&limit=1`,
+      { headers: serverHeaders(serverKey) },
+    );
+    if (!entitlementResponse.ok) {
+      throw new Error('Could not load EYRA billing entitlement.');
+    }
+    const rows = await entitlementResponse.json();
+    entitlement = rows?.[0] || {};
+  }
+
+  return { user, entitlement, serverKey, supabaseUrl };
 }
 
 function usageState(identity) {
   const month = new Date().toISOString().slice(0, 7);
   const plan = billingActive()
-    ? (PLAN_LIMITS[identity.profileData.subscription_tier] !== undefined ? identity.profileData.subscription_tier : 'free')
+    ? (PLAN_LIMITS[identity.entitlement.plan] !== undefined ? identity.entitlement.plan : 'free')
     : 'early_access';
-  const sameMonth = identity.profileData.eyra_usage_month === month;
-  const used = sameMonth ? Number(identity.profileData.eyra_usage_count || 0) : 0;
-  return { month, plan, used, limit: plan === 'early_access' ? null : PLAN_LIMITS[plan] };
+  return {
+    month,
+    plan,
+    used: 0,
+    limit: plan === 'early_access' ? null : PLAN_LIMITS[plan],
+  };
 }
 
-async function recordUsage(identity, usage) {
-  const data = {
-    ...identity.profileData,
-    eyra_usage_month: usage.month,
-    eyra_usage_count: usage.used + 1,
-  };
-  const result = await fetch(`${identity.supabaseUrl}/rest/v1/profiles?on_conflict=user_id`, {
-    method: 'POST',
-    headers: {
-      authorization: identity.authorization,
-      apikey: identity.anonKey,
-      'content-type': 'application/json',
-      Prefer: 'resolution=merge-duplicates,return=minimal',
+async function reserveUsage(identity, usage) {
+  if (usage.plan === 'early_access') {
+    return { allowed: true, used: 0, actionId: null };
+  }
+
+  const actionId = crypto.randomUUID();
+  const result = await fetch(
+    `${identity.supabaseUrl}/rest/v1/rpc/reserve_eyra_usage`,
+    {
+      method: 'POST',
+      headers: serverHeaders(identity.serverKey),
+      body: JSON.stringify({
+        p_action_id: actionId,
+        p_user_id: identity.user.id,
+        p_usage_month: usage.month,
+        p_limit: usage.limit,
+      }),
     },
-    body: JSON.stringify({ user_id: identity.user.id, data }),
-  });
-  if (!result.ok) throw new Error(`Usage persistence failed: ${result.status}`);
+  );
+  if (!result.ok) throw new Error(`Usage reservation failed: ${result.status}`);
+
+  const payload = await result.json();
+  const reservation = Array.isArray(payload) ? payload[0] : payload;
+  return {
+    allowed: reservation?.allowed === true,
+    used: Number(reservation?.used || 0),
+    actionId: reservation?.allowed === true ? actionId : null,
+    serverKey: identity.serverKey,
+    supabaseUrl: identity.supabaseUrl,
+  };
+}
+
+async function releaseUsage(reservation) {
+  if (!reservation?.actionId) return;
+
+  try {
+    await fetch(
+      `${reservation.supabaseUrl}/rest/v1/rpc/release_eyra_usage`,
+      {
+        method: 'POST',
+        headers: serverHeaders(reservation.serverKey),
+        body: JSON.stringify({ p_action_id: reservation.actionId }),
+      },
+    );
+  } catch {
+    console.error('EYRA usage rollback failed.');
+  }
 }
 
 export default async function handler(request, response) {
@@ -152,21 +210,12 @@ export default async function handler(request, response) {
     return response.status(405).json({ error: 'Method not allowed.' });
   }
 
+  let reservation = null;
+
   try {
     const identity = await authenticate(request.headers.authorization);
     if (!identity) {
       return response.status(401).json({ error: 'Authentication required.' });
-    }
-
-    const usage = usageState(identity);
-    if (usage.limit !== null && usage.used >= usage.limit) {
-      return response.status(429).json({
-        error: `The free plan includes ${usage.limit} EYRA AI actions per month. Upgrade to continue.`,
-        code: 'PLAN_LIMIT_REACHED',
-        plan: usage.plan,
-        usage: { used: usage.used, limit: usage.limit, month: usage.month },
-        upgrade_url: '/pricing',
-      });
     }
 
     const apiKey = process.env.OPENAI_API_KEY;
@@ -183,6 +232,18 @@ export default async function handler(request, response) {
         return response.status(400).json({ error: 'The requested response structure is too large.' });
       }
       responseSchema = normalizeSchema(requestedSchema);
+    }
+
+    const usage = usageState(identity);
+    reservation = await reserveUsage(identity, usage);
+    if (!reservation.allowed) {
+      return response.status(429).json({
+        error: `The free plan includes ${usage.limit} EYRA AI actions per month. Upgrade to continue.`,
+        code: 'PLAN_LIMIT_REACHED',
+        plan: usage.plan,
+        usage: { used: reservation.used, limit: usage.limit, month: usage.month },
+        upgrade_url: '/pricing',
+      });
     }
 
     const requestBody = {
@@ -215,15 +276,25 @@ export default async function handler(request, response) {
     if (!openAiResponse.ok) {
       const requestId = openAiResponse.headers.get('x-request-id');
       console.error('OpenAI request failed', { status: openAiResponse.status, requestId });
+      await releaseUsage(reservation);
+      reservation = null;
       return response.status(502).json({ error: 'EYRA could not complete this request.' });
     }
 
     const result = await openAiResponse.json();
     const refusal = outputRefusal(result);
-    if (refusal) return response.status(422).json({ error: refusal });
+    if (refusal) {
+      await releaseUsage(reservation);
+      reservation = null;
+      return response.status(422).json({ error: refusal });
+    }
 
     const text = outputText(result);
-    if (!text) return response.status(502).json({ error: 'EYRA returned an empty response.' });
+    if (!text) {
+      await releaseUsage(reservation);
+      reservation = null;
+      return response.status(502).json({ error: 'EYRA returned an empty response.' });
+    }
 
     let data;
     if (responseSchema) {
@@ -231,17 +302,10 @@ export default async function handler(request, response) {
         data = JSON.parse(text);
       } catch {
         console.error('EYRA structured response was not valid JSON', { responseId: result.id });
+        await releaseUsage(reservation);
+        reservation = null;
         return response.status(502).json({ error: 'EYRA returned an invalid structured response.' });
       }
-    }
-
-    try {
-      await recordUsage(identity, usage);
-    } catch (usageError) {
-      console.error('EYRA usage tracking failed', {
-        message: usageError instanceof Error ? usageError.message : 'Unknown error',
-        userId: identity.user.id,
-      });
     }
 
     response.setHeader('Cache-Control', 'no-store');
@@ -252,12 +316,13 @@ export default async function handler(request, response) {
       response_id: result.id,
       plan: usage.plan,
       usage: {
-        used: usage.used + 1,
+        used: reservation.used,
         limit: usage.limit,
         month: usage.month,
       },
     });
   } catch (error) {
+    await releaseUsage(reservation);
     console.error('EYRA function error', {
       message: error instanceof Error ? error.message : 'Unknown error',
     });
