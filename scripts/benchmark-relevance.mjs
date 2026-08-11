@@ -3,23 +3,47 @@ import { searchAllPapersWithStatus } from '../src/lib/eyra-api.js';
 const CASES = [
   {
     query: 'robotics for independent ageing',
-    anchors: ['robot', 'assist', 'ageing', 'aging', 'older adult', 'elderly', 'independent living'],
+    concept_groups: [
+      ['robot', 'assistive technolog'],
+      ['ageing', 'aging', 'older adult', 'elderly', 'independent living'],
+    ],
+    minimum_groups: 2,
   },
   {
     query: 'AI for early cancer detection',
-    anchors: ['cancer', 'tumor', 'tumour', 'oncology', 'screen', 'diagnos', 'detect'],
+    concept_groups: [
+      ['artificial intelligence', 'machine learning', 'deep learning', 'neural network'],
+      ['cancer', 'tumor', 'tumour', 'oncology'],
+      ['early detection', 'screen', 'diagnos'],
+    ],
+    minimum_groups: 2,
   },
   {
     query: 'climate adaptation for coastal cities',
-    anchors: ['climate', 'coast', 'sea level', 'flood', 'adapt', 'resilien'],
+    concept_groups: [
+      ['climate'],
+      ['coast', 'sea level', 'flood'],
+      ['adapt', 'resilien'],
+    ],
+    minimum_groups: 2,
   },
   {
     query: 'trustworthy AI in higher education',
-    anchors: ['trust', 'artificial intelligence', 'education', 'universit', 'student', 'academic'],
+    concept_groups: [
+      ['trust', 'responsib', 'ethic', 'fair', 'explain'],
+      ['artificial intelligence', 'machine learning', 'generative ai'],
+      ['higher education', 'universit', 'student', 'academic'],
+    ],
+    minimum_groups: 2,
   },
   {
     query: 'uncertainty-aware trajectory prediction vulnerable road users',
-    anchors: ['uncertain', 'trajectory', 'pedestrian', 'cyclist', 'road user', 'prediction'],
+    concept_groups: [
+      ['uncertain', 'probabili', 'stochastic', 'confidence'],
+      ['trajectory', 'motion prediction', 'path prediction'],
+      ['pedestrian', 'cyclist', 'vulnerable road user'],
+    ],
+    minimum_groups: 2,
   },
 ];
 
@@ -27,9 +51,12 @@ const TOP_K = 10;
 const MIN_CASE_PRECISION = 0.6;
 const MIN_AVERAGE_PRECISION = 0.7;
 
-function matchesCase(paper, anchors) {
+function matchesCase(paper, testCase) {
   const text = `${paper.title || ''} ${paper.summary || ''}`.toLowerCase();
-  return anchors.some(anchor => text.includes(anchor));
+  const matchedGroups = testCase.concept_groups.filter(group =>
+    group.some(anchor => text.includes(anchor))
+  ).length;
+  return matchedGroups >= testCase.minimum_groups;
 }
 
 const rows = [];
@@ -41,7 +68,7 @@ for (const testCase of CASES) {
     limit: TOP_K,
   });
   const top = result.papers.slice(0, TOP_K);
-  const relevant = top.filter(paper => matchesCase(paper, testCase.anchors)).length;
+  const relevant = top.filter(paper => matchesCase(paper, testCase)).length;
   const precision = top.length ? relevant / top.length : 0;
   const representedSources = new Set(top.map(paper => paper.source_index).filter(Boolean));
 
