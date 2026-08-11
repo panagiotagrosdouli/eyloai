@@ -418,8 +418,12 @@ export default function Landing() {
                   </React.Fragment>
                 ))}
               </div>
-              <div className="mt-3 flex items-center justify-center gap-2 text-[10px] text-violet-200/70">
-                <Brain size={12} aria-hidden="true" /> EYRA reasoning operates on this structured context
+              <div className="mt-3 flex flex-col items-center justify-center gap-2 text-center text-[10px] sm:flex-row">
+                <span className="inline-flex items-center gap-2 text-violet-200/70">
+                  <Brain size={12} aria-hidden="true" /> EYRA reasoning operates on this structured context
+                </span>
+                <span className="hidden text-slate-700 sm:inline" aria-hidden="true">·</span>
+                <span className="text-slate-600">Authenticated funding search currently uses Grants.gov.</span>
               </div>
             </div>
           </div>
