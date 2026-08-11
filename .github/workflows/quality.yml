@@ -1,0 +1,39 @@
+name: Product quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: product-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Test partial source resilience
+        run: npm run test:retrieval
+
+      - name: Run deterministic relevance benchmark
+        run: npm run benchmark:relevance

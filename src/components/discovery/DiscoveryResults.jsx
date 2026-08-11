@@ -184,9 +184,19 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         </p>
       </div>
 
+      {results.retrieval_warning && (
+        <div role="status" className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs leading-5 text-amber-300">
+          {results.retrieval_warning} The verified records that did load remain available below.
+        </div>
+      )}
       {results.ai_status === 'failed' && (
         <div role="status" className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-300">
           Verified source records are available, but EYRA analysis did not complete: {results.ai_error}
+        </div>
+      )}
+      {results.ai_status === 'skipped' && (
+        <div role="status" className="mb-4 rounded-xl border border-border bg-secondary/30 px-4 py-3 text-xs leading-5 text-muted-foreground">
+          {results.ai_error} No AI synthesis has been fabricated.
         </div>
       )}
       {results.funding_error && (
@@ -206,10 +216,12 @@ export default function DiscoveryResults({ results, onNewSearch }) {
               <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[9px] text-slate-400">{String(discoveryProfile.recency).replace('_', ' ')}</span>
             </div>
             <h2 className="mt-4 font-heading text-xl font-bold text-white sm:text-2xl">Begin with context, then move to the frontier.</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">{results.audience_summary || results.goal_analysis || 'EYRA organized the retrieved evidence for your stated level and goal.'}</p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">{results.audience_summary || results.goal_analysis || (results.papers?.length ? 'The retrieved evidence is organized for your stated level and goal.' : 'No scholarly paper record was available for an evidence-based synthesis.')}</p>
             <div className="mt-4 flex flex-wrap gap-2">{sourceIndexes.map(source => <span key={source} className="rounded-full border border-white/5 bg-white/[0.025] px-2.5 py-1 text-[9px] text-slate-400">{source}</span>)}</div>
           </div>
-          <button type="button" onClick={() => setActiveTab('papers')} className="inline-flex items-center justify-center gap-2 rounded-xl eyra-gradient px-4 py-2.5 text-xs font-semibold text-white"><BookOpen size={13} /> Open paper path</button>
+          {results.papers?.length > 0 && (
+            <button type="button" onClick={() => setActiveTab('papers')} className="inline-flex items-center justify-center gap-2 rounded-xl eyra-gradient px-4 py-2.5 text-xs font-semibold text-white"><BookOpen size={13} /> Open paper path</button>
+          )}
         </div>
         {results.recommended_next_questions?.length > 0 && (
           <div className="relative mt-5 border-t border-white/5 pt-4">

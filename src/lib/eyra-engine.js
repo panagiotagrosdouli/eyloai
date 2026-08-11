@@ -2,7 +2,7 @@
 // Real data streams in immediately → AI analyzes in background → UI updates progressively
 
 import { base44 } from '@/api/base44Client';
-import { searchAllPapers, searchOpenAlexAuthors, searchOpenAlexInstitutions } from './eyra-api';
+import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitutions } from './eyra-api';
 import { searchFundingOpportunities } from './funding-api';
 
 // ── Simple session cache ─────────────────────────────────────
@@ -67,26 +67,36 @@ export async function runEyraDiscovery(input, onProgress) {
   onProgress && onProgress({ ...partial });
 
   // Fire all real-data fetches in parallel, each updating as it resolves
-  const papersPromise = searchAllPapers(retrievalQuery, { ...profile, limit: 24 }).then(papers => {
-    partial.papers = papers || [];
+  const papersPromise = searchAllPapersWithStatus(retrievalQuery, { ...profile, limit: 24 }).then(bundle => {
+    partial.papers = bundle.papers || [];
+    partial.paperSourceStatus = bundle.source_status || [];
     partial.papersLoaded = true;
+    partial.papersError = bundle.available_source_count === 0;
     onProgress && onProgress({ ...partial });
-    return papers || [];
-  }).catch(() => { partial.papersLoaded = true; partial.papersError = true; onProgress && onProgress({ ...partial }); return []; });
+    return bundle;
+  }).catch(() => {
+    partial.papersLoaded = true;
+    partial.papersError = true;
+    partial.paperSourceStatus = [
+      { id: 'paper_indexes', label: 'Scholarly paper indexes', status: 'unavailable', count: 0 },
+    ];
+    onProgress && onProgress({ ...partial });
+    return { papers: [], source_status: partial.paperSourceStatus, available_source_count: 0 };
+  });
 
-  const researchersPromise = searchOpenAlexAuthors(query, 8).then(researchers => {
+  const researchersPromise = searchOpenAlexAuthors(query, 8, { throwOnError: true }).then(researchers => {
     partial.researchers = researchers || [];
     partial.researchersLoaded = true;
     onProgress && onProgress({ ...partial });
     return researchers || [];
-  }).catch(() => { partial.researchersLoaded = true; onProgress && onProgress({ ...partial }); return []; });
+  }).catch(() => { partial.researchersLoaded = true; partial.researchersError = true; onProgress && onProgress({ ...partial }); return []; });
 
-  const institutionsPromise = searchOpenAlexInstitutions(query, 6).then(institutions => {
+  const institutionsPromise = searchOpenAlexInstitutions(query, 6, { throwOnError: true }).then(institutions => {
     partial.institutions = institutions || [];
     partial.institutionsLoaded = true;
     onProgress && onProgress({ ...partial });
     return institutions || [];
-  }).catch(() => { partial.institutionsLoaded = true; onProgress && onProgress({ ...partial }); return []; });
+  }).catch(() => { partial.institutionsLoaded = true; partial.institutionsError = true; onProgress && onProgress({ ...partial }); return []; });
 
   const fundingPromise = searchFundingOpportunities(query, 5).then((fundingResult) => {
     partial.funding_opportunities = fundingResult.items || [];
@@ -101,12 +111,35 @@ export async function runEyraDiscovery(input, onProgress) {
   });
 
   // Wait for all real data
-  const [papers, researchers, institutions, fundingResult] = await Promise.all([
+  const [paperBundle, researchers, institutions, fundingResult] = await Promise.all([
     papersPromise,
     researchersPromise,
     institutionsPromise,
     fundingPromise,
   ]);
+  const papers = paperBundle.papers || [];
+  const sourceStatus = [
+    ...(paperBundle.source_status || []),
+    {
+      id: 'researchers',
+      label: 'OpenAlex researchers',
+      status: partial.researchersError ? 'unavailable' : 'available',
+      count: researchers.length,
+    },
+    {
+      id: 'institutions',
+      label: 'OpenAlex institutions',
+      status: partial.institutionsError ? 'unavailable' : 'available',
+      count: institutions.length,
+    },
+    {
+      id: 'funding',
+      label: 'Grants.gov',
+      status: fundingResult.error ? 'unavailable' : 'available',
+      count: fundingResult.items?.length || 0,
+    },
+  ];
+  const unavailableSources = sourceStatus.filter(source => source.status === 'unavailable');
 
   // Signal AI analysis starting
   partial.status = 'analyzing';
@@ -115,10 +148,14 @@ export async function runEyraDiscovery(input, onProgress) {
   // AI analyzes the real data. A model failure must not hide retrieved evidence.
   let aiAnalysis = {};
   let aiError = '';
-  try {
-    aiAnalysis = await generateEvidenceBasedAnalysis(profile, papers, researchers, institutions);
-  } catch (error) {
-    aiError = error instanceof Error ? error.message : 'EYRA analysis unavailable';
+  if (!papers.length) {
+    aiError = 'EYRA analysis was skipped because no live scholarly records were retrieved.';
+  } else {
+    try {
+      aiAnalysis = await generateEvidenceBasedAnalysis(profile, papers, researchers, institutions);
+    } catch (error) {
+      aiError = error instanceof Error ? error.message : 'EYRA analysis unavailable';
+    }
   }
 
   const verifiedFunding = (fundingResult.items || []).map((item) => ({
@@ -140,13 +177,20 @@ export async function runEyraDiscovery(input, onProgress) {
     retrieval_query: retrievalQuery,
     discovery_profile: profile,
     source_indexes: [...new Set(papers.map(paper => paper.source_index || paper.source).filter(Boolean))],
+    source_status: sourceStatus,
+    retrieval_status: unavailableSources.length
+      ? (sourceStatus.length === unavailableSources.length ? 'unavailable' : 'partial')
+      : (papers.length ? 'complete' : 'empty'),
+    retrieval_warning: unavailableSources.length
+      ? `Partial live retrieval: ${unavailableSources.map(source => source.label).join(', ')} did not respond.`
+      : '',
     papers,
     researchers,
     institutions,
     ...aiAnalysis,
     funding_opportunities: verifiedFunding,
     funding_error: fundingResult.error || '',
-    ai_status: aiError ? 'failed' : 'complete',
+    ai_status: !papers.length ? 'skipped' : (aiError ? 'failed' : 'complete'),
     ai_error: aiError,
     status: 'complete',
   };

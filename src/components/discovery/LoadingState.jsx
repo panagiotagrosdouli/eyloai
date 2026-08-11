@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, FileText, Users, Building2, Brain, CheckCircle2, Loader2, Award } from 'lucide-react';
+import { Sparkles, FileText, Users, Building2, Brain, CheckCircle2, Loader2, Award, AlertTriangle } from 'lucide-react';
 
 const SOURCES = [
-  { id: 'papers', label: 'Cross-checking papers', sublabel: 'OpenAlex · arXiv · Europe PMC · Crossref · Semantic Scholar', icon: FileText, key: 'papersLoaded' },
-  { id: 'researchers', label: 'Finding researchers', sublabel: 'OpenAlex profiles', icon: Users, key: 'researchersLoaded' },
-  { id: 'institutions', label: 'Scanning institutions', sublabel: 'OpenAlex database', icon: Building2, key: 'institutionsLoaded' },
-  { id: 'funding', label: 'Checking official funding', sublabel: 'Grants.gov records', icon: Award, key: 'fundingLoaded' },
+  { id: 'papers', label: 'Cross-checking papers', sublabel: 'OpenAlex · arXiv · Europe PMC · Crossref · Semantic Scholar', icon: FileText, key: 'papersLoaded', errorKey: 'papersError' },
+  { id: 'researchers', label: 'Finding researchers', sublabel: 'OpenAlex profiles', icon: Users, key: 'researchersLoaded', errorKey: 'researchersError' },
+  { id: 'institutions', label: 'Scanning institutions', sublabel: 'OpenAlex database', icon: Building2, key: 'institutionsLoaded', errorKey: 'institutionsError' },
+  { id: 'funding', label: 'Checking official funding', sublabel: 'Grants.gov records', icon: Award, key: 'fundingLoaded', errorKey: 'fundingError' },
   { id: 'ai', label: 'EYRA analyzing data', sublabel: 'Evidence-based intelligence', icon: Brain, key: null },
 ];
 
@@ -43,6 +43,7 @@ export default function LoadingState({ query, progress }) {
           const Icon = src.icon;
           const isAi = src.id === 'ai';
           const done = isAi ? isAnalyzing || isComplete : progress?.[src.key];
+          const failed = !isAi && Boolean(progress?.[src.errorKey]);
           const active = isAi ? isAnalyzing : !done;
           const count = src.id === 'papers'
             ? papersCount
@@ -56,17 +57,21 @@ export default function LoadingState({ query, progress }) {
 
           return (
             <div key={src.id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-500 ${
-              done ? 'border-primary/20 bg-primary/5' : 'border-border/40 bg-card'
+              failed ? 'border-amber-400/20 bg-amber-400/5' : done ? 'border-primary/20 bg-primary/5' : 'border-border/40 bg-card'
             }`}>
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${done ? 'bg-primary/10' : 'bg-secondary'}`}>
-                <Icon size={13} className={done ? 'text-primary' : 'text-muted-foreground'} />
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${failed ? 'bg-amber-400/10' : done ? 'bg-primary/10' : 'bg-secondary'}`}>
+                <Icon size={13} className={failed ? 'text-amber-300' : done ? 'text-primary' : 'text-muted-foreground'} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-medium ${done ? 'text-foreground' : 'text-muted-foreground'}`}>{src.label}</p>
                 <p className="text-[10px] text-muted-foreground">{src.sublabel}</p>
               </div>
               <div className="flex-shrink-0">
-                {done ? (
+                {failed ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-300">
+                    <AlertTriangle size={12} /> Unavailable
+                  </span>
+                ) : done ? (
                   count !== null ? (
                     <span className="text-xs font-bold text-primary">{count} found</span>
                   ) : (

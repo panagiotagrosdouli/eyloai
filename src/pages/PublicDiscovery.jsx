@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  ArrowLeft, ArrowRight, BookOpen, Building2, ExternalLink, Loader2,
-  Search, ShieldCheck, Sparkles, Users,
+  AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Building2, ExternalLink, Loader2,
+  RefreshCw, Search, ShieldCheck, Sparkles, Users,
 } from 'lucide-react';
-import { searchAllPapers, searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
+import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import GuidedSearch, { normalizeDiscoveryRequest } from '@/components/discovery/GuidedSearch';
 
 function EmptyState({ children }) {
@@ -55,6 +55,8 @@ export default function PublicDiscovery() {
   const [data, setData] = useState({ papers: [], researchers: [], institutions: [] });
   const [loading, setLoading] = useState(refined);
   const [error, setError] = useState('');
+  const [sourceStatus, setSourceStatus] = useState([]);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => setQuery(initialQuery), [initialQuery]);
 
@@ -62,21 +64,63 @@ export default function PublicDiscovery() {
     if (!refined) return;
     let active = true;
     const profile = normalizeDiscoveryRequest({ topic: initialQuery, level, goal, recency });
-    setLoading(true);
-    setError('');
-    Promise.all([
-      searchAllPapers(initialQuery, { ...profile, limit: 24 }),
-      searchOpenAlexAuthors(initialQuery, 8),
-      searchOpenAlexInstitutions(initialQuery, 6),
-    ]).then(([papers, researchers, institutions]) => {
-      if (active) setData({ papers, researchers, institutions });
-    }).catch(() => {
-      if (active) setError('EYLO could not reach the research indexes. Please try again.');
-    }).finally(() => {
-      if (active) setLoading(false);
+
+    const retrieve = async () => {
+      setLoading(true);
+      setError('');
+      setSourceStatus([]);
+      setData({ papers: [], researchers: [], institutions: [] });
+
+      const [paperResult, researcherResult, institutionResult] = await Promise.allSettled([
+        searchAllPapersWithStatus(initialQuery, { ...profile, limit: 24 }),
+        searchOpenAlexAuthors(initialQuery, 8, { throwOnError: true }),
+        searchOpenAlexInstitutions(initialQuery, 6, { throwOnError: true }),
+      ]);
+      if (!active) return;
+
+      const paperBundle = paperResult.status === 'fulfilled'
+        ? paperResult.value
+        : { papers: [], source_status: [
+            { id: 'paper_indexes', label: 'Scholarly paper indexes', status: 'unavailable', count: 0 },
+          ] };
+      const researchers = researcherResult.status === 'fulfilled' ? researcherResult.value : [];
+      const institutions = institutionResult.status === 'fulfilled' ? institutionResult.value : [];
+      const nextSourceStatus = [
+        ...(paperBundle.source_status || []),
+        {
+          id: 'researchers',
+          label: 'OpenAlex researchers',
+          status: researcherResult.status === 'fulfilled' ? 'available' : 'unavailable',
+          count: researchers.length,
+        },
+        {
+          id: 'institutions',
+          label: 'OpenAlex institutions',
+          status: institutionResult.status === 'fulfilled' ? 'available' : 'unavailable',
+          count: institutions.length,
+        },
+      ];
+      const nextData = { papers: paperBundle.papers || [], researchers, institutions };
+      const totalRecords = nextData.papers.length + researchers.length + institutions.length;
+      const availableCount = nextSourceStatus.filter(source => source.status === 'available').length;
+
+      setSourceStatus(nextSourceStatus);
+      setData(nextData);
+      if (!totalRecords) {
+        setError(availableCount
+          ? 'No strong live records matched this exact framing. Add a method, application, population or date range.'
+          : 'The live research indexes are temporarily unavailable. No records have been invented.');
+      }
+      setLoading(false);
+    };
+
+    retrieve().catch(() => {
+      if (!active) return;
+      setError('The live research indexes could not be reached. No records have been invented.');
+      setLoading(false);
     });
     return () => { active = false; };
-  }, [goal, initialQuery, level, recency, refined]);
+  }, [attempt, goal, initialQuery, level, recency, refined]);
 
   const submitHeader = event => {
     event.preventDefault();
@@ -105,6 +149,8 @@ export default function PublicDiscovery() {
   }, [data.papers]);
 
   const sourceIndexes = [...new Set((data.papers || []).map(paper => paper.source_index || paper.source).filter(Boolean))];
+  const unavailableSources = sourceStatus.filter(source => source.status === 'unavailable');
+  const availableSources = sourceStatus.filter(source => source.status === 'available');
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -150,7 +196,32 @@ export default function PublicDiscovery() {
           </div>
         )}
 
-        {!loading && error && <EmptyState>{error}</EmptyState>}
+        {!loading && refined && unavailableSources.length > 0 && availableSources.length > 0 && (
+          <div role="status" className="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-4 text-sm text-amber-100 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle size={17} className="mt-0.5 shrink-0 text-amber-300" aria-hidden="true" />
+              <p className="leading-6">
+                <strong>Partial live retrieval.</strong> Showing verified records from {availableSources.length} available sources.
+                {' '}{unavailableSources.map(source => source.label).join(', ')} did not respond.
+              </p>
+            </div>
+            <button type="button" onClick={() => setAttempt(value => value + 1)}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-amber-300/20 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-300/10">
+              <RefreshCw size={13} aria-hidden="true" /> Retry missing sources
+            </button>
+          </div>
+        )}
+
+        {!loading && error && (
+          <EmptyState>
+            <AlertTriangle className="mx-auto mb-3 text-amber-400" size={22} aria-hidden="true" />
+            <p className="mx-auto max-w-xl leading-6">{error}</p>
+            <button type="button" onClick={() => setAttempt(value => value + 1)}
+              className="mt-5 inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-foreground hover:border-primary/40">
+              <RefreshCw size={13} aria-hidden="true" /> Retry live retrieval
+            </button>
+          </EmptyState>
+        )}
 
         {!loading && !error && refined && (
           <div className="space-y-14">
