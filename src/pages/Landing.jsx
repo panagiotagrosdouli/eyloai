@@ -18,6 +18,7 @@ import {
   Target,
   Users,
 } from 'lucide-react';
+import { trackSearchStarted } from '@/lib/product-analytics';
 
 const EXAMPLES = [
   'AI for early cancer detection',
@@ -97,6 +98,7 @@ export default function Landing() {
   const explore = (event) => {
     event?.preventDefault();
     const query = question.trim();
+    if (query) trackSearchStarted('homepage');
     navigate(query ? `/discover?q=${encodeURIComponent(query)}` : '/discover');
   };
 
