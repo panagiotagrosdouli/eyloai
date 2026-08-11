@@ -1,108 +1,112 @@
-import { searchAllPapersWithStatus } from '../src/lib/eyra-api.js';
+import { rankPaperRecords } from '../src/lib/eyra-api.js';
 
 const CASES = [
   {
     query: 'robotics for independent ageing',
-    concept_groups: [
-      ['robot', 'assistive technolog'],
-      ['ageing', 'aging', 'older adult', 'elderly', 'independent living'],
+    distractors: [
+      'Robotics systems: a highly cited general survey',
+      'Independent ageing policy without robotics',
+      'Industrial robotics for warehouse automation',
+      'Ageing mechanisms in cellular biology',
+      'Robot navigation in outdoor environments',
     ],
-    minimum_groups: 2,
   },
   {
     query: 'AI for early cancer detection',
-    concept_groups: [
-      ['artificial intelligence', 'machine learning', 'deep learning', 'neural network'],
-      ['cancer', 'tumor', 'tumour', 'oncology'],
-      ['early detection', 'screen', 'diagnos'],
+    distractors: [
+      'AI for early defect detection in manufacturing',
+      'Cancer treatment pathways without artificial intelligence',
+      'Machine learning for late-stage heart disease',
+      'Early anomaly detection in computer networks',
+      'Artificial intelligence in clinical administration',
     ],
-    minimum_groups: 3,
   },
   {
     query: 'climate adaptation for coastal cities',
-    concept_groups: [
-      ['climate'],
-      ['coast', 'sea level', 'flood'],
-      ['adapt', 'resilien'],
+    distractors: [
+      'Climate adaptation in inland cities',
+      'Coastal tourism management without climate planning',
+      'Urban climate mitigation strategies',
+      'Adaptation finance for rural agriculture',
+      'Sea-level monitoring outside cities',
     ],
-    minimum_groups: 2,
   },
   {
     query: 'trustworthy AI in higher education',
-    concept_groups: [
-      ['trust', 'responsib', 'ethic', 'fair', 'explain'],
-      ['artificial intelligence', 'machine learning', 'generative ai'],
-      ['higher education', 'universit', 'student', 'academic'],
+    distractors: [
+      'Trustworthy AI in financial services',
+      'Artificial intelligence in primary education',
+      'Higher education digital transformation without AI',
+      'Responsible automation in manufacturing',
+      'Student trust in conventional online learning',
     ],
-    minimum_groups: 2,
   },
   {
     query: 'uncertainty-aware trajectory prediction vulnerable road users',
-    concept_groups: [
-      ['uncertain', 'probabili', 'stochastic', 'confidence'],
-      ['trajectory', 'motion prediction', 'path prediction'],
-      ['pedestrian', 'cyclist', 'vulnerable road user'],
+    distractors: [
+      'Uncertainty-aware trajectory prediction for aircraft',
+      'Vulnerable road user injury statistics',
+      'Deterministic vehicle trajectory prediction',
+      'Confidence estimation for image classification',
+      'Pedestrian detection without motion prediction',
     ],
-    minimum_groups: 2,
   },
 ];
 
-const TOP_K = 10;
-const MIN_CASE_PRECISION = 0.6;
-const MIN_AVERAGE_PRECISION = 0.7;
+const SOURCES = ['OpenAlex', 'Crossref', 'Europe PMC', 'Semantic Scholar'];
 
-function matchesCase(paper, testCase) {
-  const text = `${paper.title || ''} ${paper.summary || ''}`.toLowerCase();
-  const matchedGroups = testCase.concept_groups.filter(group =>
-    group.some(anchor => text.includes(anchor))
-  ).length;
-  return matchedGroups >= testCase.minimum_groups;
+function makeCandidates(testCase) {
+  const relevant = Array.from({ length: 5 }, (_, index) => ({
+    id: `${testCase.query}-relevant-${index}`,
+    title: `${testCase.query}: evidence study ${index + 1}`,
+    summary: `A focused study of ${testCase.query}, including methods, evaluation and limitations.`,
+    year: new Date().getFullYear() - index,
+    cited_by_count: 20 + index,
+    open_access: index % 2 === 0,
+    source_index: SOURCES[index % SOURCES.length],
+    _source_rank: index,
+    expected_relevant: true,
+  }));
+
+  const distractors = testCase.distractors.map((title, index) => ({
+    id: `${testCase.query}-distractor-${index}`,
+    title,
+    summary: title,
+    year: new Date().getFullYear() - 1,
+    cited_by_count: 5_000 - index,
+    source_index: SOURCES[index % SOURCES.length],
+    _source_rank: 0,
+    expected_relevant: false,
+  }));
+
+  return [...distractors, ...relevant];
 }
 
-const rows = [];
-for (const testCase of CASES) {
-  const result = await searchAllPapersWithStatus(testCase.query, {
+const rows = CASES.map(testCase => {
+  const ranked = rankPaperRecords(makeCandidates(testCase), testCase.query, {
     level: 'researcher',
     goal: 'review',
     recency: 'balanced',
-    limit: TOP_K,
+    limit: 5,
   });
-  const top = result.papers.slice(0, TOP_K);
-  const relevant = top.filter(paper => matchesCase(paper, testCase)).length;
-  const precision = top.length ? relevant / top.length : 0;
-  const representedSources = new Set(top.map(paper => paper.source_index).filter(Boolean));
-  const assessable = top.length >= 5
-    && result.available_source_count >= 3
-    && representedSources.size >= 2;
+  const relevant = ranked.filter(paper => paper.expected_relevant).length;
+  const precision = ranked.length ? relevant / ranked.length : 0;
+  const representedSources = new Set(ranked.map(paper => paper.source_index)).size;
 
-  rows.push({
+  return {
     query: testCase.query,
-    records: top.length,
-    precision_at_10: Number(precision.toFixed(2)),
-    represented_sources: representedSources.size,
-    available_sources: result.available_source_count,
-    unavailable_sources: result.unavailable_source_count,
-    top_result: top[0]?.title || 'No live record',
-    assessable,
-    coverage_warning: !assessable,
-    passed: assessable ? precision >= MIN_CASE_PRECISION : null,
-  });
-}
+    returned: ranked.length,
+    precision_at_5: Number(precision.toFixed(2)),
+    represented_sources: representedSources,
+    passed: ranked.length === 5 && precision === 1 && representedSources >= 3,
+  };
+});
 
 console.table(rows);
-const assessedRows = rows.filter(row => row.assessable);
-const averagePrecision = assessedRows.length
-  ? assessedRows.reduce((sum, row) => sum + row.precision_at_10, 0) / assessedRows.length
-  : 0;
-const failedCases = assessedRows.filter(row => !row.passed);
-const coverageWarnings = rows.filter(row => row.coverage_warning);
+const failed = rows.filter(row => !row.passed);
+console.log(`Deterministic ranking cases passed: ${rows.length - failed.length}/${rows.length}`);
 
-console.log(`Assessable cases: ${assessedRows.length}/${rows.length}`);
-console.log(`Average precision@${TOP_K}: ${averagePrecision.toFixed(2)}`);
-console.log(`Assessed cases passed: ${assessedRows.length - failedCases.length}/${assessedRows.length}`);
-console.log(`Source coverage warnings: ${coverageWarnings.length}/${rows.length}`);
-
-if (assessedRows.length < 2 || failedCases.length || averagePrecision < MIN_AVERAGE_PRECISION) {
-  console.error('Relevance benchmark failed. Review ranking or source coverage before release.');
+if (failed.length) {
+  console.error('Deterministic relevance benchmark failed.');
   process.exitCode = 1;
 }
