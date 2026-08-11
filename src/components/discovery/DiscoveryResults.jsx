@@ -50,6 +50,8 @@ export default function DiscoveryResults({ results, onNewSearch }) {
   const [activeTab, setActiveTab] = useState('overview');
   const [creatingProject, setCreatingProject] = useState(false);
   const [projectCreated, setProjectCreated] = useState(null);
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [searchSaved, setSearchSaved] = useState(Boolean(results.search_saved));
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -82,6 +84,37 @@ export default function DiscoveryResults({ results, onNewSearch }) {
       toast({ title: 'Researcher saved to library' });
     } catch (error) {
       toast({ title: 'Could not save this researcher', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    }
+  };
+
+  const saveSearch = async () => {
+    if (savingSearch || searchSaved) return;
+    setSavingSearch(true);
+    const profile = results.discovery_profile || {};
+    const payload = {
+      query: results.query,
+      level: profile.level || 'researcher',
+      goal: profile.goal || 'review',
+      recency: profile.recency || 'balanced',
+      source_indexes: results.source_indexes || [],
+      retrieval_status: results.retrieval_status || 'complete',
+      results_summary: `${results.papers?.length || 0} papers, ${results.researchers?.length || 0} researchers`,
+      saved: true,
+      saved_at: new Date().toISOString(),
+    };
+
+    try {
+      if (results.search_history_id) {
+        await base44.entities.SearchHistory.update(results.search_history_id, payload);
+      } else {
+        await base44.entities.SearchHistory.create(payload);
+      }
+      setSearchSaved(true);
+      toast({ title: 'Search saved', description: 'Run the same research profile again from EYRA Activity.' });
+    } catch (error) {
+      toast({ title: 'Could not save this search', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    } finally {
+      setSavingSearch(false);
     }
   };
 
@@ -119,7 +152,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
 
       {/* Header */}
       <div className="py-5 mb-2">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <EyraSectionLabel label="EYRA Discovery Report" />
@@ -132,23 +165,36 @@ export default function DiscoveryResults({ results, onNewSearch }) {
             </p>
           </div>
 
-          {!projectCreated ? (
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <button
-              onClick={createProject}
-              disabled={creatingProject}
-              className="flex items-center gap-2 px-5 py-3 rounded-xl eyra-gradient text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-60 flex-shrink-0"
+              type="button"
+              onClick={saveSearch}
+              disabled={savingSearch || searchSaved}
+              className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-colors disabled:cursor-default ${searchSaved ? 'border-green-500/30 bg-green-500/10 text-green-400' : 'border-border bg-card text-foreground hover:border-primary/40 hover:bg-primary/5'}`}
             >
-              {creatingProject
-                ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                : <Plus size={15} />}
-              Create Project
+              {savingSearch
+                ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-primary" />
+                : searchSaved ? <CheckCircle2 size={15} /> : <Bookmark size={15} />}
+              {searchSaved ? 'Search saved' : 'Save search'}
             </button>
-          ) : (
-            <Link to={`/projects/${projectCreated.id}`}
-              className="flex items-center gap-2 px-5 py-3 rounded-xl bg-green-500/15 border border-green-500/30 text-green-400 text-sm font-bold flex-shrink-0">
-              <CheckCircle2 size={15} /> Open Project
-            </Link>
-          )}
+            {!projectCreated ? (
+              <button
+                onClick={createProject}
+                disabled={creatingProject}
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl eyra-gradient text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-60 flex-shrink-0"
+              >
+                {creatingProject
+                  ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  : <Plus size={15} />}
+                Create Project
+              </button>
+            ) : (
+              <Link to={`/projects/${projectCreated.id}`}
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-green-500/15 border border-green-500/30 text-green-400 text-sm font-bold flex-shrink-0">
+                <CheckCircle2 size={15} /> Open Project
+              </Link>
+            )}
+          </div>
         </div>
 
         {projectCreated && (
