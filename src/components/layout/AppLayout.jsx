@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
 import NotificationsBell from '@/components/monitoring/NotificationsBell';
+import { trackActivatedReturn } from '@/lib/product-analytics';
 
 /* Primary nav — always visible, max 4 items to avoid clutter */
 const PRIMARY_NAV = [
@@ -64,6 +65,10 @@ export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [toolQuery, setToolQuery] = useState('');
   const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    trackActivatedReturn();
+  }, []);
 
   const isActive = (path) =>
     location.pathname === path || location.pathname.startsWith(`${path}/`);
