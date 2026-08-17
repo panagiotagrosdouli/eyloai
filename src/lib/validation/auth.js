@@ -15,6 +15,7 @@ export const passwordSchema = z
 
 export const registrationSchema = z
   .object({
+    fullName: z.string().trim().min(2, 'Enter the name you want EYLO to use.').max(80, 'Name must be 80 characters or fewer.'),
     email: normalizedEmailSchema,
     password: passwordSchema,
     confirmPassword: z.string(),
