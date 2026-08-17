@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Lock, Loader2, ShieldCheck } from "lucide-react";
+import { User, UserPlus, Mail, Lock, Loader2, ShieldCheck } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import { useAuth } from "@/lib/AuthContext";
 import { getSafeRedirect } from "@/lib/auth/safeRedirect";
@@ -18,7 +18,7 @@ export default function Register() {
   const [sentEmail, setSentEmail] = useState("");
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(registrationSchema),
-    defaultValues: { email: "", password: "", confirmPassword: "" },
+    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" },
   });
 
   const destination = getSafeRedirect(searchParams.get("from"));
@@ -26,13 +26,14 @@ export default function Register() {
     ? "/login"
     : `/login?from=${encodeURIComponent(destination)}`;
 
-  const onSubmit = async ({ email, password }) => {
+  const onSubmit = async ({ fullName, email, password }) => {
     setFormError("");
     const callbackUrl = new URL("/auth/callback", window.location.origin);
     callbackUrl.searchParams.set("from", destination);
 
     const result = await signUp(email, password, {
       emailRedirectTo: callbackUrl.toString(),
+      full_name: fullName.trim(),
     });
     if (!result.ok) {
       setFormError(result.error.message);
@@ -81,10 +82,21 @@ export default function Register() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="space-y-2">
+          <Label htmlFor="fullName" className="text-slate-300">Preferred name</Label>
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
+            <Input id="fullName" type="text" autoComplete="name" autoFocus placeholder="Alex Morgan"
+              className="h-12 border-white/10 bg-white/[0.025] pl-10 text-white"
+              aria-invalid={Boolean(errors.fullName)} disabled={isSubmitting} {...register("fullName")} />
+          </div>
+          {errors.fullName && <p role="alert" className="text-xs text-red-300">{errors.fullName.message}</p>}
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="email" className="text-slate-300">Email address</Label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
-            <Input id="email" type="email" autoComplete="email" autoFocus placeholder="you@example.com"
+            <Input id="email" type="email" autoComplete="email" placeholder="you@example.com"
               className="h-12 border-white/10 bg-white/[0.025] pl-10 text-white"
               aria-invalid={Boolean(errors.email)} disabled={isSubmitting} {...register("email")} />
           </div>
