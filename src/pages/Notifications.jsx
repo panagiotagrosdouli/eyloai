@@ -33,22 +33,14 @@ export default function Notifications() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:py-10">
       <header className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary/10 text-primary"><Bell size={17} /></span>
-            <div>
-              <h1 className="font-heading text-2xl font-bold">Notifications</h1>
-              <p className="text-xs text-muted-foreground">{unreadCount} unread high-priority watchlist {unreadCount === 1 ? 'finding' : 'findings'}</p>
-            </div>
-          </div>
-        </div>
+        <div><h1 className="font-heading text-2xl font-bold">Notifications</h1><p className="text-xs text-muted-foreground">{unreadCount} unread</p></div>
         <button
           type="button"
           onClick={() => monitoringStore.markAllRead()}
           disabled={unreadCount === 0}
           className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-border px-4 py-2 text-xs font-semibold hover:bg-secondary disabled:opacity-40"
         >
-          <CheckCheck size={13} /> Mark all read
+          <CheckCheck size={13} /> Clear
         </button>
       </header>
 

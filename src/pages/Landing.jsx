@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, BookOpen, CheckCircle2, Database, ExternalLink, FileSearch, FolderKanban,
-  Search, ShieldCheck,
+  ArrowRight, BookOpen, FileSearch, FolderKanban, Search, ShieldCheck,
+  Sparkles, Users, Zap,
 } from 'lucide-react';
 import ServiceStatus from '@/components/system/ServiceStatus';
 import BrandLogo from '@/components/brand/BrandLogo';
@@ -10,30 +10,24 @@ import { trackSearchStarted } from '@/lib/product-analytics';
 
 const EXAMPLES = [
   'AI for early cancer detection',
-  'Climate adaptation for coastal cities',
-  'Trustworthy AI in higher education',
-  'Battery recycling for grid storage',
+  'Climate adaptation',
+  'Battery recycling',
 ];
 
-const SOURCES = [
-  ['OpenAlex', 'works, authors, institutions'],
-  ['arXiv', 'open research preprints'],
-  ['Europe PMC', 'biomedical literature'],
-  ['Crossref', 'DOIs and publication metadata'],
-  ['Semantic Scholar', 'scholarly records and citations'],
+const SOURCES = ['OpenAlex', 'arXiv', 'Europe PMC', 'Crossref', 'Semantic Scholar'];
+
+const CAPABILITIES = [
+  { icon: FileSearch, title: 'Discover', text: 'Papers, researchers, institutions.' },
+  { icon: BookOpen, title: 'Organize', text: 'Evidence, projects, decisions.' },
+  { icon: Sparkles, title: 'Decide', text: 'Sourced reasoning with EYRA.' },
+  { icon: Zap, title: 'Deliver', text: 'Grants, briefs, decks, plans.' },
 ];
 
-const STEPS = [
-  { number: '01', title: 'Ask a useful question', detail: 'Choose your level, goal and time horizon so the same topic produces the right research path.', icon: Search },
-  { number: '02', title: 'Inspect real evidence', detail: 'EYLO retrieves source records, removes duplicates and labels partial source failures instead of filling gaps.', icon: BookOpen },
-  { number: '03', title: 'Turn it into work', detail: 'Save evidence to a project, find collaborators and funding, then ask EYRA for a sourced next step.', icon: FolderKanban },
-];
-
-const OUTPUTS = [
-  { label: 'Evidence', text: 'Source-linked papers and records', tone: 'text-cyan-300' },
-  { label: 'Inference', text: 'Model reasoning labelled separately', tone: 'text-violet-300' },
-  { label: 'Uncertainty', text: 'Missing or weak support stays visible', tone: 'text-amber-300' },
-  { label: 'Next action', text: 'A concrete validation step', tone: 'text-emerald-300' },
+const START_ACTIONS = [
+  { icon: Search, label: 'Search evidence', href: '/discover' },
+  { icon: Users, label: 'Find expertise', href: '/discover' },
+  { icon: FolderKanban, label: 'Create a workspace', href: '/register' },
+  { icon: Sparkles, label: 'Work with EYRA', href: '/register' },
 ];
 
 export default function Landing() {
@@ -48,97 +42,93 @@ export default function Landing() {
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#090b0f] text-slate-100">
-      <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#090b0f]/95 backdrop-blur-xl">
+    <main className="min-h-screen overflow-hidden bg-[#07090d] text-slate-100">
+      <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#07090d]/95 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center gap-3 px-5 sm:px-8">
-          <Link to="/" className="flex items-center gap-3" aria-label="EYLO home">
-            <BrandLogo brand="eylo" size="nav" priority />
-          </Link>
+          <Link to="/" aria-label="EYLO home"><BrandLogo brand="eylo" size="nav" priority /></Link>
           <div className="ml-auto hidden sm:block"><ServiceStatus /></div>
-          <Link to="/discover" className="hidden rounded-xl px-3 py-2 text-sm text-slate-400 hover:text-white md:inline-flex">Explore</Link>
-          <Link to="/login" className="rounded-xl px-3 py-2 text-sm text-slate-300 hover:text-white">Sign in</Link>
-          <Link to="/register" className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-slate-100">Create workspace</Link>
+          <Link to="/discover" className="hidden rounded-lg px-3 py-2 text-sm text-slate-400 hover:text-white md:inline-flex">Explore</Link>
+          <Link to="/login" className="rounded-lg px-3 py-2 text-sm text-slate-300 hover:text-white">Sign in</Link>
+          <Link to="/register" className="rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-950">Start</Link>
         </div>
       </header>
 
-      <section className="px-5 pb-20 pt-16 sm:px-8 sm:pb-28 sm:pt-24">
-        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[minmax(0,1.12fr)_minmax(24rem,0.88fr)] lg:items-center">
+      <section className="relative px-5 pb-20 pt-16 sm:px-8 sm:pb-28 sm:pt-24">
+        <div className="pointer-events-none absolute left-1/2 top-0 h-[30rem] w-[60rem] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.11),transparent_68%)]" />
+        <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)] lg:items-center">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.025] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-300">
-              <Database size={12} />Research workflow grounded in source records
-            </div>
-            <h1 className="mt-7 max-w-4xl font-heading text-5xl font-semibold leading-[1.02] tracking-[-0.055em] text-white sm:text-7xl lg:text-[5rem]">
-              Research less blindly.
-              <span className="block text-slate-400">Move with evidence.</span>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-300">Research intelligence workspace</p>
+            <h1 className="mt-6 max-w-4xl font-heading text-6xl font-semibold leading-[0.96] tracking-[-0.065em] text-white sm:text-8xl">
+              Find the signal.
+              <span className="block text-slate-500">Make the move.</span>
             </h1>
-            <p className="mt-6 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg sm:leading-8">
-              Search papers, people and opportunities across scholarly sources. Save the useful evidence and let EYRA turn it into a clear, sourced next step.
+            <p className="mt-7 max-w-xl text-base leading-7 text-slate-400 sm:text-lg">
+              EYLO connects live research, your work and EYRA into one decisive flow.
             </p>
 
-            <form onSubmit={explore} className="mt-9 max-w-3xl rounded-2xl border border-white/10 bg-[#10131a] p-2 shadow-2xl shadow-black/25">
+            <form onSubmit={explore} className="mt-9 max-w-3xl rounded-2xl border border-white/10 bg-white/[0.035] p-2 shadow-2xl shadow-black/30">
               <label htmlFor="research-question" className="sr-only">Research question</label>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-center">
-                  <Search className="ml-3 shrink-0 text-slate-400" size={17} />
-                  <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="What do you want to understand or build?"
-                    className="min-w-0 flex-1 bg-transparent px-3 py-3.5 text-base text-white outline-none placeholder:text-slate-500" />
+                  <Search className="ml-3 shrink-0 text-slate-500" size={17} />
+                  <input
+                    id="research-question"
+                    value={question}
+                    onChange={event => setQuestion(event.target.value)}
+                    placeholder="Ask a real question…"
+                    className="min-w-0 flex-1 bg-transparent px-3 py-3.5 text-base text-white outline-none placeholder:text-slate-600"
+                  />
                 </div>
                 <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500 px-5 py-3.5 text-sm font-semibold text-white hover:bg-blue-400">
-                  Explore evidence <ArrowRight size={14} />
+                  Explore <ArrowRight size={14} />
                 </button>
               </div>
             </form>
 
-            <div className="mt-4 flex flex-wrap gap-2" aria-label="Example research questions">
+            <div className="mt-4 flex flex-wrap gap-2" aria-label="Example questions">
               {EXAMPLES.map(example => (
-                <button key={example} type="button" onClick={() => setQuestion(example)} className="rounded-full border border-white/[0.08] px-3 py-1.5 text-[11px] text-slate-500 hover:border-cyan-300/25 hover:text-slate-200">{example}</button>
+                <button key={example} type="button" onClick={() => setQuestion(example)} className="rounded-full border border-white/[0.08] px-3 py-1.5 text-[11px] text-slate-500 hover:text-white">{example}</button>
               ))}
             </div>
-            <p className="mt-5 flex items-center gap-2 text-xs text-slate-500"><ShieldCheck size={13} className="text-emerald-400" />Public discovery works without an account. No invented records.</p>
           </div>
 
-          <div className="rounded-2xl border border-white/[0.09] bg-[#10131a] p-5 shadow-2xl shadow-black/25 sm:p-7">
-            <div className="flex items-center justify-between gap-4 border-b border-white/[0.07] pb-5">
-              <div><p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-500">What you receive</p><p className="mt-2 text-sm font-semibold text-white">A decision-ready answer for your own question</p></div>
-              <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.03]"><FileSearch size={17} className="text-slate-300" /></span>
+          <aside className="overflow-hidden rounded-2xl border border-white/[0.09] bg-[#0d1119] shadow-2xl shadow-black/30">
+            <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4">
+              <span className="text-xs font-semibold text-white">Start here</span>
+              <span className="h-2 w-2 rounded-full bg-emerald-400" aria-label="Live" />
             </div>
-            <div className="mt-2 divide-y divide-white/[0.07]">
-              {OUTPUTS.map(output => (
-                <div key={output.label} className="grid grid-cols-[6.5rem_1fr] gap-3 py-4">
-                  <span className={`text-[10px] font-semibold uppercase tracking-wide ${output.tone}`}>{output.label}</span>
-                  <span className="text-xs leading-5 text-slate-400">{output.text}</span>
-                </div>
+            <div className="divide-y divide-white/[0.07]">
+              {START_ACTIONS.map(({ icon: Icon, label, href }) => (
+                <Link key={label} to={href} className="group flex items-center gap-3 px-5 py-4 text-sm text-slate-300 hover:bg-white/[0.035] hover:text-white">
+                  <span className="grid h-9 w-9 place-items-center rounded-xl border border-white/[0.08] text-slate-500 group-hover:text-cyan-300"><Icon size={15} /></span>
+                  <span className="flex-1 font-medium">{label}</span>
+                  <ArrowRight size={13} className="text-slate-700 group-hover:text-slate-300" />
+                </Link>
               ))}
             </div>
-            <Link to="/discover" className="mt-4 flex items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-3 text-xs font-semibold text-slate-200 hover:border-blue-300/25">
-              Try it with your own topic <ExternalLink size={13} />
-            </Link>
-          </div>
+            <div className="flex items-center gap-2 border-t border-white/[0.07] px-5 py-3 text-[10px] text-slate-600"><ShieldCheck size={12} className="text-emerald-400" /> Source-linked. No invented records.</div>
+          </aside>
         </div>
       </section>
 
       <section className="border-y border-white/[0.07] bg-white/[0.015] px-5 py-6 sm:px-8">
-        <div className="mx-auto max-w-7xl">
-          <p className="text-center text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-600">Queries attempt multiple scholarly indexes; each response reports which sources answered</p>
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
-            {SOURCES.map(([name, detail]) => <div key={name} className="text-center"><p className="text-xs font-semibold text-slate-300">{name}</p><p className="mt-1 text-[9px] leading-4 text-slate-600">{detail}</p></div>)}
-          </div>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-3">
+          {SOURCES.map(source => <span key={source} className="text-[10px] font-medium uppercase tracking-[0.14em] text-slate-600">{source}</span>)}
         </div>
       </section>
 
       <section className="px-5 py-20 sm:px-8 sm:py-28">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-2xl">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">One continuous workflow</p>
-            <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">From question to next action.</h2>
-            <p className="mt-4 text-base leading-7 text-slate-400">No maze of disconnected AI tools. Start with evidence, keep the context and choose what happens next.</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">What EYLO does</p>
+            <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.045em] text-white sm:text-6xl">Question to outcome.</h2>
           </div>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {STEPS.map(({ number, title, detail, icon: Icon }) => (
-              <article key={number} className="rounded-2xl border border-white/[0.08] bg-[#0b101a] p-6">
-                <div className="flex items-center justify-between"><span className="grid h-10 w-10 place-items-center rounded-xl bg-cyan-300/[0.07] text-cyan-300"><Icon size={17} /></span><span className="font-mono text-[10px] text-slate-700">{number}</span></div>
-                <h3 className="mt-7 text-lg font-semibold text-white">{title}</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-500">{detail}</p>
+          <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.08] sm:grid-cols-2 lg:grid-cols-4">
+            {CAPABILITIES.map(({ icon: Icon, title, text }) => (
+              <article key={title} className="bg-[#090c12] p-6">
+                <Icon size={18} className="text-cyan-300" />
+                <h3 className="mt-8 text-base font-semibold text-white">{title}</h3>
+                <p className="mt-2 text-xs leading-5 text-slate-500">{text}</p>
               </article>
             ))}
           </div>
@@ -146,32 +136,26 @@ export default function Landing() {
       </section>
 
       <section className="border-y border-white/[0.07] px-5 py-20 sm:px-8 sm:py-28">
-        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">Built for honest research</p>
-            <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">Know what is evidence — and what is AI.</h2>
-            <p className="mt-5 max-w-xl text-base leading-7 text-slate-400">EYLO keeps source records, model inference and uncertainty separate. Failed sources are shown, and AI synthesis never replaces the underlying papers.</p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {[
-              'Source links remain attached to records.',
-              'Duplicate papers are filtered across indexes.',
-              'Partial retrieval is labelled per query.',
-              'Saved workspace data is private to the user.',
-              'AI availability is checked live.',
-              'Researchers keep final scientific responsibility.',
-            ].map(item => <div key={item} className="flex items-start gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 text-xs leading-5 text-slate-400"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-400" />{item}</div>)}
-          </div>
+        <div className="mx-auto grid max-w-7xl gap-5 md:grid-cols-2">
+          <article className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 sm:p-8">
+            <BrandLogo brand="eylo" size="panel" />
+            <h2 className="mt-8 text-2xl font-semibold text-white">The workspace.</h2>
+            <p className="mt-3 text-sm text-slate-500">Evidence, projects and execution.</p>
+          </article>
+          <article className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 sm:p-8">
+            <BrandLogo brand="eyra" size="panel" />
+            <h2 className="mt-8 text-2xl font-semibold text-white">The intelligence.</h2>
+            <p className="mt-3 text-sm text-slate-500">Reasoning, challenge and next action.</p>
+          </article>
         </div>
       </section>
 
       <section className="px-5 py-20 text-center sm:px-8 sm:py-28">
         <div className="mx-auto max-w-3xl">
-          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.05] text-cyan-300"><Database size={19} /></div>
-          <h2 className="mt-6 font-heading text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">Start with a real question.</h2>
-          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-400">Explore public evidence now. Create a workspace only when you want to save, organize and continue.</p>
+          <h2 className="font-heading text-4xl font-semibold tracking-[-0.045em] text-white sm:text-6xl">Do the work.</h2>
+          <p className="mx-auto mt-4 max-w-lg text-sm text-slate-500">Start public. Save when it matters.</p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link to="/discover" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950">Explore evidence <ArrowRight size={14} /></Link>
+            <Link to="/discover" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950">Explore <ArrowRight size={14} /></Link>
             <Link to="/register" className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold text-white">Create workspace</Link>
           </div>
         </div>
@@ -179,8 +163,8 @@ export default function Landing() {
 
       <footer className="border-t border-white/[0.07] px-5 py-7 sm:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3"><BrandLogo brand="eylo" size="compact" /><span>Research intelligence workspace</span></div>
-          <div className="flex flex-wrap gap-5"><Link to="/discover" className="hover:text-slate-300">Public discovery</Link><Link to="/login" className="hover:text-slate-300">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span></div>
+          <BrandLogo brand="eylo" size="compact" />
+          <div className="flex flex-wrap gap-5"><Link to="/discover" className="hover:text-white">Explore</Link><Link to="/login" className="hover:text-white">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span></div>
         </div>
       </footer>
     </main>

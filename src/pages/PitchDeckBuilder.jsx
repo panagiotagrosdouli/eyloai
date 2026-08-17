@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { jsPDF } from 'jspdf';
 import {
-  Download, ExternalLink, FileText, Loader2, Presentation, Sparkles,
+  Download, ExternalLink, FileText, Loader2, Sparkles,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { searchAllPapers } from '@/lib/eyra-api';
@@ -138,9 +138,7 @@ Rules:
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <header className="mb-7">
-        <div className="mb-2 flex items-center gap-2 text-primary"><Presentation size={15} /><span className="text-[10px] font-bold uppercase tracking-widest">Pitch Deck AI</span></div>
-        <h1 className="font-heading text-3xl font-black">Build an evidence-aware pitch deck.</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">EYRA retrieves live scholarly and official funding records, separates hypotheses from facts, and exports a real PDF.</p>
+        <h1 className="font-heading text-3xl font-black">Pitch Deck</h1>
       </header>
 
       <form onSubmit={generate} className="grid gap-4 rounded-2xl border border-border bg-card p-5 sm:grid-cols-2">

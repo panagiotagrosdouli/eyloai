@@ -50,7 +50,6 @@ export default function Researchers() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="font-heading font-bold text-2xl sm:text-3xl mb-1 text-foreground">Researchers</h1>
-        <p className="text-muted-foreground text-sm">Discover experts and collaborators via OpenAlex — real data, real researchers</p>
       </div>
 
       {/* Search */}

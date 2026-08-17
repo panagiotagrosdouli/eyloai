@@ -238,13 +238,7 @@ Rules:
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-lg eyra-gradient flex items-center justify-center">
-              <Sparkles size={14} className="text-white" />
-            </div>
-            <h1 className="font-heading font-bold text-2xl">EYRA Opportunity Radar</h1>
-          </div>
-          <p className="text-sm text-muted-foreground">Run a verified funding scan, then let EYRA rank the official records for your profile and projects</p>
+          <h1 className="font-heading font-bold text-2xl">Opportunity Radar</h1>
         </div>
         <button
           onClick={runRadar}
@@ -252,7 +246,7 @@ Rules:
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 flex-shrink-0"
         >
           {loading ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
-          {loading ? 'Scanning...' : hasRun ? 'Re-scan' : 'Run Radar'}
+          {loading ? 'Scanning…' : hasRun ? 'Scan again' : 'Scan'}
         </button>
       </div>
 

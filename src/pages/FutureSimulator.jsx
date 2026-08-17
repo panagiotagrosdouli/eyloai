@@ -132,18 +132,7 @@ Return project_summary, conservative, growth, aggressive, eyra_recommendation, a
     <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-lg eyra-gradient flex items-center justify-center">
-            <Rocket size={14} className="text-white" />
-          </div>
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-primary">EYRA Future Simulator</span>
-        </div>
-        <h1 className="font-heading font-black text-2xl sm:text-3xl mb-2 text-foreground">
-          Explore Your <span className="impact-gradient">Scenarios</span>
-        </h1>
-        <p className="text-muted-foreground text-sm max-w-xl">
-          Describe your idea or project. EYRA retrieves relevant research and builds three conditional planning paths with assumptions, risks, resources, and milestones.
-        </p>
+        <h1 className="font-heading font-black text-2xl sm:text-3xl text-foreground">Scenario Planner</h1>
       </div>
 
       <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] text-muted-foreground">

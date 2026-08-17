@@ -148,18 +148,7 @@ Funding records are retrieved separately from an official source. Do not generat
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-lg eyra-gradient flex items-center justify-center">
-            <Globe size={14} className="text-white" />
-          </div>
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-primary">Research Battlefield</span>
-        </div>
-        <h1 className="font-heading font-black text-2xl sm:text-3xl mb-2 text-foreground">
-          Global <span className="impact-gradient">Intelligence Map</span>
-        </h1>
-        <p className="text-muted-foreground text-sm max-w-xl">
-          Verified researchers, institutions, and papers from OpenAlex, plus official funding records — with AI-assisted, clearly labeled interpretation.
-        </p>
+        <h1 className="font-heading font-black text-2xl sm:text-3xl text-foreground">Research Landscape</h1>
       </div>
 
       {/* Search */}

@@ -4,7 +4,7 @@ import { searchAllPapers } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import { monitoringStore } from '@/lib/monitoring-service';
 import { Lightbulb, Plus, X, Sparkles, Loader2, Trash2, Tag } from 'lucide-react';
-import { EyraSectionLabel, EyraPoweredBy } from '@/components/eyra/EyraBadge';
+import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import ReactMarkdown from 'react-markdown';
@@ -124,18 +124,13 @@ Never invent papers, programs, deadlines, statistics, or URLs.`,
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-8">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Lightbulb size={18} className="text-primary" />
-            <h1 className="font-heading font-bold text-2xl text-foreground">Idea Vault</h1>
-          </div>
-          <p className="text-muted-foreground text-sm">Store ideas, analyze real evidence, and create on-demand research and funding watchlists.</p>
-          <EyraPoweredBy label="Watchlists powered by EYRA" className="justify-start mt-1" />
+          <h1 className="font-heading font-bold text-2xl text-foreground">Ideas</h1>
         </div>
         <button
           onClick={() => setShowNew(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity flex-shrink-0"
         >
-          <Plus size={14} /> New Idea
+          <Plus size={14} /> New
         </button>
       </div>
 

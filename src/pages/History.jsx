@@ -98,11 +98,7 @@ export default function History() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <Sparkles size={16} className="text-primary" />
-          <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground">EYRA Activity</h1>
-        </div>
-        <p className="text-muted-foreground text-sm">Your discovery timeline and saved intelligence</p>
+        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground">Activity</h1>
       </div>
 
       {/* Summary stats */}

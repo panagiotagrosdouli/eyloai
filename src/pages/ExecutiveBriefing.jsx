@@ -192,13 +192,7 @@ Rules:
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-9 h-9 rounded-xl eyra-gradient flex items-center justify-center">
-              <Brain size={16} className="text-white" />
-            </div>
-            <h1 className="font-heading font-bold text-2xl">EYRA Executive Briefing</h1>
-          </div>
-          <p className="text-sm text-muted-foreground">A source-grounded weekly synthesis of your workspace and live research records</p>
+          <h1 className="font-heading font-bold text-2xl">Executive Briefing</h1>
           {lastGenerated && (
             <p className="text-[10px] text-muted-foreground mt-0.5">Last generated: {moment(lastGenerated).fromNow()}</p>
           )}
@@ -206,7 +200,7 @@ Rules:
         <button onClick={() => generateBriefing()} disabled={loading || initializing || !user}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity flex-shrink-0">
           {loading ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
-          {initializing ? 'Loading workspace...' : loading ? 'Generating...' : briefing ? 'Refresh' : 'Generate Briefing'}
+          {initializing ? 'Loading…' : loading ? 'Generating…' : briefing ? 'Refresh' : 'Generate'}
         </button>
       </div>
 

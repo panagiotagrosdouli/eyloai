@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, BarChart3, Building2, Loader2, ShieldCheck, Users } from 'lucide-react';
+import { Activity, BarChart3, Loader2, ShieldCheck, Users } from 'lucide-react';
 import { protectedApiFetch } from '@/lib/protected-api';
 
 export default function InstitutionAdmin() {
@@ -30,9 +30,7 @@ export default function InstitutionAdmin() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <header className="mb-7">
-        <div className="mb-2 flex items-center gap-2 text-primary"><Building2 size={15} /><span className="text-[10px] font-bold uppercase tracking-widest">Institution Admin</span></div>
-        <h1 className="font-heading text-3xl font-black">Organization research activity.</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Aggregated server-side metrics for members provisioned with the same institution_id. Individual research content is not returned here.</p>
+        <h1 className="font-heading text-3xl font-black">Institution Analytics</h1>
       </header>
       {error ? (
         <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-6 text-sm leading-6 text-amber-200">{error}<p className="mt-2 text-xs">An institution plan, organization_role= institution_admin and institution_id must be provisioned on your profile.</p></div>

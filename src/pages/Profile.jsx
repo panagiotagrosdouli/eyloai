@@ -94,7 +94,6 @@ export default function Profile() {
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="mb-8">
         <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground mb-1">Profile</h1>
-        <p className="text-muted-foreground text-sm">Your Research & Innovation identity on EYLO. A complete profile helps EYRA personalize recommendations.</p>
       </div>
 
       {loadError && <div role="status" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadError}</div>}

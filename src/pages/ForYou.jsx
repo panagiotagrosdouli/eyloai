@@ -65,15 +65,7 @@ export default function ForYou() {
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <div className="w-7 h-7 rounded-lg overflow-hidden bg-white">
-              <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
-            </div>
-            <h1 className="font-heading font-bold text-xl text-foreground">EYRA Intelligence</h1>
-          </div>
-          <p className="text-muted-foreground text-sm">On-demand source checks · OpenAlex · arXiv · Europe PMC · Grants.gov</p>
-        </div>
+        <h1 className="font-heading font-bold text-xl text-foreground">For you</h1>
         <ServiceStatus />
       </div>
 

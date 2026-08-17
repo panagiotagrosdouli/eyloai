@@ -4,7 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 import MeetingCard from '@/components/meetings/MeetingCard';
 import MeetingForm from '@/components/meetings/MeetingForm';
 import MeetingDetail from '@/components/meetings/MeetingDetail';
-import { Video, Plus, Calendar, Clock, Loader2 } from 'lucide-react';
+import { Plus, Calendar, Clock, Loader2 } from 'lucide-react';
 import moment from 'moment';
 
 const TABS = ['Upcoming', 'Past', 'All'];
@@ -91,16 +91,13 @@ export default function Meetings() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-heading font-bold text-2xl flex items-center gap-2">
-            <Video size={22} className="text-primary" /> Calls & Meetings
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Schedule, prepare, and debrief with EYRA</p>
+          <h1 className="font-heading font-bold text-2xl">Meetings</h1>
         </div>
         <button
           onClick={() => setShowForm(true)}
           className="flex items-center gap-2 px-4 py-2 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity"
         >
-          <Plus size={15} /> New Meeting
+          <Plus size={15} /> New
         </button>
       </div>
 

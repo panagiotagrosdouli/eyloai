@@ -173,16 +173,10 @@ Return current_summary, future_summary, overall_progress, scores, score_labels, 
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-7 h-7 rounded-lg overflow-hidden bg-white">
-              <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Future Me Engine</span>
-          </div>
           <h1 className="font-heading font-black text-2xl text-foreground">
-            Your Future: <span className="eyra-text-gradient">{goal.text}</span>
+            Future: <span className="eyra-text-gradient">{goal.text}</span>
           </h1>
-          <p className="text-muted-foreground text-xs mt-0.5">Goal timeframe: {goal.timeframe} · Planning indicators are based on saved workspace activity</p>
+          <p className="text-muted-foreground text-xs mt-1">{goal.timeframe}</p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
           <button onClick={refresh} className="p-2 rounded-lg border border-border hover:bg-secondary transition-colors text-muted-foreground" title="Refresh analysis">

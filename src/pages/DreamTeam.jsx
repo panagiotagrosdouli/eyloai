@@ -159,18 +159,7 @@ Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequ
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-lg eyra-gradient flex items-center justify-center">
-            <Users size={14} className="text-white" />
-          </div>
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-primary">Dream Team Builder</span>
-        </div>
-        <h1 className="font-heading font-black text-2xl sm:text-3xl mb-2 text-foreground">
-          Build Your <span className="impact-gradient">Dream Team</span>
-        </h1>
-        <p className="text-muted-foreground text-sm max-w-xl">
-          EYRA designs the required roles and retrieves real researcher and institution profiles from OpenAlex for you to evaluate.
-        </p>
+        <h1 className="font-heading font-black text-2xl sm:text-3xl text-foreground">Team Planner</h1>
       </div>
 
       <div className="mb-4 rounded-xl border border-border bg-secondary/20 p-3 text-[11px] text-muted-foreground">
