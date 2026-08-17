@@ -119,23 +119,21 @@ export default function GuidedSearch({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Search setup</p>
-              <h2 id="guided-search-title" className="mt-1 text-lg font-semibold text-foreground">Tailor this search to your goal.</h2>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">“{topic}” will be searched differently depending on your level, intended output, and time horizon.</p>
+              <h2 id="guided-search-title" className="mt-1 text-lg font-semibold text-foreground">Set the scope.</h2>
             </div>
             <button type="button" onClick={() => setRefining(false)} aria-label="Close search setup" className="rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground"><X size={14} /></button>
           </div>
 
           <fieldset className="mt-5">
-            <legend className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">1 · What is your level?</legend>
+            <legend className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">1 · Level</legend>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               {DISCOVERY_LEVELS.map(option => {
                 const Icon = option.icon;
                 const selected = level === option.id;
                 return (
-                  <button key={option.id} type="button" onClick={() => setLevel(option.id)} aria-pressed={selected} className={`rounded-xl border p-3 text-left transition-colors ${selected ? 'border-primary/45 bg-primary/10' : 'border-border bg-card hover:border-primary/25'}`}>
+                  <button key={option.id} type="button" onClick={() => setLevel(option.id)} aria-pressed={selected} title={option.desc} className={`flex items-center gap-2 rounded-xl border p-3 text-left transition-colors ${selected ? 'border-primary/45 bg-primary/10' : 'border-border bg-card hover:border-primary/25'}`}>
                     <Icon size={14} className={selected ? 'text-primary' : 'text-muted-foreground'} />
-                    <p className="mt-2 text-xs font-semibold text-foreground">{option.label}</p>
-                    <p className="mt-1 text-[10px] leading-4 text-muted-foreground">{option.desc}</p>
+                    <span className="text-xs font-semibold text-foreground">{option.label}</span>
                   </button>
                 );
               })}
@@ -143,16 +141,15 @@ export default function GuidedSearch({
           </fieldset>
 
           <fieldset className="mt-5">
-            <legend className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">2 · What do you want to achieve?</legend>
+            <legend className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">2 · Goal</legend>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
               {DISCOVERY_GOALS.map(option => {
                 const Icon = option.icon;
                 const selected = goal === option.id;
                 return (
-                  <button key={option.id} type="button" onClick={() => setGoal(option.id)} aria-pressed={selected} className={`rounded-xl border p-3 text-left transition-colors ${selected ? 'border-primary/45 bg-primary/10' : 'border-border bg-card hover:border-primary/25'}`}>
+                  <button key={option.id} type="button" onClick={() => setGoal(option.id)} aria-pressed={selected} title={option.desc} className={`flex items-center gap-2 rounded-xl border p-3 text-left transition-colors ${selected ? 'border-primary/45 bg-primary/10' : 'border-border bg-card hover:border-primary/25'}`}>
                     <Icon size={14} className={selected ? 'text-primary' : 'text-muted-foreground'} />
-                    <p className="mt-2 text-xs font-semibold text-foreground">{option.label}</p>
-                    <p className="mt-1 text-[10px] leading-4 text-muted-foreground">{option.desc}</p>
+                    <span className="text-xs font-semibold text-foreground">{option.label}</span>
                   </button>
                 );
               })}
@@ -160,14 +157,13 @@ export default function GuidedSearch({
           </fieldset>
 
           <fieldset className="mt-5">
-            <legend className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">3 · How current should it be?</legend>
+            <legend className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">3 · Range</legend>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {DISCOVERY_RANGES.map(option => {
                 const selected = recency === option.id;
                 return (
-                  <button key={option.id} type="button" onClick={() => setRecency(option.id)} aria-pressed={selected} className={`rounded-xl border px-3 py-2.5 text-left transition-colors ${selected ? 'border-primary/45 bg-primary/10' : 'border-border bg-card hover:border-primary/25'}`}>
-                    <p className="text-xs font-semibold text-foreground">{option.label}</p>
-                    <p className="mt-0.5 text-[9px] text-muted-foreground">{option.desc}</p>
+                  <button key={option.id} type="button" onClick={() => setRecency(option.id)} aria-pressed={selected} title={option.desc} className={`rounded-xl border px-3 py-2.5 text-left transition-colors ${selected ? 'border-primary/45 bg-primary/10' : 'border-border bg-card hover:border-primary/25'}`}>
+                    <span className="text-xs font-semibold text-foreground">{option.label}</span>
                   </button>
                 );
               })}
@@ -175,7 +171,7 @@ export default function GuidedSearch({
           </fieldset>
 
           <div className="mt-6 flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <button type="button" onClick={skip} className="px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground">Run a balanced search instead</button>
+            <button type="button" onClick={skip} className="px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground">Use defaults</button>
             <button type="button" onClick={submit} disabled={!level || !goal} className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-35">
               <Search size={14} /> Search evidence
             </button>

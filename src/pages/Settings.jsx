@@ -65,12 +65,9 @@ const ACCESSIBILITY_MODES = [
   { id: 'reading', label: 'Reading Mode', desc: 'Optimized for long reading sessions' },
 ];
 
-function SectionHeader({ title, desc }) {
+function SectionHeader({ title }) {
   return (
-    <div className="mb-6">
-      <h2 className="font-heading font-bold text-lg text-foreground mb-1">{title}</h2>
-      <p className="text-sm text-muted-foreground">{desc}</p>
-    </div>
+    <div className="mb-6"><h2 className="font-heading font-bold text-lg text-foreground">{title}</h2></div>
   );
 }
 
@@ -362,7 +359,6 @@ export default function Settings() {
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="mb-6">
         <h1 className="font-heading font-bold text-2xl text-foreground mb-1">Settings</h1>
-        <p className="text-sm text-muted-foreground">Manage your EYLO workspace and preferences.</p>
       </div>
 
       {/* Mobile section picker */}

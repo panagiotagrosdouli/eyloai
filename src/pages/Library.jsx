@@ -82,8 +82,7 @@ export default function Library() {
     <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-heading font-bold text-2xl sm:text-3xl mb-1 text-foreground">Research Library</h1>
-        <p className="text-muted-foreground text-sm">Your curated knowledge base from EYRA discoveries</p>
+        <h1 className="font-heading font-bold text-2xl sm:text-3xl mb-1 text-foreground">Library</h1>
       </div>
 
       {loadNotice && <div role="status" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadNotice}</div>}

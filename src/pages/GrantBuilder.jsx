@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  CheckCircle2, Download, ExternalLink, FileText, Loader2, Save, Sparkles,
+  CheckCircle2, Download, ExternalLink, Loader2, Save, Sparkles,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useToast } from '@/components/ui/use-toast';
@@ -172,9 +172,7 @@ Rules:
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <header className="mb-7">
-        <div className="mb-2 flex items-center gap-2 text-primary"><FileText size={15} /><span className="text-[10px] font-bold uppercase tracking-widest">Grant Builder & Tracker</span></div>
-        <h1 className="font-heading text-3xl font-black">Turn a saved official notice into a working application.</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Select a saved funding record and project. EYRA drafts only from those records, flags missing information and keeps application status with the opportunity.</p>
+        <h1 className="font-heading text-3xl font-black">Grant Builder</h1>
       </header>
 
       {opportunities.length === 0 || projects.length === 0 ? (

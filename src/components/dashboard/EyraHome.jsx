@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, BookOpen, ChevronRight, FolderOpen, Lightbulb, Loader2, Plus,
-  Search, Sparkles, Users, Zap,
+  Users, Zap,
 } from 'lucide-react';
 import { buildUserProfile } from '@/lib/second-brain';
 import UserTypeOnboarding from '@/components/eyra/UserTypeOnboarding';
@@ -18,11 +18,10 @@ function WelcomeScreen({ onStart }) {
     <div className="grid min-h-[calc(100vh-5rem)] place-items-center px-5 py-16 text-center">
       <div className="max-w-lg">
         <BrandLogo brand="eyra" size="hero" className="mx-auto" priority />
-        <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">Your research workspace</p>
-        <h1 className="mt-3 font-heading text-4xl font-semibold tracking-tight sm:text-5xl">Meet EYRA.</h1>
-        <p className="mx-auto mt-4 max-w-md text-base leading-7 text-muted-foreground">Search live evidence, keep the useful records, and turn them into a project with clear next actions.</p>
+        <h1 className="mt-8 font-heading text-4xl font-semibold tracking-tight sm:text-5xl">Meet EYRA.</h1>
+        <p className="mx-auto mt-4 text-base text-muted-foreground">Search. Decide. Move.</p>
         <button type="button" onClick={onStart} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
-          Set up my workspace <ArrowRight size={14} />
+          Continue <ArrowRight size={14} />
         </button>
       </div>
     </div>
@@ -41,10 +40,10 @@ function ProjectCard({ project }) {
 }
 
 const CORE_ACTIONS = [
-  { label: 'Find researchers', detail: 'Search authors and collaborators', href: '/researchers', icon: Users },
-  { label: 'Search funding', detail: 'Official opportunities and calls', href: '/opportunities', icon: Zap },
-  { label: 'Open library', detail: 'Return to saved evidence', href: '/library', icon: BookOpen },
-  { label: 'Capture an idea', detail: 'Start a research thread', href: '/ideas', icon: Lightbulb },
+  { label: 'Find researchers', href: '/researchers', icon: Users },
+  { label: 'Search funding', href: '/opportunities', icon: Zap },
+  { label: 'Open library', href: '/library', icon: BookOpen },
+  { label: 'Capture an idea', href: '/ideas', icon: Lightbulb },
 ];
 
 export default function EyraHome({ onSearch }) {
@@ -122,19 +121,17 @@ export default function EyraHome({ onSearch }) {
         <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
           <div>
             <div className="mb-5 flex items-center justify-between gap-3">
-              <div><p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Research search</p><h2 className="mt-1 text-sm font-semibold">Start with a topic, question, or outcome</h2></div>
-              <span className="hidden rounded-lg border border-border bg-secondary/40 px-2.5 py-1 text-[9px] text-muted-foreground sm:inline-flex"><Search size={11} className="mr-1.5" />Live sources</span>
+              <h2 className="text-sm font-semibold">Search</h2>
             </div>
             <GuidedSearch onSearch={onSearch} defaultLevel={defaultLevel} />
-            <p className="mt-4 text-[11px] leading-5 text-muted-foreground">Results show their source, partial retrieval remains visible, and duplicate records are removed before analysis.</p>
           </div>
         </section>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.75fr)]">
           <section>
             <div className="mb-3 flex items-end justify-between gap-3">
-              <div><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Workspace</p><h2 className="mt-1 text-lg font-semibold">Continue your work</h2></div>
-              <Link to="/projects" className="text-xs font-medium text-primary hover:underline">All projects</Link>
+              <h2 className="text-lg font-semibold">Projects</h2>
+              <Link to="/projects" className="text-xs font-medium text-primary hover:underline">All</Link>
             </div>
 
             {!loaded ? (
@@ -147,20 +144,19 @@ export default function EyraHome({ onSearch }) {
             ) : (
               <div className="rounded-2xl border border-border bg-card p-6">
                 <div className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-primary"><FolderOpen size={17} /></div>
-                <h3 className="mt-4 font-semibold">Your first project starts with evidence.</h3>
-                <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">Run a search above and save the useful records, or create an empty project and define the question yourself.</p>
+                <h3 className="mt-4 font-semibold">No projects yet.</h3>
                 <Link to="/projects" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-xs font-semibold text-background">Create project <ArrowRight size={12} /></Link>
               </div>
             )}
           </section>
 
           <aside>
-            <div className="mb-3"><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Quick actions</p><h2 className="mt-1 text-lg font-semibold">Move one step forward</h2></div>
+            <h2 className="mb-3 text-lg font-semibold">Actions</h2>
             <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
-              {CORE_ACTIONS.map(({ label, detail, href, icon: Icon }) => (
+              {CORE_ACTIONS.map(({ label, href, icon: Icon }) => (
                 <Link key={href} to={href} className="group flex items-center gap-3 p-4 hover:bg-secondary/35">
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-secondary text-muted-foreground group-hover:text-primary"><Icon size={15} /></span>
-                  <span className="min-w-0 flex-1"><span className="block text-xs font-semibold">{label}</span><span className="mt-0.5 block text-[10px] text-muted-foreground">{detail}</span></span>
+                  <span className="min-w-0 flex-1 text-xs font-semibold">{label}</span>
                   <ChevronRight size={13} className="text-muted-foreground group-hover:text-primary" />
                 </Link>
               ))}
@@ -169,7 +165,7 @@ export default function EyraHome({ onSearch }) {
         </div>
 
         <section className="mt-8 flex flex-col justify-between gap-5 rounded-2xl border border-border bg-secondary/25 p-5 sm:flex-row sm:items-center">
-          <div className="flex items-start gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Sparkles size={15} /></span><div><h2 className="text-sm font-semibold">Need a decision-ready synthesis?</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">EYRA can use your workspace and retrieve supporting records, while keeping evidence, inference and uncertainty separate.</p></div></div>
+          <h2 className="text-sm font-semibold">Need a second opinion?</h2>
           <button type="button" disabled={capabilitiesLoading || !capabilities.ai} onClick={() => window.dispatchEvent(new Event('eylo:open-eyra'))}
             className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-xs font-semibold text-background disabled:cursor-not-allowed disabled:opacity-45">
             Ask EYRA <span className="font-mono text-[9px] opacity-60">⌘K</span>

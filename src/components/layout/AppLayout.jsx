@@ -74,19 +74,16 @@ function ToolLink({ item, active }) {
   return (
     <Link
       to={item.path}
-      className={`group flex min-h-[3.75rem] items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
+      className={`group flex min-h-11 items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
         active ? 'border-primary/25 bg-primary/[0.07]' : 'border-transparent hover:border-border hover:bg-secondary/40'
       }`}
     >
       <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border ${active ? 'border-primary/20 bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground group-hover:text-foreground'}`}>
         <Icon size={15} aria-hidden="true" />
       </span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-2">
-          <span className={`truncate text-xs font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{item.label}</span>
-          {item.badge && <span className="inline-flex items-center gap-1 text-[8px] font-medium uppercase tracking-wide text-muted-foreground"><span className="h-1 w-1 rounded-full bg-current opacity-60" />{item.badge}</span>}
-        </span>
-        <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">{item.desc}</span>
+      <span className="flex min-w-0 flex-1 items-center gap-2">
+        <span className={`truncate text-xs font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{item.label}</span>
+        {item.badge && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/70" title={item.badge}><span className="sr-only">{item.badge}</span></span>}
       </span>
     </Link>
   );
@@ -184,22 +181,19 @@ export default function AppLayout() {
               {toolsOpen && (
                 <div className="absolute left-0 top-full mt-2 w-[min(48rem,calc(100vw-2rem))] rounded-xl border border-border bg-popover p-3 shadow-2xl shadow-black/30">
                   <div className="mb-3 flex flex-col justify-between gap-3 rounded-lg border border-border bg-secondary/25 px-4 py-3 sm:flex-row sm:items-center">
-                    <div><p className="text-xs font-semibold">Workspace tools</p><p className="mt-0.5 text-[10px] text-muted-foreground">Choose an outcome, then keep the evidence and decisions in the same workspace.</p></div>
+                    <p className="text-xs font-semibold">Choose an action</p>
                     <div className="flex items-center gap-2 text-[9px] font-medium uppercase tracking-wide text-muted-foreground"><span>Research</span><span>→</span><span>Decide</span><span>→</span><span>Deliver</span></div>
                   </div>
                   <label className="relative block">
                     <span className="sr-only">Search EYLO tools</span>
                     <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <input value={toolQuery} onChange={event => setToolQuery(event.target.value)} autoFocus placeholder="Search by task, source, or output…"
+                    <input value={toolQuery} onChange={event => setToolQuery(event.target.value)} autoFocus placeholder="Find a tool…"
                       className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/40" />
                   </label>
                   <div className="mt-3 grid max-h-[70vh] gap-4 overflow-y-auto p-1 sm:grid-cols-2">
                     {visibleGroups.map(group => (
                       <section key={group.section}>
-                        <div className="mb-1 px-2">
-                          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground/70">{group.section}</p>
-                          <p className="text-[10px] text-muted-foreground">{group.description}</p>
-                        </div>
+                        <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground/70">{group.section}</p>
                         {group.items.map(item => <ToolLink key={item.path} item={item} active={isActive(item.path)} />)}
                       </section>
                     ))}
@@ -235,7 +229,7 @@ export default function AppLayout() {
                   return <Link key={item.path} to={item.path} className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-medium ${active ? 'border-primary/30 bg-primary/5 text-primary' : 'border-border bg-card text-muted-foreground'}`}><Icon size={15} />{item.label}</Link>;
                 })}
               </div>
-              <div className="my-4 flex items-center justify-between gap-3"><div><p className="text-xs font-semibold text-foreground">Workspace tools</p><p className="mt-0.5 text-[10px] text-muted-foreground">Research → decide → deliver</p></div><ServiceStatus /></div>
+              <div className="my-4 flex items-center justify-between gap-3"><p className="text-xs font-semibold text-foreground">Choose an action</p><ServiceStatus /></div>
               <div className="space-y-5">
                 {TOOL_GROUPS.map(group => (
                   <section key={group.section}>

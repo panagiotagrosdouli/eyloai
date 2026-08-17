@@ -162,8 +162,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
     <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-heading font-bold text-2xl sm:text-3xl mb-1 text-foreground">Funding Intelligence</h1>
-        <p className="text-muted-foreground text-sm">Official funding records first; EYRA then ranks their relevance to your project</p>
+        <h1 className="font-heading font-bold text-2xl sm:text-3xl mb-1 text-foreground">Funding</h1>
       </div>
 
       {/* Source contract */}

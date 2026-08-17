@@ -119,13 +119,12 @@ export default function Projects() {
       <div className="flex items-start justify-between gap-4 mb-8">
         <div>
           <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground mb-1">Projects</h1>
-          <p className="text-muted-foreground text-sm">Keep evidence, decisions, milestones and next actions together.</p>
         </div>
         <button
           onClick={() => setShowNew(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity flex-shrink-0"
         >
-          <Plus size={14} /> New Project
+          <Plus size={14} /> New
         </button>
       </div>
 

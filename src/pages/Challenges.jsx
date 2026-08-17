@@ -149,13 +149,7 @@ Return one result for every supplied id. Do not add programs or change factual f
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-lg eyra-gradient flex items-center justify-center">
-              <Trophy size={14} className="text-white" />
-            </div>
-            <h1 className="font-heading font-bold text-2xl">Innovation Challenges</h1>
-          </div>
-          <p className="text-sm text-muted-foreground">Official open funding calls retrieved first; EYRA then explains their relevance to your profile</p>
+          <h1 className="font-heading font-bold text-2xl">Challenges</h1>
         </div>
       </div>
 

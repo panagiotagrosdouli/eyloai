@@ -47,15 +47,7 @@ export default function FutureMeSetup({ profile, onGoalSet }) {
     <div className="max-w-2xl mx-auto px-4 py-10">
       {/* Header */}
       <div className="text-center mb-10">
-        <div className="w-16 h-16 rounded-2xl eyra-gradient flex items-center justify-center mx-auto mb-5 animate-pulse-glow">
-          <Sparkles size={26} className="text-white" />
-        </div>
-        <h1 className="font-heading font-black text-3xl text-foreground mb-3">
-          Meet your <span className="eyra-text-gradient">Future Me</span>
-        </h1>
-        <p className="text-muted-foreground text-sm max-w-sm mx-auto leading-relaxed">
-          EYRA builds a personalized roadmap from who you are today to who you want to become. Let's start with your goal.
-        </p>
+        <h1 className="font-heading font-black text-3xl text-foreground">Future Me</h1>
       </div>
 
       {/* Step 1 — Goal Selection */}

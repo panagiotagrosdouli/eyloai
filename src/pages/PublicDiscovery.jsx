@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Building2, ExternalLink, Loader2,
-  RefreshCw, Search, ShieldCheck, Sparkles, Users,
+  RefreshCw, Search, ShieldCheck, Users,
 } from 'lucide-react';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import GuidedSearch, { normalizeDiscoveryRequest } from '@/components/discovery/GuidedSearch';
@@ -154,7 +154,7 @@ export default function PublicDiscovery() {
   const availableSources = sourceStatus.filter(source => source.status === 'available');
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="eylo-action-canvas min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 px-4 sm:px-8">
           <Link to="/" className="flex items-center gap-2 text-sm font-semibold" aria-label="Back to EYLO"><ArrowLeft size={15} /><BrandLogo brand="eylo" size="nav" priority /></Link>
@@ -170,10 +170,8 @@ export default function PublicDiscovery() {
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
         {!initialQuery && (
           <section className="mx-auto max-w-5xl py-12 text-center sm:py-20">
-            <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl eyra-gradient text-white"><Sparkles size={22} /></div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Guided evidence discovery</p>
-            <h1 className="mt-3 font-heading text-4xl font-black tracking-tight sm:text-6xl">One topic. A research path built for you.</h1>
-            <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">Tell EYLO your level and goal. The discovery flow retrieves, deduplicates and organizes papers instead of dropping an unexplained list on you.</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Evidence discovery</p>
+            <h1 className="mx-auto mt-3 w-fit font-heading text-4xl font-black tracking-tight sm:text-6xl">Start a search.</h1>
             <div className="mx-auto mt-8 max-w-5xl text-left"><GuidedSearch onSearch={runGuidedSearch} /></div>
           </section>
         )}
@@ -181,9 +179,8 @@ export default function PublicDiscovery() {
         {initialQuery && !refined && (
           <section className="mx-auto max-w-5xl py-8 sm:py-14">
             <div className="mb-7 max-w-3xl">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Before the search</p>
-              <h1 className="mt-2 font-heading text-3xl font-black sm:text-5xl">Shape this search around your goal.</h1>
-              <p className="mt-4 text-sm leading-6 text-muted-foreground">Current topic: <strong className="text-foreground">{initialQuery}</strong>. Choose the depth and intended outcome so the result set is useful for your work.</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{initialQuery}</p>
+              <h1 className="mt-2 font-heading text-3xl font-black sm:text-5xl">Set the scope.</h1>
             </div>
             <GuidedSearch initialTopic={initialQuery} initialRefine onSearch={runGuidedSearch} />
           </section>
@@ -229,13 +226,9 @@ export default function PublicDiscovery() {
             <section className="relative overflow-hidden rounded-[2rem] border border-cyan-200/10 bg-slate-950/70 p-6 sm:p-9">
               <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
               <div className="relative">
-                <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
-                  <ShieldCheck size={12} /> Guided discovery report
-                </div>
-                <h1 className="mt-3 font-heading text-3xl font-black sm:text-5xl">A path through “{initialQuery}”</h1>
-                <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-400">
-                  Tuned for <strong className="text-slate-200">{level}</strong> level · goal <strong className="text-slate-200">{goal}</strong> · <strong className="text-slate-200">{recency.replace('_', ' ')}</strong> evidence.
-                </p>
+                <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-cyan-300"><ShieldCheck size={12} /> Verified report</div>
+                <h1 className="mt-3 font-heading text-3xl font-black sm:text-5xl">{initialQuery}</h1>
+                <p className="mt-4 text-xs text-slate-400">{level} · {goal} · {recency.replace('_', ' ')}</p>
                 <div className="mt-5 flex flex-wrap gap-2">{sourceIndexes.map(source => <span key={source} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] text-slate-300">{source}</span>)}</div>
                 <p className="mt-4 text-[10px] text-slate-500">{data.papers.length} deduplicated papers · {data.researchers.length} researchers · {data.institutions.length} institutions</p>
               </div>

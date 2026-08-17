@@ -94,16 +94,8 @@ export default function Pricing() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       <header className="mx-auto max-w-3xl text-center">
-        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-3 py-1.5">
-          <ShieldCheck size={12} className="text-primary" />
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-primary">Access status</span>
-        </div>
-        <h1 className="font-heading text-4xl font-black sm:text-6xl">Clear access. <span className="impact-gradient">No dead checkout.</span></h1>
-        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-          {billing?.billing_configured
-            ? 'Paid access is verified by the server and Stripe. The workspace reads the entitlement attached to your authenticated account.'
-            : 'Paid checkout is not active on this deployment. Available premium tools remain open for early access, so EYLO will never send you to a checkout that cannot complete.'}
-        </p>
+        <h1 className="font-heading text-4xl font-black sm:text-6xl">Plans</h1>
+        <p className="mx-auto mt-4 text-sm text-muted-foreground">{billing?.billing_configured ? 'Billing is live.' : 'Early access. No checkout.'}</p>
         {billing && <p className="mt-3 text-xs text-muted-foreground">Current plan: <span className="font-semibold uppercase text-primary">{billing.plan}</span> · status {billing.subscription_status}</p>}
       </header>
 

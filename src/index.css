@@ -100,6 +100,48 @@
   }
 }
 
+/* Product titles carry the EYRA mark. Marketing pages keep their own identity. */
+.eylo-app-canvas main h1,
+.eylo-action-canvas h1 {
+  display: inline-block;
+  position: relative;
+  min-height: 2.75rem;
+  padding-left: 3.4rem;
+}
+
+.eylo-app-canvas main h1::before,
+.eylo-action-canvas h1::before {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 2.6rem;
+  height: 2.6rem;
+  content: '';
+  transform: translateY(-50%);
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.85rem;
+  background-color: #050712;
+  background-image: url('/brand/eyra.png');
+  background-repeat: no-repeat;
+  background-position: 13% 50%;
+  background-size: auto 220%;
+  box-shadow: 0 12px 32px -22px rgba(56, 189, 248, 0.9);
+}
+
+@media (max-width: 420px) {
+  .eylo-app-canvas main h1,
+  .eylo-action-canvas h1 {
+    min-height: 2.4rem;
+    padding-left: 3rem;
+  }
+
+  .eylo-app-canvas main h1::before,
+  .eylo-action-canvas h1::before {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
