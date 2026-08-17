@@ -14,6 +14,7 @@ import {
   Check, Copy, Database, ExternalLink, ShieldCheck
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
 
 // EYRA modes change the analysis lens; evidence rules stay identical.
 const MODES = [
@@ -242,9 +243,7 @@ function Message({ msg, onSave, onCopy, saved, copied, saving }) {
       className={`flex gap-2.5 ${isEyra ? '' : 'flex-row-reverse'}`}
     >
       {isEyra ? (
-        <div className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-white mt-0.5">
-          <img src="/brand/eyra.png" alt="" className="h-full w-full object-contain" />
-        </div>
+        <EyraOrb className="mt-0.5 h-8 w-8" />
       ) : (
         <div className="w-7 h-7 rounded-full bg-secondary border border-border flex items-center justify-center flex-shrink-0 mt-0.5">
           <span className="text-[10px] font-bold text-muted-foreground">You</span>
@@ -622,12 +621,10 @@ Answer the user's latest request. Cite every externally verifiable claim with th
         >
           {/* Header */}
           <div className="relative z-10 flex shrink-0 items-center gap-3 border-b border-border bg-card px-4 py-3.5">
-            <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-white" aria-hidden="true">
-              <img src="/brand/eyra.png" alt="" className="h-full w-full object-contain" />
-            </div>
+            <BrandLogo brand="eyra" size="compact" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p id="eyra-dialog-title" className="text-sm font-semibold text-foreground">EYRA</p>
+                <p id="eyra-dialog-title" className="sr-only">EYRA research assistant</p>
                 <span className="rounded-md border border-border bg-background px-2 py-0.5 text-[8px] font-medium uppercase tracking-wider text-muted-foreground">Research assistant</span>
               </div>
               <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">

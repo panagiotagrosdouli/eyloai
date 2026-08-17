@@ -11,14 +11,13 @@ import ServiceStatus from '@/components/system/ServiceStatus';
 import { getLocalGreeting } from '@/lib/local-greeting';
 import { useCapabilities } from '@/lib/capabilities';
 import { useAuth } from '@/lib/AuthContext';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 function WelcomeScreen({ onStart }) {
   return (
-    <div className="grid min-h-[calc(100vh-4rem)] place-items-center px-5 py-16 text-center">
+    <div className="grid min-h-[calc(100vh-5rem)] place-items-center px-5 py-16 text-center">
       <div className="max-w-lg">
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl border border-border bg-card">
-          <img src="/brand/eyra.png" alt="" className="h-11 w-11 object-contain" />
-        </div>
+        <BrandLogo brand="eyra" size="hero" className="mx-auto" priority />
         <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">Your research workspace</p>
         <h1 className="mt-3 font-heading text-4xl font-semibold tracking-tight sm:text-5xl">Meet EYRA.</h1>
         <p className="mx-auto mt-4 max-w-md text-base leading-7 text-muted-foreground">Search live evidence, keep the useful records, and turn them into a project with clear next actions.</p>
@@ -106,15 +105,18 @@ export default function EyraHome({ onSearch }) {
   const defaultLevel = userType === 'student' ? 'student' : ['masters', 'phd'].includes(userType) ? 'researcher' : userType === 'professor' ? 'expert' : '';
 
   return (
-    <div className="min-h-[calc(100vh-4rem)]">
+    <div className="min-h-[calc(100vh-5rem)]">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
-        <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <header className="mb-8 flex flex-wrap items-start justify-between gap-5">
           <div>
             <p className="text-sm font-medium text-foreground">{localGreeting.greeting}</p>
             <h1 className="mt-2 max-w-3xl font-heading text-3xl font-semibold tracking-tight sm:text-4xl">{localGreeting.question}</h1>
             <p className="mt-2 text-xs text-muted-foreground">{localGreeting.localTime} in {localGreeting.place} · based on your device time zone</p>
           </div>
-          <ServiceStatus />
+          <div className="flex flex-col items-start gap-2 sm:items-end">
+            <BrandLogo brand="eyra" size="panel" />
+            <ServiceStatus />
+          </div>
         </header>
 
         <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">

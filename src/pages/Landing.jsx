@@ -5,6 +5,7 @@ import {
   Search, ShieldCheck,
 } from 'lucide-react';
 import ServiceStatus from '@/components/system/ServiceStatus';
+import BrandLogo from '@/components/brand/BrandLogo';
 import { trackSearchStarted } from '@/lib/product-analytics';
 
 const EXAMPLES = [
@@ -49,9 +50,9 @@ export default function Landing() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#090b0f] text-slate-100">
       <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#090b0f]/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-5 sm:px-8">
+        <div className="mx-auto flex h-20 max-w-7xl items-center gap-3 px-5 sm:px-8">
           <Link to="/" className="flex items-center gap-3" aria-label="EYLO home">
-            <img src="/brand/eylo-logo.svg" alt="EYLO" className="h-9 w-auto max-w-[126px] object-contain" />
+            <BrandLogo brand="eylo" size="nav" priority />
           </Link>
           <div className="ml-auto hidden sm:block"><ServiceStatus /></div>
           <Link to="/discover" className="hidden rounded-xl px-3 py-2 text-sm text-slate-400 hover:text-white md:inline-flex">Explore</Link>
@@ -178,7 +179,7 @@ export default function Landing() {
 
       <footer className="border-t border-white/[0.07] px-5 py-7 sm:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3"><img src="/brand/eylo-logo.svg" alt="EYLO" className="h-8 w-auto" /><span>Research intelligence workspace</span></div>
+          <div className="flex items-center gap-3"><BrandLogo brand="eylo" size="compact" /><span>Research intelligence workspace</span></div>
           <div className="flex flex-wrap gap-5"><Link to="/discover" className="hover:text-slate-300">Public discovery</Link><Link to="/login" className="hover:text-slate-300">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span></div>
         </div>
       </footer>

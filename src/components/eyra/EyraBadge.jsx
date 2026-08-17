@@ -1,7 +1,5 @@
 import React from 'react';
-
-const EYRA_LOGO = "/brand/eyra.png";
-const EYRA_FULL_LOGO = "/brand/eyra.png";
+import { EyraOrb } from '@/components/brand/BrandLogo';
 
 /**
  * EyraBadge — reusable EYRA branding badge.
@@ -26,7 +24,7 @@ export default function EyraBadge({ variant = 'powered', size = 'sm', className 
 
   return (
     <span className={`inline-flex items-center gap-1.5 ${isSmall ? 'text-[10px]' : 'text-xs'} font-semibold text-primary/80 ${className}`}>
-      <img src={EYRA_LOGO} alt="EYRA" className={isSmall ? 'h-3 w-auto' : 'h-3.5 w-auto'} style={{ objectFit: 'contain' }} />
+      <EyraOrb className={isSmall ? 'h-5 w-5' : 'h-6 w-6'} decorative={false} />
       {label}
     </span>
   );
@@ -36,12 +34,7 @@ export default function EyraBadge({ variant = 'powered', size = 'sm', className 
 export function EyraPoweredBy({ label = 'Powered by EYRA', className = '' }) {
   return (
     <div className={`flex items-center justify-center gap-1.5 ${className}`}>
-      <img
-        src={EYRA_LOGO}
-        alt="EYRA"
-        className="h-3 w-auto opacity-60"
-        style={{ objectFit: 'contain' }}
-      />
+      <EyraOrb className="h-5 w-5 opacity-70" decorative={false} />
       <span className="text-[10px] text-muted-foreground/60 font-medium tracking-wide">{label}</span>
     </div>
   );
@@ -51,7 +44,7 @@ export function EyraPoweredBy({ label = 'Powered by EYRA', className = '' }) {
 export function EyraSectionLabel({ label, className = '' }) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <img src={EYRA_LOGO} alt="EYRA" className="h-4 w-auto" style={{ objectFit: 'contain' }} />
+      <EyraOrb className="h-6 w-6" decorative={false} />
       <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{label}</span>
     </div>
   );

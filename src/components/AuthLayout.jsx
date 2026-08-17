@@ -7,6 +7,7 @@ import {
   FolderKanban,
   ShieldCheck,
 } from 'lucide-react';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 const CONTINUITY = [
   {
@@ -35,16 +36,8 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
       />
 
       <section className="relative hidden min-h-screen border-r border-white/[0.07] px-10 py-10 lg:flex lg:flex-col xl:px-16 xl:py-12">
-        <Link to="/" className="flex w-fit items-center gap-3" aria-label="Back to EYLO">
-          <img
-            src="/brand/eylo-logo.svg"
-            alt=""
-            className="h-10 w-14 rounded-xl border border-white/10 bg-white/[0.03] object-contain p-1"
-          />
-          <span>
-            <span className="block text-sm font-semibold tracking-[0.08em]">EYLO</span>
-            <span className="block text-[8px] uppercase tracking-[0.2em] text-slate-500">Research workspace</span>
-          </span>
+        <Link to="/" className="flex w-fit items-center" aria-label="Back to EYLO">
+          <BrandLogo brand="eylo" size="panel" priority />
         </Link>
 
         <div className="my-auto max-w-2xl py-16">
@@ -81,13 +74,8 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
 
       <section className="relative flex min-h-screen flex-col px-5 py-6 sm:px-8 sm:py-8 lg:px-10 xl:px-16">
         <div className="flex items-center justify-between lg:justify-end">
-          <Link to="/" className="flex items-center gap-2 lg:hidden" aria-label="EYLO home">
-            <img
-              src="/brand/eylo-logo.svg"
-              alt=""
-              className="h-10 w-14 rounded-xl border border-white/10 bg-white/[0.03] object-contain p-1"
-            />
-            <span className="text-sm font-semibold tracking-[0.08em]">EYLO</span>
+          <Link to="/" className="flex items-center lg:hidden" aria-label="EYLO home">
+            <BrandLogo brand="eylo" size="nav" priority />
           </Link>
           <Link
             to="/discover"
