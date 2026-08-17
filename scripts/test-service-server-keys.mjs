@@ -71,30 +71,18 @@ try {
     throw new Error('Monitoring incorrectly exposed a modern Supabase secret as a Bearer token.');
   }
 
-  let authApiKey = '';
-  const analyticsServerHeaders = [];
+  let analyticsHeaders = {};
   globalThis.fetch = async (url, options = {}) => {
     const target = String(url);
-    if (target.includes('/auth/v1/user')) {
-      authApiKey = options.headers?.apikey || '';
-      return mockResponse({ id: 'institution-admin-user' });
-    }
-    if (target.includes('/rest/v1/profiles?user_id=')) {
-      analyticsServerHeaders.push(options.headers || {});
-      return mockResponse([{ data: {
-        subscription_tier: 'institution',
-        organization_role: 'institution_admin',
-        institution_id: 'institution-regression-test',
-        organization: 'Test Institution',
-      } }]);
-    }
-    if (target.includes('/rest/v1/profiles?select=')) {
-      analyticsServerHeaders.push(options.headers || {});
-      return mockResponse([{ user_id: 'institution-admin-user', data: { institution_id: 'institution-regression-test' } }]);
-    }
-    if (target.includes('/rest/v1/')) {
-      analyticsServerHeaders.push(options.headers || {});
-      return mockResponse([]);
+    if (target.includes('/rest/v1/rpc/get_workspace_analytics')) {
+      analyticsHeaders = options.headers || {};
+      return mockResponse({
+        scope: 'personal',
+        institution_name: 'My workspace',
+        members: 1,
+        ai_actions_this_month: 0,
+        counts: {},
+      });
     }
     throw new Error(`Unexpected analytics request: ${target}`);
   };
@@ -107,16 +95,16 @@ try {
   );
 
   if (analyticsResponse.statusCode !== 200 || analyticsResponse.payload?.members !== 1) {
-    throw new Error(`Modern Supabase secret did not activate institution analytics: ${JSON.stringify(analyticsResponse.payload)}`);
+    throw new Error(`Authenticated workspace analytics failed: ${JSON.stringify(analyticsResponse.payload)}`);
   }
-  if (!authApiKey.startsWith('sb_publishable_')) {
-    throw new Error('Institution analytics did not use the browser-safe publishable key for user authentication.');
+  if (!analyticsHeaders.apikey?.startsWith('sb_publishable_')) {
+    throw new Error('Workspace analytics did not use the browser-safe publishable key.');
   }
-  if (!analyticsServerHeaders.length || analyticsServerHeaders.some(headers => headers.apikey !== modernServerKey)) {
-    throw new Error('Institution analytics did not use the modern Supabase secret as the apikey.');
+  if (analyticsHeaders.apikey === modernServerKey) {
+    throw new Error('Workspace analytics exposed a Supabase server key.');
   }
-  if (analyticsServerHeaders.some(headers => headers.authorization)) {
-    throw new Error('Institution analytics incorrectly exposed a modern Supabase secret as a Bearer token.');
+  if (analyticsHeaders.authorization !== 'Bearer valid-user-session') {
+    throw new Error('Workspace analytics did not forward the authenticated user session.');
   }
 
   console.log('Modern Supabase server-key regression tests passed.');

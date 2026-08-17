@@ -134,7 +134,7 @@ const AuthenticatedApp = () => {
           <Route path="/voice" element={<AiTool minimum="pro"><VoiceAssistant /></AiTool>} />
           <Route path="/pitchdeck" element={<AiTool minimum="founder"><PitchDeckBuilder /></AiTool>} />
           <Route path="/grant-builder" element={<AiTool minimum="founder"><GrantBuilder /></AiTool>} />
-          <Route path="/institution" element={<CapabilityGate capability="institution_analytics"><PlanGate minimum="institution"><InstitutionAdmin /></PlanGate></CapabilityGate>} />
+          <Route path="/institution" element={<CapabilityGate capability="institution_analytics"><InstitutionAdmin /></CapabilityGate>} />
         </Route>
       </Route>
 

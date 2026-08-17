@@ -17,7 +17,12 @@ export default function handler(request, response) {
       && process.env.STRIPE_FOUNDER_PRICE_ID
       && supabaseServerConfigured()
     ),
-    scheduled_monitoring: Boolean(process.env.CRON_SECRET && supabaseServerConfigured()),
-    institution_analytics: supabaseServerConfigured(),
+    // Manual watchlist checks remain available. The production daily schedule
+    // is enabled only after explicit consent to send each active query to the
+    // selected external research/funding source.
+    scheduled_monitoring: false,
+    // Analytics is served by an authenticated, least-privilege database RPC;
+    // no Vercel service-role credential is required.
+    institution_analytics: true,
   });
 }
