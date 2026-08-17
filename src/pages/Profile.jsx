@@ -87,8 +87,6 @@ export default function Profile() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin" />
       </div>
-
-      {loadError && <div role="status" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadError}</div>}
     );
   }
 
@@ -98,6 +96,8 @@ export default function Profile() {
         <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground mb-1">Profile</h1>
         <p className="text-muted-foreground text-sm">Your Research & Innovation identity on EYLO. A complete profile helps EYRA personalize recommendations.</p>
       </div>
+
+      {loadError && <div role="status" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadError}</div>}
 
       <div className="grid gap-6 lg:grid-cols-3">
 
