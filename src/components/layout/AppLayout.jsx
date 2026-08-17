@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
   Activity, Award, BookOpen, Brain, ChevronDown, FileEdit, FolderOpen, History,
-  Home, LayoutDashboard, Lightbulb, Menu, Mic, MoreHorizontal, Presentation,
+  Home, LayoutDashboard, LayoutGrid, Lightbulb, Menu, Mic, Presentation,
   Rocket, Search, Settings, Sparkles, Target, TrendingUp, Trophy, User, Users,
   Video, X, Zap,
 } from 'lucide-react';
@@ -21,36 +21,36 @@ const PRIMARY_NAV = [
 
 const TOOL_GROUPS = [
   {
-    section: 'Discover',
-    description: 'Search live records',
+    section: 'Research',
+    description: 'Find and organize source records',
     items: [
-      { label: 'Researchers', path: '/researchers', icon: Users, desc: 'Find authors and collaborators', badge: 'Live data' },
-      { label: 'Opportunities', path: '/opportunities', icon: Award, desc: 'Search official funding calls', badge: 'Live data' },
-      { label: 'Challenges', path: '/challenges', icon: Trophy, desc: 'Explore open research challenges', badge: 'Live data' },
-      { label: 'Opportunity Radar', path: '/radar', icon: Zap, desc: 'Rank funding for your context', badge: 'EYRA' },
+      { label: 'Researchers', path: '/researchers', icon: Users, desc: 'Authors, institutions and expertise', badge: 'Live sources' },
+      { label: 'Funding search', path: '/opportunities', icon: Award, desc: 'Official opportunities and calls', badge: 'Official data' },
+      { label: 'Open challenges', path: '/challenges', icon: Trophy, desc: 'Research and innovation challenges', badge: 'Live sources' },
+      { label: 'Opportunity review', path: '/radar', icon: Zap, desc: 'Prioritize funding against your context', badge: 'Assisted' },
     ],
   },
   {
-    section: 'Analyze',
-    description: 'Reason with EYRA',
+    section: 'Decision support',
+    description: 'Evaluate evidence and choices',
     items: [
-      { label: 'Executive Briefing', path: '/briefing', icon: Brain, desc: 'A sourced strategic overview', badge: 'EYRA' },
-      { label: 'Research Battlefield', path: '/battlefield', icon: Activity, desc: 'Map evidence and competitors', badge: 'EYRA' },
-      { label: 'Impact Assessment', path: '/impact', icon: Target, desc: 'Test impact assumptions', badge: 'EYRA' },
-      { label: 'Future Simulator', path: '/future', icon: Rocket, desc: 'Model three possible futures', badge: 'EYRA' },
-      { label: 'Dream Team', path: '/dreamteam', icon: Users, desc: 'Build a collaborator shortlist', badge: 'EYRA' },
-      { label: 'EYRA Voice', path: '/voice', icon: Mic, desc: 'Ask a sourced question by voice', badge: 'EYRA' },
+      { label: 'Executive briefing', path: '/briefing', icon: Brain, desc: 'A sourced view of priorities and risks', badge: 'Assisted' },
+      { label: 'Research landscape', path: '/battlefield', icon: Activity, desc: 'Compare approaches and evidence gaps', badge: 'Assisted' },
+      { label: 'Impact review', path: '/impact', icon: Target, desc: 'Test impact assumptions and pathways', badge: 'Assisted' },
+      { label: 'Scenario planner', path: '/future', icon: Rocket, desc: 'Compare plausible project directions', badge: 'Assisted' },
+      { label: 'Team planner', path: '/dreamteam', icon: Users, desc: 'Define roles and review expertise fit', badge: 'Assisted' },
+      { label: 'Voice workspace', path: '/voice', icon: Mic, desc: 'Dictate a sourced research question', badge: 'Assisted' },
     ],
   },
   {
-    section: 'Create',
-    description: 'Turn evidence into work',
+    section: 'Deliverables',
+    description: 'Turn decisions into working outputs',
     items: [
-      { label: 'Idea Vault', path: '/ideas', icon: Lightbulb, desc: 'Capture and develop ideas', badge: 'Workspace' },
-      { label: 'Grant Builder', path: '/grant-builder', icon: FileEdit, desc: 'Draft and track applications', badge: 'EYRA' },
-      { label: 'Pitch Deck AI', path: '/pitchdeck', icon: Presentation, desc: 'Create a sourced PDF deck', badge: 'EYRA' },
-      { label: 'Future Me', path: '/futureme', icon: TrendingUp, desc: 'Plan your research trajectory', badge: 'Workspace' },
-      { label: 'Meetings', path: '/meetings', icon: Video, desc: 'Keep calls, notes and actions', badge: 'Workspace' },
+      { label: 'Idea workspace', path: '/ideas', icon: Lightbulb, desc: 'Capture and develop research ideas', badge: 'Workspace' },
+      { label: 'Grant workspace', path: '/grant-builder', icon: FileEdit, desc: 'Draft and track an application', badge: 'Assisted' },
+      { label: 'Pitch deck', path: '/pitchdeck', icon: Presentation, desc: 'Build a sourced presentation', badge: 'Assisted' },
+      { label: 'Professional path', path: '/futureme', icon: TrendingUp, desc: 'Plan skills, milestones and direction', badge: 'Workspace' },
+      { label: 'Meetings', path: '/meetings', icon: Video, desc: 'Keep notes, decisions and actions', badge: 'Workspace' },
     ],
   },
   {
@@ -73,17 +73,17 @@ function ToolLink({ item, active }) {
   return (
     <Link
       to={item.path}
-      className={`group flex min-h-[4.25rem] items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors ${
+      className={`group flex min-h-[3.75rem] items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
         active ? 'border-primary/25 bg-primary/[0.07]' : 'border-transparent hover:border-border hover:bg-secondary/40'
       }`}
     >
-      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${active ? 'bg-primary/15 text-primary' : 'bg-secondary text-muted-foreground group-hover:text-foreground'}`}>
+      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border ${active ? 'border-primary/20 bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground group-hover:text-foreground'}`}>
         <Icon size={15} aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
           <span className={`truncate text-xs font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{item.label}</span>
-          {item.badge && <span className="rounded-md border border-border px-1.5 py-0.5 text-[8px] font-medium uppercase tracking-wide text-muted-foreground">{item.badge}</span>}
+          {item.badge && <span className="inline-flex items-center gap-1 text-[8px] font-medium uppercase tracking-wide text-muted-foreground"><span className="h-1 w-1 rounded-full bg-current opacity-60" />{item.badge}</span>}
         </span>
         <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">{item.desc}</span>
       </span>
@@ -141,6 +141,14 @@ export default function AppLayout() {
   }, [aiAvailable]);
 
   useEffect(() => {
+    const openEyra = () => {
+      if (aiAvailable) setEyraOpen(true);
+    };
+    window.addEventListener('eylo:open-eyra', openEyra);
+    return () => window.removeEventListener('eylo:open-eyra', openEyra);
+  }, [aiAvailable]);
+
+  useEffect(() => {
     setToolsOpen(false);
     setMobileOpen(false);
     setToolQuery('');
@@ -169,16 +177,20 @@ export default function AppLayout() {
             <div ref={toolsRef} className="relative">
               <button type="button" onClick={() => setToolsOpen(value => !value)} aria-expanded={toolsOpen}
                 className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium transition-colors ${toolsActive ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>
-                <MoreHorizontal size={14} aria-hidden="true" />All tools<ChevronDown size={12} className={`transition-transform ${toolsOpen ? 'rotate-180' : ''}`} />
+                <LayoutGrid size={14} aria-hidden="true" />Tools<ChevronDown size={12} className={`transition-transform ${toolsOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {toolsOpen && (
-                <div className="absolute left-0 top-full mt-2 w-[min(46rem,calc(100vw-2rem))] rounded-2xl border border-border bg-popover p-3 shadow-2xl shadow-black/35">
+                <div className="absolute left-0 top-full mt-2 w-[min(48rem,calc(100vw-2rem))] rounded-xl border border-border bg-popover p-3 shadow-2xl shadow-black/30">
+                  <div className="mb-3 flex flex-col justify-between gap-3 rounded-lg border border-border bg-secondary/25 px-4 py-3 sm:flex-row sm:items-center">
+                    <div><p className="text-xs font-semibold">Workspace tools</p><p className="mt-0.5 text-[10px] text-muted-foreground">Choose an outcome, then keep the evidence and decisions in the same workspace.</p></div>
+                    <div className="flex items-center gap-2 text-[9px] font-medium uppercase tracking-wide text-muted-foreground"><span>Research</span><span>→</span><span>Decide</span><span>→</span><span>Deliver</span></div>
+                  </div>
                   <label className="relative block">
                     <span className="sr-only">Search EYLO tools</span>
                     <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <input value={toolQuery} onChange={event => setToolQuery(event.target.value)} autoFocus placeholder="Find a tool or action…"
-                      className="h-11 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/40" />
+                    <input value={toolQuery} onChange={event => setToolQuery(event.target.value)} autoFocus placeholder="Search by task, source, or output…"
+                      className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/40" />
                   </label>
                   <div className="mt-3 grid max-h-[70vh] gap-4 overflow-y-auto p-1 sm:grid-cols-2">
                     {visibleGroups.map(group => (
@@ -222,7 +234,7 @@ export default function AppLayout() {
                   return <Link key={item.path} to={item.path} className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-medium ${active ? 'border-primary/30 bg-primary/5 text-primary' : 'border-border bg-card text-muted-foreground'}`}><Icon size={15} />{item.label}</Link>;
                 })}
               </div>
-              <div className="my-4 flex items-center justify-between gap-3"><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">All tools</p><ServiceStatus /></div>
+              <div className="my-4 flex items-center justify-between gap-3"><div><p className="text-xs font-semibold text-foreground">Workspace tools</p><p className="mt-0.5 text-[10px] text-muted-foreground">Research → decide → deliver</p></div><ServiceStatus /></div>
               <div className="space-y-5">
                 {TOOL_GROUPS.map(group => (
                   <section key={group.section}>
