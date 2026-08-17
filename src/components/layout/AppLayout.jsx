@@ -62,7 +62,7 @@ const TOOL_GROUPS = [
       { label: 'Search history', path: '/history', icon: History, desc: 'Return to earlier discovery' },
       { label: 'Settings', path: '/settings', icon: Settings, desc: 'Preferences and accessibility' },
       { label: 'Plans & access', path: '/pricing', icon: Zap, desc: 'Current access and billing status' },
-      { label: 'Institution Admin', path: '/institution', icon: LayoutDashboard, desc: 'Organization-level analytics', badge: 'Setup' },
+      { label: 'Workspace analytics', path: '/institution', icon: LayoutDashboard, desc: 'Private activity totals', badge: 'Private' },
     ],
   },
 ];

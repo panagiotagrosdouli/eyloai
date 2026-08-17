@@ -2,13 +2,76 @@ import { getBillingStatus } from '@/lib/billing';
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 import { recordActivation, trackEyraFollowthrough } from '@/lib/product-analytics';
 
-const TABLES = {
-  Project: 'projects', Idea: 'ideas', Meeting: 'meetings', SavedPaper: 'saved_papers',
-  SavedResearcher: 'saved_researchers', SavedOpportunity: 'saved_opportunities', SearchHistory: 'search_history',
-  Watchlist: 'watchlists', MonitoringDiscovery: 'monitoring_discoveries', Notification: 'notifications',
+const ENTITY_SCHEMAS = {
+  Project: {
+    table: 'projects',
+    columns: ['title', 'goal', 'description', 'milestones', 'tasks', 'notes', 'status', 'eyra_analysis', 'twin_report'],
+  },
+  Idea: {
+    table: 'ideas',
+    columns: ['title', 'description', 'status', 'eyra_notes'],
+  },
+  Meeting: {
+    table: 'meetings',
+    columns: [
+      'project_id', 'project_title', 'title', 'call_type', 'date', 'time',
+      'duration_minutes', 'participants', 'agenda', 'meeting_link', 'notes',
+      'status', 'eyra_prep', 'transcription',
+    ],
+  },
+  SavedPaper: {
+    table: 'saved_papers',
+    columns: ['title', 'authors', 'summary', 'year', 'source', 'url'],
+  },
+  SavedResearcher: {
+    table: 'saved_researchers',
+    columns: ['name', 'institution', 'research_areas', 'works_count', 'citation_count', 'profile_url'],
+  },
+  SavedOpportunity: {
+    table: 'saved_opportunities',
+    columns: ['title', 'type', 'description', 'source', 'url'],
+  },
+  SearchHistory: {
+    table: 'search_history',
+    columns: ['query', 'results_summary'],
+  },
+  Watchlist: { table: 'watchlists', columns: [] },
+  MonitoringDiscovery: { table: 'monitoring_discoveries', columns: [] },
+  Notification: { table: 'notifications', columns: [] },
 };
 
-const rowToEntity = (row) => row ? ({ id: row.id, created_date: row.created_date, updated_date: row.updated_date, ...row.data }) : null;
+const RESERVED_FIELDS = new Set([
+  'id', 'user_id', 'created_at', 'updated_at', 'created_date', 'updated_date', 'data',
+]);
+
+function rowToEntity(row) {
+  if (!row) return null;
+  const {
+    id, user_id: _userId, created_at: createdAt, updated_at: updatedAt,
+    created_date: createdDate, updated_date: updatedDate, data, ...columns
+  } = row;
+  return {
+    ...(data && typeof data === 'object' && !Array.isArray(data) ? data : {}),
+    ...columns,
+    id,
+    created_date: createdDate || createdAt || '',
+    updated_date: updatedDate || updatedAt || createdDate || createdAt || '',
+  };
+}
+
+function splitPayload(payload = {}, columns = []) {
+  const nativeColumns = new Set(columns);
+  const row = {};
+  const extras = {};
+
+  Object.entries(payload || {}).forEach(([field, value]) => {
+    if (value === undefined || RESERVED_FIELDS.has(field)) return;
+    if (nativeColumns.has(field)) row[field] = value;
+    else extras[field] = value;
+  });
+
+  return { ...row, data: extras };
+}
 
 function containsSavedEyraOutput(value = {}) {
   return Boolean(value.eyra_analysis || value.eyra_notes || value.eyra_output);
@@ -69,7 +132,7 @@ async function assertCreateAllowed(table, user) {
   }
 }
 
-function entityRepository(table) {
+function entityRepository({ table, columns }) {
   return {
     async list(sort = '-created_date', limit = 100) {
       const { data, error } = await requireSupabase().from(table).select('*').limit(Math.max(limit || 100, 1));
@@ -77,7 +140,13 @@ function entityRepository(table) {
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
     },
     async filter(filters = {}, sort = '-created_date', limit = 100) {
-      const { data, error } = await requireSupabase().from(table).select('*').contains('data', filters).limit(Math.max(limit || 100, 1));
+      const nativeColumns = new Set(columns);
+      const nativeFilters = Object.fromEntries(Object.entries(filters).filter(([field]) => nativeColumns.has(field)));
+      const dataFilters = Object.fromEntries(Object.entries(filters).filter(([field]) => !nativeColumns.has(field)));
+      let query = requireSupabase().from(table).select('*');
+      Object.entries(nativeFilters).forEach(([field, value]) => { query = query.eq(field, value); });
+      if (Object.keys(dataFilters).length) query = query.contains('data', dataFilters);
+      const { data, error } = await query.limit(Math.max(limit || 100, 1));
       if (error) throw error;
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
     },
@@ -89,7 +158,8 @@ function entityRepository(table) {
     async create(payload) {
       const user = await currentUser();
       await assertCreateAllowed(table, user);
-      const { data, error } = await requireSupabase().from(table).insert({ user_id: user.id, data: payload || {} }).select('*').single();
+      const write = splitPayload(payload, columns);
+      const { data, error } = await requireSupabase().from(table).insert({ user_id: user.id, ...write }).select('*').single();
       if (error) throw error;
       const entity = rowToEntity(data);
       if (table === 'saved_papers') recordActivation('paper');
@@ -102,7 +172,8 @@ function entityRepository(table) {
     async update(entityId, patch) {
       const existing = await this.get(entityId);
       const { id: _id, created_date: _created, updated_date: _updated, ...current } = existing;
-      const { data, error } = await requireSupabase().from(table).update({ data: { ...current, ...patch } }).eq('id', entityId).select('*').single();
+      const write = splitPayload({ ...current, ...patch }, columns);
+      const { data, error } = await requireSupabase().from(table).update(write).eq('id', entityId).select('*').single();
       if (error) throw error;
       if (table === 'projects' && containsSavedEyraOutput(patch)) {
         trackEyraFollowthrough('project');
@@ -117,7 +188,9 @@ function entityRepository(table) {
   };
 }
 
-export const supabaseEntities = Object.fromEntries(Object.entries(TABLES).map(([name, table]) => [name, entityRepository(table)]));
+export const supabaseEntities = Object.fromEntries(
+  Object.entries(ENTITY_SCHEMAS).map(([name, schema]) => [name, entityRepository(schema)]),
+);
 
 export const supabaseProfile = {
   async me() {
