@@ -1,7 +1,7 @@
 import React from 'react';
 
 const BRAND_ASSETS = {
-  eylo: '/brand/eylo.png',
+  eylo: '/brand/eylo-logo.svg',
   eyra: '/brand/eyra.png',
 };
 
