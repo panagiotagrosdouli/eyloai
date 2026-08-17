@@ -17,7 +17,8 @@ const TASK_TYPES = {
 
 function ProjectMissions({ project, globalCompleted, onToggle }) {
   const [tasks, setTasks] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [collapsed, setCollapsed] = useState(false);
 
   const cacheKey = `eyra_daily_missions_${project.id}_${new Date().toDateString()}`;
@@ -27,24 +28,27 @@ function ProjectMissions({ project, globalCompleted, onToggle }) {
     if (cached) {
       try { setTasks(JSON.parse(cached)); setLoading(false); return; } catch {}
     }
-    generate();
+    setLoading(false);
   }, [project.id]);
 
   const generate = async () => {
     setLoading(true);
+    setError('');
 
-    // Fetch real saved papers for context
-    let savedPapers = [];
     try {
-      savedPapers = await base44.entities.SavedPaper.list('-created_date', 10);
-    } catch {}
+      let savedPapers = [];
+      try {
+        savedPapers = await base44.entities.SavedPaper.list('-created_date', 10);
+      } catch {
+        // Project fields remain enough to generate a useful first task list.
+      }
 
-    const paperContext = savedPapers.length > 0
-      ? `\nSaved papers in library (use these for specific read tasks):\n${savedPapers.slice(0, 5).map(p => `- "${p.title}" by ${p.authors || 'Unknown'} (${p.year || ''})`).join('\n')}`
-      : '';
+      const paperContext = savedPapers.length > 0
+        ? `\nSaved papers in library (use these for specific read tasks):\n${savedPapers.slice(0, 5).map(p => `- "${p.title}" by ${p.authors || 'Unknown'} (${p.year || ''})`).join('\n')}`
+        : '';
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are EYRA, an autonomous research AI. Break down this active research project into 4-5 specific, actionable daily tasks that the researcher should complete TODAY.
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `You are EYRA. Break down this active research project into 4-5 specific, actionable tasks that the researcher can choose to complete today.
 
 Project: "${project.title}"
 Goal: "${project.goal || ''}"
@@ -61,28 +65,32 @@ Generate a mix of task types. If there are saved papers above, include a specifi
 
 Return JSON array "tasks":
 [{ task: string, type: "read"|"write"|"discover"|"connect"|"review"|"admin", minutes: number, project_area: string }]`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          tasks: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                task: { type: 'string' },
-                type: { type: 'string' },
-                minutes: { type: 'number' },
-                project_area: { type: 'string' },
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            tasks: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  task: { type: 'string' },
+                  type: { type: 'string' },
+                  minutes: { type: 'number' },
+                  project_area: { type: 'string' },
+                },
               }
-            }
-          }
-        }
-      }
-    });
-    const t = result?.tasks || [];
-    setTasks(t);
-    localStorage.setItem(cacheKey, JSON.stringify(t));
-    setLoading(false);
+            },
+          },
+        },
+      });
+      const nextTasks = result?.tasks || [];
+      setTasks(nextTasks);
+      localStorage.setItem(cacheKey, JSON.stringify(nextTasks));
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'EYRA could not create today’s tasks.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const refresh = () => {
@@ -99,8 +107,7 @@ Return JSON array "tasks":
     <div className={`rounded-xl border overflow-hidden transition-all ${allDone ? 'border-green-500/25 bg-green-500/5' : 'border-border bg-card'}`}>
       {/* Project header */}
       <div
-        className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/20 transition-colors"
-        onClick={() => setCollapsed(!collapsed)}
+        className="flex items-center gap-3 px-4 py-3"
       >
         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
           project.status === 'active' ? 'bg-green-400' :
@@ -123,7 +130,7 @@ Return JSON array "tasks":
           </div>
         )}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          {!loading && (
+          {!loading && tasks && (
             <button
               onClick={e => { e.stopPropagation(); refresh(); }}
               className="p-1 rounded hover:bg-secondary text-muted-foreground transition-colors"
@@ -139,7 +146,9 @@ Return JSON array "tasks":
           >
             Open
           </Link>
-          {collapsed ? <ChevronDown size={13} className="text-muted-foreground" /> : <ChevronUp size={13} className="text-muted-foreground" />}
+          <button type="button" onClick={() => setCollapsed(value => !value)} aria-expanded={!collapsed} aria-label={`${collapsed ? 'Show' : 'Hide'} tasks for ${project.title}`} className="rounded p-1 text-muted-foreground hover:bg-secondary">
+            {collapsed ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
+          </button>
         </div>
       </div>
 
@@ -151,7 +160,13 @@ Return JSON array "tasks":
               <Loader2 size={12} className="animate-spin text-primary" />
               <span className="text-xs text-muted-foreground">EYRA is generating tasks for this project...</span>
             </div>
-          ) : tasks?.map((task, i) => {
+          ) : !tasks ? (
+            <div className="rounded-xl border border-dashed border-border p-4 text-center">
+              <p className="text-xs text-muted-foreground">Generate a short task list when you are ready. EYRA will use this project and your saved papers.</p>
+              {error && <p role="alert" className="mt-2 text-xs text-red-300">{error}</p>}
+              <button type="button" onClick={generate} className="mt-3 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">Generate today’s tasks</button>
+            </div>
+          ) : tasks.map((task, i) => {
             const key = `${project.id}_${i}`;
             const done = !!globalCompleted[key];
             const cfg = TASK_TYPES[task.type] || TASK_TYPES.review;
@@ -220,8 +235,7 @@ export default function DailyMissions({ projects }) {
     <div className="rounded-2xl border border-border bg-card overflow-hidden">
       {/* Section header */}
       <div
-        className="flex items-center gap-3 px-5 py-4 cursor-pointer hover:bg-secondary/20 transition-colors"
-        onClick={() => setCollapsed(!collapsed)}
+        className="flex items-center gap-3 px-5 py-4"
       >
         <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
           <Zap size={15} className="text-primary" />
@@ -236,14 +250,16 @@ export default function DailyMissions({ projects }) {
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">
             {doneCount} done today
           </span>
-          {collapsed ? <ChevronDown size={14} className="text-muted-foreground" /> : <ChevronUp size={14} className="text-muted-foreground" />}
+          <button type="button" onClick={() => setCollapsed(value => !value)} aria-expanded={!collapsed} aria-label={collapsed ? 'Show daily missions' : 'Hide daily missions'} className="rounded p-1 text-muted-foreground hover:bg-secondary">
+            {collapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+          </button>
         </div>
       </div>
 
       {!collapsed && (
         <div className="px-4 pb-4 space-y-3 border-t border-border/40 pt-3">
           <p className="text-[11px] text-muted-foreground px-1">
-            EYRA breaks down each active project into daily research, writing, and administrative tasks. Refreshes every 24 hours.
+            Generate tasks only when you need them. A successful list is kept on this device for the day.
           </p>
           {activeProjects.map(project => (
             <ProjectMissions

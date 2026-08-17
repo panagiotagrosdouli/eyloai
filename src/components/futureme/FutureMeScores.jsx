@@ -17,10 +17,10 @@ export default function FutureMeScores({ scores = {}, labels = {}, overallProgre
       <div className="p-5 rounded-2xl border border-border bg-card mb-4">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-0.5">Future Goal Progress</p>
-            <p className="text-xs text-muted-foreground">Based on your current profile vs. your target</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-0.5">Future Goal Planning Indicator</p>
+            <p className="text-xs text-muted-foreground">AI assessment from your saved workspace signals, not measured progress</p>
           </div>
-          <p className="text-4xl font-black eyra-text-gradient">{overallProgress}%</p>
+          <p className="text-4xl font-black eyra-text-gradient">{overallProgress}<span className="text-xs text-muted-foreground">/100</span></p>
         </div>
         <div className="h-2.5 rounded-full bg-secondary overflow-hidden">
           <div

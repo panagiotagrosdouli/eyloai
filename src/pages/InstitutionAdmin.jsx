@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Activity, BarChart3, Building2, Loader2, ShieldCheck, Users } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
+import { protectedApiFetch } from '@/lib/protected-api';
 
 export default function InstitutionAdmin() {
   const [data, setData] = useState(null);
@@ -8,10 +8,7 @@ export default function InstitutionAdmin() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-      const token = sessionData.session?.access_token;
-      const response = await fetch('/api/admin-analytics', { headers: { authorization: `Bearer ${token}` } });
+      const response = await protectedApiFetch('/api/admin-analytics');
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || 'Could not load institution analytics.');
       setData(result);

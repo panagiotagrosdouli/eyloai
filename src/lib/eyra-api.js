@@ -2,7 +2,8 @@
 // OpenAlex, arXiv, Crossref, Europe PMC
 
 const OPENALEX_BASE = 'https://api.openalex.org';
-const MAILTO = 'mailto=eylo@research.app';
+const RESEARCH_CONTACT_EMAIL = String(import.meta.env?.VITE_RESEARCH_CONTACT_EMAIL || '').trim();
+const OPENALEX_CONTACT = RESEARCH_CONTACT_EMAIL ? `&mailto=${encodeURIComponent(RESEARCH_CONTACT_EMAIL)}` : '';
 const SOURCE_TIMEOUT_MS = 12_000;
 
 async function fetchWithTimeout(url, options = {}) {
@@ -43,7 +44,7 @@ export async function searchOpenAlexWorks(query, limit = 10, sort = 'relevance',
   try {
     const sortValue = sort === 'recent' ? 'publication_date:desc' : 'relevance_score:desc';
     const res = await fetchWithTimeout(
-      `${OPENALEX_BASE}/works?search=${encodeURIComponent(query)}&per_page=${limit}&sort=${sortValue}&${MAILTO}`
+      `${OPENALEX_BASE}/works?search=${encodeURIComponent(query)}&per_page=${limit}&sort=${sortValue}${OPENALEX_CONTACT}`
     );
     if (!res.ok) throw new Error(`OpenAlex request failed: ${res.status}`);
     const data = await res.json();
@@ -72,7 +73,7 @@ export async function searchOpenAlexWorks(query, limit = 10, sort = 'relevance',
 export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}) {
   try {
     const res = await fetchWithTimeout(
-      `${OPENALEX_BASE}/authors?search=${encodeURIComponent(query)}&per_page=${limit}&sort=relevance_score:desc&${MAILTO}`
+      `${OPENALEX_BASE}/authors?search=${encodeURIComponent(query)}&per_page=${limit}&sort=relevance_score:desc${OPENALEX_CONTACT}`
     );
     if (!res.ok) throw new Error(`OpenAlex author request failed: ${res.status}`);
     const data = await res.json();
@@ -96,7 +97,7 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
 export async function searchOpenAlexInstitutions(query, limit = 6, strictOptions = {}) {
   try {
     const res = await fetchWithTimeout(
-      `${OPENALEX_BASE}/institutions?search=${encodeURIComponent(query)}&per_page=${limit}&sort=relevance_score:desc&${MAILTO}`
+      `${OPENALEX_BASE}/institutions?search=${encodeURIComponent(query)}&per_page=${limit}&sort=relevance_score:desc${OPENALEX_CONTACT}`
     );
     if (!res.ok) throw new Error(`OpenAlex institution request failed: ${res.status}`);
     const data = await res.json();
@@ -181,8 +182,8 @@ export async function searchCrossref(query, limit = 5, sort = 'relevance', stric
       query,
       rows: String(limit),
       select: 'DOI,title,author,abstract,published,container-title,is-referenced-by-count,URL',
-      mailto: 'eylo@research.app',
     });
+    if (RESEARCH_CONTACT_EMAIL) params.set('mailto', RESEARCH_CONTACT_EMAIL);
     if (sort === 'recent') {
       params.set('sort', 'published');
       params.set('order', 'desc');

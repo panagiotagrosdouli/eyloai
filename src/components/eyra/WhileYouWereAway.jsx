@@ -14,8 +14,8 @@ const PRIORITY_CONFIG = {
 };
 
 const TYPE_CONFIG = {
-  paper:      { icon: FileText, label: '✓ Real Paper', color: 'text-primary bg-primary/10' },
-  researcher: { icon: Users,    label: '✓ Real Researcher', color: 'text-cyan-400 bg-cyan-500/10' },
+  paper:      { icon: FileText, label: 'Source paper', color: 'text-primary bg-primary/10' },
+  researcher: { icon: Users,    label: 'Source researcher', color: 'text-cyan-400 bg-cyan-500/10' },
   gap:        { icon: Brain,    label: '🧠 EYRA Insight', color: 'text-purple-400 bg-purple-500/10' },
   trend:      { icon: TrendingUp, label: '🧠 EYRA Analysis', color: 'text-green-400 bg-green-500/10' },
 };
@@ -50,7 +50,7 @@ function DiscoveryCard({ item }) {
             </span>
             <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
               <div className={`w-1.5 h-1.5 rounded-full ${priorityCfg.dot}`} />
-              {priorityCfg.label} Priority
+              {priorityCfg.label} AI priority
             </span>
           </div>
 
@@ -105,6 +105,7 @@ export default function WhileYouWereAway({ projects, searchHistory }) {
   const [monitorResult, setMonitorResult] = useState(null);
   const [analysis, setAnalysis] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [error, setError] = useState('');
   const lastVisit = getLastVisitTimestamp();
 
   useEffect(() => {
@@ -114,17 +115,28 @@ export default function WhileYouWereAway({ projects, searchHistory }) {
 
   const load = async () => {
     setState('loading');
-    const result = await runMonitor(projects || [], searchHistory || []);
-    setMonitorResult(result);
+    setError('');
+    try {
+      const result = await runMonitor(projects || [], searchHistory || []);
+      setMonitorResult(result);
 
-    if (result.noData) {
-      setState('empty');
-      return;
+      if (result.noData) {
+        setState('empty');
+        return;
+      }
+
+      try {
+        const analyzed = await analyzeDiscoveries(result, projects || []);
+        setAnalysis(analyzed);
+      } catch (analysisError) {
+        setAnalysis({ items: [], trend: null, gap: null });
+        setError(`Source records loaded, but EYRA analysis did not complete: ${analysisError?.message || 'unknown error'}`);
+      }
+      setState('done');
+    } catch (monitorError) {
+      setError(monitorError?.message || 'The source check did not complete.');
+      setState('error');
     }
-
-    const analyzed = await analyzeDiscoveries(result, projects || []);
-    setAnalysis(analyzed);
-    setState('done');
   };
 
   const totalDiscoveries = (monitorResult?.papers?.length || 0) + (monitorResult?.researchers?.length || 0);
@@ -134,8 +146,7 @@ export default function WhileYouWereAway({ projects, searchHistory }) {
     <div className="rounded-2xl border border-border bg-card overflow-hidden">
       {/* Header */}
       <div
-        className="flex items-center gap-3 px-5 py-4 cursor-pointer hover:bg-secondary/20 transition-colors"
-        onClick={() => setCollapsed(!collapsed)}
+        className="flex items-center gap-3 px-5 py-4"
       >
         <div className="relative flex-shrink-0">
           <div className="w-9 h-9 rounded-xl overflow-hidden bg-white">
@@ -144,7 +155,6 @@ export default function WhileYouWereAway({ projects, searchHistory }) {
               alt="EYRA" className="w-full h-full object-contain"
             />
           </div>
-          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 border-2 border-background" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-0.5">
@@ -154,12 +164,13 @@ export default function WhileYouWereAway({ projects, searchHistory }) {
             {state === 'loading' && 'EYRA is scanning OpenAlex, arXiv, Europe PMC...'}
             {state === 'done' && `${totalDiscoveries} real discoveries · ${highPriorityCount} high priority`}
             {state === 'empty' && 'No new discoveries — add projects to enable monitoring'}
-            {state === 'idle' && 'EYRA autonomous monitoring'}
+            {state === 'error' && 'Source check unavailable'}
+            {state === 'idle' && 'On-demand project monitoring'}
           </p>
           {lastVisit && state === 'done' && (
             <p className="text-[10px] text-muted-foreground mt-0.5">
               <Clock size={8} className="inline mr-1" />
-              Last scanned: {new Date(lastVisit).toLocaleDateString()}
+              Previous visit: {new Date(lastVisit).toLocaleDateString()}
             </p>
           )}
         </div>
@@ -169,7 +180,9 @@ export default function WhileYouWereAway({ projects, searchHistory }) {
               {highPriorityCount} urgent
             </span>
           )}
-          {collapsed ? <ChevronDown size={14} className="text-muted-foreground" /> : <ChevronUp size={14} className="text-muted-foreground" />}
+          <button type="button" onClick={() => setCollapsed(value => !value)} aria-expanded={!collapsed} aria-label={collapsed ? 'Show source discoveries' : 'Hide source discoveries'} className="rounded p-1 text-muted-foreground hover:bg-secondary">
+            {collapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+          </button>
         </div>
       </div>
 
@@ -194,14 +207,23 @@ export default function WhileYouWereAway({ projects, searchHistory }) {
             </p>
           )}
 
+          {state === 'error' && (
+            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-center">
+              <p role="alert" className="text-xs text-red-200">{error}</p>
+              <button type="button" onClick={load} className="mt-3 rounded-lg border border-red-300/20 px-3 py-2 text-xs font-semibold text-red-100">Try again</button>
+            </div>
+          )}
+
           {/* Results */}
           {state === 'done' && (
             <div className="space-y-4">
 
+              {error && <div role="status" className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-200">{error}</div>}
+
               {/* Real stats bar */}
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { label: 'Real Papers', value: monitorResult.papers.length, color: 'text-primary', icon: FileText },
+                  { label: 'Source Papers', value: monitorResult.papers.length, color: 'text-primary', icon: FileText },
                   { label: 'Researchers', value: monitorResult.researchers.length, color: 'text-cyan-400', icon: Users },
                   { label: 'Insights', value: analysis?.items?.length || 0, color: 'text-purple-400', icon: Brain },
                 ].map(s => {
@@ -220,7 +242,7 @@ export default function WhileYouWereAway({ projects, searchHistory }) {
               <div className="flex items-center gap-3 p-2.5 rounded-xl bg-secondary/30 border border-border/40">
                 <div className="flex items-center gap-1.5">
                   <CheckCircle size={10} className="text-green-400" />
-                  <span className="text-[10px] text-muted-foreground">✓ Real = verified from OpenAlex/arXiv</span>
+                  <span className="text-[10px] text-muted-foreground">Source record = returned by OpenAlex/arXiv</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Sparkles size={10} className="text-primary" />
@@ -268,7 +290,7 @@ export default function WhileYouWereAway({ projects, searchHistory }) {
               {monitorResult.papers.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
-                    ✓ Real Papers Found
+                    Source Papers Found
                   </p>
                   {monitorResult.papers.slice(0, 4).map((p, i) => (
                     <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-secondary/30 border border-border/40">
@@ -293,7 +315,7 @@ export default function WhileYouWereAway({ projects, searchHistory }) {
               {monitorResult.researchers.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
-                    ✓ Real Researchers Found
+                    Source Researchers Found
                   </p>
                   {monitorResult.researchers.slice(0, 3).map((r, i) => (
                     <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 border border-border/40">

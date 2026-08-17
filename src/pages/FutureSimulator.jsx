@@ -4,7 +4,7 @@ import { searchAllPapers } from '@/lib/eyra-api';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import {
-  Sparkles, Loader2, TrendingUp, Zap, Rocket, ChevronRight,
+  Sparkles, Loader2, TrendingUp, Zap, Rocket,
   Users, DollarSign, Calendar, AlertTriangle, Target, RefreshCw
 } from 'lucide-react';
 
@@ -243,7 +243,7 @@ Return project_summary, conservative, growth, aggressive, eyra_recommendation, a
                   <div className="flex items-end justify-between">
                     <p className="text-[10px] text-muted-foreground leading-tight">{path.desc}</p>
                     <span className={`text-xl font-black ${isActive ? path.color : 'text-muted-foreground'}`}>
-                      {data?.success_probability}%
+                      {data?.success_probability}
                     </span>
                   </div>
                   <div className="mt-2 h-1 rounded-full bg-border overflow-hidden">
@@ -273,8 +273,8 @@ Return project_summary, conservative, growth, aggressive, eyra_recommendation, a
                     <p className="text-[10px] text-muted-foreground">{activeFuture.tagline}</p>
                   </div>
                   <div className="text-right">
-                    <p className={`text-3xl font-black ${pathConfig.color}`}>{activeFuture.success_probability}%</p>
-                    <p className="text-[10px] text-muted-foreground">feasibility estimate</p>
+                    <p className={`text-3xl font-black ${pathConfig.color}`}>{activeFuture.success_probability}<span className="text-sm text-muted-foreground">/100</span></p>
+                    <p className="text-[10px] text-muted-foreground">AI feasibility rating</p>
                   </div>
                 </div>
 

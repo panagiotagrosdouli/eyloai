@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import {
   FileText, Users, Building2, TrendingUp, DollarSign,
   Map, Bookmark, ExternalLink, ChevronRight,
-  Award, Target, BookOpen, Sparkles, Brain,
+  Award, Target, BookOpen, Sparkles,
   AlertTriangle, CheckCircle2, Plus, ArrowRight,
   ShieldCheck, Info, Lock, Compass, Clock3, Layers3
 } from 'lucide-react';
@@ -22,9 +22,9 @@ const TABS = [
 ];
 
 const CONFIDENCE_CONFIG = {
-  HIGH: { color: 'text-green-400 bg-green-500/10 border-green-500/20', label: 'High confidence' },
-  MEDIUM: { color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', label: 'Medium confidence' },
-  LOW: { color: 'text-red-400 bg-red-500/10 border-red-500/20', label: 'Low confidence' },
+  HIGH: { color: 'text-green-400 bg-green-500/10 border-green-500/20', label: 'Strong support' },
+  MEDIUM: { color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', label: 'Moderate support' },
+  LOW: { color: 'text-red-400 bg-red-500/10 border-red-500/20', label: 'Limited support' },
 };
 
 function ConfidenceBadge({ level }) {
@@ -135,7 +135,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
     setCreatingProject(false);
   };
 
-  const overallConfidence = results.confidence_overall || (
+  const evidenceCoverage = results.confidence_overall || (
     (results.papers?.length || 0) >= 8 ? 'HIGH' :
     (results.papers?.length || 0) >= 3 ? 'MEDIUM' : 'LOW'
   );
@@ -156,7 +156,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <EyraSectionLabel label="EYRA Discovery Report" />
-              <ConfidenceBadge level={overallConfidence} />
+              <ConfidenceBadge level={evidenceCoverage} />
             </div>
             <h2 className="font-heading font-bold text-lg text-foreground">"{results.query}"</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -306,7 +306,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
                 <div className="flex items-center gap-2">
                   <EyraSectionLabel label="EYRA Analysis" />
                 </div>
-                <ConfidenceBadge level={overallConfidence} />
+                <ConfidenceBadge level={evidenceCoverage} />
               </div>
               <p className="text-sm leading-relaxed text-foreground">{results.goal_analysis}</p>
 
@@ -447,7 +447,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
               <h2 className="font-heading font-bold text-lg">Research Papers</h2>
               <p className="text-xs text-muted-foreground mt-0.5">Deduplicated and organized by purpose · {sourceIndexes.join(' · ')}</p>
             </div>
-            <ConfidenceBadge level={overallConfidence} />
+            <ConfidenceBadge level={evidenceCoverage} />
           </div>
 
           {results.papers?.length === 0 ? (

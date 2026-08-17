@@ -36,30 +36,46 @@ export default function Projects() {
   const [newTasks, setNewTasks] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [working, setWorking] = useState(false);
+  const [error, setError] = useState('');
   const { toast } = useToast();
 
   useEffect(() => { loadProjects(); }, []);
 
   const loadProjects = async () => {
     setLoading(true);
-    const data = await base44.entities.Project.list('-updated_date');
-    setProjects(data);
-    setLoading(false);
+    setError('');
+    try {
+      const data = await base44.entities.Project.list('-updated_date');
+      setProjects(data);
+    } catch (loadError) {
+      setError(loadError?.message || 'Projects could not be loaded.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const createProject = async () => {
     if (!newTitle.trim() || !newGoal.trim()) return;
-    await base44.entities.Project.create({
-      title: newTitle.trim(),
-      goal: newGoal.trim(),
-      milestones: newMilestones.trim(),
-      tasks: newTasks.trim(),
-      status: 'active',
-    });
-    setNewTitle(''); setNewGoal(''); setNewMilestones(''); setNewTasks('');
-    setSelectedTemplate(null); setShowTemplates(true); setShowNew(false);
-    loadProjects();
-    toast({ title: 'Project created — EYRA is ready to guide you' });
+    setWorking(true);
+    setError('');
+    try {
+      await base44.entities.Project.create({
+        title: newTitle.trim(),
+        goal: newGoal.trim(),
+        milestones: newMilestones.trim(),
+        tasks: newTasks.trim(),
+        status: 'active',
+      });
+      setNewTitle(''); setNewGoal(''); setNewMilestones(''); setNewTasks('');
+      setSelectedTemplate(null); setShowTemplates(true); setShowNew(false);
+      await loadProjects();
+      toast({ title: 'Project created' });
+    } catch (createError) {
+      setError(createError?.message || 'Project could not be created.');
+    } finally {
+      setWorking(false);
+    }
   };
 
   const applyTemplate = (t) => {
@@ -80,9 +96,14 @@ export default function Projects() {
   const deleteProject = async (id, e) => {
     e.preventDefault();
     e.stopPropagation();
-    await base44.entities.Project.delete(id);
-    setProjects(prev => prev.filter(p => p.id !== id));
-    toast({ title: 'Project deleted' });
+    if (!window.confirm('Delete this project? This cannot be undone.')) return;
+    try {
+      await base44.entities.Project.delete(id);
+      setProjects(prev => prev.filter(p => p.id !== id));
+      toast({ title: 'Project deleted' });
+    } catch (deleteError) {
+      toast({ title: 'Could not delete project', description: deleteError?.message || 'Please try again.', variant: 'destructive' });
+    }
   };
 
   const counts = { all: projects.length };
@@ -98,7 +119,7 @@ export default function Projects() {
       <div className="flex items-start justify-between gap-4 mb-8">
         <div>
           <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground mb-1">Projects</h1>
-          <p className="text-muted-foreground text-sm">Each project is your EYRA-powered research command center.</p>
+          <p className="text-muted-foreground text-sm">Keep evidence, decisions, milestones and next actions together.</p>
         </div>
         <button
           onClick={() => setShowNew(true)}
@@ -107,6 +128,8 @@ export default function Projects() {
           <Plus size={14} /> New Project
         </button>
       </div>
+
+      {error && <div role="alert" className="mb-5 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-200">{error}</div>}
 
       {/* New Project Form */}
       <AnimatePresence>
@@ -178,10 +201,10 @@ export default function Projects() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={createProject}
-                  disabled={!newTitle.trim() || !newGoal.trim()}
+                  disabled={!newTitle.trim() || !newGoal.trim() || working}
                   className="px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold disabled:opacity-40"
                 >
-                  Create Project
+                  {working ? 'Creating…' : 'Create Project'}
                 </button>
                 <button onClick={resetForm} className="px-4 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-secondary transition-colors">
                   Cancel
@@ -275,7 +298,8 @@ export default function Projects() {
                 </Link>
                 <button
                   onClick={(e) => deleteProject(p.id, e)}
-                  className="absolute top-3.5 right-3.5 p-1.5 rounded-lg hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-all"
+                  aria-label={`Delete ${p.title}`}
+                  className="absolute top-3.5 right-3.5 p-1.5 rounded-lg hover:bg-destructive/10 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                 >
                   <Trash2 size={12} className="text-destructive/50" />
                 </button>

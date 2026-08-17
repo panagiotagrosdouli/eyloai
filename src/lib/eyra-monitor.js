@@ -1,5 +1,5 @@
 /**
- * EYRA Autonomous Monitor
+ * EYRA on-demand monitor
  * Fetches real data from OpenAlex, arXiv, Europe PMC.
  * No fabricated results — if data doesn't exist, says so.
  */
@@ -28,7 +28,7 @@ function assignPriority(item) {
 }
 
 /**
- * Run the full autonomous monitor for a user's active projects.
+ * Run a cached on-demand monitor for a user's active projects.
  * Returns structured discoveries grouped by type, each with source + evidence.
  */
 export async function runMonitor(projects, searchHistory = []) {
@@ -144,7 +144,7 @@ export async function analyzeDiscoveries(monitorResult, projects) {
   const projectCtx = projects.slice(0, 3).map(p => `"${p.title}": ${p.goal}`).join('; ');
 
   const result = await base44.integrations.Core.InvokeLLM({
-    prompt: `You are EYRA, an autonomous research intelligence agent. Analyze ONLY the real data below. Do not invent anything.
+    prompt: `You are EYRA, an on-demand research intelligence agent. Analyze ONLY the source records below. Do not invent anything.
 
 ACTIVE PROJECTS:
 ${projectCtx || 'None'}

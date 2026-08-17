@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import {
   FileText, Users, Award, Trash2, ExternalLink, Search,
-  BookOpen, TrendingUp, BarChart3
+  BookOpen
 } from 'lucide-react';
 import EyraResearchCompanion from '@/components/eyra/EyraResearchCompanion';
 import { motion } from 'framer-motion';
@@ -21,35 +21,54 @@ export default function Library() {
   const [opportunities, setOpportunities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loadNotice, setLoadNotice] = useState('');
   const { toast } = useToast();
 
   useEffect(() => { loadAll(); }, []);
 
   const loadAll = async () => {
     setLoading(true);
-    const [p, r, o] = await Promise.all([
+    setLoadNotice('');
+    const requests = [
       base44.entities.SavedPaper.list('-created_date'),
       base44.entities.SavedResearcher.list('-created_date'),
       base44.entities.SavedOpportunity.list('-created_date'),
-    ]);
-    setPapers(p); setResearchers(r); setOpportunities(o);
+    ];
+    const results = await Promise.allSettled(requests);
+    setPapers(results[0].status === 'fulfilled' ? results[0].value : []);
+    setResearchers(results[1].status === 'fulfilled' ? results[1].value : []);
+    setOpportunities(results[2].status === 'fulfilled' ? results[2].value : []);
+    const failures = results.filter(result => result.status === 'rejected').length;
+    if (failures) setLoadNotice(`${failures} saved collection${failures === 1 ? '' : 's'} could not be loaded. The available collections remain usable.`);
     setLoading(false);
   };
 
   const deletePaper = async (id) => {
-    await base44.entities.SavedPaper.delete(id);
-    setPapers(prev => prev.filter(p => p.id !== id));
-    toast({ title: 'Paper removed' });
+    try {
+      await base44.entities.SavedPaper.delete(id);
+      setPapers(prev => prev.filter(p => p.id !== id));
+      toast({ title: 'Paper removed' });
+    } catch (error) {
+      toast({ title: 'Could not remove paper', description: error?.message || 'Please try again.', variant: 'destructive' });
+    }
   };
   const deleteResearcher = async (id) => {
-    await base44.entities.SavedResearcher.delete(id);
-    setResearchers(prev => prev.filter(r => r.id !== id));
-    toast({ title: 'Researcher removed' });
+    try {
+      await base44.entities.SavedResearcher.delete(id);
+      setResearchers(prev => prev.filter(r => r.id !== id));
+      toast({ title: 'Researcher removed' });
+    } catch (error) {
+      toast({ title: 'Could not remove researcher', description: error?.message || 'Please try again.', variant: 'destructive' });
+    }
   };
   const deleteOpportunity = async (id) => {
-    await base44.entities.SavedOpportunity.delete(id);
-    setOpportunities(prev => prev.filter(o => o.id !== id));
-    toast({ title: 'Opportunity removed' });
+    try {
+      await base44.entities.SavedOpportunity.delete(id);
+      setOpportunities(prev => prev.filter(o => o.id !== id));
+      toast({ title: 'Opportunity removed' });
+    } catch (error) {
+      toast({ title: 'Could not remove opportunity', description: error?.message || 'Please try again.', variant: 'destructive' });
+    }
   };
 
   const filter = (items, fields) => {
@@ -59,8 +78,6 @@ export default function Library() {
   };
 
   const counts = { papers: papers.length, researchers: researchers.length, opportunities: opportunities.length };
-  const total = papers.length + researchers.length + opportunities.length;
-
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Header */}
@@ -68,6 +85,8 @@ export default function Library() {
         <h1 className="font-heading font-bold text-2xl sm:text-3xl mb-1 text-foreground">Research Library</h1>
         <p className="text-muted-foreground text-sm">Your curated knowledge base from EYRA discoveries</p>
       </div>
+
+      {loadNotice && <div role="status" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadNotice}</div>}
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
@@ -149,7 +168,7 @@ export default function Library() {
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
                         {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-secondary transition-colors"><ExternalLink size={13} className="text-muted-foreground" /></a>}
-                        <button onClick={() => deletePaper(p.id)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100">
+                        <button onClick={() => deletePaper(p.id)} aria-label={`Remove ${p.title} from library`} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
                           <Trash2 size={13} className="text-destructive/60" />
                         </button>
                       </div>
@@ -179,7 +198,7 @@ export default function Library() {
                       </div>
                       <div className="flex flex-col gap-1 flex-shrink-0">
                         {r.profile_url && <a href={r.profile_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-secondary transition-colors"><ExternalLink size={13} className="text-muted-foreground" /></a>}
-                        <button onClick={() => deleteResearcher(r.id)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100">
+                        <button onClick={() => deleteResearcher(r.id)} aria-label={`Remove ${r.name} from library`} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
                           <Trash2 size={13} className="text-destructive/60" />
                         </button>
                       </div>
@@ -204,7 +223,7 @@ export default function Library() {
                         {o.description && <p className="text-xs text-muted-foreground mt-1">{o.description}</p>}
                         {o.deadline && <p className="text-xs text-primary mt-2">Deadline: {o.deadline}</p>}
                       </div>
-                      <button onClick={() => deleteOpportunity(o.id)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100">
+                      <button onClick={() => deleteOpportunity(o.id)} aria-label={`Remove ${o.title} from library`} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
                         <Trash2 size={13} className="text-destructive/60" />
                       </button>
                     </div>

@@ -222,7 +222,7 @@ CRITICAL RULES:
 - Cite paper evidence with the supplied [P#] identifier.
 - Adapt explanations to the user's stated level without reducing scientific accuracy.
 - Do not confuse citation count with quality or recency with importance.
-- If data is insufficient, state confidence as LOW.
+- If data is insufficient, label evidence support as LOW.
 - Do not generate funding opportunities. Funding records are retrieved separately from an official source.
 
 USER TOPIC: "${query}"
@@ -246,13 +246,13 @@ Return JSON with:
 - audience_summary: string (2 sentences: what this user should understand first and why)
 - recommended_next_questions: array of exactly 3 concrete follow-up research questions
 - data_summary: { total_papers, total_researchers, date_range, top_researcher }
-- key_findings: array of 4 objects { finding, evidence (cite real paper/researcher), confidence ("HIGH"/"MEDIUM"/"LOW") }
+- key_findings: array of 4 objects { finding, evidence (cite real paper/researcher), confidence ("HIGH"/"MEDIUM"/"LOW", meaning support in the supplied records, not model certainty) }
 - research_gaps: array of 3 strings (gaps from what papers DON'T cover)
 - trends: array of 4 objects { title, description, evidence (real paper), year_range }
 - suggested_roles: array of 4 objects { role, expertise, why_needed, evidence }
 - roadmap: array of 5 objects { timeframe, title, tasks (array of 3) }
 - keywords: array of 8 strings (from real paper titles/abstracts)
-- confidence_overall: "HIGH" (8+ papers) / "MEDIUM" (3-7) / "LOW" (<3)`,
+- confidence_overall: "HIGH" (8+ papers) / "MEDIUM" (3-7) / "LOW" (<3); this field means evidence coverage only`,
     response_json_schema: {
       type: 'object',
       properties: {

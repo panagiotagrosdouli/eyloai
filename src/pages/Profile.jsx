@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import {
-  User, FileText, Users, Award, FolderOpen, TrendingUp,
-  Zap, Target, Brain, Edit2, Check, Sparkles
+  FileText, Users, Award, FolderOpen, TrendingUp,
+  Edit2, Check
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { USER_TYPE_OPTIONS } from '@/lib/persona';
@@ -33,6 +33,7 @@ export default function Profile() {
   const [stats, setStats] = useState({ papers: 0, researchers: 0, opportunities: 0, projects: 0, searches: 0 });
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [form, setForm] = useState({ bio: '', skills: '', research_interests: '', organization: '', country: '', career_goal: '', startup_interest: '', user_type: '' });
   const { toast } = useToast();
 
@@ -40,34 +41,43 @@ export default function Profile() {
 
   const loadData = async () => {
     setLoading(true);
-    const [me, papers, researchers, opportunities, projects, searches] = await Promise.all([
-      base44.auth.me(),
-      base44.entities.SavedPaper.list('-created_date', 999),
-      base44.entities.SavedResearcher.list('-created_date', 999),
-      base44.entities.SavedOpportunity.list('-created_date', 999),
-      base44.entities.Project.list('-created_date', 999),
-      base44.entities.SearchHistory.list('-created_date', 999),
-    ]);
-    setUser(me);
-    setForm({
-      bio: me.bio || '', skills: me.skills || '', research_interests: me.research_interests || '',
-      organization: me.organization || '', country: me.country || '',
-      career_goal: me.career_goal || '', startup_interest: me.startup_interest || '',
-      user_type: me.user_type || '',
-    });
-    setStats({ papers: papers.length, researchers: researchers.length, opportunities: opportunities.length, projects: projects.length, searches: searches.length });
-    setLoading(false);
+    setLoadError('');
+    try {
+      const me = await base44.auth.me();
+      const results = await Promise.allSettled([
+        base44.entities.SavedPaper.list('-created_date', 999),
+        base44.entities.SavedResearcher.list('-created_date', 999),
+        base44.entities.SavedOpportunity.list('-created_date', 999),
+        base44.entities.Project.list('-created_date', 999),
+        base44.entities.SearchHistory.list('-created_date', 999),
+      ]);
+      const [papers, researchers, opportunities, projects, searches] = results.map(result => result.status === 'fulfilled' ? result.value : []);
+      const failures = results.filter(result => result.status === 'rejected').length;
+      if (failures) setLoadError(`${failures} activity collection${failures === 1 ? '' : 's'} could not be counted.`);
+      setUser(me);
+      setForm({
+        bio: me.bio || '', skills: me.skills || '', research_interests: me.research_interests || '',
+        organization: me.organization || '', country: me.country || '',
+        career_goal: me.career_goal || '', startup_interest: me.startup_interest || '',
+        user_type: me.user_type || '',
+      });
+      setStats({ papers: papers.length, researchers: researchers.length, opportunities: opportunities.length, projects: projects.length, searches: searches.length });
+    } catch (error) {
+      setLoadError(error?.message || 'Profile could not be loaded.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const saveProfile = async () => {
-    await base44.auth.updateMe(form);
-    setEditing(false);
-    toast({ title: 'Profile updated' });
+    try {
+      await base44.auth.updateMe(form);
+      setEditing(false);
+      toast({ title: 'Profile updated' });
+    } catch (error) {
+      toast({ title: 'Could not update profile', description: error?.message || 'Please try again.', variant: 'destructive' });
+    }
   };
-
-  const researchScore = Math.min(stats.papers * 5 + stats.researchers * 3 + stats.searches * 2, 100);
-  const innovationScore = Math.min(stats.projects * 15 + stats.opportunities * 4, 100);
-  const impactScore = Math.min(Math.round((researchScore + innovationScore) / 2 * 0.8 + stats.projects * 5), 100);
 
   const profileComplete = PROFILE_FIELDS.filter(f => form[f.key]?.trim()).length;
   const profilePct = Math.round((profileComplete / PROFILE_FIELDS.length) * 100);
@@ -86,6 +96,8 @@ export default function Profile() {
         <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground mb-1">Profile</h1>
         <p className="text-muted-foreground text-sm">Your Research & Innovation identity on EYLO. A complete profile helps EYRA personalize recommendations.</p>
       </div>
+
+      {loadError && <div role="status" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadError}</div>}
 
       <div className="grid gap-6 lg:grid-cols-3">
 
@@ -201,49 +213,10 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Right — scores, stats, achievements */}
+        {/* Right — exact activity and achievements */}
         <div className="lg:col-span-2 space-y-5">
-
-          {/* Reputation scores */}
-          <div className="p-6 rounded-2xl border border-border bg-card">
-            <div className="flex items-center gap-2 mb-5">
-              <Sparkles size={13} className="text-primary" />
-              <h3 className="font-semibold text-sm text-foreground">EYLO Reputation</h3>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: 'Research', score: researchScore, icon: Brain, color: 'hsl(210, 100%, 60%)' },
-                { label: 'Innovation', score: innovationScore, icon: Zap, color: 'hsl(250, 70%, 62%)' },
-                { label: 'Impact', score: impactScore, icon: Target, color: 'hsl(165, 60%, 48%)' },
-              ].map(({ label, score, icon: Icon, color }) => {
-                const r = 28;
-                const circ = 2 * Math.PI * r;
-                const dash = circ * Math.min(score / 100, 1);
-                return (
-                  <div key={label} className="flex flex-col items-center gap-2">
-                    <div className="relative w-20 h-20 flex items-center justify-center">
-                      <svg className="absolute inset-0 -rotate-90" width="80" height="80">
-                        <circle cx="40" cy="40" r={r} fill="none" stroke="hsl(var(--border))" strokeWidth="4" />
-                        <circle cx="40" cy="40" r={r} fill="none" stroke={color} strokeWidth="4"
-                          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-                          style={{ transition: 'stroke-dasharray 1s ease' }} />
-                      </svg>
-                      <div className="flex flex-col items-center z-10">
-                        <Icon size={11} style={{ color }} />
-                        <span className="font-bold text-sm text-foreground leading-none mt-0.5">{score}</span>
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="text-[10px] text-muted-foreground text-center mt-4 leading-relaxed">
-              Scores grow as you discover papers, build projects, and save opportunities on EYLO.
-            </p>
-          </div>
-
           {/* Activity stats */}
+          <div><h2 className="text-sm font-semibold text-foreground">Workspace activity</h2><p className="mt-1 text-xs text-muted-foreground">Exact counts from your private workspace — no synthetic reputation score.</p></div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: 'Papers', value: stats.papers, icon: FileText, color: 'text-primary' },
