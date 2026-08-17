@@ -15,34 +15,42 @@ export default function ExecutiveBriefing() {
   const [projects, setProjects] = useState([]);
   const [briefing, setBriefing] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
   const [lastGenerated, setLastGenerated] = useState(null);
   const [sourceCounts, setSourceCounts] = useState({ papers: 0, funding: 0 });
   const [error, setError] = useState('');
 
-  useEffect(() => { loadAndGenerate(); }, []);
+  useEffect(() => { loadWorkspace(); }, []);
 
-  const loadAndGenerate = async () => {
-    const [me, projs] = await Promise.all([
-      base44.auth.me(),
-      base44.entities.Project.list('-updated_date', 10),
-    ]);
-    setUser(me);
-    setProjects(projs);
-    // Check cache — regenerate once per day
-    const today = new Date().toDateString();
-    const cachedDate = localStorage.getItem('eyra_briefing_grounded_v2_date');
-    const cachedBriefing = localStorage.getItem('eyra_briefing_grounded_v2');
-    if (cachedDate === today && cachedBriefing) {
-      try {
-        const parsedBriefing = JSON.parse(cachedBriefing);
-        setBriefing(parsedBriefing);
-        setSourceCounts(parsedBriefing._source_counts || { papers: 0, funding: 0 });
-        setLastGenerated(new Date(localStorage.getItem('eyra_briefing_grounded_v2_ts') || Date.now()));
-        return;
-      } catch {}
+  const loadWorkspace = async () => {
+    setError('');
+    try {
+      const [me, projs] = await Promise.all([
+        base44.auth.me(),
+        base44.entities.Project.list('-updated_date', 10),
+      ]);
+      setUser(me);
+      setProjects(projs);
+
+      const today = new Date().toDateString();
+      const cachedDate = localStorage.getItem('eyra_briefing_grounded_v2_date');
+      const cachedBriefing = localStorage.getItem('eyra_briefing_grounded_v2');
+      if (cachedDate === today && cachedBriefing) {
+        try {
+          const parsedBriefing = JSON.parse(cachedBriefing);
+          setBriefing(parsedBriefing);
+          setSourceCounts(parsedBriefing._source_counts || { papers: 0, funding: 0 });
+          setLastGenerated(new Date(localStorage.getItem('eyra_briefing_grounded_v2_ts') || Date.now()));
+        } catch {
+          localStorage.removeItem('eyra_briefing_grounded_v2');
+          localStorage.removeItem('eyra_briefing_grounded_v2_date');
+        }
+      }
+    } catch (workspaceError) {
+      setError(workspaceError?.message || 'Your briefing workspace could not be loaded.');
+    } finally {
+      setInitializing(false);
     }
-    // Auto-generate
-    setTimeout(() => generateBriefing(me), 100);
   };
 
   const generateBriefing = async (userOverride) => {
@@ -196,10 +204,10 @@ Rules:
             <p className="text-[10px] text-muted-foreground mt-0.5">Last generated: {moment(lastGenerated).fromNow()}</p>
           )}
         </div>
-        <button onClick={() => generateBriefing()} disabled={loading}
+        <button onClick={() => generateBriefing()} disabled={loading || initializing || !user}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity flex-shrink-0">
           {loading ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
-          {loading ? 'Generating...' : briefing ? 'Refresh' : 'Generate Briefing'}
+          {initializing ? 'Loading workspace...' : loading ? 'Generating...' : briefing ? 'Refresh' : 'Generate Briefing'}
         </button>
       </div>
 
@@ -223,6 +231,16 @@ Rules:
           </div>
           <p className="font-semibold text-sm mb-1">EYRA is preparing your briefing...</p>
           <p className="text-xs text-muted-foreground">Analyzing projects, opportunities, risks & priorities</p>
+        </div>
+      )}
+
+      {!initializing && !loading && !briefing && !error && (
+        <div className="rounded-2xl border border-border bg-card px-6 py-12 text-center">
+          <Sparkles size={22} className="mx-auto mb-3 text-primary" />
+          <h2 className="font-heading text-lg font-semibold">Generate when you are ready</h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
+            EYRA will use your current projects, saved records and live scholarly sources. Nothing runs or consumes an AI action until you choose Generate Briefing.
+          </p>
         </div>
       )}
 
