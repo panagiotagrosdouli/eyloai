@@ -32,8 +32,13 @@ async function searchOpenAlex(query) {
     search: query,
     per_page: '5',
     sort: 'publication_date:desc',
-    mailto: 'eylo@research.app',
   });
+  const contactEmail = String(
+    process.env.RESEARCH_CONTACT_EMAIL
+    || process.env.VITE_RESEARCH_CONTACT_EMAIL
+    || '',
+  ).trim();
+  if (contactEmail) params.set('mailto', contactEmail);
   const response = await fetch(`${OPENALEX_URL}?${params}`, { signal: AbortSignal.timeout(12_000) });
   if (!response.ok) throw new Error(`OpenAlex failed: ${response.status}`);
   const payload = await response.json();
