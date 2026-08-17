@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Sparkles, Loader2, RefreshCw, Target, TrendingUp, Zap, Brain, Users, DollarSign, Award, ChevronRight, RotateCcw, CheckCircle2, Clock, ArrowRight, Lightbulb, BookOpen, Star } from 'lucide-react';
+import { Sparkles, RefreshCw, Zap, RotateCcw, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import ReactMarkdown from 'react-markdown';
 import FutureMeScores from './FutureMeScores';
 import FutureMeRoadmap from './FutureMeRoadmap';
 import FutureMeWhatIf from './FutureMeWhatIf';

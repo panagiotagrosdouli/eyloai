@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Sparkles, FileText, Users, Building2, Brain, CheckCircle2, Loader2, Award, AlertTriangle } from 'lucide-react';
 
 const SOURCES = [

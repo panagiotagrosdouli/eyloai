@@ -1,5 +1,5 @@
 import React from 'react';
-import { Video, Calendar, Users, ExternalLink, Sparkles } from 'lucide-react';
+import { Video, Calendar, Users, Sparkles } from 'lucide-react';
 import moment from 'moment';
 
 const TYPE_LABELS = {

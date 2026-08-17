@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { searchAllPapers } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import { monitoringStore } from '@/lib/monitoring-service';
-import { Lightbulb, Plus, X, Sparkles, Loader2, Trash2, ArrowRight, Tag } from 'lucide-react';
+import { Lightbulb, Plus, X, Sparkles, Loader2, Trash2, Tag } from 'lucide-react';
 import { EyraSectionLabel, EyraPoweredBy } from '@/components/eyra/EyraBadge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';

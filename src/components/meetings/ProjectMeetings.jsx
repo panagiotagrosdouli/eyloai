@@ -4,7 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 import MeetingCard from './MeetingCard';
 import MeetingForm from './MeetingForm';
 import MeetingDetail from './MeetingDetail';
-import { Video, Plus, Calendar } from 'lucide-react';
+import { Plus, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
 

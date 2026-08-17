@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const PRIORITY_STYLE = {
   high: { border: 'border-rose-400/30', bg: 'bg-rose-400/5', badge: 'bg-rose-400/10 text-rose-400', dot: 'bg-rose-400' },

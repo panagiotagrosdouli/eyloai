@@ -4,8 +4,7 @@ import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import {
   X, Sparkles, Loader2, FileText, Users, Award, Rocket,
-  Brain, ChevronRight, RefreshCw, Download, Target, Search,
-  TrendingUp, AlertCircle
+  Brain, RefreshCw, Search
 } from 'lucide-react';
 
 const AGENTS = [

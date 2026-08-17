@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Video, Users, FileText, Clock, X, Link2 } from 'lucide-react';
+import { X, Link2 } from 'lucide-react';
 
 const CALL_TYPES = [
   { value: 'project_meeting', label: 'Project Meeting' },

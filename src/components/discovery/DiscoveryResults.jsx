@@ -8,7 +8,7 @@ import {
   ShieldCheck, Info, Lock, Compass, Clock3, Layers3
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import EyraBadge, { EyraSectionLabel } from '@/components/eyra/EyraBadge';
+import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
 

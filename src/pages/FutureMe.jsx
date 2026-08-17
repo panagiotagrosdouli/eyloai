@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { buildUserProfile } from '@/lib/second-brain';
 import FutureMeDashboard from '@/components/futureme/FutureMeDashboard';
 import FutureMeSetup from '@/components/futureme/FutureMeSetup';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 export default function FutureMe() {
   const [profile, setProfile] = useState(null);

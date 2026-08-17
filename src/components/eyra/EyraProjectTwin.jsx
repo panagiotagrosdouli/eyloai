@@ -3,9 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import { motion } from 'framer-motion';
-import ReactMarkdown from 'react-markdown';
 import {
-  Sparkles, Loader2, RefreshCw, Zap, Bell, TrendingUp,
+  Sparkles, Loader2, RefreshCw, Zap, TrendingUp,
   AlertTriangle, FileText, Users, Award, Lightbulb, ChevronRight, ExternalLink
 } from 'lucide-react';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
