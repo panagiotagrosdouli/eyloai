@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import GuidedSearch, { normalizeDiscoveryRequest } from '@/components/discovery/GuidedSearch';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 function EmptyState({ children }) {
   return <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">{children}</div>;
@@ -155,8 +156,8 @@ export default function PublicDiscovery() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-8">
-          <Link to="/" className="flex items-center gap-2 text-sm font-semibold" aria-label="Back to EYLO"><ArrowLeft size={15} /><img src="/brand/eylo-logo.svg" alt="EYLO" className="h-10 w-14 rounded-xl border border-white/10 bg-white/[0.03] object-contain p-1" /></Link>
+        <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 px-4 sm:px-8">
+          <Link to="/" className="flex items-center gap-2 text-sm font-semibold" aria-label="Back to EYLO"><ArrowLeft size={15} /><BrandLogo brand="eylo" size="nav" priority /></Link>
           <form onSubmit={submitHeader} className="ml-auto flex w-full max-w-2xl items-center rounded-2xl border border-border bg-card p-1.5">
             <Search className="ml-3 text-muted-foreground" size={15} />
             <input value={query} onChange={event => setQuery(event.target.value)} aria-label="Research topic" className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none" placeholder="Search a research topic…" />

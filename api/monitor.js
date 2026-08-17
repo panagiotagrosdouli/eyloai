@@ -3,13 +3,19 @@ const OPENALEX_URL = 'https://api.openalex.org/works';
 const GRANTS_URL = 'https://api.grants.gov/v1/api/search2';
 const MAX_WATCHLISTS_PER_RUN = 30;
 
+function supabaseServerKey() {
+  return process.env.SUPABASE_SECRET_KEY
+    || process.env.SUPABASE_SERVICE_ROLE_KEY;
+}
+
 function headers() {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  return {
-    authorization: `Bearer ${key}`,
+  const key = supabaseServerKey();
+  const result = {
     apikey: key,
     'content-type': 'application/json',
   };
+  if (!key.startsWith('sb_')) result.authorization = `Bearer ${key}`;
+  return result;
 }
 
 async function supabase(path, options = {}) {
@@ -150,8 +156,8 @@ export default async function handler(request, response) {
   if (!process.env.CRON_SECRET || request.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     return response.status(401).json({ error: 'Cron authorization required.' });
   }
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return response.status(503).json({ error: 'Scheduled monitoring needs SUPABASE_SERVICE_ROLE_KEY.' });
+  if (!supabaseServerKey()) {
+    return response.status(503).json({ error: 'Scheduled monitoring needs a Supabase server key.' });
   }
 
   try {

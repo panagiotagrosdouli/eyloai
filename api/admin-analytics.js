@@ -1,21 +1,39 @@
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
+const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_QOF_tW8ve4IFUsflluOhww_aRubMF0V';
 const ENTITY_TABLES = ['projects', 'saved_papers', 'saved_researchers', 'saved_opportunities', 'meetings', 'watchlists'];
+
+function supabasePublicKey() {
+  return process.env.SUPABASE_PUBLISHABLE_KEY
+    || process.env.SUPABASE_ANON_KEY
+    || process.env.VITE_SUPABASE_ANON_KEY
+    || DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+}
+
+function supabaseServerKey() {
+  return process.env.SUPABASE_SECRET_KEY
+    || process.env.SUPABASE_SERVICE_ROLE_KEY;
+}
+
+function serverHeaders(key, headers = {}) {
+  const result = { apikey: key, ...headers };
+  if (!key.startsWith('sb_')) result.authorization = `Bearer ${key}`;
+  return result;
+}
 
 async function authenticate(authorization) {
   if (!authorization?.startsWith('Bearer ')) return null;
-  const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const anonKey = supabasePublicKey();
   const url = process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  if (!anonKey) return null;
   const response = await fetch(`${url}/auth/v1/user`, { headers: { authorization, apikey: anonKey } });
   return response.ok ? response.json() : null;
 }
 
 async function serviceFetch(path, options = {}) {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = supabaseServerKey();
   const url = process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
   const response = await fetch(`${url}/rest/v1/${path}`, {
     ...options,
-    headers: { authorization: `Bearer ${key}`, apikey: key, ...(options.headers || {}) },
+    headers: serverHeaders(key, options.headers),
   });
   if (!response.ok) throw new Error(`Institution analytics query failed: ${response.status}`);
   return response.json();
@@ -23,7 +41,7 @@ async function serviceFetch(path, options = {}) {
 
 export default async function handler(request, response) {
   if (request.method !== 'GET') return response.status(405).json({ error: 'Method not allowed.' });
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return response.status(503).json({ error: 'Institution analytics is not configured.' });
+  if (!supabaseServerKey()) return response.status(503).json({ error: 'Institution analytics is not configured.' });
 
   try {
     const user = await authenticate(request.headers.authorization);

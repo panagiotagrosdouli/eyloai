@@ -44,5 +44,8 @@ jobs:
       - name: Test partial source resilience
         run: npm run test:retrieval
 
+      - name: Test secure service credentials
+        run: npm run test:services
+
       - name: Run deterministic relevance benchmark
         run: npm run benchmark:relevance

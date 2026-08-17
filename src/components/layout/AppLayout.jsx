@@ -7,6 +7,7 @@ import {
   Video, X, Zap,
 } from 'lucide-react';
 import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
+import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
 import NotificationsBell from '@/components/monitoring/NotificationsBell';
 import ServiceStatus from '@/components/system/ServiceStatus';
 import { useCapabilities } from '@/lib/capabilities';
@@ -157,9 +158,9 @@ export default function AppLayout() {
   return (
     <div className="eylo-app-canvas min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-[90rem] items-center gap-2 px-4 sm:px-6">
+        <div className="mx-auto flex h-20 max-w-[90rem] items-center gap-2 px-4 sm:px-6">
           <Link to="/home" className="mr-3 flex shrink-0 items-center" aria-label="EYLO workspace home">
-            <img src="/brand/eylo-logo.svg" alt="EYLO" className="h-9 w-auto max-w-[128px] object-contain" />
+            <BrandLogo brand="eylo" size="nav" priority />
           </Link>
 
           <nav className="hidden flex-1 items-center gap-1 lg:flex" aria-label="Workspace navigation">
@@ -225,7 +226,7 @@ export default function AppLayout() {
         </div>
 
         {mobileOpen && (
-          <div className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
+          <div className="max-h-[calc(100vh-5rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
             <div className="mx-auto max-w-xl">
               <div className="grid grid-cols-2 gap-2">
                 {PRIMARY_NAV.map(item => {
@@ -258,7 +259,7 @@ export default function AppLayout() {
             return <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}><Icon size={18} /><span>{item.label}</span></Link>;
           })}
           <button type="button" onClick={() => setEyraOpen(true)} disabled={!aiAvailable} className="-mt-6 flex flex-col items-center gap-1 text-[10px] font-semibold text-primary disabled:opacity-45" aria-label={aiAvailable ? 'Ask EYRA' : 'EYRA unavailable'}>
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20"><Sparkles size={20} /></span><span>EYRA</span>
+            <EyraOrb className="h-12 w-12 rounded-2xl" decorative={false} /><span>EYRA</span>
           </button>
           {[PRIMARY_NAV[2], PRIMARY_NAV[3]].map(item => {
             const Icon = item.icon; const active = isActive(item.path);
