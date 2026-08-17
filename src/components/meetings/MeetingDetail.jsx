@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchAllPapers } from '@/lib/eyra-api';
-import { ArrowLeft, Video, Sparkles, Edit2, Trash2, ExternalLink, Users, Calendar, Clock, FileText, CheckSquare, AlertTriangle, ChevronRight, CalendarPlus } from 'lucide-react';
+import { ArrowLeft, Video, Sparkles, Edit2, Trash2, Users, Calendar, Clock, FileText, CheckSquare, CalendarPlus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import MeetingForm from './MeetingForm';
 import ReactMarkdown from 'react-markdown';

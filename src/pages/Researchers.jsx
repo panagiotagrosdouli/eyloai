@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchOpenAlexAuthors } from '@/lib/eyra-api';
-import { Search, Bookmark, ExternalLink, BookOpen, Sparkles, Users, Loader2 } from 'lucide-react';
+import { Bookmark, ExternalLink, BookOpen, Sparkles, Users, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 

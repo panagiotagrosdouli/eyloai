@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Sparkles, Trash2, Search, FileText, Users, Award,
-  TrendingUp, Calendar, Activity, ArrowRight, RotateCcw, Bookmark
+  Calendar, ArrowRight, RotateCcw, Bookmark
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';

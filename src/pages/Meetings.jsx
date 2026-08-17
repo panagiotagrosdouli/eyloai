@@ -4,7 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 import MeetingCard from '@/components/meetings/MeetingCard';
 import MeetingForm from '@/components/meetings/MeetingForm';
 import MeetingDetail from '@/components/meetings/MeetingDetail';
-import { Video, Plus, Calendar, Clock, Filter, Loader2 } from 'lucide-react';
+import { Video, Plus, Calendar, Clock, Loader2 } from 'lucide-react';
 import moment from 'moment';
 
 const TABS = ['Upcoming', 'Past', 'All'];

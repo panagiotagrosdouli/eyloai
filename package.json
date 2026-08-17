@@ -15,7 +15,8 @@
     "benchmark:relevance": "node scripts/benchmark-relevance.mjs",
     "benchmark:relevance:live": "node scripts/benchmark-live-retrieval.mjs",
     "test:retrieval": "node scripts/test-partial-retrieval.mjs",
-    "test:eyra-auth": "node scripts/test-eyra-auth-config.mjs"
+    "test:eyra-auth": "node scripts/test-eyra-auth-config.mjs",
+    "test:greeting": "node scripts/test-local-greeting.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",

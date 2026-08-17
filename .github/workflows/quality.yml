@@ -32,8 +32,14 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
+      - name: Lint application
+        run: npm run lint
+
       - name: Protect authenticated EYRA routing
         run: npm run test:eyra-auth
+
+      - name: Test local-time greeting states
+        run: npm run test:greeting
 
       - name: Test partial source resilience
         run: npm run test:retrieval

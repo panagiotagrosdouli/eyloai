@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Target, Rocket, BookOpen, Users, DollarSign, Award, Microscope, Code, Brain, ArrowRight, Loader2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { Sparkles, Rocket, BookOpen, Users, DollarSign, Award, Microscope, Code, Brain, ArrowRight, Loader2 } from 'lucide-react';
 
 const GOAL_TEMPLATES = [
   { icon: Brain, label: 'AI Researcher', desc: 'Publish papers, build expertise, join labs', color: 'text-primary', bg: 'bg-primary/10 border-primary/30' },

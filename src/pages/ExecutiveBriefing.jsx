@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import {
   Sparkles, RefreshCw, AlertTriangle, TrendingUp, DollarSign,
-  Target, CheckSquare, Brain, Zap, Shield, ChevronRight, Star, ExternalLink
+  Target, CheckSquare, Brain, Zap, Star, ExternalLink
 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
 import moment from 'moment';
 import { searchAllPapers } from '@/lib/eyra-api';

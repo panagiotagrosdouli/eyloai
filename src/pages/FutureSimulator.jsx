@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchAllPapers } from '@/lib/eyra-api';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactMarkdown from 'react-markdown';
 import {
   Sparkles, Loader2, TrendingUp, Zap, Rocket,
   Users, DollarSign, Calendar, AlertTriangle, Target, RefreshCw

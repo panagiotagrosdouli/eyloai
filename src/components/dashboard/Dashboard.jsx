@@ -4,7 +4,6 @@ import {
   ArrowRight,
   BookOpen,
   FolderOpen,
-  Search,
   Sparkles,
   TrendingUp,
   Zap,

@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, BookOpen, Brain, CheckCircle2, Database, ExternalLink, FolderKanban,
-  Search, ShieldCheck, Sparkles,
+  ArrowRight, BookOpen, CheckCircle2, Database, ExternalLink, FileSearch, FolderKanban,
+  Search, ShieldCheck,
 } from 'lucide-react';
 import ServiceStatus from '@/components/system/ServiceStatus';
 import { trackSearchStarted } from '@/lib/product-analytics';
 
 const EXAMPLES = [
   'AI for early cancer detection',
-  'Robotics for independent ageing',
   'Climate adaptation for coastal cities',
   'Trustworthy AI in higher education',
+  'Battery recycling for grid storage',
 ];
 
 const SOURCES = [
@@ -47,8 +47,8 @@ export default function Landing() {
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070a11] text-slate-100">
-      <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#070a11]/90 backdrop-blur-xl">
+    <main className="min-h-screen overflow-hidden bg-[#090b0f] text-slate-100">
+      <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#090b0f]/95 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-5 sm:px-8">
           <Link to="/" className="flex items-center gap-3" aria-label="EYLO home">
             <img src="/brand/eylo-logo.svg" alt="EYLO" className="h-9 w-auto max-w-[126px] object-contain" />
@@ -60,12 +60,11 @@ export default function Landing() {
         </div>
       </header>
 
-      <section className="relative px-5 pb-20 pt-16 sm:px-8 sm:pb-28 sm:pt-24">
-        <div className="pointer-events-none absolute left-1/2 top-0 h-[34rem] w-[58rem] -translate-x-1/2 rounded-full bg-blue-600/[0.09] blur-3xl" />
-        <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[minmax(0,1.12fr)_minmax(24rem,0.88fr)] lg:items-center">
+      <section className="px-5 pb-20 pt-16 sm:px-8 sm:pb-28 sm:pt-24">
+        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[minmax(0,1.12fr)_minmax(24rem,0.88fr)] lg:items-center">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/15 bg-cyan-300/[0.04] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-200">
-              <Sparkles size={12} />Research intelligence, grounded in live records
+            <div className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.025] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-300">
+              <Database size={12} />Research workflow grounded in source records
             </div>
             <h1 className="mt-7 max-w-4xl font-heading text-5xl font-semibold leading-[1.02] tracking-[-0.055em] text-white sm:text-7xl lg:text-[5rem]">
               Research less blindly.
@@ -75,11 +74,11 @@ export default function Landing() {
               Search papers, people and opportunities across scholarly sources. Save the useful evidence and let EYRA turn it into a clear, sourced next step.
             </p>
 
-            <form onSubmit={explore} className="mt-9 max-w-3xl rounded-2xl border border-white/10 bg-[#0c111c] p-2 shadow-[0_28px_90px_-50px_rgba(56,189,248,0.45)]">
+            <form onSubmit={explore} className="mt-9 max-w-3xl rounded-2xl border border-white/10 bg-[#10131a] p-2 shadow-2xl shadow-black/25">
               <label htmlFor="research-question" className="sr-only">Research question</label>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-center">
-                  <Search className="ml-3 shrink-0 text-cyan-300" size={17} />
+                  <Search className="ml-3 shrink-0 text-slate-400" size={17} />
                   <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="What do you want to understand or build?"
                     className="min-w-0 flex-1 bg-transparent px-3 py-3.5 text-base text-white outline-none placeholder:text-slate-500" />
                 </div>
@@ -97,10 +96,10 @@ export default function Landing() {
             <p className="mt-5 flex items-center gap-2 text-xs text-slate-500"><ShieldCheck size={13} className="text-emerald-400" />Public discovery works without an account. No invented records.</p>
           </div>
 
-          <div className="rounded-3xl border border-white/[0.09] bg-[#0b101a] p-5 shadow-2xl shadow-black/30 sm:p-7">
+          <div className="rounded-2xl border border-white/[0.09] bg-[#10131a] p-5 shadow-2xl shadow-black/25 sm:p-7">
             <div className="flex items-center justify-between gap-4 border-b border-white/[0.07] pb-5">
-              <div><p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-cyan-300">Example EYRA answer</p><p className="mt-2 text-sm font-semibold text-white">How can robots support independent ageing?</p></div>
-              <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.03]"><Brain size={17} className="text-cyan-300" /></span>
+              <div><p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-500">What you receive</p><p className="mt-2 text-sm font-semibold text-white">A decision-ready answer for your own question</p></div>
+              <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.03]"><FileSearch size={17} className="text-slate-300" /></span>
             </div>
             <div className="mt-2 divide-y divide-white/[0.07]">
               {OUTPUTS.map(output => (
@@ -110,8 +109,8 @@ export default function Landing() {
                 </div>
               ))}
             </div>
-            <Link to="/discover?q=Robotics%20for%20independent%20ageing" className="mt-4 flex items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-3 text-xs font-semibold text-slate-200 hover:border-cyan-300/25">
-              Open the live discovery flow <ExternalLink size={13} />
+            <Link to="/discover" className="mt-4 flex items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-3 text-xs font-semibold text-slate-200 hover:border-blue-300/25">
+              Try it with your own topic <ExternalLink size={13} />
             </Link>
           </div>
         </div>

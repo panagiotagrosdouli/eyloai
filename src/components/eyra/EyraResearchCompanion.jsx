@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Sparkles, Loader2, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 /**

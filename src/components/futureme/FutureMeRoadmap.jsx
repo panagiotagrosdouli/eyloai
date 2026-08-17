@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, Target } from 'lucide-react';
+import { Circle, ChevronDown, ChevronUp, Target } from 'lucide-react';
 
 const PHASE_COLORS = [
   { border: 'border-primary/40', bg: 'bg-primary/10', dot: 'bg-primary', text: 'text-primary' },

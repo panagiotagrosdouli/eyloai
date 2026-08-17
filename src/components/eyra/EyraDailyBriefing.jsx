@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
-import { Sparkles, Loader2, ChevronDown, ChevronUp, X, RefreshCw } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronUp, X, RefreshCw } from 'lucide-react';
 
 const CACHE_DATE_KEY = 'eyra_briefing_date';
 const CACHE_CONTENT_KEY = 'eyra_briefing_cache';
