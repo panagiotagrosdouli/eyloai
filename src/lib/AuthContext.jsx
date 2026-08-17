@@ -65,6 +65,7 @@ export const AuthProvider = ({ children }) => {
           // Remove an old failed EYRA response so it is not shown again after
           // the user has renewed the secure session.
           window.sessionStorage.removeItem('eyra_command_conversation');
+          window.sessionStorage.removeItem('eyra_command_conversation_v2');
         } catch {
           // Storage may be unavailable in privacy-restricted browsers.
         }
