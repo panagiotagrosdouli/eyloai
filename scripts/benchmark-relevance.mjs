@@ -102,11 +102,50 @@ const rows = CASES.map(testCase => {
   };
 });
 
+const metadataNoiseResult = rankPaperRecords([
+  {
+    id: 'crossref-base',
+    doi: '10.32920/25613349',
+    title: 'Pedestrian Trajectory Prediction with Deep Learning Transformers and Kalman Filters',
+    summary: 'Pedestrian trajectory prediction methods and evaluation.',
+    source_index: 'Crossref',
+  },
+  {
+    id: 'crossref-version',
+    doi: '10.32920/25613349.v1',
+    title: 'Pedestrian Trajectory Prediction with Deep Learning Transformers and Kalman Filters',
+    summary: 'Pedestrian trajectory prediction methods and evaluation.',
+    source_index: 'Crossref',
+  },
+  {
+    id: 'crossref-table',
+    doi: '10.7717/peerjcs.1641/table-1',
+    title: 'Table 1: Experimental settings of the pedestrian trajectory prediction.',
+    summary: 'Pedestrian trajectory prediction.',
+    source_index: 'Crossref',
+  },
+  {
+    id: 'crossref-figure',
+    doi: '10.7717/peerjcs.1641/fig-2',
+    title: 'Figure 2: The flow of pedestrian trajectory prediction by a mobile robot.',
+    summary: 'Pedestrian trajectory prediction.',
+    source_index: 'Crossref',
+  },
+], 'pedestrian trajectory prediction', {
+  level: 'student',
+  goal: 'thesis',
+  recency: 'balanced',
+  limit: 10,
+});
+const metadataQualityPassed = metadataNoiseResult.length === 1
+  && metadataNoiseResult[0].doi === '10.32920/25613349';
+
 console.table(rows);
 const failed = rows.filter(row => !row.passed);
 console.log(`Deterministic ranking cases passed: ${rows.length - failed.length}/${rows.length}`);
+console.log(`Metadata normalization regression: ${metadataQualityPassed ? 'passed' : 'failed'}`);
 
-if (failed.length) {
-  console.error('Deterministic relevance benchmark failed.');
+if (failed.length || !metadataQualityPassed) {
+  console.error('Discovery quality benchmark failed.');
   process.exitCode = 1;
 }
