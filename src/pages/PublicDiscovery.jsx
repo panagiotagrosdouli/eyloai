@@ -181,8 +181,8 @@ export default function PublicDiscovery() {
           <section className="mx-auto max-w-5xl py-8 sm:py-14">
             <div className="mb-7 max-w-3xl">
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Before the search</p>
-              <h1 className="mt-2 font-heading text-3xl font-black sm:text-5xl">Make “{initialQuery}” useful for you.</h1>
-              <p className="mt-4 text-sm leading-6 text-muted-foreground">The same topic needs a different result set for a beginner, a thesis student, and a faculty researcher.</p>
+              <h1 className="mt-2 font-heading text-3xl font-black sm:text-5xl">Shape this search around your goal.</h1>
+              <p className="mt-4 text-sm leading-6 text-muted-foreground">Current topic: <strong className="text-foreground">{initialQuery}</strong>. Choose the depth and intended outcome so the result set is useful for your work.</p>
             </div>
             <GuidedSearch initialTopic={initialQuery} initialRefine onSearch={runGuidedSearch} />
           </section>
