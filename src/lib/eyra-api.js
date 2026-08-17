@@ -49,6 +49,7 @@ export async function searchOpenAlexWorks(query, limit = 10, sort = 'relevance',
     const data = await res.json();
     return (data.results || []).map(w => ({
       id: w.id,
+      doi: w.doi ? w.doi.replace('https://doi.org/', '') : '',
       title: w.title || 'Untitled',
       authors: (w.authorships || []).slice(0, 4).map(a => a.author?.display_name).filter(Boolean).join(', '),
       year: w.publication_year,
@@ -157,6 +158,7 @@ export async function searchEuropePMC(query, limit = 5, strictOptions = {}) {
       const citedBy = parseInt(r.citedByCount) || 0;
       return {
         id: r.id || r.pmid || '',
+        doi: r.doi || '',
         title: r.title || 'Untitled',
         authors: r.authorString || '',
         summary: (r.abstractText || '').slice(0, 400),
@@ -251,6 +253,26 @@ export async function searchSemanticScholar(query, limit = 8, strictOptions = {}
 
 function normalizedTitle(title) {
   return String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 100);
+}
+
+function normalizedDoi(value) {
+  let doi = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/(?:dx\.)?doi\.org\//, '')
+    .replace(/^doi:\s*/, '');
+  try {
+    doi = decodeURIComponent(doi);
+  } catch {
+    // Keep the original normalized DOI when a provider returns invalid encoding.
+  }
+  return doi.replace(/\.v\d+$/i, '');
+}
+
+function isScholarlyWorkRecord(paper) {
+  const title = String(paper?.title || '').replace(/\s+/g, ' ').trim();
+  if (!title || title.toLowerCase() === 'untitled') return false;
+  return !/^(?:table|figure|fig\.?|supplementary(?: material)?|supplemental(?: material)?|appendix)\s*(?:[a-z]?\d+|[ivxlcdm]+)?\s*[:.\-]/i.test(title);
 }
 
 const QUERY_STOP_WORDS = new Set([
@@ -394,9 +416,10 @@ function normalizeRankingProfile(query, options = {}) {
 export function rankPaperRecords(records, query, options = {}) {
   const profile = normalizeRankingProfile(query, options);
   const seen = new Set();
-  const uniqueRecords = (records || []).flat().filter(Boolean).map(paper => {
-    const key = paper.doi
-      ? `doi:${String(paper.doi).toLowerCase()}`
+  const uniqueRecords = (records || []).flat().filter(Boolean).filter(isScholarlyWorkRecord).map(paper => {
+    const doi = normalizedDoi(paper.doi || paper.url);
+    const key = doi
+      ? `doi:${doi}`
       : `title:${normalizedTitle(paper.title)}`;
     return { ...paper, _dedupeKey: key };
   }).filter(paper => {
