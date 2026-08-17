@@ -20,7 +20,7 @@ const TYPE_CONFIG = {
   fellowship: { icon: Star, color: 'bg-purple-500/15 text-purple-400', label: 'Fellowship' },
 };
 
-const FEED_FILTERS = ['All', 'New', 'Expiring', 'High Match', 'Grants', 'Calls'];
+const FEED_FILTERS = ['All', 'New', 'Expiring', 'High relevance', 'Grants', 'Calls'];
 
 export default function OpportunityRadar() {
   const [user, setUser] = useState(null);
@@ -226,7 +226,7 @@ Rules:
     if (filter === 'All') return true;
     if (filter === 'New') return o.is_new;
     if (filter === 'Expiring') return o.is_expiring;
-    if (filter === 'High Match') return o.match_score >= 80;
+    if (filter === 'High relevance') return o.match_score >= 80;
     if (filter === 'Grants') return o.type === 'grant';
     if (filter === 'Calls') return o.type === 'call';
     return true;
@@ -299,7 +299,7 @@ Rules:
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
           { label: 'Opportunities Found', value: feed.length, icon: Award, color: 'text-primary' },
-          { label: 'High Match (80%+)', value: feed.filter(o => o.match_score >= 80).length, icon: Star, color: 'text-amber-400' },
+          { label: 'High relevance (80+)', value: feed.filter(o => o.match_score >= 80).length, icon: Star, color: 'text-amber-400' },
           { label: 'Expiring Soon', value: feed.filter(o => o.is_expiring).length, icon: Clock, color: 'text-red-400' },
           { label: 'New This Week', value: feed.filter(o => o.is_new).length, icon: Zap, color: 'text-green-400' },
         ].map(s => {
@@ -403,7 +403,7 @@ Rules:
                     <span className="ml-1.5 opacity-50">
                       {f === 'New' ? feed.filter(o => o.is_new).length :
                        f === 'Expiring' ? feed.filter(o => o.is_expiring).length :
-                       f === 'High Match' ? feed.filter(o => o.match_score >= 80).length :
+                       f === 'High relevance' ? feed.filter(o => o.match_score >= 80).length :
                        f === 'Grants' ? feed.filter(o => o.type === 'grant').length :
                        feed.filter(o => o.type === 'call').length}
                     </span>
@@ -464,7 +464,7 @@ Rules:
                           opp.match_score >= 70 ? 'bg-primary/15 text-primary' :
                           'bg-secondary text-muted-foreground'
                         }`}>
-                          {opp.match_score == null ? '—' : `${opp.match_score}%`}
+                          {opp.match_score == null ? '—' : `${opp.match_score}`}
                         </div>
                         <button onClick={() => saveOpportunity(opp)}
                           className="p-1.5 rounded-lg hover:bg-secondary transition-colors" title="Save to library">

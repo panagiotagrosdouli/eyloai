@@ -13,11 +13,11 @@ const PLANS = [
     period: 'forever',
     icon: Sparkles,
     features: [
-      '5 authenticated EYRA AI actions per month',
+      'Public multi-source discovery',
       '1 project workspace',
       'Live paper and researcher discovery',
       'Evidence library and saved records',
-      'Public multi-source discovery',
+      'EYRA access according to the active deployment',
     ],
   },
   {
@@ -96,18 +96,20 @@ export default function Pricing() {
       <header className="mx-auto max-w-3xl text-center">
         <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-3 py-1.5">
           <ShieldCheck size={12} className="text-primary" />
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-primary">Server-verified entitlements</span>
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-primary">Access status</span>
         </div>
-        <h1 className="font-heading text-4xl font-black sm:text-6xl">Plans tied to <span className="impact-gradient">real access.</span></h1>
+        <h1 className="font-heading text-4xl font-black sm:text-6xl">Clear access. <span className="impact-gradient">No dead checkout.</span></h1>
         <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-          Once Stripe is configured, AI limits are enforced by the authenticated server endpoint, project limits by the workspace service, and paid access by verified webhook entitlements. Until then, premium tools stay open as early access.
+          {billing?.billing_configured
+            ? 'Paid access is verified by the server and Stripe. The workspace reads the entitlement attached to your authenticated account.'
+            : 'Paid checkout is not active on this deployment. Available premium tools remain open for early access, so EYLO will never send you to a checkout that cannot complete.'}
         </p>
         {billing && <p className="mt-3 text-xs text-muted-foreground">Current plan: <span className="font-semibold uppercase text-primary">{billing.plan}</span> · status {billing.subscription_status}</p>}
       </header>
 
       {!billing?.billing_configured && (
         <div className="mx-auto mt-7 max-w-3xl rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs leading-5 text-amber-200">
-          Checkout code and webhook verification are deployed, but this deployment still needs STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRO_PRICE_ID, STRIPE_FOUNDER_PRICE_ID and SUPABASE_SERVICE_ROLE_KEY. Paid buttons remain disabled and premium tools stay open in early access until every credential is present.
+          Early access is active. Prices below describe the planned tiers; paid buttons remain disabled until billing is fully configured and verifiable.
         </div>
       )}
       {error && <div className="mx-auto mt-5 max-w-3xl rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300">{error}</div>}
@@ -140,10 +142,10 @@ export default function Pricing() {
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl eyra-gradient py-2.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {workingPlan === plan.key ? <Loader2 size={13} className="animate-spin" /> : <Crown size={13} />}
-                  {billing?.billing_configured ? `Choose ${plan.name}` : 'Billing setup required'}
+                  {billing?.billing_configured ? `Choose ${plan.name}` : 'Not available yet'}
                 </button>
               ) : plan.key === 'institution' ? (
-                <a href="mailto:eylo@research.app?subject=EYLO%20Institution%20plan" className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-xs font-semibold">Contact for provisioning <ArrowRight size={12} /></a>
+                <button disabled className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-xs font-semibold text-muted-foreground">Institution setup required <ArrowRight size={12} /></button>
               ) : (
                 <button disabled className="w-full rounded-xl border border-border py-2.5 text-xs font-semibold text-muted-foreground">Included by default</button>
               )}

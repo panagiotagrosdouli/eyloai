@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Loader2, Sparkles, Shield, TrendingUp, Users, FileText, DollarSign, Zap } from 'lucide-react';
+import { Loader2, Sparkles, TrendingUp, Users, FileText, DollarSign, Zap } from 'lucide-react';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 
 const DIMENSIONS = [
@@ -27,11 +27,14 @@ function ScoreBar({ score, color }) {
 export default function ProjectHealthScore({ project, savedPapers, savedResearchers, meetings }) {
   const [score, setScore] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const computeScore = async () => {
     setLoading(true);
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are EYRA. Compute a Project Health Score for this project.
+    setError('');
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `You are EYRA. Compute a model-assessed Project Readiness indicator for this project.
 
 Project: ${project.title}
 Goal: ${project.goal}
@@ -44,7 +47,7 @@ Meetings held: ${meetings?.length || 0}
 Milestones defined: ${project.milestones ? 'Yes' : 'No'}
 Tasks defined: ${project.tasks ? 'Yes' : 'No'}
 
-Score each dimension 0-100 and give a brief verdict. Be strict — most new projects should score 20-50.
+Score each dimension 0-100 and give a brief verdict. These are planning indicators based only on the supplied workspace fields, not empirical measurements or probabilities. Be strict — most new projects should score 20-50.
 
 Respond as JSON:
 - overall_score: number 0-100
@@ -57,24 +60,28 @@ Respond as JSON:
 - top_strength: string (1 sentence)
 - top_gap: string (1 sentence — the biggest missing piece)
 - verdict: string (2 sentences max — honest, direct, actionable)`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          overall_score: { type: 'number' },
-          overall_label: { type: 'string' },
-          research_score: { type: 'number' },
-          team_score: { type: 'number' },
-          funding_score: { type: 'number' },
-          execution_score: { type: 'number' },
-          innovation_score: { type: 'number' },
-          top_strength: { type: 'string' },
-          top_gap: { type: 'string' },
-          verdict: { type: 'string' },
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            overall_score: { type: 'number' },
+            overall_label: { type: 'string' },
+            research_score: { type: 'number' },
+            team_score: { type: 'number' },
+            funding_score: { type: 'number' },
+            execution_score: { type: 'number' },
+            innovation_score: { type: 'number' },
+            top_strength: { type: 'string' },
+            top_gap: { type: 'string' },
+            verdict: { type: 'string' },
+          },
         },
-      },
-    });
-    setScore(result);
-    setLoading(false);
+      });
+      setScore(result);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Project readiness assessment did not complete.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const overallColor = (s) => {
@@ -87,7 +94,7 @@ Respond as JSON:
   return (
     <div className="p-5 rounded-2xl border border-border bg-card">
       <div className="flex items-center justify-between mb-4">
-        <EyraSectionLabel label="EYRA Project Health Score" />
+        <EyraSectionLabel label="EYRA Project Readiness" />
         <button
           onClick={computeScore}
           disabled={loading}
@@ -100,9 +107,11 @@ Respond as JSON:
 
       {!score && !loading && (
         <p className="text-xs text-muted-foreground">
-          EYRA evaluates research readiness, team, funding, execution, and innovation across 5 dimensions.
+          EYRA creates a planning indicator for research readiness, team, funding, execution, and innovation. It is not an objective measurement.
         </p>
       )}
+
+      {error && <p role="alert" className="mb-3 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">{error}</p>}
 
       {loading && (
         <div className="flex items-center gap-2 py-4">

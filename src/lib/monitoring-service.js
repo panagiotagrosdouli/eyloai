@@ -72,9 +72,11 @@ export const monitoringStore = {
   markAllRead() { const items = read(KEYS.notifications).map(item => ({ ...item, read: true })); items.forEach(item => persistUpdate('notifications', item.id, { read: true })); return write(KEYS.notifications, items); },
 };
 
-function confidence(entity, kind) {
+function signalStrength(entity, kind) {
   if (kind === 'opportunity') {
-    return { score: 98, label: 'HIGH' };
+    const completeness = [entity.source_url, entity.agency, entity.deadline, entity.description].filter(Boolean).length;
+    const score = Math.min(96, 42 + completeness * 10 + (entity.is_new ? 8 : 0) + (entity.is_expiring ? 6 : 0));
+    return { score, label: score >= 75 ? 'HIGH' : score >= 55 ? 'MEDIUM' : 'LOW' };
   }
   if (kind === 'paper') {
     const citations = entity.cited_by_count || 0;
@@ -88,7 +90,7 @@ function confidence(entity, kind) {
 }
 
 function normalize(entity, kind, watchlist) {
-  const conf = confidence(entity, kind);
+  const conf = signalStrength(entity, kind);
   const priority = conf.score >= 80 ? 'HIGH' : conf.score >= 60 ? 'MEDIUM' : 'LOW';
   return {
     id: id(), externalId: entity.id, watchlistId: watchlist.id, watchQuery: watchlist.query,
@@ -130,16 +132,20 @@ function pushBrowserNotifications(items) {
 
 export async function runWatchlist(watchlist) {
   let candidates;
+  let failedSources = 0;
 
   if (watchlist.type === 'funding program') {
     const fundingResult = await searchFundingOpportunities(watchlist.query, 12);
     candidates = fundingResult.items.map((item) => normalize(item, 'opportunity', watchlist));
   } else {
-    const [papers, researchers, institutions] = await Promise.all([
+    const results = await Promise.allSettled([
       searchAllPapers(watchlist.query),
       searchOpenAlexAuthors(watchlist.query, 6),
       searchOpenAlexInstitutions(watchlist.query, 4),
     ]);
+    failedSources = results.filter(result => result.status === 'rejected').length;
+    const [papers, researchers, institutions] = results.map(result => result.status === 'fulfilled' ? result.value : []);
+    if (failedSources === results.length) throw new Error(`No source answered the watchlist “${watchlist.query}”.`);
     candidates = [
       ...papers.map(x => normalize(x, 'paper', watchlist)),
       ...researchers.map(x => normalize(x, 'researcher', watchlist)),
@@ -156,11 +162,17 @@ export async function runWatchlist(watchlist) {
   pushBrowserNotifications(notifications);
   notifications.forEach(item => { const { id: temporaryId, ...payload } = item; persistCreate('notifications', temporaryId, payload); });
   monitoringStore.updateWatchlist(watchlist.id, { lastCheckedAt: new Date().toISOString() });
-  return { discovered: fresh.length, notifications: notifications.length };
+  return { discovered: fresh.length, notifications: notifications.length, failedSources };
 }
 
 export async function runAllWatchlists() {
   const active = monitoringStore.watchlists().filter(item => item.active);
-  const results = await Promise.all(active.map(runWatchlist));
-  return results.reduce((total, result) => ({ discovered: total.discovered + result.discovered, notifications: total.notifications + result.notifications }), { discovered: 0, notifications: 0 });
+  const settled = await Promise.allSettled(active.map(runWatchlist));
+  const successful = settled.filter(result => result.status === 'fulfilled').map(result => result.value);
+  const summary = successful.reduce((total, result) => ({
+    discovered: total.discovered + result.discovered,
+    notifications: total.notifications + result.notifications,
+    failedSources: total.failedSources + result.failedSources,
+  }), { discovered: 0, notifications: 0, failedSources: 0 });
+  return { ...summary, failedWatchlists: settled.length - successful.length };
 }

@@ -178,7 +178,7 @@ function buildVerifiedEvidenceFallback(evidence, error) {
 
 const INITIAL_MESSAGE = {
   role: 'eyra',
-  content: "I'm online and ready. I can work with your projects, saved evidence, researchers, opportunities, and ideas. Tell me what outcome you want next.",
+  content: "I'm ready. I can work with your projects, saved evidence, researchers, opportunities, and ideas. Tell me what outcome you want next.",
   timestamp: Date.now(),
   mode: 'research',
 };

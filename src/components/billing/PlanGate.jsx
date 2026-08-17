@@ -16,8 +16,8 @@ export default function PlanGate({ minimum = 'pro', children }) {
   if (!status.billing_configured) {
     return (
       <>
-        <div className="mx-auto mt-4 max-w-6xl rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-2 text-center text-[10px] text-emerald-300">
-          Early-access entitlement: this premium tool remains open until Stripe billing is activated.
+        <div className="mx-auto mt-4 max-w-6xl rounded-xl border border-border bg-card/60 px-4 py-2 text-center text-[10px] text-muted-foreground">
+          Early access · this tool is open while paid plans are inactive on this deployment.
         </div>
         {children}
       </>

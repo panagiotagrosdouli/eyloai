@@ -3,15 +3,15 @@ import { base44 } from '@/api/base44Client';
 import { searchAllPapers } from '@/lib/eyra-api';
 import { motion } from 'framer-motion';
 import {
-  Sparkles, Loader2, Target, TrendingUp, DollarSign,
-  FileText, Users, Rocket, AlertTriangle, Brain, ChevronRight, RefreshCw
+  Sparkles, Loader2, Target, DollarSign,
+  FileText, Users, Rocket, AlertTriangle, Brain, RefreshCw
 } from 'lucide-react';
 
 const PREDICT_TYPES = [
-  { key: 'startup', label: 'Startup Success', icon: Rocket, color: 'text-amber-400' },
-  { key: 'funding', label: 'Funding Success', icon: DollarSign, color: 'text-green-400' },
-  { key: 'research', label: 'Research Impact', icon: FileText, color: 'text-primary' },
-  { key: 'collaboration', label: 'Collaboration', icon: Users, color: 'text-accent' },
+  { key: 'startup', label: 'Startup readiness', icon: Rocket, color: 'text-amber-400' },
+  { key: 'funding', label: 'Funding readiness', icon: DollarSign, color: 'text-green-400' },
+  { key: 'research', label: 'Research impact pathway', icon: FileText, color: 'text-primary' },
+  { key: 'collaboration', label: 'Collaboration readiness', icon: Users, color: 'text-accent' },
 ];
 
 const EXAMPLES = [
@@ -21,7 +21,7 @@ const EXAMPLES = [
   'Research collaboration between MIT and Pfizer on drug discovery',
 ];
 
-function ProbabilityArc({ score, color }) {
+function ScoreRing({ score, color }) {
   const r = 52;
   const circ = Math.PI * r; // half circle
   const dash = circ * (score / 100);
@@ -74,7 +74,7 @@ This is decision support, not a statistically calibrated forecast. Never claim t
 
 Score rubric:
 - overall_score and primary_score: evidence readiness and execution plausibility, 0-100
-- confidence: confidence in this assessment given the amount and relevance of supplied evidence, 0-100
+- confidence: evidence coverage for this assessment given the amount and relevance of supplied records, 0-100
 - risk_score: model-assessed risk severity, 0-100
 Every factual research claim must reference [P] records. Clearly identify user assumptions and missing evidence.
 
@@ -249,7 +249,7 @@ Return:
           {/* Hero score */}
           <div className="p-6 rounded-2xl border border-border bg-card flex flex-col sm:flex-row items-center gap-6">
             <div className="flex flex-col items-center">
-              <ProbabilityArc score={prediction.overall_score} color={scoreColor(prediction.overall_score)} />
+              <ScoreRing score={prediction.overall_score} color={scoreColor(prediction.overall_score)} />
               <span className={`text-xs font-bold px-3 py-1 rounded-full border mt-2 ${verdictConfig[prediction.verdict] || 'text-muted-foreground border-border'}`}>
                 {prediction.verdict}
               </span>
@@ -258,8 +258,8 @@ Return:
               <p className="text-sm text-foreground/80 mb-3">{prediction.subject_summary}</p>
               <div className="flex items-center gap-4 justify-center sm:justify-start">
                 <div>
-                  <p className="text-[10px] text-muted-foreground">Confidence</p>
-                  <p className="text-lg font-bold text-foreground">{prediction.confidence}%</p>
+                  <p className="text-[10px] text-muted-foreground">Evidence coverage</p>
+                  <p className="text-lg font-bold text-foreground">{prediction.confidence}/100</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground">Risk Score</p>

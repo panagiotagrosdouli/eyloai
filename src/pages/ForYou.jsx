@@ -9,35 +9,7 @@ import EyraDigitalTwin from '@/components/eyra/EyraDigitalTwin';
 import DailyMissions from '@/components/eyra/DailyMissions';
 import WhileYouWereAway from '@/components/eyra/WhileYouWereAway';
 import LiveIntelligenceFeed from '@/components/monitoring/LiveIntelligenceFeed';
-
-const EYRA_STATUS = [
-  'Ready to check OpenAlex for new papers',
-  'Ready to search arXiv and Europe PMC',
-  'Funding watchlists use official records',
-  'Source checks run when you open this workspace',
-  'AI analysis runs after evidence retrieval',
-  'Last results remain available in your workspace',
-];
-
-function EyraStatusBar() {
-  const [statusIdx, setStatusIdx] = useState(0);
-  const [visible, setVisible] = useState(true);
-  useEffect(() => {
-    const t = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => { setStatusIdx(i => (i + 1) % EYRA_STATUS.length); setVisible(true); }, 300);
-    }, 4000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-green-500/20 bg-green-500/5">
-      <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
-      <p className="text-xs text-muted-foreground transition-opacity duration-300" style={{ opacity: visible ? 1 : 0 }}>
-        <span className="text-green-400 font-semibold">EYRA</span> · {EYRA_STATUS[statusIdx]}
-      </p>
-    </div>
-  );
-}
+import ServiceStatus from '@/components/system/ServiceStatus';
 
 export default function ForYou() {
   const [profile, setProfile] = useState(null);
@@ -99,10 +71,10 @@ export default function ForYou() {
               <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
             </div>
             <h1 className="font-heading font-bold text-xl text-foreground">EYRA Intelligence</h1>
-            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
           </div>
           <p className="text-muted-foreground text-sm">On-demand source checks · OpenAlex · arXiv · Europe PMC · Grants.gov</p>
         </div>
+        <ServiceStatus />
       </div>
 
       {loadNotice && (
@@ -115,9 +87,6 @@ export default function ForYou() {
         {/* Main feed */}
         <div className="lg:col-span-2 space-y-5">
           <LiveIntelligenceFeed />
-
-          {/* EYRA Live Status */}
-          <EyraStatusBar />
 
           {/* WHILE YOU WERE AWAY — primary section */}
           {(activeProjects.length > 0 || searches.length > 0) ? (
@@ -163,7 +132,7 @@ export default function ForYou() {
           {/* Second Brain stats */}
           {profile && (
             <div className="p-4 rounded-xl border border-border bg-card">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-3">EYRA Intelligence Score</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-3">Workspace Signals</p>
               <div className="grid grid-cols-3 gap-2 mb-3">
                 {[
                   { label: 'Projects', value: profile.stats.projects },
@@ -176,15 +145,8 @@ export default function ForYou() {
                   </div>
                 ))}
               </div>
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-[10px] text-muted-foreground">Intelligence</p>
-                <p className="text-[10px] font-semibold text-primary">{profile.stats.activityScore}/100</p>
-              </div>
-              <div className="h-1 rounded-full bg-secondary overflow-hidden">
-                <div className="h-full rounded-full eyra-gradient transition-all" style={{ width: `${profile.stats.activityScore}%` }} />
-              </div>
               <p className="text-[9px] text-muted-foreground mt-2 text-center">
-                Based on your real library activity
+                Exact counts from your saved workspace
               </p>
             </div>
           )}

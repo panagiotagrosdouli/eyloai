@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Sparkles, Loader2, TrendingUp, AlertTriangle, CheckCircle2, BarChart2 } from 'lucide-react';
+import { Sparkles, Loader2, AlertTriangle, CheckCircle2, BarChart2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const WHATIF_EXAMPLES = [
@@ -151,7 +151,7 @@ Respond as JSON:
             <div className="flex items-center gap-4">
               <div>
                 <p className="text-[9px] text-muted-foreground">Benefit Plausibility</p>
-                <p className="text-2xl font-black text-primary">{result.probability}%</p>
+                <p className="text-2xl font-black text-primary">{result.probability}<span className="text-xs text-muted-foreground">/100</span></p>
               </div>
               <div className="flex-1">
                 <div className="h-1.5 rounded-full bg-secondary overflow-hidden">

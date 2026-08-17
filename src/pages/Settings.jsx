@@ -346,9 +346,9 @@ export default function Settings() {
               <Link to="/pricing" className="mt-5 inline-flex items-center gap-2 rounded-xl eyra-gradient px-5 py-2.5 text-sm font-semibold text-white">
                 Open plans and billing <ChevronRight size={14} />
               </Link>
-              <a href="mailto:eylo@research.app?subject=EYLO%20Institution%20plan" className="ml-3 mt-5 inline-flex items-center gap-2 rounded-xl border border-border px-5 py-2.5 text-sm font-semibold text-foreground">
-                Institution access
-              </a>
+              <Link to="/institution" className="ml-3 mt-5 inline-flex items-center gap-2 rounded-xl border border-border px-5 py-2.5 text-sm font-semibold text-foreground">
+                Institution status
+              </Link>
             </div>
           </div>
         );

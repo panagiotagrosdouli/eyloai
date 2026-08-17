@@ -1,348 +1,256 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
-  Home, FolderOpen, User, Sparkles, ChevronDown,
-  Menu, X, Zap, Brain, BookOpen, Settings, MoreHorizontal,
-  Lightbulb, Users, TrendingUp, Video, Globe, Target,
-  Rocket, Trophy, Award, Crown, Search, Mic, Presentation, FileEdit, LayoutDashboard
+  Activity, Award, BookOpen, Brain, ChevronDown, FileEdit, FolderOpen, History,
+  Home, LayoutDashboard, Lightbulb, Menu, Mic, MoreHorizontal, Presentation,
+  Rocket, Search, Settings, Sparkles, Target, TrendingUp, Trophy, User, Users,
+  Video, X, Zap,
 } from 'lucide-react';
 import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
 import NotificationsBell from '@/components/monitoring/NotificationsBell';
+import ServiceStatus from '@/components/system/ServiceStatus';
+import { useCapabilities } from '@/lib/capabilities';
 import { trackActivatedReturn } from '@/lib/product-analytics';
 
-/* Primary nav — always visible, max 4 items to avoid clutter */
 const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
   { label: 'Projects', path: '/projects', icon: FolderOpen },
-  { label: 'EYRA Feed', path: '/foryou', icon: Sparkles },
-  { label: 'Profile', path: '/profile', icon: User },
+  { label: 'Library', path: '/library', icon: BookOpen },
+  { label: 'For you', path: '/foryou', icon: Sparkles },
 ];
 
-/* All tools — revealed in dropdown */
-const MORE_NAV = [
+const TOOL_GROUPS = [
   {
-    section: 'Intelligence',
+    section: 'Discover',
+    description: 'Search live records',
     items: [
-      { label: 'Executive Briefing', path: '/briefing', icon: Brain, desc: 'Strategic overview & insights' },
-      { label: 'Opportunity Radar', path: '/radar', icon: Zap, desc: 'Grants, funding & calls' },
-      { label: 'Future Me', path: '/futureme', icon: TrendingUp, desc: 'Design your future self' },
-      { label: 'Future Simulator', path: '/future', icon: Rocket, desc: 'Model 3 possible futures' },
-      { label: 'Idea Vault', path: '/ideas', icon: Lightbulb, desc: 'Capture & develop ideas' },
-      { label: 'Research Battlefield', path: '/battlefield', icon: Globe, desc: 'Competitive landscape' },
-      { label: 'Impact Assessment', path: '/impact', icon: Target, desc: 'Evidence-backed decision support' },
-      { label: 'EYRA Voice', path: '/voice', icon: Mic, desc: 'Speak a sourced research question' },
+      { label: 'Researchers', path: '/researchers', icon: Users, desc: 'Find authors and collaborators', badge: 'Live data' },
+      { label: 'Opportunities', path: '/opportunities', icon: Award, desc: 'Search official funding calls', badge: 'Live data' },
+      { label: 'Challenges', path: '/challenges', icon: Trophy, desc: 'Explore open research challenges', badge: 'Live data' },
+      { label: 'Opportunity Radar', path: '/radar', icon: Zap, desc: 'Rank funding for your context', badge: 'EYRA' },
     ],
   },
   {
-    section: 'Tools',
+    section: 'Analyze',
+    description: 'Reason with EYRA',
     items: [
-      { label: 'Knowledge Library', path: '/library', icon: BookOpen, desc: 'Papers & researchers' },
-      { label: 'Researchers', path: '/researchers', icon: Users, desc: 'Find collaborators' },
-      { label: 'Dream Team', path: '/dreamteam', icon: Users, desc: 'Build your team' },
-      { label: 'Opportunities', path: '/opportunities', icon: Award, desc: 'Official grants & calls' },
-      { label: 'Grant Builder', path: '/grant-builder', icon: FileEdit, desc: 'Draft & track applications' },
-      { label: 'Pitch Deck AI', path: '/pitchdeck', icon: Presentation, desc: 'Sourced deck with PDF export' },
-      { label: 'Meetings', path: '/meetings', icon: Video, desc: 'Calls & notes' },
-      { label: 'Challenges', path: '/challenges', icon: Trophy, desc: 'Official open funding challenges' },
+      { label: 'Executive Briefing', path: '/briefing', icon: Brain, desc: 'A sourced strategic overview', badge: 'EYRA' },
+      { label: 'Research Battlefield', path: '/battlefield', icon: Activity, desc: 'Map evidence and competitors', badge: 'EYRA' },
+      { label: 'Impact Assessment', path: '/impact', icon: Target, desc: 'Test impact assumptions', badge: 'EYRA' },
+      { label: 'Future Simulator', path: '/future', icon: Rocket, desc: 'Model three possible futures', badge: 'EYRA' },
+      { label: 'Dream Team', path: '/dreamteam', icon: Users, desc: 'Build a collaborator shortlist', badge: 'EYRA' },
+      { label: 'EYRA Voice', path: '/voice', icon: Mic, desc: 'Ask a sourced question by voice', badge: 'EYRA' },
+    ],
+  },
+  {
+    section: 'Create',
+    description: 'Turn evidence into work',
+    items: [
+      { label: 'Idea Vault', path: '/ideas', icon: Lightbulb, desc: 'Capture and develop ideas', badge: 'Workspace' },
+      { label: 'Grant Builder', path: '/grant-builder', icon: FileEdit, desc: 'Draft and track applications', badge: 'EYRA' },
+      { label: 'Pitch Deck AI', path: '/pitchdeck', icon: Presentation, desc: 'Create a sourced PDF deck', badge: 'EYRA' },
+      { label: 'Future Me', path: '/futureme', icon: TrendingUp, desc: 'Plan your research trajectory', badge: 'Workspace' },
+      { label: 'Meetings', path: '/meetings', icon: Video, desc: 'Keep calls, notes and actions', badge: 'Workspace' },
     ],
   },
   {
     section: 'Account',
+    description: 'History and settings',
     items: [
-      { label: 'Settings', path: '/settings', icon: Settings, desc: 'Preferences & account' },
-      { label: 'Institution Admin', path: '/institution', icon: LayoutDashboard, desc: 'Aggregated organization analytics' },
-      { label: 'Pricing', path: '/pricing', icon: Crown, desc: 'Plans & real entitlements' },
+      { label: 'Profile', path: '/profile', icon: User, desc: 'Research identity and interests' },
+      { label: 'Search history', path: '/history', icon: History, desc: 'Return to earlier discovery' },
+      { label: 'Settings', path: '/settings', icon: Settings, desc: 'Preferences and accessibility' },
+      { label: 'Plans & access', path: '/pricing', icon: Zap, desc: 'Current access and billing status' },
+      { label: 'Institution Admin', path: '/institution', icon: LayoutDashboard, desc: 'Organization-level analytics', badge: 'Setup' },
     ],
   },
 ];
 
-const ALL_MORE_ITEMS = MORE_NAV.flatMap(s => s.items);
+const ALL_TOOLS = TOOL_GROUPS.flatMap(group => group.items);
+
+function ToolLink({ item, active }) {
+  const Icon = item.icon;
+  return (
+    <Link
+      to={item.path}
+      className={`group flex min-h-[4.25rem] items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors ${
+        active ? 'border-primary/25 bg-primary/[0.07]' : 'border-transparent hover:border-border hover:bg-secondary/40'
+      }`}
+    >
+      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${active ? 'bg-primary/15 text-primary' : 'bg-secondary text-muted-foreground group-hover:text-foreground'}`}>
+        <Icon size={15} aria-hidden="true" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-2">
+          <span className={`truncate text-xs font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{item.label}</span>
+          {item.badge && <span className="rounded-md border border-border px-1.5 py-0.5 text-[8px] font-medium uppercase tracking-wide text-muted-foreground">{item.badge}</span>}
+        </span>
+        <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">{item.desc}</span>
+      </span>
+    </Link>
+  );
+}
 
 export default function AppLayout() {
   const location = useLocation();
   const [eyraOpen, setEyraOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [toolQuery, setToolQuery] = useState('');
-  const dropdownRef = useRef(null);
+  const toolsRef = useRef(null);
+  const { data: capabilities, loading: capabilitiesLoading } = useCapabilities();
+  const aiAvailable = !capabilitiesLoading && capabilities.ai;
+
+  const isActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const toolsActive = ALL_TOOLS.some(item => isActive(item.path));
+  const query = toolQuery.trim().toLowerCase();
+  const visibleGroups = TOOL_GROUPS.map(group => ({
+    ...group,
+    items: group.items.filter(item => !query || `${item.label} ${item.desc} ${item.badge || ''}`.toLowerCase().includes(query)),
+  })).filter(group => group.items.length);
+
+  useEffect(() => { trackActivatedReturn(); }, []);
 
   useEffect(() => {
-    trackActivatedReturn();
-  }, []);
-
-  const isActive = (path) =>
-    location.pathname === path || location.pathname.startsWith(`${path}/`);
-
-  const isMoreActive = ALL_MORE_ITEMS.some(n => isActive(n.path));
-  const normalizedToolQuery = toolQuery.trim().toLowerCase();
-  const filteredMoreNav = MORE_NAV.map(section => ({
-    ...section,
-    items: section.items.filter(item =>
-      !normalizedToolQuery
-      || `${item.label} ${item.desc}`.toLowerCase().includes(normalizedToolQuery)),
-  })).filter(section => section.items.length > 0);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setMoreOpen(false);
+    const close = event => {
+      if (!toolsRef.current?.contains(event.target)) setToolsOpen(false);
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    const closeWithKeyboard = event => {
+      if (event.key === 'Escape') {
+        setToolsOpen(false);
+        setMobileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', closeWithKeyboard);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', closeWithKeyboard);
+    };
   }, []);
 
   useEffect(() => {
-    const openEyra = (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+    const open = event => {
+      if (aiAvailable && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
         setEyraOpen(true);
       }
     };
-    window.addEventListener('keydown', openEyra);
-    return () => window.removeEventListener('keydown', openEyra);
-  }, []);
+    window.addEventListener('keydown', open);
+    return () => window.removeEventListener('keydown', open);
+  }, [aiAvailable]);
 
   useEffect(() => {
-    setMoreOpen(false);
+    setToolsOpen(false);
     setMobileOpen(false);
     setToolQuery('');
   }, [location.pathname]);
 
-  const mobilePrimary = PRIMARY_NAV.slice(0, 2);
-  const mobileSecondary = PRIMARY_NAV.slice(2);
-
   return (
     <div className="eylo-app-canvas min-h-screen bg-background">
-      {/* ── Header ───────────────────────────────────── */}
-      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/90 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center h-14 gap-1">
-
-          {/* Brand */}
-          <Link to="/home" className="flex items-center flex-shrink-0 mr-4">
-            <img
-              src="/brand/eylo-logo.svg"
-              alt="EYLO"
-              className="h-9 w-auto max-w-[150px] rounded-lg bg-white/[0.03] object-contain px-1.5"
-            />
+      <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-[90rem] items-center gap-2 px-4 sm:px-6">
+          <Link to="/home" className="mr-3 flex shrink-0 items-center" aria-label="EYLO workspace home">
+            <img src="/brand/eylo-logo.svg" alt="EYLO" className="h-9 w-auto max-w-[128px] object-contain" />
           </Link>
 
-          {/* Desktop primary nav */}
-          <nav className="hidden lg:flex items-center gap-0.5 flex-1">
+          <nav className="hidden flex-1 items-center gap-1 lg:flex" aria-label="Workspace navigation">
             {PRIMARY_NAV.map(item => {
               const Icon = item.icon;
               const active = isActive(item.path);
               return (
-                <Link key={item.path} to={item.path}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
-                    active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
-                  }`}
-                >
-                  <Icon size={14} />
-                  {item.label}
+                <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined}
+                  className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium transition-colors ${active ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>
+                  <Icon size={14} aria-hidden="true" />{item.label}
                 </Link>
               );
             })}
 
-            {/* More dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setMoreOpen(!moreOpen)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
-                  isMoreActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
-                }`}
-              >
-                <MoreHorizontal size={14} />
-                Tools
-                <ChevronDown size={11} className={`transition-transform duration-200 ${moreOpen ? 'rotate-180' : ''}`} />
+            <div ref={toolsRef} className="relative">
+              <button type="button" onClick={() => setToolsOpen(value => !value)} aria-expanded={toolsOpen}
+                className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium transition-colors ${toolsActive ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>
+                <MoreHorizontal size={14} aria-hidden="true" />All tools<ChevronDown size={12} className={`transition-transform ${toolsOpen ? 'rotate-180' : ''}`} />
               </button>
 
-              {moreOpen && (
-                <div
-                  className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-2xl shadow-2xl z-50 p-2 space-y-3 max-h-[80vh] overflow-y-auto"
-                  style={{ boxShadow: '0 24px 64px -12px rgba(0,0,0,0.5)' }}
-                >
-                  <label className="relative block px-1 pt-1">
-                    <Search size={13} className="pointer-events-none absolute left-4 top-1/2 mt-0.5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+              {toolsOpen && (
+                <div className="absolute left-0 top-full mt-2 w-[min(46rem,calc(100vw-2rem))] rounded-2xl border border-border bg-popover p-3 shadow-2xl shadow-black/35">
+                  <label className="relative block">
                     <span className="sr-only">Search EYLO tools</span>
-                    <input
-                      value={toolQuery}
-                      onChange={event => setToolQuery(event.target.value)}
-                      placeholder="Find a tool…"
-                      className="h-9 w-full rounded-xl border border-border bg-secondary/40 pl-9 pr-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/40"
-                    />
+                    <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input value={toolQuery} onChange={event => setToolQuery(event.target.value)} autoFocus placeholder="Find a tool or action…"
+                      className="h-11 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/40" />
                   </label>
-                  {filteredMoreNav.map(section => (
-                    <div key={section.section}>
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50 px-2 py-1">{section.section}</p>
-                      {section.items.map(item => {
-                        const Icon = item.icon;
-                        const active = isActive(item.path);
-                        return (
-                          <Link key={item.path} to={item.path}
-                            className={`flex items-center gap-3 px-2.5 py-2 rounded-xl transition-all ${
-                              active ? 'bg-primary/10' : 'hover:bg-secondary/60'
-                            }`}
-                          >
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-primary/15' : 'bg-secondary'}`}>
-                              <Icon size={12} className={active ? 'text-primary' : 'text-muted-foreground'} />
-                            </div>
-                            <div>
-                              <p className={`text-xs font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{item.label}</p>
-                              <p className="text-[10px] text-muted-foreground leading-tight">{item.desc}</p>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  ))}
-                  {filteredMoreNav.length === 0 && (
-                    <p className="px-3 py-6 text-center text-xs text-muted-foreground">No tools match “{toolQuery}”.</p>
-                  )}
+                  <div className="mt-3 grid max-h-[70vh] gap-4 overflow-y-auto p-1 sm:grid-cols-2">
+                    {visibleGroups.map(group => (
+                      <section key={group.section}>
+                        <div className="mb-1 px-2">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground/70">{group.section}</p>
+                          <p className="text-[10px] text-muted-foreground">{group.description}</p>
+                        </div>
+                        {group.items.map(item => <ToolLink key={item.path} item={item} active={isActive(item.path)} />)}
+                      </section>
+                    ))}
+                  </div>
+                  {!visibleGroups.length && <p className="py-8 text-center text-sm text-muted-foreground">No tool matches “{toolQuery}”.</p>}
                 </div>
               )}
             </div>
           </nav>
 
-          {/* Ask EYRA CTA */}
-          <div className="hidden md:flex items-center gap-2 ml-auto">
+          <div className="ml-auto hidden items-center gap-2 md:flex">
+            <ServiceStatus compact className="hidden xl:block" />
             <NotificationsBell />
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-[10px] text-muted-foreground font-medium">EYRA Online</span>
-            </div>
-            <button
-              onClick={() => setEyraOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-              title="Ask EYRA (Ctrl/⌘ K)"
-            >
-              <Sparkles size={13} />
-              Ask EYRA
-              <span className="rounded-md border border-white/20 bg-white/10 px-1.5 py-0.5 font-mono text-[8px] font-medium text-white/70">⌘ K</span>
+            <button type="button" onClick={() => setEyraOpen(true)} disabled={!aiAvailable} title={aiAvailable ? 'Ask EYRA (Ctrl/⌘ K)' : 'EYRA is unavailable on this deployment'}
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-45">
+              <Sparkles size={14} />Ask EYRA<span className="rounded border border-current/15 px-1 py-0.5 font-mono text-[8px] opacity-60">⌘K</span>
             </button>
           </div>
 
-          {/* Mobile burger */}
-          <button
-            type="button"
-            className="lg:hidden ml-auto p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
-            aria-expanded={mobileOpen}
-          >
-            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+          <button type="button" onClick={() => setMobileOpen(value => !value)} aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileOpen}
+            className="ml-auto rounded-xl p-2.5 text-muted-foreground hover:bg-secondary hover:text-foreground lg:hidden">
+            {mobileOpen ? <X size={19} /> : <Menu size={19} />}
           </button>
         </div>
 
-        {/* Mobile nav */}
         {mobileOpen && (
-          <div className="lg:hidden border-t border-border/50 bg-card/98 backdrop-blur-xl px-4 py-4 max-h-[80vh] overflow-y-auto">
-            {/* Primary */}
-            <div className="space-y-1 mb-5">
-              {PRIMARY_NAV.map(item => {
-                const Icon = item.icon;
-                const active = isActive(item.path);
-                return (
-                  <Link key={item.path} to={item.path}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
-                      active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
-                    }`}
-                  >
-                    <Icon size={16} /> {item.label}
-                  </Link>
-                );
-              })}
-            </div>
-            {/* More sections */}
-            {MORE_NAV.map(section => (
-              <div key={section.section} className="mb-4">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50 px-3 mb-1">{section.section}</p>
-                {section.items.map(item => {
+          <div className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
+            <div className="mx-auto max-w-xl">
+              <div className="grid grid-cols-2 gap-2">
+                {PRIMARY_NAV.map(item => {
                   const Icon = item.icon;
                   const active = isActive(item.path);
-                  return (
-                    <Link key={item.path} to={item.path}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                        active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
-                      }`}
-                    >
-                      <Icon size={14} /> {item.label}
-                    </Link>
-                  );
+                  return <Link key={item.path} to={item.path} className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-medium ${active ? 'border-primary/30 bg-primary/5 text-primary' : 'border-border bg-card text-muted-foreground'}`}><Icon size={15} />{item.label}</Link>;
                 })}
               </div>
-            ))}
-            <button
-              onClick={() => { setEyraOpen(true); setMobileOpen(false); }}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl eyra-gradient text-white text-sm font-semibold mt-2"
-            >
-              <img src="/brand/eyra.png" alt="EYRA" className="h-4 w-auto" />
-              Ask EYRA
-            </button>
+              <div className="my-4 flex items-center justify-between gap-3"><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">All tools</p><ServiceStatus /></div>
+              <div className="space-y-5">
+                {TOOL_GROUPS.map(group => (
+                  <section key={group.section}>
+                    <p className="mb-1 px-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground/70">{group.section}</p>
+                    <div className="grid gap-1 sm:grid-cols-2">{group.items.map(item => <ToolLink key={item.path} item={item} active={isActive(item.path)} />)}</div>
+                  </section>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </header>
 
-      {/* ── Page content ─────────────────────────────── */}
-      <main className="relative z-10 pb-24 lg:pb-0">
-        <Outlet />
-      </main>
-
+      <main className="relative z-10 pb-24 lg:pb-0"><Outlet /></main>
       <EyraCommandCenter open={eyraOpen} onClose={() => setEyraOpen(false)} />
 
-      {/* Floating EYRA button */}
-      <button
-        type="button"
-        onClick={() => setEyraOpen(true)}
-        className="fixed bottom-6 right-6 z-40 hidden lg:flex items-center gap-2 px-4 py-3 rounded-2xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-all active:scale-95"
-        style={{ boxShadow: '0 8px 24px -6px hsla(213,94%,55%,0.4)' }}
-        aria-label="Ask EYRA"
-      >
-        <div className="relative flex-shrink-0">
-          <Sparkles size={15} className="text-white" />
-          <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-green-400 border border-background" />
-        </div>
-        <span>Ask EYRA</span>
-      </button>
-
-      {/* Mobile bottom navigation — keeps the five daily actions one tap away. */}
-      <nav
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-border/70 bg-background/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl lg:hidden"
-        aria-label="Primary mobile navigation"
-      >
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl lg:hidden" aria-label="Primary mobile navigation">
         <div className="mx-auto grid max-w-md grid-cols-5 items-end">
-          {mobilePrimary.map(item => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
-            return (
-              <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined}
-                className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}>
-                <Icon size={18} aria-hidden="true" />
-                <span>{item.label}</span>
-              </Link>
-            );
+          {[PRIMARY_NAV[0], PRIMARY_NAV[1]].map(item => {
+            const Icon = item.icon; const active = isActive(item.path);
+            return <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}><Icon size={18} /><span>{item.label}</span></Link>;
           })}
-
-          <button
-            type="button"
-            onClick={() => setEyraOpen(true)}
-            className="-mt-6 flex flex-col items-center gap-1 text-[10px] font-semibold text-primary"
-            aria-label="Ask EYRA"
-          >
-            <span className="grid h-12 w-12 place-items-center rounded-2xl eyra-gradient text-white shadow-lg shadow-primary/20">
-              <Sparkles size={20} aria-hidden="true" />
-            </span>
-            <span>EYRA</span>
+          <button type="button" onClick={() => setEyraOpen(true)} disabled={!aiAvailable} className="-mt-6 flex flex-col items-center gap-1 text-[10px] font-semibold text-primary disabled:opacity-45" aria-label={aiAvailable ? 'Ask EYRA' : 'EYRA unavailable'}>
+            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20"><Sparkles size={20} /></span><span>EYRA</span>
           </button>
-
-          {mobileSecondary.map(item => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
-            return (
-              <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined}
-                className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}>
-                <Icon size={18} aria-hidden="true" />
-                <span>{item.label === 'EYRA Feed' ? 'Feed' : item.label}</span>
-              </Link>
-            );
+          {[PRIMARY_NAV[2], PRIMARY_NAV[3]].map(item => {
+            const Icon = item.icon; const active = isActive(item.path);
+            return <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}><Icon size={18} /><span>{item.label}</span></Link>;
           })}
         </div>
       </nav>

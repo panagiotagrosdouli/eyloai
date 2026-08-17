@@ -10,6 +10,7 @@ import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { environment } from '@/lib/config/env';
 import PlanGate from '@/components/billing/PlanGate';
+import CapabilityGate from '@/components/system/CapabilityGate';
 import { redactAnalyticsEvent } from '@/lib/product-analytics';
 
 import ConfigurationError from '@/pages/ConfigurationError';
@@ -49,6 +50,12 @@ const VoiceAssistant = lazy(() => import('@/pages/VoiceAssistant'));
 const PitchDeckBuilder = lazy(() => import('@/pages/PitchDeckBuilder'));
 const GrantBuilder = lazy(() => import('@/pages/GrantBuilder'));
 const InstitutionAdmin = lazy(() => import('@/pages/InstitutionAdmin'));
+
+const AiTool = ({ minimum, children }) => (
+  <CapabilityGate capability="ai">
+    {minimum ? <PlanGate minimum={minimum}>{children}</PlanGate> : children}
+  </CapabilityGate>
+);
 
 const PageLoader = () => (
   <div className="grid min-h-[50vh] place-items-center" role="status" aria-live="polite">
@@ -111,23 +118,23 @@ const AuthenticatedApp = () => {
           <Route path="/history" element={<History />} />
           <Route path="/challenges" element={<Challenges />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/future" element={<PlanGate minimum="pro"><FutureSimulator /></PlanGate>} />
+          <Route path="/future" element={<AiTool minimum="pro"><FutureSimulator /></AiTool>} />
           <Route path="/futureme" element={<FutureMe />} />
-          <Route path="/battlefield" element={<PlanGate minimum="pro"><ResearchBattlefield /></PlanGate>} />
-          <Route path="/dreamteam" element={<PlanGate minimum="founder"><DreamTeam /></PlanGate>} />
-          <Route path="/impact" element={<PlanGate minimum="pro"><ImpactPredictor /></PlanGate>} />
+          <Route path="/battlefield" element={<AiTool minimum="pro"><ResearchBattlefield /></AiTool>} />
+          <Route path="/dreamteam" element={<AiTool minimum="founder"><DreamTeam /></AiTool>} />
+          <Route path="/impact" element={<AiTool minimum="pro"><ImpactPredictor /></AiTool>} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/meetings" element={<Meetings />} />
           <Route path="/radar" element={<PlanGate minimum="pro"><OpportunityRadar /></PlanGate>} />
-          <Route path="/briefing" element={<PlanGate minimum="pro"><ExecutiveBriefing /></PlanGate>} />
+          <Route path="/briefing" element={<AiTool minimum="pro"><ExecutiveBriefing /></AiTool>} />
           <Route path="/foryou" element={<ForYou />} />
           <Route path="/ideas" element={<IdeaVault />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/notifications" element={<Notifications />} />
-          <Route path="/voice" element={<PlanGate minimum="pro"><VoiceAssistant /></PlanGate>} />
-          <Route path="/pitchdeck" element={<PlanGate minimum="founder"><PitchDeckBuilder /></PlanGate>} />
-          <Route path="/grant-builder" element={<PlanGate minimum="founder"><GrantBuilder /></PlanGate>} />
-          <Route path="/institution" element={<PlanGate minimum="institution"><InstitutionAdmin /></PlanGate>} />
+          <Route path="/voice" element={<AiTool minimum="pro"><VoiceAssistant /></AiTool>} />
+          <Route path="/pitchdeck" element={<AiTool minimum="founder"><PitchDeckBuilder /></AiTool>} />
+          <Route path="/grant-builder" element={<AiTool minimum="founder"><GrantBuilder /></AiTool>} />
+          <Route path="/institution" element={<CapabilityGate capability="institution_analytics"><PlanGate minimum="institution"><InstitutionAdmin /></PlanGate></CapabilityGate>} />
         </Route>
       </Route>
 

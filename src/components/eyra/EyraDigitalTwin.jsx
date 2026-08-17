@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import {
-  Sparkles, Loader2, FileText, Users, Lightbulb,
-  TrendingUp, RefreshCw, ChevronDown, ChevronUp, ExternalLink, Zap
+  Sparkles, Loader2, FileText, Users,
+  RefreshCw, ChevronDown, ChevronUp, ExternalLink, Zap
 } from 'lucide-react';
 import { searchOpenAlexWorks, searchOpenAlexAuthors } from '@/lib/eyra-api';
 
@@ -20,7 +20,6 @@ export default function EyraDigitalTwin({ project }) {
     const cacheKey = `eyra_twin_v2_${project.id}_${new Date().toDateString()}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) { try { setReport(JSON.parse(cached)); return; } catch {} }
-    generate(cacheKey);
   }, [project?.id]);
 
   const generate = async (cacheKey) => {
@@ -122,14 +121,12 @@ Do NOT invent papers, researcher names, or statistics not in the data above.`,
     <div className="rounded-2xl border border-border bg-card overflow-hidden">
       {/* Header */}
       <div
-        className="flex items-center gap-3 px-5 py-4 cursor-pointer hover:bg-secondary/20 transition-colors"
-        onClick={() => setCollapsed(!collapsed)}
+        className="flex items-center gap-3 px-5 py-4"
       >
         <div className="relative flex-shrink-0">
           <div className="w-9 h-9 rounded-xl overflow-hidden bg-white">
             <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
           </div>
-          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 border-2 border-background" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-0.5">Project Intelligence</p>
@@ -147,7 +144,9 @@ Do NOT invent papers, researcher names, or statistics not in the data above.`,
               <RefreshCw size={12} />
             </button>
           )}
-          {collapsed ? <ChevronDown size={14} className="text-muted-foreground" /> : <ChevronUp size={14} className="text-muted-foreground" />}
+          <button type="button" onClick={() => setCollapsed(value => !value)} aria-expanded={!collapsed} aria-label={collapsed ? 'Show project intelligence' : 'Hide project intelligence'} className="rounded p-1 text-muted-foreground hover:bg-secondary">
+            {collapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+          </button>
         </div>
       </div>
 
@@ -157,6 +156,13 @@ Do NOT invent papers, researcher names, or statistics not in the data above.`,
             <div className="flex items-center gap-2 py-4">
               <Loader2 size={14} className="animate-spin text-primary" />
               <span className="text-xs text-muted-foreground">Fetching real papers and researchers from OpenAlex...</span>
+            </div>
+          )}
+
+          {!report && !loading && (
+            <div className="rounded-xl border border-dashed border-border p-5 text-center">
+              <p className="text-xs leading-5 text-muted-foreground">Run an on-demand scan of OpenAlex for papers and researchers related to this project.</p>
+              <button type="button" onClick={() => generate()} className="mt-3 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">Scan project sources</button>
             </div>
           )}
 

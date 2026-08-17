@@ -5,6 +5,7 @@ import {
   Sparkles, Square, Volume2,
 } from 'lucide-react';
 import { runEyraDiscovery } from '@/lib/eyra-engine';
+import { getPreferenceLocale, loadPreferences } from '@/lib/preferences';
 
 export default function VoiceAssistant() {
   const recognitionRef = useRef(null);
@@ -13,6 +14,9 @@ export default function VoiceAssistant() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const preferences = loadPreferences();
+  const voiceLocale = getPreferenceLocale(preferences);
+  const voiceRate = { professional: 0.96, academic: 0.9, friendly: 1.02, executive: 1.06 }[preferences.voice_style] || 0.96;
 
   const Recognition = typeof window !== 'undefined'
     ? window.SpeechRecognition || window.webkitSpeechRecognition
@@ -26,7 +30,7 @@ export default function VoiceAssistant() {
 
     setError('');
     const recognition = new Recognition();
-    recognition.lang = navigator.language || 'en-US';
+    recognition.lang = voiceLocale;
     recognition.interimResults = true;
     recognition.continuous = false;
     recognition.onresult = (event) => {
@@ -66,8 +70,8 @@ export default function VoiceAssistant() {
           : `I found ${discovery.papers.length} papers, ${discovery.researchers.length} researchers, and ${discovery.funding_opportunities.length} funding records.`);
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(spoken);
-        utterance.lang = navigator.language || 'en-US';
-        utterance.rate = 0.96;
+        utterance.lang = voiceLocale;
+        utterance.rate = voiceRate;
         window.speechSynthesis.speak(utterance);
       }
     } catch (askError) {
@@ -140,7 +144,10 @@ export default function VoiceAssistant() {
               <button
                 onClick={() => {
                   const text = result.goal_analysis || 'No AI synthesis was returned.';
-                  window.speechSynthesis?.speak(new SpeechSynthesisUtterance(text));
+                  const utterance = new SpeechSynthesisUtterance(text);
+                  utterance.lang = voiceLocale;
+                  utterance.rate = voiceRate;
+                  window.speechSynthesis?.speak(utterance);
                 }}
                 className="inline-flex items-center gap-1.5 text-xs text-primary"
               >

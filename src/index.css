@@ -57,27 +57,27 @@
 
 @layer base {
   :root {
-    /* Premium dark navy — refined depth */
-    --background: 222 35% 6%;
+    /* Calm product canvas with one clear blue accent. */
+    --background: 222 30% 7%;
     --foreground: 210 28% 93%;
-    --card: 222 30% 9%;
+    --card: 222 25% 10%;
     --card-foreground: 210 28% 93%;
-    --popover: 222 30% 9%;
+    --popover: 222 25% 10%;
     --popover-foreground: 210 28% 93%;
     /* Clear confident blue */
     --primary: 213 94% 62%;
     --primary-foreground: 222 35% 6%;
-    --secondary: 222 24% 13%;
+    --secondary: 222 20% 14%;
     --secondary-foreground: 210 18% 72%;
-    --muted: 222 24% 13%;
-    --muted-foreground: 215 13% 48%;
+    --muted: 222 20% 14%;
+    --muted-foreground: 215 14% 58%;
     /* Soft purple accent */
     --accent: 250 65% 64%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 70% 56%;
     --destructive-foreground: 0 0% 98%;
-    --border: 222 22% 15%;
-    --input: 222 22% 15%;
+    --border: 222 17% 18%;
+    --input: 222 17% 18%;
     --ring: 213 94% 62%;
     --chart-1: 210 100% 60%;
     --chart-2: 250 70% 62%;
@@ -309,9 +309,7 @@ html.light { color-scheme: light; }
 html { scroll-behavior: smooth; }
 body {
   min-width: 320px;
-  background:
-    radial-gradient(circle at 12% -8%, hsl(var(--primary) / 0.07), transparent 28rem),
-    hsl(var(--background));
+  background: hsl(var(--background));
 }
 
 ::selection {
@@ -368,29 +366,12 @@ body {
   position: relative;
   isolation: isolate;
   background:
-    radial-gradient(circle at 8% 3%, hsl(var(--primary) / 0.09), transparent 24rem),
-    radial-gradient(circle at 92% 18%, hsl(var(--accent) / 0.07), transparent 28rem),
-    linear-gradient(180deg, hsl(var(--background)), hsl(224 38% 5%));
-}
-
-.eylo-app-canvas::before {
-  position: fixed;
-  inset: 3.5rem 0 0;
-  z-index: 0;
-  content: '';
-  pointer-events: none;
-  opacity: 0.16;
-  background-image:
-    linear-gradient(hsl(var(--foreground) / 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(var(--foreground) / 0.045) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: linear-gradient(to bottom, black, transparent 72%);
+    radial-gradient(circle at 50% -8rem, hsl(var(--primary) / 0.07), transparent 32rem),
+    hsl(var(--background));
 }
 
 .eylo-app-canvas main :where(.bg-card) {
-  box-shadow:
-    inset 0 1px 0 hsl(var(--foreground) / 0.025),
-    0 22px 55px -48px rgb(0 0 0 / 0.95);
+  box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.02);
 }
 
 .eylo-app-canvas main :where(h1, h2) {
@@ -414,11 +395,4 @@ body {
     radial-gradient(circle at 8% 3%, hsl(var(--primary) / 0.08), transparent 24rem),
     radial-gradient(circle at 92% 18%, hsl(var(--accent) / 0.06), transparent 28rem),
     hsl(var(--background));
-}
-
-@media (max-width: 639px) {
-  .eylo-app-canvas::before {
-    background-size: 42px 42px;
-    opacity: 0.1;
-  }
 }
