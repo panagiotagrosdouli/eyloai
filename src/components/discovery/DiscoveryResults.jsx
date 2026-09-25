@@ -47,7 +47,7 @@ function EvidenceNote({ text }) {
   );
 }
 
-export default function DiscoveryResults({ results, onNewSearch }) {
+export default function DiscoveryResults({ results, onNewSearch, targetProjectId = '' }) {
   const [activeTab, setActiveTab] = useState('overview');
   const [creatingProject, setCreatingProject] = useState(false);
   const [projectCreated, setProjectCreated] = useState(null);
@@ -56,13 +56,17 @@ export default function DiscoveryResults({ results, onNewSearch }) {
   const savedDuringDiscovery = useRef({ papers: new Map(), researchers: new Map() });
   const { toast } = useToast();
   const navigate = useNavigate();
+  const effectiveProjectId = projectCreated?.id || targetProjectId;
 
   const savePaper = async (paper) => {
     try {
       const lookup = paperLookupFilter(paper);
-      const existing = lookup
+      let existing = lookup
         ? (await base44.entities.SavedPaper.filter(lookup, '-created_date', 1))[0]
         : null;
+      if (!existing && lookup?.doi && paper.url) {
+        existing = (await base44.entities.SavedPaper.filter({ url: paper.url }, '-created_date', 1))[0] || null;
+      }
       const payload = {
         title: paper.title,
         authors: paper.authors,
@@ -77,15 +81,15 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         source_index: paper.source_index || '',
         record_sources: paper.record_sources || [],
         metadata_provenance: paper.metadata_provenance || [],
-        project_ids: mergeProjectIds(existing || {}, projectCreated?.id),
+        project_ids: mergeProjectIds(existing || {}, effectiveProjectId),
       };
       const saved = existing
         ? await base44.entities.SavedPaper.update(existing.id, payload)
         : await base44.entities.SavedPaper.create(payload);
       savedDuringDiscovery.current.papers.set(saved.id, saved);
       toast({
-        title: projectCreated ? 'Paper saved to project' : existing ? 'Paper already in your library' : 'Paper saved to library',
-        description: projectCreated ? projectCreated.title : undefined,
+        title: effectiveProjectId ? 'Paper saved to project' : existing ? 'Paper already in your library' : 'Paper saved to library',
+        description: projectCreated?.title || (targetProjectId ? 'Linked to the current project.' : undefined),
       });
       return saved;
     } catch (error) {
@@ -108,15 +112,15 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         citation_count: researcher.citation_count,
         profile_url: researcher.profile_url,
         openalex_id: researcher.openalex_id || researcher.id || '',
-        project_ids: mergeProjectIds(existing || {}, projectCreated?.id),
+        project_ids: mergeProjectIds(existing || {}, effectiveProjectId),
       };
       const saved = existing
         ? await base44.entities.SavedResearcher.update(existing.id, payload)
         : await base44.entities.SavedResearcher.create(payload);
       savedDuringDiscovery.current.researchers.set(saved.id, saved);
       toast({
-        title: projectCreated ? 'Researcher saved to project' : existing ? 'Researcher already in your library' : 'Researcher saved to library',
-        description: projectCreated ? projectCreated.title : undefined,
+        title: effectiveProjectId ? 'Researcher saved to project' : existing ? 'Researcher already in your library' : 'Researcher saved to library',
+        description: projectCreated?.title || (targetProjectId ? 'Linked to the current project.' : undefined),
       });
       return saved;
     } catch (error) {
@@ -243,7 +247,12 @@ export default function DiscoveryResults({ results, onNewSearch }) {
                 : searchSaved ? <CheckCircle2 size={15} /> : <Bookmark size={15} />}
               {searchSaved ? 'Search saved' : 'Save search'}
             </button>
-            {!projectCreated ? (
+            {effectiveProjectId ? (
+              <Link to={`/projects/${effectiveProjectId}`}
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-green-500/15 border border-green-500/30 text-green-400 text-sm font-bold flex-shrink-0">
+                <CheckCircle2 size={15} /> Open Project
+              </Link>
+            ) : (
               <button
                 onClick={createProject}
                 disabled={creatingProject}
@@ -254,11 +263,6 @@ export default function DiscoveryResults({ results, onNewSearch }) {
                   : <Plus size={15} />}
                 Create Project
               </button>
-            ) : (
-              <Link to={`/projects/${projectCreated.id}`}
-                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-green-500/15 border border-green-500/30 text-green-400 text-sm font-bold flex-shrink-0">
-                <CheckCircle2 size={15} /> Open Project
-              </Link>
             )}
           </div>
         </div>
@@ -449,7 +453,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
               </div>
               <div className="space-y-3">
                 {(startHere.length ? startHere : results.papers.slice(0, 3)).map((p, i) => (
-                  <PaperCard key={p._dedupeKey || p.id || p.title || i} paper={p} onSave={() => savePaper(p)} destination={projectCreated ? 'project' : 'library'} />
+                  <PaperCard key={p._dedupeKey || p.id || p.title || i} paper={p} onSave={() => savePaper(p)} destination={effectiveProjectId ? 'project' : 'library'} />
                 ))}
               </div>
             </div>
@@ -487,7 +491,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           )}
 
           {/* CTA */}
-          {!projectCreated && (
+          {!effectiveProjectId && (
             <div className="p-5 rounded-2xl border border-primary/20 bg-primary/5 flex items-start gap-4">
               <div className="w-10 h-10 rounded-xl overflow-hidden bg-white flex-shrink-0">
                 <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
@@ -537,7 +541,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
                       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><GroupIcon size={14} /></span>
                       <div><h3 className="text-sm font-semibold">{group.title}</h3><p className="mt-0.5 text-[11px] text-muted-foreground">{group.desc}</p></div>
                     </div>
-                    <div className="space-y-3">{group.papers.map((paper, index) => <PaperCard key={paper._dedupeKey || paper.id || paper.title} paper={paper} onSave={() => savePaper(paper)} destination={projectCreated ? 'project' : 'library'} />)}</div>
+                    <div className="space-y-3">{group.papers.map((paper, index) => <PaperCard key={paper._dedupeKey || paper.id || paper.title} paper={paper} onSave={() => savePaper(paper)} destination={effectiveProjectId ? 'project' : 'library'} />)}</div>
                   </section>
                 );
               })}
@@ -567,7 +571,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {results.researchers.map((r, i) => (
-                <ResearcherCard key={r.openalex_id || r.id || r.profile_url || i} researcher={r} onSave={() => saveResearcher(r)} destination={projectCreated ? 'project' : 'library'} />
+                <ResearcherCard key={r.openalex_id || r.id || r.profile_url || i} researcher={r} onSave={() => saveResearcher(r)} destination={effectiveProjectId ? 'project' : 'library'} />
               ))}
             </div>
           )}
