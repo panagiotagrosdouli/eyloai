@@ -32,8 +32,14 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
+      - name: Type-check application
+        run: npm run typecheck
+
       - name: Lint application
         run: npm run lint
+
+      - name: Run core regression tests
+        run: npm test
 
       - name: Protect authenticated EYRA routing
         run: npm run test:eyra-auth
