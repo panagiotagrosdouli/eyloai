@@ -443,7 +443,7 @@ Rules:
                 <p className="mt-1 text-xs text-muted-foreground">Only records explicitly linked to this project are used as its saved evidence context.</p>
               </div>
               <Link
-                to={`/home?q=${encodeURIComponent(editing.goal || editing.title || '')}`}
+                to={`/home?q=${encodeURIComponent(editing.goal || editing.title || '')}&project=${encodeURIComponent(id || '')}`}
                 className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:border-primary/30"
               >
                 <BookOpen size={13} /> Find evidence
