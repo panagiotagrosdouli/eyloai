@@ -164,7 +164,10 @@ function unique(values) {
 
 function mergeGroup(records) {
   const base = preferredRecord(records);
-  const doi = records.map(record => record.doi).find(Boolean) || '';
+  const dois = unique(records.map(record => record.doi));
+  const conceptDoi = dois.find(doi => !/\.v\d+$/i.test(doi) && dois.some(candidate => candidate.startsWith(`${doi}.v`)));
+  const doi = conceptDoi || dois[0] || '';
+  const versionDois = conceptDoi ? dois.filter(candidate => candidate !== conceptDoi) : [];
   const yearCandidates = unique(records.map(record => record.year)).sort((a, b) => Number(a) - Number(b));
   const dateCandidates = unique(records.map(record => record.publication_date)).sort();
   const sources = unique(records.map(record => record._providerLabel)).sort();
@@ -191,6 +194,7 @@ function mergeGroup(records) {
   return {
     ...base,
     doi,
+    version_dois: versionDois,
     url: doi ? `https://doi.org/${doi}` : base.url,
     authors: bestAuthors,
     summary: bestSummary,
@@ -220,11 +224,23 @@ function mergeGroup(records) {
 
 export function reconcileScholarlyRecords(input) {
   const groups = new Map();
+  const records = (input || []).filter(Boolean).map(canonicalRecord);
+  const doiRecords = new Map(records.filter(record => record.doi).map(record => [record.doi, record]));
 
-  (input || []).filter(Boolean).map(canonicalRecord).forEach(record => {
-    const current = groups.get(record._dedupeKey) || [];
+  records.forEach(record => {
+    let groupKey = record._dedupeKey;
+    const versionMatch = record.doi.match(/^(10\.\d{4,9}\/.+)\.v\d+$/i);
+
+    if (versionMatch) {
+      const conceptRecord = doiRecords.get(versionMatch[1]);
+      const sameTitle = conceptRecord
+        && normalizeScholarlyTitle(conceptRecord.title) === normalizeScholarlyTitle(record.title);
+      if (sameTitle) groupKey = `doi:${versionMatch[1]}`;
+    }
+
+    const current = groups.get(groupKey) || [];
     current.push(record);
-    groups.set(record._dedupeKey, current);
+    groups.set(groupKey, current);
   });
 
   return [...groups.values()].map(mergeGroup);
