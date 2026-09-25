@@ -12,6 +12,8 @@ import NotificationsBell from '@/components/monitoring/NotificationsBell';
 import ServiceStatus from '@/components/system/ServiceStatus';
 import { useCapabilities } from '@/lib/capabilities';
 import { trackActivatedReturn } from '@/lib/product-analytics';
+import GlobalCommandPalette from '@/components/layout/GlobalCommandPalette';
+import { isCommandShortcut } from '@/lib/command-shortcuts';
 
 const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
@@ -98,6 +100,9 @@ function ToolLink({ item, active }) {
 export default function AppLayout() {
   const location = useLocation();
   const [eyraOpen, setEyraOpen] = useState(false);
+  const [eyraPrompt, setEyraPrompt] = useState('');
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
   const [toolsOpen, setToolsOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [toolQuery, setToolQuery] = useState('');
@@ -135,21 +140,28 @@ export default function AppLayout() {
 
   useEffect(() => {
     const open = event => {
-      if (aiAvailable && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      if (isCommandShortcut(event)) {
         event.preventDefault();
-        setEyraOpen(true);
+        setCommandOpen(true);
       }
     };
     window.addEventListener('keydown', open);
     return () => window.removeEventListener('keydown', open);
-  }, [aiAvailable]);
+  }, []);
+
+  const openEyra = (prompt = '') => {
+    if (!aiAvailable) return;
+    setEyraPrompt(String(prompt || ''));
+    setEyraOpen(true);
+  };
 
   useEffect(() => {
-    const openEyra = () => {
-      if (aiAvailable) setEyraOpen(true);
+    const handleOpenEyra = event => {
+      const prompt = event instanceof CustomEvent ? event.detail?.prompt : '';
+      openEyra(prompt);
     };
-    window.addEventListener('eylo:open-eyra', openEyra);
-    return () => window.removeEventListener('eylo:open-eyra', openEyra);
+    window.addEventListener('eylo:open-eyra', handleOpenEyra);
+    return () => window.removeEventListener('eylo:open-eyra', handleOpenEyra);
   }, [aiAvailable]);
 
   useEffect(() => {
@@ -213,9 +225,19 @@ export default function AppLayout() {
           <div className="ml-auto hidden items-center gap-2 md:flex">
             <ServiceStatus compact className="hidden xl:block" />
             <NotificationsBell />
-            <button type="button" onClick={() => setEyraOpen(true)} disabled={!aiAvailable} title={aiAvailable ? 'Ask EYRA (Ctrl/⌘ K)' : 'EYRA is unavailable on this deployment'}
+            <button
+              type="button"
+              onClick={() => setCommandOpen(true)}
+              className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
+              aria-label="Search EYLO and open commands"
+            >
+              <Search size={14} aria-hidden="true" />
+              <span className="hidden xl:inline">Search</span>
+              <span className="rounded border border-border bg-secondary px-1 py-0.5 font-mono text-[8px] text-muted-foreground">⌘K</span>
+            </button>
+            <button type="button" onClick={() => openEyra()} disabled={!aiAvailable} title={aiAvailable ? 'Ask EYRA' : 'EYRA is unavailable on this deployment'}
               className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-45">
-              <Sparkles size={14} />Ask EYRA<span className="rounded border border-current/15 px-1 py-0.5 font-mono text-[8px] opacity-60">⌘K</span>
+              <Sparkles size={14} />Ask EYRA
             </button>
           </div>
 
@@ -250,7 +272,25 @@ export default function AppLayout() {
       </header>
 
       <main className="relative z-10 pb-24 lg:pb-0"><Outlet /></main>
-      <EyraCommandCenter open={eyraOpen} onClose={() => setEyraOpen(false)} />
+      <GlobalCommandPalette
+        open={commandOpen}
+        onOpenChange={setCommandOpen}
+        query={commandQuery}
+        onQueryChange={setCommandQuery}
+        groups={[
+          { section: 'Core', items: PRIMARY_NAV.map(item => ({ ...item, desc: `Open ${item.label}` })) },
+          ...TOOL_GROUPS,
+        ]}
+        onAskEyra={openEyra}
+      />
+      <EyraCommandCenter
+        open={eyraOpen}
+        initialPrompt={eyraPrompt}
+        onClose={() => {
+          setEyraOpen(false);
+          setEyraPrompt('');
+        }}
+      />
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl lg:hidden" aria-label="Primary mobile navigation">
         <div className="mx-auto grid max-w-md grid-cols-5 items-end">
@@ -258,7 +298,7 @@ export default function AppLayout() {
             const Icon = item.icon; const active = isActive(item.path);
             return <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}><Icon size={18} /><span>{item.label}</span></Link>;
           })}
-          <button type="button" onClick={() => setEyraOpen(true)} disabled={!aiAvailable} className="-mt-6 flex flex-col items-center gap-1 text-[10px] font-semibold text-primary disabled:opacity-45" aria-label={aiAvailable ? 'Ask EYRA' : 'EYRA unavailable'}>
+          <button type="button" onClick={() => openEyra()} disabled={!aiAvailable} className="-mt-6 flex flex-col items-center gap-1 text-[10px] font-semibold text-primary disabled:opacity-45" aria-label={aiAvailable ? 'Ask EYRA' : 'EYRA unavailable'}>
             <EyraOrb className="h-12 w-12 rounded-2xl" decorative={false} /><span>EYRA</span>
           </button>
           {[PRIMARY_NAV[2], PRIMARY_NAV[3]].map(item => {
