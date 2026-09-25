@@ -26,7 +26,7 @@ export default function EyraProjectTwin({ project }) {
   const generateAlerts = () => {
     const now = new Date();
     const created = new Date(project?.created_date);
-    const daysSinceCreated = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+    const daysSinceCreated = Number.isNaN(created.getTime()) ? 0 : Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
     const generatedAlerts = [];
 
     if (daysSinceCreated > 7 && !project?.eyra_analysis) {
