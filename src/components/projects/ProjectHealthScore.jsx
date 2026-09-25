@@ -11,7 +11,7 @@ const DIMENSIONS = [
   { key: 'innovation_score', label: 'Innovation', icon: TrendingUp, color: 'text-chart-5 bg-chart-5/10' },
 ];
 
-function ScoreBar({ score, color }) {
+function ScoreBar({ score }) {
   const pct = Math.max(0, Math.min(100, score || 0));
   const barColor = pct >= 70 ? 'bg-green-400' : pct >= 40 ? 'bg-amber-400' : 'bg-destructive';
   return (
