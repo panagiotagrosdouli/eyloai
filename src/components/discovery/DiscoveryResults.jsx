@@ -53,7 +53,7 @@ export default function DiscoveryResults({ results, onNewSearch, targetProjectId
   const [projectCreated, setProjectCreated] = useState(null);
   const [savingSearch, setSavingSearch] = useState(false);
   const [searchSaved, setSearchSaved] = useState(Boolean(results.search_saved));
-  const savedDuringDiscovery = useRef({ papers: new Map(), researchers: new Map() });
+  const savedDuringDiscovery = useRef({ papers: new globalThis.Map(), researchers: new globalThis.Map() });
   const { toast } = useToast();
   const navigate = useNavigate();
   const effectiveProjectId = projectCreated?.id || targetProjectId;
