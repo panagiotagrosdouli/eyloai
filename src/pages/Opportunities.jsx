@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import {
@@ -11,6 +11,7 @@ import {
   FUNDING_RELEVANCE_LABELS,
   fundingRelevanceWeight,
 } from '@/lib/evidence-presentation';
+import { mergeProjectIds } from '@/lib/project-evidence';
 
 const TYPE_CONFIG = {
   grant: { icon: DollarSign, label: 'Grant' },
@@ -56,7 +57,17 @@ export default function Opportunities() {
   const [rankingNotice, setRankingNotice] = useState('');
   const [savingIds, setSavingIds] = useState(() => new Set());
   const [savedIds, setSavedIds] = useState(() => new Set());
+  const [projects, setProjects] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
   const { toast } = useToast();
+
+  useEffect(() => {
+    let active = true;
+    base44.entities.Project.list('-updated_date', 50)
+      .then(items => { if (active) setProjects(items); })
+      .catch(() => { if (active) setProjects([]); });
+    return () => { active = false; };
+  }, []);
 
   const handleSearch = async (searchQuery) => {
     const q = String(searchQuery || query).trim();
@@ -177,6 +188,7 @@ Do not add opportunities or change any factual field.`,
         match_reason: opportunity.match_reason || '',
         application_complexity: opportunity.application_complexity || '',
         retrieved_at: sourceMeta?.retrieved_at || '',
+        project_ids: mergeProjectIds(existing || {}, selectedProjectId),
       };
 
       if (existing) {
@@ -186,7 +198,12 @@ Do not add opportunities or change any factual field.`,
       }
 
       setSavedIds(previous => new Set([...previous, stableId]));
-      toast({ title: existing ? 'Opportunity already in your library' : 'Opportunity saved to library' });
+      toast({
+        title: selectedProjectId ? 'Opportunity saved to project' : existing ? 'Opportunity already in your library' : 'Opportunity saved to library',
+        description: selectedProjectId
+          ? projects.find(project => project.id === selectedProjectId)?.title || 'Linked to the selected project.'
+          : undefined,
+      });
     } catch (error) {
       toast({
         title: 'Could not save this opportunity',
@@ -222,6 +239,21 @@ Do not add opportunities or change any factual field.`,
           Titles, agencies, deadlines, amounts and eligibility text come from the retrieved official record when supplied. Always open the source notice before deciding whether to apply.
         </p>
       </div>
+
+      {projects.length > 0 && (
+        <label className="mb-5 block max-w-sm">
+          <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Save destination</span>
+          <select
+            value={selectedProjectId}
+            onChange={event => setSelectedProjectId(event.target.value)}
+            className="h-10 w-full rounded-xl border border-border bg-card px-3 text-xs text-foreground outline-none focus:border-primary/40"
+          >
+            <option value="">Library only</option>
+            {projects.map(project => <option key={project.id} value={project.id}>{project.title}</option>)}
+          </select>
+          <span className="mt-1 block text-[10px] text-muted-foreground">Choose a project before saving if this opportunity belongs to that research workspace.</span>
+        </label>
+      )}
 
       <form
         onSubmit={event => {
