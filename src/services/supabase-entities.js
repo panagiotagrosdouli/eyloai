@@ -91,9 +91,10 @@ function pickProfileFields(value = {}) {
 }
 
 function profileWriteError(error) {
-  const wrapped = new Error(error?.message || 'We could not save your profile. Please try again.');
-  wrapped.code = error?.code || 'PROFILE_WRITE_FAILED';
-  return wrapped;
+  return Object.assign(
+    new Error(error?.message || 'We could not save your profile. Please try again.'),
+    { code: error?.code || 'PROFILE_WRITE_FAILED' },
+  );
 }
 
 async function currentUser() {
@@ -126,9 +127,10 @@ async function assertCreateAllowed(table, user) {
   if (error) throw error;
 
   if (Number(count || 0) >= 1) {
-    const limitError = new Error('The free plan includes one project workspace. Upgrade to create another.');
-    limitError.code = 'PLAN_LIMIT_REACHED';
-    throw limitError;
+    throw Object.assign(
+      new Error('The free plan includes one project workspace. Upgrade to create another.'),
+      { code: 'PLAN_LIMIT_REACHED' },
+    );
   }
 }
 
