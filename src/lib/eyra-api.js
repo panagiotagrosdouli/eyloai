@@ -1,6 +1,8 @@
 // EYRA Discovery Engine — Real Data Sources
 // OpenAlex, arXiv, Crossref, Europe PMC
 
+import { reconcileScholarlyRecords } from './scholarly-metadata.js';
+
 const OPENALEX_BASE = 'https://api.openalex.org';
 const RESEARCH_CONTACT_EMAIL = String(import.meta.env?.VITE_RESEARCH_CONTACT_EMAIL || '').trim();
 const OPENALEX_CONTACT = RESEARCH_CONTACT_EMAIL ? `&mailto=${encodeURIComponent(RESEARCH_CONTACT_EMAIL)}` : '';
@@ -78,6 +80,9 @@ export async function searchOpenAlexWorks(query, limit = 10, sort = 'relevance',
       title: w.title || 'Untitled',
       authors: (w.authorships || []).slice(0, 4).map(a => a.author?.display_name).filter(Boolean).join(', '),
       year: w.publication_year,
+      publication_date: w.publication_date || '',
+      publication_status: w.type === 'preprint' ? 'preprint' : '',
+      is_retracted: Boolean(w.is_retracted),
       summary: w.abstract_inverted_index
         ? reconstructAbstract(w.abstract_inverted_index).slice(0, 400)
         : '',
@@ -150,13 +155,19 @@ export async function searchArxiv(query, limit = 5, sort = 'relevance', strictOp
     return Array.from(entries).map(e => {
       const published = e.querySelector('published')?.textContent || '';
       const year = new Date(published).getFullYear();
+      const id = e.querySelector('id')?.textContent || '';
+      const arxivId = id.split('/abs/').pop()?.replace(/v\d+$/i, '') || '';
       return {
-        id: e.querySelector('id')?.textContent || '',
+        id,
+        arxiv_id: arxivId,
         title: (e.querySelector('title')?.textContent || '').replace(/\s+/g, ' ').trim(),
         authors: Array.from(e.querySelectorAll('author name')).slice(0, 4).map(n => n.textContent).join(', '),
         summary: (e.querySelector('summary')?.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 400),
         year,
-        url: e.querySelector('id')?.textContent || '',
+        publication_date: published.slice(0, 10),
+        publication_status: 'preprint',
+        type: 'preprint',
+        url: id,
         source: 'arXiv',
         cited_by_count: 0,
         open_access: true,
@@ -184,8 +195,10 @@ export async function searchEuropePMC(query, limit = 5, strictOptions = {}) {
         authors: r.authorString || '',
         summary: (r.abstractText || '').slice(0, 400),
         year,
+        publication_date: r.firstPublicationDate || '',
+        type: r.pubType || r.pubTypeList?.pubType?.[0] || 'unknown',
         url: r.doi ? `https://doi.org/${r.doi}` : `https://europepmc.org/article/${r.source}/${r.id}`,
-        source: 'Europe PMC',
+        source: r.journalTitle || 'Europe PMC',
         cited_by_count: citedBy,
         open_access: r.isOpenAccess === 'Y',
         _score: Math.min(Math.log10(citedBy + 1) * 10, 40) + Math.max(0, 10 - (new Date().getFullYear() - (year || 2000)) * 0.5),
@@ -201,7 +214,7 @@ export async function searchCrossref(query, limit = 5, sort = 'relevance', stric
     const params = new URLSearchParams({
       query,
       rows: String(limit),
-      select: 'DOI,title,author,abstract,published,container-title,is-referenced-by-count,URL',
+      select: 'DOI,title,author,abstract,published,published-online,published-print,container-title,type,publisher,volume,issue,page,is-referenced-by-count,URL',
     });
     if (RESEARCH_CONTACT_EMAIL) params.set('mailto', RESEARCH_CONTACT_EMAIL);
     if (sort === 'recent') {
@@ -215,7 +228,14 @@ export async function searchCrossref(query, limit = 5, sort = 'relevance', stric
 
     return (data.message?.items || []).map((work) => {
       const dateParts = work.published?.['date-parts']?.[0] || [];
-      const year = Number(dateParts[0]) || null;
+      const onlineParts = work['published-online']?.['date-parts']?.[0] || [];
+      const printParts = work['published-print']?.['date-parts']?.[0] || [];
+      const toDate = (parts) => {
+        if (!parts?.[0]) return '';
+        const [dateYear, month = 1, day = 1] = parts;
+        return `${dateYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      };
+      const year = Number(dateParts[0] || onlineParts[0] || printParts[0]) || null;
       const authors = (work.author || []).slice(0, 4).map((author) =>
         [author.given, author.family].filter(Boolean).join(' ')
       ).filter(Boolean).join(', ');
@@ -229,6 +249,17 @@ export async function searchCrossref(query, limit = 5, sort = 'relevance', stric
         authors,
         summary: abstract.slice(0, 400),
         year,
+        publication_date: toDate(onlineParts) || toDate(printParts) || toDate(dateParts),
+        publication_dates: {
+          published: toDate(dateParts),
+          online: toDate(onlineParts),
+          print: toDate(printParts),
+        },
+        type: work.type || 'unknown',
+        publisher: work.publisher || '',
+        volume: work.volume || '',
+        issue: work.issue || '',
+        pages: work.page || '',
         url: work.DOI ? `https://doi.org/${work.DOI}` : work.URL,
         source: work['container-title']?.[0] || 'Crossref',
         cited_by_count: citedBy,
@@ -246,7 +277,7 @@ export async function searchSemanticScholar(query, limit = 8, strictOptions = {}
   try {
     const fields = [
       'paperId', 'title', 'authors', 'year', 'abstract', 'url', 'venue',
-      'citationCount', 'openAccessPdf', 'externalIds', 'publicationDate',
+      'citationCount', 'openAccessPdf', 'externalIds', 'publicationDate', 'publicationTypes',
     ].join(',');
     const params = new URLSearchParams({ query, limit: String(limit), fields });
     const directUrl = `https://api.semanticscholar.org/graph/v1/paper/search?${params}`;
@@ -262,6 +293,8 @@ export async function searchSemanticScholar(query, limit = 8, strictOptions = {}
         authors: (paper.authors || []).slice(0, 4).map(author => author.name).filter(Boolean).join(', '),
         summary: (paper.abstract || '').slice(0, 400),
         year: paper.year || (paper.publicationDate ? new Date(paper.publicationDate).getFullYear() : null),
+        publication_date: paper.publicationDate || '',
+        type: paper.publicationTypes?.[0] || 'unknown',
         url: doi ? `https://doi.org/${doi}` : paper.openAccessPdf?.url || paper.url,
         source: paper.venue || 'Semantic Scholar',
         source_index: 'Semantic Scholar',
@@ -276,20 +309,6 @@ export async function searchSemanticScholar(query, limit = 8, strictOptions = {}
 
 function normalizedTitle(title) {
   return String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 100);
-}
-
-function normalizedDoi(value) {
-  let doi = String(value || '')
-    .trim()
-    .toLowerCase()
-    .replace(/^https?:\/\/(?:dx\.)?doi\.org\//, '')
-    .replace(/^doi:\s*/, '');
-  try {
-    doi = decodeURIComponent(doi);
-  } catch {
-    // Keep the original normalized DOI when a provider returns invalid encoding.
-  }
-  return doi.replace(/\.v\d+$/i, '');
 }
 
 function isScholarlyWorkRecord(paper) {
@@ -438,18 +457,9 @@ function normalizeRankingProfile(query, options = {}) {
 
 export function rankPaperRecords(records, query, options = {}) {
   const profile = normalizeRankingProfile(query, options);
-  const seen = new Set();
-  const uniqueRecords = (records || []).flat().filter(Boolean).filter(isScholarlyWorkRecord).map(paper => {
-    const doi = normalizedDoi(paper.doi || paper.url);
-    const key = doi
-      ? `doi:${doi}`
-      : `title:${normalizedTitle(paper.title)}`;
-    return { ...paper, _dedupeKey: key };
-  }).filter(paper => {
-    if (!paper.title || seen.has(paper._dedupeKey)) return false;
-    seen.add(paper._dedupeKey);
-    return true;
-  });
+  const uniqueRecords = reconcileScholarlyRecords(
+    (records || []).flat().filter(Boolean).filter(isScholarlyWorkRecord),
+  );
 
   const queryTermCount = queryTerms(profile.query).length;
   const minimumCoverage = queryTermCount > 0 && queryTermCount <= 4 ? 1 : 0.67;
