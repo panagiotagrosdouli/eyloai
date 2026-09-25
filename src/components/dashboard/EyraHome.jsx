@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, BookOpen, ChevronRight, FolderOpen, Lightbulb, Loader2, Plus,
+  ArrowRight, BookOpen, ChevronRight, FolderOpen, Loader2, Plus,
   Users, Zap,
 } from 'lucide-react';
 import { buildUserProfile } from '@/lib/second-brain';
