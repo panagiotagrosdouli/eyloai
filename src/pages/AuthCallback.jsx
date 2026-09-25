@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AuthLayout from '@/components/AuthLayout';
-import { requireSupabase } from '@/lib/supabaseClient';
+import { getSession } from '@/lib/supabase/auth';
 import { getSafeRedirect } from '@/lib/auth/safeRedirect';
 import { OAUTH_COMPLETE_MESSAGE } from '@/lib/auth/oauthPopup';
 
@@ -23,10 +23,9 @@ export default function AuthCallback() {
       }
 
       try {
-        const client = requireSupabase();
-        const { data, error: sessionError } = await client.auth.getSession();
-        if (sessionError) throw sessionError;
-        if (!data.session) {
+        const result = await getSession();
+        if (!result.ok) throw result.error;
+        if (!result.data) {
           if (active) setError('No active session was found. Please sign in again.');
           return;
         }
