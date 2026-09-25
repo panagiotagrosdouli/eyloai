@@ -4,7 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 import MeetingCard from '@/components/meetings/MeetingCard';
 import MeetingForm from '@/components/meetings/MeetingForm';
 import MeetingDetail from '@/components/meetings/MeetingDetail';
-import { Plus, Calendar, Clock, Loader2 } from 'lucide-react';
+import { Plus, Calendar, Clock } from 'lucide-react';
 import moment from 'moment';
 
 const TABS = ['Upcoming', 'Past', 'All'];
@@ -16,39 +16,67 @@ export default function Meetings() {
   const [showForm, setShowForm] = useState(false);
   const [selected, setSelected] = useState(null);
   const [tab, setTab] = useState('Upcoming');
+  const [loadError, setLoadError] = useState('');
   const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     setLoading(true);
-    const [m, p] = await Promise.all([
+    setLoadError('');
+    const [meetingsResult, projectsResult] = await Promise.allSettled([
       base44.entities.Meeting.list('-date', 100),
       base44.entities.Project.list('-updated_date', 50),
     ]);
-    setMeetings(m);
-    setProjects(p);
+    if (meetingsResult.status === 'fulfilled') {
+      setMeetings(meetingsResult.value);
+    } else {
+      setMeetings([]);
+      setLoadError(meetingsResult.reason?.message || 'Meetings could not be loaded.');
+    }
+    setProjects(projectsResult.status === 'fulfilled' ? projectsResult.value : []);
+    if (projectsResult.status === 'rejected' && meetingsResult.status === 'fulfilled') {
+      setLoadError('Meetings loaded, but project links are temporarily unavailable.');
+    }
     setLoading(false);
   };
 
   const handleSave = async (data) => {
-    if (data.id) {
-      await base44.entities.Meeting.update(data.id, data);
-      toast({ title: 'Meeting updated' });
-    } else {
-      await base44.entities.Meeting.create(data);
-      toast({ title: 'Meeting scheduled' });
+    try {
+      if (data.id) {
+        await base44.entities.Meeting.update(data.id, data);
+        toast({ title: 'Meeting updated' });
+      } else {
+        await base44.entities.Meeting.create(data);
+        toast({ title: 'Meeting scheduled' });
+      }
+      setShowForm(false);
+      setSelected(null);
+      await loadData();
+    } catch (error) {
+      toast({
+        title: 'Meeting could not be saved',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+      throw error;
     }
-    setShowForm(false);
-    setSelected(null);
-    loadData();
   };
 
   const handleDelete = async (id) => {
-    await base44.entities.Meeting.delete(id);
-    toast({ title: 'Meeting deleted' });
-    setSelected(null);
-    loadData();
+    try {
+      await base44.entities.Meeting.delete(id);
+      toast({ title: 'Meeting deleted' });
+      setSelected(null);
+      await loadData();
+    } catch (error) {
+      toast({
+        title: 'Meeting could not be deleted',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
   };
 
   const today = moment().startOf('day');
@@ -87,24 +115,32 @@ export default function Meetings() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+      <header className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
-          <h1 className="font-heading font-bold text-2xl">Meetings</h1>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Research coordination</p>
+          <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Meetings</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Prepare, capture decisions, and keep meeting context connected to the right project.</p>
         </div>
         <button
+          type="button"
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+          className="inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-xl bg-foreground px-4 text-sm font-semibold text-background transition-opacity hover:opacity-90 sm:self-auto"
         >
-          <Plus size={15} /> New
+          <Plus size={14} aria-hidden="true" /> New meeting
         </button>
-      </div>
+      </header>
+
+      {loadError && (
+        <div role="status" className="mb-6 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs leading-5 text-amber-100">
+          {loadError}
+        </div>
+      )}
 
       {/* Upcoming strip */}
       {upcoming.length > 0 && (
-        <div className="mb-6 p-4 rounded-2xl border border-primary/20 bg-primary/5">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">
+        <div className="mb-7 rounded-2xl border border-border bg-card p-4 sm:p-5">
+          <p className="mb-3 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             <Clock size={11} /> Next Up
           </p>
           <div className="grid sm:grid-cols-3 gap-3">
@@ -120,10 +156,10 @@ export default function Meetings() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 border-b border-border/60">
+      <div className="mb-5 flex gap-1 overflow-x-auto border-b border-border pb-4">
         {TABS.map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${tab === t ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
+            className={`min-h-9 rounded-lg px-3 text-xs font-semibold transition-colors ${tab === t ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
             {t}
           </button>
         ))}
@@ -131,8 +167,11 @@ export default function Meetings() {
 
       {/* List */}
       {loading ? (
-        <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground text-sm">
-          <Loader2 size={16} className="animate-spin text-primary" /> Loading meetings...
+        <div className="space-y-3" role="status" aria-live="polite">
+          {[0, 1, 2, 3].map(item => (
+            <div key={item} className="h-28 animate-pulse rounded-2xl border border-border bg-card" />
+          ))}
+          <span className="sr-only">Loading meetings</span>
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
@@ -141,7 +180,7 @@ export default function Meetings() {
           </div>
           <p className="text-sm font-medium mb-1">No {tab.toLowerCase()} meetings</p>
           <p className="text-xs text-muted-foreground mb-4">Schedule a meeting to get started</p>
-          <button onClick={() => setShowForm(true)} className="text-xs text-primary font-medium hover:underline">+ New Meeting</button>
+          <button type="button" onClick={() => setShowForm(true)} className="mt-1 text-xs font-semibold text-primary hover:underline">Schedule a meeting</button>
         </div>
       ) : (
         <div className="space-y-3">
