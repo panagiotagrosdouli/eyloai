@@ -65,9 +65,12 @@ const ACCESSIBILITY_MODES = [
   { id: 'reading', label: 'Reading Mode', desc: 'Optimized for long reading sessions' },
 ];
 
-function SectionHeader({ title }) {
+function SectionHeader({ title, desc = '' }) {
   return (
-    <div className="mb-6"><h2 className="font-heading font-bold text-lg text-foreground">{title}</h2></div>
+    <div className="mb-6">
+      <h2 className="font-heading font-bold text-lg text-foreground">{title}</h2>
+      {desc && <p className="mt-1 text-xs text-muted-foreground">{desc}</p>}
+    </div>
   );
 }
 
