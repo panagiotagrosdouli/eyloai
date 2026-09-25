@@ -17,46 +17,52 @@ const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
   { label: 'Projects', path: '/projects', icon: FolderOpen },
   { label: 'Library', path: '/library', icon: BookOpen },
-  { label: 'For you', path: '/foryou', icon: Sparkles },
+  { label: 'Funding', path: '/opportunities', icon: Award },
 ];
 
 const TOOL_GROUPS = [
   {
     section: 'Research',
-    description: 'Find and organize source records',
+    description: 'Find, verify and organize source-backed work',
     items: [
       { label: 'Researchers', path: '/researchers', icon: Users, desc: 'Authors, institutions and expertise', badge: 'Live sources' },
-      { label: 'Funding search', path: '/opportunities', icon: Award, desc: 'Official opportunities and calls', badge: 'Official data' },
+      { label: 'For you', path: '/foryou', icon: Sparkles, desc: 'Updates from your saved research context', badge: 'Workspace' },
       { label: 'Open challenges', path: '/challenges', icon: Trophy, desc: 'Research and innovation challenges', badge: 'Live sources' },
-      { label: 'Opportunity review', path: '/radar', icon: Zap, desc: 'Prioritize funding against your context', badge: 'Assisted' },
     ],
   },
   {
     section: 'Decision support',
-    description: 'Evaluate evidence and choices',
+    description: 'Turn evidence into a defensible next action',
     items: [
       { label: 'Executive briefing', path: '/briefing', icon: Brain, desc: 'A sourced view of priorities and risks', badge: 'Assisted' },
-      { label: 'Research landscape', path: '/battlefield', icon: Activity, desc: 'Compare approaches and evidence gaps', badge: 'Assisted' },
-      { label: 'Impact review', path: '/impact', icon: Target, desc: 'Test impact assumptions and pathways', badge: 'Assisted' },
-      { label: 'Scenario planner', path: '/future', icon: Rocket, desc: 'Compare plausible project directions', badge: 'Assisted' },
-      { label: 'Team planner', path: '/dreamteam', icon: Users, desc: 'Define roles and review expertise fit', badge: 'Assisted' },
-      { label: 'Voice workspace', path: '/voice', icon: Mic, desc: 'Dictate a sourced research question', badge: 'Assisted' },
+      { label: 'Opportunity review', path: '/radar', icon: Zap, desc: 'Review funding against your project context', badge: 'Assisted' },
     ],
   },
   {
     section: 'Deliverables',
-    description: 'Turn decisions into working outputs',
+    description: 'Turn research into working outputs',
     items: [
       { label: 'Idea workspace', path: '/ideas', icon: Lightbulb, desc: 'Capture and develop research ideas', badge: 'Workspace' },
       { label: 'Grant workspace', path: '/grant-builder', icon: FileEdit, desc: 'Draft and track an application', badge: 'Assisted' },
       { label: 'Pitch deck', path: '/pitchdeck', icon: Presentation, desc: 'Build a sourced presentation', badge: 'Assisted' },
-      { label: 'Professional path', path: '/futureme', icon: TrendingUp, desc: 'Plan skills, milestones and direction', badge: 'Workspace' },
       { label: 'Meetings', path: '/meetings', icon: Video, desc: 'Keep notes, decisions and actions', badge: 'Workspace' },
     ],
   },
   {
+    section: 'Labs',
+    description: 'Experimental decision-support workflows',
+    items: [
+      { label: 'Research landscape', path: '/labs/research-landscape', icon: Activity, desc: 'Compare approaches and evidence gaps', badge: 'Experimental' },
+      { label: 'Impact review', path: '/labs/impact', icon: Target, desc: 'Test impact assumptions and pathways', badge: 'Experimental' },
+      { label: 'Scenario planner', path: '/labs/scenario', icon: Rocket, desc: 'Compare plausible project directions', badge: 'Experimental' },
+      { label: 'Team planner', path: '/labs/team', icon: Users, desc: 'Explore roles and expertise fit', badge: 'Experimental' },
+      { label: 'Professional path', path: '/labs/professional-path', icon: TrendingUp, desc: 'Explore skills, milestones and direction', badge: 'Experimental' },
+      { label: 'Voice workspace', path: '/labs/voice', icon: Mic, desc: 'Dictate a sourced research question', badge: 'Experimental' },
+    ],
+  },
+  {
     section: 'Account',
-    description: 'History and settings',
+    description: 'History, preferences and access',
     items: [
       { label: 'Profile', path: '/profile', icon: User, desc: 'Research identity and interests' },
       { label: 'Search history', path: '/history', icon: History, desc: 'Return to earlier discovery' },
@@ -182,7 +188,7 @@ export default function AppLayout() {
                 <div className="absolute left-0 top-full mt-2 w-[min(48rem,calc(100vw-2rem))] rounded-xl border border-border bg-popover p-3 shadow-2xl shadow-black/30">
                   <div className="mb-3 flex flex-col justify-between gap-3 rounded-lg border border-border bg-secondary/25 px-4 py-3 sm:flex-row sm:items-center">
                     <p className="text-xs font-semibold">Choose an action</p>
-                    <div className="flex items-center gap-2 text-[9px] font-medium uppercase tracking-wide text-muted-foreground"><span>Research</span><span>→</span><span>Decide</span><span>→</span><span>Deliver</span></div>
+                    <div className="flex items-center gap-2 text-[9px] font-medium uppercase tracking-wide text-muted-foreground"><span>Research</span><span>→</span><span>Decide</span><span>→</span><span>Deliver</span><span className="text-primary">Labs</span></div>
                   </div>
                   <label className="relative block">
                     <span className="sr-only">Search EYLO tools</span>
