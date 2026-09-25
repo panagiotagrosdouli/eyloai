@@ -12,6 +12,7 @@ import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { mergeProjectIds, paperLookupFilter, researcherLookupFilter } from '@/lib/project-evidence';
+import { evidenceCoverageFromCount, EVIDENCE_COVERAGE_LABELS } from '@/lib/evidence-presentation';
 
 const TABS = [
   { key: 'overview', label: 'Overview', icon: Target },
@@ -22,17 +23,32 @@ const TABS = [
   { key: 'funding', label: 'Funding', icon: DollarSign },
 ];
 
-const CONFIDENCE_CONFIG = {
-  HIGH: { color: 'text-green-400 bg-green-500/10 border-green-500/20', label: 'Strong support' },
-  MEDIUM: { color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', label: 'Moderate support' },
-  LOW: { color: 'text-red-400 bg-red-500/10 border-red-500/20', label: 'Limited support' },
+const SUPPORT_CONFIG = {
+  HIGH: { color: 'text-foreground bg-secondary border-border', label: 'More source support' },
+  MEDIUM: { color: 'text-muted-foreground bg-secondary/60 border-border', label: 'Some source support' },
+  LOW: { color: 'text-amber-300 bg-amber-500/5 border-amber-500/20', label: 'Limited source support' },
 };
 
-function ConfidenceBadge({ level }) {
-  const cfg = CONFIDENCE_CONFIG[level] || CONFIDENCE_CONFIG.MEDIUM;
+function SupportBadge({ level }) {
+  const cfg = SUPPORT_CONFIG[level] || SUPPORT_CONFIG.MEDIUM;
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${cfg.color}`}>
-      <ShieldCheck size={8} /> {cfg.label}
+    <span
+      title="EYRA qualitative assessment of the supplied evidence, not a calibrated confidence score."
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${cfg.color}`}
+    >
+      <ShieldCheck size={8} aria-hidden="true" /> {cfg.label}
+    </span>
+  );
+}
+
+function CoverageBadge({ level }) {
+  const label = EVIDENCE_COVERAGE_LABELS[level] || EVIDENCE_COVERAGE_LABELS.MODERATE;
+  return (
+    <span
+      title="Retrieval coverage describes how many relevant records were retrieved. It does not measure scientific certainty."
+      className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/50 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground"
+    >
+      <BookOpen size={8} aria-hidden="true" /> {label}
     </span>
   );
 }
@@ -205,10 +221,7 @@ export default function DiscoveryResults({ results, onNewSearch, targetProjectId
     }
   };
 
-  const evidenceCoverage = results.confidence_overall || (
-    (results.papers?.length || 0) >= 8 ? 'HIGH' :
-    (results.papers?.length || 0) >= 3 ? 'MEDIUM' : 'LOW'
-  );
+  const evidenceCoverage = evidenceCoverageFromCount(results.papers?.length || 0);
   const discoveryProfile = results.discovery_profile || { level: 'researcher', goal: 'review', recency: 'balanced' };
   const sourceIndexes = results.source_indexes || [...new Set((results.papers || []).map(paper => paper.source_index || paper.source).filter(Boolean))];
   const startHere = (results.papers || []).filter(paper => paper.discovery_category === 'start_here').slice(0, 3);
@@ -225,8 +238,8 @@ export default function DiscoveryResults({ results, onNewSearch, targetProjectId
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <EyraSectionLabel label="EYRA Discovery Report" />
-              <ConfidenceBadge level={evidenceCoverage} />
+              <EyraSectionLabel label="Discovery" />
+              <CoverageBadge level={evidenceCoverage} />
             </div>
             <h2 className="font-heading font-bold text-lg text-foreground">"{results.query}"</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -256,7 +269,7 @@ export default function DiscoveryResults({ results, onNewSearch, targetProjectId
               <button
                 onClick={createProject}
                 disabled={creatingProject}
-                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl eyra-gradient text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-60 flex-shrink-0"
+                className="flex min-h-11 flex-shrink-0 items-center justify-center gap-2 rounded-xl bg-foreground px-5 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-60"
               >
                 {creatingProject
                   ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -269,12 +282,10 @@ export default function DiscoveryResults({ results, onNewSearch, targetProjectId
 
         {projectCreated && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            className="mt-4 p-4 rounded-xl border border-primary/25 bg-primary/5 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg overflow-hidden bg-white flex-shrink-0">
-              <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
-            </div>
+            className="mt-4 flex items-start gap-3 rounded-xl border border-border bg-card p-4">
+            <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-green-400" aria-hidden="true" />
             <div className="flex-1">
-              <p className="text-xs font-semibold text-foreground mb-2">Project created. Explore the full report:</p>
+              <p className="mb-2 text-xs font-semibold text-foreground">Project created. Saved evidence can now stay attached to this workspace.</p>
               <div className="flex flex-wrap gap-2">
                 {[{ label: 'Researchers', tab: 'researchers' }, { label: 'Funding', tab: 'funding' }, { label: 'Roadmap', tab: 'roadmap' }].map(item => (
                   <button key={item.tab} onClick={() => setActiveTab(item.tab)}
@@ -283,8 +294,8 @@ export default function DiscoveryResults({ results, onNewSearch, targetProjectId
                   </button>
                 ))}
                 <Link to={`/projects/${projectCreated.id}`}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg eyra-gradient text-white text-xs font-medium">
-                  <Sparkles size={10} /> Open project →
+                  className="flex items-center gap-1 rounded-lg bg-foreground px-3 py-1.5 text-xs font-semibold text-background">
+                  Open project <ArrowRight size={10} aria-hidden="true" />
                 </Link>
               </div>
             </div>
@@ -293,10 +304,10 @@ export default function DiscoveryResults({ results, onNewSearch, targetProjectId
       </div>
 
       {/* Data transparency banner */}
-      <div className="mb-5 px-4 py-3 rounded-xl border border-border/50 bg-secondary/30 flex items-center gap-3">
-        <Lock size={12} className="text-primary flex-shrink-0" />
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
-          <span className="font-semibold text-foreground">Real data, grounded analysis.</span> Papers, researchers and institutions come from connected scholarly sources; funding fields come from Grants.gov. AI analyzes retrieved records and never substitutes invented records.
+      <div className="mb-5 flex items-start gap-3 rounded-xl border border-border bg-secondary/25 px-4 py-3">
+        <Lock size={12} className="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <p className="text-[11px] leading-5 text-muted-foreground">
+          <span className="font-semibold text-foreground">Source transparency.</span> Bibliographic records come from connected scholarly indexes and funding fields come from the official funding source. EYRA interpretation is shown separately from retrieved records.
         </p>
       </div>
 
@@ -321,29 +332,28 @@ export default function DiscoveryResults({ results, onNewSearch, targetProjectId
         </div>
       )}
 
-      <section className="relative mb-6 overflow-hidden rounded-[1.75rem] border border-cyan-200/10 bg-slate-950/75 p-5 sm:p-7">
-        <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
-        <div className="relative grid gap-5 lg:grid-cols-[1fr_auto] lg:items-start">
+      <section className="mb-6 rounded-2xl border border-border bg-card p-5 sm:p-6">
+        <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-start">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/20 bg-cyan-300/5 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-cyan-300"><Compass size={10} /> Your research path</span>
-              <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[9px] text-slate-400">{discoveryProfile.level}</span>
-              <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[9px] text-slate-400">{discoveryProfile.goal}</span>
-              <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[9px] text-slate-400">{String(discoveryProfile.recency).replace('_', ' ')}</span>
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground"><Compass size={11} aria-hidden="true" /> Research path</span>
+              <span className="rounded-md border border-border px-2 py-1 text-[9px] text-muted-foreground">{discoveryProfile.level}</span>
+              <span className="rounded-md border border-border px-2 py-1 text-[9px] text-muted-foreground">{discoveryProfile.goal}</span>
+              <span className="rounded-md border border-border px-2 py-1 text-[9px] text-muted-foreground">{String(discoveryProfile.recency).replace('_', ' ')}</span>
             </div>
-            <h2 className="mt-4 font-heading text-xl font-bold text-white sm:text-2xl">Begin with context, then move to the frontier.</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">{results.audience_summary || results.goal_analysis || (results.papers?.length ? 'The retrieved evidence is organized for your stated level and goal.' : 'No scholarly paper record was available for an evidence-based synthesis.')}</p>
-            <div className="mt-4 flex flex-wrap gap-2">{sourceIndexes.map(source => <span key={source} className="rounded-full border border-white/5 bg-white/[0.025] px-2.5 py-1 text-[9px] text-slate-400">{source}</span>)}</div>
+            <h2 className="mt-4 font-heading text-xl font-semibold text-foreground sm:text-2xl">Begin with context, then move to the frontier.</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{results.audience_summary || results.goal_analysis || (results.papers?.length ? 'The retrieved evidence is organized for your stated level and goal.' : 'No scholarly paper record was available for an evidence-based synthesis.')}</p>
+            <div className="mt-4 flex flex-wrap gap-2">{sourceIndexes.map(source => <span key={source} className="rounded-md bg-secondary px-2.5 py-1 text-[9px] text-muted-foreground">{source}</span>)}</div>
           </div>
           {results.papers?.length > 0 && (
-            <button type="button" onClick={() => setActiveTab('papers')} className="inline-flex items-center justify-center gap-2 rounded-xl eyra-gradient px-4 py-2.5 text-xs font-semibold text-white"><BookOpen size={13} /> Open paper path</button>
+            <button type="button" onClick={() => setActiveTab('papers')} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-xs font-semibold text-foreground hover:bg-secondary"><BookOpen size={13} aria-hidden="true" /> Open paper path</button>
           )}
         </div>
         {results.recommended_next_questions?.length > 0 && (
-          <div className="relative mt-5 border-t border-white/5 pt-4">
-            <p className="mb-2 text-[9px] font-bold uppercase tracking-wider text-slate-500">Continue with</p>
+          <div className="mt-5 border-t border-border pt-4">
+            <p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Continue with</p>
             <div className="flex flex-wrap gap-2">{results.recommended_next_questions.map(question => (
-              <button key={question} type="button" onClick={() => onNewSearch({ ...discoveryProfile, topic: question })} className="rounded-xl border border-white/5 bg-white/[0.025] px-3 py-2 text-left text-[10px] text-slate-300 hover:border-cyan-300/20 hover:text-cyan-200">{question}</button>
+              <button key={question} type="button" onClick={() => onNewSearch({ ...discoveryProfile, topic: question })} className="rounded-xl border border-border bg-background px-3 py-2 text-left text-[10px] text-muted-foreground hover:border-primary/30 hover:text-foreground">{question}</button>
             ))}</div>
           </div>
         )}
@@ -371,12 +381,12 @@ export default function DiscoveryResults({ results, onNewSearch, targetProjectId
 
           {/* EYRA Goal Analysis */}
           {results.goal_analysis && (
-            <div className="p-5 rounded-2xl border border-primary/20 bg-primary/5">
-              <div className="flex items-center justify-between mb-3">
+            <div className="rounded-2xl border border-border bg-card p-5">
+              <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <EyraSectionLabel label="EYRA Analysis" />
                 </div>
-                <ConfidenceBadge level={evidenceCoverage} />
+                <CoverageBadge level={evidenceCoverage} />
               </div>
               <p className="text-sm leading-relaxed text-foreground">{results.goal_analysis}</p>
 
@@ -433,7 +443,7 @@ export default function DiscoveryResults({ results, onNewSearch, targetProjectId
                   <div key={i} className="p-4 rounded-xl border border-border bg-card">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <p className="text-sm text-foreground font-medium flex-1">{f.finding}</p>
-                      <ConfidenceBadge level={f.confidence} />
+                      <SupportBadge level={f.confidence} />
                     </div>
                     <EvidenceNote text={f.evidence} />
                   </div>
@@ -492,18 +502,15 @@ export default function DiscoveryResults({ results, onNewSearch, targetProjectId
 
           {/* CTA */}
           {!effectiveProjectId && (
-            <div className="p-5 rounded-2xl border border-primary/20 bg-primary/5 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl overflow-hidden bg-white flex-shrink-0">
-                <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
+            <div className="flex flex-col justify-between gap-4 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center">
+              <div>
+                <p className="text-sm font-semibold text-foreground">Keep this research together</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">Create a project to attach saved papers, researchers, notes and future EYRA analysis to this question.</p>
               </div>
-              <div className="flex-1">
-                <p className="font-semibold text-sm text-foreground mb-1">Turn this into a project workspace</p>
-                <p className="text-xs text-muted-foreground mb-3">Save researchers, track progress, get EYRA's ongoing strategic guidance.</p>
-                <button onClick={createProject} disabled={creatingProject}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl eyra-gradient text-white text-xs font-semibold">
-                  <Plus size={12} /> Create Project Workspace
-                </button>
-              </div>
+              <button onClick={createProject} disabled={creatingProject}
+                className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-foreground px-4 text-xs font-semibold text-background disabled:opacity-50">
+                <Plus size={12} aria-hidden="true" /> Create project
+              </button>
             </div>
           )}
         </motion.div>
@@ -517,7 +524,7 @@ export default function DiscoveryResults({ results, onNewSearch, targetProjectId
               <h2 className="font-heading font-bold text-lg">Research Papers</h2>
               <p className="text-xs text-muted-foreground mt-0.5">Deduplicated and organized by purpose · {sourceIndexes.join(' · ')}</p>
             </div>
-            <ConfidenceBadge level={evidenceCoverage} />
+            <CoverageBadge level={evidenceCoverage} />
           </div>
 
           {results.papers?.length === 0 ? (
