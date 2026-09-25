@@ -123,7 +123,7 @@ function canonicalRecord(record) {
     const fallbackYear = year || 'unknown';
     dedupeKey = normalizedTitle
       ? `title:${normalizedTitle}::${authorKey || fallbackYear}`
-      : `id:${cleanText(record?.id) || Math.random().toString(36).slice(2)}`;
+      : `id:${cleanText(record?.id) || source || 'unknown-record'}`;
   }
 
   return {
