@@ -14,7 +14,7 @@ test('deduplicates DOI versions across scholarly sources', () => {
   const records = [
     {
       id: 'openalex-1',
-      doi: '10.1000/example.v2',
+      doi: 'doi:10.1000/EXAMPLE',
       title: 'Federated learning privacy in hospitals',
       summary: 'Federated learning privacy methods for hospitals.',
       year: 2025,
