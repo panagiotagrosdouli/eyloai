@@ -18,6 +18,29 @@ test('does not strip DOI suffixes that merely look like version numbers', () => 
   assert.notEqual(normalizeDoi('10.1000/example.v2'), normalizeDoi('10.1000/example'));
 });
 
+test('links repository concept DOI and version DOI only when both records and titles agree', () => {
+  const records = reconcileScholarlyRecords([
+    {
+      id: 'concept',
+      doi: '10.32920/25613349',
+      title: 'Pedestrian Trajectory Prediction',
+      authors: 'A. Author',
+      source_index: 'Repository',
+    },
+    {
+      id: 'version',
+      doi: '10.32920/25613349.v1',
+      title: 'Pedestrian Trajectory Prediction',
+      authors: 'A. Author',
+      source_index: 'Repository',
+    },
+  ]);
+
+  assert.equal(records.length, 1);
+  assert.equal(records[0].doi, '10.32920/25613349');
+  assert.deepEqual(records[0].version_dois, ['10.32920/25613349.v1']);
+});
+
 test('reconciles the same DOI across providers and retains provenance', () => {
   const [paper] = reconcileScholarlyRecords([
     {
