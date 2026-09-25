@@ -13,19 +13,64 @@ function EmptyState({ children }) {
 }
 
 function PaperCard({ paper }) {
+  const statusLabel = paper.publication_status === 'preprint'
+    ? 'Preprint'
+    : paper.publication_status === 'published_with_preprint'
+      ? 'Published + preprint'
+      : paper.publication_status === 'retracted'
+        ? 'Retracted'
+        : paper.publication_status === 'correction'
+          ? 'Correction'
+          : '';
+  const yearLabel = paper.year_conflict && paper.year_candidates?.length
+    ? `Year conflict: ${paper.year_candidates.join(' / ')}`
+    : paper.year || 'Year unavailable';
+  const confirmedAcrossSources = (paper.record_sources?.length || 0) > 1;
+
   return (
-    <article className="group rounded-3xl border border-border bg-card/80 p-5 transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_22px_60px_-40px_hsl(var(--primary))] sm:p-6">
+    <article className="group rounded-3xl border border-border bg-card/80 p-5 transition-colors hover:border-primary/35 sm:p-6">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-primary">{paper.source_index || paper.source}</span>
-        <span className="text-[10px] text-muted-foreground">{paper.year || 'Year unavailable'}</span>
+        <span className={`text-[10px] ${paper.year_conflict ? 'text-amber-300' : 'text-muted-foreground'}`}>{yearLabel}</span>
+        {statusLabel && (
+          <span className={`rounded-full px-2 py-1 text-[9px] font-semibold ${
+            paper.publication_status === 'retracted'
+              ? 'bg-destructive/10 text-destructive'
+              : paper.publication_status === 'preprint'
+                ? 'bg-amber-400/10 text-amber-300'
+                : 'bg-secondary text-muted-foreground'
+          }`}>{statusLabel}</span>
+        )}
         {paper.open_access && <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold text-emerald-400">Open access</span>}
       </div>
+
       <h3 className="font-heading text-base font-semibold leading-6 text-foreground sm:text-lg">{paper.title}</h3>
       <p className="mt-2 text-xs text-muted-foreground">{paper.authors || 'Authors unavailable'}</p>
+
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-muted-foreground">
+        {paper.doi && <span>DOI {paper.doi}</span>}
+        {paper.type && paper.type !== 'unknown' && <span>{paper.type.replace(/-/g, ' ')}</span>}
+        {paper.publication_date && <span>{paper.publication_date}</span>}
+      </div>
+
       {paper.summary && <p className="mt-4 line-clamp-3 text-sm leading-6 text-muted-foreground">{paper.summary}</p>}
+
+      {(confirmedAcrossSources || paper.year_conflict || paper.publication_status === 'retracted') && (
+        <div className={`mt-4 flex items-start gap-2 rounded-xl border px-3 py-2 text-[10px] leading-4 ${
+          paper.publication_status === 'retracted' || paper.year_conflict
+            ? 'border-amber-400/20 bg-amber-400/5 text-amber-100'
+            : 'border-border bg-secondary/30 text-muted-foreground'
+        }`}>
+          {paper.publication_status === 'retracted' || paper.year_conflict
+            ? <AlertTriangle size={12} className="mt-0.5 shrink-0" aria-hidden="true" />
+            : <ShieldCheck size={12} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />}
+          <span>{paper.metadata_note}</span>
+        </div>
+      )}
+
       <div className="mt-5 flex items-center justify-between gap-3">
         <span className="text-[10px] text-muted-foreground">{(paper.cited_by_count || 0).toLocaleString()} citations · context, not a quality score</span>
-        <a href={paper.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs font-semibold text-primary">Open record <ExternalLink size={12} /></a>
+        {paper.url && <a href={paper.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-2 text-xs font-semibold text-primary">Open record <ExternalLink size={12} /></a>}
       </div>
     </article>
   );
