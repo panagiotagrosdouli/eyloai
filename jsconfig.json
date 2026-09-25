@@ -10,12 +10,14 @@
     "lib": ["esnext", "dom"],
     "target": "esnext",
     "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "types": ["vite/client", "node"]
+    "types": ["vite/client"]
   },
-  "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "api/**/*.js"],
+  "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist", "src/vite-plugins"]
-} 
+}
