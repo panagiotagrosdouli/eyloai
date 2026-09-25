@@ -15,6 +15,7 @@ const ALLOWED_PREFIXES = [
   '/briefing',
   '/foryou',
   '/notifications',
+  '/labs',
   '/future',
   '/futureme',
   '/battlefield',
