@@ -34,12 +34,12 @@ const STATUS_COLORS = {
 
 export default function ProjectDetail() {
   const { id } = useParams();
-  const [project, setProject] = useState(null);
+  const [project, setProject] = useState(/** @type {any} */ (null));
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
-  const [editing, setEditing] = useState({});
+  const [editing, setEditing] = useState(/** @type {any} */ ({}));
   const [savedPapers, setSavedPapers] = useState([]);
   const [savedResearchers, setSavedResearchers] = useState([]);
   const [meetings, setMeetings] = useState([]);
