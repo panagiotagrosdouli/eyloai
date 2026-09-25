@@ -19,7 +19,7 @@ function WelcomeScreen({ onStart }) {
       <div className="max-w-lg">
         <BrandLogo brand="eyra" size="hero" className="mx-auto" priority />
         <h1 className="mt-8 font-heading text-4xl font-semibold tracking-tight sm:text-5xl">Meet EYRA.</h1>
-        <p className="mx-auto mt-4 text-base text-muted-foreground">Search. Decide. Move.</p>
+        <p className="mx-auto mt-4 max-w-md text-base leading-7 text-muted-foreground">Your research copilot for finding evidence, understanding what it means and deciding what to do next.</p>
         <button type="button" onClick={onStart} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
           Continue <ArrowRight size={14} />
         </button>
@@ -43,7 +43,7 @@ const CORE_ACTIONS = [
   { label: 'Find researchers', href: '/researchers', icon: Users },
   { label: 'Search funding', href: '/opportunities', icon: Zap },
   { label: 'Open library', href: '/library', icon: BookOpen },
-  { label: 'Capture an idea', href: '/ideas', icon: Lightbulb },
+  { label: 'Create a project', href: '/projects', icon: FolderOpen },
 ];
 
 export default function EyraHome({ onSearch }) {
@@ -121,7 +121,10 @@ export default function EyraHome({ onSearch }) {
         <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
           <div>
             <div className="mb-5 flex items-center justify-between gap-3">
-              <h2 className="text-sm font-semibold">Search</h2>
+              <div>
+                <h2 className="text-sm font-semibold">What are you researching?</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Search live scholarly sources, then save the evidence you want EYRA to reason over.</p>
+              </div>
             </div>
             <GuidedSearch onSearch={onSearch} defaultLevel={defaultLevel} />
           </div>
@@ -165,7 +168,10 @@ export default function EyraHome({ onSearch }) {
         </div>
 
         <section className="mt-8 flex flex-col justify-between gap-5 rounded-2xl border border-border bg-secondary/25 p-5 sm:flex-row sm:items-center">
-          <h2 className="text-sm font-semibold">Need a second opinion?</h2>
+          <div>
+            <h2 className="text-sm font-semibold">Reason over your research with EYRA</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Use your saved evidence and project context to challenge assumptions and choose a next action.</p>
+          </div>
           <button type="button" disabled={capabilitiesLoading || !capabilities.ai} onClick={() => window.dispatchEvent(new Event('eylo:open-eyra'))}
             className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-xs font-semibold text-background disabled:cursor-not-allowed disabled:opacity-45">
             Ask EYRA <span className="font-mono text-[9px] opacity-60">⌘K</span>
