@@ -59,7 +59,7 @@ export default function GlobalCommandPalette({
         </Command.Empty>
 
         {normalizedQuery && (
-          <Command.Group heading="Do something with this question" className="command-group">
+          <Command.Group heading="Do something with this question" className="command-group [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:text-[9px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.16em] [&_[cmdk-group-heading]]:text-muted-foreground">
             <Command.Item
               value={`research ${normalizedQuery}`}
               onSelect={startResearch}
@@ -96,7 +96,7 @@ export default function GlobalCommandPalette({
           <Command.Group
             key={group.section}
             heading={group.section}
-            className="command-group"
+            className="command-group [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:text-[9px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.16em] [&_[cmdk-group-heading]]:text-muted-foreground"
           >
             {group.items.map(item => {
               const Icon = item.icon;
