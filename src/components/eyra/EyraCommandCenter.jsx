@@ -325,7 +325,7 @@ function Message({ msg, onSave, onCopy, saved, copied, saving }) {
   );
 }
 
-export default function EyraCommandCenter({ open, onClose }) {
+export default function EyraCommandCenter({ open, onClose, initialPrompt = '' }) {
   const [messages, setMessages] = useState(loadConversation);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -348,9 +348,10 @@ export default function EyraCommandCenter({ open, onClose }) {
 
   useEffect(() => {
     if (!open) return undefined;
+    if (initialPrompt.trim()) setInput(initialPrompt.trim());
     const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 100);
     return () => window.clearTimeout(focusTimer);
-  }, [open]);
+  }, [initialPrompt, open]);
 
   useEffect(() => {
     if (!open) return undefined;
