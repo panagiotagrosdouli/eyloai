@@ -28,7 +28,7 @@ export function createAppError(code, cause) {
   return {
     code,
     message: messages[code] || messages[AppErrorCode.UNKNOWN],
-    cause: import.meta.env.DEV ? cause : undefined,
+    cause: import.meta.env?.DEV ? cause : undefined,
   };
 }
 

@@ -19,7 +19,7 @@ export default function VoiceAssistant() {
   const voiceRate = { professional: 0.96, academic: 0.9, friendly: 1.02, executive: 1.06 }[preferences.voice_style] || 0.96;
 
   const Recognition = typeof window !== 'undefined'
-    ? window.SpeechRecognition || window.webkitSpeechRecognition
+    ? /** @type {any} */ (window).SpeechRecognition || /** @type {any} */ (window).webkitSpeechRecognition
     : null;
 
   const startListening = () => {

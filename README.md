@@ -54,12 +54,13 @@ EYLO is designed to support research judgment, not replace it.
 
 ```mermaid
 flowchart LR
-  A[React + Vite] --> B[Scholarly source clients]
-  A --> C[Supabase Auth + Data]
+  A[React + Vite] --> C[Supabase Auth + Data]
   A --> D[Vercel Functions]
+  D --> B[Scholarly indexes]
   D --> E[OpenAI Responses API]
   D --> F[Grants.gov]
   D --> G[Stripe]
+  A -. local/dev fallback .-> B
 ```
 
 | Layer | Implementation |
@@ -67,7 +68,7 @@ flowchart LR
 | Client | React 18, Vite, React Router, TanStack Query, Tailwind CSS |
 | Identity and persistence | Supabase Auth, Postgres and row-level security |
 | AI | Server-side OpenAI Responses API with structured-output support |
-| Research retrieval | OpenAlex, arXiv, Europe PMC, Crossref and Semantic Scholar |
+| Research retrieval | Same-origin Vercel proxy to OpenAlex, arXiv, Europe PMC, Crossref and Semantic Scholar, with local/dev fallback |
 | Funding retrieval | Authenticated Vercel Function backed by Grants.gov |
 | Billing | Stripe-hosted Checkout, webhook verification and server-controlled entitlements |
 | Hosting | Vercel deployments and serverless functions |
@@ -84,7 +85,7 @@ Requirements:
 git clone https://github.com/panagiotagrosdouli/eyloai.git
 cd eyloai
 cp .env.example .env.local
-npm install
+npm ci
 npm run dev
 ```
 
@@ -103,6 +104,7 @@ AI, funding verification, billing and monitoring also require server-only values
 npm run check:imports
 npm run typecheck
 npm run lint
+npm test
 npm run build
 ```
 
@@ -120,9 +122,9 @@ GitHub Actions and Vercel preview deployments run the production build for propo
 
 ## Near-term roadmap
 
-1. Evaluate discovery relevance on a small, documented set of research tasks.
+1. Build and publish a human-judged discovery set using the evaluation protocol in `docs/DISCOVERY_EVALUATION.md`.
 2. Make saved evidence trails shareable with explicit public/private controls.
-3. Improve recovery states for source timeouts and partial retrieval.
+3. Expand browser-level regression coverage across auth, discovery, saving, projects and billing.
 4. Complete production billing and entitlement verification.
 5. Add privacy-conscious activation and retention measurement.
 

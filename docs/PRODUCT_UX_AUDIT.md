@@ -1,54 +1,66 @@
 # Product and UX audit
 
+_Last reviewed: 2026-09-25._
+
 ## Product definition
 
-EYLO AI is an AI-powered research and innovation workspace that helps users turn an idea into structured research, projects, collaborators, opportunities, and actionable outcomes.
+EYLO is a research workspace that turns a question into source-backed context and a concrete next action.
 
 Primary workflow:
 
-`Idea → Research → Evidence → Project → Team → Opportunity → Outcome`
+`Question → Evidence → Understand → Save → Project → Action`
 
-## Initial route classification
+EYRA is the reasoning layer over retrieved and saved context. It should not be presented as a replacement for source verification.
 
-This is an initial classification based on the current route inventory. Every retained route still requires page-level verification of data source, persistence, interaction, accessibility, mobile behavior, and completion status.
+## Navigation model
 
-| Route | Classification | Intended action |
-| --- | --- | --- |
-| `/` | Core | Rebuild as a real-data overview and next-action dashboard. |
-| `/ideas` | Core | Retain as idea capture and project conversion. |
-| `/library` | Core | Retain for research resources and evidence. |
-| `/projects` | Core | Retain for project execution. |
-| `/projects/:id` | Core | Retain as project workspace. |
-| `/researchers` | Core/Supporting | Reframe as verified people and collaborators. |
-| `/opportunities` | Core | Retain for verified opportunities and project associations. |
-| `/history` | Supporting | Reframe as activity history. |
-| `/profile` | Supporting | Merge user-facing profile controls with settings where appropriate. |
-| `/settings` | Supporting | Retain. |
-| `/future` | Experimental | Move under `/labs/*` unless substantive behavior is verified. |
-| `/futureme` | Experimental | Move under `/labs/*` unless substantive behavior is verified. |
-| `/battlefield` | Experimental | Move under `/labs/*` unless substantive behavior is verified. |
-| `/dreamteam` | Experimental | Move under `/labs/*` unless substantive behavior is verified. |
-| `/impact` | Experimental | Move under `/labs/*`; remove fabricated scoring. |
-| `/radar` | Experimental | Merge with Opportunities or move to Labs. |
-| `/briefing` | Experimental | Move to Labs unless backed by real data. |
-| `/foryou` | Incomplete/Duplicate | Merge into dashboard recommendations. |
-| `/challenges` | Supporting/Incomplete | Verify real source or merge into Opportunities. |
-| `/meetings` | Supporting/Incomplete | Retain only if scheduling and persistence work. |
-| `/pricing` | Misleading/Supporting | Keep only when billing is intentionally implemented. |
+The primary interface should keep the core research journey visible and place speculative tooling behind an explicit Labs boundary.
 
-## Navigation target
+### Primary navigation
 
-Primary navigation should converge on:
-
-- Overview
-- Ideas
-- Library
+- Home
 - Projects
-- People
-- Opportunities
-- EYRA
-- Labs
-- Activity
-- Settings
+- Library
+- Funding
+- Ask EYRA
 
-Experimental modules must not compete with the core workflow in primary navigation.
+### Research and decision tools
+
+- Researchers
+- For you / monitored context
+- Open challenges
+- Executive briefing
+- Opportunity review
+- Idea workspace
+- Grant workspace
+- Pitch deck
+- Meetings
+
+### Labs
+
+- `/labs/research-landscape`
+- `/labs/impact`
+- `/labs/scenario`
+- `/labs/team`
+- `/labs/professional-path`
+- `/labs/voice`
+
+Legacy paths such as `/future`, `/impact`, `/battlefield` and `/dreamteam` redirect to the corresponding Labs route.
+
+## UX principles
+
+1. The first screen should answer “what can I do here?” within seconds.
+2. Search starts with the user's research question, level, goal and recency preference.
+3. Results separate entry-point, recent, foundational and additional records instead of showing a flat paper list.
+4. Citation count is context, not a quality score.
+5. Model-generated scores and recommendations must be labelled as decision support rather than calibrated predictions.
+6. Every AI-heavy route needs loading, empty, partial-source and error states.
+7. Saving evidence should visibly connect to Library, Projects and EYRA context.
+8. Experimental tools must not compete with the core workflow for primary-navigation attention.
+
+## Next UX validation
+
+- Observe first-time users completing a search without instruction.
+- Test whether users understand the distinction between source records and EYRA inference.
+- Measure search → source-open/save → project conversion rather than raw page views.
+- Verify keyboard, small-screen and screen-reader behavior on the core flow before expanding Labs.

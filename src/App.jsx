@@ -3,7 +3,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
@@ -118,11 +118,16 @@ const AuthenticatedApp = () => {
           <Route path="/history" element={<History />} />
           <Route path="/challenges" element={<Challenges />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/future" element={<AiTool minimum="pro"><FutureSimulator /></AiTool>} />
-          <Route path="/futureme" element={<FutureMe />} />
-          <Route path="/battlefield" element={<AiTool minimum="pro"><ResearchBattlefield /></AiTool>} />
-          <Route path="/dreamteam" element={<AiTool minimum="founder"><DreamTeam /></AiTool>} />
-          <Route path="/impact" element={<AiTool minimum="pro"><ImpactPredictor /></AiTool>} />
+          <Route path="/labs/scenario" element={<AiTool minimum="pro"><FutureSimulator /></AiTool>} />
+          <Route path="/labs/professional-path" element={<FutureMe />} />
+          <Route path="/labs/research-landscape" element={<AiTool minimum="pro"><ResearchBattlefield /></AiTool>} />
+          <Route path="/labs/team" element={<AiTool minimum="founder"><DreamTeam /></AiTool>} />
+          <Route path="/labs/impact" element={<AiTool minimum="pro"><ImpactPredictor /></AiTool>} />
+          <Route path="/future" element={<Navigate to="/labs/scenario" replace />} />
+          <Route path="/futureme" element={<Navigate to="/labs/professional-path" replace />} />
+          <Route path="/battlefield" element={<Navigate to="/labs/research-landscape" replace />} />
+          <Route path="/dreamteam" element={<Navigate to="/labs/team" replace />} />
+          <Route path="/impact" element={<Navigate to="/labs/impact" replace />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/meetings" element={<Meetings />} />
           <Route path="/radar" element={<PlanGate minimum="pro"><OpportunityRadar /></PlanGate>} />
@@ -131,7 +136,8 @@ const AuthenticatedApp = () => {
           <Route path="/ideas" element={<IdeaVault />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/notifications" element={<Notifications />} />
-          <Route path="/voice" element={<AiTool minimum="pro"><VoiceAssistant /></AiTool>} />
+          <Route path="/labs/voice" element={<AiTool minimum="pro"><VoiceAssistant /></AiTool>} />
+          <Route path="/voice" element={<Navigate to="/labs/voice" replace />} />
           <Route path="/pitchdeck" element={<AiTool minimum="founder"><PitchDeckBuilder /></AiTool>} />
           <Route path="/grant-builder" element={<AiTool minimum="founder"><GrantBuilder /></AiTool>} />
           <Route path="/institution" element={<CapabilityGate capability="institution_analytics"><InstitutionAdmin /></CapabilityGate>} />

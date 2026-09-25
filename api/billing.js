@@ -71,6 +71,11 @@ function stripeConfigured() {
   );
 }
 
+/**
+ * @param {string} path
+ * @param {Record<string, string>} body
+ * @param {{idempotencyKey?: string}} [options]
+ */
 async function stripeRequest(path, body, { idempotencyKey } = {}) {
   const headers = {
     authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,

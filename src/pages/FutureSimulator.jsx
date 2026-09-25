@@ -15,7 +15,7 @@ const PATHS = [
     color: 'text-primary',
     bg: 'bg-primary/10 border-primary/25',
     glow: 'border-primary/40',
-    desc: 'Safe, steady, validated approach',
+    desc: 'Lower-change, validation-first approach',
   },
   {
     key: 'growth',
@@ -24,7 +24,7 @@ const PATHS = [
     color: 'text-accent',
     bg: 'bg-accent/10 border-accent/25',
     glow: 'border-accent/40',
-    desc: 'Balanced risk with strong momentum',
+    desc: 'Balanced change with staged validation',
   },
   {
     key: 'aggressive',
@@ -33,7 +33,7 @@ const PATHS = [
     color: 'text-amber-400',
     bg: 'bg-amber-500/10 border-amber-500/25',
     glow: 'border-amber-500/40',
-    desc: 'High risk, high reward, fast execution',
+    desc: 'Faster execution with more assumptions to validate',
   },
 ];
 
@@ -50,7 +50,7 @@ const scenarioSchema = () => ({
   properties: {
     label: { type: 'string' },
     tagline: { type: 'string' },
-    success_probability: { type: 'number', minimum: 0, maximum: 100 },
+    feasibility_score: { type: 'number', minimum: 0, maximum: 100 },
     timeline: { type: 'string' },
     funding_required: { type: 'string' },
     team_size: { type: 'string' },
@@ -98,12 +98,12 @@ Build three conditional planning scenarios: conservative, growth, and aggressive
 
 Important:
 - These are scenarios, not forecasts or guarantees.
-- The JSON field success_probability is retained for interface compatibility, but its value must mean model-assessed feasibility (0-100), not empirical probability.
+- feasibility_score is a model-assessed feasibility rating (0-100), not an empirical probability.
 - Base research claims only on supplied [P] records.
 - Funding, timelines, team sizes and milestones are planning estimates. Label uncertainty in strategic_insight.
 - Do not invent specific grants, deadlines, researchers, customers or market statistics.
 
-Return project_summary, conservative, growth, aggressive, eyra_recommendation, and critical_decision. Each scenario needs label, tagline, success_probability, timeline, funding_required, team_size, key_milestones, top_risks, key_strengths, ideal_team, funding_path, and strategic_insight.`,
+Return project_summary, conservative, growth, aggressive, eyra_recommendation, and critical_decision. Each scenario needs label, tagline, feasibility_score, timeline, funding_required, team_size, key_milestones, top_risks, key_strengths, ideal_team, funding_path, and strategic_insight.`,
         response_json_schema: {
           type: 'object',
           properties: {
@@ -231,13 +231,13 @@ Return project_summary, conservative, growth, aggressive, eyra_recommendation, a
                   <div className="flex items-end justify-between">
                     <p className="text-[10px] text-muted-foreground leading-tight">{path.desc}</p>
                     <span className={`text-xl font-black ${isActive ? path.color : 'text-muted-foreground'}`}>
-                      {data?.success_probability}
+                      {data?.feasibility_score}
                     </span>
                   </div>
                   <div className="mt-2 h-1 rounded-full bg-border overflow-hidden">
                     <div
                       className={`h-full rounded-full ${path.key === 'conservative' ? 'bg-primary' : path.key === 'growth' ? 'bg-accent' : 'bg-amber-400'}`}
-                      style={{ width: `${data?.success_probability}%`, transition: 'width 0.8s ease' }}
+                      style={{ width: `${data?.feasibility_score}%`, transition: 'width 0.8s ease' }}
                     />
                   </div>
                 </button>
@@ -261,7 +261,7 @@ Return project_summary, conservative, growth, aggressive, eyra_recommendation, a
                     <p className="text-[10px] text-muted-foreground">{activeFuture.tagline}</p>
                   </div>
                   <div className="text-right">
-                    <p className={`text-3xl font-black ${pathConfig.color}`}>{activeFuture.success_probability}<span className="text-sm text-muted-foreground">/100</span></p>
+                    <p className={`text-3xl font-black ${pathConfig.color}`}>{activeFuture.feasibility_score}<span className="text-sm text-muted-foreground">/100</span></p>
                     <p className="text-[10px] text-muted-foreground">AI feasibility rating</p>
                   </div>
                 </div>

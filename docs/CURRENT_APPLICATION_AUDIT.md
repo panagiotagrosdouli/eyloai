@@ -1,36 +1,57 @@
 # Current application audit
 
-This audit is maintained alongside implementation. It is not a substitute for repair work.
+_Last reviewed: 2026-09-25._
 
-## Branch strategy
+EYLO is a React/Vite research workspace with public scholarly discovery and an authenticated Supabase-backed workspace.
 
-- `feature/supabase-auth` contained no commits not already represented on `main` and was behind the current default branch.
-- Repair work continues on `feature/repair-supabase-product-platform` without force-pushing unrelated history.
-- Each merged repair batch is followed by a new pull request from the continuing repair branch.
+## Confirmed architecture
 
-## Confirmed application characteristics
+- React 18 + Vite single-page application with React Router.
+- Public discovery across OpenAlex, arXiv, Europe PMC, Crossref and Semantic Scholar.
+- Supabase authentication, PostgreSQL persistence and row-level security.
+- Vercel serverless functions for EYRA, funding, billing, monitoring and institution analytics.
+- Stripe Checkout/webhook entitlement foundations.
+- Supabase migrations for core entities, billing, operational services, analytics boundaries, security hardening and scheduled monitoring.
+- GitHub Actions for production build, lint, auth/service smoke checks, retrieval resilience and deterministic relevance benchmarking.
+- Core Node regression tests for discovery ranking and auth redirect/error behavior.
 
-- Vite and React single-page application.
-- React Router client-side routing.
-- Supabase authentication introduced, with remaining legacy architecture from the Base44 export.
-- Large route inventory containing core, supporting, experimental, duplicated, and incomplete product experiences.
-- Existing Vercel configuration includes an SPA rewrite to `/index.html`.
+## Product surface
 
-## Implemented foundation repairs
+The workspace now separates the primary research journey from experimental decision-support surfaces.
 
-| Severity | Affected area | Observed behavior | Risk | Implemented repair | Validation result |
-| --- | --- | --- | --- | --- | --- |
-| High | Authentication redirects | Return destinations accepted unsafe input. | External redirect injection after login or OAuth. | Added strict safe redirect helper and callback route. | Unsafe destinations resolve to `/`. |
-| High | Environment configuration | Missing Supabase values produced ambiguous startup behavior. | Authentication failures without safe user feedback. | Added startup validation and configuration pages. | Missing names are displayed without exposing values. |
-| High | Authentication state | Multiple independent booleans described the same state. | Contradictory UI and session races. | Added an explicit state model and centralized service layer. | Session listener and refresh operations update one state object. |
-| Medium | Product package identity | Package remained named `base44-app`. | Misleading project metadata. | Renamed package to `eyloai`. | `package.json` now uses the correct name. |
-| Medium | Loading branding | Authentication boot depended on an external Base44 image. | Branding availability depended on third-party legacy infrastructure. | Removed the external loading image. | Auth boot no longer requests that asset. |
+### Core
 
-## Next audit areas
+- Home and guided research search
+- Library
+- Projects and project detail
+- Researchers
+- Funding/opportunities
+- Evidence-aware EYRA
+- Ideas, meetings and retained deliverables
+- Search/activity history
 
-- Complete recursive route and page classification.
-- Inventory all Base44 imports and runtime calls.
-- Inventory and classify dependencies.
-- Verify real versus hardcoded data on every page.
-- Define and implement the database model justified by retained features.
-- Add tests, CI, accessibility checks, and production build evidence.
+### Labs
+
+Experimental scenario, impact, research-landscape, team, professional-path and voice workflows live under `/labs/*`. Legacy route URLs redirect to their Labs equivalents so existing bookmarks continue to work.
+
+## Implemented hardening
+
+- Strict internal auth redirect validation.
+- Centralized auth service and product-safe auth error mapping.
+- Explicit environment configuration handling.
+- Supabase RLS ownership policies and privileged server-only tables.
+- Partial-source retrieval resilience and metadata-noise filtering.
+- Lazy-loaded route surfaces.
+- CI typecheck and regression-test gates.
+- Dependabot configuration for npm and GitHub Actions.
+- Security reporting, privacy/data-flow and discovery-evaluation documentation.
+
+## Remaining production work
+
+- Keep the committed npm lockfile current and review automated dependency updates before merge.
+- Add browser-level end-to-end coverage for the critical account → discovery → save → project → EYRA → billing journey.
+- Expand type checking until `src/lib`, API functions and remaining JavaScript surfaces are covered without exclusions.
+- Build and publish a human-judged discovery relevance dataset and report Precision@k/nDCG metrics by domain and intent.
+- Add server-side caching/rate-control for scholarly providers where operational evidence justifies it.
+- Complete live cross-user RLS verification and production OAuth/recovery tests.
+- Complete jurisdiction-specific privacy/terms/legal review before representing the engineering data-flow document as a legal policy.

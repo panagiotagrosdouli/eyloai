@@ -172,7 +172,7 @@ export default function ForYou() {
               { label: 'Executive Briefing', desc: 'Board-level strategy', href: '/briefing', icon: Brain },
               { label: 'Opportunity Radar', desc: 'Find grants & funding', href: '/radar', icon: Award },
               { label: 'Idea Vault', desc: 'Capture & develop ideas', href: '/ideas', icon: Lightbulb },
-              { label: 'Dream Team', desc: 'Find collaborators', href: '/dreamteam', icon: Users },
+              { label: 'Dream Team', desc: 'Find collaborators', href: '/labs/team', icon: Users },
             ].map(a => {
               const Icon = a.icon;
               return (

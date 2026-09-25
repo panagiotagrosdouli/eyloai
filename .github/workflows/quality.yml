@@ -27,13 +27,19 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Build production bundle
         run: npm run build
 
+      - name: Type-check application
+        run: npm run typecheck
+
       - name: Lint application
         run: npm run lint
+
+      - name: Run core regression tests
+        run: npm test
 
       - name: Protect authenticated EYRA routing
         run: npm run test:eyra-auth

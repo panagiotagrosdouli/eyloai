@@ -11,6 +11,14 @@ const CALL_TYPES = [
   { value: 'team_sync', label: 'Team Sync' },
 ];
 
+/**
+ * @param {{
+ *   projects?: any[],
+ *   onSave: (form: any) => Promise<void>|void,
+ *   onCancel: () => void,
+ *   initial?: any
+ * }} props
+ */
 export default function MeetingForm({ projects = [], onSave, onCancel, initial = {} }) {
   const [form, setForm] = useState({
     title: '',

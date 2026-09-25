@@ -21,6 +21,31 @@ function emptyOrThrow(error, options = {}) {
   return [];
 }
 
+function proxyUrl(provider, query, limit, sort = 'relevance') {
+  const params = new URLSearchParams({
+    provider,
+    q: query,
+    limit: String(limit),
+    sort,
+  });
+  return `/api/discovery?${params}`;
+}
+
+async function fetchResearchSource(provider, query, limit, sort, directUrl, options = {}) {
+  const shouldUseProxy = typeof window !== 'undefined' && !import.meta.env?.DEV;
+
+  if (shouldUseProxy) {
+    try {
+      const proxied = await fetchWithTimeout(proxyUrl(provider, query, limit, sort), options);
+      if (proxied.ok || proxied.status < 500) return proxied;
+    } catch {
+      // Fall back to the provider directly when the same-origin proxy itself is unavailable.
+    }
+  }
+
+  return fetchWithTimeout(directUrl, options);
+}
+
 function reconstructAbstract(inverted) {
   if (!inverted) return '';
   const words = [];
@@ -43,9 +68,8 @@ function scoreWork(w) {
 export async function searchOpenAlexWorks(query, limit = 10, sort = 'relevance', strictOptions = {}) {
   try {
     const sortValue = sort === 'recent' ? 'publication_date:desc' : 'relevance_score:desc';
-    const res = await fetchWithTimeout(
-      `${OPENALEX_BASE}/works?search=${encodeURIComponent(query)}&per_page=${limit}&sort=${sortValue}${OPENALEX_CONTACT}`
-    );
+    const directUrl = `${OPENALEX_BASE}/works?search=${encodeURIComponent(query)}&per_page=${limit}&sort=${sortValue}${OPENALEX_CONTACT}`;
+    const res = await fetchResearchSource('openalex_works', query, limit, sort, directUrl);
     if (!res.ok) throw new Error(`OpenAlex request failed: ${res.status}`);
     const data = await res.json();
     return (data.results || []).map(w => ({
@@ -72,9 +96,8 @@ export async function searchOpenAlexWorks(query, limit = 10, sort = 'relevance',
 
 export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}) {
   try {
-    const res = await fetchWithTimeout(
-      `${OPENALEX_BASE}/authors?search=${encodeURIComponent(query)}&per_page=${limit}&sort=relevance_score:desc${OPENALEX_CONTACT}`
-    );
+    const directUrl = `${OPENALEX_BASE}/authors?search=${encodeURIComponent(query)}&per_page=${limit}&sort=relevance_score:desc${OPENALEX_CONTACT}`;
+    const res = await fetchResearchSource('openalex_authors', query, limit, 'relevance', directUrl);
     if (!res.ok) throw new Error(`OpenAlex author request failed: ${res.status}`);
     const data = await res.json();
     return (data.results || []).map(a => ({
@@ -96,9 +119,8 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
 
 export async function searchOpenAlexInstitutions(query, limit = 6, strictOptions = {}) {
   try {
-    const res = await fetchWithTimeout(
-      `${OPENALEX_BASE}/institutions?search=${encodeURIComponent(query)}&per_page=${limit}&sort=relevance_score:desc${OPENALEX_CONTACT}`
-    );
+    const directUrl = `${OPENALEX_BASE}/institutions?search=${encodeURIComponent(query)}&per_page=${limit}&sort=relevance_score:desc${OPENALEX_CONTACT}`;
+    const res = await fetchResearchSource('openalex_institutions', query, limit, 'relevance', directUrl);
     if (!res.ok) throw new Error(`OpenAlex institution request failed: ${res.status}`);
     const data = await res.json();
     return (data.results || []).map(i => ({
@@ -118,9 +140,8 @@ export async function searchOpenAlexInstitutions(query, limit = 6, strictOptions
 export async function searchArxiv(query, limit = 5, sort = 'relevance', strictOptions = {}) {
   try {
     const sortBy = sort === 'recent' ? 'submittedDate' : 'relevance';
-    const res = await fetchWithTimeout(
-      `https://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(query)}&start=0&max_results=${limit}&sortBy=${sortBy}&sortOrder=descending`
-    );
+    const directUrl = `https://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(query)}&start=0&max_results=${limit}&sortBy=${sortBy}&sortOrder=descending`;
+    const res = await fetchResearchSource('arxiv', query, limit, sort, directUrl);
     if (!res.ok) throw new Error(`arXiv request failed: ${res.status}`);
     const text = await res.text();
     const parser = new DOMParser();
@@ -149,9 +170,8 @@ export async function searchArxiv(query, limit = 5, sort = 'relevance', strictOp
 
 export async function searchEuropePMC(query, limit = 5, strictOptions = {}) {
   try {
-    const res = await fetchWithTimeout(
-      `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(query)}&format=json&pageSize=${limit}&sort=RELEVANCE`
-    );
+    const directUrl = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(query)}&format=json&pageSize=${limit}&sort=RELEVANCE`;
+    const res = await fetchResearchSource('europe_pmc', query, limit, 'relevance', directUrl);
     if (!res.ok) throw new Error(`Europe PMC request failed: ${res.status}`);
     const data = await res.json();
     return (data.resultList?.result || []).map(r => {
@@ -188,7 +208,8 @@ export async function searchCrossref(query, limit = 5, sort = 'relevance', stric
       params.set('sort', 'published');
       params.set('order', 'desc');
     }
-    const res = await fetchWithTimeout(`https://api.crossref.org/works?${params}`);
+    const directUrl = `https://api.crossref.org/works?${params}`;
+    const res = await fetchResearchSource('crossref', query, limit, sort, directUrl);
     if (!res.ok) throw new Error(`Crossref request failed: ${res.status}`);
     const data = await res.json();
 
@@ -228,7 +249,8 @@ export async function searchSemanticScholar(query, limit = 8, strictOptions = {}
       'citationCount', 'openAccessPdf', 'externalIds', 'publicationDate',
     ].join(',');
     const params = new URLSearchParams({ query, limit: String(limit), fields });
-    const response = await fetchWithTimeout(`https://api.semanticscholar.org/graph/v1/paper/search?${params}`);
+    const directUrl = `https://api.semanticscholar.org/graph/v1/paper/search?${params}`;
+    const response = await fetchResearchSource('semantic_scholar', query, limit, 'relevance', directUrl);
     if (!response.ok) throw new Error(`Semantic Scholar request failed: ${response.status}`);
     const data = await response.json();
     return (data.data || []).map(paper => {

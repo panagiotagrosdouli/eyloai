@@ -1,5 +1,8 @@
 import { toast as sonnerToast } from 'sonner';
 
+/**
+ * @param {{title?: any, description?: any, variant?: string, [key: string]: any}} [toastOptions]
+ */
 function notify({ title, description, variant, ...options } = {}) {
   const message = title || description || '';
   const detail = title && description ? { description, ...options } : options;
@@ -11,6 +14,7 @@ function notify({ title, description, variant, ...options } = {}) {
   return sonnerToast(message, detail);
 }
 
+/** @param {{title?: any, description?: any, variant?: string, [key: string]: any}} options */
 export function toast(options) {
   return notify(options);
 }

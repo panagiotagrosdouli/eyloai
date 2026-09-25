@@ -315,12 +315,12 @@ Return:
           <div className="p-5 rounded-2xl border border-primary/20 bg-primary/5">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles size={12} className="text-primary" />
-              <span className="text-[10px] font-bold text-primary uppercase tracking-widest">EYRA's Verdict</span>
+              <span className="text-[10px] font-bold text-primary uppercase tracking-widest">EYRA Assessment</span>
             </div>
             <p className="text-sm text-foreground/85 leading-relaxed mb-4">{prediction.eyra_prediction}</p>
             {prediction.three_actions?.length > 0 && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">3 Actions to Improve Your Odds</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">3 Actions to Strengthen the Case</p>
                 <div className="space-y-1.5">
                   {prediction.three_actions.map((a, i) => (
                     <div key={i} className="flex items-start gap-2">
@@ -344,7 +344,7 @@ Return:
           )}
 
           <button onClick={() => predict()} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
-            <RefreshCw size={11} /> Recalculate prediction
+            <RefreshCw size={11} /> Reassess with current evidence
           </button>
         </motion.div>
       )}

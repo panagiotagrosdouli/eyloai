@@ -90,9 +90,10 @@ export async function startCheckout(plan) {
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const error = new Error(result.error || 'Checkout could not start.');
-    error.code = result.code;
-    throw error;
+    throw Object.assign(
+      new Error(result.error || 'Checkout could not start.'),
+      { code: result.code },
+    );
   }
   window.location.assign(result.url);
 }
