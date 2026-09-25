@@ -54,12 +54,13 @@ EYLO is designed to support research judgment, not replace it.
 
 ```mermaid
 flowchart LR
-  A[React + Vite] --> B[Scholarly source clients]
-  A --> C[Supabase Auth + Data]
+  A[React + Vite] --> C[Supabase Auth + Data]
   A --> D[Vercel Functions]
+  D --> B[Scholarly indexes]
   D --> E[OpenAI Responses API]
   D --> F[Grants.gov]
   D --> G[Stripe]
+  A -. local/dev fallback .-> B
 ```
 
 | Layer | Implementation |
@@ -67,7 +68,7 @@ flowchart LR
 | Client | React 18, Vite, React Router, TanStack Query, Tailwind CSS |
 | Identity and persistence | Supabase Auth, Postgres and row-level security |
 | AI | Server-side OpenAI Responses API with structured-output support |
-| Research retrieval | OpenAlex, arXiv, Europe PMC, Crossref and Semantic Scholar |
+| Research retrieval | Same-origin Vercel proxy to OpenAlex, arXiv, Europe PMC, Crossref and Semantic Scholar, with local/dev fallback |
 | Funding retrieval | Authenticated Vercel Function backed by Grants.gov |
 | Billing | Stripe-hosted Checkout, webhook verification and server-controlled entitlements |
 | Hosting | Vercel deployments and serverless functions |
