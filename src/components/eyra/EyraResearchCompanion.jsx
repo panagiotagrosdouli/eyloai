@@ -7,7 +7,7 @@ import ReactMarkdown from 'react-markdown';
  * Inline research companion — given a paper title + context, suggests:
  * related work, researchers, follow-up questions, and future directions.
  */
-export default function EyraResearchCompanion({ paper, userInterests }) {
+export default function EyraResearchCompanion({ paper, userInterests = '' }) {
   const [open, setOpen] = useState(false);
   const [insight, setInsight] = useState(null);
   const [loading, setLoading] = useState(false);
