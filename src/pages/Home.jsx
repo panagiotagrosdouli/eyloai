@@ -13,6 +13,7 @@ export default function Home() {
   const [results, setResults] = useState(null);
   const [progress, setProgress] = useState(null);
   const [currentQuery, setCurrentQuery] = useState('');
+  const [targetProjectId, setTargetProjectId] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
 
@@ -63,6 +64,8 @@ export default function Home() {
   useEffect(() => {
     const sharedQuery = searchParams.get('q')?.trim();
     if (!sharedQuery) return;
+    const sharedProjectId = searchParams.get('project')?.trim() || '';
+    setTargetProjectId(sharedProjectId);
     const sharedRequest = {
       topic: sharedQuery,
       level: searchParams.get('level') || 'researcher',
@@ -82,8 +85,15 @@ export default function Home() {
   if (state === 'results') {
     return (
       <div>
-        <SearchHeroCompact onSearch={handleSearch} currentQuery={currentQuery} onBack={() => setState('dashboard')} />
-        <DiscoveryResults results={results} onNewSearch={handleSearch} />
+        <SearchHeroCompact
+          onSearch={handleSearch}
+          currentQuery={currentQuery}
+          onBack={() => {
+            setTargetProjectId('');
+            setState('dashboard');
+          }}
+        />
+        <DiscoveryResults results={results} onNewSearch={handleSearch} targetProjectId={targetProjectId} />
       </div>
     );
   }

@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import {
   ArrowLeft, Sparkles, Save, Loader2, FileText, Users, StickyNote, Brain, Clock, Video,
-  Target, RefreshCw
+  Target, RefreshCw, ExternalLink, BookOpen
 } from 'lucide-react';
 import ProjectMeetings from '@/components/meetings/ProjectMeetings';
 import { motion } from 'framer-motion';
@@ -16,9 +16,11 @@ import ProjectHealthScore from '@/components/projects/ProjectHealthScore';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
+import { buildProjectEvidenceContext, projectAssociationFilter } from '@/lib/project-evidence';
 
 const TABS = [
   { key: 'overview', label: 'Overview', icon: Target },
+  { key: 'evidence', label: 'Evidence', icon: FileText },
   { key: 'notes', label: 'Notes & Tasks', icon: StickyNote },
   { key: 'meetings', label: 'Meetings', icon: Video },
   { key: 'intelligence', label: 'EYRA Intelligence', icon: Brain },
@@ -49,33 +51,70 @@ export default function ProjectDetail() {
 
   const loadAll = async () => {
     setLoading(true);
-    const [data, papers, researchers, mtgs] = await Promise.all([
-      base44.entities.Project.get(id),
-      base44.entities.SavedPaper.list('-created_date', 100),
-      base44.entities.SavedResearcher.list('-created_date', 100),
-      base44.entities.Meeting.filter({ project_id: id }, '-date', 20),
-    ]);
-    setProject(data);
-    setSavedPapers(papers);
-    setSavedResearchers(researchers);
-    setMeetings(mtgs);
-    setEditing({
-      title: data.title || '',
-      goal: data.goal || '',
-      description: data.description || '',
-      milestones: data.milestones || '',
-      tasks: data.tasks || '',
-      notes: data.notes || '',
-      status: data.status || 'planning',
-    });
-    setLoading(false);
+    try {
+      const association = projectAssociationFilter(id);
+      const [projectResult, papersResult, researchersResult, meetingsResult] = await Promise.allSettled([
+        base44.entities.Project.get(id),
+        association ? base44.entities.SavedPaper.filter(association, '-created_date', 100) : Promise.resolve([]),
+        association ? base44.entities.SavedResearcher.filter(association, '-created_date', 100) : Promise.resolve([]),
+        base44.entities.Meeting.filter({ project_id: id }, '-date', 20),
+      ]);
+
+      if (projectResult.status !== 'fulfilled') throw projectResult.reason;
+      const data = projectResult.value;
+      const papers = papersResult.status === 'fulfilled' ? papersResult.value : [];
+      const researchers = researchersResult.status === 'fulfilled' ? researchersResult.value : [];
+      const mtgs = meetingsResult.status === 'fulfilled' ? meetingsResult.value : [];
+
+      setProject(data);
+      setSavedPapers(papers);
+      setSavedResearchers(researchers);
+      setMeetings(mtgs);
+      setEditing({
+        title: data.title || '',
+        goal: data.goal || '',
+        description: data.description || '',
+        milestones: data.milestones || '',
+        tasks: data.tasks || '',
+        notes: data.notes || '',
+        status: data.status || 'planning',
+      });
+
+      const partialFailures = [papersResult, researchersResult, meetingsResult]
+        .filter(result => result.status === 'rejected').length;
+      if (partialFailures) {
+        toast({
+          title: 'Project loaded with partial data',
+          description: 'Some linked workspace items could not be loaded. Your project itself is still available.',
+        });
+      }
+    } catch (error) {
+      setProject(null);
+      toast({
+        title: 'Could not load project',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const saveProject = async () => {
     setSaving(true);
-    await base44.entities.Project.update(id, editing);
-    setSaving(false);
-    toast({ title: 'Project saved' });
+    try {
+      const updated = await base44.entities.Project.update(id, editing);
+      setProject(updated);
+      toast({ title: 'Project saved' });
+    } catch (error) {
+      toast({
+        title: 'Could not save project',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const runEyraAnalysis = async () => {
@@ -95,6 +134,7 @@ export default function ProjectDetail() {
       const papers = papersResult.status === 'fulfilled' ? papersResult.value : [];
       const researchers = researchersResult.status === 'fulfilled' ? researchersResult.value : [];
       const opportunities = fundingResult.status === 'fulfilled' ? fundingResult.value.items : [];
+      const savedContext = buildProjectEvidenceContext(savedPapers, savedResearchers);
 
       const paperContext = papers.slice(0, 10).map((paper, index) =>
         `[P${index + 1}] "${paper.title}" — ${paper.authors || 'Unknown'} (${paper.year || 'n/a'}), ${paper.cited_by_count || 0} citations, ${paper.source}. URL: ${paper.url}`
@@ -116,14 +156,20 @@ Title: ${editing.title}
 Goal: ${editing.goal}
 Description: ${editing.description || 'Not provided'}
 Milestones: ${editing.milestones || 'None set'}
-Library papers saved: ${savedPapers.length}
-Researchers saved: ${savedResearchers.length}
+Project papers saved: ${savedPapers.length}
+Project researchers saved: ${savedResearchers.length}
 Meetings scheduled: ${meetings.length}
 
-VERIFIED SCHOLARLY RECORDS:
+PROJECT-SAVED EVIDENCE — PRIMARY CONTEXT:
+${savedContext.papers}
+
+PROJECT-SAVED RESEARCHERS — PRIMARY CONTEXT:
+${savedContext.researchers}
+
+FRESH VERIFIED SCHOLARLY RECORDS:
 ${paperContext}
 
-VERIFIED OPENALEX RESEARCHERS:
+FRESH VERIFIED OPENALEX RESEARCHERS:
 ${researcherContext}
 
 VERIFIED OFFICIAL FUNDING RECORDS:
@@ -139,8 +185,10 @@ Write a concise, actionable markdown report with:
 
 Rules:
 - Never invent a paper, researcher, grant, deadline, amount, institution, or URL.
-- Specific external claims must cite the supplied IDs, such as [P1], [R2], or [F1].
-- Include the exact supplied URL for every paper, researcher, or funding record you recommend.
+- Treat project-saved evidence [S#] and project-saved researchers [SR#] as the user's primary research context.
+- Specific external claims must cite the supplied IDs, such as [S1], [SR1], [P1], [R2], or [F1].
+- Prefer project-saved evidence when it directly supports the point; use fresh records to expand or update the context.
+- Include the exact supplied URL or DOI for every paper, researcher, or funding record you recommend when one was supplied.
 - Separate source-backed observations from your own strategic inferences.
 - If the evidence is insufficient, say so directly and recommend a better search query.
 - Funding entries are discovery leads, not eligibility determinations; tell the user to verify the official notice.
@@ -152,7 +200,7 @@ Rules:
       setActiveTab('intelligence');
       toast({
         title: 'Sourced analysis complete',
-        description: `${papers.length} papers · ${researchers.length} researchers · ${opportunities.length} official funding records`,
+        description: `${savedPapers.length} saved papers · ${papers.length} fresh papers · ${opportunities.length} official funding records`,
       });
     } catch (error) {
       toast({
@@ -382,6 +430,89 @@ Rules:
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
+        </motion.div>
+      )}
+
+      {/* Project Evidence */}
+      {activeTab === 'evidence' && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+          <section>
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="font-heading text-lg font-bold">Saved evidence</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Only records explicitly linked to this project are used as its saved evidence context.</p>
+              </div>
+              <Link
+                to={`/home?q=${encodeURIComponent(editing.goal || editing.title || '')}&project=${encodeURIComponent(id || '')}`}
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:border-primary/30"
+              >
+                <BookOpen size={13} /> Find evidence
+              </Link>
+            </div>
+
+            {savedPapers.length ? (
+              <div className="space-y-3">
+                {savedPapers.map(paper => (
+                  <article key={paper.id} className="rounded-xl border border-border bg-card p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="mb-1.5 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                          {paper.source && <span>{paper.source}</span>}
+                          {paper.year && <span>· {paper.year}</span>}
+                          {paper.doi && <span>· DOI {paper.doi}</span>}
+                        </div>
+                        <h3 className="text-sm font-semibold text-foreground">{paper.title}</h3>
+                        {paper.authors && <p className="mt-1 text-xs text-muted-foreground">{paper.authors}</p>}
+                        {paper.summary && <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">{paper.summary}</p>}
+                      </div>
+                      {paper.url && (
+                        <a href={paper.url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${paper.title} source`} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg hover:bg-secondary">
+                          <ExternalLink size={13} className="text-muted-foreground" />
+                        </a>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border px-6 py-10 text-center">
+                <FileText size={20} className="mx-auto mb-3 text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground">No evidence saved to this project yet</p>
+                <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-muted-foreground">Search the literature, save the papers that matter, and EYRA will use those records as project context.</p>
+              </div>
+            )}
+          </section>
+
+          <section>
+            <div className="mb-4">
+              <h2 className="font-heading text-lg font-bold">Saved researchers</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Researchers linked to this workspace, not your entire account library.</p>
+            </div>
+            {savedResearchers.length ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {savedResearchers.map(researcher => (
+                  <article key={researcher.id} className="rounded-xl border border-border bg-card p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-sm font-semibold">{researcher.name}</h3>
+                        <p className="mt-1 text-xs text-muted-foreground">{researcher.institution || 'Institution unavailable'}</p>
+                        {researcher.research_areas && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{researcher.research_areas}</p>}
+                      </div>
+                      {researcher.profile_url && (
+                        <a href={researcher.profile_url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${researcher.name} profile`} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg hover:bg-secondary">
+                          <ExternalLink size={13} className="text-muted-foreground" />
+                        </a>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border px-6 py-8 text-center text-xs text-muted-foreground">
+                Save a researcher from discovery to connect them with this project.
+              </div>
+            )}
+          </section>
         </motion.div>
       )}
 
