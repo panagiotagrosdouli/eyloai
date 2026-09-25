@@ -84,6 +84,10 @@ async function requestOpenAiAnalysis(prompt, responseSchema) {
   return result.text;
 }
 
+/**
+ * @param {{prompt?: string, response_json_schema?: Record<string, any>}} [options]
+ * @returns {Promise<any>}
+ */
 export async function invokeEyra({ prompt = '', response_json_schema: responseSchema } = {}) {
   const result = await requestOpenAiAnalysis(prompt, responseSchema);
   trackEyraActionCompleted();
