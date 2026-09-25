@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import BrandLogo from '@/components/brand/BrandLogo';
 
-export default function AuthLayout({ icon: Icon, title, footer, children }) {
+export default function AuthLayout({ icon: Icon, title, subtitle = '', footer = null, children }) {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050810] text-slate-100 lg:grid lg:grid-cols-[minmax(0,1.06fr)_minmax(27rem,0.94fr)]">
       <div
@@ -57,6 +57,7 @@ export default function AuthLayout({ icon: Icon, title, footer, children }) {
               <h1 className="font-heading text-3xl font-semibold tracking-[-0.035em] text-white sm:text-4xl">
                 {title}
               </h1>
+              {subtitle && <p className="mt-3 text-sm leading-6 text-slate-400">{subtitle}</p>}
             </div>
 
             <div className="rounded-[1.5rem] border border-white/[0.08] bg-[#090e1a] p-5 shadow-[0_28px_80px_-45px_rgba(37,99,235,0.35)] sm:p-7">
