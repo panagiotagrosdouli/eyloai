@@ -115,6 +115,7 @@ async function retrieveEvidence(content, mode, workspaceContext) {
   if (!tasks.length) return { query, blocks: [], sources: [], attempted: false };
 
   const settled = await Promise.allSettled(tasks);
+  /** @type {Record<string, {kind: string, items: any[], status?: any[]}>} */
   const groups = Object.fromEntries(
     settled.filter(result => result.status === 'fulfilled').map(result => [result.value.kind, result.value]),
   );
@@ -365,8 +366,8 @@ export default function EyraCommandCenter({ open, onClose }) {
         'button:not([disabled]), a[href], textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
       );
       if (!focusable?.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
+      const first = /** @type {HTMLElement} */ (focusable[0]);
+      const last = /** @type {HTMLElement} */ (focusable[focusable.length - 1]);
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
@@ -442,7 +443,8 @@ export default function EyraCommandCenter({ open, onClose }) {
   };
 
   const startListening = () => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const browserWindow = /** @type {any} */ (window);
+    const SR = browserWindow.SpeechRecognition || browserWindow.webkitSpeechRecognition;
     if (!SR) {
       setActionError('Speech recognition is not supported by this browser. You can still type your question.');
       return;
