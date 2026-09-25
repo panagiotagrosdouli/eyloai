@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   FileText, Users, Building2, TrendingUp, DollarSign,
@@ -11,6 +11,7 @@ import { base44 } from '@/api/base44Client';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
+import { mergeProjectIds, paperLookupFilter, researcherLookupFilter } from '@/lib/project-evidence';
 
 const TABS = [
   { key: 'overview', label: 'Overview', icon: Target },
@@ -52,38 +53,75 @@ export default function DiscoveryResults({ results, onNewSearch }) {
   const [projectCreated, setProjectCreated] = useState(null);
   const [savingSearch, setSavingSearch] = useState(false);
   const [searchSaved, setSearchSaved] = useState(Boolean(results.search_saved));
+  const savedDuringDiscovery = useRef({ papers: new Map(), researchers: new Map() });
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const savePaper = async (paper) => {
     try {
-      await base44.entities.SavedPaper.create({
+      const lookup = paperLookupFilter(paper);
+      const existing = lookup
+        ? (await base44.entities.SavedPaper.filter(lookup, '-created_date', 1))[0]
+        : null;
+      const payload = {
         title: paper.title,
         authors: paper.authors,
         summary: paper.summary,
         year: paper.year,
-        source: paper.source,
+        source: paper.source || paper.source_index,
         url: paper.url,
+        doi: lookup?.doi || paper.doi || '',
+        publication_date: paper.publication_date || '',
+        publication_status: paper.publication_status || '',
+        publication_type: paper.type || paper.publication_type || '',
+        source_index: paper.source_index || '',
+        record_sources: paper.record_sources || [],
+        metadata_provenance: paper.metadata_provenance || [],
+        project_ids: mergeProjectIds(existing || {}, projectCreated?.id),
+      };
+      const saved = existing
+        ? await base44.entities.SavedPaper.update(existing.id, payload)
+        : await base44.entities.SavedPaper.create(payload);
+      savedDuringDiscovery.current.papers.set(saved.id, saved);
+      toast({
+        title: projectCreated ? 'Paper saved to project' : existing ? 'Paper already in your library' : 'Paper saved to library',
+        description: projectCreated ? projectCreated.title : undefined,
       });
-      toast({ title: 'Paper saved to library' });
+      return saved;
     } catch (error) {
       toast({ title: 'Could not save this paper', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+      throw error;
     }
   };
 
-  const saveResearcher = async (r) => {
+  const saveResearcher = async (researcher) => {
     try {
-      await base44.entities.SavedResearcher.create({
-      name: r.name,
-      institution: r.institution,
-      research_areas: r.research_areas,
-      works_count: r.works_count,
-      citation_count: r.citation_count,
-        profile_url: r.profile_url,
+      const lookup = researcherLookupFilter(researcher);
+      const existing = lookup
+        ? (await base44.entities.SavedResearcher.filter(lookup, '-created_date', 1))[0]
+        : null;
+      const payload = {
+        name: researcher.name,
+        institution: researcher.institution,
+        research_areas: researcher.research_areas,
+        works_count: researcher.works_count,
+        citation_count: researcher.citation_count,
+        profile_url: researcher.profile_url,
+        openalex_id: researcher.openalex_id || researcher.id || '',
+        project_ids: mergeProjectIds(existing || {}, projectCreated?.id),
+      };
+      const saved = existing
+        ? await base44.entities.SavedResearcher.update(existing.id, payload)
+        : await base44.entities.SavedResearcher.create(payload);
+      savedDuringDiscovery.current.researchers.set(saved.id, saved);
+      toast({
+        title: projectCreated ? 'Researcher saved to project' : existing ? 'Researcher already in your library' : 'Researcher saved to library',
+        description: projectCreated ? projectCreated.title : undefined,
       });
-      toast({ title: 'Researcher saved to library' });
+      return saved;
     } catch (error) {
       toast({ title: 'Could not save this researcher', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+      throw error;
     }
   };
 
@@ -126,13 +164,41 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         goal: results.query,
         eyra_analysis: results.goal_analysis || '',
         status: 'active',
+        source_query: results.query || '',
+        source_indexes: results.source_indexes || [],
+        discovery_profile: results.discovery_profile || {},
       });
+
+      const savedPapers = [...savedDuringDiscovery.current.papers.values()];
+      const savedResearchers = [...savedDuringDiscovery.current.researchers.values()];
+      const associations = await Promise.allSettled([
+        ...savedPapers.map(item => base44.entities.SavedPaper.update(item.id, {
+          project_ids: mergeProjectIds(item, project.id),
+        })),
+        ...savedResearchers.map(item => base44.entities.SavedResearcher.update(item.id, {
+          project_ids: mergeProjectIds(item, project.id),
+        })),
+      ]);
+      const failedAssociations = associations.filter(result => result.status === 'rejected').length;
+
       setProjectCreated(project);
-      toast({ title: 'Project workspace created' });
-    } catch {
-      toast({ title: 'Could not create project', variant: 'destructive' });
+      toast({
+        title: 'Project workspace created',
+        description: failedAssociations
+          ? `Project created, but ${failedAssociations} saved item${failedAssociations === 1 ? '' : 's'} could not be linked.`
+          : savedPapers.length || savedResearchers.length
+            ? 'Saved evidence from this discovery is now linked to the project.'
+            : 'Save papers or researchers to build the project evidence set.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Could not create project',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setCreatingProject(false);
     }
-    setCreatingProject(false);
   };
 
   const evidenceCoverage = results.confidence_overall || (
@@ -383,7 +449,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
               </div>
               <div className="space-y-3">
                 {(startHere.length ? startHere : results.papers.slice(0, 3)).map((p, i) => (
-                  <PaperCard key={i} paper={p} onSave={() => savePaper(p)} rank={i + 1} />
+                  <PaperCard key={p._dedupeKey || p.id || p.title || i} paper={p} onSave={() => savePaper(p)} destination={projectCreated ? 'project' : 'library'} />
                 ))}
               </div>
             </div>
@@ -471,7 +537,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
                       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><GroupIcon size={14} /></span>
                       <div><h3 className="text-sm font-semibold">{group.title}</h3><p className="mt-0.5 text-[11px] text-muted-foreground">{group.desc}</p></div>
                     </div>
-                    <div className="space-y-3">{group.papers.map((paper, index) => <PaperCard key={paper._dedupeKey || paper.id || paper.title} paper={paper} onSave={() => savePaper(paper)} rank={index + 1} />)}</div>
+                    <div className="space-y-3">{group.papers.map((paper, index) => <PaperCard key={paper._dedupeKey || paper.id || paper.title} paper={paper} onSave={() => savePaper(paper)} destination={projectCreated ? 'project' : 'library'} />)}</div>
                   </section>
                 );
               })}
@@ -501,7 +567,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {results.researchers.map((r, i) => (
-                <ResearcherCard key={i} researcher={r} onSave={() => saveResearcher(r)} />
+                <ResearcherCard key={r.openalex_id || r.id || r.profile_url || i} researcher={r} onSave={() => saveResearcher(r)} destination={projectCreated ? 'project' : 'library'} />
               ))}
             </div>
           )}
@@ -716,7 +782,8 @@ export default function DiscoveryResults({ results, onNewSearch }) {
   );
 }
 
-function PaperCard({ paper, onSave, rank }) {
+function PaperCard({ paper, onSave, destination = 'library' }) {
+  const [saveState, setSaveState] = useState('idle');
   const getImpactLevel = (cited) => {
     if (cited > 500) return { label: 'Highly cited', color: 'text-primary bg-primary/10' };
     if (cited > 100) return { label: 'Well cited', color: 'text-green-400 bg-green-500/10' };
@@ -724,9 +791,19 @@ function PaperCard({ paper, onSave, rank }) {
     return null;
   };
   const impact = paper.cited_by_count > 0 ? getImpactLevel(paper.cited_by_count) : null;
+  const handleSave = async () => {
+    if (saveState !== 'idle') return;
+    setSaveState('saving');
+    try {
+      await onSave();
+      setSaveState('saved');
+    } catch {
+      setSaveState('idle');
+    }
+  };
 
   return (
-    <div className="p-5 rounded-xl border border-border bg-card hover:border-primary/25 transition-colors card-glow group">
+    <div className="p-5 rounded-xl border border-border bg-card hover:border-primary/25 transition-colors group">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
@@ -743,20 +820,29 @@ function PaperCard({ paper, onSave, rank }) {
             {impact && (
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${impact.color}`}>{impact.label}</span>
             )}
-            {paper.open_access && (
-              <span className="text-[10px] text-green-400">Open Access</span>
-            )}
+            {paper.open_access && <span className="text-[10px] text-green-400">Open Access</span>}
           </div>
           <h4 className="font-semibold text-sm leading-snug mb-1.5 text-foreground">{paper.title}</h4>
           {paper.authors && <p className="text-xs text-muted-foreground mb-2">{paper.authors}</p>}
           {paper.summary && <p className="text-xs text-muted-foreground/80 leading-relaxed line-clamp-2">{paper.summary}</p>}
         </div>
         <div className="flex flex-col gap-1 flex-shrink-0">
-          <button onClick={onSave} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="Save to library">
-            <Bookmark size={13} className="text-muted-foreground" />
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saveState !== 'idle'}
+            aria-label={saveState === 'saved' ? 'Paper saved' : `Save paper to ${destination}`}
+            className="grid h-9 w-9 place-items-center rounded-lg hover:bg-secondary transition-colors disabled:cursor-default"
+            title={saveState === 'saved' ? 'Saved' : `Save to ${destination}`}
+          >
+            {saveState === 'saving'
+              ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-primary" />
+              : saveState === 'saved'
+                ? <CheckCircle2 size={14} className="text-green-400" />
+                : <Bookmark size={13} className="text-muted-foreground" />}
           </button>
           {paper.url && (
-            <a href={paper.url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-secondary transition-colors">
+            <a href={paper.url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${paper.title} source record`} className="grid h-9 w-9 place-items-center rounded-lg hover:bg-secondary transition-colors">
               <ExternalLink size={13} className="text-muted-foreground" />
             </a>
           )}
@@ -766,17 +852,27 @@ function PaperCard({ paper, onSave, rank }) {
   );
 }
 
-function ResearcherCard({ researcher, onSave }) {
+function ResearcherCard({ researcher, onSave, destination = 'library' }) {
+  const [saveState, setSaveState] = useState('idle');
+  const handleSave = async () => {
+    if (saveState !== 'idle') return;
+    setSaveState('saving');
+    try {
+      await onSave();
+      setSaveState('saved');
+    } catch {
+      setSaveState('idle');
+    }
+  };
+
   return (
-    <div className="p-5 rounded-xl border border-border bg-card hover:border-primary/25 transition-colors card-glow">
+    <div className="p-5 rounded-xl border border-border bg-card hover:border-primary/25 transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-sm text-foreground">{researcher.name}</h4>
           <p className="text-xs text-muted-foreground mt-0.5">{researcher.institution}</p>
           {researcher.country && <p className="text-[10px] text-muted-foreground/70">{researcher.country}</p>}
-          {researcher.research_areas && (
-            <p className="text-xs text-muted-foreground/70 mt-1.5 line-clamp-2">{researcher.research_areas}</p>
-          )}
+          {researcher.research_areas && <p className="text-xs text-muted-foreground/70 mt-1.5 line-clamp-2">{researcher.research_areas}</p>}
           <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
             <span><BookOpen size={11} className="inline mr-1" />{(researcher.works_count || 0).toLocaleString()} works</span>
             <span>{(researcher.citation_count || 0).toLocaleString()} citations</span>
@@ -786,11 +882,22 @@ function ResearcherCard({ researcher, onSave }) {
           </p>
         </div>
         <div className="flex flex-col gap-1 flex-shrink-0">
-          <button onClick={onSave} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="Save">
-            <Bookmark size={13} className="text-muted-foreground" />
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saveState !== 'idle'}
+            aria-label={saveState === 'saved' ? 'Researcher saved' : `Save researcher to ${destination}`}
+            className="grid h-9 w-9 place-items-center rounded-lg hover:bg-secondary transition-colors disabled:cursor-default"
+            title={saveState === 'saved' ? 'Saved' : `Save to ${destination}`}
+          >
+            {saveState === 'saving'
+              ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-primary" />
+              : saveState === 'saved'
+                ? <CheckCircle2 size={14} className="text-green-400" />
+                : <Bookmark size={13} className="text-muted-foreground" />}
           </button>
           {researcher.profile_url && (
-            <a href={researcher.profile_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-secondary transition-colors">
+            <a href={researcher.profile_url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${researcher.name} profile`} className="grid h-9 w-9 place-items-center rounded-lg hover:bg-secondary transition-colors">
               <ExternalLink size={13} className="text-muted-foreground" />
             </a>
           )}
