@@ -48,7 +48,7 @@ Experimental scenario, impact, research-landscape, team, professional-path and v
 
 ## Remaining production work
 
-- Commit a package-manager lockfile and switch CI/deploy installs to deterministic `npm ci`.
+- Keep the committed npm lockfile current and review automated dependency updates before merge.
 - Add browser-level end-to-end coverage for the critical account → discovery → save → project → EYRA → billing journey.
 - Expand type checking until `src/lib`, API functions and remaining JavaScript surfaces are covered without exclusions.
 - Build and publish a human-judged discovery relevance dataset and report Precision@k/nDCG metrics by domain and intent.
