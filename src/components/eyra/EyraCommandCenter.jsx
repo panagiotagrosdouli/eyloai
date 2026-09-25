@@ -355,7 +355,7 @@ export default function EyraCommandCenter({ open, onClose }) {
   useEffect(() => {
     if (!open) return undefined;
     const previousOverflow = document.body.style.overflow;
-    const previousFocus = document.activeElement;
+    const previousFocus = /** @type {HTMLElement | null} */ (document.activeElement);
     const closeWithEscape = event => {
       if (event.key === 'Escape') {
         onClose();
