@@ -1,25 +1,30 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import {
-  Bookmark, Award, Loader2, DollarSign, Trophy,
-  Rocket, GraduationCap, Sparkles,
-  ExternalLink, ShieldCheck
+  Award, Bookmark, CheckCircle2, DollarSign, ExternalLink, GraduationCap,
+  Rocket, Search, ShieldCheck, Trophy,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
+import {
+  FUNDING_RELEVANCE_LABELS,
+  fundingRelevanceWeight,
+} from '@/lib/evidence-presentation';
+import { mergeProjectIds } from '@/lib/project-evidence';
 
 const TYPE_CONFIG = {
-  grant: { icon: DollarSign, color: 'bg-primary/15 text-primary', label: 'Grant' },
-  competition: { icon: Trophy, color: 'bg-amber-500/15 text-amber-400', label: 'Competition' },
-  accelerator: { icon: Rocket, color: 'bg-green-500/15 text-green-400', label: 'Accelerator' },
-  scholarship: { icon: GraduationCap, color: 'bg-accent/15 text-accent', label: 'Scholarship' },
-  call: { icon: Award, color: 'bg-chart-3/15 text-chart-3', label: 'Call' },
+  grant: { icon: DollarSign, label: 'Grant' },
+  competition: { icon: Trophy, label: 'Competition' },
+  accelerator: { icon: Rocket, label: 'Accelerator' },
+  scholarship: { icon: GraduationCap, label: 'Scholarship' },
+  call: { icon: Award, label: 'Call' },
 };
 
 const CATEGORIES = [
   { key: 'all', label: 'All' },
   { key: 'grant', label: 'Grants' },
+  { key: 'call', label: 'Calls' },
   { key: 'competition', label: 'Competitions' },
   { key: 'accelerator', label: 'Accelerators' },
   { key: 'scholarship', label: 'Scholarships' },
@@ -34,6 +39,13 @@ const QUICK_SEARCHES = [
   'Deep tech acceleration',
 ];
 
+const RELEVANCE_STYLE = {
+  strong: 'border-primary/25 bg-primary/10 text-primary',
+  moderate: 'border-border bg-secondary text-foreground',
+  possible: 'border-border bg-secondary/50 text-muted-foreground',
+  unranked: 'border-border bg-background text-muted-foreground',
+};
+
 export default function Opportunities() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -42,48 +54,58 @@ export default function Opportunities() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [sourceMeta, setSourceMeta] = useState(null);
   const [searchError, setSearchError] = useState('');
-  const [rankingError, setRankingError] = useState('');
+  const [rankingNotice, setRankingNotice] = useState('');
+  const [savingIds, setSavingIds] = useState(() => new Set());
+  const [savedIds, setSavedIds] = useState(() => new Set());
+  const [projects, setProjects] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
   const { toast } = useToast();
 
+  useEffect(() => {
+    let active = true;
+    base44.entities.Project.list('-updated_date', 50)
+      .then(items => { if (active) setProjects(items); })
+      .catch(() => { if (active) setProjects([]); });
+    return () => { active = false; };
+  }, []);
+
   const handleSearch = async (searchQuery) => {
-    const q = searchQuery || query;
-    if (!q.trim()) return;
+    const q = String(searchQuery || query).trim();
+    if (!q) return;
+
     setQuery(q);
     setLoading(true);
     setHasSearched(true);
     setActiveCategory('all');
     setSearchError('');
-    setRankingError('');
+    setRankingNotice('');
     setSourceMeta(null);
     setResults([]);
 
     try {
-      // Retrieval first: these fields come directly from the official source.
       const sourceResult = await searchFundingOpportunities(q, 12);
       setSourceMeta(sourceResult);
 
-      const verified = sourceResult.items.map((item) => ({
+      const verified = sourceResult.items.map(item => ({
         ...item,
-        typical_amount: item.amount,
-        match_score: null,
+        relevance_band: 'unranked',
         match_reason: '',
-        difficulty: 'Unranked',
+        application_complexity: '',
       }));
       setResults(verified);
 
-      if (verified.length === 0) return;
+      if (!verified.length) return;
 
       try {
-        // AI may rank and explain verified records, but cannot create or rewrite them.
         const ranking = await base44.integrations.Core.InvokeLLM({
-          prompt: `You are EYRA Funding Intelligence. Rank ONLY the verified funding records below for this user query.
+          prompt: `You are EYRA Funding Intelligence. Compare ONLY the verified funding records below with the user's query.
 
 USER QUERY: "${q}"
 RETRIEVED AT: ${sourceResult.retrieved_at}
 OFFICIAL SOURCE: ${sourceResult.source}
 
 VERIFIED RECORDS:
-${verified.map((item) => JSON.stringify({
+${verified.map(item => JSON.stringify({
   id: item.id,
   title: item.title,
   agency: item.agency,
@@ -94,7 +116,13 @@ ${verified.map((item) => JSON.stringify({
   categories: item.categories,
 })).join('\n')}
 
-Return one ranking object for every supplied id. Do not add opportunities or change factual fields. match_score measures relevance to the query, not probability of winning. difficulty is an eligibility/application-complexity assessment.`,
+For every supplied id:
+- assign relevance_band as strong, moderate, or possible;
+- explain the relevance using only the supplied record and query;
+- estimate application_complexity as Low, Medium, or High only from the supplied requirements/description.
+
+These are qualitative decision aids, not probabilities of success and not eligibility determinations.
+Do not add opportunities or change any factual field.`,
           response_json_schema: {
             type: 'object',
             properties: {
@@ -105,10 +133,10 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
                 items: {
                   type: 'object',
                   properties: {
-                    id: { type: 'string', enum: verified.map((item) => item.id) },
-                    match_score: { type: 'number', minimum: 0, maximum: 100 },
+                    id: { type: 'string', enum: verified.map(item => item.id) },
+                    relevance_band: { type: 'string', enum: ['strong', 'moderate', 'possible'] },
                     match_reason: { type: 'string' },
-                    difficulty: { type: 'string', enum: ['Low', 'Medium', 'High'] },
+                    application_complexity: { type: 'string', enum: ['Low', 'Medium', 'High'] },
                   },
                 },
               },
@@ -116,14 +144,15 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
           },
         });
 
-        const byId = new Map((ranking.ranked || []).map((item) => [item.id, item]));
-        const ranked = verified
-          .map((item) => ({ ...item, ...(byId.get(item.id) || {}) }))
-          .sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1));
-        setResults(ranked);
+        const byId = new Map((ranking.ranked || []).map(item => [item.id, item]));
+        setResults(
+          verified
+            .map(item => ({ ...item, ...(byId.get(item.id) || {}) }))
+            .sort((a, b) => fundingRelevanceWeight(b.relevance_band) - fundingRelevanceWeight(a.relevance_band)),
+        );
       } catch (error) {
-        setRankingError(
-          `Verified opportunities loaded, but EYRA ranking is unavailable: ${error instanceof Error ? error.message : 'unknown error'}`,
+        setRankingNotice(
+          `Verified opportunities loaded. EYRA relevance labels are unavailable: ${error instanceof Error ? error.message : 'unknown error'}`,
         );
       }
     } catch (error) {
@@ -134,223 +163,339 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
     }
   };
 
-  const saveOpportunity = async (opp) => {
+  const saveOpportunity = async (opportunity) => {
+    const stableId = opportunity.source_url || opportunity.id || opportunity.title;
+    if (savingIds.has(stableId) || savedIds.has(stableId)) return;
+
+    setSavingIds(previous => new Set([...previous, stableId]));
     try {
-      await base44.entities.SavedOpportunity.create({
-        title: opp.title,
-        type: opp.type,
-        description: opp.description,
-        deadline: opp.deadline,
+      const existing = opportunity.source_url
+        ? (await base44.entities.SavedOpportunity.filter({ url: opportunity.source_url }, '-created_date', 1))[0]
+        : null;
+
+      const payload = {
+        title: opportunity.title,
+        type: opportunity.type,
+        description: opportunity.description,
+        source: opportunity.agency || sourceMeta?.source || 'Official funding source',
+        url: opportunity.source_url || '',
+        deadline: opportunity.deadline || '',
+        amount: opportunity.amount || '',
+        eligibility: opportunity.eligibility || '',
+        status: opportunity.status || '',
+        categories: opportunity.categories || [],
+        relevance_band: opportunity.relevance_band || 'unranked',
+        match_reason: opportunity.match_reason || '',
+        application_complexity: opportunity.application_complexity || '',
+        retrieved_at: sourceMeta?.retrieved_at || '',
+        project_ids: mergeProjectIds(existing || {}, selectedProjectId),
+      };
+
+      if (existing) {
+        await base44.entities.SavedOpportunity.update(existing.id, payload);
+      } else {
+        await base44.entities.SavedOpportunity.create(payload);
+      }
+
+      setSavedIds(previous => new Set([...previous, stableId]));
+      toast({
+        title: selectedProjectId ? 'Opportunity saved to project' : existing ? 'Opportunity already in your library' : 'Opportunity saved to library',
+        description: selectedProjectId
+          ? projects.find(project => project.id === selectedProjectId)?.title || 'Linked to the selected project.'
+          : undefined,
       });
-      toast({ title: 'Opportunity saved to library' });
     } catch (error) {
       toast({
         title: 'Could not save this opportunity',
         description: error instanceof Error ? error.message : 'Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setSavingIds(previous => {
+        const next = new Set(previous);
+        next.delete(stableId);
+        return next;
+      });
     }
   };
 
   const filteredResults = activeCategory === 'all'
     ? results
-    : results.filter(r => r.type === activeCategory);
-
-  const difficultyColor = { Low: 'text-green-400', Medium: 'text-amber-400', High: 'text-red-400' };
+    : results.filter(item => item.type === activeCategory);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="font-heading font-bold text-2xl sm:text-3xl mb-1 text-foreground">Funding</h1>
-      </div>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <header className="mb-8">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Official opportunities</p>
+        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Funding</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+          Search official funding records, inspect the source notice, and use EYRA relevance as a qualitative aid — never as a probability of success.
+        </p>
+      </header>
 
-      {/* Source contract */}
-      <div className="flex items-start gap-2 p-3 rounded-xl border border-green-500/20 bg-green-500/5 mb-4 max-w-2xl">
-        <ShieldCheck size={13} className="text-green-400 flex-shrink-0 mt-0.5" />
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
-          Opportunity names, agencies, statuses and deadlines are retrieved from the official source. EYRA only ranks relevance and explains fit. Always open the source record before applying.
+      <div className="mb-5 flex max-w-3xl items-start gap-3 rounded-xl border border-border bg-secondary/25 px-4 py-3">
+        <ShieldCheck size={13} className="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <p className="text-[11px] leading-5 text-muted-foreground">
+          Titles, agencies, deadlines, amounts and eligibility text come from the retrieved official record when supplied. Always open the source notice before deciding whether to apply.
         </p>
       </div>
 
-      {/* Search */}
-      <form onSubmit={e => { e.preventDefault(); handleSearch(); }} className="relative max-w-2xl mb-4">
-        <Sparkles size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" />
-        <input
-          type="text"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Describe your research area or project goal..."
-          aria-label="Funding search"
-          className="w-full h-12 pl-11 pr-36 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition-all"
-        />
+      {projects.length > 0 && (
+        <label className="mb-5 block max-w-sm">
+          <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Save destination</span>
+          <select
+            value={selectedProjectId}
+            onChange={event => setSelectedProjectId(event.target.value)}
+            className="h-10 w-full rounded-xl border border-border bg-card px-3 text-xs text-foreground outline-none focus:border-primary/40"
+          >
+            <option value="">Library only</option>
+            {projects.map(project => <option key={project.id} value={project.id}>{project.title}</option>)}
+          </select>
+          <span className="mt-1 block text-[10px] text-muted-foreground">Choose a project before saving if this opportunity belongs to that research workspace.</span>
+        </label>
+      )}
+
+      <form
+        onSubmit={event => {
+          event.preventDefault();
+          handleSearch();
+        }}
+        className="mb-4 flex max-w-3xl flex-col gap-2 sm:flex-row"
+      >
+        <label className="relative block min-w-0 flex-1">
+          <span className="sr-only">Search funding opportunities</span>
+          <Search size={15} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <input
+            type="search"
+            value={query}
+            onChange={event => setQuery(event.target.value)}
+            placeholder="Research area, project goal or funding need…"
+            className="h-12 w-full rounded-xl border border-border bg-card pl-11 pr-4 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/40"
+          />
+        </label>
         <button
           type="submit"
           disabled={!query.trim() || loading}
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg eyra-gradient text-white text-sm font-semibold disabled:opacity-40 transition-opacity flex items-center gap-2"
+          className="min-h-12 rounded-xl bg-foreground px-5 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {loading && <Loader2 size={13} className="animate-spin" />}
-          Find
+          {loading ? 'Searching…' : 'Find funding'}
         </button>
       </form>
 
-      {/* Quick search chips */}
       {!hasSearched && (
-        <div className="flex flex-wrap gap-2 mb-8">
-          {QUICK_SEARCHES.map(qs => (
+        <div className="mb-8 flex flex-wrap gap-2">
+          {QUICK_SEARCHES.map(item => (
             <button
-              key={qs}
-              onClick={() => handleSearch(qs)}
-              className="px-3 py-1.5 rounded-full border border-border/60 bg-secondary/40 text-xs text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all"
+              key={item}
+              type="button"
+              onClick={() => handleSearch(item)}
+              className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
             >
-              {qs}
+              {item}
             </button>
           ))}
         </div>
       )}
 
       {searchError && (
-        <div role="alert" className="mb-5 max-w-2xl rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
-          {searchError}
+        <div role="alert" className="mb-6 max-w-3xl rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs leading-5 text-destructive">
+          Funding search could not complete: {searchError}
         </div>
       )}
 
-      {rankingError && (
-        <div role="status" className="mb-5 max-w-2xl rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-300">
-          {rankingError}
+      {rankingNotice && (
+        <div role="status" className="mb-6 max-w-3xl rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs leading-5 text-amber-200">
+          {rankingNotice}
         </div>
       )}
 
       {sourceMeta && !loading && (
-        <div className="mb-5 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
-          <span className="rounded-full border border-green-500/20 bg-green-500/5 px-2 py-1 text-green-300">
-            {results.length} verified records
-          </span>
+        <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+          <span>{results.length} official records</span>
           <span>Source: {sourceMeta.source}</span>
           <span>Retrieved {new Date(sourceMeta.retrieved_at).toLocaleString()}</span>
         </div>
       )}
 
-      {loading && (
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-12 h-12 rounded-full eyra-gradient flex items-center justify-center mb-4 animate-pulse-glow">
-            <Sparkles size={20} className="text-white" />
-          </div>
-          <p className="text-sm font-medium text-foreground">Searching the official funding database...</p>
-          <p className="text-xs text-muted-foreground mt-1">Retrieving active records, then EYRA ranks their relevance</p>
-        </div>
-      )}
+      {loading && <FundingSkeleton />}
 
       {!loading && hasSearched && results.length > 0 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          {/* Category filter */}
-          <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-1">
-            {CATEGORIES.map(c => (
+          <div className="mb-5 flex items-center gap-1 overflow-x-auto border-b border-border pb-4">
+            {CATEGORIES.map(category => (
               <button
-                key={c.key}
-                onClick={() => setActiveCategory(c.key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                  activeCategory === c.key
-                    ? 'bg-primary/15 text-primary border border-primary/30'
-                    : 'text-muted-foreground hover:text-foreground border border-transparent hover:border-border'
+                key={category.key}
+                type="button"
+                onClick={() => setActiveCategory(category.key)}
+                className={`min-h-9 whitespace-nowrap rounded-lg px-3 text-xs font-semibold transition-colors ${
+                  activeCategory === category.key
+                    ? 'bg-foreground text-background'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                 }`}
               >
-                {c.label}
-                {c.key !== 'all' && (
-                  <span className="ml-1.5 opacity-50">{results.filter(r => r.type === c.key).length}</span>
+                {category.label}
+                {category.key !== 'all' && (
+                  <span className="ml-1 opacity-60">{results.filter(item => item.type === category.key).length}</span>
                 )}
               </button>
             ))}
           </div>
 
-          <div className="space-y-3">
-            {filteredResults.map((opp, i) => {
-              const config = TYPE_CONFIG[opp.type] || TYPE_CONFIG.call;
-              const Icon = config.icon;
-              return (
-                <div key={opp.id || i} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase ${config.color}`}>
-                          <Icon size={9} /> {config.label}
-                        </span>
-                        {Number.isFinite(opp.match_score) && (
-                          <span className="text-[10px] font-semibold text-primary">{Math.round(opp.match_score)}/100 relevance</span>
-                        )}
-                        {opp.difficulty && (
-                          <span className={`text-[10px] font-medium ${difficultyColor[opp.difficulty] || 'text-muted-foreground'}`}>
-                            {opp.difficulty} difficulty
+          {filteredResults.length ? (
+            <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+              {filteredResults.map((opportunity, index) => {
+                const config = TYPE_CONFIG[opportunity.type] || TYPE_CONFIG.call;
+                const Icon = config.icon;
+                const stableId = opportunity.source_url || opportunity.id || opportunity.title || index;
+                const saving = savingIds.has(stableId);
+                const saved = savedIds.has(stableId);
+                const relevance = String(opportunity.relevance_band || 'unranked').toLowerCase();
+
+                return (
+                  <article key={stableId} className="p-5 sm:p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-1 text-[10px] font-semibold text-muted-foreground">
+                            <Icon size={9} aria-hidden="true" /> {config.label}
                           </span>
+                          <span
+                            title="EYRA qualitative relevance to your query, not a probability of success."
+                            className={`rounded-md border px-2 py-1 text-[10px] font-semibold ${RELEVANCE_STYLE[relevance] || RELEVANCE_STYLE.unranked}`}
+                          >
+                            {FUNDING_RELEVANCE_LABELS[relevance] || FUNDING_RELEVANCE_LABELS.unranked}
+                          </span>
+                          {opportunity.application_complexity && (
+                            <span
+                              title="EYRA estimate based only on the retrieved record."
+                              className="text-[10px] text-muted-foreground"
+                            >
+                              Application complexity: {opportunity.application_complexity}
+                            </span>
+                          )}
+                        </div>
+
+                        <h2 className="text-sm font-semibold leading-6 text-foreground">{opportunity.title}</h2>
+                        {opportunity.agency && <p className="mt-1 text-xs text-muted-foreground">{opportunity.agency}</p>}
+                        <p className="mt-2 line-clamp-3 text-xs leading-5 text-muted-foreground">
+                          {opportunity.description || 'Open the official record for the full announcement.'}
+                        </p>
+
+                        {opportunity.match_reason && (
+                          <div className="mt-3 border-l-2 border-primary/30 pl-3">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">EYRA relevance note</p>
+                            <p className="mt-1 text-xs leading-5 text-muted-foreground">{opportunity.match_reason}</p>
+                          </div>
                         )}
+
+                        <dl className="mt-4 grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
+                          <div>
+                            <dt className="text-[10px] uppercase tracking-wide">Deadline</dt>
+                            <dd className="mt-0.5 text-foreground">{opportunity.deadline || 'Not supplied'}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-[10px] uppercase tracking-wide">Amount</dt>
+                            <dd className="mt-0.5 text-foreground">{opportunity.amount || 'Not supplied'}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-[10px] uppercase tracking-wide">Eligibility</dt>
+                            <dd className="mt-0.5 line-clamp-2 text-foreground">{opportunity.eligibility || 'Verify official notice'}</dd>
+                          </div>
+                        </dl>
                       </div>
-                      <h4 className="font-semibold text-sm text-foreground mb-1">{opp.title}</h4>
-                      <p className="text-xs text-muted-foreground leading-relaxed mb-2">{opp.description || 'Open the official record for the full announcement.'}</p>
-                      {opp.match_reason && <p className="text-[11px] text-primary/90 mb-3"><span className="font-semibold">EYRA fit:</span> {opp.match_reason}</p>}
-                      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
-                        {opp.eligibility && (
-                          <span><span className="font-medium text-foreground">Eligible:</span> {opp.eligibility}</span>
-                        )}
-                        {opp.typical_amount && (
-                          <span className="text-primary font-semibold">{opp.typical_amount}</span>
-                        )}
-                        {opp.deadline && (
-                          <span><span className="font-medium text-foreground">Deadline:</span> {opp.deadline}</span>
+
+                      <div className="flex shrink-0 gap-1">
+                        <button
+                          type="button"
+                          onClick={() => saveOpportunity(opportunity)}
+                          disabled={saving || saved}
+                          aria-label={saved ? `${opportunity.title} saved` : `Save ${opportunity.title} to library`}
+                          className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:cursor-default"
+                        >
+                          {saving
+                            ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-primary" />
+                            : saved
+                              ? <CheckCircle2 size={14} className="text-green-400" aria-hidden="true" />
+                              : <Bookmark size={14} aria-hidden="true" />}
+                        </button>
+                        {opportunity.source_url && (
+                          <a
+                            href={opportunity.source_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Open official source for ${opportunity.title}`}
+                            className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                          >
+                            <ExternalLink size={14} aria-hidden="true" />
+                          </a>
                         )}
                       </div>
                     </div>
-                    <div className="flex flex-col gap-1 flex-shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => saveOpportunity(opp)}
-                        className="p-2.5 rounded-lg hover:bg-secondary transition-colors"
-                        title="Save to library"
-                      >
-                        <Bookmark size={14} className="text-muted-foreground" />
-                      </button>
-                      <a
-                        href={opp.source_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2.5 rounded-lg hover:bg-secondary transition-colors"
-                        title="Open official source"
-                      >
-                        <ExternalLink size={14} className="text-primary" />
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center">
+              <Award size={20} className="mx-auto text-muted-foreground" aria-hidden="true" />
+              <h2 className="mt-4 text-sm font-semibold">No records in this category</h2>
+              <button type="button" onClick={() => setActiveCategory('all')} className="mt-3 text-xs font-semibold text-primary hover:underline">
+                Show all opportunities
+              </button>
+            </div>
+          )}
         </motion.div>
       )}
 
-      {!loading && hasSearched && results.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <Award size={24} className="text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">No opportunities found. Try a different search.</p>
+      {!loading && hasSearched && results.length === 0 && !searchError && (
+        <div className="rounded-2xl border border-dashed border-border px-6 py-14 text-center">
+          <Award size={20} className="mx-auto text-muted-foreground" aria-hidden="true" />
+          <h2 className="mt-4 text-sm font-semibold text-foreground">No official opportunities matched this search</h2>
+          <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-muted-foreground">
+            Try a broader research area, remove a location term, or search for the project outcome rather than the technology name.
+          </p>
         </div>
       )}
 
       {!hasSearched && !loading && (
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          {[
-            { icon: DollarSign, title: 'Research Grants', desc: 'Government and foundation funding for academic research', color: 'text-primary' },
-            { icon: Rocket, title: 'Accelerators', desc: 'Equity + mentorship for early-stage startups and spinouts', color: 'text-green-400' },
-            { icon: Trophy, title: 'Competitions', desc: 'Innovation challenges with prizes and visibility', color: 'text-amber-400' },
-          ].map(c => {
-            const Icon = c.icon;
-            return (
-              <div key={c.title} className="p-5 rounded-xl border border-border bg-card">
-                <Icon size={18} className={`${c.color} mb-3`} />
-                <h4 className="font-semibold text-sm text-foreground mb-1">{c.title}</h4>
-                <p className="text-xs text-muted-foreground leading-relaxed">{c.desc}</p>
-              </div>
-            );
-          })}
-        </div>
+        <section className="mt-8 border-t border-border pt-6">
+          <div className="grid gap-6 sm:grid-cols-3">
+            <div>
+              <h2 className="text-xs font-semibold text-foreground">Official first</h2>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">The source notice remains the authority for status, deadline, amount and eligibility.</p>
+            </div>
+            <div>
+              <h2 className="text-xs font-semibold text-foreground">Relevance, not odds</h2>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">EYRA can organize records by qualitative fit, but it does not estimate the probability of winning.</p>
+            </div>
+            <div>
+              <h2 className="text-xs font-semibold text-foreground">Verify before planning</h2>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">Open the official record before committing partners, budget or application work.</p>
+            </div>
+          </div>
+        </section>
       )}
+    </div>
+  );
+}
+
+function FundingSkeleton() {
+  return (
+    <div className="space-y-3" role="status" aria-live="polite">
+      {Array.from({ length: 5 }, (_, index) => (
+        <div key={index} className="rounded-2xl border border-border bg-card p-5">
+          <div className="h-3 w-24 animate-pulse rounded bg-secondary" />
+          <div className="mt-4 h-4 w-3/4 animate-pulse rounded bg-secondary" />
+          <div className="mt-3 h-3 w-full animate-pulse rounded bg-secondary/70" />
+          <div className="mt-2 h-3 w-4/5 animate-pulse rounded bg-secondary/60" />
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            <div className="h-8 animate-pulse rounded bg-secondary/50" />
+            <div className="h-8 animate-pulse rounded bg-secondary/50" />
+            <div className="h-8 animate-pulse rounded bg-secondary/50" />
+          </div>
+        </div>
+      ))}
+      <span className="sr-only">Searching the official funding source</span>
     </div>
   );
 }

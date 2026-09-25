@@ -45,7 +45,7 @@ export function projectAssociationFilter(projectId) {
   return id ? { project_ids: [id] } : null;
 }
 
-export function buildProjectEvidenceContext(papers = [], researchers = []) {
+export function buildProjectEvidenceContext(papers = [], researchers = [], opportunities = []) {
   const paperLines = papers.slice(0, 12).map((paper, index) => {
     const doi = canonicalDoi(paper?.doi || '');
     const identity = doi ? ` DOI: ${doi}.` : paper?.url ? ` URL: ${paper.url}` : '';
@@ -56,8 +56,14 @@ export function buildProjectEvidenceContext(papers = [], researchers = []) {
     `[SR${index + 1}] ${clean(researcher?.name) || 'Unnamed researcher'} — ${clean(researcher?.institution) || 'institution unavailable'}.${researcher?.profile_url ? ` URL: ${researcher.profile_url}` : ''}`
   );
 
+  const fundingLines = opportunities.slice(0, 8).map((opportunity, index) => {
+    const url = clean(opportunity?.url || opportunity?.source_url);
+    return `[SF${index + 1}] "${clean(opportunity?.title) || 'Untitled opportunity'}" — ${clean(opportunity?.source || opportunity?.agency) || 'source unavailable'}; deadline ${clean(opportunity?.deadline) || 'not supplied'}; amount ${clean(opportunity?.amount) || 'not supplied'}.${url ? ` Official URL: ${url}` : ''}`;
+  });
+
   return {
     papers: paperLines.join('\n') || 'No papers have been saved to this project.',
     researchers: researcherLines.join('\n') || 'No researchers have been saved to this project.',
+    funding: fundingLines.join('\n') || 'No funding opportunities have been saved to this project.',
   };
 }

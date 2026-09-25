@@ -55,10 +55,20 @@ test('project evidence context exposes only supplied saved records and identifie
       institution: 'University',
       profile_url: 'https://openalex.org/A2',
     },
+  ], [
+    {
+      title: 'Verified funding call',
+      source: 'Official funding source',
+      deadline: '2027-01-01',
+      amount: '€1M',
+      url: 'https://example.gov/call',
+    },
   ]);
 
   assert.match(context.papers, /\[S1\]/);
   assert.match(context.papers, /10\.1000\/evidence/);
   assert.match(context.researchers, /\[SR1\]/);
+  assert.match(context.funding, /\[SF1\]/);
+  assert.match(context.funding, /example\.gov\/call/);
   assert.doesNotMatch(context.papers, /invented/i);
 });
