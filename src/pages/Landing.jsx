@@ -17,17 +17,17 @@ const EXAMPLES = [
 const SOURCES = ['OpenAlex', 'arXiv', 'Europe PMC', 'Crossref', 'Semantic Scholar'];
 
 const CAPABILITIES = [
-  { icon: FileSearch, title: 'Discover', text: 'Papers, researchers, institutions.' },
-  { icon: BookOpen, title: 'Organize', text: 'Evidence, projects, decisions.' },
-  { icon: Sparkles, title: 'Decide', text: 'Sourced reasoning with EYRA.' },
-  { icon: Zap, title: 'Deliver', text: 'Grants, briefs, decks, plans.' },
+  { icon: FileSearch, title: 'Find evidence', text: 'Search live scholarly sources, researchers and institutions.' },
+  { icon: BookOpen, title: 'Build context', text: 'Save the papers, people and opportunities that matter.' },
+  { icon: Sparkles, title: 'Reason with EYRA', text: 'Ask questions over your research context without hiding uncertainty.' },
+  { icon: Zap, title: 'Take action', text: 'Turn evidence into projects, funding decisions and working outputs.' },
 ];
 
 const START_ACTIONS = [
-  { icon: Search, label: 'Search evidence', href: '/discover' },
-  { icon: Users, label: 'Find expertise', href: '/discover' },
-  { icon: FolderKanban, label: 'Create a workspace', href: '/register' },
-  { icon: Sparkles, label: 'Work with EYRA', href: '/register' },
+  { icon: Search, label: 'Search the literature', href: '/discover' },
+  { icon: Users, label: 'Find researchers', href: '/discover' },
+  { icon: Zap, label: 'Find funding', href: '/register' },
+  { icon: FolderKanban, label: 'Create a research workspace', href: '/register' },
 ];
 
 export default function Landing() {
@@ -59,11 +59,11 @@ export default function Landing() {
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-300">Research intelligence workspace</p>
             <h1 className="mt-6 max-w-4xl font-heading text-6xl font-semibold leading-[0.96] tracking-[-0.065em] text-white sm:text-8xl">
-              Find the signal.
-              <span className="block text-slate-500">Make the move.</span>
+              Research anything.
+              <span className="block text-slate-500">Find the evidence. Decide what to do next.</span>
             </h1>
             <p className="mt-7 max-w-xl text-base leading-7 text-slate-400 sm:text-lg">
-              EYLO connects live research, your work and EYRA into one decisive flow.
+              EYLO brings scholarly discovery, saved evidence, projects and EYRA into one research workflow — from question to next action.
             </p>
 
             <form onSubmit={explore} className="mt-9 max-w-3xl rounded-2xl border border-white/10 bg-white/[0.035] p-2 shadow-2xl shadow-black/30">
@@ -75,7 +75,7 @@ export default function Landing() {
                     id="research-question"
                     value={question}
                     onChange={event => setQuestion(event.target.value)}
-                    placeholder="Ask a real question…"
+                    placeholder="What are you researching?"
                     className="min-w-0 flex-1 bg-transparent px-3 py-3.5 text-base text-white outline-none placeholder:text-slate-600"
                   />
                 </div>
@@ -121,7 +121,7 @@ export default function Landing() {
         <div className="mx-auto max-w-7xl">
           <div className="max-w-2xl">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">What EYLO does</p>
-            <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.045em] text-white sm:text-6xl">Question to outcome.</h2>
+            <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.045em] text-white sm:text-6xl">Question → evidence → action.</h2>
           </div>
           <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.08] sm:grid-cols-2 lg:grid-cols-4">
             {CAPABILITIES.map(({ icon: Icon, title, text }) => (
@@ -152,8 +152,8 @@ export default function Landing() {
 
       <section className="px-5 py-20 text-center sm:px-8 sm:py-28">
         <div className="mx-auto max-w-3xl">
-          <h2 className="font-heading text-4xl font-semibold tracking-[-0.045em] text-white sm:text-6xl">Do the work.</h2>
-          <p className="mx-auto mt-4 max-w-lg text-sm text-slate-500">Start public. Save when it matters.</p>
+          <h2 className="font-heading text-4xl font-semibold tracking-[-0.045em] text-white sm:text-6xl">Start with the evidence.</h2>
+          <p className="mx-auto mt-4 max-w-lg text-sm text-slate-500">Search publicly. Create a workspace when you want to save, connect and act on what you find.</p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link to="/discover" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950">Explore <ArrowRight size={14} /></Link>
             <Link to="/register" className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold text-white">Create workspace</Link>
