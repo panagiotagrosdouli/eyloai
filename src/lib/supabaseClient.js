@@ -36,9 +36,10 @@ export const supabase = isSupabaseConfigured
 
 export function requireSupabase() {
   if (!supabase) {
-    const error = new Error('Authentication service is not configured.');
-    error.code = 'SUPABASE_CONFIGURATION_ERROR';
-    throw error;
+    throw Object.assign(
+      new Error('Authentication service is not configured.'),
+      { code: 'SUPABASE_CONFIGURATION_ERROR' },
+    );
   }
 
   return supabase;
