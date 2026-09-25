@@ -85,7 +85,14 @@ export default function Home() {
   if (state === 'results') {
     return (
       <div>
-        <SearchHeroCompact onSearch={handleSearch} currentQuery={currentQuery} onBack={() => setState('dashboard')} />
+        <SearchHeroCompact
+          onSearch={handleSearch}
+          currentQuery={currentQuery}
+          onBack={() => {
+            setTargetProjectId('');
+            setState('dashboard');
+          }}
+        />
         <DiscoveryResults results={results} onNewSearch={handleSearch} targetProjectId={targetProjectId} />
       </div>
     );
