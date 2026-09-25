@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, BookOpen, ChevronRight, FolderOpen, Loader2, Plus,
+  ArrowRight, BookOpen, ChevronRight, FolderOpen, Plus,
   Users, Zap,
 } from 'lucide-react';
 import { buildUserProfile } from '@/lib/second-brain';
@@ -106,28 +106,22 @@ export default function EyraHome({ onSearch }) {
   return (
     <div className="min-h-[calc(100vh-5rem)]">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
-        <header className="mb-8 flex flex-wrap items-start justify-between gap-5">
+        <header className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
-            <p className="text-sm font-medium text-foreground">{localGreeting.greeting}</p>
-            <h1 className="mt-2 max-w-3xl font-heading text-3xl font-semibold tracking-tight sm:text-4xl">{localGreeting.question}</h1>
-            <p className="mt-2 text-xs text-muted-foreground">{localGreeting.localTime} in {localGreeting.place} · based on your device time zone</p>
+            <p className="mb-2 text-sm font-medium text-muted-foreground">{localGreeting.greeting}</p>
+            <h1 className="max-w-3xl font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">{localGreeting.question}</h1>
+            <p className="mt-2 text-xs text-muted-foreground">Your workspace is ready for the next research question.</p>
           </div>
-          <div className="flex flex-col items-start gap-2 sm:items-end">
-            <BrandLogo brand="eyra" size="panel" />
-            <ServiceStatus />
-          </div>
+          <ServiceStatus compact />
         </header>
 
-        <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-          <div>
-            <div className="mb-5 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-semibold">What are you researching?</h2>
-                <p className="mt-1 text-xs text-muted-foreground">Search live scholarly sources, then save the evidence you want EYRA to reason over.</p>
-              </div>
-            </div>
-            <GuidedSearch onSearch={onSearch} defaultLevel={defaultLevel} />
+        <section className="rounded-[1.75rem] border border-border bg-card p-5 sm:p-7">
+          <div className="mb-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Research</p>
+            <h2 className="mt-2 text-lg font-semibold text-foreground">What are you researching?</h2>
+            <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">Search live scholarly sources, inspect the evidence, and save what matters into a project.</p>
           </div>
+          <GuidedSearch onSearch={onSearch} defaultLevel={defaultLevel} />
         </section>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.75fr)]">
@@ -138,16 +132,28 @@ export default function EyraHome({ onSearch }) {
             </div>
 
             {!loaded ? (
-              <div className="grid min-h-40 place-items-center rounded-2xl border border-border bg-card" role="status"><Loader2 className="animate-spin text-primary" /><span className="sr-only">Loading workspace</span></div>
+              <div className="space-y-2" role="status" aria-live="polite">
+                {[0, 1, 2].map(item => (
+                  <div key={item} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+                    <span className="h-9 w-9 animate-pulse rounded-xl bg-secondary" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block h-3 w-1/2 animate-pulse rounded bg-secondary" />
+                      <span className="mt-2 block h-2.5 w-1/3 animate-pulse rounded bg-secondary/70" />
+                    </span>
+                  </div>
+                ))}
+                <span className="sr-only">Loading workspace</span>
+              </div>
             ) : activeProjects.length ? (
               <div className="space-y-2">
                 {activeProjects.slice(0, 4).map(project => <ProjectCard key={project.id} project={project} />)}
                 <Link to="/projects" className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-border py-3 text-xs font-medium text-muted-foreground hover:border-primary/30 hover:text-primary"><Plus size={13} />New project</Link>
               </div>
             ) : (
-              <div className="rounded-2xl border border-border bg-card p-6">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-primary"><FolderOpen size={17} /></div>
-                <h3 className="mt-4 font-semibold">No projects yet.</h3>
+              <div className="rounded-2xl border border-dashed border-border p-6">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-muted-foreground"><FolderOpen size={17} /></div>
+                <h3 className="mt-4 text-sm font-semibold">No projects yet</h3>
+                <p className="mt-1 max-w-md text-xs leading-5 text-muted-foreground">Create a workspace around a research question and keep its evidence, notes and next actions together.</p>
                 <Link to="/projects" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-xs font-semibold text-background">Create project <ArrowRight size={12} /></Link>
               </div>
             )}
@@ -167,14 +173,14 @@ export default function EyraHome({ onSearch }) {
           </aside>
         </div>
 
-        <section className="mt-8 flex flex-col justify-between gap-5 rounded-2xl border border-border bg-secondary/25 p-5 sm:flex-row sm:items-center">
+        <section className="mt-8 flex flex-col justify-between gap-5 border-t border-border pt-6 sm:flex-row sm:items-center">
           <div>
             <h2 className="text-sm font-semibold">Reason over your research with EYRA</h2>
-            <p className="mt-1 text-xs text-muted-foreground">Use your saved evidence and project context to challenge assumptions and choose a next action.</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">Use saved evidence and project context to compare findings, challenge assumptions and choose a next action.</p>
           </div>
           <button type="button" disabled={capabilitiesLoading || !capabilities.ai} onClick={() => window.dispatchEvent(new Event('eylo:open-eyra'))}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-xs font-semibold text-background disabled:cursor-not-allowed disabled:opacity-45">
-            Ask EYRA <span className="font-mono text-[9px] opacity-60">⌘K</span>
+            className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card px-4 text-xs font-semibold text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-45">
+            Ask EYRA
           </button>
         </section>
       </div>
