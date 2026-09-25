@@ -34,8 +34,17 @@ export default function MeetingCard({ meeting, onClick }) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className={`p-4 rounded-xl border bg-card cursor-pointer hover:border-primary/30 transition-all group card-glow ${isPast ? 'opacity-70' : 'border-border'}`}
+      onKeyDown={event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick?.();
+        }
+      }}
+      aria-label={`Open meeting ${meeting.title}`}
+      className={`group cursor-pointer rounded-2xl border bg-card p-4 transition-colors hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isPast ? 'border-border opacity-70' : 'border-border'}`}
     >
       <div className="flex items-start gap-3">
         {/* Date block */}
@@ -85,9 +94,10 @@ export default function MeetingCard({ meeting, onClick }) {
               target="_blank"
               rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
-              className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+              aria-label={`Join ${meeting.title}`}
+              className="grid h-9 w-9 place-items-center rounded-lg bg-secondary text-muted-foreground transition-colors hover:text-foreground"
             >
-              <Video size={13} />
+              <Video size={13} aria-hidden="true" />
             </a>
           )}
         </div>

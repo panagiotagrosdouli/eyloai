@@ -139,7 +139,7 @@ export default function Settings() {
       case 'language':
         return (
           <div>
-            <SectionHeader title="Language" desc="EYRA replies, speech recognition, and voice playback use this language. Interface translation is not claimed here." />
+            <SectionHeader title="Language" desc="Used by voice and AI surfaces that read your local EYLO preferences. This setting does not translate the interface." />
             <div className="grid sm:grid-cols-2 gap-2">
               {LANGUAGES.map(lang => (
                 <button
@@ -195,13 +195,13 @@ export default function Settings() {
       case 'ai':
         return (
           <div>
-            <SectionHeader title="AI Preferences" desc="Customize how EYRA thinks, responds, and prioritizes for you." />
+            <SectionHeader title="AI Preferences" desc="Choose how much detail EYRA should return on surfaces that use this local preference." />
             <div className="space-y-3">
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Response Style</p>
               {[
                 { id: 'concise', label: 'Concise', desc: 'Short, direct answers with bullet points' },
                 { id: 'balanced', label: 'Balanced', desc: 'Detailed with clear structure (default)' },
-                { id: 'detailed', label: 'Detailed', desc: 'In-depth analysis with full reasoning' },
+                { id: 'detailed', label: 'Detailed', desc: 'More context, evidence, tradeoffs, and explicit uncertainty' },
               ].map(s => (
                 <button key={s.id} onClick={() => savePrefs({ ai_response_style: s.id })}
                   className={`w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${prefs.ai_response_style === s.id ? 'border-primary bg-primary/5' : 'border-border bg-card hover:border-primary/30'}`}>
@@ -216,10 +216,14 @@ export default function Settings() {
               <div className="mt-6 p-4 rounded-xl border border-border bg-card">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Personalization</p>
-                    <p className="text-xs text-muted-foreground">Allow EYRA to learn from your activity</p>
+                    <p className="text-sm font-semibold text-foreground">Personalization preference</p>
+                    <p className="text-xs text-muted-foreground">Allow EYLO features that support personalization to use your research activity as context. This preference is stored on this device.</p>
                   </div>
                   <button
+                    type="button"
+                    role="switch"
+                    aria-checked={prefs.data_personalization}
+                    aria-label="Use research activity in supported personalization features"
                     onClick={() => savePrefs({ data_personalization: !prefs.data_personalization })}
                     className={`w-10 h-6 rounded-full transition-all ${prefs.data_personalization ? 'bg-primary' : 'bg-border'}`}
                   >
@@ -248,8 +252,8 @@ export default function Settings() {
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-muted-foreground mt-4 flex items-center gap-1.5">
-              <Mic size={11} /> Hold the mic button in any EYRA input to speak. Voice is processed locally.
+            <p className="mt-4 flex items-start gap-1.5 text-[11px] leading-5 text-muted-foreground">
+              <Mic size={11} className="mt-1 shrink-0" aria-hidden="true" /> Speech recognition and playback use browser capabilities and may behave differently across browsers and operating systems.
             </p>
           </div>
         );
@@ -317,10 +321,14 @@ export default function Settings() {
               </div>
               <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card">
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Activity Personalization</p>
-                  <p className="text-xs text-muted-foreground">Use my research history to personalize EYRA</p>
+                  <p className="text-sm font-semibold text-foreground">Activity personalization preference</p>
+                  <p className="text-xs text-muted-foreground">Allow supported EYLO features to use research history as context. The preference itself is stored locally.</p>
                 </div>
                 <button
+                  type="button"
+                  role="switch"
+                  aria-checked={prefs.data_personalization}
+                  aria-label="Use research history in supported personalization features"
                   onClick={() => savePrefs({ data_personalization: !prefs.data_personalization })}
                   className={`w-10 h-6 rounded-full transition-all flex-shrink-0 ${prefs.data_personalization ? 'bg-primary' : 'bg-border'}`}
                 >
@@ -343,8 +351,8 @@ export default function Settings() {
               <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
                 Pricing and availability are loaded from the authenticated billing service. If Stripe is not configured, premium tools remain clearly marked as early access and checkout stays disabled.
               </p>
-              <Link to="/pricing" className="mt-5 inline-flex items-center gap-2 rounded-xl eyra-gradient px-5 py-2.5 text-sm font-semibold text-white">
-                Open plans and billing <ChevronRight size={14} />
+              <Link to="/pricing" className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-xl bg-foreground px-5 text-sm font-semibold text-background">
+                Open plans and billing <ChevronRight size={14} aria-hidden="true" />
               </Link>
               <Link to="/institution" className="ml-3 mt-5 inline-flex items-center gap-2 rounded-xl border border-border px-5 py-2.5 text-sm font-semibold text-foreground">
                 Institution status
@@ -359,10 +367,12 @@ export default function Settings() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="font-heading font-bold text-2xl text-foreground mb-1">Settings</h1>
-      </div>
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+      <header className="mb-8">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Workspace preferences</p>
+        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Settings</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Control local display, voice, notification and personalization preferences. Account entitlements remain server-controlled.</p>
+      </header>
 
       {/* Mobile section picker */}
       <div className="sm:hidden mb-4">

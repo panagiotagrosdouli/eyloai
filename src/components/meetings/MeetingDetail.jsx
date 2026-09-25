@@ -6,6 +6,10 @@ import { useToast } from '@/components/ui/use-toast';
 import MeetingForm from './MeetingForm';
 import ReactMarkdown from 'react-markdown';
 import moment from 'moment';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const TABS = ['Overview', 'EYRA Prep', 'Notes & Debrief'];
 
@@ -17,6 +21,8 @@ export default function MeetingDetail({ meeting, projects, onBack, onSave, onDel
   const [notes, setNotes] = useState(meeting.notes || '');
   const [transcription, setTranscription] = useState(meeting.transcription || '');
   const [savingNotes, setSavingNotes] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
 
   const generatePrep = async () => {
@@ -151,12 +157,36 @@ Be concise and actionable.`,
   })();
 
   const saveNotes = async () => {
+    if (savingNotes) return;
     setSavingNotes(true);
-    await base44.entities.Meeting.update(meeting.id, { notes, transcription });
-    meeting.notes = notes;
-    meeting.transcription = transcription;
-    setSavingNotes(false);
-    toast({ title: 'Notes saved' });
+    try {
+      await base44.entities.Meeting.update(meeting.id, { notes, transcription });
+      meeting.notes = notes;
+      meeting.transcription = transcription;
+      toast({ title: 'Notes saved' });
+      await onUpdate();
+    } catch (error) {
+      toast({
+        title: 'Notes could not be saved',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      await onDelete(meeting.id);
+      setDeleteOpen(false);
+    } catch {
+      // Parent surfaces the destructive error.
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (editing) {
@@ -173,7 +203,7 @@ Be concise and actionable.`,
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
       {/* Back */}
       <button onClick={onBack} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors">
         <ArrowLeft size={14} /> Back to Meetings
@@ -223,26 +253,26 @@ Be concise and actionable.`,
             )}
             {meeting.meeting_link && (
               <a href={meeting.meeting_link} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg eyra-gradient text-white text-xs font-semibold hover:opacity-90 transition-opacity">
-                <Video size={12} /> Join Call
+                className="flex min-h-9 items-center gap-1.5 rounded-lg bg-foreground px-3 text-xs font-semibold text-background transition-opacity hover:opacity-90">
+                <Video size={12} aria-hidden="true" /> Join call
               </a>
             )}
-            <button onClick={() => setEditing(true)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
-              <Edit2 size={13} className="text-muted-foreground" />
+            <button type="button" onClick={() => setEditing(true)} aria-label="Edit meeting" className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground">
+              <Edit2 size={13} aria-hidden="true" />
             </button>
-            <button onClick={() => { if (confirm('Delete this meeting?')) onDelete(meeting.id); }}
-              className="p-2 rounded-lg hover:bg-destructive/10 transition-colors">
-              <Trash2 size={13} className="text-destructive" />
+            <button type="button" onClick={() => setDeleteOpen(true)} aria-label="Delete meeting"
+              className="grid h-9 w-9 place-items-center rounded-lg text-destructive hover:bg-destructive/10">
+              <Trash2 size={13} aria-hidden="true" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border/60 mb-5">
+      <div className="mb-5 flex gap-1 overflow-x-auto border-b border-border pb-4">
         {TABS.map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${tab === t ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
+            className={`min-h-9 whitespace-nowrap rounded-lg px-3 text-xs font-semibold transition-colors ${tab === t ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
             {t}
           </button>
         ))}
@@ -292,32 +322,29 @@ Be concise and actionable.`,
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <img src="/brand/eyra.png" alt="EYRA" className="w-5 h-5 object-contain" />
-              </div>
               <div>
-                <p className="text-sm font-semibold">EYRA Pre-Meeting Brief</p>
-                <p className="text-[10px] text-muted-foreground">Agenda, questions, context & insights</p>
+                <p className="text-sm font-semibold">Pre-meeting evidence brief</p>
+                <p className="text-[10px] text-muted-foreground">EYRA synthesis grounded in the meeting context and retrieved paper records</p>
               </div>
             </div>
             <button
               onClick={generatePrep}
               disabled={loadingPrep}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl eyra-gradient text-white text-xs font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-foreground px-3 text-xs font-semibold text-background disabled:opacity-50"
             >
               <Sparkles size={12} /> {loadingPrep ? 'Generating...' : meeting.eyra_prep ? 'Regenerate' : 'Generate Brief'}
             </button>
           </div>
 
           {loadingPrep && (
-            <div className="p-6 rounded-xl border border-primary/20 bg-primary/5 text-center">
+            <div className="rounded-xl border border-border bg-card p-6 text-center">
               <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-2" />
               <p className="text-xs text-muted-foreground">EYRA is preparing your brief...</p>
             </div>
           )}
 
           {meeting.eyra_prep && !loadingPrep && (
-            <div className="p-5 rounded-xl border border-primary/20 bg-primary/5">
+            <div className="rounded-xl border border-border bg-card p-5">
               <ReactMarkdown className="text-sm prose prose-sm prose-invert max-w-none">{meeting.eyra_prep}</ReactMarkdown>
             </div>
           )}
@@ -361,13 +388,13 @@ Be concise and actionable.`,
               {savingNotes ? 'Saving...' : 'Save Notes'}
             </button>
             <button onClick={generateDebrief} disabled={loadingDebrief}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg eyra-gradient text-white text-xs font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity">
-              <Sparkles size={11} /> {loadingDebrief ? 'Generating...' : 'Generate EYRA Debrief'}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-foreground px-3 text-xs font-semibold text-background disabled:opacity-50">
+              <Sparkles size={11} aria-hidden="true" /> {loadingDebrief ? 'Generating…' : 'Generate debrief'}
             </button>
           </div>
 
           {loadingDebrief && (
-            <div className="p-6 rounded-xl border border-primary/20 bg-primary/5 text-center">
+            <div className="rounded-xl border border-border bg-card p-6 text-center">
               <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-2" />
               <p className="text-xs text-muted-foreground">EYRA is analyzing your meeting...</p>
             </div>
@@ -383,6 +410,30 @@ Be concise and actionable.`,
           )}
         </div>
       )}
+
+      <AlertDialog open={deleteOpen} onOpenChange={open => !deleting && setDeleteOpen(open)}>
+        <AlertDialogContent className="max-w-md rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this meeting?</AlertDialogTitle>
+            <AlertDialogDescription>
+              “{meeting.title}” will be removed from your workspace. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={event => {
+                event.preventDefault();
+                confirmDelete();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? 'Deleting…' : 'Delete meeting'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
