@@ -9,6 +9,10 @@ import ProjectTemplates from '@/components/projects/ProjectTemplates';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import moment from 'moment';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const STATUS_CONFIG = {
   planning: { label: 'Planning', color: 'bg-secondary text-muted-foreground' },
@@ -38,6 +42,8 @@ export default function Projects() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [working, setWorking] = useState(false);
   const [error, setError] = useState('');
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [deletingProject, setDeletingProject] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => { loadProjects(); }, []);
@@ -93,16 +99,22 @@ export default function Projects() {
     setNewTitle(''); setNewGoal(''); setNewMilestones(''); setNewTasks('');
   };
 
-  const deleteProject = async (id, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!window.confirm('Delete this project? This cannot be undone.')) return;
+  const deleteProject = async () => {
+    if (!pendingDelete || deletingProject) return;
+    setDeletingProject(true);
     try {
-      await base44.entities.Project.delete(id);
-      setProjects(prev => prev.filter(p => p.id !== id));
+      await base44.entities.Project.delete(pendingDelete.id);
+      setProjects(previous => previous.filter(project => project.id !== pendingDelete.id));
       toast({ title: 'Project deleted' });
+      setPendingDelete(null);
     } catch (deleteError) {
-      toast({ title: 'Could not delete project', description: deleteError?.message || 'Please try again.', variant: 'destructive' });
+      toast({
+        title: 'Could not delete project',
+        description: deleteError?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeletingProject(false);
     }
   };
 
@@ -113,20 +125,23 @@ export default function Projects() {
   const filtered = filterStatus === 'all' ? projects : projects.filter(p => (p.status || 'planning') === filterStatus);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-8">
+      <header className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
-          <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground mb-1">Projects</h1>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Research workspaces</p>
+          <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Projects</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Keep evidence, decisions, notes and next actions together around a research question.</p>
         </div>
         <button
+          type="button"
           onClick={() => setShowNew(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity flex-shrink-0"
+          className="inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-xl bg-foreground px-4 text-sm font-semibold text-background transition-opacity hover:opacity-90 sm:self-auto"
         >
-          <Plus size={14} /> New
+          <Plus size={14} aria-hidden="true" /> New project
         </button>
-      </div>
+      </header>
 
       {error && <div role="alert" className="mb-5 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-200">{error}</div>}
 
@@ -137,15 +152,15 @@ export default function Projects() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="mb-6 p-6 rounded-2xl border border-primary/20 bg-primary/5"
+            className="mb-8 rounded-2xl border border-border bg-card p-5 sm:p-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-sm flex items-center gap-2">
-                <Sparkles size={14} className="text-primary" />
-                Create a new project
-              </h3>
-              <button onClick={resetForm} className="p-1.5 rounded-lg hover:bg-secondary transition-colors">
-                <X size={14} className="text-muted-foreground" />
+              <div>
+                <h2 className="text-sm font-semibold text-foreground">Create a project</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Start from a question or use a template to structure the workspace.</p>
+              </div>
+              <button type="button" onClick={resetForm} aria-label="Close new project form" className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground">
+                <X size={14} aria-hidden="true" />
               </button>
             </div>
 
@@ -170,14 +185,14 @@ export default function Projects() {
                 onChange={e => setNewTitle(e.target.value)}
                 placeholder="Project title"
                 autoFocus
-                className="w-full h-11 px-4 rounded-xl border border-border bg-secondary/60 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40"
+                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40"
               />
               <textarea
                 value={newGoal}
                 onChange={e => setNewGoal(e.target.value)}
                 placeholder="What is the goal of this project? EYRA will use this to generate intelligence, find funding, and suggest next steps."
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl border border-border bg-secondary/60 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 resize-none"
               />
               {(newMilestones || newTasks) && (
                 <>
@@ -186,14 +201,14 @@ export default function Projects() {
                     onChange={e => setNewMilestones(e.target.value)}
                     placeholder="Milestones..."
                     rows={5}
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-secondary/60 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 resize-none font-mono"
+                    className="w-full px-4 py-3 rounded-xl border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 resize-none font-mono"
                   />
                   <textarea
                     value={newTasks}
                     onChange={e => setNewTasks(e.target.value)}
                     placeholder="Tasks..."
                     rows={5}
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-secondary/60 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 resize-none font-mono"
+                    className="w-full px-4 py-3 rounded-xl border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 resize-none font-mono"
                   />
                 </>
               )}
@@ -201,7 +216,7 @@ export default function Projects() {
                 <button
                   onClick={createProject}
                   disabled={!newTitle.trim() || !newGoal.trim() || working}
-                  className="px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold disabled:opacity-40"
+                  className="min-h-10 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {working ? 'Creating…' : 'Create Project'}
                 </button>
@@ -215,15 +230,15 @@ export default function Projects() {
       </AnimatePresence>
 
       {/* Filter bar */}
-      <div className="flex items-center gap-1.5 mb-6 overflow-x-auto pb-1">
+      <div className="mb-6 flex items-center gap-1 overflow-x-auto border-b border-border pb-4">
         {FILTERS.map(f => (
           <button
             key={f.key}
             onClick={() => setFilterStatus(f.key)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+            className={`flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-xs font-semibold transition-colors ${
               filterStatus === f.key
-                ? 'bg-primary/15 text-primary border border-primary/25'
-                : 'text-muted-foreground hover:text-foreground border border-transparent hover:border-border/50'
+                ? 'bg-foreground text-background'
+                : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
             }`}
           >
             {f.label}
@@ -236,7 +251,7 @@ export default function Projects() {
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-36 rounded-xl bg-secondary/30 animate-pulse" />
+            <div key={i} className="h-40 animate-pulse rounded-2xl border border-border bg-card p-5"><div className="h-3 w-20 rounded bg-secondary" /><div className="mt-5 h-4 w-2/3 rounded bg-secondary" /><div className="mt-3 h-3 w-full rounded bg-secondary/70" /><div className="mt-2 h-3 w-4/5 rounded bg-secondary/60" /></div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -254,7 +269,7 @@ export default function Projects() {
             }
           </p>
           {filterStatus === 'all' && (
-            <button onClick={() => setShowNew(true)} className="mt-5 px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold">
+            <button type="button" onClick={() => setShowNew(true)} className="mt-5 rounded-xl bg-foreground px-5 py-2.5 text-sm font-semibold text-background">
               Create your first project
             </button>
           )}
@@ -266,7 +281,7 @@ export default function Projects() {
             const hasAnalysis = !!p.eyra_analysis;
             return (
               <motion.div key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="group relative">
-                <Link to={`/projects/${p.id}`} className="block p-5 rounded-xl border border-border bg-card hover:border-primary/25 card-glow transition-all">
+                <Link to={`/projects/${p.id}`} className="block min-h-44 rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/30">
                   <div className="flex items-center justify-between mb-3">
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${sc.color}`}>{sc.label}</span>
                     <div className="flex items-center gap-2">
@@ -296,9 +311,14 @@ export default function Projects() {
                   </div>
                 </Link>
                 <button
-                  onClick={(e) => deleteProject(p.id, e)}
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setPendingDelete({ id: p.id, title: p.title });
+                  }}
                   aria-label={`Delete ${p.title}`}
-                  className="absolute top-3.5 right-3.5 p-1.5 rounded-lg hover:bg-destructive/10 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
+                  className="absolute right-3.5 top-3.5 grid h-8 w-8 place-items-center rounded-lg text-muted-foreground opacity-100 transition-colors hover:bg-destructive/10 hover:text-destructive sm:opacity-0 sm:group-hover:opacity-100"
                 >
                   <Trash2 size={12} className="text-destructive/50" />
                 </button>
@@ -308,28 +328,41 @@ export default function Projects() {
         </div>
       )}
 
-      {/* EYRA guidance for new users */}
-      {!loading && projects.length > 0 && projects.length < 3 && (
-        <div className="mt-8 p-5 rounded-2xl border border-border bg-card">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg overflow-hidden bg-white flex-shrink-0">
-              <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-foreground mb-1">EYRA tip</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Open your project and run <span className="text-primary font-medium">EYRA Analysis</span> to get research gaps, collaborator recommendations, funding keywords, and a strategic roadmap.
-              </p>
-              {projects[0] && (
-                <Link to={`/projects/${projects[0].id}`}
-                  className="inline-flex items-center gap-1 mt-2 text-xs text-primary font-medium hover:underline">
-                  Go to {projects[0].title} <ArrowRight size={11} />
-                </Link>
-              )}
-            </div>
+      {!loading && projects.length > 0 && projects.length < 3 && projects[0] && (
+        <div className="mt-8 flex flex-col justify-between gap-4 border-t border-border pt-6 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-xs font-semibold text-foreground">Continue where the evidence lives.</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">Open a project to review its research context, run EYRA and choose the next action.</p>
           </div>
+          <Link to={`/projects/${projects[0].id}`} className="inline-flex items-center gap-2 self-start text-xs font-semibold text-primary hover:underline sm:self-auto">
+            Open {projects[0].title} <ArrowRight size={11} aria-hidden="true" />
+          </Link>
         </div>
       )}
+
+      <AlertDialog open={Boolean(pendingDelete)} onOpenChange={open => !open && !deletingProject && setPendingDelete(null)}>
+        <AlertDialogContent className="max-w-md rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete?.title ? `“${pendingDelete.title}” and its project record will be deleted. This action cannot be undone.` : 'This project will be deleted permanently.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingProject}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={event => {
+                event.preventDefault();
+                deleteProject();
+              }}
+              disabled={deletingProject}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingProject ? 'Deleting…' : 'Delete project'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
