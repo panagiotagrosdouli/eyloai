@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import {
   ArrowLeft, Sparkles, Save, Loader2, FileText, Users, StickyNote, Brain, Clock, Video,
-  Target, RefreshCw, ExternalLink, BookOpen
+  Target, RefreshCw, ExternalLink, BookOpen, Award
 } from 'lucide-react';
 import ProjectMeetings from '@/components/meetings/ProjectMeetings';
 import { motion } from 'framer-motion';
@@ -21,6 +21,7 @@ import { buildProjectEvidenceContext, projectAssociationFilter } from '@/lib/pro
 const TABS = [
   { key: 'overview', label: 'Overview', icon: Target },
   { key: 'evidence', label: 'Evidence', icon: FileText },
+  { key: 'funding', label: 'Funding', icon: Award },
   { key: 'notes', label: 'Notes & Tasks', icon: StickyNote },
   { key: 'meetings', label: 'Meetings', icon: Video },
   { key: 'intelligence', label: 'EYRA Intelligence', icon: Brain },
@@ -44,6 +45,7 @@ export default function ProjectDetail() {
   const [editing, setEditing] = useState(/** @type {any} */ ({}));
   const [savedPapers, setSavedPapers] = useState([]);
   const [savedResearchers, setSavedResearchers] = useState([]);
+  const [savedOpportunities, setSavedOpportunities] = useState([]);
   const [meetings, setMeetings] = useState([]);
   const { toast } = useToast();
 
@@ -53,10 +55,11 @@ export default function ProjectDetail() {
     setLoading(true);
     try {
       const association = projectAssociationFilter(id);
-      const [projectResult, papersResult, researchersResult, meetingsResult] = await Promise.allSettled([
+      const [projectResult, papersResult, researchersResult, opportunitiesResult, meetingsResult] = await Promise.allSettled([
         base44.entities.Project.get(id),
         association ? base44.entities.SavedPaper.filter(association, '-created_date', 100) : Promise.resolve([]),
         association ? base44.entities.SavedResearcher.filter(association, '-created_date', 100) : Promise.resolve([]),
+        association ? base44.entities.SavedOpportunity.filter(association, '-created_date', 100) : Promise.resolve([]),
         base44.entities.Meeting.filter({ project_id: id }, '-date', 20),
       ]);
 
@@ -64,11 +67,13 @@ export default function ProjectDetail() {
       const data = projectResult.value;
       const papers = papersResult.status === 'fulfilled' ? papersResult.value : [];
       const researchers = researchersResult.status === 'fulfilled' ? researchersResult.value : [];
+      const savedFunding = opportunitiesResult.status === 'fulfilled' ? opportunitiesResult.value : [];
       const mtgs = meetingsResult.status === 'fulfilled' ? meetingsResult.value : [];
 
       setProject(data);
       setSavedPapers(papers);
       setSavedResearchers(researchers);
+      setSavedOpportunities(savedFunding);
       setMeetings(mtgs);
       setEditing({
         title: data.title || '',
@@ -80,7 +85,7 @@ export default function ProjectDetail() {
         status: data.status || 'planning',
       });
 
-      const partialFailures = [papersResult, researchersResult, meetingsResult]
+      const partialFailures = [papersResult, researchersResult, opportunitiesResult, meetingsResult]
         .filter(result => result.status === 'rejected').length;
       if (partialFailures) {
         toast({
@@ -134,7 +139,7 @@ export default function ProjectDetail() {
       const papers = papersResult.status === 'fulfilled' ? papersResult.value : [];
       const researchers = researchersResult.status === 'fulfilled' ? researchersResult.value : [];
       const opportunities = fundingResult.status === 'fulfilled' ? fundingResult.value.items : [];
-      const savedContext = buildProjectEvidenceContext(savedPapers, savedResearchers);
+      const savedContext = buildProjectEvidenceContext(savedPapers, savedResearchers, savedOpportunities);
 
       const paperContext = papers.slice(0, 10).map((paper, index) =>
         `[P${index + 1}] "${paper.title}" — ${paper.authors || 'Unknown'} (${paper.year || 'n/a'}), ${paper.cited_by_count || 0} citations, ${paper.source}. URL: ${paper.url}`
@@ -158,6 +163,7 @@ Description: ${editing.description || 'Not provided'}
 Milestones: ${editing.milestones || 'None set'}
 Project papers saved: ${savedPapers.length}
 Project researchers saved: ${savedResearchers.length}
+Project funding records saved: ${savedOpportunities.length}
 Meetings scheduled: ${meetings.length}
 
 PROJECT-SAVED EVIDENCE — PRIMARY CONTEXT:
@@ -165,6 +171,9 @@ ${savedContext.papers}
 
 PROJECT-SAVED RESEARCHERS — PRIMARY CONTEXT:
 ${savedContext.researchers}
+
+PROJECT-SAVED FUNDING — PRIMARY CONTEXT:
+${savedContext.funding}
 
 FRESH VERIFIED SCHOLARLY RECORDS:
 ${paperContext}
@@ -185,8 +194,8 @@ Write a concise, actionable markdown report with:
 
 Rules:
 - Never invent a paper, researcher, grant, deadline, amount, institution, or URL.
-- Treat project-saved evidence [S#] and project-saved researchers [SR#] as the user's primary research context.
-- Specific external claims must cite the supplied IDs, such as [S1], [SR1], [P1], [R2], or [F1].
+- Treat project-saved evidence [S#], project-saved researchers [SR#], and project-saved funding [SF#] as the user's primary research context.
+- Specific external claims must cite the supplied IDs, such as [S1], [SR1], [SF1], [P1], [R2], or [F1].
 - Prefer project-saved evidence when it directly supports the point; use fresh records to expand or update the context.
 - Include the exact supplied URL or DOI for every paper, researcher, or funding record you recommend when one was supplied.
 - Separate source-backed observations from your own strategic inferences.
@@ -200,7 +209,7 @@ Rules:
       setActiveTab('intelligence');
       toast({
         title: 'Sourced analysis complete',
-        description: `${savedPapers.length} saved papers · ${papers.length} fresh papers · ${opportunities.length} official funding records`,
+        description: `${savedPapers.length} saved papers · ${savedOpportunities.length} saved funding records · ${papers.length} fresh papers`,
       });
     } catch (error) {
       toast({
@@ -377,8 +386,8 @@ Rules:
             {[
               { label: 'Papers Saved', value: savedPapers.length, icon: FileText, color: 'text-primary bg-primary/10' },
               { label: 'Researchers', value: savedResearchers.length, icon: Users, color: 'text-accent bg-accent/10' },
+              { label: 'Funding', value: savedOpportunities.length, icon: Award, color: 'text-chart-4 bg-chart-4/10' },
               { label: 'Meetings', value: meetings.length, icon: Video, color: 'text-chart-3 bg-chart-3/10' },
-              { label: 'Upcoming', value: upcomingMeetings.length, icon: Clock, color: 'text-green-400 bg-green-500/10' },
             ].map(s => {
               const Icon = s.icon;
               return (
@@ -516,6 +525,67 @@ Rules:
               </div>
             )}
           </section>
+        </motion.div>
+      )}
+
+      {/* Project Funding */}
+      {activeTab === 'funding' && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+            <div>
+              <h2 className="font-heading text-lg font-semibold">Saved funding</h2>
+              <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">Only opportunities explicitly linked to this project appear here. The official notice remains the authority for eligibility, deadline and amount.</p>
+            </div>
+            <Link
+              to="/opportunities"
+              className="inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-xl border border-border bg-card px-3 text-xs font-semibold text-foreground hover:bg-secondary"
+            >
+              <Award size={13} aria-hidden="true" /> Find funding
+            </Link>
+          </div>
+
+          {savedOpportunities.length ? (
+            <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+              {savedOpportunities.map(opportunity => (
+                <article key={opportunity.id} className="p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-2 flex flex-wrap gap-x-2 gap-y-1 text-[10px] text-muted-foreground">
+                        {opportunity.source && <span>{opportunity.source}</span>}
+                        {opportunity.type && <span>· {opportunity.type}</span>}
+                        {opportunity.deadline && <span>· Deadline {opportunity.deadline}</span>}
+                      </div>
+                      <h3 className="text-sm font-semibold leading-6 text-foreground">{opportunity.title}</h3>
+                      {opportunity.description && <p className="mt-2 line-clamp-3 text-xs leading-5 text-muted-foreground">{opportunity.description}</p>}
+                      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-muted-foreground">
+                        {opportunity.amount && <span>Amount: {opportunity.amount}</span>}
+                        {opportunity.eligibility && <span>Eligibility: {opportunity.eligibility}</span>}
+                        {opportunity.relevance_band && opportunity.relevance_band !== 'unranked' && <span>EYRA relevance: {opportunity.relevance_band}</span>}
+                      </div>
+                    </div>
+                    {opportunity.url && (
+                      <a
+                        href={opportunity.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Open official source for ${opportunity.title}`}
+                        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      >
+                        <ExternalLink size={13} aria-hidden="true" />
+                      </a>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center">
+              <Award size={20} className="mx-auto text-muted-foreground" aria-hidden="true" />
+              <h3 className="mt-4 text-sm font-semibold text-foreground">No funding saved to this project</h3>
+              <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-muted-foreground">Search official opportunities and choose this project as the save destination.</p>
+              <Link to="/opportunities" className="mt-5 inline-flex rounded-lg bg-foreground px-4 py-2.5 text-xs font-semibold text-background">Search funding</Link>
+            </div>
+          )}
         </motion.div>
       )}
 
