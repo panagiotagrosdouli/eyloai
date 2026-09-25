@@ -241,8 +241,17 @@ export default function AppLayout() {
             </button>
           </div>
 
+          <button
+            type="button"
+            onClick={() => setCommandOpen(true)}
+            aria-label="Search EYLO and open commands"
+            className="ml-auto rounded-xl p-2.5 text-muted-foreground hover:bg-secondary hover:text-foreground md:hidden"
+          >
+            <Search size={19} aria-hidden="true" />
+          </button>
+
           <button type="button" onClick={() => setMobileOpen(value => !value)} aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileOpen}
-            className="ml-auto rounded-xl p-2.5 text-muted-foreground hover:bg-secondary hover:text-foreground lg:hidden">
+            className="rounded-xl p-2.5 text-muted-foreground hover:bg-secondary hover:text-foreground lg:hidden">
             {mobileOpen ? <X size={19} /> : <Menu size={19} />}
           </button>
         </div>
