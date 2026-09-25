@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchOpenAlexAuthors } from '@/lib/eyra-api';
-import { Bookmark, ExternalLink, BookOpen, Sparkles, Users, Loader2 } from 'lucide-react';
+import {
+  Bookmark, BookOpen, CheckCircle2, ExternalLink, Search, Users,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -15,148 +17,244 @@ export default function Researchers() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const [savingIds, setSavingIds] = useState(() => new Set());
+  const [savedIds, setSavedIds] = useState(() => new Set());
   const { toast } = useToast();
 
   const handleSearch = async (searchQuery) => {
-    const q = searchQuery || query;
-    if (!q.trim()) return;
+    const q = String(searchQuery || query).trim();
+    if (!q) return;
+
     setQuery(q);
     setLoading(true);
     setHasSearched(true);
+    setSearchError('');
+    setResults([]);
+
     try {
       const data = await searchOpenAlexAuthors(q, 16);
       setResults(data);
-    } catch {
-      toast({ title: 'Search failed', description: 'Could not reach OpenAlex. Please try again.', variant: 'destructive' });
-      setResults([]);
+    } catch (error) {
+      setSearchError(error instanceof Error ? error.message : 'Could not reach OpenAlex.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const saveResearcher = async (r) => {
-    await base44.entities.SavedResearcher.create({
-      name: r.name,
-      institution: r.institution,
-      research_areas: r.research_areas,
-      works_count: r.works_count,
-      citation_count: r.citation_count,
-      profile_url: r.profile_url,
-    });
-    toast({ title: 'Researcher saved to library' });
+  const saveResearcher = async (researcher) => {
+    const stableId = researcher.profile_url || researcher.openalex_id || researcher.id || researcher.name;
+    if (savingIds.has(stableId) || savedIds.has(stableId)) return;
+
+    setSavingIds(previous => new Set([...previous, stableId]));
+    try {
+      const existing = researcher.profile_url
+        ? (await base44.entities.SavedResearcher.filter({ profile_url: researcher.profile_url }, '-created_date', 1))[0]
+        : null;
+
+      const payload = {
+        name: researcher.name,
+        institution: researcher.institution,
+        research_areas: researcher.research_areas,
+        works_count: researcher.works_count,
+        citation_count: researcher.citation_count,
+        profile_url: researcher.profile_url,
+        openalex_id: researcher.openalex_id || researcher.id || '',
+      };
+
+      if (existing) {
+        await base44.entities.SavedResearcher.update(existing.id, payload);
+      } else {
+        await base44.entities.SavedResearcher.create(payload);
+      }
+
+      setSavedIds(previous => new Set([...previous, stableId]));
+      toast({ title: existing ? 'Researcher already in your library' : 'Researcher saved to library' });
+    } catch (error) {
+      toast({
+        title: 'Could not save this researcher',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingIds(previous => {
+        const next = new Set(previous);
+        next.delete(stableId);
+        return next;
+      });
+    }
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="font-heading font-bold text-2xl sm:text-3xl mb-1 text-foreground">Researchers</h1>
-      </div>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <header className="mb-8">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">People & expertise</p>
+        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Researchers</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+          Find researchers by topic, field or name. Profiles come from OpenAlex; publication activity is context, not a signal of availability.
+        </p>
+      </header>
 
-      {/* Search */}
-      <form onSubmit={e => { e.preventDefault(); handleSearch(); }} className="relative max-w-2xl mb-4">
-        <Sparkles size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" />
-        <input
-          type="text"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Search by research field, topic, or name..."
-          className="w-full h-12 pl-11 pr-36 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition-all"
-        />
+      <form
+        onSubmit={event => {
+          event.preventDefault();
+          handleSearch();
+        }}
+        className="mb-4 flex max-w-3xl flex-col gap-2 sm:flex-row"
+      >
+        <label className="relative block min-w-0 flex-1">
+          <span className="sr-only">Search researchers</span>
+          <Search size={15} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <input
+            type="search"
+            value={query}
+            onChange={event => setQuery(event.target.value)}
+            placeholder="Research field, topic, institution or name…"
+            className="h-12 w-full rounded-xl border border-border bg-card pl-11 pr-4 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/40"
+          />
+        </label>
         <button
           type="submit"
           disabled={!query.trim() || loading}
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg eyra-gradient text-white text-sm font-semibold disabled:opacity-40 transition-opacity flex items-center gap-2"
+          className="min-h-12 rounded-xl bg-foreground px-5 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {loading && <Loader2 size={13} className="animate-spin" />}
-          Search
+          {loading ? 'Searching…' : 'Search'}
         </button>
       </form>
 
-      {/* Quick search chips */}
       {!hasSearched && (
-        <div className="flex flex-wrap gap-2 mb-8">
-          {QUICK_SEARCHES.map(qs => (
+        <div className="mb-8 flex flex-wrap gap-2">
+          {QUICK_SEARCHES.map(item => (
             <button
-              key={qs}
-              onClick={() => handleSearch(qs)}
-              className="px-3 py-1.5 rounded-full border border-border/60 bg-secondary/40 text-xs text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all"
+              key={item}
+              type="button"
+              onClick={() => handleSearch(item)}
+              className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
             >
-              {qs}
+              {item}
             </button>
           ))}
         </div>
       )}
 
-      {loading && (
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-10 h-10 rounded-full eyra-gradient flex items-center justify-center mb-3 animate-pulse-glow">
-            <Users size={16} className="text-white" />
-          </div>
-          <p className="text-sm text-muted-foreground">Searching OpenAlex for researchers...</p>
+      {searchError && (
+        <div role="alert" className="mb-6 max-w-3xl rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs leading-5 text-destructive">
+          Researcher search could not complete: {searchError}
         </div>
       )}
 
-      {!loading && hasSearched && results.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <Users size={24} className="text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">No researchers found. Try a different search term.</p>
+      {loading && <ResearcherSkeleton />}
+
+      {!loading && hasSearched && results.length === 0 && !searchError && (
+        <div className="rounded-2xl border border-dashed border-border px-6 py-14 text-center">
+          <Users size={20} className="mx-auto text-muted-foreground" aria-hidden="true" />
+          <h2 className="mt-4 text-sm font-semibold text-foreground">No researchers matched this search</h2>
+          <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-muted-foreground">
+            Try a broader topic, a method name, an institution, or the researcher’s full name.
+          </p>
         </div>
       )}
 
       {!loading && results.length > 0 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <p className="text-xs text-muted-foreground mb-4">{results.length} researchers found via OpenAlex</p>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-muted-foreground">{results.length} researcher records · OpenAlex</p>
+            <p className="text-[10px] text-muted-foreground">Works and citation counts describe indexed activity, not researcher quality.</p>
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2">
-            {results.map((r, i) => (
-              <div key={r.id || i} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-sm text-foreground">{r.name}</h4>
-                    <p className="text-xs text-muted-foreground mt-0.5">{r.institution}</p>
-                    {r.country && <p className="text-[10px] text-muted-foreground/60 mt-0.5">{r.country}</p>}
-                    {r.research_areas && (
-                      <p className="text-xs text-muted-foreground/70 mt-2 line-clamp-2">{r.research_areas}</p>
-                    )}
-                    <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <BookOpen size={11} />
-                        {(r.works_count || 0).toLocaleString()} works
-                      </span>
-                      <span>{(r.citation_count || 0).toLocaleString()} citations</span>
+            {results.map((researcher, index) => {
+              const stableId = researcher.profile_url || researcher.openalex_id || researcher.id || researcher.name || index;
+              const saving = savingIds.has(stableId);
+              const saved = savedIds.has(stableId);
+
+              return (
+                <article key={stableId} className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/30">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-sm font-semibold text-foreground">{researcher.name}</h2>
+                      <p className="mt-1 text-xs text-muted-foreground">{researcher.institution || 'Institution unavailable'}</p>
+                      {researcher.country && <p className="mt-0.5 text-[10px] text-muted-foreground">{researcher.country}</p>}
+                      {researcher.research_areas && (
+                        <p className="mt-3 line-clamp-2 text-xs leading-5 text-muted-foreground">{researcher.research_areas}</p>
+                      )}
+                      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-muted-foreground">
+                        <span className="inline-flex items-center gap-1">
+                          <BookOpen size={10} aria-hidden="true" />
+                          {(researcher.works_count || 0).toLocaleString()} works
+                        </span>
+                        <span>{(researcher.citation_count || 0).toLocaleString()} citations</span>
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 gap-1">
+                      <button
+                        type="button"
+                        onClick={() => saveResearcher(researcher)}
+                        disabled={saving || saved}
+                        aria-label={saved ? `${researcher.name} saved` : `Save ${researcher.name} to library`}
+                        className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:cursor-default"
+                      >
+                        {saving
+                          ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-primary" />
+                          : saved
+                            ? <CheckCircle2 size={14} className="text-green-400" aria-hidden="true" />
+                            : <Bookmark size={14} aria-hidden="true" />}
+                      </button>
+                      {researcher.profile_url && (
+                        <a
+                          href={researcher.profile_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Open ${researcher.name} on OpenAlex`}
+                          className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                        >
+                          <ExternalLink size={14} aria-hidden="true" />
+                        </a>
+                      )}
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1 flex-shrink-0">
-                    <button onClick={() => saveResearcher(r)} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="Save">
-                      <Bookmark size={13} className="text-muted-foreground" />
-                    </button>
-                    {r.profile_url && (
-                      <a href={r.profile_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-secondary transition-colors">
-                        <ExternalLink size={13} className="text-muted-foreground" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+                </article>
+              );
+            })}
           </div>
         </motion.div>
       )}
 
       {!hasSearched && !loading && (
-        <div className="grid gap-3 sm:grid-cols-3 mt-2">
-          {[
-            { title: 'Real Data', desc: 'Researchers sourced directly from OpenAlex — the world\'s largest open research graph', icon: '🔬' },
-            { title: 'Full Profiles', desc: 'View publications, citation counts, institutions, and research areas', icon: '👤' },
-            { title: 'Save & Collaborate', desc: 'Save researchers to your library and add them to projects', icon: '💾' },
-          ].map(c => (
-            <div key={c.title} className="p-5 rounded-xl border border-border bg-card">
-              <div className="text-2xl mb-3">{c.icon}</div>
-              <h4 className="font-semibold text-sm text-foreground mb-1">{c.title}</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">{c.desc}</p>
+        <section className="mt-8 border-t border-border pt-6">
+          <div className="grid gap-6 sm:grid-cols-3">
+            <div>
+              <h2 className="text-xs font-semibold text-foreground">Source</h2>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">Profiles and indexed publication activity come from OpenAlex.</p>
             </div>
-          ))}
-        </div>
+            <div>
+              <h2 className="text-xs font-semibold text-foreground">What to verify</h2>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">Open the profile and inspect recent works before deciding that expertise fits your project.</p>
+            </div>
+            <div>
+              <h2 className="text-xs font-semibold text-foreground">What EYLO does not infer</h2>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">Publication activity does not imply availability, interest in collaboration, or endorsement.</p>
+            </div>
+          </div>
+        </section>
       )}
+    </div>
+  );
+}
+
+function ResearcherSkeleton() {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2" role="status" aria-live="polite">
+      {Array.from({ length: 6 }, (_, index) => (
+        <div key={index} className="rounded-2xl border border-border bg-card p-5">
+          <div className="h-4 w-2/5 animate-pulse rounded bg-secondary" />
+          <div className="mt-2 h-3 w-1/2 animate-pulse rounded bg-secondary/80" />
+          <div className="mt-5 h-3 w-full animate-pulse rounded bg-secondary/60" />
+          <div className="mt-2 h-3 w-4/5 animate-pulse rounded bg-secondary/60" />
+        </div>
+      ))}
+      <span className="sr-only">Searching OpenAlex for researchers</span>
     </div>
   );
 }
