@@ -215,17 +215,28 @@ Rules:
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin" />
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12" role="status" aria-live="polite">
+        <div className="h-3 w-28 animate-pulse rounded bg-secondary" />
+        <div className="mt-8 h-9 w-2/3 animate-pulse rounded bg-secondary" />
+        <div className="mt-3 h-4 w-48 animate-pulse rounded bg-secondary/70" />
+        <div className="mt-8 flex gap-2 border-b border-border pb-4">
+          {[0, 1, 2, 3].map(item => <div key={item} className="h-9 w-24 animate-pulse rounded-lg bg-secondary/60" />)}
+        </div>
+        <div className="mt-6 grid gap-3 sm:grid-cols-4">
+          {[0, 1, 2, 3].map(item => <div key={item} className="h-28 animate-pulse rounded-2xl border border-border bg-card" />)}
+        </div>
+        <span className="sr-only">Loading project workspace</span>
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-        <p className="text-muted-foreground">Project not found</p>
-        <Link to="/projects" className="text-sm text-primary hover:underline mt-2 inline-block">Back to projects</Link>
+      <div className="mx-auto max-w-xl px-4 py-24 text-center">
+        <FileText size={22} className="mx-auto text-muted-foreground" aria-hidden="true" />
+        <h1 className="mt-4 text-lg font-semibold text-foreground">Project unavailable</h1>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">This project could not be loaded or is no longer available to this account.</p>
+        <Link to="/projects" className="mt-5 inline-flex rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background">Back to projects</Link>
       </div>
     );
   }
@@ -235,23 +246,25 @@ Rules:
   const twinReport = project.twin_report ? (() => { try { return JSON.parse(project.twin_report); } catch { return null; } })() : null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
       <Link to="/projects" className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mb-6 group">
         <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
         Back to projects
       </Link>
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div className="flex-1">
+      <header className="mb-7 flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
+        <div className="min-w-0 flex-1">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Research workspace</p>
           <input
             type="text"
             value={editing.title}
             onChange={e => setEditing(prev => ({ ...prev, title: e.target.value }))}
-            className="w-full text-2xl sm:text-3xl font-heading font-bold bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground"
+            aria-label="Project title"
+            className="w-full bg-transparent font-heading text-2xl font-semibold tracking-tight text-foreground outline-none placeholder:text-muted-foreground sm:text-3xl"
             placeholder="Project title"
           />
-          <div className="flex items-center gap-3 mt-2">
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <select
               value={editing.status}
               onChange={e => setEditing(prev => ({ ...prev, status: e.target.value }))}
@@ -266,38 +279,40 @@ Rules:
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
           <button
+            type="button"
             onClick={runEyraAnalysis}
             disabled={analyzing}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
+            className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-foreground px-4 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-60 sm:flex-none"
           >
-            {analyzing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
-            {analyzing ? 'Analyzing...' : 'Run EYRA'}
+            {analyzing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} aria-hidden="true" />}
+            {analyzing ? 'Refreshing…' : project.eyra_analysis ? 'Refresh evidence brief' : 'Build evidence brief'}
           </button>
           <button
+            type="button"
             onClick={saveProject}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-card text-sm font-medium hover:bg-secondary transition-colors"
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-secondary"
           >
-            {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+            {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} aria-hidden="true" />}
             Save
           </button>
         </div>
-      </div>
+      </header>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-border/60 mb-6 overflow-x-auto">
+      <div className="mb-7 flex items-center gap-1 overflow-x-auto border-b border-border pb-4">
         {TABS.map(tab => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-9 items-center gap-2 whitespace-nowrap rounded-lg px-3 text-xs font-semibold transition-colors ${
                 activeTab === tab.key
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                  ? 'bg-foreground text-background'
+                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
               <Icon size={13} />
@@ -317,57 +332,45 @@ Rules:
       {activeTab === 'overview' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
 
-          {/* EYRA Next Action banner */}
-          <div className="p-4 rounded-xl border border-primary/25 bg-primary/5 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg overflow-hidden bg-white flex-shrink-0">
-              <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
-            </div>
-            <div className="flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-0.5">EYRA recommends</p>
+          <section className="flex flex-col justify-between gap-4 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Next action</p>
               {!project.eyra_analysis ? (
                 <>
-                  <p className="text-xs font-semibold text-foreground mb-1">Run sourced analysis to unlock intelligence</p>
-                  <p className="text-[10px] text-muted-foreground mb-2">Search connected scholarly and official funding sources, then build an evidence-linked roadmap.</p>
-                  <button onClick={runEyraAnalysis} disabled={analyzing}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg eyra-gradient text-white text-xs font-semibold">
-                    {analyzing ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
-                    {analyzing ? 'Analyzing...' : 'Run sourced analysis'}
-                  </button>
+                  <p className="mt-2 text-sm font-semibold text-foreground">Build a sourced evidence brief</p>
+                  <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">Combine this project’s saved evidence with fresh scholarly and official funding records. EYRA interpretation remains separate from retrieved sources.</p>
                 </>
               ) : twinReport ? (
                 <>
-                  <p className="text-xs font-semibold text-foreground mb-1">{twinReport.next_action}</p>
-                  <p className="text-[10px] text-muted-foreground mb-2">Project health: <span className={twinReport.overall_health === 'Strong' || twinReport.overall_health === 'Good' ? 'text-green-400' : 'text-amber-400'}>{twinReport.overall_health} · {twinReport.health_score}/100</span></p>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { label: 'View full intelligence', key: 'intelligence' },
-                      { label: 'Schedule meeting', key: 'meetings' },
-                    ].map(item => (
-                      <button key={item.key} onClick={() => setActiveTab(item.key)}
-                        className="px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-xs font-medium text-primary hover:bg-primary/20 transition-colors">
-                        {item.label} →
-                      </button>
-                    ))}
-                  </div>
+                  <p className="mt-2 text-sm font-semibold text-foreground">{twinReport.next_action || 'Review the latest project intelligence.'}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Project assessment: {twinReport.overall_health || 'available'} · qualitative planning signal, not a measured probability.</p>
                 </>
               ) : (
                 <>
-                  <p className="text-xs font-semibold text-foreground mb-2">What to do next:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { label: 'View EYRA insights', key: 'intelligence' },
-                      { label: 'Schedule a meeting', key: 'meetings' },
-                    ].map(item => (
-                      <button key={item.key} onClick={() => setActiveTab(item.key)}
-                        className="px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-xs font-medium text-primary hover:bg-primary/20 transition-colors">
-                        {item.label} →
-                      </button>
-                    ))}
-                  </div>
+                  <p className="mt-2 text-sm font-semibold text-foreground">Review the current evidence brief</p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">Use the intelligence tab to inspect findings, assumptions and next steps.</p>
                 </>
               )}
             </div>
-          </div>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {!project.eyra_analysis ? (
+                <button type="button" onClick={runEyraAnalysis} disabled={analyzing}
+                  className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-foreground px-3 text-xs font-semibold text-background disabled:opacity-50">
+                  {analyzing ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} aria-hidden="true" />}
+                  {analyzing ? 'Building…' : 'Build brief'}
+                </button>
+              ) : (
+                <button type="button" onClick={() => setActiveTab('intelligence')}
+                  className="min-h-9 rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-secondary">
+                  View intelligence
+                </button>
+              )}
+              <button type="button" onClick={() => setActiveTab('meetings')}
+                className="min-h-9 rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-secondary">
+                Meetings
+              </button>
+            </div>
+          </section>
 
           {/* Project Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
