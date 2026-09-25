@@ -84,7 +84,7 @@ function buildProviderUrl(provider, query, limit, sort) {
     const params = new URLSearchParams({
       query,
       rows: String(limit),
-      select: 'DOI,title,author,abstract,published,container-title,is-referenced-by-count,URL',
+      select: 'DOI,title,author,abstract,published,published-online,published-print,container-title,type,publisher,volume,issue,page,is-referenced-by-count,URL',
     });
     if (email) params.set('mailto', email);
     if (sort === 'recent') {
@@ -97,7 +97,7 @@ function buildProviderUrl(provider, query, limit, sort) {
   if (provider === 'semantic_scholar') {
     const fields = [
       'paperId', 'title', 'authors', 'year', 'abstract', 'url', 'venue',
-      'citationCount', 'openAccessPdf', 'externalIds', 'publicationDate',
+      'citationCount', 'openAccessPdf', 'externalIds', 'publicationDate', 'publicationTypes',
     ].join(',');
     const params = new URLSearchParams({
       query,
