@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import {
@@ -44,6 +45,12 @@ export default function Opportunities() {
   const [searchError, setSearchError] = useState('');
   const [rankingError, setRankingError] = useState('');
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const term = searchParams.get('q');
+    if (term) handleSearch(term);
+  }, [searchParams]);
 
   const handleSearch = async (searchQuery) => {
     const q = searchQuery || query;
@@ -140,7 +147,14 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
         title: opp.title,
         type: opp.type,
         description: opp.description,
+        source: opp.source || sourceMeta?.source,
+        source_id: opp.source_id || opp.id,
+        url: opp.source_url || opp.url,
+        agency: opp.agency,
+        eligibility: opp.eligibility,
         deadline: opp.deadline,
+        amount: opp.amount,
+        status: opp.status,
       });
       toast({ title: 'Opportunity saved to library' });
     } catch (error) {

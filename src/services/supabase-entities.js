@@ -1,77 +1,20 @@
 import { getBillingStatus } from '@/lib/billing';
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 import { recordActivation, trackEyraFollowthrough } from '@/lib/product-analytics';
+import { applyEntityFilters, rowToEntity, splitPayload } from './entity-serialization';
 
 const ENTITY_SCHEMAS = {
-  Project: {
-    table: 'projects',
-    columns: ['title', 'goal', 'description', 'milestones', 'tasks', 'notes', 'status', 'eyra_analysis', 'twin_report'],
-  },
-  Idea: {
-    table: 'ideas',
-    columns: ['title', 'description', 'status', 'eyra_notes'],
-  },
-  Meeting: {
-    table: 'meetings',
-    columns: [
-      'project_id', 'project_title', 'title', 'call_type', 'date', 'time',
-      'duration_minutes', 'participants', 'agenda', 'meeting_link', 'notes',
-      'status', 'eyra_prep', 'transcription',
-    ],
-  },
-  SavedPaper: {
-    table: 'saved_papers',
-    columns: ['title', 'authors', 'summary', 'year', 'source', 'url'],
-  },
-  SavedResearcher: {
-    table: 'saved_researchers',
-    columns: ['name', 'institution', 'research_areas', 'works_count', 'citation_count', 'profile_url'],
-  },
-  SavedOpportunity: {
-    table: 'saved_opportunities',
-    columns: ['title', 'type', 'description', 'source', 'url'],
-  },
-  SearchHistory: {
-    table: 'search_history',
-    columns: ['query', 'results_summary'],
-  },
-  Watchlist: { table: 'watchlists', columns: [] },
-  MonitoringDiscovery: { table: 'monitoring_discoveries', columns: [] },
-  Notification: { table: 'notifications', columns: [] },
+  Project: { table: 'projects' },
+  Idea: { table: 'ideas' },
+  Meeting: { table: 'meetings' },
+  SavedPaper: { table: 'saved_papers' },
+  SavedResearcher: { table: 'saved_researchers' },
+  SavedOpportunity: { table: 'saved_opportunities' },
+  SearchHistory: { table: 'search_history' },
+  Watchlist: { table: 'watchlists' },
+  MonitoringDiscovery: { table: 'monitoring_discoveries' },
+  Notification: { table: 'notifications' },
 };
-
-const RESERVED_FIELDS = new Set([
-  'id', 'user_id', 'created_at', 'updated_at', 'created_date', 'updated_date', 'data',
-]);
-
-function rowToEntity(row) {
-  if (!row) return null;
-  const {
-    id, user_id: _userId, created_at: createdAt, updated_at: updatedAt,
-    created_date: createdDate, updated_date: updatedDate, data, ...columns
-  } = row;
-  return {
-    ...(data && typeof data === 'object' && !Array.isArray(data) ? data : {}),
-    ...columns,
-    id,
-    created_date: createdDate || createdAt || '',
-    updated_date: updatedDate || updatedAt || createdDate || createdAt || '',
-  };
-}
-
-function splitPayload(payload = {}, columns = []) {
-  const nativeColumns = new Set(columns);
-  const row = {};
-  const extras = {};
-
-  Object.entries(payload || {}).forEach(([field, value]) => {
-    if (value === undefined || RESERVED_FIELDS.has(field)) return;
-    if (nativeColumns.has(field)) row[field] = value;
-    else extras[field] = value;
-  });
-
-  return { ...row, data: extras };
-}
 
 function containsSavedEyraOutput(value = {}) {
   return Boolean(value.eyra_analysis || value.eyra_notes || value.eyra_output);
@@ -134,7 +77,7 @@ async function assertCreateAllowed(table, user) {
   }
 }
 
-function entityRepository({ table, columns }) {
+function entityRepository({ table }) {
   return {
     async list(sort = '-created_date', limit = 100) {
       const { data, error } = await requireSupabase().from(table).select('*').limit(Math.max(limit || 100, 1));
@@ -142,12 +85,8 @@ function entityRepository({ table, columns }) {
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
     },
     async filter(filters = {}, sort = '-created_date', limit = 100) {
-      const nativeColumns = new Set(columns);
-      const nativeFilters = Object.fromEntries(Object.entries(filters).filter(([field]) => nativeColumns.has(field)));
-      const dataFilters = Object.fromEntries(Object.entries(filters).filter(([field]) => !nativeColumns.has(field)));
       let query = requireSupabase().from(table).select('*');
-      Object.entries(nativeFilters).forEach(([field, value]) => { query = query.eq(field, value); });
-      if (Object.keys(dataFilters).length) query = query.contains('data', dataFilters);
+      query = applyEntityFilters(query, filters);
       const { data, error } = await query.limit(Math.max(limit || 100, 1));
       if (error) throw error;
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
@@ -160,7 +99,7 @@ function entityRepository({ table, columns }) {
     async create(payload) {
       const user = await currentUser();
       await assertCreateAllowed(table, user);
-      const write = splitPayload(payload, columns);
+      const write = splitPayload(payload);
       const { data, error } = await requireSupabase().from(table).insert({ user_id: user.id, ...write }).select('*').single();
       if (error) throw error;
       const entity = rowToEntity(data);
@@ -174,7 +113,7 @@ function entityRepository({ table, columns }) {
     async update(entityId, patch) {
       const existing = await this.get(entityId);
       const { id: _id, created_date: _created, updated_date: _updated, ...current } = existing;
-      const write = splitPayload({ ...current, ...patch }, columns);
+      const write = splitPayload({ ...current, ...patch });
       const { data, error } = await requireSupabase().from(table).update(write).eq('id', entityId).select('*').single();
       if (error) throw error;
       if (table === 'projects' && containsSavedEyraOutput(patch)) {
@@ -200,8 +139,8 @@ export const supabaseProfile = {
     const authProfile = pickProfileFields(user.user_metadata || {});
     const { data, error } = await requireSupabase()
       .from('profiles')
-      .select('*')
-      .eq('id', user.id)
+      .select('data')
+      .eq('user_id', user.id)
       .maybeSingle();
 
     if (error) {
@@ -214,11 +153,12 @@ export const supabaseProfile = {
       };
     }
 
+    const storedProfile = pickProfileFields(data?.data || {});
     return {
       id: user.id,
       email: user.email,
-      full_name: data?.full_name || authProfile.full_name || user.user_metadata?.name || '',
-      ...pickProfileFields(data || {}),
+      full_name: storedProfile.full_name || authProfile.full_name || user.user_metadata?.name || '',
+      ...storedProfile,
       ...authProfile,
     };
   },
@@ -228,13 +168,13 @@ export const supabaseProfile = {
     const user = await currentUser();
     const current = await this.me();
     const next = pickProfileFields({ ...current, ...patch });
-    const profileRow = { id: user.id, email: user.email, ...next };
+    const profileRow = { user_id: user.id, data: next };
 
     const [profileWrite, authWrite] = await Promise.all([
       client
         .from('profiles')
-        .upsert(profileRow, { onConflict: 'id' })
-        .select('*')
+        .upsert(profileRow, { onConflict: 'user_id' })
+        .select('data')
         .maybeSingle(),
       client.auth.updateUser({ data: next }),
     ]);
@@ -257,7 +197,7 @@ export const supabaseProfile = {
       id: user.id,
       email: user.email,
       ...next,
-      ...pickProfileFields(profileWrite.data || {}),
+      ...pickProfileFields(profileWrite.data?.data || {}),
       ...pickProfileFields(authWrite.data?.user?.user_metadata || {}),
     };
   },

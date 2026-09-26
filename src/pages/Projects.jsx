@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   Plus, FolderOpen, ChevronRight, Trash2, Sparkles,
-  Clock, X, ArrowRight, LayoutTemplate
+  Clock, X, ArrowRight, LayoutTemplate, Search
 } from 'lucide-react';
 import ProjectTemplates from '@/components/projects/ProjectTemplates';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,6 +36,7 @@ export default function Projects() {
   const [newTasks, setNewTasks] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const [working, setWorking] = useState(false);
   const [error, setError] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
@@ -44,9 +45,12 @@ export default function Projects() {
   useEffect(() => { loadProjects(); }, []);
 
   useEffect(() => {
+    setSearchTerm(searchParams.get('q') || '');
     if (searchParams.get('new') !== '1') return;
     setShowNew(true);
-    setSearchParams({}, { replace: true });
+    const next = new URLSearchParams(searchParams);
+    next.delete('new');
+    setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
 
   const loadProjects = async () => {
@@ -117,7 +121,13 @@ export default function Projects() {
   FILTERS.slice(1).forEach(f => {
     counts[f.key] = projects.filter(p => (p.status || 'planning') === f.key).length;
   });
-  const filtered = filterStatus === 'all' ? projects : projects.filter(p => (p.status || 'planning') === filterStatus);
+  const filtered = projects.filter(project => {
+    const matchesStatus = filterStatus === 'all' || (project.status || 'planning') === filterStatus;
+    const q = searchTerm.trim().toLowerCase();
+    const matchesQuery = !q || [project.title, project.goal, project.description, project.milestones, project.tasks]
+      .some(value => String(value || '').toLowerCase().includes(q));
+    return matchesStatus && matchesQuery;
+  });
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
@@ -133,6 +143,11 @@ export default function Projects() {
         >
           <Plus size={14} /> New
         </button>
+      </div>
+
+      <div className="relative mb-5 max-w-md">
+        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Search projects..." aria-label="Search projects" className="w-full h-10 pl-10 pr-4 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
       </div>
 
       {error && <div role="alert" className="mb-5 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-200">{error}</div>}

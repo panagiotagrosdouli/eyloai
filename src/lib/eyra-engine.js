@@ -169,6 +169,8 @@ export async function runEyraDiscovery(input, onProgress) {
     deadline: item.deadline,
     amount: item.amount,
     agency: item.agency,
+    eligibility: item.eligibility,
+    status: item.status,
     source_id: item.source_id,
   }));
 

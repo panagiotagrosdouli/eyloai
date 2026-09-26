@@ -58,11 +58,16 @@ export default function DiscoveryResults({ results, onNewSearch }) {
   const savePaper = async (paper) => {
     try {
       await base44.entities.SavedPaper.create({
+        source_id: paper.id,
+        doi: paper.doi || '',
         title: paper.title,
         authors: paper.authors,
         summary: paper.summary,
         year: paper.year,
         source: paper.source,
+        source_index: paper.source_index || paper.source,
+        cited_by_count: paper.cited_by_count,
+        open_access: paper.open_access,
         url: paper.url,
       });
       toast({ title: 'Paper saved to library' });
@@ -74,8 +79,11 @@ export default function DiscoveryResults({ results, onNewSearch }) {
   const saveResearcher = async (r) => {
     try {
       await base44.entities.SavedResearcher.create({
+      openalex_id: r.openalex_id || r.id,
+      source: 'OpenAlex',
       name: r.name,
       institution: r.institution,
+      country: r.country,
       research_areas: r.research_areas,
       works_count: r.works_count,
       citation_count: r.citation_count,
@@ -685,15 +693,17 @@ export default function DiscoveryResults({ results, onNewSearch }) {
                       <button
                         onClick={async () => {
                           await base44.entities.SavedOpportunity.create({
+                            source: f.source,
+                            source_id: f.source_id || f.id,
                             title: f.title,
                             type: f.type,
                             description: f.description,
-                            source: f.source,
                             url: f.url,
                             deadline: f.deadline,
                             amount: f.amount,
                             agency: f.agency,
-                            source_id: f.source_id,
+                            eligibility: f.eligibility,
+                            status: f.status,
                           });
                           toast({ title: 'Opportunity saved' });
                         }}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Sparkles, Trash2, Search, FileText, Users, Award,
   Calendar, ArrowRight, RotateCcw, Bookmark
@@ -30,10 +30,17 @@ export default function History() {
   const [opportunities, setOpportunities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('discoveries');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => { loadAll(); }, []);
+  useEffect(() => {
+    const term = searchParams.get('q') || '';
+    setSearchTerm(term);
+    if (term) setActiveTab('discoveries');
+  }, [searchParams]);
 
   const loadAll = async () => {
     setLoading(true);
@@ -71,7 +78,12 @@ export default function History() {
     }
   };
 
-  const savedSearches = searches.filter(search => search.saved);
+  const matchesQuery = (item, fields) => !searchTerm.trim() || fields.some(field => String(item[field] || '').toLowerCase().includes(searchTerm.trim().toLowerCase()));
+  const visibleSearches = searches.filter(search => matchesQuery(search, ['query', 'goal', 'level', 'recency', 'results_summary']));
+  const savedSearches = searches.filter(search => search.saved && matchesQuery(search, ['query', 'goal', 'level', 'recency', 'results_summary']));
+  const visiblePapers = papers.filter(item => matchesQuery(item, ['title', 'authors', 'source', 'summary']));
+  const visibleResearchers = researchers.filter(item => matchesQuery(item, ['name', 'institution', 'research_areas']));
+  const visibleOpportunities = opportunities.filter(item => matchesQuery(item, ['title', 'agency', 'description', 'eligibility']));
 
   const TABS = [
     { key: 'discoveries', label: 'Discoveries', icon: Sparkles, count: searches.length },
@@ -82,7 +94,7 @@ export default function History() {
   ];
 
   // Group searches by date
-  const groupedSearches = searches.reduce((acc, s) => {
+  const groupedSearches = visibleSearches.reduce((acc, s) => {
     const day = moment(s.created_date).calendar(null, {
       sameDay: '[Today]',
       lastDay: '[Yesterday]',
@@ -99,6 +111,11 @@ export default function History() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground">Activity</h1>
+      </div>
+
+      <div className="relative mb-5 max-w-md">
+        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Search activity..." aria-label="Search activity" className="w-full h-10 pl-10 pr-4 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
       </div>
 
       {/* Summary stats */}
@@ -274,7 +291,7 @@ export default function History() {
               <EmptyState icon={FileText} label="No saved papers" sub="Save papers from discovery results" actionLabel="Start Discovering" actionHref="/" />
             ) : (
               <div className="space-y-3">
-                {papers.map(p => (
+                {visiblePapers.map(p => (
                   <div key={p.id} className="p-4 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all">
                     <div className="flex items-start gap-3">
                       <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -302,7 +319,7 @@ export default function History() {
               <EmptyState icon={Users} label="No saved researchers" sub="Save researchers from discovery results" actionLabel="Start Discovering" actionHref="/" />
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
-                {researchers.map(r => (
+                {visibleResearchers.map(r => (
                   <div key={r.id} className="p-4 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all">
                     <h4 className="font-medium text-sm text-foreground">{r.name}</h4>
                     <p className="text-xs text-muted-foreground mt-0.5">{r.institution}</p>
@@ -323,7 +340,7 @@ export default function History() {
               <EmptyState icon={Award} label="No saved opportunities" sub="Save opportunities from discovery results" actionLabel="Browse Opportunities" actionHref="/opportunities" />
             ) : (
               <div className="space-y-3">
-                {opportunities.map(o => (
+                {visibleOpportunities.map(o => (
                   <div key={o.id} className="p-4 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all">
                     <div className="flex items-start gap-3">
                       <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">

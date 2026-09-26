@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { Bookmark, ExternalLink, BookOpen, Sparkles, Users, Loader2 } from 'lucide-react';
@@ -16,6 +17,12 @@ export default function Researchers() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const term = searchParams.get('q');
+    if (term) handleSearch(term);
+  }, [searchParams]);
 
   const handleSearch = async (searchQuery) => {
     const q = searchQuery || query;
@@ -34,15 +41,22 @@ export default function Researchers() {
   };
 
   const saveResearcher = async (r) => {
-    await base44.entities.SavedResearcher.create({
-      name: r.name,
-      institution: r.institution,
-      research_areas: r.research_areas,
-      works_count: r.works_count,
-      citation_count: r.citation_count,
-      profile_url: r.profile_url,
-    });
-    toast({ title: 'Researcher saved to library' });
+    try {
+      await base44.entities.SavedResearcher.create({
+        openalex_id: r.openalex_id || r.id,
+        source: 'OpenAlex',
+        name: r.name,
+        institution: r.institution,
+        country: r.country,
+        research_areas: r.research_areas,
+        works_count: r.works_count,
+        citation_count: r.citation_count,
+        profile_url: r.profile_url,
+      });
+      toast({ title: 'Researcher saved to library' });
+    } catch (error) {
+      toast({ title: 'Could not save researcher', description: error?.message || 'Please try again.', variant: 'destructive' });
+    }
   };
 
   return (

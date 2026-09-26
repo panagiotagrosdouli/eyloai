@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import {
-  ArrowLeft, Sparkles, Save, Loader2, FileText, Users, StickyNote, Brain, Clock, Video,
-  Target, RefreshCw
+  ArrowLeft, Sparkles, Save, Loader2, FileText, Users, Brain, Clock, Video,
+  Target, RefreshCw, Award, ExternalLink
 } from 'lucide-react';
 import ProjectMeetings from '@/components/meetings/ProjectMeetings';
 import { motion } from 'framer-motion';
@@ -12,16 +12,17 @@ import ReactMarkdown from 'react-markdown';
 import moment from 'moment';
 import StartupBuilder from '@/components/projects/StartupBuilder';
 import EyraProjectTwin from '@/components/eyra/EyraProjectTwin';
-import ProjectHealthScore from '@/components/projects/ProjectHealthScore';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
 
 const TABS = [
   { key: 'overview', label: 'Overview', icon: Target },
-  { key: 'notes', label: 'Notes & Tasks', icon: StickyNote },
-  { key: 'meetings', label: 'Meetings', icon: Video },
-  { key: 'intelligence', label: 'EYRA Intelligence', icon: Brain },
+  { key: 'evidence', label: 'Evidence', icon: FileText },
+  { key: 'people', label: 'People', icon: Users },
+  { key: 'funding', label: 'Funding', icon: Award },
+  { key: 'timeline', label: 'Timeline', icon: Clock },
+  { key: 'intelligence', label: 'EYRA', icon: Brain },
 ];
 
 const STATUS_OPTIONS = ['planning', 'active', 'paused', 'completed'];
@@ -42,22 +43,38 @@ export default function ProjectDetail() {
   const [editing, setEditing] = useState(/** @type {any} */ ({}));
   const [savedPapers, setSavedPapers] = useState([]);
   const [savedResearchers, setSavedResearchers] = useState([]);
+  const [savedOpportunities, setSavedOpportunities] = useState([]);
   const [meetings, setMeetings] = useState([]);
+  const [loadError, setLoadError] = useState('');
   const { toast } = useToast();
 
   useEffect(() => { loadAll(); }, [id]);
 
   const loadAll = async () => {
     setLoading(true);
-    const [data, papers, researchers, mtgs] = await Promise.all([
+    setLoadError('');
+    const [projectResult, papersResult, researchersResult, opportunitiesResult, meetingsResult] = await Promise.allSettled([
       base44.entities.Project.get(id),
       base44.entities.SavedPaper.list('-created_date', 100),
       base44.entities.SavedResearcher.list('-created_date', 100),
+      base44.entities.SavedOpportunity.list('-created_date', 100),
       base44.entities.Meeting.filter({ project_id: id }, '-date', 20),
     ]);
+    if (projectResult.status !== 'fulfilled') {
+      setProject(null);
+      setLoadError(projectResult.reason?.message || 'This project could not be loaded.');
+      setLoading(false);
+      return;
+    }
+    const data = projectResult.value;
+    const papers = papersResult.status === 'fulfilled' ? papersResult.value : [];
+    const researchers = researchersResult.status === 'fulfilled' ? researchersResult.value : [];
+    const opportunities = opportunitiesResult.status === 'fulfilled' ? opportunitiesResult.value : [];
+    const mtgs = meetingsResult.status === 'fulfilled' ? meetingsResult.value : [];
     setProject(data);
-    setSavedPapers(papers);
-    setSavedResearchers(researchers);
+    setSavedPapers(papers.filter(item => item.project_id === id));
+    setSavedResearchers(researchers.filter(item => item.project_id === id));
+    setSavedOpportunities(opportunities.filter(item => item.project_id === id));
     setMeetings(mtgs);
     setEditing({
       title: data.title || '',
@@ -68,14 +85,23 @@ export default function ProjectDetail() {
       notes: data.notes || '',
       status: data.status || 'planning',
     });
+    if ([papersResult, researchersResult, opportunitiesResult, meetingsResult].some(result => result.status === 'rejected')) {
+      setLoadError('Some linked research records could not be loaded. The project itself is available.');
+    }
     setLoading(false);
   };
 
   const saveProject = async () => {
     setSaving(true);
-    await base44.entities.Project.update(id, editing);
-    setSaving(false);
-    toast({ title: 'Project saved' });
+    try {
+      const saved = await base44.entities.Project.update(id, editing);
+      setProject(saved);
+      toast({ title: 'Project saved' });
+    } catch (error) {
+      toast({ title: 'Could not save project', description: error?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const runEyraAnalysis = async () => {
@@ -116,8 +142,11 @@ Title: ${editing.title}
 Goal: ${editing.goal}
 Description: ${editing.description || 'Not provided'}
 Milestones: ${editing.milestones || 'None set'}
-Library papers saved: ${savedPapers.length}
-Researchers saved: ${savedResearchers.length}
+
+LINKED WORKSPACE CONTEXT (saved by the user; not freshly verified):
+Papers: ${savedPapers.map((paper, index) => `[SP${index + 1}] ${paper.title} — ${paper.url || 'source URL not saved'}`).join('\n') || 'None linked'}
+Researchers: ${savedResearchers.map((person, index) => `[SR${index + 1}] ${person.name} — ${person.institution || 'institution not saved'} — ${person.profile_url || 'profile URL not saved'}`).join('\n') || 'None linked'}
+Funding records: ${savedOpportunities.map((item, index) => `[SF${index + 1}] ${item.title} — ${item.url || 'official URL not saved'} — deadline ${item.deadline || 'not saved'}`).join('\n') || 'None linked'}
 Meetings scheduled: ${meetings.length}
 
 VERIFIED SCHOLARLY RECORDS:
@@ -140,6 +169,7 @@ Write a concise, actionable markdown report with:
 Rules:
 - Never invent a paper, researcher, grant, deadline, amount, institution, or URL.
 - Specific external claims must cite the supplied IDs, such as [P1], [R2], or [F1].
+- Keep saved workspace context separate from fresh source records; do not cite saved-context IDs as independent verification.
 - Include the exact supplied URL for every paper, researcher, or funding record you recommend.
 - Separate source-backed observations from your own strategic inferences.
 - If the evidence is insufficient, say so directly and recommend a better search query.
@@ -176,7 +206,7 @@ Rules:
   if (!project) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-        <p className="text-muted-foreground">Project not found</p>
+        <p className="text-muted-foreground">{loadError || 'Project not found'}</p>
         <Link to="/projects" className="text-sm text-primary hover:underline mt-2 inline-block">Back to projects</Link>
       </div>
     );
@@ -184,7 +214,7 @@ Rules:
 
   const statusColor = STATUS_COLORS[editing.status] || STATUS_COLORS.planning;
   const upcomingMeetings = meetings.filter(m => moment(m.date).isSameOrAfter(moment(), 'day'));
-  const twinReport = project.twin_report ? (() => { try { return JSON.parse(project.twin_report); } catch { return null; } })() : null;
+  const nextAction = String(editing.tasks || '').split('\n').map(line => line.trim()).find(Boolean);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -238,6 +268,8 @@ Rules:
         </div>
       </div>
 
+      {loadError && <p role="status" className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-amber-200">{loadError}</p>}
+
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-border/60 mb-6 overflow-x-auto">
         {TABS.map(tab => {
@@ -257,7 +289,7 @@ Rules:
               {tab.key === 'intelligence' && project.eyra_analysis && (
                 <span className="w-1.5 h-1.5 rounded-full bg-primary ml-1" />
               )}
-              {tab.key === 'meetings' && upcomingMeetings.length > 0 && (
+              {tab.key === 'timeline' && upcomingMeetings.length > 0 && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-semibold ml-1">{upcomingMeetings.length}</span>
               )}
             </button>
@@ -269,65 +301,22 @@ Rules:
       {activeTab === 'overview' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
 
-          {/* EYRA Next Action banner */}
-          <div className="p-4 rounded-xl border border-primary/25 bg-primary/5 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg overflow-hidden bg-white flex-shrink-0">
-              <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
+          <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/[0.04] p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold text-primary">Next action</p>
+              <p className="mt-1 text-sm text-foreground">{nextAction || 'Add the next task for this project.'}</p>
             </div>
-            <div className="flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-0.5">EYRA recommends</p>
-              {!project.eyra_analysis ? (
-                <>
-                  <p className="text-xs font-semibold text-foreground mb-1">Run sourced analysis to unlock intelligence</p>
-                  <p className="text-[10px] text-muted-foreground mb-2">Search connected scholarly and official funding sources, then build an evidence-linked roadmap.</p>
-                  <button onClick={runEyraAnalysis} disabled={analyzing}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg eyra-gradient text-white text-xs font-semibold">
-                    {analyzing ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
-                    {analyzing ? 'Analyzing...' : 'Run sourced analysis'}
-                  </button>
-                </>
-              ) : twinReport ? (
-                <>
-                  <p className="text-xs font-semibold text-foreground mb-1">{twinReport.next_action}</p>
-                  <p className="text-[10px] text-muted-foreground mb-2">Project health: <span className={twinReport.overall_health === 'Strong' || twinReport.overall_health === 'Good' ? 'text-green-400' : 'text-amber-400'}>{twinReport.overall_health} · {twinReport.health_score}/100</span></p>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { label: 'View full intelligence', key: 'intelligence' },
-                      { label: 'Schedule meeting', key: 'meetings' },
-                    ].map(item => (
-                      <button key={item.key} onClick={() => setActiveTab(item.key)}
-                        className="px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-xs font-medium text-primary hover:bg-primary/20 transition-colors">
-                        {item.label} →
-                      </button>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="text-xs font-semibold text-foreground mb-2">What to do next:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { label: 'View EYRA insights', key: 'intelligence' },
-                      { label: 'Schedule a meeting', key: 'meetings' },
-                    ].map(item => (
-                      <button key={item.key} onClick={() => setActiveTab(item.key)}
-                        className="px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-xs font-medium text-primary hover:bg-primary/20 transition-colors">
-                        {item.label} →
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+            <button onClick={() => setActiveTab('timeline')} className="min-h-10 shrink-0 rounded-lg border border-primary/25 px-3 text-sm font-semibold text-primary hover:bg-primary/10">{nextAction ? 'Open timeline' : 'Add a task'}</button>
           </div>
 
           {/* Project Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {[
-              { label: 'Papers Saved', value: savedPapers.length, icon: FileText, color: 'text-primary bg-primary/10' },
+              { label: 'Papers', value: savedPapers.length, icon: FileText, color: 'text-primary bg-primary/10' },
               { label: 'Researchers', value: savedResearchers.length, icon: Users, color: 'text-accent bg-accent/10' },
-              { label: 'Meetings', value: meetings.length, icon: Video, color: 'text-chart-3 bg-chart-3/10' },
-              { label: 'Upcoming', value: upcomingMeetings.length, icon: Clock, color: 'text-green-400 bg-green-500/10' },
+              { label: 'Funding', value: savedOpportunities.length, icon: Award, color: 'text-chart-3 bg-chart-3/10' },
+              { label: 'Meetings', value: meetings.length, icon: Video, color: 'text-green-400 bg-green-500/10' },
+              { label: 'Upcoming', value: upcomingMeetings.length, icon: Clock, color: 'text-primary bg-primary/10' },
             ].map(s => {
               const Icon = s.icon;
               return (
@@ -385,39 +374,99 @@ Rules:
         </motion.div>
       )}
 
-      {/* Notes & Tasks */}
-      {activeTab === 'notes' && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+      {activeTab === 'evidence' && (
+        <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4" aria-labelledby="project-evidence-title">
+          <div><h2 id="project-evidence-title" className="text-xl font-semibold">Evidence</h2><p className="mt-1 text-sm text-muted-foreground">Saved papers linked to this project.</p></div>
+          {savedPapers.length ? savedPapers.map(paper => (
+            <article key={paper.id} className="rounded-xl border border-border bg-card p-4 sm:p-5">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">{paper.source && <span>{paper.source}</span>}{paper.year && <span>{paper.year}</span>}</div>
+              <h3 className="mt-2 text-base font-semibold">{paper.title}</h3>
+              {paper.authors && <p className="mt-1 text-sm text-muted-foreground">{paper.authors}</p>}
+              {paper.summary && <p className="mt-2 text-sm leading-6 text-muted-foreground">{paper.summary}</p>}
+              {paper.url && <a href={paper.url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-10 items-center gap-2 text-sm text-primary hover:underline">Open source <ExternalLink size={14} aria-hidden="true" /></a>}
+            </article>
+          )) : (
+            <div className="rounded-xl border border-dashed border-border p-6">
+              <p className="text-sm font-medium">No papers linked yet</p>
+              <p className="mt-1 text-sm text-muted-foreground">Save papers to your Library, then link them to this project.</p>
+              <Link to="/library" className="mt-3 inline-flex min-h-10 items-center text-sm font-medium text-primary hover:underline">Open Library</Link>
+            </div>
+          )}
+        </motion.section>
+      )}
+
+      {activeTab === 'people' && (
+        <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4" aria-labelledby="project-people-title">
+          <div><h2 id="project-people-title" className="text-xl font-semibold">People</h2><p className="mt-1 text-sm text-muted-foreground">Researchers linked to this project.</p></div>
+          {savedResearchers.length ? savedResearchers.map(person => (
+            <article key={person.id} className="rounded-xl border border-border bg-card p-4 sm:p-5">
+              <h3 className="text-base font-semibold">{person.name}</h3>
+              {person.institution && <p className="mt-1 text-sm text-muted-foreground">{person.institution}</p>}
+              {person.research_areas && <p className="mt-2 text-sm text-muted-foreground">{person.research_areas}</p>}
+              {person.profile_url && <a href={person.profile_url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-10 items-center gap-2 text-sm text-primary hover:underline">Open source profile <ExternalLink size={14} aria-hidden="true" /></a>}
+            </article>
+          )) : (
+            <div className="rounded-xl border border-dashed border-border p-6">
+              <p className="text-sm font-medium">No researchers linked yet</p>
+              <Link to="/researchers" className="mt-3 inline-flex min-h-10 items-center text-sm font-medium text-primary hover:underline">Find researchers</Link>
+            </div>
+          )}
+        </motion.section>
+      )}
+
+      {activeTab === 'funding' && (
+        <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4" aria-labelledby="project-funding-title">
+          <div><h2 id="project-funding-title" className="text-xl font-semibold">Funding</h2><p className="mt-1 text-sm text-muted-foreground">Opportunities linked to this project.</p></div>
+          {savedOpportunities.length ? savedOpportunities.map(item => (
+            <article key={item.id} className="rounded-xl border border-border bg-card p-4 sm:p-5">
+              <h3 className="text-base font-semibold">{item.title}</h3>
+              {item.agency && <p className="mt-1 text-sm text-muted-foreground">{item.agency}</p>}
+              {item.deadline && <p className="mt-2 text-sm text-foreground">Deadline: {item.deadline}</p>}
+              {item.eligibility && <p className="mt-2 text-sm text-muted-foreground">Eligibility: {item.eligibility}</p>}
+              {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-10 items-center gap-2 text-sm text-primary hover:underline">Open official source <ExternalLink size={14} aria-hidden="true" /></a>}
+            </article>
+          )) : (
+            <div className="rounded-xl border border-dashed border-border p-6">
+              <p className="text-sm font-medium">No funding linked yet</p>
+              <p className="mt-1 text-sm text-muted-foreground">Verify eligibility and program terms at the official source.</p>
+              <Link to="/opportunities" className="mt-3 inline-flex min-h-10 items-center text-sm font-medium text-primary hover:underline">Find funding</Link>
+            </div>
+          )}
+        </motion.section>
+      )}
+
+      {/* Project tasks, notes, and meetings form one timeline. */}
+      {activeTab === 'timeline' && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+          <div className="space-y-5">
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Tasks</label>
+            <label className="block text-sm font-semibold text-foreground mb-2">Next actions</label>
             <textarea
               value={editing.tasks}
               onChange={e => setEditing(prev => ({ ...prev, tasks: e.target.value }))}
               rows={6}
-              placeholder="List your current tasks, one per line..."
+              placeholder="Add actions, one per line..."
               className="w-full px-4 py-3 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 resize-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Notes</label>
+            <label className="block text-sm font-semibold text-foreground mb-2">Project notes</label>
             <textarea
               value={editing.notes}
               onChange={e => setEditing(prev => ({ ...prev, notes: e.target.value }))}
               rows={8}
-              placeholder="Add notes, ideas, references, observations..."
+              placeholder="Record project context, decisions, or open questions..."
               className="w-full px-4 py-3 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 resize-none"
             />
           </div>
           <button onClick={saveProject} disabled={saving} className="px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold">
             {saving ? 'Saving...' : 'Save'}
           </button>
-        </motion.div>
-      )}
-
-      {/* Meetings */}
-      {activeTab === 'meetings' && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          </div>
+          <section className="border-t border-border pt-6" aria-labelledby="project-meetings-title">
+            <h2 id="project-meetings-title" className="mb-4 text-xl font-semibold">Meetings</h2>
           <ProjectMeetings projectId={id} projectTitle={editing.title} />
+          </section>
         </motion.div>
       )}
 
@@ -459,13 +508,13 @@ Rules:
             )}
           </div>
 
-          {/* Project Health Score */}
-          <ProjectHealthScore
-            project={project}
-            savedPapers={savedPapers}
-            savedResearchers={savedResearchers}
-            meetings={meetings}
-          />
+          <div className="flex flex-wrap gap-2 border-t border-border/60 pt-5 text-sm text-muted-foreground" aria-label="Project context used by EYRA">
+            <span className="mr-1 font-medium text-foreground">Project context</span>
+            <span>{savedPapers.length} linked papers</span><span aria-hidden="true">·</span>
+            <span>{savedResearchers.length} researchers</span><span aria-hidden="true">·</span>
+            <span>{savedOpportunities.length} funding records</span><span aria-hidden="true">·</span>
+            <span>{meetings.length} meetings</span>
+          </div>
 
           {/* Digital Twin — integrated below analysis */}
           <div className="border-t border-border/60 pt-6">

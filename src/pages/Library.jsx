@@ -7,6 +7,25 @@ import {
 import EyraResearchCompanion from '@/components/eyra/EyraResearchCompanion';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
+import { Link, useSearchParams } from 'react-router-dom';
+
+function ProjectLinkControl({ item, projects, projectsLoaded, onLink, label }) {
+  if (!projectsLoaded) return <p className="mt-3 text-sm text-muted-foreground">Project links are unavailable.</p>;
+  if (!projects.length) {
+    return <Link to="/projects" className="mt-3 inline-flex min-h-10 items-center text-sm text-primary hover:underline">Create a project to link this {label}</Link>;
+  }
+  return (
+    <label className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+      <span>Project</span>
+      <select value={item.project_id || ''} onChange={event => onLink(item, event.target.value)} aria-label={`Link ${label} to a project`}
+        className="min-h-10 min-w-44 rounded-lg border border-border bg-secondary px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40">
+        <option value="">No project</option>
+        {projects.map(project => <option key={project.id} value={project.id}>{project.title}</option>)}
+      </select>
+      {item.project_id && <Link to={`/projects/${item.project_id}`} className="inline-flex min-h-10 items-center text-primary hover:underline">Open project</Link>}
+    </label>
+  );
+}
 
 const TABS = [
   { key: 'papers', label: 'Papers', icon: FileText },
@@ -19,12 +38,16 @@ export default function Library() {
   const [papers, setPapers] = useState([]);
   const [researchers, setResearchers] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [projectsLoaded, setProjectsLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [loadNotice, setLoadNotice] = useState('');
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
   useEffect(() => { loadAll(); }, []);
+  useEffect(() => { setSearchTerm(searchParams.get('q') || ''); }, [searchParams]);
 
   const loadAll = async () => {
     setLoading(true);
@@ -33,14 +56,31 @@ export default function Library() {
       base44.entities.SavedPaper.list('-created_date'),
       base44.entities.SavedResearcher.list('-created_date'),
       base44.entities.SavedOpportunity.list('-created_date'),
+      base44.entities.Project.list('-updated_date'),
     ];
     const results = await Promise.allSettled(requests);
     setPapers(results[0].status === 'fulfilled' ? results[0].value : []);
     setResearchers(results[1].status === 'fulfilled' ? results[1].value : []);
     setOpportunities(results[2].status === 'fulfilled' ? results[2].value : []);
-    const failures = results.filter(result => result.status === 'rejected').length;
+    setProjects(results[3].status === 'fulfilled' ? results[3].value : []);
+    setProjectsLoaded(results[3].status === 'fulfilled');
+    const failures = results.slice(0, 3).filter(result => result.status === 'rejected').length;
     if (failures) setLoadNotice(`${failures} saved collection${failures === 1 ? '' : 's'} could not be loaded. The available collections remain usable.`);
     setLoading(false);
+  };
+
+  const linkToProject = async (entityName, item, projectId, setItems, label) => {
+    const project = projects.find(candidate => candidate.id === projectId);
+    try {
+      const updated = await base44.entities[entityName].update(item.id, {
+        project_id: projectId || null,
+        project_title: project?.title || '',
+      });
+      setItems(current => current.map(record => record.id === item.id ? updated : record));
+      toast({ title: project ? `Added to ${project.title}` : 'Removed from project' });
+    } catch (error) {
+      toast({ title: `Could not link ${label}`, description: error?.message || 'Please try again.', variant: 'destructive' });
+    }
   };
 
   const deletePaper = async (id) => {
@@ -74,7 +114,7 @@ export default function Library() {
   const filter = (items, fields) => {
     if (!searchTerm.trim()) return items;
     const q = searchTerm.toLowerCase();
-    return items.filter(item => fields.some(f => (item[f] || '').toLowerCase().includes(q)));
+    return items.filter(item => fields.some(f => String(item[f] || '').toLowerCase().includes(q)));
   };
 
   const counts = { papers: papers.length, researchers: researchers.length, opportunities: opportunities.length };
@@ -159,11 +199,14 @@ export default function Library() {
                         <div className="flex items-center gap-2 mb-1.5">
                           {p.source && <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">{p.source}</span>}
                           {p.year && <span className="text-xs text-muted-foreground">{p.year}</span>}
+                          {p.open_access && <span className="text-xs text-emerald-300">Open access</span>}
                         </div>
                         <h4 className="font-semibold text-sm text-foreground">{p.title}</h4>
                         {p.authors && <p className="text-xs text-muted-foreground mt-1">{p.authors}</p>}
+                        {p.doi && <p className="mt-1 text-xs text-muted-foreground">DOI: {p.doi}</p>}
                         {p.summary && <p className="text-xs text-muted-foreground/70 mt-1.5 line-clamp-2">{p.summary}</p>}
                         <EyraResearchCompanion paper={p} />
+                        <ProjectLinkControl item={p} projects={projects} projectsLoaded={projectsLoaded} label="paper" onLink={(item, projectId) => linkToProject('SavedPaper', item, projectId, setPapers, 'paper')} />
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
                         {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-secondary transition-colors"><ExternalLink size={13} className="text-muted-foreground" /></a>}
@@ -194,6 +237,7 @@ export default function Library() {
                           <span><BookOpen size={11} className="inline mr-1" />{(r.works_count || 0).toLocaleString()} works</span>
                           <span>{(r.citation_count || 0).toLocaleString()} citations</span>
                         </div>
+                        <ProjectLinkControl item={r} projects={projects} projectsLoaded={projectsLoaded} label="researcher" onLink={(item, projectId) => linkToProject('SavedResearcher', item, projectId, setResearchers, 'researcher')} />
                       </div>
                       <div className="flex flex-col gap-1 flex-shrink-0">
                         {r.profile_url && <a href={r.profile_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-secondary transition-colors"><ExternalLink size={13} className="text-muted-foreground" /></a>}
@@ -219,8 +263,14 @@ export default function Library() {
                       <div className="flex-1">
                         {o.type && <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-secondary text-muted-foreground mb-2 inline-block">{o.type}</span>}
                         <h4 className="font-semibold text-sm text-foreground">{o.title}</h4>
+                        {o.agency && <p className="text-sm text-muted-foreground mt-1">{o.agency}</p>}
                         {o.description && <p className="text-xs text-muted-foreground mt-1">{o.description}</p>}
-                        {o.deadline && <p className="text-xs text-primary mt-2">Deadline: {o.deadline}</p>}
+                        {o.deadline && <p className="text-sm text-foreground mt-2">Deadline: {o.deadline}</p>}
+                        {o.amount && <p className="text-sm text-muted-foreground mt-1">{o.amount}</p>}
+                        {o.eligibility && <p className="text-sm text-muted-foreground mt-1">Eligibility: {o.eligibility}</p>}
+                        <p className="mt-2 text-xs text-muted-foreground">Verify eligibility and program terms at the official source.</p>
+                        {o.url && <a href={o.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex min-h-10 items-center gap-2 text-sm text-primary hover:underline">Open official source <ExternalLink size={14} aria-hidden="true" /></a>}
+                        <ProjectLinkControl item={o} projects={projects} projectsLoaded={projectsLoaded} label="opportunity" onLink={(item, projectId) => linkToProject('SavedOpportunity', item, projectId, setOpportunities, 'opportunity')} />
                       </div>
                       <button onClick={() => deleteOpportunity(o.id)} aria-label={`Remove ${o.title} from library`} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
                         <Trash2 size={13} className="text-destructive/60" />

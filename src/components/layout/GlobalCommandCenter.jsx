@@ -43,6 +43,15 @@ export default function GlobalCommandCenter({ open, onClose }) {
     }
     navigate(command.path);
   };
+  const searchActions = query.trim().length >= 2
+    ? [
+      { group: 'Search this', label: 'Search projects', path: `/projects?q=${encodeURIComponent(query.trim())}`, icon: FolderOpen },
+      { group: 'Search this', label: 'Search Library', path: `/library?q=${encodeURIComponent(query.trim())}`, icon: BookOpen },
+      { group: 'Search this', label: 'Find researchers', path: `/researchers?q=${encodeURIComponent(query.trim())}`, icon: Users },
+      { group: 'Search this', label: 'Search funding', path: `/opportunities?q=${encodeURIComponent(query.trim())}`, icon: Award },
+      { group: 'Search this', label: 'Search history', path: `/history?q=${encodeURIComponent(query.trim())}`, icon: History },
+    ]
+    : [];
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center bg-black/65 px-4 pt-[12vh] backdrop-blur-sm" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
@@ -64,6 +73,14 @@ export default function GlobalCommandCenter({ open, onClose }) {
           </div>
           <Command.List className="max-h-[min(65vh,32rem)] overflow-y-auto p-2">
             <Command.Empty className="px-3 py-8 text-center text-sm text-muted-foreground">No matching actions.</Command.Empty>
+            {searchActions.length > 0 && (
+              <Command.Group heading="Search this" className="mb-2 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted-foreground">
+                {searchActions.map(item => {
+                  const Icon = item.icon;
+                  return <Command.Item key={item.label} value={`${item.label} ${query}`} onSelect={() => selectCommand(item)} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm text-foreground aria-selected:bg-secondary aria-selected:text-foreground"><Icon size={15} className="text-muted-foreground" aria-hidden="true" />{item.label}<span className="ml-auto max-w-[55%] truncate text-xs text-muted-foreground">{query}</span></Command.Item>;
+                })}
+              </Command.Group>
+            )}
             {['Navigate', 'Actions', 'Intelligence'].map(group => (
               <Command.Group key={group} heading={group} className="mb-2 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted-foreground">
                 {COMMANDS.filter(item => item.group === group).map(item => {
