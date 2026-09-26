@@ -8,6 +8,8 @@ import ServiceStatus from '@/components/system/ServiceStatus';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { trackSearchStarted } from '@/lib/product-analytics';
 
+const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
+
 const EXAMPLES = [
   'AI for early cancer detection',
   'Climate adaptation in Mediterranean cities',
@@ -24,8 +26,8 @@ const CAPABILITIES = [
 const START_ACTIONS = [
   { icon: Search, label: 'Search the literature', href: '/discover' },
   { icon: Users, label: 'Find researchers', href: '/discover' },
-  { icon: Zap, label: 'Find funding', href: '/register' },
-  { icon: FolderKanban, label: 'Create a persistent workspace', href: '/register' },
+  { icon: Zap, label: 'Find funding', href: '/discover' },
+  { icon: FolderKanban, label: 'Create a persistent workspace', href: PROJECT_SIGNUP_HREF },
 ];
 
 export default function Landing() {
@@ -47,7 +49,7 @@ export default function Landing() {
           <div className="ml-auto hidden sm:block"><ServiceStatus /></div>
           <Link to="/discover" className="hidden rounded-lg px-3 py-2 text-sm text-slate-400 hover:text-white md:inline-flex">Discover</Link>
           <Link to="/login" className="rounded-lg px-3 py-2 text-sm text-slate-300 hover:text-white">Sign in</Link>
-          <Link to="/register" className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5">Create workspace</Link>
+          <Link to={PROJECT_SIGNUP_HREF} className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5">Create workspace</Link>
         </div>
       </header>
 
@@ -158,7 +160,7 @@ export default function Landing() {
           <h2 className="mt-6 font-heading text-4xl font-semibold tracking-[-0.05em] text-white sm:text-7xl">Keep your research moving.</h2>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <Link to="/discover" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950">Explore <ArrowRight size={14} /></Link>
-            <Link to="/register" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-5 py-3 text-sm font-semibold text-white">Create workspace</Link>
+            <Link to={PROJECT_SIGNUP_HREF} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-5 py-3 text-sm font-semibold text-white">Create workspace</Link>
           </div>
         </div>
       </section>

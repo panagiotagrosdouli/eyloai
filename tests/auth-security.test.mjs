@@ -6,6 +6,7 @@ import { AppErrorCode, mapSupabaseError } from '../src/lib/supabase/errors.js';
 
 test('safe redirects accept known workspace and Labs destinations', () => {
   assert.equal(getSafeRedirect('/projects/abc?tab=evidence'), '/projects/abc?tab=evidence');
+  assert.equal(getSafeRedirect('/projects?new=1'), '/projects?new=1');
   assert.equal(getSafeRedirect('/labs/scenario'), '/labs/scenario');
 });
 
