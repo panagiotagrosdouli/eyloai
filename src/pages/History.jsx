@@ -29,6 +29,7 @@ export default function History() {
   const [researchers, setResearchers] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadNotice, setLoadNotice] = useState('');
   const [activeTab, setActiveTab] = useState('discoveries');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchParams] = useSearchParams();
@@ -44,20 +45,31 @@ export default function History() {
 
   const loadAll = async () => {
     setLoading(true);
-    const [s, p, r, o] = await Promise.all([
+    setLoadNotice('');
+    const results = await Promise.allSettled([
       base44.entities.SearchHistory.list('-created_date', 50),
       base44.entities.SavedPaper.list('-created_date', 20),
       base44.entities.SavedResearcher.list('-created_date', 20),
       base44.entities.SavedOpportunity.list('-created_date', 20),
     ]);
-    setSearches(s); setPapers(p); setResearchers(r); setOpportunities(o);
+    setSearches(results[0].status === 'fulfilled' ? results[0].value : []);
+    setPapers(results[1].status === 'fulfilled' ? results[1].value : []);
+    setResearchers(results[2].status === 'fulfilled' ? results[2].value : []);
+    setOpportunities(results[3].status === 'fulfilled' ? results[3].value : []);
+    if (results.some(result => result.status === 'rejected')) {
+      setLoadNotice('Some activity collections could not be loaded. The available collections remain usable.');
+    }
     setLoading(false);
   };
 
   const deleteSearch = async (id) => {
-    await base44.entities.SearchHistory.delete(id);
-    setSearches(prev => prev.filter(s => s.id !== id));
-    toast({ title: 'Entry removed' });
+    try {
+      await base44.entities.SearchHistory.delete(id);
+      setSearches(prev => prev.filter(s => s.id !== id));
+      toast({ title: 'Entry removed' });
+    } catch (error) {
+      toast({ title: 'Could not remove this entry', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    }
   };
 
   const toggleSearchSaved = async (search) => {
@@ -86,11 +98,11 @@ export default function History() {
   const visibleOpportunities = opportunities.filter(item => matchesQuery(item, ['title', 'agency', 'description', 'eligibility']));
 
   const TABS = [
-    { key: 'discoveries', label: 'Discoveries', icon: Sparkles, count: searches.length },
+    { key: 'discoveries', label: 'Discoveries', icon: Sparkles, count: visibleSearches.length },
     { key: 'saved', label: 'Saved searches', icon: Bookmark, count: savedSearches.length },
-    { key: 'papers', label: 'Papers', icon: FileText, count: papers.length },
-    { key: 'researchers', label: 'Researchers', icon: Users, count: researchers.length },
-    { key: 'opportunities', label: 'Opportunities', icon: Award, count: opportunities.length },
+    { key: 'papers', label: 'Papers', icon: FileText, count: visiblePapers.length },
+    { key: 'researchers', label: 'Researchers', icon: Users, count: visibleResearchers.length },
+    { key: 'opportunities', label: 'Opportunities', icon: Award, count: visibleOpportunities.length },
   ];
 
   // Group searches by date
@@ -139,6 +151,8 @@ export default function History() {
         })}
       </div>
 
+      {loadNotice && <div role="status" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadNotice}</div>}
+
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-border/60 mb-6 overflow-x-auto">
         {TABS.map(t => {
@@ -170,8 +184,8 @@ export default function History() {
 
           {/* Discoveries tab */}
           {activeTab === 'discoveries' && (
-            searches.length === 0 ? (
-              <EmptyState icon={Sparkles} label="No discoveries yet" sub="Start a discovery and your history will appear here" actionLabel="Start Discovering" actionHref="/home" />
+            visibleSearches.length === 0 ? (
+              <EmptyState icon={Sparkles} label={searchTerm ? 'No matching searches' : 'No discoveries yet'} sub={searchTerm ? 'Try another term or clear the search.' : 'Start a discovery and your history will appear here'} actionLabel={searchTerm ? undefined : 'Start Discovering'} actionHref={searchTerm ? undefined : '/home'} />
             ) : (
               <div className="space-y-6">
                 {Object.entries(groupedSearches).map(([day, items]) => (
@@ -287,8 +301,8 @@ export default function History() {
 
           {/* Papers tab */}
           {activeTab === 'papers' && (
-            papers.length === 0 ? (
-              <EmptyState icon={FileText} label="No saved papers" sub="Save papers from discovery results" actionLabel="Start Discovering" actionHref="/" />
+            visiblePapers.length === 0 ? (
+              <EmptyState icon={FileText} label={searchTerm && papers.length ? 'No matching papers' : 'No saved papers'} sub={searchTerm && papers.length ? 'Try another term or clear the search.' : 'Save papers from discovery results'} actionLabel={searchTerm && papers.length ? undefined : 'Start Discovering'} actionHref={searchTerm && papers.length ? undefined : '/'} />
             ) : (
               <div className="space-y-3">
                 {visiblePapers.map(p => (
@@ -315,8 +329,8 @@ export default function History() {
 
           {/* Researchers tab */}
           {activeTab === 'researchers' && (
-            researchers.length === 0 ? (
-              <EmptyState icon={Users} label="No saved researchers" sub="Save researchers from discovery results" actionLabel="Start Discovering" actionHref="/" />
+            visibleResearchers.length === 0 ? (
+              <EmptyState icon={Users} label={searchTerm && researchers.length ? 'No matching researchers' : 'No saved researchers'} sub={searchTerm && researchers.length ? 'Try another term or clear the search.' : 'Save researchers from discovery results'} actionLabel={searchTerm && researchers.length ? undefined : 'Start Discovering'} actionHref={searchTerm && researchers.length ? undefined : '/'} />
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {visibleResearchers.map(r => (
@@ -336,8 +350,8 @@ export default function History() {
 
           {/* Opportunities tab */}
           {activeTab === 'opportunities' && (
-            opportunities.length === 0 ? (
-              <EmptyState icon={Award} label="No saved opportunities" sub="Save opportunities from discovery results" actionLabel="Browse Opportunities" actionHref="/opportunities" />
+            visibleOpportunities.length === 0 ? (
+              <EmptyState icon={Award} label={searchTerm && opportunities.length ? 'No matching opportunities' : 'No saved opportunities'} sub={searchTerm && opportunities.length ? 'Try another term or clear the search.' : 'Save opportunities from discovery results'} actionLabel={searchTerm && opportunities.length ? undefined : 'Browse Opportunities'} actionHref={searchTerm && opportunities.length ? undefined : '/opportunities'} />
             ) : (
               <div className="space-y-3">
                 {visibleOpportunities.map(o => (

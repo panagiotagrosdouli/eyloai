@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { runEyraDiscovery } from '@/lib/eyra-engine';
 import { useToast } from '@/components/ui/use-toast';
@@ -14,17 +14,20 @@ export default function Home() {
   const [progress, setProgress] = useState(null);
   const [currentQuery, setCurrentQuery] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
+  const activeSearchId = useRef(0);
   const { toast } = useToast();
 
   const handleSearch = async (request) => {
     const topic = typeof request === 'string' ? request.trim() : String(request?.topic || request?.query || '').trim();
     if (!topic) return;
+    const searchId = ++activeSearchId.current;
     setState('loading');
     setCurrentQuery(topic);
     setProgress({ status: 'loading', papers: [], researchers: [], institutions: [] });
 
     try {
       const finalResults = await runEyraDiscovery(request, (partial) => {
+        if (searchId !== activeSearchId.current) return;
         setProgress({ ...partial });
         // As soon as we have real data + AI done, switch to results view
         if (partial.status === 'complete') {
@@ -41,13 +44,14 @@ export default function Home() {
             results_summary: `${partial.papers?.length || 0} papers, ${partial.researchers?.length || 0} researchers`,
             saved: false,
           }).then((entry) => {
-            if (entry?.id) {
+            if (entry?.id && searchId === activeSearchId.current) {
               setResults(current => ({ ...(current || partial), search_history_id: entry.id }));
             }
           }).catch(() => {});
 
         }
       });
+      if (searchId !== activeSearchId.current) return;
       // Keep any history id that completed during the final progress update.
       setResults(current => ({
         ...finalResults,
@@ -55,10 +59,13 @@ export default function Home() {
       }));
       setState('results');
     } catch (err) {
+      if (searchId !== activeSearchId.current) return;
       toast({ title: 'Something went wrong', description: 'Please try again.', variant: 'destructive' });
       setState('dashboard');
     }
   };
+
+  useEffect(() => () => { activeSearchId.current += 1; }, []);
 
   useEffect(() => {
     const sharedQuery = searchParams.get('q')?.trim();
