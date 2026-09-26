@@ -49,6 +49,7 @@ export default function GlobalCommandCenter({ open, onClose }) {
       { group: 'Search this', label: 'Search Library', path: `/library?q=${encodeURIComponent(query.trim())}`, icon: BookOpen },
       { group: 'Search this', label: 'Find researchers', path: `/researchers?q=${encodeURIComponent(query.trim())}`, icon: Users },
       { group: 'Search this', label: 'Search funding', path: `/opportunities?q=${encodeURIComponent(query.trim())}`, icon: Award },
+      { group: 'Search this', label: 'Search meetings', path: `/meetings?q=${encodeURIComponent(query.trim())}`, icon: Video },
       { group: 'Search this', label: 'Search history', path: `/history?q=${encodeURIComponent(query.trim())}`, icon: History },
     ]
     : [];

@@ -152,11 +152,17 @@ Be concise and actionable.`,
 
   const saveNotes = async () => {
     setSavingNotes(true);
-    await base44.entities.Meeting.update(meeting.id, { notes, transcription });
-    meeting.notes = notes;
-    meeting.transcription = transcription;
-    setSavingNotes(false);
-    toast({ title: 'Notes saved' });
+    try {
+      await base44.entities.Meeting.update(meeting.id, { notes, transcription });
+      meeting.notes = notes;
+      meeting.transcription = transcription;
+      toast({ title: 'Notes saved' });
+      onUpdate();
+    } catch (error) {
+      toast({ title: 'Notes could not be saved', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+    } finally {
+      setSavingNotes(false);
+    }
   };
 
   if (editing) {

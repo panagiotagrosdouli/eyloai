@@ -4,8 +4,9 @@ import { useToast } from '@/components/ui/use-toast';
 import MeetingCard from '@/components/meetings/MeetingCard';
 import MeetingForm from '@/components/meetings/MeetingForm';
 import MeetingDetail from '@/components/meetings/MeetingDetail';
-import { Plus, Calendar, Clock, Loader2 } from 'lucide-react';
+import { Plus, Calendar, Clock, Loader2, Search } from 'lucide-react';
 import moment from 'moment';
+import { useSearchParams } from 'react-router-dom';
 
 const TABS = ['Upcoming', 'Past', 'All'];
 
@@ -13,50 +14,69 @@ export default function Meetings() {
   const [meetings, setMeetings] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [selected, setSelected] = useState(null);
   const [tab, setTab] = useState('Upcoming');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
+  useEffect(() => { setSearchTerm(searchParams.get('q') || ''); }, [searchParams]);
 
   const loadData = async () => {
     setLoading(true);
-    const [m, p] = await Promise.all([
+    setLoadError('');
+    const [m, p] = await Promise.allSettled([
       base44.entities.Meeting.list('-date', 100),
       base44.entities.Project.list('-updated_date', 50),
     ]);
-    setMeetings(m);
-    setProjects(p);
+    setMeetings(m.status === 'fulfilled' ? m.value : []);
+    setProjects(p.status === 'fulfilled' ? p.value : []);
+    if (m.status === 'rejected' || p.status === 'rejected') {
+      setLoadError('Some meeting data could not be loaded. Refresh to try again.');
+    }
     setLoading(false);
   };
 
   const handleSave = async (data) => {
-    if (data.id) {
-      await base44.entities.Meeting.update(data.id, data);
-      toast({ title: 'Meeting updated' });
-    } else {
-      await base44.entities.Meeting.create(data);
-      toast({ title: 'Meeting scheduled' });
+    try {
+      if (data.id) {
+        await base44.entities.Meeting.update(data.id, data);
+        toast({ title: 'Meeting updated' });
+      } else {
+        await base44.entities.Meeting.create(data);
+        toast({ title: 'Meeting scheduled' });
+      }
+      setShowForm(false);
+      setSelected(null);
+      await loadData();
+    } catch (error) {
+      toast({ title: 'Meeting could not be saved', description: error?.message || 'Please try again.', variant: 'destructive' });
+      throw error;
     }
-    setShowForm(false);
-    setSelected(null);
-    loadData();
   };
 
   const handleDelete = async (id) => {
-    await base44.entities.Meeting.delete(id);
-    toast({ title: 'Meeting deleted' });
-    setSelected(null);
-    loadData();
+    try {
+      await base44.entities.Meeting.delete(id);
+      toast({ title: 'Meeting deleted' });
+      setSelected(null);
+      await loadData();
+    } catch (error) {
+      toast({ title: 'Meeting could not be deleted', description: error?.message || 'Please try again.', variant: 'destructive' });
+    }
   };
 
   const today = moment().startOf('day');
   const filtered = meetings.filter(m => {
     const d = moment(m.date);
-    if (tab === 'Upcoming') return d.isSameOrAfter(today);
-    if (tab === 'Past') return d.isBefore(today);
-    return true;
+    const matchesTab = tab === 'Upcoming' ? d.isSameOrAfter(today) : tab === 'Past' ? d.isBefore(today) : true;
+    const q = searchTerm.trim().toLowerCase();
+    const matchesQuery = !q || [m.title, m.participants, m.project_title, m.agenda, m.notes]
+      .some(value => String(value || '').toLowerCase().includes(q));
+    return matchesTab && matchesQuery;
   });
 
   const upcoming = meetings.filter(m => moment(m.date).isSameOrAfter(today)).slice(0, 3);
@@ -101,7 +121,13 @@ export default function Meetings() {
         </button>
       </div>
 
+      <div className="relative mb-5 max-w-md">
+        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Search meetings..." aria-label="Search meetings" className="w-full h-10 pl-10 pr-4 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
+      </div>
+
       {/* Upcoming strip */}
+      {loadError && <div role="alert" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadError}</div>}
       {upcoming.length > 0 && (
         <div className="mb-6 p-4 rounded-2xl border border-primary/20 bg-primary/5">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">

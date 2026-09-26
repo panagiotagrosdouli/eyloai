@@ -11,6 +11,7 @@ import moment from 'moment';
 export default function ProjectMeetings({ projectId, projectTitle }) {
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [selected, setSelected] = useState(null);
   const [tab, setTab] = useState('upcoming');
@@ -20,29 +21,44 @@ export default function ProjectMeetings({ projectId, projectTitle }) {
 
   const load = async () => {
     setLoading(true);
-    const all = await base44.entities.Meeting.filter({ project_id: projectId }, '-date', 50);
-    setMeetings(all);
-    setLoading(false);
+    setLoadError('');
+    try {
+      const all = await base44.entities.Meeting.filter({ project_id: projectId }, '-date', 50);
+      setMeetings(all);
+    } catch (error) {
+      setLoadError(error?.message || 'Project meetings could not be loaded.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async (data) => {
-    if (data.id) {
-      await base44.entities.Meeting.update(data.id, data);
-      toast({ title: 'Meeting updated' });
-    } else {
-      await base44.entities.Meeting.create({ ...data, project_id: projectId, project_title: projectTitle });
-      toast({ title: 'Meeting scheduled' });
+    try {
+      if (data.id) {
+        await base44.entities.Meeting.update(data.id, { ...data, project_id: projectId, project_title: projectTitle });
+        toast({ title: 'Meeting updated' });
+      } else {
+        await base44.entities.Meeting.create({ ...data, project_id: projectId, project_title: projectTitle });
+        toast({ title: 'Meeting scheduled' });
+      }
+      setShowForm(false);
+      setSelected(null);
+      await load();
+    } catch (error) {
+      toast({ title: 'Meeting could not be saved', description: error?.message || 'Please try again.', variant: 'destructive' });
+      throw error;
     }
-    setShowForm(false);
-    setSelected(null);
-    load();
   };
 
   const handleDelete = async (id) => {
-    await base44.entities.Meeting.delete(id);
-    toast({ title: 'Meeting deleted' });
-    setSelected(null);
-    load();
+    try {
+      await base44.entities.Meeting.delete(id);
+      toast({ title: 'Meeting deleted' });
+      setSelected(null);
+      await load();
+    } catch (error) {
+      toast({ title: 'Meeting could not be deleted', description: error?.message || 'Please try again.', variant: 'destructive' });
+    }
   };
 
   const today = moment().startOf('day');
@@ -93,6 +109,8 @@ export default function ProjectMeetings({ projectId, projectTitle }) {
 
       {loading ? (
         <div className="py-8 text-center text-muted-foreground text-sm">Loading...</div>
+      ) : loadError ? (
+        <div role="alert" className="rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadError}</div>
       ) : shown.length === 0 ? (
         <div className="py-10 text-center border border-dashed border-border/60 rounded-xl">
           <Calendar size={22} className="text-muted-foreground mx-auto mb-2" />

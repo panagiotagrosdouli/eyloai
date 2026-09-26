@@ -36,6 +36,7 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
     ...initial,
   });
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
@@ -54,8 +55,14 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    await onSave(form);
-    setSaving(false);
+    setError('');
+    try {
+      await onSave({ ...form, title: form.title.trim(), duration_minutes: Math.max(1, Number(form.duration_minutes) || 60) });
+    } catch (saveError) {
+      setError(saveError?.message || 'The meeting could not be saved. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -66,6 +73,8 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
           <X size={15} className="text-muted-foreground" />
         </button>
       </div>
+
+      {error && <div role="alert" className="rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-xs text-red-200">{error}</div>}
 
       {/* Title */}
       <div>
@@ -108,9 +117,20 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
         </div>
         <div>
           <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">Duration (min)</label>
-          <input type="number" value={form.duration_minutes} onChange={e => set('duration_minutes', Number(e.target.value))}
+          <input type="number" min="1" max="1440" value={form.duration_minutes} onChange={e => set('duration_minutes', e.target.value === '' ? '' : Number(e.target.value))}
             className="w-full px-3 py-2 rounded-lg border border-border bg-secondary text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
         </div>
+      </div>
+
+      <div>
+        <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">Status</label>
+        <select value={form.status || 'scheduled'} onChange={e => set('status', e.target.value)}
+          className="w-full px-3 py-2 rounded-lg border border-border bg-secondary text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40">
+          <option value="scheduled">Scheduled</option>
+          <option value="in_progress">In progress</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
       </div>
 
       {/* Participants */}
