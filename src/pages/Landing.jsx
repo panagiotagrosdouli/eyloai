@@ -14,8 +14,6 @@ const EXAMPLES = [
   'Solid-state battery recycling',
 ];
 
-const SOURCES = ['OpenAlex', 'arXiv', 'Europe PMC', 'Crossref', 'Semantic Scholar'];
-
 const CAPABILITIES = [
   { icon: FileSearch, title: 'Discover', text: 'Search live scholarly sources, researchers and institutions.' },
   { icon: BookOpen, title: 'Remember', text: 'Build a reusable evidence base instead of starting over every session.' },
@@ -49,7 +47,7 @@ export default function Landing() {
           <div className="ml-auto hidden sm:block"><ServiceStatus /></div>
           <Link to="/discover" className="hidden rounded-lg px-3 py-2 text-sm text-slate-400 hover:text-white md:inline-flex">Discover</Link>
           <Link to="/login" className="rounded-lg px-3 py-2 text-sm text-slate-300 hover:text-white">Sign in</Link>
-          <Link to="/register" className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5">Enter EYLO</Link>
+          <Link to="/register" className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5">Create workspace</Link>
         </div>
       </header>
 
@@ -65,10 +63,6 @@ export default function Landing() {
               The place your research keeps moving.
               <span className="mt-3 block text-slate-500">From question to evidence to action.</span>
             </h1>
-            <p className="mt-7 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-              EYLO combines discovery, saved evidence, researchers, funding, projects and EYRA in one persistent workspace designed to be opened every day.
-            </p>
-
             <form onSubmit={explore} className="mt-9 max-w-4xl rounded-2xl border border-white/10 bg-white/[0.045] p-2 shadow-2xl shadow-black/40 backdrop-blur">
               <label htmlFor="research-question" className="sr-only">Research question</label>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -124,20 +118,9 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="border-y border-white/[0.07] bg-white/[0.015] px-5 py-6 sm:px-8">
-        <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-center gap-x-10 gap-y-3">
-          {SOURCES.map(source => <span key={source} className="text-[10px] font-medium uppercase tracking-[0.15em] text-slate-600">{source}</span>)}
-        </div>
-      </section>
-
       <section className="px-5 py-24 sm:px-8 sm:py-32">
         <div className="mx-auto max-w-[90rem]">
-          <div className="max-w-3xl">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">One continuous workflow</p>
-            <h2 className="mt-4 font-heading text-4xl font-semibold tracking-[-0.05em] text-white sm:text-7xl">Don’t restart your research every morning.</h2>
-            <p className="mt-5 max-w-2xl text-sm leading-6 text-slate-500">EYLO is built around continuity: find evidence, keep it, connect it, reason over it and turn it into the next move.</p>
-          </div>
-          <div className="mt-12 grid gap-px overflow-hidden rounded-[2rem] border border-white/[0.08] bg-white/[0.08] sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-px overflow-hidden rounded-[2rem] border border-white/[0.08] bg-white/[0.08] sm:grid-cols-2 lg:grid-cols-4">
             {CAPABILITIES.map(({ icon: Icon, title, text }, index) => (
               <article key={title} className="bg-[#080b10] p-7">
                 <div className="flex items-center justify-between">
@@ -172,8 +155,7 @@ export default function Landing() {
       <section className="px-5 py-24 text-center sm:px-8 sm:py-32">
         <div className="mx-auto max-w-4xl">
           <ShieldCheck size={20} className="mx-auto text-emerald-400" />
-          <h2 className="mt-6 font-heading text-4xl font-semibold tracking-[-0.05em] text-white sm:text-7xl">Build on evidence. Keep the thread.</h2>
-          <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-slate-500">Search publicly. Create a workspace when you want your research context to persist and become more useful over time.</p>
+          <h2 className="mt-6 font-heading text-4xl font-semibold tracking-[-0.05em] text-white sm:text-7xl">Keep your research moving.</h2>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <Link to="/discover" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950">Explore <ArrowRight size={14} /></Link>
             <Link to="/register" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-5 py-3 text-sm font-semibold text-white">Create workspace</Link>

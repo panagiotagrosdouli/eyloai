@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Plus, FolderOpen, ChevronRight, Trash2, Sparkles,
   Clock, X, ArrowRight, LayoutTemplate
@@ -38,9 +38,16 @@ export default function Projects() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [working, setWorking] = useState(false);
   const [error, setError] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
 
   useEffect(() => { loadProjects(); }, []);
+
+  useEffect(() => {
+    if (searchParams.get('new') !== '1') return;
+    setShowNew(true);
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const loadProjects = async () => {
     setLoading(true);

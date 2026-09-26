@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { searchAllPapers } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
@@ -25,9 +26,16 @@ export default function IdeaVault() {
   const [showNew, setShowNew] = useState(false);
   const [analyzing, setAnalyzing] = useState(null);
   const [form, setForm] = useState({ title: '', description: '', category: 'research', tags: '' });
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
 
   useEffect(() => { loadIdeas(); }, []);
+
+  useEffect(() => {
+    if (searchParams.get('new') !== '1') return;
+    setShowNew(true);
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const loadIdeas = async () => {
     setLoading(true);

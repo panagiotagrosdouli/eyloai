@@ -7,6 +7,7 @@ import {
   Video, X, Zap,
 } from 'lucide-react';
 import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
+import GlobalCommandCenter from '@/components/layout/GlobalCommandCenter';
 import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
 import NotificationsBell from '@/components/monitoring/NotificationsBell';
 import ServiceStatus from '@/components/system/ServiceStatus';
@@ -22,51 +23,39 @@ const PRIMARY_NAV = [
 
 const TOOL_GROUPS = [
   {
-    section: 'Research',
-    description: 'Find, verify and organize source-backed work',
+    section: 'Workspace',
+    description: 'Research work that stays connected to projects',
     items: [
       { label: 'Researchers', path: '/researchers', icon: Users, desc: 'Authors, institutions and expertise', badge: 'Live sources' },
       { label: 'For you', path: '/foryou', icon: Sparkles, desc: 'Updates from your saved research context', badge: 'Workspace' },
-      { label: 'Open challenges', path: '/challenges', icon: Trophy, desc: 'Research and innovation challenges', badge: 'Live sources' },
-    ],
-  },
-  {
-    section: 'Decision support',
-    description: 'Turn evidence into a defensible next action',
-    items: [
-      { label: 'Executive briefing', path: '/briefing', icon: Brain, desc: 'A sourced view of priorities and risks', badge: 'Assisted' },
-      { label: 'Opportunity review', path: '/radar', icon: Zap, desc: 'Review funding against your project context', badge: 'Assisted' },
-    ],
-  },
-  {
-    section: 'Deliverables',
-    description: 'Turn research into working outputs',
-    items: [
       { label: 'Idea workspace', path: '/ideas', icon: Lightbulb, desc: 'Capture and develop research ideas', badge: 'Workspace' },
-      { label: 'Grant workspace', path: '/grant-builder', icon: FileEdit, desc: 'Draft and track an application', badge: 'Assisted' },
-      { label: 'Pitch deck', path: '/pitchdeck', icon: Presentation, desc: 'Build a sourced presentation', badge: 'Assisted' },
       { label: 'Meetings', path: '/meetings', icon: Video, desc: 'Keep notes, decisions and actions', badge: 'Workspace' },
+      { label: 'Search history', path: '/history', icon: History, desc: 'Return to earlier discovery' },
+      { label: 'Settings', path: '/settings', icon: Settings, desc: 'Preferences and accessibility' },
     ],
   },
   {
     section: 'Labs',
-    description: 'Experimental decision-support workflows',
+    description: 'Experimental workflows',
     items: [
+      { label: 'Open challenges', path: '/challenges', icon: Trophy, desc: 'Research and innovation challenges', badge: 'Live sources' },
+      { label: 'Executive briefing', path: '/briefing', icon: Brain, desc: 'A sourced view of priorities and risks', badge: 'Assisted' },
+      { label: 'Opportunity review', path: '/radar', icon: Zap, desc: 'Review funding against your project context', badge: 'Assisted' },
       { label: 'Research landscape', path: '/labs/research-landscape', icon: Activity, desc: 'Compare approaches and evidence gaps', badge: 'Experimental' },
       { label: 'Impact review', path: '/labs/impact', icon: Target, desc: 'Test impact assumptions and pathways', badge: 'Experimental' },
       { label: 'Scenario planner', path: '/labs/scenario', icon: Rocket, desc: 'Compare plausible project directions', badge: 'Experimental' },
       { label: 'Team planner', path: '/labs/team', icon: Users, desc: 'Explore roles and expertise fit', badge: 'Experimental' },
       { label: 'Professional path', path: '/labs/professional-path', icon: TrendingUp, desc: 'Explore skills, milestones and direction', badge: 'Experimental' },
       { label: 'Voice workspace', path: '/labs/voice', icon: Mic, desc: 'Dictate a sourced research question', badge: 'Experimental' },
+      { label: 'Grant workspace', path: '/grant-builder', icon: FileEdit, desc: 'Draft and track an application', badge: 'Assisted' },
+      { label: 'Pitch deck', path: '/pitchdeck', icon: Presentation, desc: 'Build a sourced presentation', badge: 'Assisted' },
     ],
   },
   {
     section: 'Account',
-    description: 'History, preferences and access',
+    description: 'Identity and access',
     items: [
       { label: 'Profile', path: '/profile', icon: User, desc: 'Research identity and interests' },
-      { label: 'Search history', path: '/history', icon: History, desc: 'Return to earlier discovery' },
-      { label: 'Settings', path: '/settings', icon: Settings, desc: 'Preferences and accessibility' },
       { label: 'Plans & access', path: '/pricing', icon: Zap, desc: 'Current access and billing status' },
       { label: 'Workspace analytics', path: '/institution', icon: LayoutDashboard, desc: 'Private activity totals', badge: 'Private' },
     ],
@@ -88,7 +77,7 @@ function ToolLink({ item, active }) {
         <Icon size={15} aria-hidden="true" />
       </span>
       <span className="flex min-w-0 flex-1 items-center gap-2">
-        <span className={`truncate text-xs font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{item.label}</span>
+        <span className={`truncate text-sm font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{item.label}</span>
         {item.badge && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/70" title={item.badge}><span className="sr-only">{item.badge}</span></span>}
       </span>
     </Link>
@@ -98,6 +87,7 @@ function ToolLink({ item, active }) {
 export default function AppLayout() {
   const location = useLocation();
   const [eyraOpen, setEyraOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [toolQuery, setToolQuery] = useState('');
@@ -135,9 +125,9 @@ export default function AppLayout() {
 
   useEffect(() => {
     const open = event => {
-      if (aiAvailable && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
-        setEyraOpen(true);
+        setCommandOpen(true);
       }
     };
     window.addEventListener('keydown', open);
@@ -186,10 +176,6 @@ export default function AppLayout() {
 
               {toolsOpen && (
                 <div className="absolute left-0 top-full mt-2 w-[min(48rem,calc(100vw-2rem))] rounded-xl border border-border bg-popover p-3 shadow-2xl shadow-black/30">
-                  <div className="mb-3 flex flex-col justify-between gap-3 rounded-lg border border-border bg-secondary/25 px-4 py-3 sm:flex-row sm:items-center">
-                    <p className="text-xs font-semibold">Choose an action</p>
-                    <div className="flex items-center gap-2 text-[9px] font-medium uppercase tracking-wide text-muted-foreground"><span>Research</span><span>→</span><span>Decide</span><span>→</span><span>Deliver</span><span className="text-primary">Labs</span></div>
-                  </div>
                   <label className="relative block">
                     <span className="sr-only">Search EYLO tools</span>
                     <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -199,7 +185,7 @@ export default function AppLayout() {
                   <div className="mt-3 grid max-h-[70vh] gap-4 overflow-y-auto p-1 sm:grid-cols-2">
                     {visibleGroups.map(group => (
                       <section key={group.section}>
-                        <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground/70">{group.section}</p>
+                        <p className="mb-1 px-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{group.section}</p>
                         {group.items.map(item => <ToolLink key={item.path} item={item} active={isActive(item.path)} />)}
                       </section>
                     ))}
@@ -213,7 +199,7 @@ export default function AppLayout() {
           <div className="ml-auto hidden items-center gap-2 md:flex">
             <ServiceStatus compact className="hidden xl:block" />
             <NotificationsBell />
-            <button type="button" onClick={() => setEyraOpen(true)} disabled={!aiAvailable} title={aiAvailable ? 'Ask EYRA (Ctrl/⌘ K)' : 'EYRA is unavailable on this deployment'}
+            <button type="button" onClick={() => setEyraOpen(true)} disabled={!aiAvailable} title={aiAvailable ? 'Ask EYRA' : 'EYRA is unavailable on this deployment'}
               className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-45">
               <Sparkles size={14} />Ask EYRA<span className="rounded border border-current/15 px-1 py-0.5 font-mono text-[8px] opacity-60">⌘K</span>
             </button>
@@ -235,11 +221,11 @@ export default function AppLayout() {
                   return <Link key={item.path} to={item.path} className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-medium ${active ? 'border-primary/30 bg-primary/5 text-primary' : 'border-border bg-card text-muted-foreground'}`}><Icon size={15} />{item.label}</Link>;
                 })}
               </div>
-              <div className="my-4 flex items-center justify-between gap-3"><p className="text-xs font-semibold text-foreground">Choose an action</p><ServiceStatus /></div>
+              <div className="my-4 flex items-center justify-end gap-3"><ServiceStatus /></div>
               <div className="space-y-5">
                 {TOOL_GROUPS.map(group => (
                   <section key={group.section}>
-                    <p className="mb-1 px-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground/70">{group.section}</p>
+                    <p className="mb-1 px-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{group.section}</p>
                     <div className="grid gap-1 sm:grid-cols-2">{group.items.map(item => <ToolLink key={item.path} item={item} active={isActive(item.path)} />)}</div>
                   </section>
                 ))}
@@ -250,6 +236,7 @@ export default function AppLayout() {
       </header>
 
       <main className="relative z-10 pb-24 lg:pb-0"><Outlet /></main>
+      <GlobalCommandCenter open={commandOpen} onClose={() => setCommandOpen(false)} />
       <EyraCommandCenter open={eyraOpen} onClose={() => setEyraOpen(false)} />
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl lg:hidden" aria-label="Primary mobile navigation">
