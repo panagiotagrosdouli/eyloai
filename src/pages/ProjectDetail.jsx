@@ -15,6 +15,7 @@ import EyraProjectTwin from '@/components/eyra/EyraProjectTwin';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
+import { parseProjectTasks, toggleProjectTask } from '@/lib/project-tasks';
 
 const TABS = [
   { key: 'overview', label: 'Overview', icon: Target },
@@ -99,6 +100,20 @@ export default function ProjectDetail() {
       toast({ title: 'Project saved' });
     } catch (error) {
       toast({ title: 'Could not save project', description: error?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleTask = async (lineIndex) => {
+    const tasks = toggleProjectTask(editing.tasks, lineIndex);
+    setSaving(true);
+    try {
+      const saved = await base44.entities.Project.update(id, { tasks });
+      setEditing(prev => ({ ...prev, tasks }));
+      setProject(prev => ({ ...prev, ...saved }));
+    } catch (error) {
+      toast({ title: 'Could not update task', description: error?.message || 'Please try again.', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -214,7 +229,9 @@ Rules:
 
   const statusColor = STATUS_COLORS[editing.status] || STATUS_COLORS.planning;
   const upcomingMeetings = meetings.filter(m => moment(m.date).isSameOrAfter(moment(), 'day'));
-  const nextAction = String(editing.tasks || '').split('\n').map(line => line.trim()).find(Boolean);
+  const taskItems = parseProjectTasks(editing.tasks);
+  const completedTaskCount = taskItems.filter(task => task.completed).length;
+  const nextAction = taskItems.find(task => !task.completed)?.text;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -441,11 +458,29 @@ Rules:
           <div className="space-y-5">
           <div>
             <label className="block text-sm font-semibold text-foreground mb-2">Next actions</label>
+            {taskItems.length > 0 && (
+              <div className="mb-3 rounded-xl border border-border bg-card p-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-xs font-semibold text-foreground">Task progress</p>
+                  <span className="text-xs tabular-nums text-muted-foreground">{completedTaskCount} of {taskItems.length} complete</span>
+                </div>
+                <ul className="space-y-2">
+                  {taskItems.map(task => (
+                    <li key={task.lineIndex}>
+                      <label className="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-secondary/60">
+                        <input type="checkbox" checked={task.completed} disabled={saving} onChange={() => toggleTask(task.lineIndex)} aria-label={`${task.completed ? 'Mark incomplete' : 'Complete'}: ${task.text}`} className="mt-0.5 h-4 w-4 accent-primary disabled:opacity-50" />
+                        <span className={task.completed ? 'text-muted-foreground line-through' : 'text-foreground'}>{task.text}</span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <textarea
               value={editing.tasks}
               onChange={e => setEditing(prev => ({ ...prev, tasks: e.target.value }))}
               rows={6}
-              placeholder="Add actions, one per line..."
+              placeholder="Add actions, one per line. Prefix each action with - or a number."
               className="w-full px-4 py-3 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 resize-none"
             />
           </div>
