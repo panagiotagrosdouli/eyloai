@@ -185,6 +185,6 @@ export default async function handler(request, response) {
     return response.status(200).json({ url: session.url });
   } catch (error) {
     console.error('Billing endpoint error', { message: error instanceof Error ? error.message : 'Unknown error' });
-    return response.status(500).json({ error: error?.message || 'Billing is temporarily unavailable.' });
+    return response.status(502).json({ error: 'Billing is temporarily unavailable.', code: 'BILLING_REQUEST_FAILED' });
   }
 }
