@@ -5,6 +5,15 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # react-quill@2.0.0 only supports React <=18. Keep React 19 out of
+    # automated dependency batches until the editor is replaced or upgraded.
+    ignore:
+      - dependency-name: react
+        update-types:
+          - version-update:semver-major
+      - dependency-name: react-dom
+        update-types:
+          - version-update:semver-major
     groups:
       production-dependencies:
         dependency-type: production
