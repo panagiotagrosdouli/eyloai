@@ -173,10 +173,10 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
   const difficultyColor = { Low: 'text-green-400', Medium: 'text-amber-400', High: 'text-red-400' };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="eylo-page">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-heading font-bold text-2xl sm:text-3xl mb-1 text-foreground">Funding</h1>
+        <h1 className="eylo-page-heading">Funding</h1>
       </div>
 
       {/* Source contract */}
@@ -201,7 +201,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
         <button
           type="submit"
           disabled={!query.trim() || loading}
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg eyra-gradient text-white text-sm font-semibold disabled:opacity-40 transition-opacity flex items-center gap-2"
+          className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40 transition-opacity flex items-center gap-2"
         >
           {loading && <Loader2 size={13} className="animate-spin" />}
           Find
