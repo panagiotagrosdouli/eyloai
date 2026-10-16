@@ -11,6 +11,7 @@ import { useCapabilities } from '@/lib/capabilities';
 import { useAuth } from '@/lib/AuthContext';
 
 const QUICK_LINKS = [
+  { label: 'Papers & research gaps', href: '/discover', icon: Search },
   { label: 'Researchers & PhD candidates', href: '/researchers', icon: GraduationCap },
   { label: 'Research centres', href: '/discover', icon: Building2 },
   { label: 'Funding', href: '/opportunities', icon: Zap },
@@ -68,7 +69,7 @@ export default function EyraHome({ onSearch }) {
           <div>
             <p className="text-sm text-muted-foreground">{greeting.greeting}</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{greeting.question}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Find the research, people and institutions that can help your project move forward.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Not sure where to start? Discover papers, explore recent research and possible gaps, then find people to build with.</p>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-xs text-muted-foreground" aria-live="polite">
             <span className={`h-2 w-2 rounded-full ${eyraReady ? 'bg-emerald-400' : 'bg-amber-400'}`} />
@@ -94,11 +95,12 @@ export default function EyraHome({ onSearch }) {
           <div className="mb-4 flex items-start gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Users size={19} aria-hidden="true" /></span>
             <div>
-              <h2 id="collaboration-title" className="font-semibold">Research is a team effort. EYRA helps you find the right people.</h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">Find researchers and potential PhD collaborators, explore research institutions, and bring papers and people into your project.</p>
+              <h2 id="collaboration-title" className="font-semibold">From research questions to papers, insights and collaborators.</h2>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">Start without specialist search skills: find relevant and recent studies, investigate potential literature gaps, explore researchers and institutions, and keep everything connected to your project.</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Link to="/discover" className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"><Search size={15} aria-hidden="true" /> Explore papers & gaps <ArrowRight size={14} /></Link>
             <Link to="/researchers" className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"><GraduationCap size={15} aria-hidden="true" /> Find researchers <ArrowRight size={14} /></Link>
             <Link to="/discover" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-4 text-sm font-semibold hover:bg-secondary"><Building2 size={15} aria-hidden="true" /> Explore institutions</Link>
             <Link to="/projects" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-4 text-sm font-semibold hover:bg-secondary"><FolderOpen size={15} aria-hidden="true" /> My projects</Link>
