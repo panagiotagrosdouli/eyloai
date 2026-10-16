@@ -266,7 +266,14 @@ export default async function handler(request, response) {
       if (JSON.stringify(requestedSchema).length > MAX_SCHEMA_LENGTH) {
         return response.status(400).json({ error: 'The requested response structure is too large.' });
       }
-      responseSchema = normalizeSchema(requestedSchema);
+      try {
+        responseSchema = normalizeSchema(requestedSchema);
+      } catch (error) {
+        return response.status(400).json({
+          error: error?.message || 'Invalid response schema.',
+          code: 'INVALID_SCHEMA',
+        });
+      }
     }
 
     const usage = usageState(identity);
