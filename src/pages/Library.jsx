@@ -65,7 +65,13 @@ export default function Library() {
     setProjects(results[3].status === 'fulfilled' ? results[3].value : []);
     setProjectsLoaded(results[3].status === 'fulfilled');
     const failures = results.slice(0, 3).filter(result => result.status === 'rejected').length;
-    if (failures) setLoadNotice(`${failures} saved collection${failures === 1 ? '' : 's'} could not be loaded. The available collections remain usable.`);
+    const projectFailure = results[3].status === 'rejected';
+    if (failures || projectFailure) {
+      const messages = [];
+      if (failures) messages.push(`${failures} saved collection${failures === 1 ? '' : 's'} could not be loaded`);
+      if (projectFailure) messages.push('project links could not be loaded');
+      setLoadNotice(`${messages.join('; ')}. Available records remain usable. Please retry when the connection recovers.`);
+    }
     setLoading(false);
   };
 
