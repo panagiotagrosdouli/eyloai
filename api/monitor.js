@@ -21,7 +21,7 @@ function headers() {
 async function supabase(path, options = {}) {
   const url = process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
   const response = await fetch(`${url}/rest/v1/${path}`, { ...options, headers: { ...headers(), ...(options.headers || {}) } });
-  if (!response.ok) throw new Error(`Supabase ${path} failed: ${response.status}`);
+  if (!response.ok) throw Object.assign(new Error(`Supabase ${path} failed: ${response.status}`), { status: response.status });
   if (response.status === 204) return null;
   return response.json();
 }
@@ -138,6 +138,9 @@ async function processWatchlist(row, seen) {
         body: JSON.stringify({ user_id: row.user_id, data: discovery }),
       });
     } catch (error) {
+      // A separate cron worker may have inserted the same user/source record
+      // first. The database unique index makes that a harmless conflict.
+      if (error?.status === 409) continue;
       seen.delete(key);
       throw error;
     }
