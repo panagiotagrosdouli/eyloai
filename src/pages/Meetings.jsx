@@ -96,7 +96,7 @@ export default function Meetings() {
 
   if (showForm) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="eylo-page max-w-3xl">
         <MeetingForm
           projects={projects}
           onSave={handleSave}
@@ -107,15 +107,15 @@ export default function Meetings() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="eylo-page">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-heading font-bold text-2xl">Meetings</h1>
+          <h1 className="eylo-page-heading">Meetings</h1>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
         >
           <Plus size={15} /> New
         </button>
