@@ -80,3 +80,12 @@ test('EYRA rejects a partial OpenAI generation even when it contains text', asyn
     else process.env.OPENAI_API_KEY = previousKey;
   }
 });
+
+test('EYRA records a failed quota refund when rollback RPC returns HTTP error', async () => {
+  const source = (await import('node:fs')).readFileSync(
+    new URL('../api/eyra.js', import.meta.url), 'utf8',
+  );
+  assert.match(source, /const rollback = await fetch\(/);
+  assert.match(source, /if \(!rollback\.ok\)/);
+  assert.match(source, /EYRA usage rollback was rejected/);
+});
