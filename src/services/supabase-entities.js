@@ -124,10 +124,13 @@ function entityRepository({ table }) {
       return entity;
     },
     async update(entityId, patch) {
+      const user = await currentUser();
       const existing = await this.get(entityId);
       const { id: _id, created_date: _created, updated_date: _updated, ...current } = existing;
       const write = splitPayload({ ...current, ...patch });
-      const { data, error } = await requireSupabase().from(table).update(write).eq('id', entityId).select('*').single();
+      // Ownership is enforced by RLS in Postgres. This explicit user predicate
+      // is an additional guard for writes from authenticated client sessions.
+      const { data, error } = await requireSupabase().from(table).update(write).eq('id', entityId).eq('user_id', user.id).select('*').single();
       if (error) throw error;
       if (table === 'projects' && containsSavedEyraOutput(patch)) {
         trackEyraFollowthrough('project');
@@ -135,8 +138,13 @@ function entityRepository({ table }) {
       return rowToEntity(data);
     },
     async delete(entityId) {
-      const { error } = await requireSupabase().from(table).delete().eq('id', entityId);
+      const user = await currentUser();
+      const { data, error } = await requireSupabase().from(table).delete().eq('id', entityId).eq('user_id', user.id).select('id');
       if (error) throw error;
+      // A zero-row delete must never be reported as successful.
+      if (!data?.some(row => row.id === entityId)) {
+        throw Object.assign(new Error('Record was not found or access was denied.'), { code: 'ENTITY_NOT_FOUND' });
+      }
       return { id: entityId };
     },
   };
