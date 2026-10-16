@@ -127,16 +127,16 @@ Never invent papers, programs, deadlines, statistics, or URLs.`,
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
+    <div className="eylo-page max-w-4xl">
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-8">
         <div>
-          <h1 className="font-heading font-bold text-2xl text-foreground">Ideas</h1>
+          <h1 className="eylo-page-heading">Ideas</h1>
         </div>
         <button
           onClick={() => setShowNew(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity flex-shrink-0"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity flex-shrink-0"
         >
           <Plus size={14} /> New
         </button>
@@ -192,7 +192,7 @@ Never invent papers, programs, deadlines, statistics, or URLs.`,
               </div>
               <div className="flex gap-2">
                 <button onClick={createIdea} disabled={!form.title.trim()}
-                  className="px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold disabled:opacity-40">
+                  className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40">
                   Save Idea
                 </button>
                 <button onClick={() => setShowNew(false)} className="px-4 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-secondary transition-colors">
@@ -218,7 +218,7 @@ Never invent papers, programs, deadlines, statistics, or URLs.`,
           <p className="text-xs text-muted-foreground max-w-xs leading-relaxed mb-4">
             Capture an idea and EYLO will create research and official-funding watchlists. Run a watchlist check whenever you want fresh records.
           </p>
-          <button onClick={() => setShowNew(true)} className="px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold">
+          <button onClick={() => setShowNew(true)} className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">
             Add your first idea
           </button>
         </div>
@@ -248,7 +248,7 @@ Never invent papers, programs, deadlines, statistics, or URLs.`,
                     <button
                       onClick={() => analyzeIdea(idea)}
                       disabled={analyzing === idea.id}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg eyra-gradient text-white text-xs font-semibold disabled:opacity-60"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-60"
                     >
                       {analyzing === idea.id ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
                       {analyzing === idea.id ? 'Analyzing...' : idea.eyra_notes ? 'Re-analyze' : 'Analyze'}
