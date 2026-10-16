@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, BookOpen, ChevronRight, FolderOpen, Loader2, Search,
-  Sparkles, Users, Zap,
+  Sparkles, Users, Zap, Building2, GraduationCap,
 } from 'lucide-react';
 import { buildUserProfile } from '@/lib/second-brain';
 import GuidedSearch from '@/components/discovery/GuidedSearch';
@@ -11,7 +11,8 @@ import { useCapabilities } from '@/lib/capabilities';
 import { useAuth } from '@/lib/AuthContext';
 
 const QUICK_LINKS = [
-  { label: 'Researchers', href: '/researchers', icon: Users },
+  { label: 'Researchers & PhD candidates', href: '/researchers', icon: GraduationCap },
+  { label: 'Research centres', href: '/discover', icon: Building2 },
   { label: 'Funding', href: '/opportunities', icon: Zap },
   { label: 'Library', href: '/library', icon: BookOpen },
 ];
@@ -67,7 +68,7 @@ export default function EyraHome({ onSearch }) {
           <div>
             <p className="text-sm text-muted-foreground">{greeting.greeting}</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{greeting.question}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Pick up a project or start with a question.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Find the research, people and institutions that can help your project move forward.</p>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-xs text-muted-foreground" aria-live="polite">
             <span className={`h-2 w-2 rounded-full ${eyraReady ? 'bg-emerald-400' : 'bg-amber-400'}`} />
@@ -77,7 +78,7 @@ export default function EyraHome({ onSearch }) {
         </header>
 
         <section className="rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="research-prompt-title">
-          <div className="mb-4 flex items-center gap-2 text-primary"><Search size={16} aria-hidden="true" /><h2 id="research-prompt-title" className="text-base font-semibold text-foreground">What are you researching?</h2></div>
+          <div className="mb-4 flex items-center gap-2 text-primary"><Search size={16} aria-hidden="true" /><h2 id="research-prompt-title" className="text-base font-semibold text-foreground">What are you building or researching?</h2></div>
           <GuidedSearch onSearch={onSearch} defaultLevel={defaultLevel} />
           <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
             <span className="mr-1 text-xs text-muted-foreground">Go to</span>
@@ -87,6 +88,22 @@ export default function EyraHome({ onSearch }) {
               </Link>
             ))}
           </div>
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-border bg-card p-5 sm:p-6" aria-labelledby="collaboration-title">
+          <div className="mb-4 flex items-start gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Users size={19} aria-hidden="true" /></span>
+            <div>
+              <h2 id="collaboration-title" className="font-semibold">Research is a team effort. EYRA helps you find the right people.</h2>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">Find researchers and potential PhD collaborators, explore research institutions, and bring papers and people into your project.</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link to="/researchers" className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"><GraduationCap size={15} aria-hidden="true" /> Find researchers <ArrowRight size={14} /></Link>
+            <Link to="/discover" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-4 text-sm font-semibold hover:bg-secondary"><Building2 size={15} aria-hidden="true" /> Explore institutions</Link>
+            <Link to="/projects" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-4 text-sm font-semibold hover:bg-secondary"><FolderOpen size={15} aria-hidden="true" /> My projects</Link>
+          </div>
+          <p className="mt-4 text-xs leading-5 text-muted-foreground">EYRA can help prepare outreach. Sending email or arranging calls requires an authorized, working integration and the user's confirmation. Suggested researchers are not confirmed collaborators.</p>
         </section>
 
         <section className="mt-10" aria-labelledby="continue-title">
