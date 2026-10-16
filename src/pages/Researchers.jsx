@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { searchOpenAlexAuthors } from '@/lib/eyra-api';
-import { Bookmark, ExternalLink, BookOpen, Sparkles, Users, Loader2 } from 'lucide-react';
+import { Bookmark, ExternalLink, BookOpen, Search, Users, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
+
+const initials = name => String(name || '?').trim().split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase()).join('') || '?';
 
 const QUICK_SEARCHES = [
   'Artificial intelligence', 'Cancer biology', 'Climate science',
@@ -63,12 +65,12 @@ export default function Researchers() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="eylo-page-heading">Find researchers</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Explore verified scholarly profiles and discover people working on your topic.</p>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Explore real OpenAlex author records. Academic rank and PhD status are not verified by this search.</p>
       </div>
 
       {/* Search */}
       <form onSubmit={e => { e.preventDefault(); handleSearch(); }} className="relative max-w-2xl mb-4">
-        <Sparkles size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" />
+        <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" />
         <input
           type="text"
           value={query}
@@ -124,6 +126,7 @@ export default function Researchers() {
             {results.map((r, i) => (
               <div key={r.id || i} className="p-5 rounded-2xl border border-border/80 bg-card shadow-sm hover:border-primary/30 transition-colors">
                 <div className="flex items-start justify-between gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-secondary text-sm font-semibold text-foreground" aria-hidden="true">{initials(r.name)}</div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-sm text-foreground">{r.name}</h4>
                     <p className="text-xs text-muted-foreground mt-0.5">{r.institution}</p>
@@ -131,6 +134,7 @@ export default function Researchers() {
                     {r.research_areas && (
                       <p className="text-xs text-muted-foreground/70 mt-2 line-clamp-2">{r.research_areas}</p>
                     )}
+                    <p className="mt-2 text-[11px] text-muted-foreground">Source: OpenAlex · PhD status unverified · No sourced portrait available</p>
                     <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <BookOpen size={11} />
@@ -157,19 +161,7 @@ export default function Researchers() {
       )}
 
       {!hasSearched && !loading && (
-        <div className="grid gap-3 sm:grid-cols-3 mt-2">
-          {[
-            { title: 'Real Data', desc: 'Researchers sourced directly from OpenAlex — the world\'s largest open research graph', icon: '🔬' },
-            { title: 'Full Profiles', desc: 'View publications, citation counts, institutions, and research areas', icon: '👤' },
-            { title: 'Save & Collaborate', desc: 'Save researchers to your library and add them to projects', icon: '💾' },
-          ].map(c => (
-            <div key={c.title} className="p-5 rounded-xl border border-border bg-card">
-              <div className="text-2xl mb-3">{c.icon}</div>
-              <h4 className="font-semibold text-sm text-foreground mb-1">{c.title}</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">{c.desc}</p>
-            </div>
-          ))}
-        </div>
+        <p className="mt-8 max-w-xl text-sm leading-6 text-muted-foreground">Profiles show scholarly authors, not confirmed PhD candidates or collaborators. We display initials rather than inventing headshots. Open a source record to verify current affiliations and identity.</p>
       )}
     </div>
   );
