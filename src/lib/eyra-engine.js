@@ -190,6 +190,11 @@ export async function runEyraDiscovery(input, onProgress) {
     researchers,
     institutions,
     ...aiAnalysis,
+    // Only display literature-gap hypotheses that explicitly reference a paper
+    // present in the supplied analysis context. A reference is not proof of a gap.
+    research_gaps: (Array.isArray(aiAnalysis.research_gaps) ? aiAnalysis.research_gaps : [])
+      .filter(gap => typeof gap === 'string' && /\[P(?:[1-9]|1[0-2])\]/.test(gap))
+      .filter(gap => [...gap.matchAll(/\[P(\d+)\]/g)].every(match => Number(match[1]) <= Math.min(papers.length, 12))),
     funding_opportunities: verifiedFunding,
     funding_error: fundingResult.error || '',
     ai_status: !papers.length ? 'skipped' : (aiError ? 'failed' : 'complete'),
@@ -204,7 +209,7 @@ export async function runEyraDiscovery(input, onProgress) {
 async function generateEvidenceBasedAnalysis(profile, papers, researchers, institutions) {
   const query = profile.topic;
   const paperContext = papers.slice(0, 12).map((p, i) =>
-    `[P${i+1}] "${p.title}" by ${p.authors || 'Unknown'} (${p.year || 'n/a'}) — ${p.cited_by_count || 0} citations — Index: ${p.source_index || p.source} — Category: ${p.discovery_category}\nAbstract: ${p.summary?.slice(0, 240) || 'No abstract'}`
+    `[P${i+1}] "${p.title}" by ${p.authors || 'Unknown'} (${p.year || 'n/a'}) — ${p.cited_by_count || 0} citations — Index: ${p.source_index || p.source} — Category: ${p.discovery_category} — Record: ${p.url || 'No source URL'}\nAbstract: ${p.summary?.slice(0, 240) || 'No abstract'}`
   ).join('\n\n');
 
   const researcherContext = researchers.slice(0, 6).map((r, i) =>
@@ -249,7 +254,7 @@ Return JSON with:
 - recommended_next_questions: array of exactly 3 concrete follow-up research questions
 - data_summary: { total_papers, total_researchers, date_range, top_researcher }
 - key_findings: array of 4 objects { finding, evidence (cite real paper/researcher), confidence ("HIGH"/"MEDIUM"/"LOW", meaning support in the supplied records, not model certainty) }
-- research_gaps: array of 3 strings (gaps from what papers DON'T cover)
+- research_gaps: array of 0-3 cautiously worded potential gaps, each containing at least one valid [P#] citation to the retrieved papers. A limitation visible in the retrieved sample is not proof that the wider literature lacks research. If evidence is insufficient, return an empty array. Explicitly mention what a future systematic search would need to verify.
 - trends: array of 4 objects { title, description, evidence (real paper), year_range }
 - suggested_roles: array of 4 objects { role, expertise, why_needed, evidence }
 - roadmap: array of 5 objects { timeframe, title, tasks (array of 3) }
