@@ -4,6 +4,7 @@
 import { base44 } from '@/api/base44Client';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitutions } from './eyra-api';
 import { searchFundingOpportunities } from './funding-api';
+import { traceableGapHypotheses } from './research-provenance.mjs';
 
 // ── Simple session cache ─────────────────────────────────────
 const CACHE_TTL = 15 * 60 * 1000; // 15 min
@@ -192,9 +193,7 @@ export async function runEyraDiscovery(input, onProgress) {
     ...aiAnalysis,
     // Only display literature-gap hypotheses that explicitly reference a paper
     // present in the supplied analysis context. A reference is not proof of a gap.
-    research_gaps: (Array.isArray(aiAnalysis.research_gaps) ? aiAnalysis.research_gaps : [])
-      .filter(gap => typeof gap === 'string' && /\[P(?:[1-9]|1[0-2])\]/.test(gap))
-      .filter(gap => [...gap.matchAll(/\[P(\d+)\]/g)].every(match => Number(match[1]) <= Math.min(papers.length, 12))),
+    research_gaps: traceableGapHypotheses(aiAnalysis.research_gaps, papers.length),
     funding_opportunities: verifiedFunding,
     funding_error: fundingResult.error || '',
     ai_status: !papers.length ? 'skipped' : (aiError ? 'failed' : 'complete'),
