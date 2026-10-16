@@ -91,9 +91,9 @@ export default function Profile() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
+    <div className="eylo-page max-w-4xl">
       <div className="mb-8">
-        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground mb-1">Profile</h1>
+        <h1 className="eylo-page-heading">Profile</h1>
       </div>
 
       {loadError && <div role="status" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadError}</div>}
@@ -200,7 +200,7 @@ export default function Profile() {
 
               {editing && (
                 <div className="flex gap-2 pt-2">
-                  <button onClick={saveProfile} className="flex-1 py-2.5 rounded-xl eyra-gradient text-white text-xs font-semibold">
+                  <button onClick={saveProfile} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold">
                     Save Profile
                   </button>
                   <button onClick={() => setEditing(false)} className="px-4 py-2.5 rounded-xl border border-border text-xs text-muted-foreground hover:bg-secondary transition-colors">
