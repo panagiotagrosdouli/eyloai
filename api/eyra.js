@@ -199,7 +199,7 @@ async function releaseUsage(reservation) {
   if (!reservation?.actionId) return;
 
   try {
-    await fetch(
+    const rollback = await fetch(
       `${reservation.supabaseUrl}/rest/v1/rpc/release_eyra_usage`,
       {
         method: 'POST',
@@ -207,6 +207,11 @@ async function releaseUsage(reservation) {
         body: JSON.stringify({ p_action_id: reservation.actionId }),
       },
     );
+    // HTTP failures do not throw in fetch. Report unsuccessful quota refunds
+    // so operators can investigate unexpected usage counts.
+    if (!rollback.ok) {
+      console.error('EYRA usage rollback was rejected', { status: rollback.status });
+    }
   } catch {
     console.error('EYRA usage rollback failed.');
   }
