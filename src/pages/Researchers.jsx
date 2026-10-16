@@ -23,6 +23,7 @@ export default function Researchers() {
   const [copyStatus, setCopyStatus] = useState('');
   const [evidence, setEvidence] = useState({});
   const searchSequence = useRef(0);
+  const evidenceRequests = useRef({});
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
 
@@ -55,19 +56,28 @@ export default function Researchers() {
   const loadEvidence = async (researcher) => {
     const authorId = String(researcher.id || '').split('/').pop();
     if (!/^A[0-9]+$/.test(authorId)) return;
-    setEvidence(prev => ({ ...prev, [authorId]: { loading: true, papers: [], error: '' } }));
+    const requestId = (evidenceRequests.current[authorId] || 0) + 1;
+    evidenceRequests.current[authorId] = requestId;
+    setEvidence(prev => ({ ...prev, [authorId]: { loading: true, papers: prev[authorId]?.papers || [], error: '' } }));
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
     try {
       const url = `https://api.openalex.org/works?filter=author.id:${encodeURIComponent(authorId)}&sort=cited_by_count:desc&per_page=5`;
-      const response = await fetch(url, { headers: { Accept: 'application/json' } });
+      const response = await fetch(url, { headers: { Accept: 'application/json' }, signal: controller.signal });
       if (!response.ok) throw new Error('OpenAlex unavailable');
       const payload = await response.json();
-      const papers = (payload.results || []).filter(p => p.title && Number(p.publication_year) <= new Date().getFullYear()).map(p => ({
-        title: p.title, year: p.publication_year, link: p.doi || p.id,
-        citations: p.cited_by_count || 0,
-      }));
-      setEvidence(prev => ({ ...prev, [authorId]: { loading: false, papers, error: '' } }));
+      const papers = (payload.results || [])
+        .filter(p => p.title && Number.isInteger(Number(p.publication_year)) && Number(p.publication_year) <= new Date().getFullYear())
+        .map(p => ({
+          title: p.title, year: p.publication_year,
+          link: [p.doi, p.id].find(link => typeof link === 'string' && /^https:\/\/(doi\.org|openalex\.org)\//i.test(link)) || '',
+          citations: p.cited_by_count || 0,
+        }));
+      if (evidenceRequests.current[authorId] === requestId) setEvidence(prev => ({ ...prev, [authorId]: { loading: false, papers, error: '' } }));
     } catch {
-      setEvidence(prev => ({ ...prev, [authorId]: { loading: false, papers: [], error: 'Unable to load verified publications. Try again.' } }));
+      if (evidenceRequests.current[authorId] === requestId) setEvidence(prev => ({ ...prev, [authorId]: { loading: false, papers: prev[authorId]?.papers || [], error: 'Unable to load OpenAlex publications. Please retry.' } }));
+    } finally {
+      clearTimeout(timeout);
     }
   };
 
@@ -218,7 +228,7 @@ Kind regards,
                         {state.loading && <p className="text-xs text-muted-foreground">Loading scholarly evidence…</p>}
                         {state.error && <p role="alert" className="text-xs text-destructive">{state.error} <button type="button" className="underline" onClick={() => loadEvidence(r)}>Retry</button></p>}
                         {!state.loading && !state.error && state.papers.length === 0 && <p className="text-xs text-muted-foreground">No publications returned.</p>}
-                        {state.papers.map((p, index) => <a key={p.link || index} href={p.link} target="_blank" rel="noopener noreferrer" className="block border-t border-border py-2 text-xs text-primary hover:underline">{p.title} {p.year ? `(${p.year})` : ''} · {p.citations} citations <ExternalLink size={11} className="inline" /></a>)}
+                        {state.papers.map((p, index) => <a key={p.link || index} href={p.link || r.profile_url} target="_blank" rel="noopener noreferrer" className="block border-t border-border py-2 text-xs text-primary hover:underline">{p.title} {p.year ? `(${p.year})` : ''} · {p.citations} citations <ExternalLink size={11} className="inline" /></a>)}
                         <p className="mt-2 text-[11px] text-muted-foreground">Attribution is from OpenAlex. Check identity and publication relevance before contacting.</p>
                       </div>;
                     })()}
