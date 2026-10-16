@@ -468,3 +468,61 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* EYLO 2026 — unified editorial workspace.
+   Shared rules apply across legacy pages without changing their business logic. */
+@layer components {
+  .eylo-page {
+    @apply mx-auto w-full max-w-7xl px-5 py-10 sm:px-8 sm:py-14;
+  }
+  .eylo-page-heading {
+    @apply font-heading text-3xl font-semibold tracking-tight sm:text-[2.6rem];
+  }
+  .eylo-surface {
+    @apply rounded-2xl border border-border/70 bg-card shadow-sm;
+  }
+  .eylo-action {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-50;
+  }
+}
+
+.eylo-app-canvas {
+  --eylo-content-max: 1200px;
+  background: hsl(var(--background));
+}
+.eylo-app-canvas :where(h1, h2, h3) {
+  font-family: var(--font-heading);
+  text-wrap: balance;
+}
+.eylo-app-canvas :where(h1) { letter-spacing: -0.052em; }
+.eylo-app-canvas :where(h2) { letter-spacing: -0.038em; }
+.eylo-app-canvas :where(input, select, textarea) {
+  border-radius: 0.75rem;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.eylo-app-canvas :where(input, textarea, select):focus-visible {
+  border-color: hsl(var(--primary) / 0.65);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.10);
+}
+.eylo-app-canvas :where(article, section) {
+  scroll-margin-top: 6rem;
+}
+.eylo-app-canvas :where(.rounded-2xl.border.bg-card, .eylo-surface) {
+  box-shadow: 0 12px 35px -28px hsl(var(--foreground) / 0.26);
+}
+:root.light {
+  --background: 210 22% 98%;
+  --card: 0 0% 100%;
+  --border: 214 19% 88%;
+  --muted-foreground: 218 12% 43%;
+  --primary: 217 60% 28%;
+}
+:root.light .eylo-app-canvas {
+  background: linear-gradient(180deg, #f8fafc 0%, #f6f8fb 28rem, #f8fafc 100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .eylo-app-canvas :where(button, a, input, textarea) {
+    transition: none !important;
+  }
+}
