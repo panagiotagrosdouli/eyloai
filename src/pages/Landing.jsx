@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, BookOpen, Brain, FileSearch, FolderKanban, Orbit, Search,
-  ShieldCheck, Sparkles, Users, Zap,
+  ArrowRight, Brain, FileSearch, FolderKanban, Orbit, Search,
+  ShieldCheck, Sparkles, Users, GraduationCap, Building2, Mail,
 } from 'lucide-react';
 import ServiceStatus from '@/components/system/ServiceStatus';
 import BrandLogo from '@/components/brand/BrandLogo';
@@ -11,23 +11,23 @@ import { trackSearchStarted } from '@/lib/product-analytics';
 const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
 
 const EXAMPLES = [
-  'AI for early cancer detection',
-  'Climate adaptation in Mediterranean cities',
-  'Solid-state battery recycling',
+  'Find PhD researchers working on explainable AI',
+  'Research groups studying climate adaptation',
+  'Papers and potential collaborators in battery recycling',
 ];
 
 const CAPABILITIES = [
-  { icon: FileSearch, title: 'Discover', text: 'Search live scholarly sources, researchers and institutions.' },
-  { icon: BookOpen, title: 'Remember', text: 'Build a reusable evidence base instead of starting over every session.' },
-  { icon: Brain, title: 'Reason', text: 'Use EYRA across saved evidence, projects and decisions with uncertainty visible.' },
-  { icon: Zap, title: 'Act', text: 'Move from evidence to funding, collaboration, planning and research outputs.' },
+  { icon: FileSearch, title: 'Find the evidence', text: 'Discover real papers and trace claims back to scientific sources.' },
+  { icon: GraduationCap, title: 'Find the people', text: 'Identify published researchers and potential PhD collaborators through verified research profiles.' },
+  { icon: Building2, title: 'Explore research teams', text: 'Discover institutions and explore the research groups working on your topic.' },
+  { icon: Brain, title: 'Move your project forward', text: 'Connect your evidence, people and next steps with EYRA as your research partner.' },
 ];
 
 const START_ACTIONS = [
-  { icon: Search, label: 'Search the literature', href: '/discover' },
-  { icon: Users, label: 'Find researchers', href: '/discover' },
-  { icon: Zap, label: 'Find funding', href: '/discover' },
-  { icon: FolderKanban, label: 'Create a persistent workspace', href: PROJECT_SIGNUP_HREF },
+  { icon: Search, label: 'Find scientific papers', href: '/discover' },
+  { icon: GraduationCap, label: 'Find researchers & PhD candidates', href: '/discover' },
+  { icon: Building2, label: 'Explore universities & research centres', href: '/discover' },
+  { icon: FolderKanban, label: 'Build a research project', href: PROJECT_SIGNUP_HREF },
 ];
 
 export default function Landing() {
@@ -62,9 +62,10 @@ export default function Landing() {
               <Orbit size={12} /> Research operating system
             </div>
             <h1 className="mt-7 max-w-5xl font-heading text-6xl font-semibold leading-[0.92] tracking-[-0.07em] text-white sm:text-8xl xl:text-[7.2rem]">
-              The place your research keeps moving.
-              <span className="mt-3 block text-slate-500">From question to evidence to action.</span>
+              Research is more than finding papers.
+              <span className="mt-3 block text-slate-500">Find people. Build together.</span>
             </h1>
+            <p className="mt-7 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">EYLO connects research papers, researchers, PhD candidates, universities and real projects in one workspace. EYRA helps you turn a question into evidence, potential collaborations and your next action.</p>
             <form onSubmit={explore} className="mt-9 max-w-4xl rounded-2xl border border-white/10 bg-white/[0.045] p-2 shadow-2xl shadow-black/40 backdrop-blur">
               <label htmlFor="research-question" className="sr-only">Research question</label>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -74,12 +75,12 @@ export default function Landing() {
                     id="research-question"
                     value={question}
                     onChange={event => setQuestion(event.target.value)}
-                    placeholder="Ask a research question…"
+                    placeholder="Describe your research topic or the experts you want to find…"
                     className="min-w-0 flex-1 bg-transparent px-3 py-4 text-base text-white outline-none placeholder:text-slate-600"
                   />
                 </div>
                 <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500 px-5 py-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-blue-400">
-                  Explore evidence <ArrowRight size={14} />
+                  Explore research <ArrowRight size={14} />
                 </button>
               </div>
             </form>
@@ -96,7 +97,7 @@ export default function Landing() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">EYLO / today</p>
-                  <h2 className="mt-2 text-lg font-semibold text-white">Start where the work is.</h2>
+                  <h2 className="mt-2 text-lg font-semibold text-white">Start with a question. Find your team.</h2>
                 </div>
                 <span className="h-2 w-2 rounded-full bg-emerald-400" aria-label="Live" />
               </div>
@@ -112,8 +113,8 @@ export default function Landing() {
             </div>
             <div className="border-t border-white/[0.07] p-5">
               <div className="rounded-2xl border border-blue-400/10 bg-blue-400/[0.05] p-4">
-                <div className="flex items-center gap-2 text-xs font-semibold text-cyan-200"><Sparkles size={14} /> EYRA works over your context</div>
-                <p className="mt-2 text-[11px] leading-5 text-slate-500">Saved evidence and project context stay connected so the next session starts where the last one ended.</p>
+                <div className="flex items-center gap-2 text-xs font-semibold text-cyan-200"><Sparkles size={14} /> EYRA connects your research journey</div>
+                <p className="mt-2 text-[11px] leading-5 text-slate-500">Bring papers, people and projects together. Researcher matches are potential connections, not confirmed collaborators.</p>
               </div>
             </div>
           </aside>
@@ -134,6 +135,20 @@ export default function Landing() {
               </article>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="px-5 pb-24 sm:px-8 sm:pb-32" aria-labelledby="collaboration-journey-title">
+        <div className="mx-auto max-w-[90rem] rounded-[2rem] border border-cyan-400/15 bg-[#0b1420] p-7 sm:p-12">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">From discovery to collaboration</p>
+          <h2 id="collaboration-journey-title" className="mt-4 max-w-4xl text-3xl font-semibold tracking-tight text-white sm:text-5xl">Your idea deserves more than a search result.</h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300">Explore relevant papers, identify researchers and university teams, save promising matches to your project and prepare an informed introduction with EYRA.</p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5"><Users className="text-cyan-300" size={22} /><h3 className="mt-4 font-semibold text-white">Discover potential collaborators</h3><p className="mt-2 text-sm leading-6 text-slate-400">Researcher profiles and publications help you identify expertise, including potential PhD collaborators.</p><Link to="/discover" className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-cyan-300">Explore people <ArrowRight size={14} /></Link></div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5"><Building2 className="text-cyan-300" size={22} /><h3 className="mt-4 font-semibold text-white">Connect research to institutions</h3><p className="mt-2 text-sm leading-6 text-slate-400">Explore universities and research centres relevant to your topic and evaluate their published work.</p><Link to="/discover" className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-cyan-300">Explore institutions <ArrowRight size={14} /></Link></div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5"><FolderKanban className="text-cyan-300" size={22} /><h3 className="mt-4 font-semibold text-white">Turn connections into a project</h3><p className="mt-2 text-sm leading-6 text-slate-400">Keep papers, potential partners, research goals and collaboration preparation together.</p><Link to={PROJECT_SIGNUP_HREF} className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-cyan-300">Start a project <ArrowRight size={14} /></Link></div>
+          </div>
+          <div className="mt-6 flex items-start gap-3 rounded-xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-slate-400"><Mail size={18} className="mt-1 shrink-0 text-cyan-300" /><p>EYRA can help prepare outreach and meeting agendas. Sending messages or booking calls on your behalf requires a working, authorized email or calendar connection; no invitation is sent automatically from this page.</p></div>
         </div>
       </section>
 
