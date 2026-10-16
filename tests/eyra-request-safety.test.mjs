@@ -130,3 +130,32 @@ test('EYRA rejects malformed prompts and schemas before making an AI request', a
     else process.env.OPENAI_API_KEY = previousKey;
   }
 });
+
+test('EYRA reports invalid nested response schemas as 400 before reserving quota', async () => {
+  const previousFetch = globalThis.fetch;
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = 'sk-test-placeholder-only';
+  let externalCalls = 0;
+  globalThis.fetch = async (url) => {
+    if (String(url).endsWith('/auth/v1/user')) {
+      return new Response(JSON.stringify({ id: 'test-researcher' }), { status: 200 });
+    }
+    externalCalls += 1;
+    throw new Error('Invalid schema must not call AI or billing RPC');
+  };
+  try {
+    const response = responseMock();
+    await handler({
+      method: 'POST',
+      headers: { authorization: 'Bearer example-test-token' },
+      body: { prompt: 'Analyze this', response_json_schema: { type: 'object', properties: { bad: null } } },
+    }, response);
+    assert.equal(response.statusCode, 400);
+    assert.equal(response.payload.code, 'INVALID_SCHEMA');
+    assert.equal(externalCalls, 0);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.OPENAI_API_KEY;
+    else process.env.OPENAI_API_KEY = previousKey;
+  }
+});
