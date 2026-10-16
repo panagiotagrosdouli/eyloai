@@ -33,7 +33,7 @@ test('scheduled monitor refuses unauthenticated invocations', async () => {
 
 test('monitoring releases an in-run deduplication key after a failed database insert', () => {
   const source = readFileSync(new URL('../api/monitor.js', import.meta.url), 'utf8');
-  assert.match(source, /seen\.add\(key\);[\s\S]*?await supabase\('monitoring_discoveries'[\s\S]*?catch \(error\) \{\s*seen\.delete\(key\);\s*throw error;/);
+  assert.match(source, /seen\.add\(key\);[\s\S]*?await supabase\('monitoring_discoveries'[\s\S]*?catch \(error\) \{[\s\S]*?seen\.delete\(key\);\s*throw error;/);
 });
 
 test('monitoring reports partial failures instead of silently claiming full success', () => {
