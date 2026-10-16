@@ -301,6 +301,21 @@ export default async function handler(request, response) {
     }
 
     const result = await openAiResponse.json();
+    // A 200 HTTP response can still contain a failed or incomplete generation.
+    // Never publish partial model output as a finished research analysis.
+    if (result.status && result.status !== 'completed') {
+      console.warn('EYRA generation did not complete', {
+        status: result.status,
+        reason: result.incomplete_details?.reason || result.error?.code || 'unknown',
+        responseId: result.id,
+      });
+      await releaseUsage(reservation);
+      reservation = null;
+      return response.status(502).json({
+        error: 'EYRA did not finish generating the analysis. Please retry.',
+        code: 'EYRA_INCOMPLETE',
+      });
+    }
     const refusal = outputRefusal(result);
     if (refusal) {
       await releaseUsage(reservation);
