@@ -62,12 +62,12 @@ export default function EyraHome({ onSearch }) {
 
   return (
     <div className="min-h-[calc(100vh-5rem)]">
-      <div className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-6 sm:pt-12">
-        <header className="mb-7 flex flex-wrap items-end justify-between gap-4">
+      <div className="mx-auto max-w-4xl px-4 pb-20 pt-10 sm:px-6 sm:pt-20">
+        <header className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-sm text-muted-foreground">{greeting.greeting}</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{greeting.question}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Research, discover, connect. EYRA helps you take the next step.</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.045em] sm:text-5xl">{greeting.question}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Find evidence, explore possibilities, and make your next move.</p>
           </div>
           <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-xs text-muted-foreground" aria-live="polite">
             <span className={`h-2 w-2 rounded-full ${eyraReady ? 'bg-emerald-400' : 'bg-amber-400'}`} />
@@ -76,8 +76,8 @@ export default function EyraHome({ onSearch }) {
           </div>
         </header>
 
-        <section className="rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="research-prompt-title">
-          <div className="mb-4 flex items-center gap-2 text-primary"><Search size={16} aria-hidden="true" /><h2 id="research-prompt-title" className="text-base font-semibold text-foreground">What are you building or researching?</h2></div>
+        <section className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-7" aria-labelledby="research-prompt-title">
+          <div className="mb-4 flex items-center gap-2 text-primary"><Search size={16} aria-hidden="true" /><h2 id="research-prompt-title" className="text-base font-semibold text-foreground">What would you like to explore?</h2></div>
           <GuidedSearch onSearch={onSearch} defaultLevel={defaultLevel} />
           <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border pt-4">
 
@@ -89,7 +89,7 @@ export default function EyraHome({ onSearch }) {
           </div>
         </section>
 
-        <section className="mt-12" aria-labelledby="continue-title">
+        <section className="mt-16" aria-labelledby="continue-title">
           <div className="mb-4 flex items-center justify-between gap-4">
             <div><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Continue</p><h2 id="continue-title" className="mt-1 text-xl font-semibold">Your active projects</h2></div>
             <Link to="/projects" className="inline-flex min-h-10 items-center gap-1 rounded-lg px-3 text-sm font-medium text-primary hover:bg-primary/10">All projects <ArrowRight size={14} aria-hidden="true" /></Link>
@@ -108,7 +108,7 @@ export default function EyraHome({ onSearch }) {
           )}
         </section>
 
-        <section className="mt-8 flex flex-col gap-4 rounded-xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+        <section className="mt-8 flex flex-col gap-4 rounded-xl border border-border/70 bg-secondary/20 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary"><Sparkles size={16} aria-hidden="true" /></span>
             <div><h2 className="text-sm font-semibold">EYRA is here when you need help</h2><p className="mt-1 text-sm text-muted-foreground">Explore your next step with your research partner.</p></div>
