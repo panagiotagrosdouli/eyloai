@@ -74,32 +74,32 @@ export default function Login() {
       footer={
         <>
           New to EYLO?{" "}
-          <Link to={registerHref} className="font-medium text-cyan-300 hover:underline">
+          <Link to={registerHref} className="font-medium text-[#25578d] hover:underline">
             Create a private workspace
           </Link>
         </>
       }
     >
-      <div className="mb-6 flex items-start gap-3 rounded-xl border border-cyan-300/15 bg-cyan-300/[0.05] p-4 text-sm leading-6 text-slate-300">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true" />
+      <div className="mb-6 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#356ba0]" aria-hidden="true" />
         <p>Use your password or request a one-time sign-in link. You will return to the page that sent you here.</p>
       </div>
 
       {error && (
-        <div role="alert" aria-live="polite" className="mb-4 rounded-lg border border-red-400/15 bg-red-400/[0.06] p-3 text-sm text-red-200">
+        <div role="alert" aria-live="polite" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {error}
         </div>
       )}
 
       {magicLinkSent && (
-        <div role="status" className="mb-4 rounded-lg border border-emerald-300/15 bg-emerald-300/[0.05] p-3 text-sm text-emerald-100">
+        <div role="status" className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
           Check your email. The secure link will return you to your EYLO workspace.
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-slate-300">Email address</Label>
+          <Label htmlFor="email" className="text-slate-700">Email address</Label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
             <Input
@@ -110,7 +110,7 @@ export default function Login() {
               placeholder="you@example.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="h-12 border-white/10 bg-white/[0.025] pl-10 text-white"
+              className="h-12 border-slate-200 bg-white pl-10 text-slate-900"
               required
               disabled={loading}
             />
@@ -119,8 +119,8 @@ export default function Login() {
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password" className="text-slate-300">Password</Label>
-            <Link to={forgotHref} className="text-xs text-cyan-300 hover:underline">
+            <Label htmlFor="password" className="text-slate-700">Password</Label>
+            <Link to={forgotHref} className="text-xs text-[#25578d] hover:underline">
               Forgot password?
             </Link>
           </div>
@@ -133,7 +133,7 @@ export default function Login() {
               placeholder="••••••••"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="h-12 border-white/10 bg-white/[0.025] pl-10 text-white"
+              className="h-12 border-slate-200 bg-white pl-10 text-slate-900"
               required
               disabled={loading}
             />
@@ -149,15 +149,15 @@ export default function Login() {
         </Button>
 
         <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.14em] text-slate-600">
-          <span className="h-px flex-1 bg-white/[0.07]" />
+          <span className="h-px flex-1 bg-slate-200" />
           or
-          <span className="h-px flex-1 bg-white/[0.07]" />
+          <span className="h-px flex-1 bg-slate-200" />
         </div>
 
         <Button
           type="button"
           variant="outline"
-          className="h-12 w-full border-white/10 bg-transparent font-medium text-slate-200 hover:bg-white/[0.05]"
+          className="h-12 w-full border-slate-200 bg-white font-medium text-slate-700 hover:bg-slate-50"
           disabled={loading}
           onClick={handleMagicLink}
         >
