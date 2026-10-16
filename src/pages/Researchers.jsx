@@ -8,7 +8,6 @@ import { useToast } from '@/components/ui/use-toast';
 
 const QUICK_SEARCHES = [
   'Artificial intelligence', 'Cancer biology', 'Climate science',
-  'Quantum physics', 'Genomics', 'Robotics', 'Neuroscience', 'NLP',
 ];
 
 export default function Researchers() {
@@ -60,10 +59,11 @@ export default function Researchers() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="eylo-page">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-heading font-bold text-2xl sm:text-3xl mb-1 text-foreground">Researchers</h1>
+        <h1 className="eylo-page-heading">Find researchers</h1>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Explore verified scholarly profiles and discover people working on your topic.</p>
       </div>
 
       {/* Search */}
@@ -74,12 +74,12 @@ export default function Researchers() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search by research field, topic, or name..."
-          className="w-full h-12 pl-11 pr-36 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition-all"
+          className="w-full h-12 pl-11 pr-36 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition-all"
         />
         <button
           type="submit"
           disabled={!query.trim() || loading}
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg eyra-gradient text-white text-sm font-semibold disabled:opacity-40 transition-opacity flex items-center gap-2"
+          className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium disabled:opacity-40 transition-opacity flex items-center gap-2"
         >
           {loading && <Loader2 size={13} className="animate-spin" />}
           Search
@@ -122,7 +122,7 @@ export default function Researchers() {
           <p className="text-xs text-muted-foreground mb-4">{results.length} researchers found via OpenAlex</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {results.map((r, i) => (
-              <div key={r.id || i} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all">
+              <div key={r.id || i} className="p-5 rounded-2xl border border-border/80 bg-card shadow-sm hover:border-primary/30 transition-colors">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-sm text-foreground">{r.name}</h4>

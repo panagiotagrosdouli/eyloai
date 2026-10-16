@@ -12,19 +12,19 @@
   --card-foreground: 220 35% 12%;
   --popover: 0 0% 100%;
   --popover-foreground: 220 35% 12%;
-  --primary: 213 94% 48%;
+  --primary: 213 58% 30%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 213 18% 94%;
+  --secondary: 210 22% 96%;
   --secondary-foreground: 220 25% 28%;
-  --muted: 213 18% 94%;
+  --muted: 210 22% 96%;
   --muted-foreground: 215 14% 50%;
   --accent: 250 68% 56%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 72% 50%;
   --destructive-foreground: 0 0% 98%;
-  --border: 213 18% 88%;
-  --input: 213 18% 88%;
-  --ring: 213 94% 48%;
+  --border: 214 22% 90%;
+  --input: 214 22% 90%;
+  --ring: 213 58% 30%;
   --sidebar-background: 210 25% 98%;
   --sidebar-foreground: 215 14% 50%;
   --sidebar-primary: 213 94% 48%;
@@ -395,4 +395,32 @@ body {
     radial-gradient(circle at 8% 3%, hsl(var(--primary) / 0.08), transparent 24rem),
     radial-gradient(circle at 92% 18%, hsl(var(--accent) / 0.06), transparent 28rem),
     hsl(var(--background));
+}
+
+/* EYLO premium workspace — shared across all authenticated pages.
+   Tokens respect the existing theme switch; these refinements avoid feature-specific overrides. */
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { letter-spacing: -0.008em; }
+  :where(button, a, input, textarea, select):focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+}
+@layer components {
+  .eylo-page {
+    @apply mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12;
+  }
+  .eylo-page-heading {
+    @apply font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl;
+  }
+  .eylo-surface {
+    @apply rounded-2xl border border-border/80 bg-card shadow-sm;
+  }
+  .eylo-action {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50;
+  }
 }
