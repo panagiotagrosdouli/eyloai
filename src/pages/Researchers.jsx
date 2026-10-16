@@ -168,7 +168,7 @@ Kind regards,
                     <p className="text-xs text-muted-foreground mt-0.5">{r.institution}</p>
                     {r.country && <p className="text-[10px] text-muted-foreground/60 mt-0.5">{r.country}</p>}
                     {r.research_areas && (
-                      <p className="text-xs text-muted-foreground/70 mt-2 line-clamp-2"><span className="font-medium">Research topics (OpenAlex):</span> {r.research_areas}</p>
+                      <p className="text-xs text-muted-foreground/70 mt-2 line-clamp-2"><span className="font-medium">{r.research_topics_source || "OpenAlex research topics"}:</span> {r.research_areas}</p>
                     )}
                     {query.trim() && (() => {
                       const terms = [...new Set(query.toLowerCase().match(/[a-zα-ωάέήίόύώϊϋΐΰ0-9]{3,}/gi) || [])];
@@ -178,8 +178,8 @@ Kind regards,
                         <p className="mt-2 text-xs leading-5 text-muted-foreground">
                           <span className="font-medium text-foreground">Topic fit:</span>{' '}
                           {matching.length
-                            ? `OpenAlex lists overlapping research topics: ${matching.slice(0, 4).join(', ')}. Check published work before considering supervision.`
-                            : 'No matching OpenAlex topic keywords verified. Review their publications before assessing fit.'}
+                            ? `The source lists topics sharing query terms: ${matching.slice(0, 4).join(', ')}. Check published work before considering supervision.`
+                            : 'No direct keyword overlap in the available OpenAlex topics. This does not rule out a research match; review publications.'}
                         </p>
                       );
                     })()}
