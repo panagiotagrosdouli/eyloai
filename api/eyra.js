@@ -210,10 +210,13 @@ async function releaseUsage(reservation) {
     // HTTP failures do not throw in fetch. Report unsuccessful quota refunds
     // so operators can investigate unexpected usage counts.
     if (!rollback.ok) {
-      console.error('EYRA usage rollback was rejected', { status: rollback.status });
+      console.error('EYRA usage rollback was rejected', {
+        status: rollback.status,
+        actionId: reservation.actionId,
+      });
     }
   } catch {
-    console.error('EYRA usage rollback failed.');
+    console.error('EYRA usage rollback failed', { actionId: reservation.actionId });
   }
 }
 
