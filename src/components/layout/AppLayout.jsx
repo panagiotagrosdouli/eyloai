@@ -71,7 +71,7 @@ function ToolLink({ item, active }) {
     <Link
       to={item.path}
       className={`group flex min-h-11 items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
-        active ? 'border-primary/25 bg-primary/[0.07]' : 'border-transparent hover:border-border hover:bg-secondary/40'
+        active ? 'border-primary/15 bg-secondary/60' : 'border-transparent hover:bg-secondary/50'
       }`}
     >
       <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border ${active ? 'border-primary/20 bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground group-hover:text-foreground'}`}>
@@ -152,7 +152,7 @@ export default function AppLayout() {
   return (
     <div className="eylo-app-canvas min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-20 max-w-[90rem] items-center gap-2 px-4 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:px-6">
           <Link to="/home" className="mr-3 flex shrink-0 items-center" aria-label="EYLO workspace home">
             <BrandLogo brand="eylo" size="nav" priority />
           </Link>
@@ -176,14 +176,14 @@ export default function AppLayout() {
               </button>
 
               {toolsOpen && (
-                <div className="absolute left-0 top-full mt-2 w-[min(48rem,calc(100vw-2rem))] rounded-xl border border-border bg-popover p-3 shadow-2xl shadow-black/30">
+                <div className="absolute left-0 top-full mt-2 w-[min(48rem,calc(100vw-2rem))] rounded-2xl border border-border/80 bg-popover p-4 shadow-xl">
                   <label className="relative block">
                     <span className="sr-only">Search EYLO tools</span>
                     <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <input value={toolQuery} onChange={event => setToolQuery(event.target.value)} autoFocus placeholder="Find a tool…"
                       className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/40" />
                   </label>
-                  <div className="mt-3 grid max-h-[70vh] gap-4 overflow-y-auto p-1 sm:grid-cols-2">
+                  <div className="mt-3 grid max-h-[65vh] gap-5 overflow-y-auto p-1 sm:grid-cols-2">
                     {visibleGroups.map(group => (
                       <section key={group.section}>
                         <p className="mb-1 px-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{group.section}</p>
@@ -198,11 +198,11 @@ export default function AppLayout() {
           </nav>
 
           <div className="ml-auto hidden items-center gap-2 md:flex">
-            <ServiceStatus compact className="hidden xl:block" />
+            
             <NotificationsBell />
             <button type="button" onClick={() => setEyraOpen(true)} disabled={!aiAvailable} title={aiAvailable ? 'Ask EYRA' : 'EYRA is unavailable on this deployment'}
               className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-45">
-              <Sparkles size={14} />Ask EYRA<span className="rounded border border-current/15 px-1 py-0.5 font-mono text-[8px] opacity-60">⌘K</span>
+              <Sparkles size={14} />Ask EYRA
             </button>
           </div>
 
@@ -213,7 +213,7 @@ export default function AppLayout() {
         </div>
 
         {mobileOpen && (
-          <div className="max-h-[calc(100vh-5rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
+          <div className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
             <div className="mx-auto max-w-xl">
               <div className="grid grid-cols-2 gap-2">
                 {PRIMARY_NAV.map(item => {
