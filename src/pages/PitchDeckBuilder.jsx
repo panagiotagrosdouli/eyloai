@@ -136,9 +136,9 @@ Rules:
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="eylo-page">
       <header className="mb-7">
-        <h1 className="font-heading text-3xl font-black">Pitch Deck</h1>
+        <h1 className="eylo-page-heading">Pitch Deck</h1>
       </header>
 
       <form onSubmit={generate} className="grid gap-4 rounded-2xl border border-border bg-card p-5 sm:grid-cols-2">
