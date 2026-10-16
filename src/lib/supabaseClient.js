@@ -125,8 +125,13 @@ export async function getUsableSession({
   }
 
   if (result.error) {
-    // A transport/provider failure is not the same as an anonymous visitor.
-    // Preserve the real error so the application can offer a retry.
+    // A server outage or fetch error must never erase the user's local session.
+    // Only a confirmed missing/invalid session should trigger sign-out.
+    const status = Number(result.error.status || 0);
+    const msg = String(result.error.message || '').toLowerCase();
+    if (!status || status >= 500 || msg.includes('fetch') || msg.includes('network')) {
+      throw result.error;
+    }
     if (!required) throw result.error;
     return authenticationFailure(client, required, result.error);
   }
