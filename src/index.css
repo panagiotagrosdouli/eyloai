@@ -424,3 +424,47 @@ body {
     @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50;
   }
 }
+
+/* Shared premium treatment on every authenticated route, including legacy feature pages.
+   Restrict to workspace canvas so public authentication and marketing retain their own layout. */
+.eylo-app-canvas {
+  --eylo-content-max: 1120px;
+  background: hsl(var(--background));
+}
+.eylo-app-canvas main > :first-child {
+  color: hsl(var(--foreground));
+}
+.eylo-app-canvas :where(h1) {
+  font-family: var(--font-heading);
+  letter-spacing: -0.045em;
+  line-height: 1.16;
+}
+.eylo-app-canvas :where(h2, h3) {
+  letter-spacing: -0.025em;
+}
+.eylo-app-canvas :where(input, textarea, select) {
+  accent-color: hsl(var(--primary));
+}
+.eylo-app-canvas :where(button, a, input, textarea, select) {
+  -webkit-tap-highlight-color: transparent;
+}
+.eylo-app-canvas :where(button, a) {
+  transition-duration: 160ms;
+}
+.eylo-app-canvas .eyra-gradient {
+  background: hsl(var(--primary));
+}
+.eylo-app-canvas .card-glow:hover {
+  box-shadow: 0 5px 24px -18px hsl(var(--foreground) / 0.15);
+  border-color: hsl(var(--border));
+}
+.eylo-app-canvas :where(.animate-pulse-glow) {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .eylo-app-canvas :where(*, *::before, *::after) {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
