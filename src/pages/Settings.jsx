@@ -36,7 +36,7 @@ const LANGUAGES = [
 ];
 
 const THEMES = [
-  { id: 'dark', label: 'Dark', icon: Moon, desc: 'Premium deep navy — default' },
+  { id: 'dark', label: 'Dark', icon: Moon, desc: 'Premium deep navy' },
   { id: 'light', label: 'Light', icon: Sun, desc: 'Clean minimal light' },
   { id: 'system', label: 'System', icon: Monitor, desc: 'Follows your OS setting' },
 ];

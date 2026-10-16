@@ -14,7 +14,7 @@ export function applyTheme(theme) {
     root.classList.remove('dark');
     root.classList.add('light');
   } else {
-    // dark (default)
+    // Dark remains available as an explicit preference.
     root.classList.remove('light');
     root.classList.add('dark');
   }
@@ -23,9 +23,9 @@ export function applyTheme(theme) {
 
 export function initTheme() {
   const stored = localStorage.getItem('eylo_prefs');
-  let theme = 'dark';
+  let theme = 'light';
   if (stored) {
-    try { theme = JSON.parse(stored).theme || 'dark'; } catch {}
+    try { theme = JSON.parse(stored).theme || 'light'; } catch {}
   }
   applyTheme(theme);
 
