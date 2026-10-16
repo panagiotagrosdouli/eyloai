@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { searchOpenAlexAuthors } from '@/lib/eyra-api';
@@ -17,6 +17,8 @@ export default function Researchers() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const searchSequence = useRef(0);
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
 
@@ -28,17 +30,22 @@ export default function Researchers() {
   const handleSearch = async (searchQuery) => {
     const q = searchQuery || query;
     if (!q.trim()) return;
+    const requestId = ++searchSequence.current;
     setQuery(q);
     setLoading(true);
     setHasSearched(true);
+    setSearchError('');
     try {
-      const data = await searchOpenAlexAuthors(q, 16);
-      setResults(data);
+      const data = await searchOpenAlexAuthors(q, 16, { throwOnError: true });
+      if (requestId === searchSequence.current) setResults(data);
     } catch {
-      toast({ title: 'Search failed', description: 'Could not reach OpenAlex. Please try again.', variant: 'destructive' });
-      setResults([]);
+      if (requestId === searchSequence.current) {
+        setSearchError('OpenAlex is unavailable right now. Please retry your search.');
+        setResults([]);
+      }
+    } finally {
+      if (requestId === searchSequence.current) setLoading(false);
     }
-    setLoading(false);
   };
 
   const saveResearcher = async (r) => {
@@ -112,7 +119,9 @@ export default function Researchers() {
         </div>
       )}
 
-      {!loading && hasSearched && results.length === 0 && (
+      {!loading && searchError && <div role="alert" className="mb-6 rounded-xl border border-destructive/25 bg-destructive/5 px-5 py-4 text-sm text-foreground">{searchError} <button type="button" onClick={() => handleSearch(query)} className="ml-2 font-semibold text-primary underline">Retry</button></div>}
+
+      {!loading && hasSearched && !searchError && results.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Users size={24} className="text-muted-foreground mb-3" />
           <p className="text-sm text-muted-foreground">No researchers found. Try a different search term.</p>
