@@ -2,7 +2,7 @@ import { applyTheme } from '@/lib/theme';
 
 export const DEFAULT_PREFERENCES = {
   language: 'en',
-  theme: 'dark',
+  theme: 'light',
   accent: 'blue',
   voice_style: 'professional',
   accessibility: [],
