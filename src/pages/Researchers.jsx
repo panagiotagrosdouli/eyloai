@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { searchOpenAlexAuthors } from '@/lib/eyra-api';
-import { Bookmark, ExternalLink, BookOpen, Search, Users, Loader2, CalendarDays } from 'lucide-react';
+import { Bookmark, ExternalLink, BookOpen, Search, Users, Loader2, CalendarDays, Mail, Copy, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -18,6 +18,9 @@ export default function Researchers() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const [outreachResearcher, setOutreachResearcher] = useState(null);
+  const [outreachDraft, setOutreachDraft] = useState('');
+  const [copyStatus, setCopyStatus] = useState('');
   const searchSequence = useRef(0);
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -45,6 +48,30 @@ export default function Researchers() {
       }
     } finally {
       if (requestId === searchSequence.current) setLoading(false);
+    }
+  };
+
+  const prepareOutreach = (researcher) => {
+    setOutreachResearcher(researcher);
+    setCopyStatus('');
+    setOutreachDraft(`Subject: Research collaboration inquiry
+
+Dear ${researcher.name || 'Researcher'},
+
+I am exploring ${query.trim() || '[your research topic]'} and came across your scholarly work through OpenAlex. I would appreciate the opportunity to learn more about your research and whether my interests might align with your current work.
+
+I would be happy to share a short research proposal if helpful. Thank you for considering my inquiry.
+
+Kind regards,
+[Your name]`);
+  };
+
+  const copyOutreach = async () => {
+    try {
+      await navigator.clipboard.writeText(outreachDraft);
+      setCopyStatus('Draft copied. Find and verify an official contact address before sending.');
+    } catch {
+      setCopyStatus('Copy was blocked by your browser. Select and copy the draft manually.');
     }
   };
 
@@ -146,6 +173,7 @@ export default function Researchers() {
                     <p className="mt-2 text-[11px] text-muted-foreground">Source: OpenAlex · PhD status unverified · No sourced portrait available</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {r.profile_url && <a href={r.profile_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><ExternalLink size={13} aria-hidden="true" /> Verify source profile</a>}
+                      <button type="button" onClick={() => prepareOutreach(r)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><Mail size={13} aria-hidden="true" /> Draft a message</button>
                       <Link to={`/meetings?person=${encodeURIComponent(r.name || '')}`} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><CalendarDays size={13} aria-hidden="true" /> Plan a discussion</Link>
                     </div>
                     <p className="mt-2 text-[11px] leading-5 text-muted-foreground">Planning a discussion does not send an invitation. Contact details and identity must be verified independently.</p>
@@ -172,6 +200,25 @@ export default function Researchers() {
             ))}
           </div>
         </motion.div>
+      )}
+
+      {outreachResearcher && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-4" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setOutreachResearcher(null); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="outreach-title" className="w-full max-w-2xl rounded-2xl border border-border bg-card p-5 shadow-2xl sm:p-7">
+            <div className="flex items-start justify-between gap-3">
+              <div><h2 id="outreach-title" className="text-xl font-semibold">Prepare a research inquiry</h2><p className="mt-1 text-sm text-muted-foreground">Draft for {outreachResearcher.name}. This does not send an email or imply they are accepting students.</p></div>
+              <button type="button" onClick={() => setOutreachResearcher(null)} aria-label="Close message draft" className="rounded-lg p-2 hover:bg-secondary"><X size={18} /></button>
+            </div>
+            <label htmlFor="outreach-draft" className="mt-5 block text-sm font-medium">Edit your message before copying</label>
+            <textarea id="outreach-draft" value={outreachDraft} onChange={event => { setOutreachDraft(event.target.value); setCopyStatus(''); }} rows={12} className="mt-2 w-full resize-y rounded-xl border border-border bg-background p-4 text-sm leading-6 text-foreground focus-visible:outline-primary" />
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">Only the researcher's OpenAlex record was found. Verify the intended recipient and official contact details independently. No email is automatically sent.</p>
+            {copyStatus && <p role="status" className="mt-3 text-sm text-muted-foreground">{copyStatus}</p>}
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              {outreachResearcher.profile_url && <a href={outreachResearcher.profile_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border px-4 text-sm font-medium hover:bg-secondary"><ExternalLink size={15} /> Verify author profile</a>}
+              <button type="button" onClick={copyOutreach} disabled={!outreachDraft.trim()} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"><Copy size={15} /> Copy draft</button>
+            </div>
+          </section>
+        </div>
       )}
 
       {!hasSearched && !loading && (
