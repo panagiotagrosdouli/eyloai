@@ -169,6 +169,7 @@ export default function ProjectDetail() {
         `[F${index + 1}] "${opportunity.title}" — ${opportunity.agency}; deadline ${opportunity.deadline || 'not listed'}; amount ${opportunity.amount || 'not listed'}; status ${opportunity.status}. Official URL: ${opportunity.source_url}`
       ).join('\n') || 'No verified funding records were returned.';
 
+      const hasLiveEvidence = Boolean(papers.length || researchers.length || opportunities.length);
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `You are EYRA, an evidence-grounded research and innovation copilot.
 
@@ -187,6 +188,7 @@ Meetings scheduled: ${meetings.length}
 LIVE RETRIEVAL STATUS:
 ${retrievalFailures.length ? 'Incomplete. Unavailable sources: ' + retrievalFailures.join(', ') : 'Source requests returned successfully.'}
 A failed source cannot justify a claim that no papers, researchers, or opportunities exist.
+${hasLiveEvidence ? 'At least one live source returned a record.' : 'NO LIVE SOURCE RECORDS WERE RETRIEVED. This is a workspace-only draft. Do not label the report sourced or verified, and do not invent external citations or claim fresh verification.'}
 
 VERIFIED SCHOLARLY RECORDS:
 ${paperContext}
@@ -220,7 +222,9 @@ Rules:
       setProject(prev => ({ ...prev, eyra_analysis: result }));
       setActiveTab('intelligence');
       toast({
-        title: retrievalFailures.length ? 'Analysis completed with incomplete sources' : 'Sourced analysis complete',
+        title: !hasLiveEvidence
+          ? 'Workspace-only draft — no live sources verified'
+          : retrievalFailures.length ? 'Analysis completed with incomplete sources' : 'Sourced analysis complete',
         description: `${papers.length} papers · ${researchers.length} researchers · ${opportunities.length} funding records${retrievalFailures.length ? ' · Unavailable: ' + retrievalFailures.join(', ') : ''}`,
       });
     } catch (error) {
