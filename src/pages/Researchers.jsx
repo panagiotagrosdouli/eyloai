@@ -21,6 +21,7 @@ export default function Researchers() {
   const [outreachResearcher, setOutreachResearcher] = useState(null);
   const [outreachDraft, setOutreachDraft] = useState('');
   const [copyStatus, setCopyStatus] = useState('');
+  const [evidence, setEvidence] = useState({});
   const searchSequence = useRef(0);
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -48,6 +49,25 @@ export default function Researchers() {
       }
     } finally {
       if (requestId === searchSequence.current) setLoading(false);
+    }
+  };
+
+  const loadEvidence = async (researcher) => {
+    const authorId = String(researcher.id || '').split('/').pop();
+    if (!/^A[0-9]+$/.test(authorId)) return;
+    setEvidence(prev => ({ ...prev, [authorId]: { loading: true, papers: [], error: '' } }));
+    try {
+      const url = `https://api.openalex.org/works?filter=author.id:${encodeURIComponent(authorId)}&sort=cited_by_count:desc&per_page=5`;
+      const response = await fetch(url, { headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error('OpenAlex unavailable');
+      const payload = await response.json();
+      const papers = (payload.results || []).filter(p => p.title && Number(p.publication_year) <= new Date().getFullYear()).map(p => ({
+        title: p.title, year: p.publication_year, link: p.doi || p.id,
+        citations: p.cited_by_count || 0,
+      }));
+      setEvidence(prev => ({ ...prev, [authorId]: { loading: false, papers, error: '' } }));
+    } catch {
+      setEvidence(prev => ({ ...prev, [authorId]: { loading: false, papers: [], error: 'Unable to load verified publications. Try again.' } }));
     }
   };
 
@@ -186,9 +206,22 @@ Kind regards,
                     <p className="mt-2 text-[11px] text-muted-foreground">Source: OpenAlex · PhD status unverified · No sourced portrait available</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {r.profile_url && <a href={r.profile_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><ExternalLink size={13} aria-hidden="true" /> Verify source profile</a>}
+                      <button type="button" onClick={() => loadEvidence(r)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><BookOpen size={13} aria-hidden="true" /> View actual publications</button>
                       <button type="button" onClick={() => prepareOutreach(r)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><Mail size={13} aria-hidden="true" /> Draft a message</button>
                       <Link to={`/meetings?person=${encodeURIComponent(r.name || '')}`} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><CalendarDays size={13} aria-hidden="true" /> Plan a discussion</Link>
                     </div>
+                    {(() => {
+                      const state = evidence[String(r.id || '').split('/').pop()];
+                      if (!state) return null;
+                      return <div className="mt-3 rounded-xl border border-border bg-background p-3">
+                        <p className="mb-2 text-xs font-semibold">Publications attributed to this OpenAlex author</p>
+                        {state.loading && <p className="text-xs text-muted-foreground">Loading scholarly evidence…</p>}
+                        {state.error && <p role="alert" className="text-xs text-destructive">{state.error} <button type="button" className="underline" onClick={() => loadEvidence(r)}>Retry</button></p>}
+                        {!state.loading && !state.error && state.papers.length === 0 && <p className="text-xs text-muted-foreground">No publications returned.</p>}
+                        {state.papers.map((p, index) => <a key={p.link || index} href={p.link} target="_blank" rel="noopener noreferrer" className="block border-t border-border py-2 text-xs text-primary hover:underline">{p.title} {p.year ? `(${p.year})` : ''} · {p.citations} citations <ExternalLink size={11} className="inline" /></a>)}
+                        <p className="mt-2 text-[11px] text-muted-foreground">Attribution is from OpenAlex. Check identity and publication relevance before contacting.</p>
+                      </div>;
+                    })()}
                     <p className="mt-2 text-[11px] leading-5 text-muted-foreground">Planning a discussion does not send an invitation. Contact details and identity must be verified independently.</p>
                     <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
