@@ -31,15 +31,25 @@ export default function Register() {
     const callbackUrl = new URL("/auth/callback", window.location.origin);
     callbackUrl.searchParams.set("from", destination);
 
-    const result = await signUp(email, password, {
-      emailRedirectTo: callbackUrl.toString(),
-      full_name: fullName.trim(),
-    });
-    if (!result.ok) {
-      setFormError(result.error.message);
-      return;
+    try {
+      const result = await signUp(email, password, {
+        emailRedirectTo: callbackUrl.toString(),
+        full_name: fullName.trim(),
+      });
+      if (!result.ok) {
+        setFormError(result.error?.message || "Registration could not be completed.");
+        return;
+      }
+      // Email confirmation is not always enabled. Only promise a confirmation
+      // message when the provider did not issue a valid session.
+      if (result.data?.session) {
+        window.location.assign(destination);
+        return;
+      }
+      setSentEmail(email);
+    } catch {
+      setFormError("We could not contact the account service. Please retry.");
     }
-    setSentEmail(email);
   };
 
   if (sentEmail) {
@@ -125,7 +135,7 @@ export default function Register() {
           {errors.confirmPassword && <p role="alert" className="text-xs text-red-700">{errors.confirmPassword.message}</p>}
         </div>
 
-        <Button type="submit" className="h-12 w-full font-semibold" disabled={isSubmitting}>
+        <Button type="submit" className="h-12 w-full rounded-xl font-semibold shadow-sm" disabled={isSubmitting}>
           {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating workspace…</> : "Create private workspace"}
         </Button>
       </form>
