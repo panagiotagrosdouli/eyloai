@@ -31,9 +31,9 @@ export default function Notifications() {
   const unreadCount = items.filter(item => !item.dismissed && !item.read).length;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-10">
+    <div className="eylo-page max-w-4xl">
       <header className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div><h1 className="font-heading text-2xl font-bold">Notifications</h1><p className="text-xs text-muted-foreground">{unreadCount} unread</p></div>
+        <div><h1 className="eylo-page-heading">Notifications</h1><p className="text-xs text-muted-foreground">{unreadCount} unread</p></div>
         <button
           type="button"
           onClick={() => monitoringStore.markAllRead()}
