@@ -129,10 +129,10 @@ Return project_summary, conservative, growth, aggressive, eyra_recommendation, a
   const pathConfig = PATHS.find(p => p.key === activePath);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="eylo-page">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-heading font-black text-2xl sm:text-3xl text-foreground">Scenario Planner</h1>
+        <h1 className="eylo-page-heading">Scenario Planner</h1>
       </div>
 
       <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] text-muted-foreground">
@@ -160,7 +160,7 @@ Return project_summary, conservative, growth, aggressive, eyra_recommendation, a
           <button
             type="submit"
             disabled={!query.trim() || loading}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl eyra-gradient text-white text-sm font-semibold disabled:opacity-40"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40"
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
             Simulate
@@ -185,7 +185,7 @@ Return project_summary, conservative, growth, aggressive, eyra_recommendation, a
       {/* Loading */}
       {loading && (
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-16 h-16 rounded-2xl eyra-gradient flex items-center justify-center mb-5 animate-pulse-glow">
+          <div className="w-16 h-16 rounded-2xl eyra-gradient flex items-center justify-center mb-5 ">
             <Rocket size={26} className="text-white" />
           </div>
           <p className="text-sm font-semibold text-foreground mb-1">EYRA is building evidence-informed scenarios...</p>
