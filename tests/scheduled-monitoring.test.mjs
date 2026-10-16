@@ -41,3 +41,19 @@ test('monitoring reports partial failures instead of silently claiming full succ
   assert.match(source, /partial_failure: failed > 0/);
   assert.match(source, /console\.error\('Watchlist monitoring failed'/);
 });
+
+test('monitoring handles overlapping-worker database uniqueness conflicts', () => {
+  const source = readFileSync(new URL('../api/monitor.js', import.meta.url), 'utf8');
+  assert.match(source, /status: response\.status/);
+  assert.match(source, /if \(error\?\.status === 409\) continue;/);
+});
+
+test('database migration enforces a unique source ID per account', () => {
+  const sql = readFileSync(
+    new URL('../supabase/migrations/20261017090000_monitoring_discovery_uniqueness.sql', import.meta.url), 'utf8',
+  );
+  assert.match(sql, /create unique index if not exists monitoring_discoveries_user_source_unique/);
+  assert.match(sql, /on public\.monitoring_discoveries/);
+  assert.match(sql, /user_id,/);
+  assert.match(sql, /external_id/);
+});
