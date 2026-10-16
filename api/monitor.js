@@ -26,6 +26,20 @@ async function supabase(path, options = {}) {
   return response.json();
 }
 
+// Retry only transient provider failures. A scheduled check must not treat a
+// temporary 429/5xx response as a successful empty search.
+export async function fetchResearchProvider(url, options = {}) {
+  let lastResponse;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    // New timeout for each attempt; never reuse an already-aborted signal.
+    const response = await fetch(url, { ...options, signal: AbortSignal.timeout(12_000) });
+    if (response.ok) return response;
+    lastResponse = response;
+    if (response.status !== 429 && response.status < 500) break;
+  }
+  return lastResponse;
+}
+
 function abstractFromInverted(index) {
   if (!index) return '';
   const words = [];
@@ -45,7 +59,7 @@ async function searchOpenAlex(query) {
     || '',
   ).trim();
   if (contactEmail) params.set('mailto', contactEmail);
-  const response = await fetch(`${OPENALEX_URL}?${params}`, { signal: AbortSignal.timeout(12_000) });
+  const response = await fetchResearchProvider(`${OPENALEX_URL}?${params}`);
   if (!response.ok) throw new Error(`OpenAlex failed: ${response.status}`);
   const payload = await response.json();
   return (payload.results || []).map(work => ({
@@ -67,11 +81,10 @@ function daysUntil(value) {
 }
 
 async function searchGrants(query) {
-  const response = await fetch(GRANTS_URL, {
+  const response = await fetchResearchProvider(GRANTS_URL, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ rows: 5, keyword: query, oppStatuses: 'forecasted|posted' }),
-    signal: AbortSignal.timeout(12_000),
   });
   if (!response.ok) throw new Error(`Grants.gov failed: ${response.status}`);
   const payload = await response.json();
