@@ -79,7 +79,7 @@ function ToolLink({ item, active }) {
       </span>
       <span className="flex min-w-0 flex-1 items-center gap-2">
         <span className={`truncate text-sm font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{item.label}</span>
-        {item.badge && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/70" title={item.badge}><span className="sr-only">{item.badge}</span></span>}
+        {item.badge && <span className="truncate text-[10px] font-normal text-muted-foreground">{item.badge}</span>}
       </span>
     </Link>
   );
@@ -151,8 +151,8 @@ export default function AppLayout() {
 
   return (
     <div className="eylo-app-canvas min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:px-6">
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/95 backdrop-blur-xl">
+        <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center gap-2 px-4 sm:px-8">
           <Link to="/home" className="mr-3 flex shrink-0 items-center" aria-label="EYLO workspace home">
             <BrandLogo brand="eylo" size="nav" priority />
           </Link>
@@ -236,7 +236,7 @@ export default function AppLayout() {
         )}
       </header>
 
-      <main className="relative z-10 pb-24 lg:pb-0"><Outlet /></main>
+      <main className="relative z-10 min-h-[calc(100vh-4.5rem)] pb-24 lg:pb-0"><Outlet /></main>
       <GlobalCommandCenter open={commandOpen} onClose={() => setCommandOpen(false)} />
       <EyraCommandCenter open={eyraOpen} onClose={() => setEyraOpen(false)} />
 
