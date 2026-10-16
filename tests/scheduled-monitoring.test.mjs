@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import monitor from '../api/monitor.js';
+
+const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
+
+function responseMock() {
+  return {
+    statusCode: 200, payload: null,
+    status(code) { this.statusCode = code; return this; },
+    json(payload) { this.payload = payload; return this; },
+  };
+}
+
+test('Vercel schedules real server-side monitoring without an open browser', () => {
+  assert.deepEqual(config.crons, [{ path: '/api/monitor', schedule: '0 8 * * *' }]);
+});
+
+test('scheduled monitor refuses unauthenticated invocations', async () => {
+  const prev = process.env.CRON_SECRET;
+  process.env.CRON_SECRET = 'private-test-secret';
+  try {
+    const response = responseMock();
+    await monitor({ method: 'GET', headers: {} }, response);
+    assert.equal(response.statusCode, 401);
+    assert.equal(response.payload.error, 'Cron authorization required.');
+  } finally {
+    if (prev === undefined) delete process.env.CRON_SECRET;
+    else process.env.CRON_SECRET = prev;
+  }
+});
