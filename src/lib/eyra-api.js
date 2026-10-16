@@ -113,7 +113,9 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
       photo_status: 'unavailable',
       data_source: 'OpenAlex',
       country: a.last_known_institutions?.[0]?.country_code || '',
-      research_areas: (a.x_concepts || []).slice(0, 4).map(c => c.display_name).join(', '),
+      // Current OpenAlex records provide publication-derived topics; x_concepts is legacy.
+      research_areas: (a.topics?.length ? a.topics.map(t => t.display_name || t.subfield?.display_name).filter(Boolean) : (a.x_concepts || []).map(c => c.display_name)).slice(0, 5).join(', '),
+      research_topics_source: a.topics?.length ? 'OpenAlex publication topics' : 'OpenAlex legacy concepts',
       works_count: a.works_count || 0,
       citation_count: a.cited_by_count || 0,
       profile_url: `https://openalex.org/authors/${a.id?.split('/').pop()}`,
