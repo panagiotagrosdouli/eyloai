@@ -13,6 +13,8 @@ function responseMock() {
 
 test('EYRA does not silently truncate oversized research instructions', async () => {
   const prevFetch = globalThis.fetch;
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = 'sk-test-placeholder-only';
   globalThis.fetch = async (url) => {
     if (String(url).endsWith('/auth/v1/user')) {
       return new Response(JSON.stringify({ id: 'test-researcher' }), { status: 200 });
@@ -31,6 +33,8 @@ test('EYRA does not silently truncate oversized research instructions', async ()
     assert.equal(response.headers['cache-control'], 'private, no-store');
   } finally {
     globalThis.fetch = prevFetch;
+    if (previousKey === undefined) delete process.env.OPENAI_API_KEY;
+    else process.env.OPENAI_API_KEY = previousKey;
   }
 });
 
