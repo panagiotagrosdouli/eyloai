@@ -8,6 +8,10 @@ export const AppErrorCode = Object.freeze({
   NETWORK: 'network_error',
   PROVIDER_DISABLED: 'provider_disabled',
   EXPIRED_RECOVERY_LINK: 'expired_recovery_link',
+  SIGNUP_DISABLED: 'signup_disabled',
+  EMAIL_SEND_FAILED: 'email_send_failed',
+  SERVICE_UNAVAILABLE: 'service_unavailable',
+  INVALID_EMAIL: 'invalid_email',
   UNKNOWN: 'unknown_error',
 });
 
@@ -21,7 +25,11 @@ const messages = {
   [AppErrorCode.NETWORK]: 'Unable to reach the authentication service. Check your connection and retry.',
   [AppErrorCode.PROVIDER_DISABLED]: 'This sign-in provider is not available.',
   [AppErrorCode.EXPIRED_RECOVERY_LINK]: 'This recovery link is invalid or has expired.',
-  [AppErrorCode.UNKNOWN]: 'Something went wrong. Please try again.',
+  [AppErrorCode.SIGNUP_DISABLED]: 'New registrations are temporarily disabled. Contact EYLO support.',
+  [AppErrorCode.EMAIL_SEND_FAILED]: 'Your account could not be confirmed because the email service failed. Please try again later.',
+  [AppErrorCode.SERVICE_UNAVAILABLE]: 'The account service is temporarily unavailable. Please try again later.',
+  [AppErrorCode.INVALID_EMAIL]: 'Enter a valid email address and try again.',
+  [AppErrorCode.UNKNOWN]: 'The account service rejected this request. Please try again or contact support.',
 };
 
 export function createAppError(code, cause) {
@@ -37,7 +45,12 @@ export function mapSupabaseError(error) {
 
   const message = String(error.message || '').toLowerCase();
   const status = Number(error.status || 0);
+  const providerCode = String(error.code || '').toLowerCase();
 
+  if ((providerCode === 'signup_disabled' || providerCode === 'email_provider_disabled') || message.includes('signups not allowed') || message.includes('signup is disabled')) return createAppError(AppErrorCode.SIGNUP_DISABLED, error);
+  if (providerCode === 'email_address_invalid' || message.includes('email address is invalid') || message.includes('invalid email')) return createAppError(AppErrorCode.INVALID_EMAIL, error);
+  if (providerCode === 'email_address_not_authorized' || providerCode === 'unexpected_failure' && message.includes('email') || message.includes('error sending confirmation email') || message.includes('error sending email')) return createAppError(AppErrorCode.EMAIL_SEND_FAILED, error);
+  if (status >= 500 || providerCode === 'over_request_rate_limit') return createAppError(AppErrorCode.SERVICE_UNAVAILABLE, error);
   if (message.includes('invalid login credentials')) return createAppError(AppErrorCode.INVALID_CREDENTIALS, error);
   if (message.includes('email not confirmed')) return createAppError(AppErrorCode.EMAIL_NOT_CONFIRMED, error);
   if (message.includes('already registered') || message.includes('already been registered')) return createAppError(AppErrorCode.USER_ALREADY_REGISTERED, error);
@@ -45,7 +58,7 @@ export function mapSupabaseError(error) {
   if (status === 429 || message.includes('rate limit') || message.includes('too many requests')) return createAppError(AppErrorCode.RATE_LIMITED, error);
   if (message.includes('provider') && (message.includes('disabled') || message.includes('not enabled'))) return createAppError(AppErrorCode.PROVIDER_DISABLED, error);
   if (message.includes('expired') || message.includes('invalid token')) return createAppError(AppErrorCode.EXPIRED_RECOVERY_LINK, error);
-  if (message.includes('fetch') || message.includes('network') || message.includes('failed to connect')) return createAppError(AppErrorCode.NETWORK, error);
+  if (message.includes('fetch') || message.includes('network') || message.includes('failed to connect') || message.includes('load failed')) return createAppError(AppErrorCode.NETWORK, error);
 
   return createAppError(AppErrorCode.UNKNOWN, error);
 }

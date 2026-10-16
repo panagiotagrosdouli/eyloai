@@ -402,10 +402,24 @@ export default function DiscoveryResults({ results, onNewSearch }) {
             <div>
               <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
                 <AlertTriangle size={13} className="text-amber-400" />
-                Research Gaps Identified
-                <span className="text-[10px] text-muted-foreground font-normal ml-1">from real literature analysis</span>
+                Potential research gaps to investigate
+                <span className="text-[10px] text-muted-foreground font-normal ml-1">AI interpretation of retrieved literature — not established facts</span>
               </h3>
               <div className="space-y-2">
+                <p className="mb-3 text-xs leading-5 text-muted-foreground">These directions require checking the original studies and contrary evidence. The available search results cannot prove that a gap exists.</p>
+                {(results.papers || []).filter(paper => paper.url && paper.title).length > 0 && (
+                  <div className="mb-4 rounded-xl border border-border/80 bg-secondary/20 p-4">
+                    <p className="text-xs font-semibold text-foreground">Literature to check before treating any gap as established</p>
+                    <p className="mt-1 text-xs text-muted-foreground">These are retrieved records, not automatically verified support for each claim. Read the full studies and look for contradicting evidence.</p>
+                    <div className="mt-3 flex flex-col gap-2">
+                      {(results.papers || []).filter(paper => paper.url && paper.title).slice(0, 4).map(paper => (
+                        <a key={paper._dedupeKey || paper.id || paper.url} href={paper.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-start gap-2 text-xs text-primary hover:underline">
+                          <ExternalLink size={12} className="mt-0.5 shrink-0" /> {paper.title}{paper.year ? ` (${paper.year})` : ''}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {results.research_gaps.map((gap, i) => (
                   <div key={i} className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card">
                     <div className="w-5 h-5 rounded-full bg-amber-500/15 text-amber-400 flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">{i + 1}</div>

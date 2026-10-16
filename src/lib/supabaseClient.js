@@ -13,18 +13,47 @@ export class AuthenticationRequiredError extends Error {
   }
 }
 
-// In deployed builds, route Supabase HTTP traffic through the EYLO domain.
-// This keeps authentication and database requests working in browsers or
-// networks that block direct navigation to *.supabase.co.
-const supabaseUrl = typeof window !== 'undefined' && import.meta.env.PROD
+// Use the configured Supabase project directly for authentication and data.
+// The historical /supabase Vercel rewrite is hard-coded to one project and may
+// silently send credentials to the wrong tenant if environment settings change.
+// A matching-project gateway may still be used by explicitly configuring it.
+const gatewayProjectUrl = 'https://kbzjngpzxpniaumlupaa.supabase.co';
+const allowGateway = import.meta.env.PROD
+  && typeof window !== 'undefined'
+  && environment.values.VITE_SUPABASE_URL === gatewayProjectUrl
+  && import.meta.env.VITE_SUPABASE_USE_PROXY === 'true';
+
+const supabaseUrl = allowGateway
   ? `${window.location.origin}/supabase`
   : environment.values.VITE_SUPABASE_URL;
+
+const gatewayFetch = async (input, init) => {
+  const url = typeof input === 'string' ? input : input.url;
+  if (!allowGateway || !url.startsWith(`${window.location.origin}/supabase/`)) {
+    return fetch(input, init);
+  }
+  const directUrl = url.replace(
+    `${window.location.origin}/supabase/`,
+    `${environment.values.VITE_SUPABASE_URL}/`,
+  );
+  try {
+    const response = await fetch(input, init);
+    const type = response.headers.get('content-type') || '';
+    if ([404, 502, 503, 504].includes(response.status) && !type.includes('application/json')) {
+      return fetch(directUrl, init);
+    }
+    return response;
+  } catch {
+    return fetch(directUrl, init);
+  }
+};
 
 export const supabase = isSupabaseConfigured
   ? createClient(
       supabaseUrl,
       environment.values.VITE_SUPABASE_ANON_KEY,
       {
+        global: { fetch: gatewayFetch },
         auth: {
           persistSession: true,
           autoRefreshToken: true,
@@ -88,13 +117,21 @@ export async function getUsableSession({
     : await client.auth.getSession();
   let session = result.data?.session ?? null;
 
-  if (!forceRefresh && (result.error || !session || expiresSoon(session))) {
+  // An anonymous visitor has no refresh token. Do not attempt to refresh
+  // an absent session: a missing session is normal, not an auth outage.
+  if (!forceRefresh && session && (result.error || expiresSoon(session))) {
     result = await client.auth.refreshSession();
     session = result.data?.session ?? null;
   }
 
-  if (result.error || !session?.access_token) {
+  if (result.error) {
+    // A transport/provider failure is not the same as an anonymous visitor.
+    // Preserve the real error so the application can offer a retry.
+    if (!required) throw result.error;
     return authenticationFailure(client, required, result.error);
+  }
+  if (!session?.access_token) {
+    return authenticationFailure(client, required);
   }
 
   if (validate) {

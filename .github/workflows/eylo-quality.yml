@@ -1,0 +1,28 @@
+name: EYLO Quality Gate
+
+on:
+  pull_request:
+    branches: [main, feature/research-collaboration-vision]
+  push:
+    branches: [feature/unified-premium-workspace]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Validate imports, types, lint, tests and production build
+        run: npm run check

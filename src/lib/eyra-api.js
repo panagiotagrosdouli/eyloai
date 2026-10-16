@@ -103,7 +103,15 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
     return (data.results || []).map(a => ({
       id: a.id,
       name: a.display_name,
-      institution: a.last_known_institutions?.[0]?.display_name || 'Independent',
+      // An absent OpenAlex affiliation is unknown, not proof of independence.
+      institution: a.last_known_institutions?.[0]?.display_name || 'Affiliation not available',
+      affiliation_verified: Boolean(a.last_known_institutions?.[0]?.display_name),
+      // OpenAlex does not establish academic rank or PhD enrolment.
+      academic_role: null,
+      academic_role_verified: false,
+      profile_photo_url: null,
+      photo_status: 'unavailable',
+      data_source: 'OpenAlex',
       country: a.last_known_institutions?.[0]?.country_code || '',
       research_areas: (a.x_concepts || []).slice(0, 4).map(c => c.display_name).join(', '),
       works_count: a.works_count || 0,

@@ -8,7 +8,7 @@ export async function getSession() {
   try {
     return ok(await getUsableSession({ required: false, validate: true }));
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(mapSupabaseError(error));
   }
 }
 
