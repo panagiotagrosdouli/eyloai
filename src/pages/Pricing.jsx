@@ -94,7 +94,7 @@ export default function Pricing() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       <header className="mx-auto max-w-3xl text-center">
-        <h1 className="font-heading text-4xl font-black sm:text-6xl">Plans</h1>
+        <h1 className="eylo-page-heading">Plans</h1>
         <p className="mx-auto mt-4 text-sm text-muted-foreground">{billing?.billing_configured ? 'Billing is live.' : 'Early access. No checkout.'}</p>
         {billing && <p className="mt-3 text-xs text-muted-foreground">Current plan: <span className="font-semibold uppercase text-primary">{billing.plan}</span> · status {billing.subscription_status}</p>}
       </header>
@@ -120,7 +120,7 @@ export default function Pricing() {
               className={`relative flex flex-col rounded-2xl border bg-card p-6 ${plan.featured ? 'border-primary/50 ring-1 ring-primary/30' : 'border-border'}`}
             >
               {plan.featured && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full eyra-gradient px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-white">Most popular</span>}
-              <div className={`grid h-10 w-10 place-items-center rounded-xl ${plan.featured ? 'eyra-gradient text-white' : 'bg-secondary text-muted-foreground'}`}><Icon size={17} /></div>
+              <div className={`grid h-10 w-10 place-items-center rounded-xl ${plan.featured ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}><Icon size={17} /></div>
               <h2 className="mt-4 font-heading text-lg font-bold">{plan.name}</h2>
               <div className="mt-2"><span className="text-3xl font-black">{plan.price}</span><span className="ml-2 text-[10px] text-muted-foreground">{plan.period}</span></div>
               <ul className="my-6 flex-1 space-y-2.5">{plan.features.map(feature => <li key={feature} className="flex items-start gap-2 text-xs leading-5 text-foreground/80"><Check size={13} className="mt-0.5 shrink-0 text-emerald-400" />{feature}</li>)}</ul>
