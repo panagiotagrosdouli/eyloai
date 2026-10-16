@@ -148,6 +148,15 @@ export default function ProjectDetail() {
         fundingResult.status === 'rejected' || fundingResult.value?.error ? 'official funding opportunities' : null,
       ].filter(Boolean);
 
+      // Avoid presenting a sourced project report when nothing could be verified.
+      // Saved evidence remains useful workspace context, but is not a live source.
+      if (!papers.length && !researchers.length && !opportunities.length &&
+          !savedPapers.length && !savedResearchers.length && !savedOpportunities.length) {
+        throw new Error(retrievalFailures.length
+          ? 'Research sources are unavailable. No verifiable evidence was retrieved; retry when the sources recover.'
+          : 'No research evidence was found for this project. Try a more focused research goal or add verified sources to your Library.');
+      }
+
       const paperContext = papers.slice(0, 10).map((paper, index) =>
         `[P${index + 1}] "${paper.title}" — ${paper.authors || 'Unknown'} (${paper.year || 'n/a'}), ${paper.cited_by_count || 0} citations, ${paper.source}. URL: ${paper.url}`
       ).join('\n') || 'No verified paper records were returned.';
