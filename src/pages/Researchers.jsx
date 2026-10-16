@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { searchOpenAlexAuthors } from '@/lib/eyra-api';
-import { Bookmark, ExternalLink, BookOpen, Search, Users, Loader2, CalendarDays } from 'lucide-react';
+import { Bookmark, ExternalLink, BookOpen, Search, Users, Loader2, CalendarDays, Mail, Copy, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -18,6 +18,10 @@ export default function Researchers() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const [outreachResearcher, setOutreachResearcher] = useState(null);
+  const [outreachDraft, setOutreachDraft] = useState('');
+  const [copyStatus, setCopyStatus] = useState('');
+  const [evidence, setEvidence] = useState({});
   const searchSequence = useRef(0);
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -45,6 +49,49 @@ export default function Researchers() {
       }
     } finally {
       if (requestId === searchSequence.current) setLoading(false);
+    }
+  };
+
+  const loadEvidence = async (researcher) => {
+    const authorId = String(researcher.id || '').split('/').pop();
+    if (!/^A[0-9]+$/.test(authorId)) return;
+    setEvidence(prev => ({ ...prev, [authorId]: { loading: true, papers: [], error: '' } }));
+    try {
+      const url = `https://api.openalex.org/works?filter=author.id:${encodeURIComponent(authorId)}&sort=cited_by_count:desc&per_page=5`;
+      const response = await fetch(url, { headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error('OpenAlex unavailable');
+      const payload = await response.json();
+      const papers = (payload.results || []).filter(p => p.title && Number(p.publication_year) <= new Date().getFullYear()).map(p => ({
+        title: p.title, year: p.publication_year, link: p.doi || p.id,
+        citations: p.cited_by_count || 0,
+      }));
+      setEvidence(prev => ({ ...prev, [authorId]: { loading: false, papers, error: '' } }));
+    } catch {
+      setEvidence(prev => ({ ...prev, [authorId]: { loading: false, papers: [], error: 'Unable to load verified publications. Try again.' } }));
+    }
+  };
+
+  const prepareOutreach = (researcher) => {
+    setOutreachResearcher(researcher);
+    setCopyStatus('');
+    setOutreachDraft(`Subject: Research collaboration inquiry
+
+Dear ${researcher.name || 'Researcher'},
+
+I am exploring ${query.trim() || '[your research topic]'} and came across your scholarly work through OpenAlex. I would appreciate the opportunity to learn more about your research and whether my interests might align with your current work.
+
+I would be happy to share a short research proposal if helpful. Thank you for considering my inquiry.
+
+Kind regards,
+[Your name]`);
+  };
+
+  const copyOutreach = async () => {
+    try {
+      await navigator.clipboard.writeText(outreachDraft);
+      setCopyStatus('Draft copied. Find and verify an official contact address before sending.');
+    } catch {
+      setCopyStatus('Copy was blocked by your browser. Select and copy the draft manually.');
     }
   };
 
@@ -141,13 +188,40 @@ export default function Researchers() {
                     <p className="text-xs text-muted-foreground mt-0.5">{r.institution}</p>
                     {r.country && <p className="text-[10px] text-muted-foreground/60 mt-0.5">{r.country}</p>}
                     {r.research_areas && (
-                      <p className="text-xs text-muted-foreground/70 mt-2 line-clamp-2"><span className="font-medium">Research topics (OpenAlex):</span> {r.research_areas}</p>
+                      <p className="text-xs text-muted-foreground/70 mt-2 line-clamp-2"><span className="font-medium">{r.research_topics_source || "OpenAlex research topics"}:</span> {r.research_areas}</p>
                     )}
+                    {query.trim() && (() => {
+                      const terms = [...new Set(query.toLowerCase().match(/[a-zα-ωάέήίόύώϊϋΐΰ0-9]{3,}/gi) || [])];
+                      const topics = String(r.research_areas || '').toLowerCase();
+                      const matching = terms.filter(term => topics.includes(term));
+                      return (
+                        <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                          <span className="font-medium text-foreground">Topic fit:</span>{' '}
+                          {matching.length
+                            ? `The source lists topics sharing query terms: ${matching.slice(0, 4).join(', ')}. Check published work before considering supervision.`
+                            : 'No direct keyword overlap in the available OpenAlex topics. This does not rule out a research match; review publications.'}
+                        </p>
+                      );
+                    })()}
                     <p className="mt-2 text-[11px] text-muted-foreground">Source: OpenAlex · PhD status unverified · No sourced portrait available</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {r.profile_url && <a href={r.profile_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><ExternalLink size={13} aria-hidden="true" /> Verify source profile</a>}
+                      <button type="button" onClick={() => loadEvidence(r)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><BookOpen size={13} aria-hidden="true" /> View actual publications</button>
+                      <button type="button" onClick={() => prepareOutreach(r)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><Mail size={13} aria-hidden="true" /> Draft a message</button>
                       <Link to={`/meetings?person=${encodeURIComponent(r.name || '')}`} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><CalendarDays size={13} aria-hidden="true" /> Plan a discussion</Link>
                     </div>
+                    {(() => {
+                      const state = evidence[String(r.id || '').split('/').pop()];
+                      if (!state) return null;
+                      return <div className="mt-3 rounded-xl border border-border bg-background p-3">
+                        <p className="mb-2 text-xs font-semibold">Publications attributed to this OpenAlex author</p>
+                        {state.loading && <p className="text-xs text-muted-foreground">Loading scholarly evidence…</p>}
+                        {state.error && <p role="alert" className="text-xs text-destructive">{state.error} <button type="button" className="underline" onClick={() => loadEvidence(r)}>Retry</button></p>}
+                        {!state.loading && !state.error && state.papers.length === 0 && <p className="text-xs text-muted-foreground">No publications returned.</p>}
+                        {state.papers.map((p, index) => <a key={p.link || index} href={p.link} target="_blank" rel="noopener noreferrer" className="block border-t border-border py-2 text-xs text-primary hover:underline">{p.title} {p.year ? `(${p.year})` : ''} · {p.citations} citations <ExternalLink size={11} className="inline" /></a>)}
+                        <p className="mt-2 text-[11px] text-muted-foreground">Attribution is from OpenAlex. Check identity and publication relevance before contacting.</p>
+                      </div>;
+                    })()}
                     <p className="mt-2 text-[11px] leading-5 text-muted-foreground">Planning a discussion does not send an invitation. Contact details and identity must be verified independently.</p>
                     <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
@@ -172,6 +246,25 @@ export default function Researchers() {
             ))}
           </div>
         </motion.div>
+      )}
+
+      {outreachResearcher && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-4" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setOutreachResearcher(null); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="outreach-title" className="w-full max-w-2xl rounded-2xl border border-border bg-card p-5 shadow-2xl sm:p-7">
+            <div className="flex items-start justify-between gap-3">
+              <div><h2 id="outreach-title" className="text-xl font-semibold">Prepare a research inquiry</h2><p className="mt-1 text-sm text-muted-foreground">Draft for {outreachResearcher.name}. This does not send an email or imply they are accepting students.</p></div>
+              <button type="button" onClick={() => setOutreachResearcher(null)} aria-label="Close message draft" className="rounded-lg p-2 hover:bg-secondary"><X size={18} /></button>
+            </div>
+            <label htmlFor="outreach-draft" className="mt-5 block text-sm font-medium">Edit your message before copying</label>
+            <textarea id="outreach-draft" value={outreachDraft} onChange={event => { setOutreachDraft(event.target.value); setCopyStatus(''); }} rows={12} className="mt-2 w-full resize-y rounded-xl border border-border bg-background p-4 text-sm leading-6 text-foreground focus-visible:outline-primary" />
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">Only the researcher's OpenAlex record was found. Verify the intended recipient and official contact details independently. No email is automatically sent.</p>
+            {copyStatus && <p role="status" className="mt-3 text-sm text-muted-foreground">{copyStatus}</p>}
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              {outreachResearcher.profile_url && <a href={outreachResearcher.profile_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border px-4 text-sm font-medium hover:bg-secondary"><ExternalLink size={15} /> Verify author profile</a>}
+              <button type="button" onClick={copyOutreach} disabled={!outreachDraft.trim()} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"><Copy size={15} /> Copy draft</button>
+            </div>
+          </section>
+        </div>
       )}
 
       {!hasSearched && !loading && (
