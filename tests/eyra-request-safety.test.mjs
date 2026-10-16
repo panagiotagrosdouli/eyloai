@@ -97,3 +97,36 @@ test('quota rollback errors include action ID for operator reconciliation', asyn
   assert.match(source, /EYRA usage rollback was rejected'[\s\S]*?actionId: reservation\.actionId/);
   assert.match(source, /EYRA usage rollback failed', \{ actionId: reservation\.actionId \}/);
 });
+
+test('EYRA rejects malformed prompts and schemas before making an AI request', async () => {
+  const previousFetch = globalThis.fetch;
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = 'sk-test-placeholder-only';
+  let aiCalls = 0;
+  globalThis.fetch = async (url) => {
+    if (String(url).endsWith('/auth/v1/user')) {
+      return new Response(JSON.stringify({ id: 'test-researcher' }), { status: 200 });
+    }
+    aiCalls += 1;
+    throw new Error('Malformed input must not use AI');
+  };
+  try {
+    for (const [body, code] of [
+      [{ prompt: { query: 'hello' } }, 'INVALID_PROMPT'],
+      [{ prompt: ['hello'] }, 'INVALID_PROMPT'],
+      [{ prompt: 'Research this', response_json_schema: ['invalid'] }, 'INVALID_SCHEMA'],
+      [{ prompt: 'Research this', response_json_schema: 'invalid' }, 'INVALID_SCHEMA'],
+    ]) {
+      const response = responseMock();
+      await handler({ method: 'POST', headers: { authorization: 'Bearer example-test-token' }, body }, response);
+      assert.equal(response.statusCode, 400);
+      assert.equal(response.payload.code, code);
+      assert.equal(response.headers['cache-control'], 'private, no-store');
+    }
+    assert.equal(aiCalls, 0);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.OPENAI_API_KEY;
+    else process.env.OPENAI_API_KEY = previousKey;
+  }
+});
