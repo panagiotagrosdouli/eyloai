@@ -170,6 +170,19 @@ Kind regards,
                     {r.research_areas && (
                       <p className="text-xs text-muted-foreground/70 mt-2 line-clamp-2"><span className="font-medium">Research topics (OpenAlex):</span> {r.research_areas}</p>
                     )}
+                    {query.trim() && (() => {
+                      const terms = [...new Set(query.toLowerCase().match(/[a-zα-ωάέήίόύώϊϋΐΰ0-9]{3,}/gi) || [])];
+                      const topics = String(r.research_areas || '').toLowerCase();
+                      const matching = terms.filter(term => topics.includes(term));
+                      return (
+                        <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                          <span className="font-medium text-foreground">Topic fit:</span>{' '}
+                          {matching.length
+                            ? `OpenAlex lists overlapping research topics: ${matching.slice(0, 4).join(', ')}. Check published work before considering supervision.`
+                            : 'No matching OpenAlex topic keywords verified. Review their publications before assessing fit.'}
+                        </p>
+                      );
+                    })()}
                     <p className="mt-2 text-[11px] text-muted-foreground">Source: OpenAlex · PhD status unverified · No sourced portrait available</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {r.profile_url && <a href={r.profile_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><ExternalLink size={13} aria-hidden="true" /> Verify source profile</a>}
