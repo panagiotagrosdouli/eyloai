@@ -200,7 +200,12 @@ export async function runEyraDiscovery(input, onProgress) {
     ai_error: aiError,
     status: 'complete',
   };
-  setCache(cacheKey, result);
+  // Never retain empty, partially failed, or AI-failed discovery as a
+  // successful 15-minute result. Researchers must be able to retry after
+  // transient provider outages or an EYRA service failure.
+  if (result.retrieval_status === 'complete' && result.ai_status === 'complete') {
+    setCache(cacheKey, result);
+  }
   onProgress && onProgress({ ...result });
   return result;
 }
