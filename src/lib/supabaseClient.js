@@ -13,33 +13,33 @@ export class AuthenticationRequiredError extends Error {
   }
 }
 
-// In deployed builds, route Supabase HTTP traffic through the EYLO domain.
-// This keeps authentication and database requests working in browsers or
-// networks that block direct navigation to *.supabase.co.
-const supabaseUrl = typeof window !== 'undefined' && import.meta.env.PROD
+// Use the configured Supabase project directly for authentication and data.
+// The historical /supabase Vercel rewrite is hard-coded to one project and may
+// silently send credentials to the wrong tenant if environment settings change.
+// A matching-project gateway may still be used by explicitly configuring it.
+const gatewayProjectUrl = 'https://kbzjngpzxpniaumlupaa.supabase.co';
+const allowGateway = import.meta.env.PROD
+  && typeof window !== 'undefined'
+  && environment.values.VITE_SUPABASE_URL === gatewayProjectUrl
+  && import.meta.env.VITE_SUPABASE_USE_PROXY === 'true';
+
+const supabaseUrl = allowGateway
   ? `${window.location.origin}/supabase`
   : environment.values.VITE_SUPABASE_URL;
 
-// Prefer the same-origin gateway in production, with direct-provider fallback
-// only when the gateway is unreachable or returns a non-JSON gateway error.
-// Do not retry legitimate Supabase API errors (including failed signup).
 const gatewayFetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input.url;
-  const sameOriginGateway = typeof window !== 'undefined'
-    && import.meta.env.PROD
-    && url.startsWith(`${window.location.origin}/supabase/`);
-  if (!sameOriginGateway) return fetch(input, init);
-
+  if (!allowGateway || !url.startsWith(`${window.location.origin}/supabase/`)) {
+    return fetch(input, init);
+  }
   const directUrl = url.replace(
     `${window.location.origin}/supabase/`,
     `${environment.values.VITE_SUPABASE_URL}/`,
   );
   try {
     const response = await fetch(input, init);
-    const contentType = response.headers.get('content-type') || '';
-    if ((response.status === 502 || response.status === 503 || response.status === 504
-        || response.status === 404)
-        && !contentType.includes('application/json')) {
+    const type = response.headers.get('content-type') || '';
+    if ([404, 502, 503, 504].includes(response.status) && !type.includes('application/json')) {
       return fetch(directUrl, init);
     }
     return response;
