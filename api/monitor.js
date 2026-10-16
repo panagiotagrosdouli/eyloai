@@ -216,7 +216,10 @@ export default async function handler(request, response) {
       });
     }
 
-    return response.status(200).json({
+    // Return a retryable failure to the scheduler whenever any watchlist
+    // failed. Successfully persisted discoveries remain saved and subsequent
+    // invocations safely skip them via the database uniqueness constraint.
+    return response.status(failed > 0 ? 503 : 200).json({
       checked: watchlists.length,
       inserted,
       notifications,
