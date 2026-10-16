@@ -95,8 +95,14 @@ export async function getUsableSession({
     session = result.data?.session ?? null;
   }
 
-  if (result.error || !session?.access_token) {
+  if (result.error) {
+    // A transport/provider failure is not the same as an anonymous visitor.
+    // Preserve the real error so the application can offer a retry.
+    if (!required) throw result.error;
     return authenticationFailure(client, required, result.error);
+  }
+  if (!session?.access_token) {
+    return authenticationFailure(client, required);
   }
 
   if (validate) {
