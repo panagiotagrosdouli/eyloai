@@ -7,13 +7,13 @@ import BrandLogo from '@/components/brand/BrandLogo';
 
 export default function AuthLayout({ icon: Icon, title, subtitle = '', footer = null, children }) {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#f8fafc] text-slate-900">
+    <main className="relative min-h-screen overflow-hidden bg-[#f7f9fc] text-slate-900">
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(50,112,173,0.06),transparent_58%)]"
         aria-hidden="true"
       />
 
-      <section className="relative mx-auto flex min-h-screen max-w-4xl flex-col px-5 py-6 sm:px-8 sm:py-8">
+      <section className="relative mx-auto flex min-h-screen max-w-6xl flex-col px-5 py-6 sm:px-8 sm:py-8">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center" aria-label="EYLO home">
             <BrandLogo brand="eylo" size="nav" priority />
@@ -27,7 +27,7 @@ export default function AuthLayout({ icon: Icon, title, subtitle = '', footer = 
         </div>
 
         <div className="flex flex-1 items-center justify-center py-10">
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-[27rem]">
             <div className="mb-7">
               {Icon && (
                 <div className="mb-5 grid h-11 w-11 place-items-center rounded-xl border border-slate-200 bg-white text-[#153c72]">
@@ -41,7 +41,7 @@ export default function AuthLayout({ icon: Icon, title, subtitle = '', footer = 
               {subtitle && <p className="mt-3 text-sm leading-6 text-slate-600">{subtitle}</p>}
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/40 sm:p-7">
+            <div className="rounded-[1.5rem] border border-slate-200/90 bg-white p-6 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.30)] sm:p-8">
               {children}
             </div>
 
