@@ -56,9 +56,12 @@ export default function ProjectDetail() {
     setLoadError('');
     const [projectResult, papersResult, researchersResult, opportunitiesResult, meetingsResult] = await Promise.allSettled([
       base44.entities.Project.get(id),
-      base44.entities.SavedPaper.list('-created_date', 100),
-      base44.entities.SavedResearcher.list('-created_date', 100),
-      base44.entities.SavedOpportunity.list('-created_date', 100),
+      // Query the links in Postgres, rather than fetching an arbitrary top 100
+      // saved records and filtering client-side. Older project evidence must
+      // remain visible even when the Library grows.
+      base44.entities.SavedPaper.filter({ project_id: id }, '-created_date', 100),
+      base44.entities.SavedResearcher.filter({ project_id: id }, '-created_date', 100),
+      base44.entities.SavedOpportunity.filter({ project_id: id }, '-created_date', 100),
       base44.entities.Meeting.filter({ project_id: id }, '-date', 20),
     ]);
     if (projectResult.status !== 'fulfilled') {
