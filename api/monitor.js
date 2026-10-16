@@ -119,6 +119,9 @@ async function processWatchlist(row, seen) {
     const key = `${row.user_id}:${record.external_id}`;
     if (seen.has(key)) continue;
     seen.add(key);
+    // Reserve the key within this run so parallel watchlists cannot insert it
+    // twice. Undo the reservation if persistence fails so another watchlist
+    // can retry instead of treating a failed write as an existing discovery.
     const discovery = {
       watchlistId: row.id,
       watchlistQuery: query,
@@ -128,11 +131,16 @@ async function processWatchlist(row, seen) {
       evidence: `Scheduled source check from ${record.source}`,
       isNew: true,
     };
-    await supabase('monitoring_discoveries', {
-      method: 'POST',
-      headers: { Prefer: 'return=minimal' },
-      body: JSON.stringify({ user_id: row.user_id, data: discovery }),
-    });
+    try {
+      await supabase('monitoring_discoveries', {
+        method: 'POST',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ user_id: row.user_id, data: discovery }),
+      });
+    } catch (error) {
+      seen.delete(key);
+      throw error;
+    }
     inserted += 1;
 
     if (record.priority === 'high') {
@@ -192,6 +200,9 @@ export default async function handler(request, response) {
           notifications += result.value.notifications;
         } else {
           failed += 1;
+          console.error('Watchlist monitoring failed', {
+            reason: result.reason instanceof Error ? result.reason.message : 'Unknown error',
+          });
         }
       });
     }
@@ -201,6 +212,7 @@ export default async function handler(request, response) {
       inserted,
       notifications,
       failed,
+      partial_failure: failed > 0,
       completed_at: new Date().toISOString(),
     });
   } catch (error) {
