@@ -234,7 +234,7 @@ Rules:
   const nextAction = taskItems.find(task => !task.completed)?.text;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="eylo-page">
       <Link to="/projects" className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mb-6 group">
         <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
         Back to projects
@@ -269,7 +269,7 @@ Rules:
           <button
             onClick={runEyraAnalysis}
             disabled={analyzing}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
           >
             {analyzing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
             {analyzing ? 'Analyzing...' : 'Run EYRA'}
@@ -383,7 +383,7 @@ Rules:
 
           <div className="flex justify-end">
             <button onClick={saveProject} disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold disabled:opacity-60">
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-60">
               {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -494,7 +494,7 @@ Rules:
               className="w-full px-4 py-3 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 resize-none"
             />
           </div>
-          <button onClick={saveProject} disabled={saving} className="px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold">
+          <button onClick={saveProject} disabled={saving} className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">
             {saving ? 'Saving...' : 'Save'}
           </button>
           </div>
@@ -535,7 +535,7 @@ Rules:
                   EYRA searches connected scholarly and official funding sources, then creates an evidence-linked project analysis.
                 </p>
                 <button onClick={runEyraAnalysis} disabled={analyzing}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold">
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">
                   {analyzing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
                   {analyzing ? 'Analyzing...' : 'Run sourced analysis'}
                 </button>
