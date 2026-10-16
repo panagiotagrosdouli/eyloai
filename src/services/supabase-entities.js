@@ -80,13 +80,26 @@ async function assertCreateAllowed(table, user) {
 function entityRepository({ table }) {
   return {
     async list(sort = '-created_date', limit = 100) {
-      const { data, error } = await requireSupabase().from(table).select('*').limit(Math.max(limit || 100, 1));
+      const descending = sort.startsWith('-');
+      const column = descending ? sort.slice(1) : sort;
+      // Date columns are indexed/available in Postgres. Sorting after LIMIT
+      // returned an arbitrary subset, hiding the latest saved records.
+      const query = requireSupabase().from(table).select('*');
+      if (column === 'created_date' || column === 'updated_date') {
+        query.order(column, { ascending: !descending }).order('id', { ascending: true });
+      }
+      const { data, error } = await query.limit(Math.max(limit || 100, 1));
       if (error) throw error;
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
     },
     async filter(filters = {}, sort = '-created_date', limit = 100) {
+      const descending = sort.startsWith('-');
+      const column = descending ? sort.slice(1) : sort;
       let query = requireSupabase().from(table).select('*');
       query = applyEntityFilters(query, filters);
+      if (column === 'created_date' || column === 'updated_date') {
+        query = query.order(column, { ascending: !descending }).order('id', { ascending: true });
+      }
       const { data, error } = await query.limit(Math.max(limit || 100, 1));
       if (error) throw error;
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
