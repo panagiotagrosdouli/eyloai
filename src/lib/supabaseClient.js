@@ -88,7 +88,9 @@ export async function getUsableSession({
     : await client.auth.getSession();
   let session = result.data?.session ?? null;
 
-  if (!forceRefresh && (result.error || !session || expiresSoon(session))) {
+  // An anonymous visitor has no refresh token. Do not attempt to refresh
+  // an absent session: a missing session is normal, not an auth outage.
+  if (!forceRefresh && session && (result.error || expiresSoon(session))) {
     result = await client.auth.refreshSession();
     session = result.data?.session ?? null;
   }
