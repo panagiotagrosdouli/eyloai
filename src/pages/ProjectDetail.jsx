@@ -250,6 +250,7 @@ Rules:
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center">
         <p className="text-muted-foreground">{loadError || 'Project not found'}</p>
+        {loadError && <button type="button" onClick={loadAll} className="mt-4 mr-4 inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm hover:bg-secondary"><RefreshCw size={14} /> Retry loading</button>}
         <Link to="/projects" className="text-sm text-primary hover:underline mt-2 inline-block">Back to projects</Link>
       </div>
     );
@@ -313,7 +314,7 @@ Rules:
         </div>
       </div>
 
-      {loadError && <p role="status" className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-amber-200">{loadError}</p>}
+      {loadError && <div role="status" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-amber-200"><span>{loadError}</span><button type="button" onClick={loadAll} className="inline-flex items-center gap-2 rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs hover:bg-amber-500/10"><RefreshCw size={13} /> Retry loading</button></div>}
 
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-border/60 mb-6 overflow-x-auto">
