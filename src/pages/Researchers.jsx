@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { searchOpenAlexAuthors } from '@/lib/eyra-api';
-import { Bookmark, ExternalLink, BookOpen, Search, Users, Loader2 } from 'lucide-react';
+import { Bookmark, ExternalLink, BookOpen, Search, Users, Loader2, CalendarDays } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -132,9 +132,14 @@ export default function Researchers() {
                     <p className="text-xs text-muted-foreground mt-0.5">{r.institution}</p>
                     {r.country && <p className="text-[10px] text-muted-foreground/60 mt-0.5">{r.country}</p>}
                     {r.research_areas && (
-                      <p className="text-xs text-muted-foreground/70 mt-2 line-clamp-2">{r.research_areas}</p>
+                      <p className="text-xs text-muted-foreground/70 mt-2 line-clamp-2"><span className="font-medium">Research topics (OpenAlex):</span> {r.research_areas}</p>
                     )}
                     <p className="mt-2 text-[11px] text-muted-foreground">Source: OpenAlex · PhD status unverified · No sourced portrait available</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {r.profile_url && <a href={r.profile_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><ExternalLink size={13} aria-hidden="true" /> Verify source profile</a>}
+                      <Link to={`/meetings?person=${encodeURIComponent(r.name || '')}`} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><CalendarDays size={13} aria-hidden="true" /> Plan a discussion</Link>
+                    </div>
+                    <p className="mt-2 text-[11px] leading-5 text-muted-foreground">Planning a discussion does not send an invitation. Contact details and identity must be verified independently.</p>
                     <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <BookOpen size={11} />
