@@ -145,7 +145,7 @@ Return one result for every supplied id. Do not add programs or change factual f
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="eylo-page">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
@@ -190,7 +190,7 @@ Return one result for every supplied id. Do not add programs or change factual f
           <button
             onClick={() => findChallenges(manualQuery)}
             disabled={loading}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity"
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
             {loading ? 'Searching...' : 'Find Challenges'}
@@ -228,7 +228,7 @@ Return one result for every supplied id. Do not add programs or change factual f
           </p>
           {profile?.activeProjects?.[0] && (
             <button onClick={() => findChallenges(profile.activeProjects[0].goal)}
-              className="px-6 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+              className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
               Find challenges for my projects →
             </button>
           )}
