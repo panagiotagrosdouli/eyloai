@@ -199,17 +199,22 @@ export default async function handler(request, response) {
     let inserted = 0;
     let notifications = 0;
     let failed = 0;
+    let checked = 0;
+    const failedWatchlistIds = [];
 
     for (let index = 0; index < watchlists.length; index += 5) {
       const batch = watchlists.slice(index, index + 5).filter(row => row.data?.active !== false);
+      checked += batch.length;
       const results = await Promise.allSettled(batch.map(row => processWatchlist(row, seen)));
-      results.forEach(result => {
+      results.forEach((result, position) => {
         if (result.status === 'fulfilled') {
           inserted += result.value.inserted;
           notifications += result.value.notifications;
         } else {
           failed += 1;
+          failedWatchlistIds.push(batch[position].id);
           console.error('Watchlist monitoring failed', {
+            watchlistId: batch[position].id,
             reason: result.reason instanceof Error ? result.reason.message : 'Unknown error',
           });
         }
@@ -220,7 +225,9 @@ export default async function handler(request, response) {
     // failed. Successfully persisted discoveries remain saved and subsequent
     // invocations safely skip them via the database uniqueness constraint.
     return response.status(failed > 0 ? 503 : 200).json({
-      checked: watchlists.length,
+      checked,
+      skipped: watchlists.length - checked,
+      failed_watchlist_ids: failedWatchlistIds,
       inserted,
       notifications,
       failed,
