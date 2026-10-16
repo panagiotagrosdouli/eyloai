@@ -402,10 +402,11 @@ export default function DiscoveryResults({ results, onNewSearch }) {
             <div>
               <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
                 <AlertTriangle size={13} className="text-amber-400" />
-                Research Gaps Identified
-                <span className="text-[10px] text-muted-foreground font-normal ml-1">from real literature analysis</span>
+                Potential research gaps to investigate
+                <span className="text-[10px] text-muted-foreground font-normal ml-1">AI interpretation of retrieved literature — not established facts</span>
               </h3>
               <div className="space-y-2">
+                <p className="mb-3 text-xs leading-5 text-muted-foreground">These directions require checking the original studies and contrary evidence. The available search results cannot prove that a gap exists.</p>
                 {results.research_gaps.map((gap, i) => (
                   <div key={i} className="flex items-start gap-3 p-4 rounded-xl border border-border bg-card">
                     <div className="w-5 h-5 rounded-full bg-amber-500/15 text-amber-400 flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">{i + 1}</div>
