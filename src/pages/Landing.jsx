@@ -1,33 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, Brain, FileSearch, FolderKanban, Orbit, Search,
-  ShieldCheck, Sparkles, Users, GraduationCap, Building2, Mail,
+  ArrowRight, Search,
 } from 'lucide-react';
-import ServiceStatus from '@/components/system/ServiceStatus';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { trackSearchStarted } from '@/lib/product-analytics';
 
 const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
 
 const EXAMPLES = [
-  'Find PhD researchers working on explainable AI',
-  'Research groups studying climate adaptation',
-  'Papers and potential collaborators in battery recycling',
-];
-
-const CAPABILITIES = [
-  { icon: FileSearch, title: 'Discover papers', text: 'Find relevant and recent scientific publications, even if you do not know the right academic keywords.' },
-  { icon: Brain, title: 'Explore research gaps', text: 'Compare retrieved studies, examine limitations and investigate evidence-backed potential gaps.' },
-  { icon: GraduationCap, title: 'Find collaborators', text: 'Identify researchers, potential PhD collaborators and research institutions through real scholarly records.' },
-  { icon: FolderKanban, title: 'Build your project', text: 'Turn papers, research questions, people and next steps into a connected project with EYRA.' },
-];
-
-const START_ACTIONS = [
-  { icon: Search, label: 'Find papers & the latest research', href: '/discover' },
-  { icon: Brain, label: 'Explore possible research gaps', href: '/discover' },
-  { icon: GraduationCap, label: 'Find researchers & research centres', href: '/discover' },
-  { icon: FolderKanban, label: 'Build a research project', href: PROJECT_SIGNUP_HREF },
+  'Help me explore AI in healthcare',
+  'Find recent papers on climate adaptation',
+  'Find researchers working on battery recycling',
 ];
 
 export default function Landing() {
@@ -46,136 +30,48 @@ export default function Landing() {
       <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#05070b]/88 backdrop-blur-2xl">
         <div className="mx-auto flex h-20 max-w-[90rem] items-center gap-3 px-5 sm:px-8">
           <Link to="/" aria-label="EYLO home"><BrandLogo brand="eylo" size="nav" priority /></Link>
-          <div className="ml-auto hidden sm:block"><ServiceStatus /></div>
-          <Link to="/discover" className="hidden rounded-lg px-3 py-2 text-sm text-slate-400 hover:text-white md:inline-flex">Discover</Link>
           <Link to="/login" className="rounded-lg px-3 py-2 text-sm text-slate-300 hover:text-white">Sign in</Link>
-          <Link to={PROJECT_SIGNUP_HREF} className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5">Create workspace</Link>
+          <Link to={PROJECT_SIGNUP_HREF} className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5">Get started</Link>
         </div>
       </header>
 
-      <section className="relative px-5 pb-24 pt-14 sm:px-8 sm:pb-32 sm:pt-20">
-        <div className="pointer-events-none absolute left-1/2 top-[-10rem] h-[50rem] w-[90rem] -translate-x-1/2 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.16),transparent_63%)]" />
-        <div className="pointer-events-none absolute right-[-14rem] top-32 h-[36rem] w-[36rem] rounded-full bg-violet-500/[0.06] blur-3xl" />
-        <div className="relative mx-auto grid max-w-[90rem] gap-12 xl:grid-cols-[minmax(0,1.25fr)_minmax(22rem,0.75fr)] xl:items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.035] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">
-              <Orbit size={12} /> Research operating system
-            </div>
-            <h1 className="mt-7 max-w-5xl font-heading text-6xl font-semibold leading-[0.92] tracking-[-0.07em] text-white sm:text-8xl xl:text-[7.2rem]">
-              From your first question to real research.
-              <span className="mt-3 block text-slate-500">Discover. Understand. Collaborate.</span>
-            </h1>
-            <p className="mt-7 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">You do not need to know how to search academic databases. EYRA helps you explore real papers, discover recent work, examine potential research gaps and find researchers, institutions and collaborators to move your project forward.</p>
-            <form onSubmit={explore} className="mt-9 max-w-4xl rounded-2xl border border-white/10 bg-white/[0.045] p-2 shadow-2xl shadow-black/40 backdrop-blur">
-              <label htmlFor="research-question" className="sr-only">Research question</label>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <div className="flex min-w-0 flex-1 items-center">
-                  <Search className="ml-3 shrink-0 text-slate-500" size={17} />
-                  <input
-                    id="research-question"
-                    value={question}
-                    onChange={event => setQuestion(event.target.value)}
-                    placeholder="Describe your research topic or the experts you want to find…"
-                    className="min-w-0 flex-1 bg-transparent px-3 py-4 text-base text-white outline-none placeholder:text-slate-600"
-                  />
-                </div>
-                <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-500 px-5 py-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-blue-400">
-                  Explore research <ArrowRight size={14} />
-                </button>
+      <section className="relative flex min-h-[min(790px,calc(100svh-80px))] items-center px-5 py-20 sm:px-8">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[580px] bg-[radial-gradient(ellipse_at_50%_25%,rgba(40,100,175,0.12),transparent_65%)]" />
+        <div className="relative mx-auto w-full max-w-4xl text-center">
+          <p className="text-xs font-medium tracking-[0.22em] text-cyan-300 uppercase">EYLO AI · Meet EYRA</p>
+          <h1 className="mx-auto mt-7 max-w-4xl font-heading text-5xl font-semibold leading-[1.06] tracking-[-0.055em] text-white sm:text-7xl">A better way to<br /><span className="text-slate-400">move research forward.</span></h1>
+          <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-slate-400 sm:text-lg">Discover papers, explore ideas and find the people who can help you build something real. No research experience required.</p>
+          <form onSubmit={explore} className="mx-auto mt-10 max-w-2xl rounded-2xl border border-white/15 bg-white/[0.055] p-2 text-left shadow-xl shadow-black/20">
+            <label htmlFor="research-question" className="sr-only">What would you like to research?</label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="flex min-w-0 flex-1 items-center">
+                <Search className="ml-3 shrink-0 text-slate-400" size={18} aria-hidden="true" />
+                <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="What would you like to explore?" className="min-w-0 flex-1 bg-transparent px-3 py-4 text-base text-white outline-none placeholder:text-slate-500" />
               </div>
-            </form>
-
-            <div className="mt-4 flex flex-wrap gap-2" aria-label="Example questions">
-              {EXAMPLES.map(example => (
-                <button key={example} type="button" onClick={() => setQuestion(example)} className="rounded-full border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 text-[11px] text-slate-500 hover:border-white/15 hover:text-white">{example}</button>
-              ))}
+              <button type="submit" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-100">Explore <ArrowRight size={16} /></button>
             </div>
+          </form>
+          <div className="mx-auto mt-5 flex max-w-2xl flex-wrap items-center justify-center gap-2" aria-label="Example research topics">
+            {EXAMPLES.map(example => <button key={example} type="button" onClick={() => setQuestion(example)} className="rounded-full border border-white/10 px-3 py-2 text-xs text-slate-400 transition hover:border-white/25 hover:text-white">{example}</button>)}
           </div>
-
-          <aside className="overflow-hidden rounded-[2rem] border border-white/[0.09] bg-[#0b0f16]/90 shadow-2xl shadow-black/40 backdrop-blur-xl">
-            <div className="border-b border-white/[0.07] p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">EYLO / today</p>
-                  <h2 className="mt-2 text-lg font-semibold text-white">Start with a question. Find your team.</h2>
-                </div>
-                <span className="h-2 w-2 rounded-full bg-emerald-400" aria-label="Live" />
-              </div>
-            </div>
-            <div className="divide-y divide-white/[0.07]">
-              {START_ACTIONS.map(({ icon: Icon, label, href }) => (
-                <Link key={label} to={href} className="group flex items-center gap-3 px-5 py-4 text-sm text-slate-300 hover:bg-white/[0.035] hover:text-white">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.02] text-slate-500 group-hover:text-cyan-300"><Icon size={15} /></span>
-                  <span className="flex-1 font-medium">{label}</span>
-                  <ArrowRight size={13} className="text-slate-700 transition group-hover:translate-x-0.5 group-hover:text-slate-300" />
-                </Link>
-              ))}
-            </div>
-            <div className="border-t border-white/[0.07] p-5">
-              <div className="rounded-2xl border border-blue-400/10 bg-blue-400/[0.05] p-4">
-                <div className="flex items-center gap-2 text-xs font-semibold text-cyan-200"><Sparkles size={14} /> EYRA connects your research journey</div>
-                <p className="mt-2 text-[11px] leading-5 text-slate-500">Bring papers, research gaps, people and projects together. Research gaps are hypotheses to validate; researcher matches are potential connections, not confirmed collaborators.</p>
-              </div>
-            </div>
-          </aside>
+          <p className="mt-7 text-xs text-slate-500">Real scientific sources · Your projects in one place · EYRA by your side</p>
         </div>
       </section>
 
-      <section className="px-5 py-24 sm:px-8 sm:py-32">
-        <div className="mx-auto max-w-[90rem]">
-          <div className="grid gap-px overflow-hidden rounded-[2rem] border border-white/[0.08] bg-white/[0.08] sm:grid-cols-2 lg:grid-cols-4">
-            {CAPABILITIES.map(({ icon: Icon, title, text }, index) => (
-              <article key={title} className="bg-[#080b10] p-7">
-                <div className="flex items-center justify-between">
-                  <Icon size={18} className="text-cyan-300" />
-                  <span className="font-mono text-[10px] text-slate-700">0{index + 1}</span>
-                </div>
-                <h3 className="mt-10 text-lg font-semibold text-white">{title}</h3>
-                <p className="mt-3 text-xs leading-5 text-slate-500">{text}</p>
-              </article>
-            ))}
+      <section className="border-t border-white/[0.07] px-5 py-20 sm:px-8 sm:py-28" aria-labelledby="what-eylo-does">
+        <div className="mx-auto max-w-5xl">
+          <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+            <div><p className="text-xs uppercase tracking-[0.18em] text-cyan-300">One connected workspace</p><h2 id="what-eylo-does" className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">From curiosity to collaboration.</h2></div>
+            <Link to="/discover" className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white">Explore EYLO <ArrowRight size={16} /></Link>
           </div>
-        </div>
-      </section>
-
-      <section className="px-5 pb-24 sm:px-8 sm:pb-32" aria-labelledby="collaboration-journey-title">
-        <div className="mx-auto max-w-[90rem] rounded-[2rem] border border-cyan-400/15 bg-[#0b1420] p-7 sm:p-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">From discovery to collaboration</p>
-          <h2 id="collaboration-journey-title" className="mt-4 max-w-4xl text-3xl font-semibold tracking-tight text-white sm:text-5xl">From an idea to evidence, insights and people.</h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300">Start with a simple question. Explore verified publications and recent studies, investigate potential research gaps, identify relevant teams and turn promising directions into your own project.</p>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5"><Users className="text-cyan-300" size={22} /><h3 className="mt-4 font-semibold text-white">Discover potential collaborators</h3><p className="mt-2 text-sm leading-6 text-slate-400">Researcher profiles and publications help you identify expertise, including potential PhD collaborators.</p><Link to="/discover" className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-cyan-300">Explore people <ArrowRight size={14} /></Link></div>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5"><Building2 className="text-cyan-300" size={22} /><h3 className="mt-4 font-semibold text-white">Connect research to institutions</h3><p className="mt-2 text-sm leading-6 text-slate-400">Explore universities and research centres relevant to your topic and evaluate their published work.</p><Link to="/discover" className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-cyan-300">Explore institutions <ArrowRight size={14} /></Link></div>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5"><FolderKanban className="text-cyan-300" size={22} /><h3 className="mt-4 font-semibold text-white">Turn connections into a project</h3><p className="mt-2 text-sm leading-6 text-slate-400">Keep papers, potential partners, research goals and collaboration preparation together.</p><Link to={PROJECT_SIGNUP_HREF} className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-cyan-300">Start a project <ArrowRight size={14} /></Link></div>
+          <div className="mt-9 grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/[0.09] bg-white/[0.025] p-6"><p className="text-xs text-cyan-300">01 / DISCOVER</p><h3 className="mt-5 text-lg font-semibold">Find your evidence</h3><p className="mt-3 text-sm leading-6 text-slate-400">Explore real and recent papers, with help framing your question and investigating possible research gaps.</p></div>
+            <div className="rounded-2xl border border-white/[0.09] bg-white/[0.025] p-6"><p className="text-xs text-cyan-300">02 / CONNECT</p><h3 className="mt-5 text-lg font-semibold">Find your people</h3><p className="mt-3 text-sm leading-6 text-slate-400">Discover researchers, potential PhD collaborators and relevant research institutions.</p></div>
+            <div className="rounded-2xl border border-white/[0.09] bg-white/[0.025] p-6"><p className="text-xs text-cyan-300">03 / BUILD</p><h3 className="mt-5 text-lg font-semibold">Make progress</h3><p className="mt-3 text-sm leading-6 text-slate-400">Bring papers, people, plans and your next steps into a project supported by EYRA.</p></div>
           </div>
-          <div className="mt-6 flex items-start gap-3 rounded-xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-slate-400"><Mail size={18} className="mt-1 shrink-0 text-cyan-300" /><p>EYRA can help prepare outreach and meeting agendas. Sending messages or booking calls on your behalf requires a working, authorized email or calendar connection; no invitation is sent automatically from this page.</p></div>
-        </div>
-      </section>
-
-      <section className="border-y border-white/[0.07] px-5 py-24 sm:px-8 sm:py-32">
-        <div className="mx-auto grid max-w-[90rem] gap-5 lg:grid-cols-2">
-          <article className="relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-white/[0.025] p-7 sm:p-9">
-            <div className="pointer-events-none absolute right-0 top-0 h-56 w-56 rounded-full bg-blue-500/[0.07] blur-3xl" />
-            <BrandLogo brand="eylo" size="panel" />
-            <h2 className="mt-12 max-w-md text-3xl font-semibold tracking-[-0.04em] text-white">The persistent research workspace.</h2>
-            <p className="mt-4 max-w-lg text-sm leading-6 text-slate-500">Evidence, projects, people, opportunities and outputs stay connected over time.</p>
-          </article>
-          <article className="relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-white/[0.025] p-7 sm:p-9">
-            <div className="pointer-events-none absolute right-0 top-0 h-56 w-56 rounded-full bg-violet-500/[0.07] blur-3xl" />
-            <BrandLogo brand="eyra" size="panel" />
-            <h2 className="mt-12 max-w-md text-3xl font-semibold tracking-[-0.04em] text-white">The intelligence layer across your work.</h2>
-            <p className="mt-4 max-w-lg text-sm leading-6 text-slate-500">EYRA helps interrogate the context you have actually collected rather than treating every question as a blank chat.</p>
-          </article>
-        </div>
-      </section>
-
-      <section className="px-5 py-24 text-center sm:px-8 sm:py-32">
-        <div className="mx-auto max-w-4xl">
-          <ShieldCheck size={20} className="mx-auto text-emerald-400" />
-          <h2 className="mt-6 font-heading text-4xl font-semibold tracking-[-0.05em] text-white sm:text-7xl">Keep your research moving.</h2>
-          <div className="mt-9 flex flex-wrap justify-center gap-3">
-            <Link to="/discover" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950">Explore <ArrowRight size={14} /></Link>
-            <Link to={PROJECT_SIGNUP_HREF} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-5 py-3 text-sm font-semibold text-white">Create workspace</Link>
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-white/[0.08] pt-8">
+            <p className="max-w-lg text-sm leading-6 text-slate-400">EYRA helps with research and collaboration preparation. Contacting researchers or booking meetings requires your approval and connected services.</p>
+            <Link to={PROJECT_SIGNUP_HREF} className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-5 py-3 text-sm font-semibold text-white hover:bg-white/5">Start a project <ArrowRight size={15} /></Link>
           </div>
         </div>
       </section>
