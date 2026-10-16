@@ -43,3 +43,35 @@ test('research monitoring bounds repeated upstream 5xx errors', async () => {
     globalThis.fetch = originalFetch;
   }
 });
+
+test('research monitoring retries a transient connection failure', async () => {
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls += 1;
+    if (calls === 1) throw new TypeError('temporary network disconnect');
+    return new Response('', { status: 200 });
+  };
+  try {
+    const response = await fetchResearchProvider('https://provider.example/search');
+    assert.equal(response.status, 200);
+    assert.equal(calls, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('research monitoring reports repeated network failures', async () => {
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls += 1;
+    throw new TypeError('provider unavailable');
+  };
+  try {
+    await assert.rejects(fetchResearchProvider('https://provider.example/search'), /provider unavailable/);
+    assert.equal(calls, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
