@@ -57,3 +57,9 @@ test('database migration enforces a unique source ID per account', () => {
   assert.match(sql, /user_id,/);
   assert.match(sql, /external_id/);
 });
+
+test('scheduler gets retryable HTTP status when any watchlist fails', () => {
+  const source = readFileSync(new URL('../api/monitor.js', import.meta.url), 'utf8');
+  assert.match(source, /response\.status\(failed > 0 \? 503 : 200\)\.json\(/);
+  assert.match(source, /partial_failure: failed > 0/);
+});
