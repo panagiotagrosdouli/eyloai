@@ -218,6 +218,10 @@ export default async function handler(request, response) {
     return response.status(405).json({ error: 'Method not allowed.' });
   }
 
+  // EYRA responses can include private research and billing usage metadata.
+  // Never allow a browser or intermediary to cache success or error responses.
+  response.setHeader('Cache-Control', 'private, no-store');
+
   let reservation = null;
 
   try {
@@ -229,8 +233,15 @@ export default async function handler(request, response) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) return response.status(503).json({ error: 'EYRA AI is not configured.' });
 
-    const prompt = String(request.body?.prompt || '').trim().slice(0, MAX_PROMPT_LENGTH);
+    const prompt = String(request.body?.prompt || '').trim();
     if (!prompt) return response.status(400).json({ error: 'A prompt is required.' });
+    if (prompt.length > MAX_PROMPT_LENGTH) {
+      return response.status(413).json({
+        error: 'This research request is too long. Shorten the prompt and try again.',
+        code: 'PROMPT_TOO_LONG',
+        max_length: MAX_PROMPT_LENGTH,
+      });
+    }
 
     const requestedSchema = request.body?.response_json_schema;
     let responseSchema;
@@ -316,7 +327,6 @@ export default async function handler(request, response) {
       }
     }
 
-    response.setHeader('Cache-Control', 'no-store');
     return response.status(200).json({
       ...(responseSchema ? { data } : {}),
       text,
