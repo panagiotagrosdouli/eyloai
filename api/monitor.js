@@ -32,10 +32,16 @@ export async function fetchResearchProvider(url, options = {}) {
   let lastResponse;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     // New timeout for each attempt; never reuse an already-aborted signal.
-    const response = await fetch(url, { ...options, signal: AbortSignal.timeout(12_000) });
-    if (response.ok) return response;
-    lastResponse = response;
-    if (response.status !== 429 && response.status < 500) break;
+    try {
+      const response = await fetch(url, { ...options, signal: AbortSignal.timeout(12_000) });
+      if (response.ok) return response;
+      lastResponse = response;
+      if (response.status !== 429 && response.status < 500) break;
+    } catch (error) {
+      // Network disconnects and provider timeouts are transient. A second
+      // failed attempt still rejects so the watchlist is counted as failed.
+      if (attempt === 1) throw error;
+    }
   }
   return lastResponse;
 }
