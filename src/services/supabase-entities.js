@@ -80,11 +80,12 @@ async function assertCreateAllowed(table, user) {
 function entityRepository({ table }) {
   return {
     async list(sort = '-created_date', limit = 100) {
+      const user = await currentUser();
       const descending = sort.startsWith('-');
       const column = descending ? sort.slice(1) : sort;
       // Date columns are indexed/available in Postgres. Sorting after LIMIT
       // returned an arbitrary subset, hiding the latest saved records.
-      const query = requireSupabase().from(table).select('*');
+      const query = requireSupabase().from(table).select('*').eq('user_id', user.id);
       if (column === 'created_date' || column === 'updated_date') {
         query.order(column, { ascending: !descending }).order('id', { ascending: true });
       }
@@ -93,9 +94,10 @@ function entityRepository({ table }) {
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
     },
     async filter(filters = {}, sort = '-created_date', limit = 100) {
+      const user = await currentUser();
       const descending = sort.startsWith('-');
       const column = descending ? sort.slice(1) : sort;
-      let query = requireSupabase().from(table).select('*');
+      let query = requireSupabase().from(table).select('*').eq('user_id', user.id);
       query = applyEntityFilters(query, filters);
       if (column === 'created_date' || column === 'updated_date') {
         query = query.order(column, { ascending: !descending }).order('id', { ascending: true });
@@ -105,7 +107,8 @@ function entityRepository({ table }) {
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
     },
     async get(entityId) {
-      const { data, error } = await requireSupabase().from(table).select('*').eq('id', entityId).single();
+      const user = await currentUser();
+      const { data, error } = await requireSupabase().from(table).select('*').eq('id', entityId).eq('user_id', user.id).single();
       if (error) throw error;
       return rowToEntity(data);
     },
