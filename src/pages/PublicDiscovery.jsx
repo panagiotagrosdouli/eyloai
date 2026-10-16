@@ -188,7 +188,7 @@ export default function PublicDiscovery() {
 
         {loading && (
           <div className="flex min-h-[480px] flex-col items-center justify-center text-center">
-            <div className="relative mb-6 grid h-20 w-20 place-items-center rounded-3xl eyra-gradient text-white shadow-2xl shadow-primary/20"><Loader2 className="animate-spin" size={28} /></div>
+            <div className="relative mb-6 grid h-20 w-20 place-items-center rounded-3xl bg-primary text-primary-foreground shadow-2xl shadow-primary/20"><Loader2 className="animate-spin" size={28} /></div>
             <p className="font-semibold">Searching and organizing scholarly indexes…</p>
             <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">Records from OpenAlex, arXiv, Europe PMC, Crossref and Semantic Scholar are being retrieved, deduplicated and organized for your level.</p>
           </div>
