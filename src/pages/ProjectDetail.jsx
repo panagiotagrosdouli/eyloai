@@ -137,6 +137,14 @@ export default function ProjectDetail() {
       const researchers = researchersResult.status === 'fulfilled' ? researchersResult.value : [];
       const opportunities = fundingResult.status === 'fulfilled' ? fundingResult.value.items : [];
 
+      // A failed provider request is not the same as a successful zero-result search.
+      // Make retrieval status visible in EYRA's reasoning and in the UI.
+      const retrievalFailures = [
+        papersResult.status === 'rejected' ? 'scholarly papers' : null,
+        researchersResult.status === 'rejected' ? 'OpenAlex researchers' : null,
+        fundingResult.status === 'rejected' || fundingResult.value?.error ? 'official funding opportunities' : null,
+      ].filter(Boolean);
+
       const paperContext = papers.slice(0, 10).map((paper, index) =>
         `[P${index + 1}] "${paper.title}" — ${paper.authors || 'Unknown'} (${paper.year || 'n/a'}), ${paper.cited_by_count || 0} citations, ${paper.source}. URL: ${paper.url}`
       ).join('\n') || 'No verified paper records were returned.';
@@ -163,6 +171,10 @@ Papers: ${savedPapers.map((paper, index) => `[SP${index + 1}] ${paper.title} —
 Researchers: ${savedResearchers.map((person, index) => `[SR${index + 1}] ${person.name} — ${person.institution || 'institution not saved'} — ${person.profile_url || 'profile URL not saved'}`).join('\n') || 'None linked'}
 Funding records: ${savedOpportunities.map((item, index) => `[SF${index + 1}] ${item.title} — ${item.url || 'official URL not saved'} — deadline ${item.deadline || 'not saved'}`).join('\n') || 'None linked'}
 Meetings scheduled: ${meetings.length}
+
+LIVE RETRIEVAL STATUS:
+${retrievalFailures.length ? 'Incomplete. Unavailable sources: ' + retrievalFailures.join(', ') : 'Source requests returned successfully.'}
+A failed source cannot justify a claim that no papers, researchers, or opportunities exist.
 
 VERIFIED SCHOLARLY RECORDS:
 ${paperContext}
@@ -196,8 +208,8 @@ Rules:
       setProject(prev => ({ ...prev, eyra_analysis: result }));
       setActiveTab('intelligence');
       toast({
-        title: 'Sourced analysis complete',
-        description: `${papers.length} papers · ${researchers.length} researchers · ${opportunities.length} official funding records`,
+        title: retrievalFailures.length ? 'Analysis completed with incomplete sources' : 'Sourced analysis complete',
+        description: `${papers.length} papers · ${researchers.length} researchers · ${opportunities.length} funding records${retrievalFailures.length ? ' · Unavailable: ' + retrievalFailures.join(', ') : ''}`,
       });
     } catch (error) {
       toast({
