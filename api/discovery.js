@@ -146,10 +146,16 @@ export default async function handler(request, response) {
     const body = Buffer.from(await upstream.arrayBuffer());
     response.status(upstream.status);
     response.setHeader('Content-Type', upstream.headers.get('content-type') || (provider === 'arxiv' ? 'application/atom+xml; charset=utf-8' : 'application/json; charset=utf-8'));
-    response.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    // Cache only successful scholarly results. A transient provider outage or
+    // rate limit must never poison the shared cache for subsequent researchers.
+    response.setHeader(
+      'Cache-Control',
+      upstream.ok ? 'public, s-maxage=300, stale-while-revalidate=600' : 'no-store',
+    );
     response.setHeader('X-EYLO-Source', provider);
     return response.send(body);
   } catch (error) {
+    response.setHeader('Cache-Control', 'no-store');
     const timedOut = error?.name === 'AbortError';
     return response.status(timedOut ? 504 : 502).json({
       error: timedOut ? 'Scholarly source timed out.' : 'Scholarly source is temporarily unavailable.',
