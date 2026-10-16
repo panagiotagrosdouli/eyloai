@@ -19,11 +19,13 @@ export default function Meetings() {
   const [selected, setSelected] = useState(null);
   const [tab, setTab] = useState('Upcoming');
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
   useEffect(() => { setSearchTerm(searchParams.get('q') || ''); }, [searchParams]);
+  const personToDiscuss = searchParams.get('person')?.trim().slice(0, 160) || '';
+  useEffect(() => { if (personToDiscuss) setShowForm(true); }, [personToDiscuss]);
 
   const loadData = async () => {
     setLoading(true);
@@ -47,9 +49,10 @@ export default function Meetings() {
         toast({ title: 'Meeting updated' });
       } else {
         await base44.entities.Meeting.create(data);
-        toast({ title: 'Meeting scheduled' });
+        toast({ title: 'Meeting plan saved', description: 'No invitation was sent. Share the details with participants yourself.' });
       }
       setShowForm(false);
+      if (personToDiscuss) setSearchParams({}, { replace: true });
       setSelected(null);
       await loadData();
     } catch (error) {
@@ -99,8 +102,9 @@ export default function Meetings() {
       <div className="eylo-page max-w-3xl">
         <MeetingForm
           projects={projects}
+          initial={personToDiscuss ? { title: `Research discussion with ${personToDiscuss}`, call_type: 'research_discussion', participants: personToDiscuss } : {}}
           onSave={handleSave}
-          onCancel={() => setShowForm(false)}
+          onCancel={() => { setShowForm(false); if (personToDiscuss) setSearchParams({}, { replace: true }); }}
         />
       </div>
     );
