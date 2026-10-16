@@ -155,6 +155,16 @@ export default async function handler(request, response) {
     if (!['pro', 'founder'].includes(requestedPlan)) {
       return response.status(400).json({ error: 'Choose a valid paid plan.' });
     }
+    // An existing active subscription must be managed in Stripe's portal.
+    // Starting another Checkout Session could charge the same user twice.
+    if (auth.entitlement.stripe_subscription_id
+      && ['active', 'trialing', 'past_due', 'unpaid', 'incomplete', 'paused'].includes(auth.entitlement.subscription_status)) {
+      return response.status(409).json({
+        error: 'An existing subscription is linked to this account. Use Manage subscription to change or review it.',
+        code: 'EXISTING_SUBSCRIPTION',
+      });
+    }
+
     const priceId = requestedPlan === 'pro'
       ? process.env.STRIPE_PRO_PRICE_ID
       : process.env.STRIPE_FOUNDER_PRICE_ID;
@@ -185,6 +195,6 @@ export default async function handler(request, response) {
     return response.status(200).json({ url: session.url });
   } catch (error) {
     console.error('Billing endpoint error', { message: error instanceof Error ? error.message : 'Unknown error' });
-    return response.status(500).json({ error: error?.message || 'Billing is temporarily unavailable.' });
+    return response.status(500).json({ error: 'Billing is temporarily unavailable. Please try again later.' });
   }
 }

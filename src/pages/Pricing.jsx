@@ -73,8 +73,13 @@ export default function Pricing() {
   const [loading, setLoading] = useState(true);
   const [workingPlan, setWorkingPlan] = useState('');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const checkoutResult = params.get('checkout');
+    if (checkoutResult === 'success') setNotice('Checkout completed. Your plan is being verified with Stripe; access will update after confirmation.');
+    if (checkoutResult === 'cancelled') setNotice('Checkout cancelled. You have not purchased a new plan.');
     getBillingStatus().then(setBilling).catch(loadError => setError(loadError?.message || 'Could not load billing.')).finally(() => setLoading(false));
   }, []);
 
@@ -104,6 +109,7 @@ export default function Pricing() {
           Early access is active. Prices below describe the planned tiers; paid buttons remain disabled until billing is fully configured and verifiable.
         </div>
       )}
+      {notice && <div role="status" className="mx-auto mt-5 max-w-3xl rounded-xl border border-border bg-secondary/40 p-4 text-sm text-foreground">{notice}</div>}
       {error && <div className="mx-auto mt-5 max-w-3xl rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300">{error}</div>}
 
       <section className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
