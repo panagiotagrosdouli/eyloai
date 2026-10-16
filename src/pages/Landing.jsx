@@ -17,16 +17,16 @@ const EXAMPLES = [
 ];
 
 const CAPABILITIES = [
-  { icon: FileSearch, title: 'Find the evidence', text: 'Discover real papers and trace claims back to scientific sources.' },
-  { icon: GraduationCap, title: 'Find the people', text: 'Identify published researchers and potential PhD collaborators through verified research profiles.' },
-  { icon: Building2, title: 'Explore research teams', text: 'Discover institutions and explore the research groups working on your topic.' },
-  { icon: Brain, title: 'Move your project forward', text: 'Connect your evidence, people and next steps with EYRA as your research partner.' },
+  { icon: FileSearch, title: 'Discover papers', text: 'Find relevant and recent scientific publications, even if you do not know the right academic keywords.' },
+  { icon: Brain, title: 'Explore research gaps', text: 'Compare retrieved studies, examine limitations and investigate evidence-backed potential gaps.' },
+  { icon: GraduationCap, title: 'Find collaborators', text: 'Identify researchers, potential PhD collaborators and research institutions through real scholarly records.' },
+  { icon: FolderKanban, title: 'Build your project', text: 'Turn papers, research questions, people and next steps into a connected project with EYRA.' },
 ];
 
 const START_ACTIONS = [
-  { icon: Search, label: 'Find scientific papers', href: '/discover' },
-  { icon: GraduationCap, label: 'Find researchers & PhD candidates', href: '/discover' },
-  { icon: Building2, label: 'Explore universities & research centres', href: '/discover' },
+  { icon: Search, label: 'Find papers & the latest research', href: '/discover' },
+  { icon: Brain, label: 'Explore possible research gaps', href: '/discover' },
+  { icon: GraduationCap, label: 'Find researchers & research centres', href: '/discover' },
   { icon: FolderKanban, label: 'Build a research project', href: PROJECT_SIGNUP_HREF },
 ];
 
@@ -62,10 +62,10 @@ export default function Landing() {
               <Orbit size={12} /> Research operating system
             </div>
             <h1 className="mt-7 max-w-5xl font-heading text-6xl font-semibold leading-[0.92] tracking-[-0.07em] text-white sm:text-8xl xl:text-[7.2rem]">
-              Research is more than finding papers.
-              <span className="mt-3 block text-slate-500">Find people. Build together.</span>
+              From your first question to real research.
+              <span className="mt-3 block text-slate-500">Discover. Understand. Collaborate.</span>
             </h1>
-            <p className="mt-7 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">EYLO connects research papers, researchers, PhD candidates, universities and real projects in one workspace. EYRA helps you turn a question into evidence, potential collaborations and your next action.</p>
+            <p className="mt-7 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">You do not need to know how to search academic databases. EYRA helps you explore real papers, discover recent work, examine potential research gaps and find researchers, institutions and collaborators to move your project forward.</p>
             <form onSubmit={explore} className="mt-9 max-w-4xl rounded-2xl border border-white/10 bg-white/[0.045] p-2 shadow-2xl shadow-black/40 backdrop-blur">
               <label htmlFor="research-question" className="sr-only">Research question</label>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -114,7 +114,7 @@ export default function Landing() {
             <div className="border-t border-white/[0.07] p-5">
               <div className="rounded-2xl border border-blue-400/10 bg-blue-400/[0.05] p-4">
                 <div className="flex items-center gap-2 text-xs font-semibold text-cyan-200"><Sparkles size={14} /> EYRA connects your research journey</div>
-                <p className="mt-2 text-[11px] leading-5 text-slate-500">Bring papers, people and projects together. Researcher matches are potential connections, not confirmed collaborators.</p>
+                <p className="mt-2 text-[11px] leading-5 text-slate-500">Bring papers, research gaps, people and projects together. Research gaps are hypotheses to validate; researcher matches are potential connections, not confirmed collaborators.</p>
               </div>
             </div>
           </aside>
@@ -141,8 +141,8 @@ export default function Landing() {
       <section className="px-5 pb-24 sm:px-8 sm:pb-32" aria-labelledby="collaboration-journey-title">
         <div className="mx-auto max-w-[90rem] rounded-[2rem] border border-cyan-400/15 bg-[#0b1420] p-7 sm:p-12">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">From discovery to collaboration</p>
-          <h2 id="collaboration-journey-title" className="mt-4 max-w-4xl text-3xl font-semibold tracking-tight text-white sm:text-5xl">Your idea deserves more than a search result.</h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300">Explore relevant papers, identify researchers and university teams, save promising matches to your project and prepare an informed introduction with EYRA.</p>
+          <h2 id="collaboration-journey-title" className="mt-4 max-w-4xl text-3xl font-semibold tracking-tight text-white sm:text-5xl">From an idea to evidence, insights and people.</h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300">Start with a simple question. Explore verified publications and recent studies, investigate potential research gaps, identify relevant teams and turn promising directions into your own project.</p>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5"><Users className="text-cyan-300" size={22} /><h3 className="mt-4 font-semibold text-white">Discover potential collaborators</h3><p className="mt-2 text-sm leading-6 text-slate-400">Researcher profiles and publications help you identify expertise, including potential PhD collaborators.</p><Link to="/discover" className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-cyan-300">Explore people <ArrowRight size={14} /></Link></div>
             <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5"><Building2 className="text-cyan-300" size={22} /><h3 className="mt-4 font-semibold text-white">Connect research to institutions</h3><p className="mt-2 text-sm leading-6 text-slate-400">Explore universities and research centres relevant to your topic and evaluate their published work.</p><Link to="/discover" className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-cyan-300">Explore institutions <ArrowRight size={14} /></Link></div>
