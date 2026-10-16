@@ -32,14 +32,18 @@ export default function Login() {
     setMagicLinkSent(false);
     setLoading(true);
 
-    const result = await signIn(email, password);
-    if (!result.ok) {
-      setError(result.error.message);
+    try {
+      const result = await signIn(email, password);
+      if (!result.ok) {
+        setError(result.error?.message || "Unable to sign in. Please retry.");
+        return;
+      }
+      navigate(destination, { replace: true });
+    } catch {
+      setError("Sign in could not be completed. Check your connection and retry.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    navigate(destination, { replace: true });
   };
 
   const callbackUrl = () => {
@@ -57,13 +61,18 @@ export default function Login() {
     }
 
     setLoading(true);
-    const result = await signInWithMagicLink(email, callbackUrl());
-    setLoading(false);
-    if (!result.ok) {
-      setError(result.error.message);
-      return;
+    try {
+      const result = await signInWithMagicLink(email, callbackUrl());
+      if (!result.ok) {
+        setError(result.error?.message || "Could not send the sign-in link.");
+        return;
+      }
+      setMagicLinkSent(true);
+    } catch {
+      setError("The sign-in link could not be sent. Please retry.");
+    } finally {
+      setLoading(false);
     }
-    setMagicLinkSent(true);
   };
 
   return (
@@ -140,7 +149,7 @@ export default function Login() {
           </div>
         </div>
 
-        <Button type="submit" className="h-12 w-full font-semibold" disabled={loading}>
+        <Button type="submit" className="h-12 w-full rounded-xl font-semibold shadow-sm" disabled={loading || !email.trim() || !password}>
           {loading ? (
             <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Signing in…</>
           ) : (
@@ -157,7 +166,7 @@ export default function Login() {
         <Button
           type="button"
           variant="outline"
-          className="h-12 w-full border-slate-200 bg-white font-medium text-slate-700 hover:bg-slate-50"
+          className="h-12 w-full rounded-xl border-slate-200 bg-white font-medium text-slate-700 hover:bg-slate-50"
           disabled={loading}
           onClick={handleMagicLink}
         >
