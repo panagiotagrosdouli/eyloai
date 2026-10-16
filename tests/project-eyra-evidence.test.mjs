@@ -15,3 +15,9 @@ test('project EYRA identifies partially unavailable live research sources', () =
   assert.match(page, /retrievalFailures\.length/);
   assert.match(page, /A failed source cannot justify a claim/);
 });
+
+test('workspace-only EYRA analysis is not labelled as verified live research', () => {
+  assert.match(page, /const hasLiveEvidence = Boolean\(papers\.length \|\| researchers\.length \|\| opportunities\.length\)/);
+  assert.match(page, /NO LIVE SOURCE RECORDS WERE RETRIEVED/);
+  assert.match(page, /Workspace-only draft — no live sources verified/);
+});
