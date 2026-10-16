@@ -233,17 +233,17 @@ Rules:
   });
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="eylo-page">
       <div className="mb-6"><WatchlistManager /></div>
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="font-heading font-bold text-2xl">Opportunity Radar</h1>
+          <h1 className="eylo-page-heading">Opportunity Radar</h1>
         </div>
         <button
           onClick={runRadar}
           disabled={loading}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 flex-shrink-0"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 flex-shrink-0"
         >
           {loading ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
           {loading ? 'Scanning…' : hasRun ? 'Scan again' : 'Scan'}
@@ -337,7 +337,7 @@ Rules:
                 </div>
               ))}
             </div>
-            <button onClick={runRadar} className="mt-5 w-full py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity">
+            <button onClick={runRadar} className="mt-5 w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
               Run Your First Radar Scan →
             </button>
           </div>
@@ -368,7 +368,7 @@ Rules:
 
       {loading && (
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-16 h-16 rounded-full eyra-gradient flex items-center justify-center mb-4 animate-pulse-glow">
+          <div className="w-16 h-16 rounded-full eyra-gradient flex items-center justify-center mb-4 ">
             <Sparkles size={24} className="text-white" />
           </div>
           <p className="font-semibold text-sm mb-1">Retrieving official funding records...</p>
@@ -495,7 +495,7 @@ Rules:
                     EYRA acts as your personal board advisor — reviewing your progress and delivering strategic recommendations.
                   </p>
                   <button onClick={generateBoardReport} disabled={loadingReport}
-                    className="w-full py-2.5 rounded-xl eyra-gradient text-white text-xs font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity flex items-center justify-center gap-2">
+                    className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity flex items-center justify-center gap-2">
                     {loadingReport ? <><RefreshCw size={11} className="animate-spin" /> Generating...</> : <><Sparkles size={11} /> Generate Board Report</>}
                   </button>
                 </>

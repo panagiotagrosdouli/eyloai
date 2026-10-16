@@ -61,11 +61,11 @@ export default function ForYou() {
   const activeProject = activeProjects[0];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="eylo-page max-w-4xl">
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
-        <h1 className="font-heading font-bold text-xl text-foreground">For you</h1>
+        <h1 className="eylo-page-heading">For you</h1>
         <ServiceStatus />
       </div>
 
@@ -96,7 +96,7 @@ export default function ForYou() {
                 Create a project. When you open this workspace, EYRA checks OpenAlex, arXiv, and Europe PMC for relevant papers and researchers. Funding watchlists query official grant records.
               </p>
               <div className="flex items-center justify-center gap-3 flex-wrap">
-                <Link to="/projects" className="px-4 py-2 rounded-xl eyra-gradient text-white text-xs font-semibold">Create a Project</Link>
+                <Link to="/projects" className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold">Create a Project</Link>
                 <Link to="/home" className="px-4 py-2 rounded-xl border border-border text-xs font-medium">Discover Research</Link>
               </div>
             </div>

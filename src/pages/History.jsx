@@ -119,10 +119,10 @@ export default function History() {
   }, {});
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="eylo-page max-w-4xl">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground">Activity</h1>
+        <h1 className="eylo-page-heading">Activity</h1>
       </div>
 
       <div className="relative mb-5 max-w-md">

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, BookOpen, ChevronRight, FolderOpen, Loader2, Search,
-  Sparkles, Users, Zap, Building2, GraduationCap,
+  ArrowRight, ChevronRight, FolderOpen, Loader2, Search,
+  Sparkles, Users, Zap,
 } from 'lucide-react';
 import { buildUserProfile } from '@/lib/second-brain';
 import GuidedSearch from '@/components/discovery/GuidedSearch';
@@ -11,10 +11,9 @@ import { useCapabilities } from '@/lib/capabilities';
 import { useAuth } from '@/lib/AuthContext';
 
 const QUICK_LINKS = [
-  { label: 'Researchers & PhD candidates', href: '/researchers', icon: GraduationCap },
-  { label: 'Research centres', href: '/discover', icon: Building2 },
+  { label: 'Discover papers', href: '/discover', icon: Search },
+  { label: 'Find people', href: '/researchers', icon: Users },
   { label: 'Funding', href: '/opportunities', icon: Zap },
-  { label: 'Library', href: '/library', icon: BookOpen },
 ];
 
 function ProjectCard({ project }) {
@@ -63,25 +62,25 @@ export default function EyraHome({ onSearch }) {
 
   return (
     <div className="min-h-[calc(100vh-5rem)]">
-      <div className="mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-6 sm:pt-12">
-        <header className="mb-7 flex flex-wrap items-end justify-between gap-4">
+      <div className="mx-auto max-w-4xl px-4 pb-20 pt-10 sm:px-6 sm:pt-20">
+        <header className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-sm text-muted-foreground">{greeting.greeting}</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{greeting.question}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Find the research, people and institutions that can help your project move forward.</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.045em] sm:text-5xl">{greeting.question}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Find evidence, explore possibilities, and make your next move.</p>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-xs text-muted-foreground" aria-live="polite">
+          <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-xs text-muted-foreground" aria-live="polite">
             <span className={`h-2 w-2 rounded-full ${eyraReady ? 'bg-emerald-400' : 'bg-amber-400'}`} />
             EYRA {eyraReady ? 'ready' : 'limited'}
             {loaded && <span className="border-l border-border pl-2">{activeProjects.length} active {activeProjects.length === 1 ? 'project' : 'projects'}</span>}
           </div>
         </header>
 
-        <section className="rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="research-prompt-title">
-          <div className="mb-4 flex items-center gap-2 text-primary"><Search size={16} aria-hidden="true" /><h2 id="research-prompt-title" className="text-base font-semibold text-foreground">What are you building or researching?</h2></div>
+        <section className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-7" aria-labelledby="research-prompt-title">
+          <div className="mb-4 flex items-center gap-2 text-primary"><Search size={16} aria-hidden="true" /><h2 id="research-prompt-title" className="text-base font-semibold text-foreground">What would you like to explore?</h2></div>
           <GuidedSearch onSearch={onSearch} defaultLevel={defaultLevel} />
-          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
-            <span className="mr-1 text-xs text-muted-foreground">Go to</span>
+          <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border pt-4">
+
             {QUICK_LINKS.map(({ label, href, icon: Icon }) => (
               <Link key={label} to={href} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
                 <Icon size={14} aria-hidden="true" />{label}
@@ -90,23 +89,7 @@ export default function EyraHome({ onSearch }) {
           </div>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-border bg-card p-5 sm:p-6" aria-labelledby="collaboration-title">
-          <div className="mb-4 flex items-start gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Users size={19} aria-hidden="true" /></span>
-            <div>
-              <h2 id="collaboration-title" className="font-semibold">Research is a team effort. EYRA helps you find the right people.</h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">Find researchers and potential PhD collaborators, explore research institutions, and bring papers and people into your project.</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link to="/researchers" className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"><GraduationCap size={15} aria-hidden="true" /> Find researchers <ArrowRight size={14} /></Link>
-            <Link to="/discover" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-4 text-sm font-semibold hover:bg-secondary"><Building2 size={15} aria-hidden="true" /> Explore institutions</Link>
-            <Link to="/projects" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-4 text-sm font-semibold hover:bg-secondary"><FolderOpen size={15} aria-hidden="true" /> My projects</Link>
-          </div>
-          <p className="mt-4 text-xs leading-5 text-muted-foreground">EYRA can help prepare outreach. Sending email or arranging calls requires an authorized, working integration and the user's confirmation. Suggested researchers are not confirmed collaborators.</p>
-        </section>
-
-        <section className="mt-10" aria-labelledby="continue-title">
+        <section className="mt-16" aria-labelledby="continue-title">
           <div className="mb-4 flex items-center justify-between gap-4">
             <div><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Continue</p><h2 id="continue-title" className="mt-1 text-xl font-semibold">Your active projects</h2></div>
             <Link to="/projects" className="inline-flex min-h-10 items-center gap-1 rounded-lg px-3 text-sm font-medium text-primary hover:bg-primary/10">All projects <ArrowRight size={14} aria-hidden="true" /></Link>
@@ -115,7 +98,7 @@ export default function EyraHome({ onSearch }) {
             <div className="grid min-h-24 place-items-center rounded-xl border border-border bg-card" role="status"><Loader2 className="animate-spin text-primary" /><span className="sr-only">Loading projects</span></div>
           ) : activeProjects.length ? (
             <div className="grid gap-3 md:grid-cols-2">
-              {activeProjects.slice(0, 4).map(project => <ProjectCard key={project.id} project={project} />)}
+              {activeProjects.slice(0, 2).map(project => <ProjectCard key={project.id} project={project} />)}
             </div>
           ) : (
             <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-border bg-card/50 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -125,10 +108,10 @@ export default function EyraHome({ onSearch }) {
           )}
         </section>
 
-        <section className="mt-8 flex flex-col gap-4 rounded-xl border border-primary/20 bg-primary/[0.04] p-5 sm:flex-row sm:items-center sm:justify-between">
+        <section className="mt-8 flex flex-col gap-4 rounded-xl border border-border/70 bg-secondary/20 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary"><Sparkles size={16} aria-hidden="true" /></span>
-            <div><h2 className="text-sm font-semibold">Reason over your workspace</h2><p className="mt-1 text-sm text-muted-foreground">Ask EYRA about your saved evidence and project context.</p></div>
+            <div><h2 className="text-sm font-semibold">EYRA is here when you need help</h2><p className="mt-1 text-sm text-muted-foreground">Explore your next step with your research partner.</p></div>
           </div>
           <button type="button" disabled={!eyraReady} onClick={() => window.dispatchEvent(new Event('eylo:open-eyra'))} className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-primary/25 px-4 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50">
             Ask EYRA <span className="font-mono text-xs opacity-70">⌘K</span>

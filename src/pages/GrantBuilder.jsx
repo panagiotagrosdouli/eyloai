@@ -170,9 +170,9 @@ Rules:
   if (loading) return <div className="grid min-h-[50vh] place-items-center"><Loader2 className="animate-spin text-primary" /></div>;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="eylo-page">
       <header className="mb-7">
-        <h1 className="font-heading text-3xl font-black">Grant Builder</h1>
+        <h1 className="eylo-page-heading">Grant Builder</h1>
       </header>
 
       {opportunities.length === 0 || projects.length === 0 ? (

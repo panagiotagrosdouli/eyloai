@@ -130,16 +130,17 @@ export default function Projects() {
   });
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
+    <div className="eylo-page max-w-5xl">
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-8">
         <div>
-          <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground mb-1">Projects</h1>
+          <h1 className="eylo-page-heading">Your projects</h1>
+          <p className="mt-2 max-w-lg text-sm text-muted-foreground">Every research idea, paper and next step in one calm workspace.</p>
         </div>
         <button
           onClick={() => setShowNew(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 transition-opacity flex-shrink-0"
+          className="flex items-center gap-2 eylo-action flex-shrink-0"
         >
           <Plus size={14} /> New
         </button>
@@ -147,7 +148,7 @@ export default function Projects() {
 
       <div className="relative mb-5 max-w-md">
         <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-        <input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Search projects..." aria-label="Search projects" className="w-full h-10 pl-10 pr-4 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
+        <input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Search projects..." aria-label="Search projects" className="w-full h-10 pl-10 pr-4 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
       </div>
 
       {error && <div role="alert" className="mb-5 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-200">{error}</div>}

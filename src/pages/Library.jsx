@@ -119,10 +119,10 @@ export default function Library() {
 
   const counts = { papers: papers.length, researchers: researchers.length, opportunities: opportunities.length };
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="eylo-page">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-heading font-bold text-2xl sm:text-3xl mb-1 text-foreground">Library</h1>
+        <h1 className="eylo-page-heading">Library</h1>
       </div>
 
       {loadNotice && <div role="status" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadNotice}</div>}
