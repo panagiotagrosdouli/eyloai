@@ -58,26 +58,26 @@ export default function EyraHome({ onSearch }) {
 
   return (
     <div className="min-h-[calc(100vh-4.5rem)] bg-background">
-      <div className="mx-auto w-full max-w-7xl px-5 pb-24 pt-10 sm:px-8 sm:pt-14">
-        <header className="flex flex-wrap items-start justify-between gap-5 border-b border-border/70 pb-9">
+      <div className="mx-auto w-full max-w-6xl px-5 pb-24 pt-8 sm:px-8 sm:pt-10">
+        <header className="flex flex-wrap items-start justify-between gap-5 border-b border-border/70 pb-7">
           <div className="max-w-2xl">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-primary">Your research workspace</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.13em] text-primary">Your research workspace</p>
             <p className="text-sm text-muted-foreground">{greeting.greeting}</p>
-            <h1 className="mt-2 text-4xl font-semibold tracking-[-0.055em] text-foreground sm:text-[3.4rem] sm:leading-[1.1]">{greeting.question}</h1>
-            <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">From the first question to real evidence, collaborators and a project worth pursuing.</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.045em] text-foreground sm:text-[2.75rem] sm:leading-[1.14]">What would you like to research?</h1>
+            <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">Start with a topic. EYLO helps you find papers, understand evidence, connect with researchers and build a project.</p>
           </div>
           <Link to="/projects" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-foreground shadow-sm hover:bg-secondary">
             <Plus size={17} aria-hidden="true" /> New project
           </Link>
         </header>
 
-        <div className="mt-9 grid gap-7 lg:grid-cols-[minmax(0,1.65fr)_minmax(17rem,0.9fr)]">
+        <div className="mt-7 grid gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(17rem,0.9fr)]">
           <section aria-labelledby="ask-heading" className="overflow-hidden rounded-[1.75rem] border border-border/70 bg-card p-5 shadow-[0_24px_72px_-48px_rgba(15,23,42,0.3)] sm:p-8">
             <div className="mb-6 flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary"><Compass size={19} aria-hidden="true" /></span>
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Start with a question</p>
-                <h2 id="ask-heading" className="mt-1 text-xl font-semibold tracking-tight text-foreground">What are you researching?</h2>
+                <h2 id="ask-heading" className="mt-1 text-xl font-semibold tracking-tight text-foreground">Search academic research</h2>
               </div>
             </div>
             <GuidedSearch onSearch={onSearch} defaultLevel={defaultLevel} />
@@ -90,8 +90,8 @@ export default function EyraHome({ onSearch }) {
                 <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground"><Search size={19} aria-hidden="true" /></span>
                 <span className="text-xs text-muted-foreground">{eyraReady ? 'AI available' : 'AI unavailable'}</span>
               </div>
-              <h2 id="eyra-title" className="text-xl font-semibold tracking-tight">Meet EYRA</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">Your research partner for interpreting evidence and planning what to investigate next.</p>
+              <h2 id="eyra-title" className="text-xl font-semibold tracking-tight">Ask EYRA</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">Ask questions about papers, research methods and your next steps.</p>
               <button type="button" disabled={!eyraReady} onClick={() => window.dispatchEvent(new Event('eylo:open-eyra'))} className="mt-6 inline-flex min-h-11 w-full items-center justify-between rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50">
                 Ask EYRA <ArrowRight size={16} aria-hidden="true" />
               </button>
@@ -104,7 +104,7 @@ export default function EyraHome({ onSearch }) {
           </aside>
         </div>
 
-        <section className="mt-14" aria-labelledby="projects-heading">
+        <section className="mt-10" aria-labelledby="projects-heading">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Pick up where you left off</p><h2 id="projects-heading" className="mt-2 text-2xl font-semibold tracking-tight">Your projects</h2></div>
             <Link to="/projects" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-primary hover:underline">View all projects <ArrowRight size={15} aria-hidden="true" /></Link>
@@ -120,7 +120,7 @@ export default function EyraHome({ onSearch }) {
           )}
         </section>
 
-        <section className="mt-14" aria-labelledby="explore-heading">
+        <section className="mt-10" aria-labelledby="explore-heading">
           <div className="mb-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">A connected research journey</p><h2 id="explore-heading" className="mt-2 text-2xl font-semibold tracking-tight">Explore your next step</h2></div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {START_POINTS.map(({ title, description, href, icon: Icon }) => (
