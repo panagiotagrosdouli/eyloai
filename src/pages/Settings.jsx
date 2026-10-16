@@ -359,9 +359,9 @@ export default function Settings() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="eylo-page">
       <div className="mb-6">
-        <h1 className="font-heading font-bold text-2xl text-foreground mb-1">Settings</h1>
+        <h1 className="eylo-page-heading">Settings</h1>
       </div>
 
       {/* Mobile section picker */}
