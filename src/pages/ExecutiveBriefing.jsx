@@ -188,17 +188,17 @@ Rules:
   const statusDots = { green: 'bg-green-400', yellow: 'bg-amber-400', red: 'bg-red-400' };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="eylo-page">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="font-heading font-bold text-2xl">Executive Briefing</h1>
+          <h1 className="eylo-page-heading">Executive Briefing</h1>
           {lastGenerated && (
             <p className="text-[10px] text-muted-foreground mt-0.5">Last generated: {moment(lastGenerated).fromNow()}</p>
           )}
         </div>
         <button onClick={() => generateBriefing()} disabled={loading || initializing || !user}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity flex-shrink-0">
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity flex-shrink-0">
           {loading ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
           {initializing ? 'Loading…' : loading ? 'Generating…' : briefing ? 'Refresh' : 'Generate'}
         </button>
@@ -219,7 +219,7 @@ Rules:
 
       {loading && (
         <div className="flex flex-col items-center justify-center py-24">
-          <div className="w-16 h-16 rounded-2xl eyra-gradient flex items-center justify-center mb-4 animate-pulse-glow">
+          <div className="w-16 h-16 rounded-2xl eyra-gradient flex items-center justify-center mb-4 ">
             <Brain size={26} className="text-white" />
           </div>
           <p className="font-semibold text-sm mb-1">EYRA is preparing your briefing...</p>
