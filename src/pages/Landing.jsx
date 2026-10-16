@@ -28,18 +28,18 @@ export default function Landing() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#f8fafc] text-slate-900">
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-[#f8fafc]/90 backdrop-blur-2xl">
-        <div className="mx-auto flex h-20 max-w-[90rem] items-center gap-3 px-5 sm:px-8">
-          <Link to="/" aria-label="EYLO home"><BrandLogo brand="eylo" size="nav" priority /></Link>
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-5 sm:px-8">
+          <Link to="/" aria-label="EYLO home" className="mr-auto"><BrandLogo brand="eylo" size="nav" priority /></Link>
           <Link to="/login" className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:text-slate-950">Sign in</Link>
           <Link to={PROJECT_SIGNUP_HREF} className="rounded-xl bg-[#153c72] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#25578d]">Get started</Link>
         </div>
       </header>
 
-      <section className="relative flex min-h-[min(790px,calc(100svh-80px))] items-center px-5 py-20 sm:px-8">
+      <section className="relative flex min-h-[min(740px,calc(100svh-64px))] items-center px-5 py-20 sm:px-8">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[580px] bg-[radial-gradient(ellipse_at_50%_25%,rgba(53,128,189,0.10),transparent_68%)]" />
         <div className="relative mx-auto w-full max-w-4xl text-center">
           <p className="text-xs font-medium tracking-[0.22em] text-[#356ba0] uppercase">EYLO AI · Meet EYRA</p>
-          <h1 className="mx-auto mt-7 max-w-4xl font-heading text-5xl font-semibold leading-[1.06] tracking-[-0.055em] text-slate-900 sm:text-7xl">A better way to<br /><span className="text-[#416b91]">move research forward.</span></h1>
+          <h1 className="mx-auto mt-7 max-w-4xl font-heading text-5xl font-semibold leading-[1.12] tracking-[-0.055em] text-slate-900 sm:text-6xl lg:text-[4.5rem]">A better way to<br /><span className="text-[#416b91]">move research forward.</span></h1>
           <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">Discover papers, explore ideas and find the people who can help you build something real. No research experience required.</p>
           <form onSubmit={explore} className="mx-auto mt-10 max-w-2xl rounded-2xl border border-slate-200 bg-white p-2 text-left shadow-xl shadow-slate-200/60">
             <label htmlFor="research-question" className="sr-only">What would you like to research?</label>
@@ -64,22 +64,22 @@ export default function Landing() {
             <div><p className="text-xs uppercase tracking-[0.18em] text-[#356ba0]">One connected workspace</p><h2 id="what-eylo-does" className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">From curiosity to collaboration.</h2></div>
             <Link to="/discover" className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-950">Explore EYLO <ArrowRight size={16} /></Link>
           </div>
-          <div className="mt-9 grid gap-3 md:grid-cols-3">
+          <div className="mt-9 grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-slate-200 bg-white p-6"><p className="text-xs text-[#356ba0]">01 / DISCOVER</p><h3 className="mt-5 text-lg font-semibold">Find your evidence</h3><p className="mt-3 text-sm leading-6 text-slate-600">Explore real and recent papers, with help framing your question and investigating possible research gaps.</p></div>
-            <div className="rounded-2xl border border-white/[0.09] bg-white/[0.025] p-6"><p className="text-xs text-cyan-300">02 / CONNECT</p><h3 className="mt-5 text-lg font-semibold">Find your people</h3><p className="mt-3 text-sm leading-6 text-slate-400">Discover researchers, potential PhD collaborators and relevant research institutions.</p></div>
-            <div className="rounded-2xl border border-white/[0.09] bg-white/[0.025] p-6"><p className="text-xs text-cyan-300">03 / BUILD</p><h3 className="mt-5 text-lg font-semibold">Make progress</h3><p className="mt-3 text-sm leading-6 text-slate-400">Bring papers, people, plans and your next steps into a project supported by EYRA.</p></div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6"><p className="text-xs text-[#356ba0]">02 / CONNECT</p><h3 className="mt-5 text-lg font-semibold">Find your people</h3><p className="mt-3 text-sm leading-6 text-slate-600">Discover researchers, potential PhD collaborators and relevant research institutions.</p></div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6"><p className="text-xs text-[#356ba0]">03 / BUILD</p><h3 className="mt-5 text-lg font-semibold">Make progress</h3><p className="mt-3 text-sm leading-6 text-slate-600">Bring papers, people, plans and your next steps into a project supported by EYRA.</p></div>
           </div>
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-8">
-            <p className="max-w-lg text-sm leading-6 text-slate-400">EYRA helps with research and collaboration preparation. Contacting researchers or booking meetings requires your approval and connected services.</p>
+            <p className="max-w-lg text-sm leading-6 text-slate-600">EYRA helps with research and collaboration preparation. Contacting researchers or booking meetings requires your approval and connected services.</p>
             <Link to={PROJECT_SIGNUP_HREF} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-white">Start a project <ArrowRight size={15} /></Link>
           </div>
         </div>
       </section>
 
-      <footer className="border-t border-white/[0.07] px-5 py-7 sm:px-8">
-        <div className="mx-auto flex max-w-[90rem] flex-col gap-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+      <footer className="border-t border-slate-200 px-5 py-7 sm:px-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <BrandLogo brand="eylo" size="compact" />
-          <div className="flex flex-wrap gap-5"><Link to="/discover" className="hover:text-slate-900">Discover</Link><Link to="/login" className="hover:text-white">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span></div>
+          <div className="flex flex-wrap gap-5"><Link to="/discover" className="hover:text-slate-900">Discover</Link><Link to="/login" className="hover:text-slate-900">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span></div>
         </div>
       </footer>
     </main>
