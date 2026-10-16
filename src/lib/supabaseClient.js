@@ -20,11 +20,40 @@ const supabaseUrl = typeof window !== 'undefined' && import.meta.env.PROD
   ? `${window.location.origin}/supabase`
   : environment.values.VITE_SUPABASE_URL;
 
+// Prefer the same-origin gateway in production, with direct-provider fallback
+// only when the gateway is unreachable or returns a non-JSON gateway error.
+// Do not retry legitimate Supabase API errors (including failed signup).
+const gatewayFetch = async (input, init) => {
+  const url = typeof input === 'string' ? input : input.url;
+  const sameOriginGateway = typeof window !== 'undefined'
+    && import.meta.env.PROD
+    && url.startsWith(`${window.location.origin}/supabase/`);
+  if (!sameOriginGateway) return fetch(input, init);
+
+  const directUrl = url.replace(
+    `${window.location.origin}/supabase/`,
+    `${environment.values.VITE_SUPABASE_URL}/`,
+  );
+  try {
+    const response = await fetch(input, init);
+    const contentType = response.headers.get('content-type') || '';
+    if ((response.status === 502 || response.status === 503 || response.status === 504
+        || response.status === 404)
+        && !contentType.includes('application/json')) {
+      return fetch(directUrl, init);
+    }
+    return response;
+  } catch {
+    return fetch(directUrl, init);
+  }
+};
+
 export const supabase = isSupabaseConfigured
   ? createClient(
       supabaseUrl,
       environment.values.VITE_SUPABASE_ANON_KEY,
       {
+        global: { fetch: gatewayFetch },
         auth: {
           persistSession: true,
           autoRefreshToken: true,
