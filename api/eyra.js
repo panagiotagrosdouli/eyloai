@@ -241,7 +241,12 @@ export default async function handler(request, response) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) return response.status(503).json({ error: 'EYRA AI is not configured.' });
 
-    const prompt = String(request.body?.prompt || '').trim();
+    // Reject malformed input rather than silently coercing objects and arrays
+    // into unusable prompts (which could otherwise consume an EYRA action).
+    if (typeof request.body?.prompt !== 'string') {
+      return response.status(400).json({ error: 'A text prompt is required.', code: 'INVALID_PROMPT' });
+    }
+    const prompt = request.body.prompt.trim();
     if (!prompt) return response.status(400).json({ error: 'A prompt is required.' });
     if (prompt.length > MAX_PROMPT_LENGTH) {
       return response.status(413).json({
@@ -254,7 +259,10 @@ export default async function handler(request, response) {
     const requestedSchema = request.body?.response_json_schema;
     let responseSchema;
 
-    if (requestedSchema) {
+    if (requestedSchema !== undefined && requestedSchema !== null) {
+      if (typeof requestedSchema !== 'object' || Array.isArray(requestedSchema)) {
+        return response.status(400).json({ error: 'The response structure must be an object.', code: 'INVALID_SCHEMA' });
+      }
       if (JSON.stringify(requestedSchema).length > MAX_SCHEMA_LENGTH) {
         return response.status(400).json({ error: 'The requested response structure is too large.' });
       }
