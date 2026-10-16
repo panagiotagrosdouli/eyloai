@@ -44,3 +44,39 @@ test('unauthenticated EYRA errors are explicitly private and uncached', async ()
   assert.equal(response.statusCode, 401);
   assert.equal(response.headers['cache-control'], 'private, no-store');
 });
+
+test('EYRA rejects a partial OpenAI generation even when it contains text', async () => {
+  const previousFetch = globalThis.fetch;
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = 'sk-test-placeholder-only';
+  globalThis.fetch = async (url) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) {
+      return new Response(JSON.stringify({ id: 'test-researcher' }), { status: 200 });
+    }
+    if (address === 'https://api.openai.com/v1/responses') {
+      return new Response(JSON.stringify({
+        id: 'resp_incomplete',
+        status: 'incomplete',
+        incomplete_details: { reason: 'max_output_tokens' },
+        output: [{ content: [{ type: 'output_text', text: 'Partial report' }] }],
+      }), { status: 200 });
+    }
+    throw new Error('Unexpected test request: ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({
+      method: 'POST',
+      headers: { authorization: 'Bearer example-test-token' },
+      body: { prompt: 'Analyze this saved research topic' },
+    }, response);
+    assert.equal(response.statusCode, 502);
+    assert.equal(response.payload.code, 'EYRA_INCOMPLETE');
+    assert.equal(response.headers['cache-control'], 'private, no-store');
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.OPENAI_API_KEY;
+    else process.env.OPENAI_API_KEY = previousKey;
+  }
+});
