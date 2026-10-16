@@ -15,12 +15,15 @@ export default function Home() {
   const [currentQuery, setCurrentQuery] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeSearchId = useRef(0);
+  const savedHistorySearchId = useRef(null);
   const { toast } = useToast();
 
   const handleSearch = async (request) => {
     const topic = typeof request === 'string' ? request.trim() : String(request?.topic || request?.query || '').trim();
     if (!topic) return;
     const searchId = ++activeSearchId.current;
+    savedHistorySearchId.current = null;
+    setResults(null);
     setState('loading');
     setCurrentQuery(topic);
     setProgress({ status: 'loading', papers: [], researchers: [], institutions: [] });
@@ -34,6 +37,8 @@ export default function Home() {
           setResults(partial);
           setState('results');
           const profile = partial.discovery_profile || {};
+          if (savedHistorySearchId.current === searchId) return;
+          savedHistorySearchId.current = searchId;
           base44.entities.SearchHistory.create({
             query: topic,
             level: profile.level || 'researcher',
@@ -60,7 +65,7 @@ export default function Home() {
       setState('results');
     } catch (err) {
       if (searchId !== activeSearchId.current) return;
-      toast({ title: 'Something went wrong', description: 'Please try again.', variant: 'destructive' });
+      toast({ title: 'Research request failed', description: err instanceof Error ? err.message : 'Please try your research request again.', variant: 'destructive' });
       setState('dashboard');
     }
   };
@@ -89,7 +94,7 @@ export default function Home() {
   if (state === 'results') {
     return (
       <div>
-        <SearchHeroCompact onSearch={handleSearch} currentQuery={currentQuery} onBack={() => setState('dashboard')} />
+        <SearchHeroCompact onSearch={handleSearch} currentQuery={currentQuery} onBack={() => { activeSearchId.current += 1; setState('dashboard'); }} />
         <DiscoveryResults results={results} onNewSearch={handleSearch} />
       </div>
     );
