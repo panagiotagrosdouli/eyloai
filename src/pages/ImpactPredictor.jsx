@@ -149,10 +149,10 @@ Return:
   const scoreColor = (s) => s >= 70 ? '#22c55e' : s >= 50 ? 'hsl(199,100%,55%)' : s >= 35 ? '#f59e0b' : '#ef4444';
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="eylo-page">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-heading font-black text-2xl sm:text-3xl text-foreground">Impact Review</h1>
+        <h1 className="eylo-page-heading">Impact Review</h1>
       </div>
 
       <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] text-muted-foreground">
@@ -197,7 +197,7 @@ Return:
               className="w-full h-12 pl-11 pr-4 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
             />
           </div>
-          <button type="submit" disabled={!query.trim() || loading} className="flex items-center gap-2 px-6 py-3 rounded-xl eyra-gradient text-white text-sm font-semibold disabled:opacity-40">
+          <button type="submit" disabled={!query.trim() || loading} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40">
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Target size={14} />}
             Assess
           </button>
@@ -215,7 +215,7 @@ Return:
 
       {loading && (
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-16 h-16 rounded-2xl eyra-gradient flex items-center justify-center mb-5 animate-pulse-glow">
+          <div className="w-16 h-16 rounded-2xl eyra-gradient flex items-center justify-center mb-5 ">
             <Brain size={26} className="text-white" />
           </div>
           <p className="text-sm font-semibold mb-1">EYRA is assessing evidence and execution readiness...</p>
