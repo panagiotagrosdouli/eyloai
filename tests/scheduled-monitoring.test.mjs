@@ -63,3 +63,43 @@ test('scheduler gets retryable HTTP status when any watchlist fails', () => {
   assert.match(source, /response\.status\(failed > 0 \? 503 : 200\)\.json\(/);
   assert.match(source, /partial_failure: failed > 0/);
 });
+
+test('monitoring reports the specific failed watchlist and excludes inactive ones from checked', async () => {
+  const previousFetch = globalThis.fetch;
+  const oldSecret = process.env.CRON_SECRET;
+  const oldKey = process.env.SUPABASE_SECRET_KEY;
+  process.env.CRON_SECRET = 'test-cron-secret';
+  process.env.SUPABASE_SECRET_KEY = 'sb_secret_test_placeholder';
+  globalThis.fetch = async (url) => {
+    const address = String(url);
+    if (address.includes('/rest/v1/watchlists?select=')) {
+      return new Response(JSON.stringify([
+        { id: 'watch-failed', user_id: 'user-1', data: { active: true, query: 'quantum computing' } },
+        { id: 'watch-disabled', user_id: 'user-1', data: { active: false, query: 'inactive' } },
+      ]), { status: 200 });
+    }
+    if (address.includes('/rest/v1/monitoring_discoveries?select=')) {
+      return new Response('[]', { status: 200 });
+    }
+    if (address.includes('api.openalex.org/works')) {
+      return new Response('{}', { status: 400 });
+    }
+    throw new Error('Unexpected monitoring request: ' + address);
+  };
+  try {
+    const response = responseMock();
+    await monitor({ method: 'GET', headers: { authorization: 'Bearer test-cron-secret' } }, response);
+    assert.equal(response.statusCode, 503);
+    assert.equal(response.payload.checked, 1);
+    assert.equal(response.payload.skipped, 1);
+    assert.equal(response.payload.failed, 1);
+    assert.deepEqual(response.payload.failed_watchlist_ids, ['watch-failed']);
+    assert.equal(response.payload.partial_failure, true);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (oldSecret === undefined) delete process.env.CRON_SECRET;
+    else process.env.CRON_SECRET = oldSecret;
+    if (oldKey === undefined) delete process.env.SUPABASE_SECRET_KEY;
+    else process.env.SUPABASE_SECRET_KEY = oldKey;
+  }
+});
