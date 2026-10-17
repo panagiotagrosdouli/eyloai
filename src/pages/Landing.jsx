@@ -30,6 +30,7 @@ export default function Landing() {
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-[#f8fafc]/90 backdrop-blur-2xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-5 sm:px-8">
           <Link to="/" aria-label="EYLO home" className="mr-auto"><BrandLogo brand="eylo" size="nav" priority /></Link>
+          <a href="#careers" className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:text-slate-950">Careers</a>
           <Link to="/login" className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:text-slate-950">Sign in</Link>
           <Link to={PROJECT_SIGNUP_HREF} className="rounded-xl bg-[#153c72] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#25578d]">Get started</Link>
         </div>
@@ -76,10 +77,25 @@ export default function Landing() {
         </div>
       </section>
 
+      <section id="careers" className="border-t border-slate-200 bg-white px-5 py-20 sm:px-8 sm:py-24" aria-labelledby="careers-heading">
+        <div className="mx-auto max-w-5xl">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#356ba0]">EYLO / CAREERS & COLLABORATION</p>
+          <h2 id="careers-heading" className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Help shape the future of research.</h2>
+          <p className="mt-5 max-w-3xl text-base leading-7 text-slate-600">Connect with EYLO around scientific information retrieval, responsible AI, research workflows and product engineering. We welcome expressions of interest for future collaboration; no specific paid positions are advertised at this time.</p>
+          <div className="mt-9 grid gap-4 md:grid-cols-3">
+            <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6"><h3 className="text-lg font-semibold">Research & Evidence</h3><p className="mt-3 text-sm leading-6 text-slate-600">Scholarly discovery, evidence evaluation and research methodology.</p></article>
+            <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6"><h3 className="text-lg font-semibold">AI & Engineering</h3><p className="mt-3 text-sm leading-6 text-slate-600">Applied AI, trustworthy systems and full-stack product development.</p></article>
+            <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6"><h3 className="text-lg font-semibold">Design & Partnerships</h3><p className="mt-3 text-sm leading-6 text-slate-600">Researcher experience, product design and academic collaboration.</p></article>
+          </div>
+          <a href="mailto:panagiotagrosdouli@gmail.com?subject=EYLO%20Careers%20%26%20Collaboration" className="mt-8 inline-flex rounded-xl bg-[#153c72] px-5 py-3 text-sm font-semibold text-white hover:bg-[#25578d]">Express interest by email <ArrowRight className="ml-2" size={16} /></a>
+          <p className="mt-4 text-xs text-slate-500">Please share your area of interest. Avoid sensitive personal information in initial messages.</p>
+        </div>
+      </section>
+
       <footer className="border-t border-slate-200 px-5 py-7 sm:px-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <BrandLogo brand="eylo" size="compact" />
-          <div className="flex flex-wrap gap-5"><Link to="/discover" className="hover:text-slate-900">Discover</Link><Link to="/login" className="hover:text-slate-900">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span></div>
+          <div className="flex flex-wrap gap-5"><Link to="/discover" className="hover:text-slate-900">Discover</Link><a href="#careers" className="hover:text-slate-900">Careers</a><Link to="/login" className="hover:text-slate-900">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span></div>
         </div>
       </footer>
     </main>
