@@ -173,7 +173,11 @@ Kind regards,
         <label className="mt-3 block text-xs font-medium">Add CV for matching (TXT or Markdown)</label>
         <input type="file" accept=".txt,.md,text/plain,text/markdown" onChange={event => loadCvFile(event.target.files?.[0])} className="mt-2 block w-full text-xs text-muted-foreground" />
         {cvName && <p role="status" className="mt-2 text-xs text-primary">CV loaded locally: {cvName}. Only research search terms are sent to OpenAlex; the full CV is not uploaded or saved.</p>}
-        {cvError && <p role="alert" className="mt-2 text-xs text-destructive">{cvError}</p>}
+        <label htmlFor="supervisor-cv-text" className="mt-3 block text-xs font-medium">Or paste CV content (including text copied from a PDF or Word document)</label>
+        <textarea id="supervisor-cv-text" value={cvText} onChange={event => { setCvText(event.target.value.slice(0, 120_000)); setCvName('Pasted CV'); setCvError(''); }} rows={4}
+          placeholder="Research experience, degrees, projects, publications and technical skills…" className="mt-2 w-full resize-y rounded-lg border border-border bg-background p-3 text-xs text-foreground" />
+        <p className="mt-1 text-[11px] text-muted-foreground">For PDF/DOCX, paste the extracted text here. EYLO does not currently parse those files or upload your full CV. Avoid sensitive identifiers that are not needed for research matching.</p>
+        {cvError && <p role="alert" className="mt-2 text-xs text-destructive">{cvError}</p>
         <button type="button" disabled={profileMatching || loading} onClick={findForProfile} className="mt-3 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50">
           {profileMatching ? 'Loading profile…' : 'Find candidates for my profile'}
         </button>
