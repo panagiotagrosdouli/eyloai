@@ -24,6 +24,8 @@ export default function MeetingDetail({ meeting, projects, onBack, onSave, onDel
   const [notes, setNotes] = useState(meeting.notes || '');
   const [transcription, setTranscription] = useState(meeting.transcription || '');
   const [savingNotes, setSavingNotes] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteError, setInviteError] = useState('');
   const { toast } = useToast();
 
   const generatePrep = async () => {
@@ -157,6 +159,35 @@ Be concise and actionable.`,
     return `https://calendar.google.com/calendar/render?${params}`;
   })();
 
+  const prepareInvitation = () => {
+    const address = inviteEmail.trim();
+    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(address)) {
+      setInviteError('Enter a verified recipient email address.');
+      return;
+    }
+    if (!meeting.date || !meeting.time) {
+      setInviteError('Set a meeting date and time before preparing the invitation.');
+      return;
+    }
+    setInviteError('');
+    const subject = `Meeting request: ${meeting.title || 'EYLO research discussion'}`;
+    const body = [
+      'Hello,',
+      '',
+      'Would you be available for the following proposed research meeting?',
+      `Topic: ${meeting.title || 'Research discussion'}`,
+      `Proposed date: ${meeting.date} at ${meeting.time} (please confirm your time zone)`,
+      `Duration: ${meeting.duration_minutes || 60} minutes`,
+      meeting.agenda ? `Agenda: ${meeting.agenda}` : '',
+      meeting.meeting_link ? `Proposed call link: ${meeting.meeting_link}` : '',
+      '',
+      'Please reply to confirm or suggest another time. This is a request, not a confirmed booking.',
+      '',
+      'Best regards',
+    ].filter((line, index) => line || index < 2).join('\\n');
+    window.location.href = `mailto:${encodeURIComponent(address)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
   const saveNotes = async () => {
     setSavingNotes(true);
     try {
@@ -282,6 +313,19 @@ Be concise and actionable.`,
       {/* Overview */}
       {tab === 'Overview' && (
         <div className="space-y-4">
+          <section className="rounded-xl border border-border bg-card p-4">
+            <h2 className="text-sm font-semibold">Request a meeting by email</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Verify the recipient's official email address. This opens your email app with a draft; EYLO does not send the message or claim the researcher accepted.</p>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <input type="email" aria-label="Verified recipient email" value={inviteEmail}
+                onChange={event => { setInviteEmail(event.target.value); setInviteError(''); }}
+                placeholder="professor@university.edu" className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+              <button type="button" onClick={prepareInvitation}
+                className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">Prepare invitation email</button>
+            </div>
+            {inviteError && <p role="alert" className="mt-2 text-xs text-destructive">{inviteError}</p>}
+            <p className="mt-2 text-[11px] text-muted-foreground">Status: proposed only. Confirm the meeting directly with the recipient before treating it as accepted.</p>
+          </section>
           {meeting.agenda && (
             <div className="p-4 rounded-xl border border-border bg-card">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
