@@ -5,7 +5,8 @@ import { searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { Bookmark, ExternalLink, BookOpen, Search, Users, Loader2, CalendarDays, Mail, Copy, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
-import { scoreSupervisorCandidate } from '@/lib/supervisor-matching';
+import { scoreSupervisorCandidate, normalizeCountry } from '@/lib/supervisor-matching';
+import { findIndustryResearchLabs } from '@/lib/industry-research-labs';
 import { extractCvText } from '@/lib/cv-extraction';
 
 const initials = name => String(name || '?').trim().split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase()).join('') || '?';
@@ -69,6 +70,8 @@ export default function Researchers() {
       setProfileMatching(false);
     }
   };
+
+  const industryLabs = findIndustryResearchLabs(query, normalizeCountry(profile?.country));
 
   const rankedResults = profile || cvText
     ? results.map(researcher => ({ researcher, match: scoreSupervisorCandidate(researcher, { ...(profile || {}), cv_text: cvText }) }))
@@ -207,6 +210,23 @@ Kind regards,
           Search
         </button>
       </form>
+
+      {industryLabs.length > 0 && (
+        <section className="mb-6 rounded-2xl border border-border bg-card p-5" aria-label="Robotics industry research labs">
+          <h2 className="text-sm font-semibold">Industry robotics research labs</h2>
+          <p className="mt-1 mb-4 text-xs text-muted-foreground">Companies with documented robotics research. These are not confirmed PhD supervisors, funded doctoral programs or currently open vacancies. Verify collaboration and eligibility on the official sites.</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {industryLabs.map(lab => (
+              <div key={lab.name} className="rounded-xl border border-border p-3">
+                <p className="text-sm font-semibold">{lab.name}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{lab.evidence}</p>
+                <p className="mt-2 text-[11px] text-muted-foreground">Research location: {lab.country} · PhD availability not verified</p>
+                <a href={lab.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary">Official research evidence <ExternalLink size={12} /></a>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Quick search chips */}
       {!hasSearched && (
