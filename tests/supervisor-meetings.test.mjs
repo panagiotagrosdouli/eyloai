@@ -142,3 +142,14 @@ test('robotics PhD discovery shows evidenced companies without inventing a docto
   assert.match(researchers, /Industry robotics research labs/);
   assert.match(researchers, /not confirmed PhD supervisors/);
 });
+
+test('worldwide researcher discovery supports paging and six-hour refresh without claiming all professors', () => {
+  const researchers = readFileSync(new URL('../src/pages/Researchers.jsx', import.meta.url), 'utf8');
+  const api = readFileSync(new URL('../src/lib/eyra-api.js', import.meta.url), 'utf8');
+  assert.match(researchers, /6 \* 60 \* 60 \* 1000/);
+  assert.match(researchers, /Load more researchers worldwide/);
+  assert.match(researchers, /Not a complete directory of every professor/);
+  assert.match(api, /strictOptions\.page/);
+  assert.match(api, /page === 1/);
+  assert.match(api, /&page=\$\{page\}/);
+});
