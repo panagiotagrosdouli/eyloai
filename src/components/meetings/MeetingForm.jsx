@@ -4,6 +4,7 @@ import { X, Link2 } from 'lucide-react';
 const CALL_TYPES = [
   { value: 'project_meeting', label: 'Project Meeting' },
   { value: 'research_discussion', label: 'Research Discussion' },
+  { value: 'phd_supervision', label: 'Potential PhD Supervision Discussion' },
   { value: 'collaboration_call', label: 'Collaboration Call' },
   { value: 'mentor_call', label: 'Mentor Call' },
   { value: 'funding_preparation', label: 'Funding Preparation' },
