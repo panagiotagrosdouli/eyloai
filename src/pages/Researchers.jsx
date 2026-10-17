@@ -36,6 +36,8 @@ export default function Researchers() {
   const [copyStatus, setCopyStatus] = useState('');
   const [evidence, setEvidence] = useState({});
   const searchSequence = useRef(0);
+  const lastFetchAt = useRef(0);
+  const loadingRef = useRef(false);
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
 
@@ -92,6 +94,7 @@ export default function Researchers() {
     const q = String(searchQuery || query).trim();
     if (!q) return;
     const requestId = ++searchSequence.current;
+    loadingRef.current = true;
     setQuery(q);
     setLoading(true);
     setHasSearched(true);
@@ -105,7 +108,9 @@ export default function Researchers() {
         ]);
         setPage(nextPage);
         setHasMore(data.length === 25);
-        setLastRefreshed(new Date());
+        const fetchedAt = Date.now();
+        lastFetchAt.current = fetchedAt;
+        setLastRefreshed(new Date(fetchedAt));
       }
     } catch {
       if (requestId === searchSequence.current) {
@@ -113,21 +118,30 @@ export default function Researchers() {
         if (nextPage === 1) setResults([]);
       }
     } finally {
-      if (requestId === searchSequence.current) setLoading(false);
+      if (requestId === searchSequence.current) {
+        loadingRef.current = false;
+        setLoading(false);
+      }
     }
   };
 
-  // Refresh the displayed worldwide researcher search every six hours while
-  // the app remains open. Searches on a later visit fetch fresh OpenAlex data.
+  // Six-hour refresh is based on the last successful fetch, not time since the
+  // tab was opened. Recheck when a sleeping / hidden tab becomes active.
   useEffect(() => {
     if (!hasSearched || !query.trim()) return undefined;
-    const timer = setInterval(() => {
-      if (globalThis.document?.visibilityState === 'visible' && !loading) {
+    const refreshIfStale = () => {
+      if (globalThis.document?.visibilityState === 'hidden' || loadingRef.current) return;
+      if (!lastFetchAt.current || Date.now() - lastFetchAt.current >= REFRESH_INTERVAL_MS) {
         handleSearch(query, 1);
       }
-    }, REFRESH_INTERVAL_MS);
-    return () => clearInterval(timer);
-  }, [hasSearched, query, loading]);
+    };
+    const timer = setInterval(refreshIfStale, 60_000);
+    globalThis.document?.addEventListener('visibilitychange', refreshIfStale);
+    return () => {
+      clearInterval(timer);
+      globalThis.document?.removeEventListener('visibilitychange', refreshIfStale);
+    };
+  }, [hasSearched, query]);
 
   const loadEvidence = async (researcher) => {
     const authorId = String(researcher.id || '').split('/').pop();
