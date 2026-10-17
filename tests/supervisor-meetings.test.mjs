@@ -90,3 +90,14 @@ test('meeting invitation drafts require a verified email and do not imply accept
   assert.match(source, /This is a request, not a confirmed booking/);
   assert.match(source, /does not send the message or claim the researcher accepted/);
 });
+
+test('PhD invitation status requires an explicit user-managed acceptance record', () => {
+  const form = readFileSync(new URL('../src/components/meetings/MeetingForm.jsx', import.meta.url), 'utf8');
+  const detail = readFileSync(new URL('../src/components/meetings/MeetingDetail.jsx', import.meta.url), 'utf8');
+  assert.match(form, /invitation_status: 'not_sent'/);
+  assert.match(form, /value="awaiting_reply"/);
+  assert.match(form, /Recipient explicitly accepted/);
+  assert.match(form, /Only mark accepted after receiving a direct confirmation/);
+  assert.match(detail, /meeting\.invitation_status === 'accepted'/);
+  assert.match(detail, /invitations and acceptance are not automatically verified/);
+});
