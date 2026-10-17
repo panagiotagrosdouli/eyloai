@@ -81,3 +81,12 @@ test('PhD discovery carries research context into an explicitly unconfirmed meet
   assert.match(meetings, /no invitation or booking has been sent/);
   assert.match(form, /value: 'phd_supervision'/);
 });
+
+test('meeting invitation drafts require a verified email and do not imply acceptance', () => {
+  const source = readFileSync(new URL('../src/components/meetings/MeetingDetail.jsx', import.meta.url), 'utf8');
+  assert.match(source, /Request a meeting by email/);
+  assert.match(source, /Set a meeting date and time before preparing the invitation/);
+  assert.match(source, /mailto:/);
+  assert.match(source, /This is a request, not a confirmed booking/);
+  assert.match(source, /does not send the message or claim the researcher accepted/);
+});
