@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { searchOpenAlexAuthors } from '@/lib/eyra-api';
+import { searchOpenAlexAuthors, searchResearchPeopleByPublications } from '@/lib/eyra-api';
 import { Bookmark, ExternalLink, BookOpen, Search, Users, Loader2, CalendarDays, Mail, Copy, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
@@ -101,7 +101,15 @@ export default function Researchers() {
     setHasSearched(true);
     setSearchError('');
     try {
-      const data = await searchOpenAlexAuthors(q, 25, { throwOnError: true, page: nextPage, country: countryFilter });
+      // Field queries frequently match publications rather than author names.
+      // Return real named authors from matching papers when author search is sparse.
+      const normalizedTopic = q.replace(/\\bph\\.?d\\.?\\b|\\bdoctorate\\b|\\bdoctoral\\b/gi, '').trim();
+      const direct = await searchOpenAlexAuthors(normalizedTopic || q, 25, { throwOnError: true, page: nextPage, country: countryFilter });
+      let data = direct;
+      if (direct.length < 10) {
+        const publicationAuthors = await searchResearchPeopleByPublications(q, 25, { page: nextPage, country: countryFilter });
+        data = [...direct, ...publicationAuthors.filter(person => !direct.some(author => author.id === person.id))].slice(0, 25);
+      }
       if (requestId === searchSequence.current) {
         setResults(previous => nextPage === 1 ? data : [
           ...previous,
@@ -271,7 +279,7 @@ Kind regards,
 
       {industryLabs.length > 0 && (
         <section className="mb-6 rounded-2xl border border-border bg-card p-5" aria-label="Robotics industry research labs">
-          <h2 className="text-sm font-semibold">Industry robotics research labs</h2>
+          <h2 className="text-sm font-semibold">Additional robotics industry labs</h2>
           <p className="mt-1 mb-4 text-xs text-muted-foreground">Companies with documented robotics research. These are not confirmed PhD supervisors, funded doctoral programs or currently open vacancies. Verify collaboration and eligibility on the official sites.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {industryLabs.map(lab => (
@@ -332,13 +340,13 @@ Kind regards,
       {!loading && hasSearched && !searchError && results.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Users size={24} className="text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">No researchers found. Try a different search term.</p>
+          <p className="text-sm text-muted-foreground">No named researchers returned for this topic. Try a shorter research field, a different country or another topic.</p>
         </div>
       )}
 
       {!loading && results.length > 0 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <p className="text-xs text-muted-foreground mb-4">{results.length} researchers found via OpenAlex</p>
+          <p className="text-xs text-muted-foreground mb-4">{results.length} named academic researchers found via OpenAlex. Professor rank and PhD supervision require university verification.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {rankedResults.map(({ researcher: r, match }, i) => (
               <div key={r.id || i} className="p-5 rounded-2xl border border-border/80 bg-card shadow-sm hover:border-primary/30 transition-colors">
