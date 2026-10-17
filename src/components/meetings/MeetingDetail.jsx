@@ -6,6 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 import MeetingForm from './MeetingForm';
 import ReactMarkdown from 'react-markdown';
 import moment from 'moment';
+import { createMeetingCalendarDraft } from '@/lib/meeting-invitation';
 
 const TABS = ['Overview', 'EYRA Prep', 'Notes & Debrief'];
 
@@ -158,6 +159,21 @@ Be concise and actionable.`,
     });
     return `https://calendar.google.com/calendar/render?${params}`;
   })();
+
+  const downloadMeetingProposal = () => {
+    try {
+      const content = createMeetingCalendarDraft(meeting);
+      const url = URL.createObjectURL(new Blob([content], { type: 'text/calendar;charset=utf-8' }));
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'eylo-meeting-proposal.ics';
+      anchor.click();
+      URL.revokeObjectURL(url);
+      toast({ title: 'Tentative calendar proposal downloaded', description: 'Share it yourself. This does not invite or confirm anyone.' });
+    } catch (error) {
+      toast({ title: 'Calendar export failed', description: error?.message || 'Set a valid date and time.', variant: 'destructive' });
+    }
+  };
 
   const prepareInvitation = () => {
     const address = inviteEmail.trim();
@@ -333,6 +349,8 @@ Be concise and actionable.`,
               <input type="email" aria-label="Verified recipient email" value={inviteEmail}
                 onChange={event => { setInviteEmail(event.target.value); setInviteError(''); }}
                 placeholder="professor@university.edu" className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+              <button type="button" onClick={downloadMeetingProposal}
+                className="rounded-lg border border-border px-4 py-2 text-xs font-semibold">Download calendar proposal (.ics)</button>
               <button type="button" onClick={prepareInvitation}
                 className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">Prepare invitation email</button>
             </div>
