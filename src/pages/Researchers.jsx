@@ -53,12 +53,18 @@ export default function Researchers() {
     try {
       const me = await base44.auth.me();
       const field = String(me.research_interests || '').trim();
-      if (!field && !cvText) {
-        toast({ title: 'Add research interests in your Profile first', variant: 'destructive' });
+      if (!field) {
+        toast({
+          title: 'Add research interests in Profile before matching',
+          description: 'EYLO never sends arbitrary personal details extracted from your CV as a search query.',
+          variant: 'destructive',
+        });
         return;
       }
       setProfile({ ...me, cv_text: cvText });
-      await handleSearch((field || cvText.match(/[a-zA-Z]{4,}/g)?.slice(0, 7).join(' ') || '').slice(0, 180));
+      // Only the explicit research-interests field is sent to OpenAlex.
+      // The pasted CV is analyzed locally to explain and rerank candidates.
+      await handleSearch(field.slice(0, 180));
     } catch (error) {
       toast({ title: 'Unable to load your profile', description: error?.message || 'Try again.', variant: 'destructive' });
     } finally {
