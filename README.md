@@ -6,6 +6,10 @@ It combines live scholarly discovery, AI-assisted reasoning, researchers, fundin
 
 **Live product:** [eyloai.vercel.app](https://eyloai.vercel.app/)
 
+## Careers & collaboration
+
+The public landing page includes a Careers section for future collaboration in research, AI engineering, product design and partnerships. There are no advertised vacancies. Expressions of interest use an email link, not an in-app submission form.
+
 ## Core experience
 
 A useful EYLO journey is deliberately narrow:
