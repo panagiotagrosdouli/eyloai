@@ -70,3 +70,14 @@ test('local CV document parser accepts supported file types and enforces limits'
   assert.match(text, /artificial intelligence/);
   await assert.rejects(extractCvText({name:'candidate.txt',size:40,text:async()=> 'small'}), /too little readable text/);
 });
+
+test('PhD discovery carries research context into an explicitly unconfirmed meeting plan', () => {
+  const researchers = readFileSync(new URL('../src/pages/Researchers.jsx', import.meta.url), 'utf8');
+  const meetings = readFileSync(new URL('../src/pages/Meetings.jsx', import.meta.url), 'utf8');
+  const form = readFileSync(new URL('../src/components/meetings/MeetingForm.jsx', import.meta.url), 'utf8');
+  assert.match(researchers, /type=phd_supervision&topic=/);
+  assert.match(researchers, /Prospective PhD research supervision inquiry/);
+  assert.match(meetings, /phdDiscussion = searchParams\.get\('type'\) === 'phd_supervision'/);
+  assert.match(meetings, /no invitation or booking has been sent/);
+  assert.match(form, /value: 'phd_supervision'/);
+});
