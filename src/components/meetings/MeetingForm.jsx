@@ -34,6 +34,7 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
     meeting_link: '',
     notes: '',
     status: 'scheduled',
+    invitation_status: 'not_sent',
     ...initial,
   });
   const [saving, setSaving] = useState(false);
@@ -133,6 +134,20 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
           <option value="cancelled">Cancelled</option>
         </select>
       </div>
+
+      {form.call_type === 'phd_supervision' && (
+        <div className="rounded-xl border border-border p-3">
+          <label className="mb-1 block text-xs font-semibold">Supervisor invitation status (manually tracked)</label>
+          <select value={form.invitation_status || 'not_sent'} onChange={e => set('invitation_status', e.target.value)}
+            className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm">
+            <option value="not_sent">Draft only — not sent</option>
+            <option value="awaiting_reply">I sent the request — awaiting reply</option>
+            <option value="accepted">Recipient explicitly accepted</option>
+            <option value="declined">Recipient declined</option>
+          </select>
+          <p className="mt-2 text-xs text-muted-foreground">Only mark accepted after receiving a direct confirmation. EYLO cannot verify replies automatically.</p>
+        </div>
+      )}
 
       {/* Participants */}
       <div>
