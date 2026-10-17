@@ -35,6 +35,7 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
     notes: '',
     status: 'scheduled',
     invitation_status: 'not_sent',
+    confirmation_reference: '',
     ...initial,
   });
   const [saving, setSaving] = useState(false);
@@ -59,6 +60,9 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
     setSaving(true);
     setError('');
     try {
+      if (form.call_type === 'phd_supervision' && form.invitation_status === 'accepted' && !String(form.confirmation_reference || '').trim()) {
+        throw new Error('Record how the recipient confirmed the meeting before marking it accepted.');
+      }
       await onSave({ ...form, title: form.title.trim(), duration_minutes: Math.max(1, Number(form.duration_minutes) || 60) });
     } catch (saveError) {
       setError(saveError?.message || 'The meeting could not be saved. Please try again.');
@@ -145,6 +149,14 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
             <option value="accepted">Recipient explicitly accepted</option>
             <option value="declined">Recipient declined</option>
           </select>
+          {form.invitation_status === 'accepted' && (
+            <div className="mt-3">
+              <label className="mb-1 block text-xs font-medium">Confirmation reference *</label>
+              <textarea required value={form.confirmation_reference || ''} onChange={e => set('confirmation_reference', e.target.value.slice(0, 1000))}
+                rows={2} placeholder="e.g. Professor confirmed by email on 2026-10-17. Do not paste private email contents."
+                className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm" />
+            </div>
+          )}
           <p className="mt-2 text-xs text-muted-foreground">Only mark accepted after receiving a direct confirmation. EYLO cannot verify replies automatically.</p>
         </div>
       )}
