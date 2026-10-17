@@ -26,7 +26,7 @@ function contactEmail() {
   ).trim();
 }
 
-function buildProviderUrl(provider, query, limit, sort) {
+function buildProviderUrl(provider, query, limit, sort, page = 1) {
   const email = contactEmail();
 
   if (provider === 'openalex_works') {
@@ -43,6 +43,7 @@ function buildProviderUrl(provider, query, limit, sort) {
     const params = new URLSearchParams({
       search: query,
       per_page: String(limit),
+      page: String(page),
       sort: 'relevance_score:desc',
     });
     if (email) params.set('mailto', email);
@@ -120,6 +121,11 @@ export default async function handler(request, response) {
   const query = String(request.query?.q || '').trim();
   const sort = String(request.query?.sort || 'relevance');
   const limit = boundedLimit(request.query?.limit, 10);
+  const requestedPage = Number(request.query?.page ?? 1);
+  if (!Number.isInteger(requestedPage) || requestedPage < 1 || requestedPage > 200) {
+    return response.status(400).json({ error: 'Page must be between 1 and 200.' });
+  }
+  const page = provider === 'openalex_authors' ? requestedPage : 1;
 
   if (!PROVIDERS.has(provider)) {
     return response.status(400).json({ error: 'Unknown discovery provider.' });
@@ -128,7 +134,7 @@ export default async function handler(request, response) {
     return response.status(400).json({ error: 'Provide a valid research query.' });
   }
 
-  const url = buildProviderUrl(provider, query, limit, sort);
+  const url = buildProviderUrl(provider, query, limit, sort, page);
   if (!url) return response.status(400).json({ error: 'Provider configuration is invalid.' });
 
   const controller = new AbortController();
@@ -150,7 +156,7 @@ export default async function handler(request, response) {
     // rate limit must never poison the shared cache for subsequent researchers.
     response.setHeader(
       'Cache-Control',
-      upstream.ok ? 'public, s-maxage=300, stale-while-revalidate=600' : 'no-store',
+      upstream.ok ? (provider === 'openalex_authors' ? 'public, s-maxage=21600, stale-while-revalidate=600' : 'public, s-maxage=300, stale-while-revalidate=600') : 'no-store',
     );
     response.setHeader('X-EYLO-Source', provider);
     return response.send(body);
