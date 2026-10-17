@@ -41,3 +41,21 @@ test('CV matching uses uploaded local text without claiming verified supervision
   assert.match(validateCvTextFile({ name: 'resume.pdf', size: 2500 }), /PDF and DOCX extraction are not enabled/);
   assert.match(validateCvTextFile({ name: 'resume.txt', size: 200000 }), /too large/);
 });
+
+test('CV matching accepts common country names and ISO codes', async () => {
+  const { normalizeCountry } = await import('../src/lib/supervisor-matching.js');
+  assert.equal(normalizeCountry('Greece'), 'GR');
+  assert.equal(normalizeCountry('Ελλάδα'), 'GR');
+  assert.equal(normalizeCountry('Germany'), 'DE');
+  assert.equal(normalizeCountry('US'), 'US');
+  assert.equal(normalizeCountry(''), '');
+  const match = scoreSupervisorCandidate({ country: 'GR', research_areas: 'Robotics' }, { country: 'Greece', cv_text: 'Robotics research work' });
+  assert.equal(match.countryMatch, true);
+});
+
+test('researcher CV entry permits safe paste of text copied from PDF or DOCX', () => {
+  const source = readFileSync(new URL('../src/pages/Researchers.jsx', import.meta.url), 'utf8');
+  assert.match(source, /id="supervisor-cv-text"/);
+  assert.match(source, /value=\{cvText\}/);
+  assert.match(source, /does not currently parse those files/);
+});
