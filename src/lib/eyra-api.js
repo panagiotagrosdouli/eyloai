@@ -134,6 +134,53 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
   }
 }
 
+// Find named people from real scholarly authorships when an OpenAlex author-name
+// search does not surface candidates for a subject such as "PhD in robotics".
+// Publication authorship is not proof of professor rank or supervisor availability.
+export async function searchResearchPeopleByPublications(query, limit = 25, strictOptions = {}) {
+  try {
+    const topic = String(query || '').replace(/\\bph\\.?d\\.?\\b|\\bdoctorate\\b|\\bdoctoral\\b|\\bin\\b/gi, ' ').trim() || String(query || '').trim();
+    const page = Math.min(200, Math.max(1, Number(strictOptions.page) || 1));
+    const directUrl = `${OPENALEX_BASE}/works?search=${encodeURIComponent(topic)}&per_page=25&page=${page}&sort=relevance_score:desc${OPENALEX_CONTACT}`;
+    // Page one can use EYLO's proxy. Other pages are fetched directly until
+    // the works proxy supports a page argument.
+    const response = page === 1
+      ? await fetchResearchSource('openalex_works', topic, 25, 'relevance', directUrl)
+      : await fetchWithTimeout(directUrl);
+    if (!response.ok) throw new Error(`OpenAlex publication search failed: ${response.status}`);
+    const payload = await response.json();
+    const people = new Map();
+    for (const work of payload.results || []) {
+      for (const authorship of work.authorships || []) {
+        const author = authorship.author || {};
+        const id = String(author.id || '');
+        if (!/^https:\\/\\/openalex\\.org\\/A\\d+$/.test(id) || !author.display_name) continue;
+        const institution = authorship.institutions?.[0];
+        const country = institution?.country_code || '';
+        if (strictOptions.country && country !== strictOptions.country) continue;
+        if (people.has(id)) continue;
+        people.set(id, {
+          id, openalex_id: id, name: author.display_name,
+          institution: institution?.display_name || 'Affiliation not available',
+          affiliation_verified: Boolean(institution?.display_name),
+          academic_role: null, academic_role_verified: false,
+          profile_photo_url: null, photo_status: 'unavailable',
+          data_source: 'OpenAlex publication authorship',
+          country, research_areas: topic,
+          research_topics_source: 'Matched publication search query (not a verified author specialty)',
+          works_count: null, citation_count: null,
+          profile_url: `https://openalex.org/authors/${id.split('/').pop()}`,
+        });
+        if (people.size >= limit) break;
+      }
+      if (people.size >= limit) break;
+    }
+    return [...people.values()];
+  } catch (error) {
+    return emptyOrThrow(error, strictOptions);
+  }
+}
+
 export async function searchOpenAlexInstitutions(query, limit = 6, strictOptions = {}) {
   try {
     const directUrl = `${OPENALEX_BASE}/institutions?search=${encodeURIComponent(query)}&per_page=${limit}&sort=relevance_score:desc${OPENALEX_CONTACT}`;
