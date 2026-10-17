@@ -300,6 +300,19 @@ Be concise and actionable.`,
         </div>
       </div>
 
+      {meeting.call_type === 'phd_supervision' && (
+        <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-4">
+          <p className="text-xs font-semibold">PhD supervisor invitation</p>
+          <p className="mt-1 text-sm">
+            {meeting.invitation_status === 'accepted' ? 'Recipient accepted — recorded manually by you' :
+              meeting.invitation_status === 'declined' ? 'Recipient declined — recorded manually by you' :
+              meeting.invitation_status === 'awaiting_reply' ? 'Awaiting recipient reply — marked sent by you' :
+              'Draft only — no request has been sent through EYLO'}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">Meeting invitations and acceptance are not automatically verified. Update this status using Edit after you receive a reply.</p>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex gap-1 border-b border-border/60 mb-5">
         {TABS.map(t => (
