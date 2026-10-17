@@ -277,23 +277,6 @@ Kind regards,
         <span className="text-[11px] text-muted-foreground">Country reflects indexed institutional affiliation, not guaranteed current employment or PhD openings.</span>
       </div>
 
-      {industryLabs.length > 0 && (
-        <section className="mb-6 rounded-2xl border border-border bg-card p-5" aria-label="Robotics industry research labs">
-          <h2 className="text-sm font-semibold">Additional robotics industry labs</h2>
-          <p className="mt-1 mb-4 text-xs text-muted-foreground">Companies with documented robotics research. These are not confirmed PhD supervisors, funded doctoral programs or currently open vacancies. Verify collaboration and eligibility on the official sites.</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {industryLabs.map(lab => (
-              <div key={lab.name} className="rounded-xl border border-border p-3">
-                <p className="text-sm font-semibold">{lab.name}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{lab.evidence}</p>
-                <p className="mt-2 text-[11px] text-muted-foreground">Research location: {lab.country} · PhD availability not verified</p>
-                <a href={lab.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary">Official research evidence <ExternalLink size={12} /></a>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Quick search chips */}
       {!hasSearched && (
         <div className="flex flex-wrap gap-2 mb-8">
@@ -440,6 +423,23 @@ Kind regards,
       {!hasSearched && !loading && (
         <p className="mt-8 max-w-xl text-sm leading-6 text-muted-foreground">Profiles show scholarly authors, not confirmed PhD candidates or collaborators. We display initials rather than inventing headshots. Open a source record to verify current affiliations and identity.</p>
       )}
+      {industryLabs.length > 0 && (
+        <section className="mb-6 rounded-2xl border border-border bg-card p-5" aria-label="Robotics industry research labs">
+          <h2 className="text-sm font-semibold">Additional robotics industry labs</h2>
+          <p className="mt-1 mb-4 text-xs text-muted-foreground">Companies with documented robotics research. These are not confirmed PhD supervisors, funded doctoral programs or currently open vacancies. Verify collaboration and eligibility on the official sites.</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {industryLabs.map(lab => (
+              <div key={lab.name} className="rounded-xl border border-border p-3">
+                <p className="text-sm font-semibold">{lab.name}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{lab.evidence}</p>
+                <p className="mt-2 text-[11px] text-muted-foreground">Research location: {lab.country} · PhD availability not verified</p>
+                <a href={lab.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary">Official research evidence <ExternalLink size={12} /></a>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
     </div>
   );
 }
