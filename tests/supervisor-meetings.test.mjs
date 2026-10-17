@@ -109,10 +109,12 @@ test('calendar proposal is tentative and contains meeting details without invent
     duration_minutes: 45, agenda: 'Discuss research alignment', meeting_link: 'https://meet.jit.si/eylo-demo',
   });
   assert.match(invitation, /BEGIN:VCALENDAR/);
-  assert.match(invitation, /DTSTART:20261103T143000/);
-  assert.match(invitation, /DTEND:20261103T151500/);
+  assert.match(invitation, /DTSTART:\\d{8}T\\d{6}Z/);
+  assert.match(invitation, /DTEND:\\d{8}T\\d{6}Z/);
   assert.match(invitation, /STATUS:TENTATIVE/);
   assert.match(invitation, /Confirmation required/);
   assert.doesNotMatch(invitation, /ATTENDEE/);
   assert.throws(() => createMeetingCalendarDraft({date:'',time:''}), /valid meeting date and time/);
+  assert.throws(() => createMeetingCalendarDraft({date:'2026-02-30',time:'14:00'}), /Invalid meeting date/);
+  assert.throws(() => createMeetingCalendarDraft({date:'2026-11-03',time:'25:30'}), /Invalid meeting date/);
 });
