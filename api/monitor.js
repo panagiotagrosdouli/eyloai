@@ -176,7 +176,13 @@ async function processWatchlist(row, seen) {
   await supabase(`watchlists?id=eq.${encodeURIComponent(row.id)}`, {
     method: 'PATCH',
     headers: { Prefer: 'return=minimal' },
-    body: JSON.stringify({ data: { ...data, lastCheckedAt: new Date().toISOString(), lastResultCount: records.length } }),
+    body: JSON.stringify({ data: {
+      ...data,
+      lastCheckedAt: new Date().toISOString(),
+      lastResultCount: records.length,
+      lastCheckStatus: 'success',
+      consecutiveFailures: 0,
+    } }),
   });
   return { inserted, notifications };
 }
@@ -206,19 +212,39 @@ export default async function handler(request, response) {
       const batch = watchlists.slice(index, index + 5).filter(row => row.data?.active !== false);
       checked += batch.length;
       const results = await Promise.allSettled(batch.map(row => processWatchlist(row, seen)));
-      results.forEach((result, position) => {
+      for (const [position, result] of results.entries()) {
         if (result.status === 'fulfilled') {
           inserted += result.value.inserted;
           notifications += result.value.notifications;
-        } else {
-          failed += 1;
-          failedWatchlistIds.push(batch[position].id);
-          console.error('Watchlist monitoring failed', {
-            watchlistId: batch[position].id,
-            reason: result.reason instanceof Error ? result.reason.message : 'Unknown error',
+          continue;
+        }
+        failed += 1;
+        const row = batch[position];
+        failedWatchlistIds.push(row.id);
+        console.error('Watchlist monitoring failed', {
+          watchlistId: row.id,
+          reason: result.reason instanceof Error ? result.reason.message : 'Unknown error',
+        });
+        // Persist failure state for the next scheduler run and the owner UI.
+        // Never store upstream exception text, which may include sensitive URLs.
+        try {
+          await supabase(`watchlists?id=eq.${encodeURIComponent(row.id)}`, {
+            method: 'PATCH',
+            headers: { Prefer: 'return=minimal' },
+            body: JSON.stringify({ data: {
+              ...row.data,
+              lastFailedAt: new Date().toISOString(),
+              lastCheckStatus: 'failed',
+              consecutiveFailures: Number(row.data?.consecutiveFailures || 0) + 1,
+            } }),
+          });
+        } catch (persistError) {
+          console.error('Could not persist watchlist failure status', {
+            watchlistId: row.id,
+            status: persistError?.status || null,
           });
         }
-      });
+      }
     }
 
     // Return a retryable failure to the scheduler whenever any watchlist
