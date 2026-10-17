@@ -127,3 +127,18 @@ test('accepted supervisor meetings require a user-recorded confirmation referenc
   assert.match(form, /confirmation_reference: ''/);
   assert.match(detail, /meeting\.confirmation_reference/);
 });
+
+test('robotics PhD discovery shows evidenced companies without inventing a doctoral place', async () => {
+  const { findIndustryResearchLabs } = await import('../src/lib/industry-research-labs.js');
+  const robotics = findIndustryResearchLabs('robotics');
+  assert.ok(robotics.length >= 3);
+  assert.ok(robotics.some(lab => lab.name.includes('NVIDIA')));
+  assert.ok(robotics.every(lab => lab.url.startsWith('https://')));
+  assert.ok(robotics.every(lab => !lab.phdVacancyVerified && !lab.supervisionVerified));
+  assert.ok(findIndustryResearchLabs('ρομποτική').length >= 3);
+  assert.equal(findIndustryResearchLabs('biochemistry').length, 0);
+  assert.equal(findIndustryResearchLabs('robotics', 'DE').length, 0);
+  const researchers = readFileSync(new URL('../src/pages/Researchers.jsx', import.meta.url), 'utf8');
+  assert.match(researchers, /Industry robotics research labs/);
+  assert.match(researchers, /not confirmed PhD supervisors/);
+});
