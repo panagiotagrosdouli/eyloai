@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { scoreSupervisorCandidate } from '../src/lib/supervisor-matching.js';
+import { scoreSupervisorCandidate, validateCvTextFile } from '../src/lib/supervisor-matching.js';
 
 test('PhD candidate scoring uses profile interest and explicit matching country code', () => {
   const profile = { research_interests: 'Computer Vision', bio: 'Research on autonomous robotics', country: 'GR' };
@@ -31,4 +31,13 @@ test('EYLO supports explicit opt-in in-app video and a separate external fallbac
   assert.match(source, /hostname === 'meet\.jit\.si'/);
   assert.match(source, /inAppCall && embeddedRoom/);
   assert.match(source, /third-party service/);
+});
+
+test('CV matching uses uploaded local text without claiming verified supervision', () => {
+  const candidate = { research_areas: 'Computational Biology, Machine Learning', country: 'GR' };
+  const match = scoreSupervisorCandidate(candidate, { cv_text: 'Computational Biology machine learning research', country: 'GR' });
+  assert.ok(match.overlaps.includes('computational'));
+  assert.equal(validateCvTextFile({ name: 'resume.txt', size: 2500 }), '');
+  assert.match(validateCvTextFile({ name: 'resume.pdf', size: 2500 }), /PDF and DOCX extraction are not enabled/);
+  assert.match(validateCvTextFile({ name: 'resume.txt', size: 200000 }), /too large/);
 });
