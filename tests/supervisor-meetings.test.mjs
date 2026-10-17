@@ -183,3 +183,13 @@ test('worldwide PhD author search can filter by institution country without impl
   assert.match(ui, /indexed institutional affiliation/);
   assert.match(ui, /country: countryFilter/);
 });
+
+test('topic searches can show named OpenAlex paper authors without inventing professor titles', () => {
+  const api = readFileSync(new URL('../src/lib/eyra-api.js', import.meta.url), 'utf8');
+  const ui = readFileSync(new URL('../src/pages/Researchers.jsx', import.meta.url), 'utf8');
+  assert.match(api, /searchResearchPeopleByPublications/);
+  assert.match(api, /work\.authorships/);
+  assert.match(api, /academic_role_verified: false/);
+  assert.match(ui, /publicationAuthors/);
+  assert.match(ui, /Professor rank and PhD supervision require university verification/);
+});
