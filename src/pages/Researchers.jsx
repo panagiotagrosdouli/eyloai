@@ -5,7 +5,7 @@ import { searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { Bookmark, ExternalLink, BookOpen, Search, Users, Loader2, CalendarDays, Mail, Copy, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
-import { scoreSupervisorCandidate } from '@/lib/supervisor-matching';
+import { scoreSupervisorCandidate, validateCvTextFile } from '@/lib/supervisor-matching';
 
 const initials = name => String(name || '?').trim().split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase()).join('') || '?';
 
@@ -16,6 +16,9 @@ const QUICK_SEARCHES = [
 export default function Researchers() {
   const [query, setQuery] = useState('');
   const [profile, setProfile] = useState(null);
+  const [cvText, setCvText] = useState('');
+  const [cvName, setCvName] = useState('');
+  const [cvError, setCvError] = useState('');
   const [profileMatching, setProfileMatching] = useState(false);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -29,17 +32,33 @@ export default function Researchers() {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
 
+  const loadCvFile = async (file) => {
+    setCvError('');
+    setCvText('');
+    setCvName('');
+    const error = validateCvTextFile(file);
+    if (error) { setCvError(error); return; }
+    try {
+      const text = await file.text();
+      if (text.trim().length < 30) throw new Error('The CV has too little readable text.');
+      setCvText(text.slice(0, 120_000));
+      setCvName(file.name);
+    } catch (readError) {
+      setCvError(readError?.message || 'Could not read the CV.');
+    }
+  };
+
   const findForProfile = async () => {
     setProfileMatching(true);
     try {
       const me = await base44.auth.me();
       const field = String(me.research_interests || '').trim();
-      if (!field) {
+      if (!field && !cvText) {
         toast({ title: 'Add research interests in your Profile first', variant: 'destructive' });
         return;
       }
-      setProfile(me);
-      await handleSearch(field.slice(0, 180));
+      setProfile({ ...me, cv_text: cvText });
+      await handleSearch((field || cvText.match(/[a-zA-Z]{4,}/g)?.slice(0, 7).join(' ') || '').slice(0, 180));
     } catch (error) {
       toast({ title: 'Unable to load your profile', description: error?.message || 'Try again.', variant: 'destructive' });
     } finally {
@@ -47,8 +66,8 @@ export default function Researchers() {
     }
   };
 
-  const rankedResults = profile
-    ? results.map(researcher => ({ researcher, match: scoreSupervisorCandidate(researcher, profile) }))
+  const rankedResults = profile || cvText
+    ? results.map(researcher => ({ researcher, match: scoreSupervisorCandidate(researcher, { ...(profile || {}), cv_text: cvText }) }))
       .sort((a, b) => b.match.score - a.match.score)
     : results.map(researcher => ({ researcher, match: null }));
 
@@ -151,6 +170,10 @@ Kind regards,
       <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
         <p className="text-sm font-semibold">PhD supervisor candidates matched to your profile</p>
         <p className="mt-1 text-xs text-muted-foreground">Uses your saved research interests, bio, skills and exact country code to rank real OpenAlex researchers. A topic match does not verify academic rank, PhD supervision availability, or willingness to meet.</p>
+        <label className="mt-3 block text-xs font-medium">Add CV for matching (TXT or Markdown)</label>
+        <input type="file" accept=".txt,.md,text/plain,text/markdown" onChange={event => loadCvFile(event.target.files?.[0])} className="mt-2 block w-full text-xs text-muted-foreground" />
+        {cvName && <p role="status" className="mt-2 text-xs text-primary">CV loaded locally: {cvName}. Only research search terms are sent to OpenAlex; the full CV is not uploaded or saved.</p>}
+        {cvError && <p role="alert" className="mt-2 text-xs text-destructive">{cvError}</p>}
         <button type="button" disabled={profileMatching || loading} onClick={findForProfile} className="mt-3 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50">
           {profileMatching ? 'Loading profile…' : 'Find candidates for my profile'}
         </button>
