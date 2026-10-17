@@ -118,3 +118,12 @@ test('calendar proposal is tentative and contains meeting details without invent
   assert.throws(() => createMeetingCalendarDraft({date:'2026-02-30',time:'14:00'}), /Invalid meeting date/);
   assert.throws(() => createMeetingCalendarDraft({date:'2026-11-03',time:'25:30'}), /Invalid meeting date/);
 });
+
+test('accepted supervisor meetings require a user-recorded confirmation reference', () => {
+  const form = readFileSync(new URL('../src/components/meetings/MeetingForm.jsx', import.meta.url), 'utf8');
+  const detail = readFileSync(new URL('../src/components/meetings/MeetingDetail.jsx', import.meta.url), 'utf8');
+  assert.match(form, /invitation_status === 'accepted' && !String\(form\.confirmation_reference/);
+  assert.match(form, /Record how the recipient confirmed the meeting/);
+  assert.match(form, /confirmation_reference: ''/);
+  assert.match(detail, /meeting\.confirmation_reference/);
+});
