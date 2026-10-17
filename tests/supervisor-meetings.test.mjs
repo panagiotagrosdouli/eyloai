@@ -150,7 +150,7 @@ test('worldwide researcher discovery supports paging and six-hour refresh withou
   assert.match(researchers, /Load more researchers worldwide/);
   assert.match(researchers, /Not a complete directory of every professor/);
   assert.match(api, /strictOptions\.page/);
-  assert.match(api, /fetchResearchSource\('openalex_authors', query, limit, 'relevance', directUrl, \{ page \}\)/);
+  assert.match(api, /fetchResearchSource\('openalex_authors', query, limit, 'relevance', directUrl, \{ page, country \}\)/);
   assert.match(api, /&page=\$\{page\}/);
 });
 
