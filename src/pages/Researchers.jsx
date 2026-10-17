@@ -19,6 +19,7 @@ const QUICK_SEARCHES = [
 
 export default function Researchers() {
   const [query, setQuery] = useState('');
+  const [countryFilter, setCountryFilter] = useState('');
   const [profile, setProfile] = useState(null);
   const [cvText, setCvText] = useState('');
   const [cvName, setCvName] = useState('');
@@ -100,7 +101,7 @@ export default function Researchers() {
     setHasSearched(true);
     setSearchError('');
     try {
-      const data = await searchOpenAlexAuthors(q, 25, { throwOnError: true, page: nextPage });
+      const data = await searchOpenAlexAuthors(q, 25, { throwOnError: true, page: nextPage, country: countryFilter });
       if (requestId === searchSequence.current) {
         setResults(previous => nextPage === 1 ? data : [
           ...previous,
@@ -141,7 +142,7 @@ export default function Researchers() {
       clearInterval(timer);
       globalThis.document?.removeEventListener('visibilitychange', refreshIfStale);
     };
-  }, [hasSearched, query]);
+  }, [hasSearched, query, countryFilter]);
 
   const loadEvidence = async (researcher) => {
     const authorId = String(researcher.id || '').split('/').pop();
@@ -249,6 +250,24 @@ Kind regards,
           Search
         </button>
       </form>
+
+      <div className="mb-4 flex max-w-2xl flex-col gap-2 sm:flex-row sm:items-center">
+        <label htmlFor="researcher-country" className="text-xs font-semibold">Researcher country</label>
+        <select id="researcher-country" value={countryFilter}
+          onChange={event => { setCountryFilter(event.target.value); setHasSearched(false); setResults([]); setHasMore(false); }}
+          className="rounded-lg border border-border bg-card px-3 py-2 text-sm">
+          <option value="">Worldwide — all countries</option>
+          <option value="GR">Greece</option><option value="US">United States</option>
+          <option value="GB">United Kingdom</option><option value="DE">Germany</option>
+          <option value="FR">France</option><option value="IT">Italy</option>
+          <option value="NL">Netherlands</option><option value="CH">Switzerland</option>
+          <option value="SE">Sweden</option><option value="CA">Canada</option>
+          <option value="AU">Australia</option><option value="JP">Japan</option>
+          <option value="CN">China</option><option value="IN">India</option>
+          <option value="SG">Singapore</option>
+        </select>
+        <span className="text-[11px] text-muted-foreground">Country reflects indexed institutional affiliation, not guaranteed current employment or PhD openings.</span>
+      </div>
 
       {industryLabs.length > 0 && (
         <section className="mb-6 rounded-2xl border border-border bg-card p-5" aria-label="Robotics industry research labs">
