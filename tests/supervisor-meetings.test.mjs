@@ -101,3 +101,18 @@ test('PhD invitation status requires an explicit user-managed acceptance record'
   assert.match(detail, /meeting\.invitation_status === 'accepted'/);
   assert.match(detail, /invitations and acceptance are not automatically verified/);
 });
+
+test('calendar proposal is tentative and contains meeting details without invented RSVP', async () => {
+  const { createMeetingCalendarDraft } = await import('../src/lib/meeting-invitation.js');
+  const invitation = createMeetingCalendarDraft({
+    id: 'proposal-1', title: 'PhD discussion', date: '2026-11-03', time: '14:30',
+    duration_minutes: 45, agenda: 'Discuss research alignment', meeting_link: 'https://meet.jit.si/eylo-demo',
+  });
+  assert.match(invitation, /BEGIN:VCALENDAR/);
+  assert.match(invitation, /DTSTART:20261103T143000/);
+  assert.match(invitation, /DTEND:20261103T151500/);
+  assert.match(invitation, /STATUS:TENTATIVE/);
+  assert.match(invitation, /Confirmation required/);
+  assert.doesNotMatch(invitation, /ATTENDEE/);
+  assert.throws(() => createMeetingCalendarDraft({date:'',time:''}), /valid meeting date and time/);
+});
