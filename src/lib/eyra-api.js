@@ -96,8 +96,9 @@ export async function searchOpenAlexWorks(query, limit = 10, sort = 'relevance',
 
 export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}) {
   try {
-    const directUrl = `${OPENALEX_BASE}/authors?search=${encodeURIComponent(query)}&per_page=${limit}&sort=relevance_score:desc${OPENALEX_CONTACT}`;
-    const res = await fetchResearchSource('openalex_authors', query, limit, 'relevance', directUrl);
+    const page = Math.min(200, Math.max(1, Number(strictOptions.page) || 1));
+    const directUrl = `${OPENALEX_BASE}/authors?search=${encodeURIComponent(query)}&per_page=${limit}&page=${page}&sort=relevance_score:desc${OPENALEX_CONTACT}`;
+    const res = await fetchResearchSource('openalex_authors', `${query}::page=${page}`, limit, 'relevance', directUrl);
     if (!res.ok) throw new Error(`OpenAlex author request failed: ${res.status}`);
     const data = await res.json();
     return (data.results || []).map(a => ({
