@@ -123,13 +123,13 @@ export default function Researchers() {
   const prepareOutreach = (researcher) => {
     setOutreachResearcher(researcher);
     setCopyStatus('');
-    setOutreachDraft(`Subject: Research collaboration inquiry
+    setOutreachDraft(`Subject: Prospective PhD research supervision inquiry
 
 Dear ${researcher.name || 'Researcher'},
 
-I am exploring ${query.trim() || '[your research topic]'} and came across your scholarly work through OpenAlex. I would appreciate the opportunity to learn more about your research and whether my interests might align with your current work.
+I am exploring ${query.trim() || '[your research topic]'} and came across your scholarly work through OpenAlex. I am exploring potential PhD supervision opportunities related to this area. Would you be open to reviewing a brief research proposal, or could you point me to your institution’s current doctoral application process?
 
-I would be happy to share a short research proposal if helpful. Thank you for considering my inquiry.
+I understand that your availability to supervise doctoral candidates is not verified by OpenAlex. I would be grateful for any guidance on the appropriate application process. Thank you for considering my inquiry.
 
 Kind regards,
 [Your name]`);
@@ -275,7 +275,7 @@ Kind regards,
                       {r.profile_url && <a href={r.profile_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><ExternalLink size={13} aria-hidden="true" /> Verify source profile</a>}
                       <button type="button" onClick={() => loadEvidence(r)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><BookOpen size={13} aria-hidden="true" /> View actual publications</button>
                       <button type="button" onClick={() => prepareOutreach(r)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><Mail size={13} aria-hidden="true" /> Draft a message</button>
-                      <Link to={`/meetings?person=${encodeURIComponent(r.name || '')}`} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><CalendarDays size={13} aria-hidden="true" /> Plan a discussion</Link>
+                      <Link to={`/meetings?person=${encodeURIComponent(r.name || '')}&type=phd_supervision&topic=${encodeURIComponent(query.slice(0, 180))}`} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:bg-secondary"><CalendarDays size={13} aria-hidden="true" /> Plan a discussion</Link>
                     </div>
                     {(() => {
                       const state = evidence[String(r.id || '').split('/').pop()];
