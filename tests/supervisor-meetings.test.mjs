@@ -153,3 +153,12 @@ test('worldwide researcher discovery supports paging and six-hour refresh withou
   assert.match(api, /page === 1/);
   assert.match(api, /&page=\$\{page\}/);
 });
+
+test('worldwide scholar refresh catches up after browser tab resumes without repeated active requests', () => {
+  const researchers = readFileSync(new URL('../src/pages/Researchers.jsx', import.meta.url), 'utf8');
+  assert.match(researchers, /lastFetchAt = useRef\(0\)/);
+  assert.match(researchers, /visibilitychange/);
+  assert.match(researchers, /Date\.now\(\) - lastFetchAt\.current >= REFRESH_INTERVAL_MS/);
+  assert.match(researchers, /loadingRef\.current/);
+  assert.match(researchers, /clearInterval\(timer\)/);
+});
