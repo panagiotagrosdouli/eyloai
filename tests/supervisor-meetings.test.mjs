@@ -57,5 +57,16 @@ test('researcher CV entry permits safe paste of text copied from PDF or DOCX', (
   const source = readFileSync(new URL('../src/pages/Researchers.jsx', import.meta.url), 'utf8');
   assert.match(source, /id="supervisor-cv-text"/);
   assert.match(source, /value=\{cvText\}/);
-  assert.match(source, /does not currently parse those files/);
+  assert.match(source, /PDF and DOCX are read in your browser/);
+});
+
+test('local CV document parser accepts supported file types and enforces limits', async () => {
+  const { validateCvDocument, extractCvText } = await import('../src/lib/cv-extraction.js');
+  assert.equal(validateCvDocument({name:'candidate.pdf',size:1200}), '');
+  assert.equal(validateCvDocument({name:'candidate.docx',size:1200}), '');
+  assert.match(validateCvDocument({name:'candidate.exe',size:1200}), /PDF, DOCX/);
+  assert.match(validateCvDocument({name:'candidate.pdf',size:7 * 1024 * 1024}), /under 5 MB/);
+  const text = await extractCvText({name:'candidate.txt',size:90,text:async()=> 'Research in artificial intelligence and robotics, with scientific publications.'});
+  assert.match(text, /artificial intelligence/);
+  await assert.rejects(extractCvText({name:'candidate.txt',size:40,text:async()=> 'small'}), /too little readable text/);
 });
