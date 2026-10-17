@@ -11,6 +11,8 @@ import { extractCvText } from '@/lib/cv-extraction';
 
 const initials = name => String(name || '?').trim().split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase()).join('') || '?';
 
+const REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
+
 const QUICK_SEARCHES = [
   'Artificial intelligence', 'Cancer biology', 'Climate science',
 ];
@@ -26,6 +28,9 @@ export default function Researchers() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const [lastRefreshed, setLastRefreshed] = useState(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [outreachResearcher, setOutreachResearcher] = useState(null);
   const [outreachDraft, setOutreachDraft] = useState('');
   const [copyStatus, setCopyStatus] = useState('');
@@ -83,26 +88,46 @@ export default function Researchers() {
     if (term) handleSearch(term);
   }, [searchParams]);
 
-  const handleSearch = async (searchQuery) => {
-    const q = searchQuery || query;
-    if (!q.trim()) return;
+  const handleSearch = async (searchQuery, nextPage = 1) => {
+    const q = String(searchQuery || query).trim();
+    if (!q) return;
     const requestId = ++searchSequence.current;
     setQuery(q);
     setLoading(true);
     setHasSearched(true);
     setSearchError('');
     try {
-      const data = await searchOpenAlexAuthors(q, 16, { throwOnError: true });
-      if (requestId === searchSequence.current) setResults(data);
+      const data = await searchOpenAlexAuthors(q, 25, { throwOnError: true, page: nextPage });
+      if (requestId === searchSequence.current) {
+        setResults(previous => nextPage === 1 ? data : [
+          ...previous,
+          ...data.filter(author => !previous.some(existing => existing.id === author.id)),
+        ]);
+        setPage(nextPage);
+        setHasMore(data.length === 25);
+        setLastRefreshed(new Date());
+      }
     } catch {
       if (requestId === searchSequence.current) {
         setSearchError('OpenAlex is unavailable right now. Please retry your search.');
-        setResults([]);
+        if (nextPage === 1) setResults([]);
       }
     } finally {
       if (requestId === searchSequence.current) setLoading(false);
     }
   };
+
+  // Refresh the displayed worldwide researcher search every six hours while
+  // the app remains open. Searches on a later visit fetch fresh OpenAlex data.
+  useEffect(() => {
+    if (!hasSearched || !query.trim()) return undefined;
+    const timer = setInterval(() => {
+      if (globalThis.document?.visibilityState === 'visible' && !loading) {
+        handleSearch(query, 1);
+      }
+    }, REFRESH_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [hasSearched, query, loading]);
 
   const loadEvidence = async (researcher) => {
     const authorId = String(researcher.id || '').split('/').pop();
@@ -171,12 +196,12 @@ Kind regards,
       {/* Header */}
       <div className="mb-6">
         <h1 className="eylo-page-heading">Find researchers</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Explore real OpenAlex author records. Academic rank and PhD status are not verified by this search.</p>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Search researchers worldwide across PhD subjects using live OpenAlex records. Academic rank and PhD supervision availability are not verified.</p>
       </div>
 
       <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
         <p className="text-sm font-semibold">PhD supervisor candidates matched to your profile</p>
-        <p className="mt-1 text-xs text-muted-foreground">Uses your saved research interests, bio, skills and exact country code to rank real OpenAlex researchers. A topic match does not verify academic rank, PhD supervision availability, or willingness to meet.</p>
+        <p className="mt-1 text-xs text-muted-foreground">Uses your saved research interests, CV, bio, skills and country to rank real OpenAlex researchers. A topic match does not verify academic rank, PhD supervision availability, or willingness to meet.</p>
         <label className="mt-3 block text-xs font-medium">Upload your CV (PDF, DOCX, TXT or Markdown)</label>
         <input type="file" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown" onChange={event => loadCvFile(event.target.files?.[0])} className="mt-2 block w-full text-xs text-muted-foreground" />
         {cvName && <p role="status" className="mt-2 text-xs text-primary">CV loaded locally: {cvName}. Only research search terms are sent to OpenAlex; the full CV is not uploaded or saved.</p>}
@@ -243,12 +268,29 @@ Kind regards,
         </div>
       )}
 
+      {hasSearched && (
+        <p className="mb-3 text-xs text-muted-foreground">
+          Worldwide OpenAlex author search · refreshed on search and every 6 hours while open
+          {lastRefreshed ? ` · Last fetched ${lastRefreshed.toLocaleString()}` : ''}
+          . Not a complete directory of every professor.
+        </p>
+      )}
+
       {loading && (
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-10 h-10 rounded-full eyra-gradient flex items-center justify-center mb-3 animate-pulse-glow">
             <Users size={16} className="text-white" />
           </div>
           <p className="text-sm text-muted-foreground">Searching OpenAlex for researchers...</p>
+        </div>
+      )}
+
+      {!loading && hasMore && results.length > 0 && (
+        <div className="mb-4 flex justify-center">
+          <button type="button" onClick={() => handleSearch(query, page + 1)}
+            className="rounded-lg border border-border px-4 py-2 text-sm font-semibold">
+            Load more researchers worldwide
+          </button>
         </div>
       )}
 
