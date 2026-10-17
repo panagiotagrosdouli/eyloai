@@ -150,7 +150,7 @@ test('worldwide researcher discovery supports paging and six-hour refresh withou
   assert.match(researchers, /Load more researchers worldwide/);
   assert.match(researchers, /Not a complete directory of every professor/);
   assert.match(api, /strictOptions\.page/);
-  assert.match(api, /page === 1/);
+  assert.match(api, /fetchResearchSource\('openalex_authors', query, limit, 'relevance', directUrl, \{ page \}\)/);
   assert.match(api, /&page=\$\{page\}/);
 });
 
@@ -161,4 +161,13 @@ test('worldwide scholar refresh catches up after browser tab resumes without rep
   assert.match(researchers, /Date\.now\(\) - lastFetchAt\.current >= REFRESH_INTERVAL_MS/);
   assert.match(researchers, /loadingRef\.current/);
   assert.match(researchers, /clearInterval\(timer\)/);
+});
+
+test('author discovery requests server-cached worldwide pages for six hours', () => {
+  const proxy = readFileSync(new URL('../api/discovery.js', import.meta.url), 'utf8');
+  const client = readFileSync(new URL('../src/lib/eyra-api.js', import.meta.url), 'utf8');
+  assert.match(proxy, /page: String\(page\)/);
+  assert.match(proxy, /s-maxage=21600/);
+  assert.match(proxy, /Page must be between 1 and 200/);
+  assert.match(client, /params\.set\('page', String\(page\)\)/);
 });
