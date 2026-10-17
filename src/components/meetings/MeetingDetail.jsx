@@ -11,6 +11,13 @@ const TABS = ['Overview', 'EYRA Prep', 'Notes & Debrief'];
 
 export default function MeetingDetail({ meeting, projects, onBack, onSave, onDelete, onUpdate }) {
   const [tab, setTab] = useState('Overview');
+  const [inAppCall, setInAppCall] = useState(false);
+  const embeddedRoom = (() => {
+    try {
+      const url = new URL(meeting.meeting_link || '');
+      return url.protocol === 'https:' && url.hostname === 'meet.jit.si' && /^\/[a-zA-Z0-9-]+$/.test(url.pathname) ? url.href : '';
+    } catch { return ''; }
+  })();
   const [editing, setEditing] = useState(false);
   const [loadingPrep, setLoadingPrep] = useState(false);
   const [loadingDebrief, setLoadingDebrief] = useState(false);
@@ -185,6 +192,18 @@ Be concise and actionable.`,
         <ArrowLeft size={14} /> Back to Meetings
       </button>
 
+      {inAppCall && embeddedRoom && (
+        <section role="dialog" aria-modal="true" aria-label="EYLO meeting video call" className="fixed inset-0 z-[100] flex flex-col bg-background p-3 sm:p-6">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div><h2 className="text-sm font-semibold">{meeting.title}</h2>
+              <p className="text-xs text-muted-foreground">Video powered by Jitsi, a third-party service. Camera and microphone access require your permission. This is not a private EYLO-hosted video server.</p>
+            </div>
+            <button type="button" onClick={() => setInAppCall(false)} className="rounded-lg border border-border px-4 py-2 text-sm">Leave meeting</button>
+          </div>
+          <iframe src={embeddedRoom} title="Jitsi meeting inside EYLO" allow="camera; microphone; fullscreen; display-capture; autoplay" referrerPolicy="no-referrer" className="min-h-0 w-full flex-1 rounded-xl border border-border" />
+        </section>
+      )}
+
       {/* Header */}
       <div className="p-5 rounded-2xl border border-border bg-card mb-5">
         <div className="flex items-start justify-between gap-3">
@@ -227,10 +246,16 @@ Be concise and actionable.`,
                 <CalendarPlus size={12} /> Add to Calendar
               </a>
             )}
+            {embeddedRoom && (
+              <button type="button" onClick={() => setInAppCall(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg eyra-gradient text-white text-xs font-semibold hover:opacity-90 transition-opacity">
+                <Video size={12} /> Join inside EYLO
+              </button>
+            )}
             {meeting.meeting_link && (
               <a href={meeting.meeting_link} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg eyra-gradient text-white text-xs font-semibold hover:opacity-90 transition-opacity">
-                <Video size={12} /> Join Call
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs font-semibold hover:bg-secondary">
+                <Video size={12} /> Open call externally
               </a>
             )}
             <button onClick={() => setEditing(true)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
