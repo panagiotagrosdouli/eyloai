@@ -161,7 +161,7 @@ Be concise and actionable.`,
 
   const prepareInvitation = () => {
     const address = inviteEmail.trim();
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(address)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
       setInviteError('Enter a verified recipient email address.');
       return;
     }
@@ -184,7 +184,7 @@ Be concise and actionable.`,
       'Please reply to confirm or suggest another time. This is a request, not a confirmed booking.',
       '',
       'Best regards',
-    ].filter((line, index) => line || index < 2).join('\\n');
+    ].filter((line, index) => line || index < 2).join('\n');
     window.location.href = `mailto:${encodeURIComponent(address)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
