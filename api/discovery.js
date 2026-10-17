@@ -26,7 +26,7 @@ function contactEmail() {
   ).trim();
 }
 
-function buildProviderUrl(provider, query, limit, sort, page = 1) {
+function buildProviderUrl(provider, query, limit, sort, page = 1, country = '') {
   const email = contactEmail();
 
   if (provider === 'openalex_works') {
@@ -46,6 +46,7 @@ function buildProviderUrl(provider, query, limit, sort, page = 1) {
       page: String(page),
       sort: 'relevance_score:desc',
     });
+    if (country) params.set('filter', `last_known_institutions.country_code:${country}`);
     if (email) params.set('mailto', email);
     return `https://api.openalex.org/authors?${params}`;
   }
@@ -126,6 +127,8 @@ export default async function handler(request, response) {
     return response.status(400).json({ error: 'Page must be between 1 and 200.' });
   }
   const page = provider === 'openalex_authors' ? requestedPage : 1;
+  const country = String(request.query?.country || '').trim().toUpperCase();
+  if (country && !/^[A-Z]{2}$/.test(country)) return response.status(400).json({ error: 'Country must be an ISO two-letter code.' });
 
   if (!PROVIDERS.has(provider)) {
     return response.status(400).json({ error: 'Unknown discovery provider.' });
@@ -134,7 +137,7 @@ export default async function handler(request, response) {
     return response.status(400).json({ error: 'Provide a valid research query.' });
   }
 
-  const url = buildProviderUrl(provider, query, limit, sort, page);
+  const url = buildProviderUrl(provider, query, limit, sort, page, provider === 'openalex_authors' ? country : '');
   if (!url) return response.status(400).json({ error: 'Provider configuration is invalid.' });
 
   const controller = new AbortController();
