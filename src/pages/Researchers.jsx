@@ -5,6 +5,7 @@ import { searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { Bookmark, ExternalLink, BookOpen, Search, Users, Loader2, CalendarDays, Mail, Copy, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
+import { scoreSupervisorCandidate } from '@/lib/supervisor-matching';
 
 const initials = name => String(name || '?').trim().split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase()).join('') || '?';
 
@@ -14,6 +15,8 @@ const QUICK_SEARCHES = [
 
 export default function Researchers() {
   const [query, setQuery] = useState('');
+  const [profile, setProfile] = useState(null);
+  const [profileMatching, setProfileMatching] = useState(false);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -25,6 +28,29 @@ export default function Researchers() {
   const searchSequence = useRef(0);
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+
+  const findForProfile = async () => {
+    setProfileMatching(true);
+    try {
+      const me = await base44.auth.me();
+      const field = String(me.research_interests || '').trim();
+      if (!field) {
+        toast({ title: 'Add research interests in your Profile first', variant: 'destructive' });
+        return;
+      }
+      setProfile(me);
+      await handleSearch(field.slice(0, 180));
+    } catch (error) {
+      toast({ title: 'Unable to load your profile', description: error?.message || 'Try again.', variant: 'destructive' });
+    } finally {
+      setProfileMatching(false);
+    }
+  };
+
+  const rankedResults = profile
+    ? results.map(researcher => ({ researcher, match: scoreSupervisorCandidate(researcher, profile) }))
+      .sort((a, b) => b.match.score - a.match.score)
+    : results.map(researcher => ({ researcher, match: null }));
 
   useEffect(() => {
     const term = searchParams.get('q');
@@ -122,6 +148,15 @@ Kind regards,
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Explore real OpenAlex author records. Academic rank and PhD status are not verified by this search.</p>
       </div>
 
+      <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
+        <p className="text-sm font-semibold">PhD supervisor candidates matched to your profile</p>
+        <p className="mt-1 text-xs text-muted-foreground">Uses your saved research interests, bio, skills and exact country code to rank real OpenAlex researchers. A topic match does not verify academic rank, PhD supervision availability, or willingness to meet.</p>
+        <button type="button" disabled={profileMatching || loading} onClick={findForProfile} className="mt-3 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50">
+          {profileMatching ? 'Loading profile…' : 'Find candidates for my profile'}
+        </button>
+        {profile && <p className="mt-2 text-xs text-muted-foreground">Ranking based on your Profile. Location matches require the same country code; missing or differently formatted countries are not treated as matches.</p>}
+      </div>
+
       {/* Search */}
       <form onSubmit={e => { e.preventDefault(); handleSearch(); }} className="relative max-w-2xl mb-4">
         <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" />
@@ -179,12 +214,13 @@ Kind regards,
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <p className="text-xs text-muted-foreground mb-4">{results.length} researchers found via OpenAlex</p>
           <div className="grid gap-3 sm:grid-cols-2">
-            {results.map((r, i) => (
+            {rankedResults.map(({ researcher: r, match }, i) => (
               <div key={r.id || i} className="p-5 rounded-2xl border border-border/80 bg-card shadow-sm hover:border-primary/30 transition-colors">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-secondary text-sm font-semibold text-foreground" aria-hidden="true">{initials(r.name)}</div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-sm text-foreground">{r.name}</h4>
+                    {match && <p className="mt-1 text-[11px] text-primary">{match.overlaps.length ? `Profile topic overlap: ${match.overlaps.join(', ')}` : 'No verified topic keyword overlap'}{match.countryMatch ? ' · Same country code' : ''}</p>}
                     <p className="text-xs text-muted-foreground mt-0.5">{r.institution}</p>
                     {r.country && <p className="text-[10px] text-muted-foreground/60 mt-0.5">{r.country}</p>}
                     {r.research_areas && (
