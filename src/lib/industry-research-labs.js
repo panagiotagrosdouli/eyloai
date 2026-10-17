@@ -25,7 +25,7 @@ export const ROBOTICS_INDUSTRY_LABS = [
 ];
 
 export function findIndustryResearchLabs(query, country = '') {
-  if (!/\b(robotics?|robots?|robotic|ρομποτικ[ήηςο]|ρομπότ|humanoid|manipulation)\b/i.test(String(query || ''))) return [];
+  if (!/(?:\b(?:robotics?|robots?|robotic|humanoid|manipulation)\b|ρομποτικ|ρομπότ)/i.test(String(query || ''))) return [];
   const location = String(country || '').trim().toUpperCase();
   return ROBOTICS_INDUSTRY_LABS
     .filter(lab => !location || lab.country === location)
