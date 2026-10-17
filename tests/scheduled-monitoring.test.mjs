@@ -103,3 +103,13 @@ test('monitoring reports the specific failed watchlist and excludes inactive one
     else process.env.SUPABASE_SECRET_KEY = oldKey;
   }
 });
+
+test('monitoring retains failure state and clears consecutive failures after success', () => {
+  const source = readFileSync(new URL('../api/monitor.js', import.meta.url), 'utf8');
+  assert.match(source, /lastCheckStatus: 'failed'/);
+  assert.match(source, /lastFailedAt: new Date\(\)\.toISOString\(\)/);
+  assert.match(source, /consecutiveFailures: Number\(row\.data\?\.consecutiveFailures \|\| 0\) \+ 1/);
+  assert.match(source, /lastCheckStatus: 'success'/);
+  assert.match(source, /consecutiveFailures: 0/);
+  assert.match(source, /Could not persist watchlist failure status/);
+});
