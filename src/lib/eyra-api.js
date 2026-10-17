@@ -98,7 +98,11 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
   try {
     const page = Math.min(200, Math.max(1, Number(strictOptions.page) || 1));
     const directUrl = `${OPENALEX_BASE}/authors?search=${encodeURIComponent(query)}&per_page=${limit}&page=${page}&sort=relevance_score:desc${OPENALEX_CONTACT}`;
-    const res = await fetchResearchSource('openalex_authors', `${query}::page=${page}`, limit, 'relevance', directUrl);
+    // The discovery proxy currently supports page one only. Fetch later pages directly
+    // rather than injecting pagination markers into an academic topic search.
+    const res = page === 1
+      ? await fetchResearchSource('openalex_authors', query, limit, 'relevance', directUrl)
+      : await fetchWithTimeout(directUrl);
     if (!res.ok) throw new Error(`OpenAlex author request failed: ${res.status}`);
     const data = await res.json();
     return (data.results || []).map(a => ({
