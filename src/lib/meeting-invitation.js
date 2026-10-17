@@ -20,7 +20,7 @@ export function createMeetingCalendarDraft(meeting) {
   const end = new Date(start.getTime() + duration * 60000);
   // Export absolute UTC timestamps: floating local times can shift the meeting
   // unexpectedly when an international recipient imports the .ics file.
-  const utcStamp = date => date.toISOString().replace(/[-:]/g, '').replace(/\\.\\d{3}Z$/, 'Z');
+  const utcStamp = date => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
   const uid = `${String(meeting.id || 'draft').replace(/[^a-z0-9-]/gi, '')}@eyloai`;
   const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   return [
