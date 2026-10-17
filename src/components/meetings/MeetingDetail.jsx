@@ -325,6 +325,9 @@ Be concise and actionable.`,
               meeting.invitation_status === 'awaiting_reply' ? 'Awaiting recipient reply — marked sent by you' :
               'Draft only — no request has been sent through EYLO'}
           </p>
+          {meeting.invitation_status === 'accepted' && meeting.confirmation_reference && (
+            <p className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground">Your confirmation record: {meeting.confirmation_reference}</p>
+          )}
           <p className="mt-1 text-xs text-muted-foreground">Meeting invitations and acceptance are not automatically verified. Update this status using Edit after you receive a reply.</p>
         </div>
       )}
