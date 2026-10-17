@@ -183,7 +183,7 @@ Kind regards,
         <textarea id="supervisor-cv-text" value={cvText} onChange={event => { setCvText(event.target.value.slice(0, 120_000)); setCvName('Pasted CV'); setCvError(''); }} rows={4}
           placeholder="Research experience, degrees, projects, publications and technical skills…" className="mt-2 w-full resize-y rounded-lg border border-border bg-background p-3 text-xs text-foreground" />
         <p className="mt-1 text-[11px] text-muted-foreground">For PDF/DOCX, paste the extracted text here. EYLO does not currently parse those files or upload your full CV. Avoid sensitive identifiers that are not needed for research matching.</p>
-        {cvError && <p role="alert" className="mt-2 text-xs text-destructive">{cvError}</p>
+        {cvError && <p role="alert" className="mt-2 text-xs text-destructive">{cvError}</p>}
         <button type="button" disabled={profileMatching || loading} onClick={findForProfile} className="mt-3 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50">
           {profileMatching ? 'Loading profile…' : 'Find candidates for my profile'}
         </button>
