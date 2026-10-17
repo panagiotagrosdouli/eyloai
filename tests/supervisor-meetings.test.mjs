@@ -171,3 +171,15 @@ test('author discovery requests server-cached worldwide pages for six hours', ()
   assert.match(proxy, /Page must be between 1 and 200/);
   assert.match(client, /params\.set\('page', String\(page\)\)/);
 });
+
+test('worldwide PhD author search can filter by institution country without implying faculty verification', () => {
+  const proxy = readFileSync(new URL('../api/discovery.js', import.meta.url), 'utf8');
+  const client = readFileSync(new URL('../src/lib/eyra-api.js', import.meta.url), 'utf8');
+  const ui = readFileSync(new URL('../src/pages/Researchers.jsx', import.meta.url), 'utf8');
+  assert.match(proxy, /Country must be an ISO two-letter code/);
+  assert.match(proxy, /last_known_institutions\.country_code/);
+  assert.match(client, /strictOptions\.country/);
+  assert.match(ui, /Worldwide — all countries/);
+  assert.match(ui, /indexed institutional affiliation/);
+  assert.match(ui, /country: countryFilter/);
+});
