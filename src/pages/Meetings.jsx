@@ -25,6 +25,8 @@ export default function Meetings() {
   useEffect(() => { loadData(); }, []);
   useEffect(() => { setSearchTerm(searchParams.get('q') || ''); }, [searchParams]);
   const personToDiscuss = searchParams.get('person')?.trim().slice(0, 160) || '';
+  const phdDiscussion = searchParams.get('type') === 'phd_supervision';
+  const discussionTopic = searchParams.get('topic')?.trim().slice(0, 180) || '';
   useEffect(() => { if (personToDiscuss) setShowForm(true); }, [personToDiscuss]);
 
   const loadData = async () => {
@@ -102,7 +104,14 @@ export default function Meetings() {
       <div className="eylo-page max-w-3xl">
         <MeetingForm
           projects={projects}
-          initial={personToDiscuss ? { title: `Research discussion with ${personToDiscuss}`, call_type: 'research_discussion', participants: personToDiscuss } : {}}
+          initial={personToDiscuss ? {
+            title: phdDiscussion ? `Potential PhD supervision discussion with ${personToDiscuss}` : `Research discussion with ${personToDiscuss}`,
+            call_type: phdDiscussion ? 'phd_supervision' : 'research_discussion',
+            participants: personToDiscuss,
+            agenda: phdDiscussion
+              ? `Discuss potential doctoral research alignment${discussionTopic ? ` in ${discussionTopic}` : ''}. Verify the researcher's academic role, eligibility to supervise, availability and official application procedure. This is a personal meeting plan; no invitation or booking has been sent.`
+              : '',
+          } : {}}
           onSave={handleSave}
           onCancel={() => { setShowForm(false); if (personToDiscuss) setSearchParams({}, { replace: true }); }}
         />
