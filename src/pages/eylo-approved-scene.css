@@ -1,0 +1,11 @@
+/* EYLO approved hero: soft atmospheric motion that preserves legibility. */
+@keyframes eylo-lake-breathe { 0%,100% { transform: scale(1.025) translate3d(-.35%,0,0); } 50% { transform: scale(1.055) translate3d(.35%,.35%,0); } }
+@keyframes eylo-hero-arrive { from { opacity:0; transform:translate3d(0,12px,0); } to { opacity:1; transform:translate3d(0,0,0); } }
+@keyframes eylo-scroll-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(5px); } }
+.eylo-scene-landscape { animation: eylo-lake-breathe 20s ease-in-out infinite; }
+.eylo-hero-emblem { animation: eylo-hero-arrive 1s ease-out both; }
+.eylo-hero-intro { animation: eylo-hero-arrive 1s ease-out .18s both; }
+.eylo-scroll-cue { animation: eylo-scroll-float 3s ease-in-out infinite; }
+.eylo-scene-cta { transition:transform .22s ease,filter .22s ease,background-color .22s ease; }
+.eylo-scene-cta:hover { transform:translateY(-2px); }
+@media (prefers-reduced-motion: reduce) { .eylo-scene-landscape,.eylo-hero-emblem,.eylo-hero-intro,.eylo-scroll-cue { animation:none!important; } .eylo-scene-cta {transition:none!important;} .eylo-scene-cta:hover{transform:none;} }
