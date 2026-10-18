@@ -1,0 +1,19 @@
+/* EYLO: a continuously breathing field of knowledge, without a motion library. */
+@keyframes eylo-breathe { 0%,100% { transform: translate3d(0,0,0) scale(1); filter: drop-shadow(0 6px 12px rgba(63,151,208,.10)); } 50% { transform: translate3d(0,-9px,0) scale(1.035); filter: drop-shadow(0 17px 23px rgba(63,151,208,.23)); } }
+@keyframes eylo-horizon-flow { 0%,100% { transform: scale(1.06) translate3d(-1%,0,0); } 50% { transform: scale(1.06) translate3d(1%,.4%,0); } }
+@keyframes eylo-orbit-flow { 0%,100% { transform: translate3d(-50%,0,0) scale(.95); opacity: .34; } 50% { transform: translate3d(-50%,-12px,0) scale(1.06); opacity: .66; } }
+@keyframes eylo-light-pulse { 0%,100% { opacity:.24; transform:translate3d(-50%,0,0) scale(.9); } 50% { opacity:.62; transform:translate3d(-50%,-8px,0) scale(1.17); } }
+@keyframes eylo-arrive { from { opacity:0; transform:translate3d(0,16px,0); } to { opacity:1; transform:translate3d(0,0,0); } }
+.eylo-breathing-logo { animation: eylo-breathe 5.8s ease-in-out infinite; }
+.eylo-horizon-motion { animation: eylo-horizon-flow 19s ease-in-out infinite; }
+.eylo-knowledge-field { overflow:hidden; }
+.eylo-knowledge-orbit { position:absolute; left:50%; top:9%; border:1px solid rgba(82,165,222,.31); border-radius:50%; transform:translateX(-50%); animation:eylo-orbit-flow 8s ease-in-out infinite; }
+.eylo-knowledge-orbit-one { width:min(72vw,460px); height:min(72vw,460px); }
+.eylo-knowledge-orbit-two { width:min(91vw,590px); height:min(91vw,590px); animation-delay:-2.6s; }
+.eylo-knowledge-orbit-three { width:min(110vw,710px); height:min(110vw,710px); animation-delay:-5.2s; }
+.eylo-knowledge-glow { position:absolute; left:50%; top:15%; width:min(76vw,480px); height:min(76vw,480px); border-radius:50%; transform:translateX(-50%); background:radial-gradient(circle,rgba(103,188,238,.28),rgba(103,188,238,0) 70%); animation:eylo-light-pulse 5.8s ease-in-out infinite; }
+.eylo-arrive-title,.eylo-arrive-subline,.eylo-arrive-actions,.eylo-arrive-search { animation:eylo-arrive .9s ease-out both; }
+.eylo-arrive-title { animation-delay:.14s; }.eylo-arrive-subline { animation-delay:.26s; }.eylo-arrive-actions { animation-delay:.37s; }.eylo-arrive-search { animation-delay:.48s; }
+.eylo-lift { transition:transform .22s ease,background-color .22s ease; }
+.eylo-lift:hover { transform:translateY(-3px); }
+@media (prefers-reduced-motion:reduce) { .eylo-breathing-logo,.eylo-horizon-motion,.eylo-knowledge-orbit,.eylo-knowledge-glow,.eylo-arrive-title,.eylo-arrive-subline,.eylo-arrive-actions,.eylo-arrive-search { animation:none !important; } .eylo-lift { transition:none !important; } .eylo-lift:hover { transform:none; } }
