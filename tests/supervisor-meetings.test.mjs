@@ -139,7 +139,7 @@ test('robotics PhD discovery shows evidenced companies without inventing a docto
   assert.equal(findIndustryResearchLabs('biochemistry').length, 0);
   assert.equal(findIndustryResearchLabs('robotics', 'DE').length, 0);
   const researchers = readFileSync(new URL('../src/pages/Researchers.jsx', import.meta.url), 'utf8');
-  assert.match(researchers, /Industry robotics research labs/);
+  assert.match(researchers, /Additional robotics industry labs/);
   assert.match(researchers, /not confirmed PhD supervisors/);
 });
 
