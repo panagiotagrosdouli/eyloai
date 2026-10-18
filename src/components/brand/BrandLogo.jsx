@@ -1,7 +1,7 @@
 import React from 'react';
 
 const BRAND_ASSETS = {
-  eylo: '/brand/eylo-logo.svg',
+  eylo: '/brand/eylo-light.svg',
   eyra: '/brand/eyra.png',
 };
 
@@ -32,7 +32,7 @@ export default function BrandLogo({
 
   return (
     <span
-      className={`relative block shrink-0 overflow-hidden rounded-xl border border-white/10 bg-[#050712] shadow-[0_12px_32px_-20px_rgba(56,189,248,0.8)] ${SIZE_CLASSES[normalizedBrand][size] || SIZE_CLASSES[normalizedBrand].nav} ${className}`}
+      className={`relative block shrink-0 overflow-hidden ${normalizedBrand === 'eylo' ? 'bg-transparent' : 'rounded-xl border border-white/10 bg-[#050712] shadow-[0_12px_32px_-20px_rgba(56,189,248,0.8)]'} ${SIZE_CLASSES[normalizedBrand][size] || SIZE_CLASSES[normalizedBrand].nav} ${className}`}
     >
       <img
         src={BRAND_ASSETS[normalizedBrand]}
