@@ -4,7 +4,6 @@ import { ArrowRight, Search, HelpCircle, BookOpen, Lightbulb, Box } from 'lucide
 import { trackSearchStarted } from '@/lib/product-analytics';
 import './eylo-approved-scene.css';
 import './eylo-reference-live.css';
-import './eylo-screenshot-hero.css';
 
 const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
 
@@ -40,17 +39,6 @@ export default function Landing() {
   return (
     <main id="main-content" className="min-h-screen bg-[#fcfdff] text-[#0d2440]">
       <a href="#research-question" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:shadow-lg">Skip to research search</a>
-      <div className="eylo-reference-image-stage" aria-label="EYLO homepage">
-        <img src="/brand/eylo-reference.png" alt="" aria-hidden="true" fetchPriority="high" />
-        <nav aria-label="EYLO homepage navigation" className="eylo-reference-image-links">
-          <Link to="/" aria-label="EYLO home" className="eylo-reference-image-home" />
-          <Link to="/discover" aria-label="Discover" className="eylo-reference-image-discover" />
-          <a href="#careers" aria-label="Careers" className="eylo-reference-image-careers" />
-          <Link to="/login" aria-label="Sign in" className="eylo-reference-image-signin" />
-          <Link to="/discover" aria-label="Explore Research" className="eylo-reference-image-explore" />
-          <Link to={PROJECT_SIGNUP_HREF} aria-label="Get Started" className="eylo-reference-image-start" />
-        </nav>
-      </div>
       <div className="eylo-scene relative isolate overflow-hidden">
         <div className="eylo-scene-landscape pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
         <div className="eylo-photographic-backdrop pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
