@@ -14,9 +14,7 @@ async function rawBody(request) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     totalBytes += buffer.length;
     if (totalBytes > MAX_WEBHOOK_BODY_BYTES) {
-      const error = new Error('Stripe webhook payload exceeds size limit.');
-      error.statusCode = 413;
-      throw error;
+      throw Object.assign(new Error('Stripe webhook payload exceeds size limit.'), { statusCode: 413 });
     }
     chunks.push(buffer);
   }
