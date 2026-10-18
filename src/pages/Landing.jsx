@@ -146,22 +146,34 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="careers" className="border-t border-slate-200 bg-white px-5 py-20 sm:px-8 sm:py-24" aria-labelledby="careers-heading">
-        <div className="mx-auto max-w-5xl">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#356ba0]">EYLO / CAREERS & COLLABORATION</p>
-          <h2 id="careers-heading" className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Help shape the future of research.</h2>
-          <p className="mt-5 max-w-3xl text-base leading-7 text-slate-600">Connect with EYLO around scientific information retrieval, responsible AI, research workflows and product engineering. We welcome expressions of interest for future collaboration; no specific paid positions are advertised at this time.</p>
-          <div className="mt-9 grid gap-4 md:grid-cols-3">
-            <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6"><h3 className="text-lg font-semibold">Research & Evidence</h3><p className="mt-3 text-sm leading-6 text-slate-600">Scholarly discovery, evidence evaluation and research methodology.</p></article>
-            <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6"><h3 className="text-lg font-semibold">AI & Engineering</h3><p className="mt-3 text-sm leading-6 text-slate-600">Applied AI, trustworthy systems and full-stack product development.</p></article>
-            <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6"><h3 className="text-lg font-semibold">Design & Partnerships</h3><p className="mt-3 text-sm leading-6 text-slate-600">Researcher experience, product design and academic collaboration.</p></article>
+      <section id="careers" className="relative overflow-hidden border-t border-[#dbe9f3] bg-[linear-gradient(140deg,#f1f8ff_0%,#ffffff_56%,#f1faf7_100%)] px-5 py-20 sm:px-8 sm:py-28" aria-labelledby="careers-heading">
+        <div className="relative mx-auto max-w-6xl">
+          <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+            <div>
+              <p className="inline-flex items-center gap-2 rounded-full border border-[#cce2f2] bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-[#27699e]"><Users size={14} /> Build EYLO with us</p>
+              <h2 id="careers-heading" className="mt-6 max-w-3xl font-heading text-4xl font-semibold leading-tight tracking-[-0.05em] text-[#173b5b] sm:text-5xl">Help build the future of <span className="text-[#438cc0]">research and opportunity.</span></h2>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-[#506c82]">EYLO is growing into a connected home for ideas, researchers and real-world opportunities. We want to meet thoughtful people who care about making research more useful, accessible and human.</p>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-[#607c90]">We welcome collaboration conversations and expressions of interest. These are areas where we would love to connect — not advertised job vacancies or promises of paid employment.</p>
+              <a href="mailto:panagiotagrosdouli@gmail.com?subject=Build%20EYLO%20with%20us&body=Hello%20EYLO%20team%2C%0A%0AI'm%20interested%20in%20collaborating%20on%20EYLO.%0A%0AMy%20area%20of%20interest%3A%20%0AA%20little%20about%20my%20background%3A%20%0AA%20link%20to%20my%20work%20(optional)%3A%20%0AHow%20I'd%20like%20to%20contribute%3A%20%0A%0AThank%20you!" className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-2xl bg-[#1c528e] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_28px_-16px_rgba(28,82,142,0.65)] transition hover:-translate-y-0.5 hover:bg-[#2a6ba9]">Let's work together <ArrowRight size={17} /></a>
+              <p className="mt-3 text-xs text-[#728a9e]">Opens your email app. No account or CV upload required.</p>
+            </div>
+            <div className="rounded-[2rem] border border-[#d5e8f2] bg-white/85 p-6 shadow-[0_28px_80px_-45px_rgba(50,107,149,0.4)] sm:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.17em] text-[#4585b3]">Where you can contribute</p>
+              <div className="mt-5 space-y-5">
+                <div className="flex gap-4"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#e8f3fd] text-[#3979b5]"><BookOpen size={20} /></span><div><h3 className="font-semibold text-[#1b466c]">Research & scientific integrity</h3><p className="mt-1 text-sm leading-6 text-[#668096]">Scholarly search, trustworthy sources, evaluation and research methods.</p></div></div>
+                <div className="border-t border-[#e8eff4]" />
+                <div className="flex gap-4"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#e9f8f2] text-[#389681]"><Sparkles size={20} /></span><div><h3 className="font-semibold text-[#1b466c]">AI & software engineering</h3><p className="mt-1 text-sm leading-6 text-[#668096]">Product engineering, responsible AI, reliability and security.</p></div></div>
+                <div className="border-t border-[#e8eff4]" />
+                <div className="flex gap-4"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#f1edfc] text-[#8170af]"><Lightbulb size={20} /></span><div><h3 className="font-semibold text-[#1b466c]">Product, design & experience</h3><p className="mt-1 text-sm leading-6 text-[#668096]">Make complex research journeys intuitive and inspiring.</p></div></div>
+                <div className="border-t border-[#e8eff4]" />
+                <div className="flex gap-4"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#fff5e7] text-[#bb8650]"><Network size={20} /></span><div><h3 className="font-semibold text-[#1b466c]">Communities & partnerships</h3><p className="mt-1 text-sm leading-6 text-[#668096]">Help us learn from researchers, universities and innovation communities.</p></div></div>
+              </div>
+            </div>
           </div>
-          <a href="mailto:panagiotagrosdouli@gmail.com?subject=EYLO%20Careers%20%26%20Collaboration" className="mt-8 inline-flex rounded-xl bg-[#153c72] px-5 py-3 text-sm font-semibold text-white hover:bg-[#25578d]">Express interest by email <ArrowRight className="ml-2" size={16} /></a>
-          <p className="mt-4 text-xs text-slate-500">Please share your area of interest. Avoid sensitive personal information in initial messages.</p>
         </div>
       </section>
 
-      <footer className="border-t border-slate-200 px-5 py-7 sm:px-8">
+            <footer className="border-t border-slate-200 px-5 py-7 sm:px-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <span className="inline-flex items-center gap-2.5" aria-label="EYLO"><span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-[14px] bg-gradient-to-br from-[#2866b0] via-[#66a7d9] to-[#a6dbce] shadow-[0_9px_26px_-10px_rgba(25,88,157,0.45)]"><span className="absolute h-7 w-7 rotate-45 rounded-[7px] border-[1.5px] border-white/70" /><span className="relative h-3.5 w-3.5 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.9)]" /></span><span className="font-heading text-[1.65rem] font-bold tracking-[-0.075em] text-[#14365c]">EYLO<span className="text-[#4c91c6]">.</span></span></span>
           <div className="flex flex-wrap gap-5"><Link to="/discover" className="hover:text-slate-900">Discover</Link><a href="#careers" className="hover:text-slate-900">Careers</a><Link to="/login" className="hover:text-slate-900">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span></div>
