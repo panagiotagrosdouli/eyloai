@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, Search, BookOpen, Users, FolderOpen, Sparkles, Target, Network, Rocket, GraduationCap, Lightbulb, MoveUpRight,
+  ArrowRight, Search, BookOpen, Users, FolderOpen, Sparkles, Target, Network, Rocket, Lightbulb, MoveUpRight,
 } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
 
