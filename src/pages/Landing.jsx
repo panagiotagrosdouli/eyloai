@@ -24,6 +24,8 @@ const EXAMPLES = [
 
 export default function Landing() {
   const [question, setQuestion] = useState('');
+  const [careerForm, setCareerForm] = useState({ name: '', email: '', interest: 'Research & Evidence', message: '', website: '' });
+  const [careerStatus, setCareerStatus] = useState({ submitting: false, error: '', sent: false });
   const navigate = useNavigate();
 
   const explore = event => {
@@ -31,6 +33,21 @@ export default function Landing() {
     const query = question.trim();
     if (query) trackSearchStarted('homepage');
     navigate(query ? `/discover?q=${encodeURIComponent(query)}` : '/discover');
+  };
+
+  const submitCareer = async event => {
+    event.preventDefault();
+    if (careerStatus.submitting) return;
+    setCareerStatus({ submitting: true, error: '', sent: false });
+    try {
+      const response = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(careerForm) });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || 'Could not send your message.');
+      setCareerStatus({ submitting: false, error: '', sent: true });
+      setCareerForm({ name: '', email: '', interest: 'Research & Evidence', message: '', website: '' });
+    } catch (error) {
+      setCareerStatus({ submitting: false, error: error.message || 'Could not send your message.', sent: false });
+    }
   };
 
   return (
@@ -157,8 +174,24 @@ export default function Landing() {
             <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6"><h3 className="text-lg font-semibold">AI & Engineering</h3><p className="mt-3 text-sm leading-6 text-slate-600">Reliable technology, responsible AI and product development.</p></article>
             <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6"><h3 className="text-lg font-semibold">Design & Partnerships</h3><p className="mt-3 text-sm leading-6 text-slate-600">Human-centered product design and research community connections.</p></article>
           </div>
-          <a href="mailto:panagiotagrosdouli@gmail.com?subject=Working%20with%20EYLO&body=Hello%20EYLO%20team%2C%0A%0AI%27d%20like%20to%20explore%20working%20with%20you.%0A%0AMy%20area%20of%20interest%3A%20%0AA%20little%20about%20me%3A%20%0AHow%20I%20could%20contribute%3A%20%0A" className="mt-8 inline-flex rounded-xl bg-[#153c72] px-5 py-3 text-sm font-semibold text-white hover:bg-[#25578d]">Get in touch <ArrowRight className="ml-2" size={16} /></a>
-          <p className="mt-4 text-xs text-slate-500">Open to conversations and future collaboration. No specific paid vacancies are advertised at this time.</p>
+          <div className="mt-10 max-w-2xl rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-7">
+            <h3 className="text-xl font-semibold text-slate-900">Introduce yourself</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Share your background and how you would like to contribute. This is an expression of interest, not an application for an advertised vacancy.</p>
+            <form onSubmit={submitCareer} className="mt-6 grid gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="grid gap-2 text-sm font-medium text-slate-800">Your name<input required minLength={2} maxLength={100} value={careerForm.name} onChange={e => setCareerForm(s => ({ ...s, name: e.target.value }))} autoComplete="name" className="rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-[#7eb1d1]" /></label>
+                <label className="grid gap-2 text-sm font-medium text-slate-800">Email<input type="email" required maxLength={200} value={careerForm.email} onChange={e => setCareerForm(s => ({ ...s, email: e.target.value }))} autoComplete="email" className="rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-[#7eb1d1]" /></label>
+              </div>
+              <label className="grid gap-2 text-sm font-medium text-slate-800">Area of interest<select value={careerForm.interest} onChange={e => setCareerForm(s => ({ ...s, interest: e.target.value }))} className="rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-[#7eb1d1]"><option>Research & Evidence</option><option>AI & Engineering</option><option>Design & Partnerships</option><option>Other</option></select></label>
+              <label className="grid gap-2 text-sm font-medium text-slate-800">A little about you<textarea required minLength={20} maxLength={2400} rows={5} value={careerForm.message} onChange={e => setCareerForm(s => ({ ...s, message: e.target.value }))} placeholder="What do you work on, and how might we collaborate?" className="resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-[#7eb1d1]" /></label>
+              <div className="hidden" aria-hidden="true"><label>Website<input tabIndex={-1} autoComplete="off" value={careerForm.website} onChange={e => setCareerForm(s => ({ ...s, website: e.target.value }))} /></label></div>
+              <p className="text-xs leading-5 text-slate-500">Your details will be used to review and reply to your enquiry. Please don't include sensitive personal information.</p>
+              {careerStatus.error && <p role="alert" className="text-sm text-red-700">{careerStatus.error}</p>}
+              {careerStatus.sent && <p role="status" className="text-sm text-green-800">Thank you. Your message was sent to the EYLO team.</p>}
+              <button type="submit" disabled={careerStatus.submitting} className="inline-flex w-fit items-center gap-2 rounded-xl bg-[#153c72] px-6 py-3 text-sm font-semibold text-white hover:bg-[#25578d] disabled:cursor-wait disabled:opacity-60">{careerStatus.submitting ? 'Sending…' : 'Send your introduction'} <ArrowRight size={16} /></button>
+            </form>
+          </div>
+          <p className="mt-4 text-xs text-slate-500">Open to conversations and future collaboration. No paid vacancies are currently advertised.</p>
         </div>
       </section>
 
