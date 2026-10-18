@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
+const MAX_WEBHOOK_BODY_BYTES = 1024 * 1024; // Reject unusually large webhook requests before parsing.
 
 export const config = {
   api: { bodyParser: false },
@@ -8,8 +9,18 @@ export const config = {
 
 async function rawBody(request) {
   const chunks = [];
-  for await (const chunk of request) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  return Buffer.concat(chunks).toString('utf8');
+  let totalBytes = 0;
+  for await (const chunk of request) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    totalBytes += buffer.length;
+    if (totalBytes > MAX_WEBHOOK_BODY_BYTES) {
+      const error = new Error('Stripe webhook payload exceeds size limit.');
+      error.statusCode = 413;
+      throw error;
+    }
+    chunks.push(buffer);
+  }
+  return Buffer.concat(chunks, totalBytes).toString('utf8');
 }
 
 function verifySignature(payload, header, secret) {
@@ -157,6 +168,7 @@ export default async function handler(request, response) {
 
     return response.status(200).json({ received: true });
   } catch (error) {
+    if (error?.statusCode === 413) return response.status(413).json({ error: 'Webhook payload too large.' });
     console.error('Stripe webhook error', { message: error instanceof Error ? error.message : 'Unknown error' });
     return response.status(500).json({ error: 'Webhook processing failed.' });
   }
