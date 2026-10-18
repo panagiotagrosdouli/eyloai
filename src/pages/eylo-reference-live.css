@@ -8,22 +8,12 @@
 }
 .eylo-photographic-backdrop {
   z-index: -2;
-  background-image:
-    linear-gradient(180deg,rgba(179,214,248,.18) 0%,rgba(236,246,255,.35) 33%,rgba(255,249,241,.43) 61%,rgba(16,75,144,.18) 100%),
-    url("https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=2400&q=90");
+  background-image: url("/brand/eylo-alpine-landscape.svg");
   background-size: cover;
   background-position: 50% 55%;
   transform: none;
 }
-.eylo-photographic-backdrop::after {
-  content:"";
-  position:absolute;
-  inset:0;
-  background:
-    radial-gradient(ellipse 47% 34% at 50% 49%,rgba(245,250,255,.80),rgba(246,250,255,.43) 67%,transparent 100%),
-    linear-gradient(180deg,rgba(196,224,252,.10),transparent 27%,rgba(255,252,248,.30) 53%,transparent 75%);
-  pointer-events:none;
-}
+.eylo-photographic-backdrop::after { content:none; }
 /* A soft sunrise on the water and light haze, drawn independently of the photo. */
 .eylo-scene-landscape {
   z-index:-1;
