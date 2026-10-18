@@ -34,14 +34,15 @@ export default function Landing() {
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#fbfdff] text-slate-900">
+    <main id="main-content" className="min-h-screen overflow-hidden bg-[#fbfdff] text-slate-900">
+      <a href="#research-question" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-[#153c72] focus:shadow-lg">Skip to research search</a>
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-2xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-5 sm:px-8">
           <Link to="/" aria-label="EYLO home" className="mr-auto"><span className="inline-flex items-center gap-2.5" aria-label="EYLO"><span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-[14px] bg-gradient-to-br from-[#2866b0] via-[#66a7d9] to-[#a6dbce] shadow-[0_9px_26px_-10px_rgba(25,88,157,0.45)]"><span className="absolute h-7 w-7 rotate-45 rounded-[7px] border-[1.5px] border-white/70" /><span className="relative h-3.5 w-3.5 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.9)]" /></span><span className="font-heading text-[1.65rem] font-bold tracking-[-0.075em] text-[#14365c]">EYLO<span className="text-[#4c91c6]">.</span></span></span></Link>
           <a href="#capabilities" className="hidden rounded-lg px-3 py-2 text-sm text-slate-600 hover:text-slate-950 sm:inline-flex">What EYLO does</a>
-          <a href="#careers" className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:text-slate-950">Careers</a>
+          <a href="#careers" className="hidden rounded-lg px-3 py-2 text-sm text-slate-600 hover:text-slate-950 md:inline-flex">Careers</a>
           <Link to="/login" className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:text-slate-950">Sign in</Link>
-          <Link to={PROJECT_SIGNUP_HREF} className="rounded-xl bg-[#153c72] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#25578d]">Get started</Link>
+          <Link to={PROJECT_SIGNUP_HREF} className="rounded-xl bg-[#153c72] px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-[#25578d] sm:px-4 sm:text-sm">Get started</Link>
         </div>
       </header>
 
@@ -51,13 +52,13 @@ export default function Landing() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.04fr_0.96fr] lg:gap-10">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#cbdff1] bg-white/85 px-4 py-2 text-xs font-semibold tracking-[0.11em] text-[#2866a0] shadow-sm"><Sparkles size={14} /> MEET EYLO & EYRA <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[#63b5a6]" /></div>
-            <h1 className="mt-7 font-heading text-[clamp(3.3rem,5.5vw,5.7rem)] font-semibold leading-[1.02] tracking-[-0.07em] text-[#173450]">Your ideas deserve <span className="bg-gradient-to-r from-[#3479c0] via-[#5e95c6] to-[#3d9b92] bg-clip-text text-transparent">a way forward.</span></h1>
-            <p className="mt-7 max-w-xl text-lg leading-8 text-[#4c657b]">One inspiring space to explore real research, find the right people, develop your projects and discover opportunities. With EYRA, your AI research companion, by your side.</p>
+            <h1 className="mt-7 font-heading text-[clamp(3.3rem,5.5vw,5.7rem)] font-semibold leading-[1.02] tracking-[-0.07em] text-[#173450]">From research questions to <span className="bg-gradient-to-r from-[#3479c0] via-[#5e95c6] to-[#3d9b92] bg-clip-text text-transparent">evidence-backed progress.</span></h1>
+            <p className="mt-7 max-w-xl text-lg leading-8 text-[#4c657b]">Find scholarly papers with links to their sources, organize evidence in your workspace, discover researchers and plan your next step with EYRA — your AI research companion.</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link to={PROJECT_SIGNUP_HREF} className="inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-[#1c528e] px-7 py-4 text-sm font-semibold text-white shadow-[0_12px_30px_-12px_rgba(28,82,142,0.55)] transition hover:-translate-y-0.5 hover:bg-[#2d6cad]">Start your journey <ArrowRight size={17} /></Link>
               <Link to="/discover" className="inline-flex min-h-13 items-center gap-2 rounded-2xl border border-[#c7d9e8] bg-white/85 px-6 py-4 text-sm font-semibold text-[#234a70] transition hover:border-[#6da5ce] hover:bg-white">Explore research <MoveUpRight size={16} /></Link>
             </div>
-            <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-[#617e94]"><span>✦ Source-linked discovery</span><span>✦ Your own workspace</span><span>✦ AI-guided exploration</span></div>
+            <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-[#617e94]"><span>✦ Explore sources before signing up</span><span>✦ Private saved workspace after sign-in</span><span>✦ AI interpretation clearly distinguished from evidence</span></div>
           </div>
           <div className="relative mx-auto w-full max-w-[31rem]" aria-label="Illustration of connected EYLO research and innovation tools">
             <div className="absolute inset-10 rounded-full bg-gradient-to-tr from-[#b6e6e0]/70 to-[#bbd9f7]/80 blur-[65px]" />
@@ -78,9 +79,10 @@ export default function Landing() {
           <form onSubmit={explore} className="flex flex-col gap-2 md:flex-row md:items-center">
             <label htmlFor="research-question" className="sr-only">Research question</label>
             <Search size={19} className="mx-3 hidden text-[#76a0bd] md:block" aria-hidden="true" />
-            <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="What would you love to explore?" className="min-w-0 flex-1 rounded-xl bg-transparent px-4 py-3 text-base text-[#20466e] outline-none placeholder:text-[#92aab9] focus-visible:ring-2 focus-visible:ring-[#7eb1d1]" />
+            <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="Try: trajectory prediction for autonomous driving" className="min-w-0 flex-1 rounded-xl bg-transparent px-4 py-3 text-base text-[#20466e] outline-none placeholder:text-[#92aab9] focus-visible:ring-2 focus-visible:ring-[#7eb1d1]" />
             <button type="submit" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#1c528e] px-6 text-sm font-semibold text-white hover:bg-[#2a6ba9]">Discover with EYLO <ArrowRight size={16} /></button>
           </form>
+          <p className="px-2 pt-3 text-xs text-[#58758d]">Search real scholarly indexes without creating an account. Results include source links; verify AI interpretations before relying on them.</p>
           <div className="flex flex-wrap gap-2 px-2 pb-1 pt-3">{EXAMPLES.map(example => <button key={example} type="button" onClick={() => setQuestion(example)} className="rounded-full border border-[#d8e8f1] bg-[#f6fbff] px-3 py-2 text-xs text-[#63839d] hover:border-[#80afcf] hover:text-[#1c528e]">{example}</button>)}</div>
         </div>
       </section>
