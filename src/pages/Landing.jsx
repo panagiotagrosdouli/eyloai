@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Search, HelpCircle, BookOpen, Lightbulb, Box } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
 import './eylo-approved-scene.css';
-import './eylo-live-atmosphere.css';
+import './eylo-photographic-hero.css';
 
 const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
 
@@ -41,13 +41,7 @@ export default function Landing() {
       <a href="#research-question" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:shadow-lg">Skip to research search</a>
       <div className="eylo-scene relative isolate overflow-hidden">
         <div className="eylo-scene-landscape pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
-        <div className="eylo-atmosphere pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
-          <div className="eylo-atmosphere-haze" />
-          <div className="eylo-atmosphere-ridge eylo-atmosphere-ridge-back" />
-          <div className="eylo-atmosphere-ridge eylo-atmosphere-ridge-front" />
-          <div className="eylo-atmosphere-water" />
-          <div className="eylo-atmosphere-reflection" />
-        </div>
+        <div className="eylo-photographic-backdrop pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
         <header className="relative z-20">
           <div className="mx-auto flex h-[76px] max-w-7xl items-center gap-3 px-5 sm:px-8">
             <Link to="/" aria-label="EYLO home" className="mr-auto shrink-0">
@@ -58,17 +52,17 @@ export default function Landing() {
             <Link to="/login" className="rounded-full border border-[#507ba4] bg-white/45 px-4 py-2 text-xs text-[#17375c] transition hover:bg-white/80 sm:px-7 sm:text-sm">Sign in</Link>
           </div>
         </header>
-        <section className="relative flex min-h-[calc(100svh-76px)] flex-col items-center px-5 pb-24 pt-12 text-center sm:px-8 sm:pt-14 lg:min-h-[calc(100vh-76px)]">
+        <section className="relative flex min-h-[calc(100svh-76px)] flex-col items-center px-5 pb-16 pt-8 text-center sm:px-8 sm:pt-9 lg:min-h-[calc(100vh-76px)]">
           <div className="mx-auto flex w-full max-w-6xl flex-col items-center">
-            <img src="/brand/eylo-stacked.svg" alt="EYLO" width="520" height="270" className="eylo-hero-emblem h-auto w-[min(77vw,340px)] object-contain sm:w-[390px]" fetchPriority="high" />
-            <h1 className="eylo-hero-intro mt-4 max-w-5xl font-serif text-[clamp(2.25rem,4.2vw,4.4rem)] font-normal leading-tight tracking-[-0.045em] text-[#0c2850]">Where knowledge moves forward.</h1>
+            <img src="/brand/eylo-stacked.svg" alt="EYLO" width="520" height="270" className="eylo-hero-emblem h-auto w-[min(76vw,280px)] object-contain sm:w-[315px]" fetchPriority="high" />
+            <h1 className="eylo-hero-intro mt-0 max-w-5xl font-serif text-[clamp(2.25rem,4.2vw,4.4rem)] font-normal leading-tight tracking-[-0.045em] text-[#0c2850]">Where knowledge moves forward.</h1>
             <p className="eylo-hero-intro mt-5 text-xs font-medium tracking-[0.22em] text-[#43658a] sm:text-sm sm:tracking-[0.32em]">DISCOVER. CONNECT. CREATE.</p>
             <div className="eylo-hero-intro mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row sm:gap-5">
               <Link to="/discover" className="eylo-scene-cta inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#092c57] to-[#287cbd] px-9 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(7,41,91,0.75)] hover:brightness-110 sm:w-auto">Explore Research <ArrowRight size={16} /></Link>
               <Link to={PROJECT_SIGNUP_HREF} className="eylo-scene-cta inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-full border border-[#a2bdd9] bg-white/60 px-9 py-3 text-sm font-medium text-[#193e68] hover:bg-white/90 sm:w-auto">Get Started <ArrowRight size={16} /></Link>
             </div>
           </div>
-          <div className="mt-auto flex flex-col items-center gap-4 pt-16">
+          <div className="mt-auto flex flex-col items-center gap-4 pt-16 lg:invisible">
             <a href="#eylo-next" className="eylo-scroll-cue inline-flex flex-col items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-[#294c73] hover:text-[#0c2850]"><span className="text-xl leading-none" aria-hidden="true">⌄</span> SCROLL TO EXPLORE</a>
           </div>
         </section>
