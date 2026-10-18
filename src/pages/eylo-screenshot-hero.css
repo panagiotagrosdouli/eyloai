@@ -10,4 +10,4 @@
 .eylo-reference-image-signin{left:85%;top:2.7%;width:8.5%;height:6.2%}
 .eylo-reference-image-explore{left:36.5%;top:54.8%;width:14%;height:7%}
 .eylo-reference-image-start{left:51.5%;top:54.8%;width:12%;height:7%}
-@media(min-width:1024px){.eylo-reference-image-stage{display:block;width:100%;height:100svh;min-height:740px}.eylo-scene{display:none}}
+@media(min-width:1024px){.eylo-reference-image-stage{display:block;width:100%;height:auto;aspect-ratio:1672/941}.eylo-scene{display:none}}
