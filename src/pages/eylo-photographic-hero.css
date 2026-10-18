@@ -1,0 +1,14 @@
+/* EYLO's approved layout uses actual accessible HTML over photographic scenery.
+   Photograph by Unsplash (source photo ID: 1501785888041-af3ef285b470).
+   The image is decorative; every link and piece of copy is live JSX. */
+.eylo-scene{background:#dfedf9;min-height:100svh;}
+.eylo-scene-landscape{animation:none!important;background:linear-gradient(180deg,rgba(216,233,250,.12) 0%,rgba(251,253,255,.79) 32%,rgba(251,252,255,.79) 60%,rgba(211,231,248,.17) 100%);z-index:-1;}
+.eylo-photographic-backdrop{background-image:linear-gradient(180deg,rgba(190,218,244,.13),rgba(248,252,255,.40) 42%,rgba(247,251,255,.03) 74%,rgba(42,104,163,.17)),url("https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=2400&q=88");background-size:cover;background-position:center 60%;transform:scale(1.018);}
+.eylo-scene header{height:76px;}
+.eylo-scene header>div{max-width:1500px;padding-inline:clamp(24px,5.3vw,90px);}
+.eylo-scene header a{font-weight:500;}
+.eylo-scene h1{font-family:Georgia,"Times New Roman",serif;letter-spacing:-.055em;text-wrap:balance;}
+.eylo-hero-emblem{max-height:275px;}
+@media (min-width:1024px){.eylo-scene h1{font-size:clamp(2.8rem,4.2vw,4.25rem)}.eylo-hero-emblem{max-height:275px}.eylo-scene section:first-of-type{padding-top:30px}}
+@media(max-width:640px){.eylo-photographic-backdrop{background-position:50% center}.eylo-scene-landscape{background:linear-gradient(180deg,rgba(246,251,255,.3),rgba(246,251,255,.86) 35%,rgba(245,251,255,.79) 71%,rgba(255,255,255,.15))}.eylo-scene h1{letter-spacing:-.04em}}
+@media(prefers-reduced-motion:reduce){.eylo-photographic-backdrop{transform:none}}
