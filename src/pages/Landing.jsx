@@ -24,7 +24,27 @@ const EXAMPLES = [
 
 export default function Landing() {
   const [question, setQuestion] = useState('');
+  const [contact, setContact] = useState({ name: '', email: '', interest: 'Research & evidence', message: '', website: '' });
+  const [contactStatus, setContactStatus] = useState('idle');
+  const [contactError, setContactError] = useState('');
   const navigate = useNavigate();
+
+  const submitContact = async event => {
+    event.preventDefault();
+    if (contactStatus === 'sending') return;
+    setContactStatus('sending');
+    setContactError('');
+    try {
+      const result = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(contact) });
+      const data = await result.json().catch(() => ({}));
+      if (!result.ok || !data.ok) throw new Error(data.error || 'Unable to send your message.');
+      setContactStatus('sent');
+      setContact({ name: '', email: '', interest: 'Research & evidence', message: '', website: '' });
+    } catch (error) {
+      setContactStatus('error');
+      setContactError(error.message || 'Unable to send your message.');
+    }
+  };
 
   const explore = event => {
     event?.preventDefault();
@@ -156,7 +176,19 @@ export default function Landing() {
             <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6"><h3 className="text-lg font-semibold">AI & Engineering</h3><p className="mt-3 text-sm leading-6 text-slate-600">Reliable technology, responsible AI and product development.</p></article>
             <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6"><h3 className="text-lg font-semibold">Design & Partnerships</h3><p className="mt-3 text-sm leading-6 text-slate-600">Human-centered product design and research community connections.</p></article>
           </div>
-          <a href="mailto:panagiotagrosdouli@gmail.com?subject=Working%20with%20EYLO&body=Hello%20EYLO%20team%2C%0A%0AI%27d%20like%20to%20explore%20working%20with%20you.%0A%0AMy%20area%20of%20interest%3A%20%0AA%20little%20about%20me%3A%20%0AHow%20I%20could%20contribute%3A%20%0A" className="mt-8 inline-flex rounded-xl bg-[#153c72] px-5 py-3 text-sm font-semibold text-white hover:bg-[#25578d]">Get in touch <ArrowRight className="ml-2" size={16} /></a>
+          <form onSubmit={submitContact} className="mt-9 max-w-3xl rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-7" aria-label="Contact EYLO about collaboration">
+            <h3 className="text-lg font-semibold text-slate-900">Get in touch</h3>
+            <p className="mt-1 text-sm text-slate-600">Tell us briefly how you would like to work with EYLO.</p>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <label className="block text-sm font-medium text-slate-700">Your name<input required maxLength={100} autoComplete="name" value={contact.name} onChange={e => setContact(p => ({...p,name:e.target.value}))} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#689bc5]" placeholder="Full name" /></label>
+              <label className="block text-sm font-medium text-slate-700">Email<input required type="email" maxLength={254} autoComplete="email" value={contact.email} onChange={e => setContact(p => ({...p,email:e.target.value}))} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#689bc5]" placeholder="you@example.com" /></label>
+            </div>
+            <label className="mt-4 block text-sm font-medium text-slate-700">Area of interest<select value={contact.interest} onChange={e => setContact(p => ({...p,interest:e.target.value}))} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#689bc5]">{['Research & evidence','AI & engineering','Design & partnerships','Other'].map(value => <option key={value} value={value}>{value}</option>)}</select></label>
+            <label className="mt-4 block text-sm font-medium text-slate-700">Your message<textarea required minLength={20} maxLength={2000} rows={4} value={contact.message} onChange={e => setContact(p => ({...p,message:e.target.value}))} className="mt-2 w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#689bc5]" placeholder="A little about yourself and how you would like to contribute..." /></label>
+            <div className="hidden" aria-hidden="true"><label>Website<input tabIndex={-1} autoComplete="off" value={contact.website} onChange={e => setContact(p => ({...p,website:e.target.value}))} /></label></div>
+            <div className="mt-5 flex flex-wrap items-center gap-4"><button disabled={contactStatus === 'sending'} type="submit" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#153c72] px-6 py-3 text-sm font-semibold text-white hover:bg-[#25578d] disabled:opacity-60">{contactStatus === 'sending' ? 'Sending…' : 'Send message'} <ArrowRight size={16} /></button><p className="text-xs text-slate-500">We will use your details only to respond to your inquiry.</p></div>
+            <div role="status" aria-live="polite" className="mt-3 text-sm">{contactStatus === 'sent' && <p className="text-green-700">Your message was accepted by our email service. Thank you for reaching out!</p>}{contactStatus === 'error' && <p className="text-red-700">{contactError}</p>}</div>
+          </form>
           <p className="mt-4 text-xs text-slate-500">Open to collaboration. No paid vacancies currently advertised.</p>
         </div>
       </section>
