@@ -1,0 +1,30 @@
+/* EYLO approved visual layout, all foreground is real interactive HTML. */
+.eylo-scene{min-height:100svh;background:linear-gradient(#b4d2ef,#edf5ff 57%,#789fc8)}
+.eylo-scene-landscape{z-index:-1;background:linear-gradient(180deg,rgba(191,219,246,.18) 0%,rgba(244,250,255,.53) 30%,rgba(255,255,255,.64) 52%,rgba(255,255,255,.14) 78%,rgba(62,127,188,.14) 100%)!important;animation:none!important}
+.eylo-photographic-backdrop{z-index:-2;background-image:linear-gradient(180deg,rgba(168,205,237,.16),rgba(240,249,255,.28) 40%,rgba(231,246,255,.06) 70%,rgba(18,82,148,.22)),url("https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=2400&q=88");background-position:center 58%;background-size:cover;transform:none}
+.eylo-photographic-backdrop::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 65% 46% at 50% 44%,rgba(247,251,255,.72),rgba(247,251,255,.34) 65%,transparent)}
+.eylo-scene header>div{max-width:1490px;padding-inline:clamp(16px,5.5vw,90px)}
+.eylo-scene header a{font-weight:500}
+.eylo-scene header a[aria-label="EYLO home"] img{max-width:200px;height:52px}
+.eylo-scene h1{font-family:Georgia,"Times New Roman",serif;letter-spacing:-.052em;text-wrap:balance;line-height:1.08}
+.eylo-hero-emblem{object-fit:contain;max-height:255px}
+.eylo-scene .eylo-scene-cta{min-height:52px}
+@media(min-width:1024px){
+ .eylo-scene{height:100svh;min-height:760px}
+ .eylo-scene section:first-of-type{min-height:calc(100svh - 76px);padding:38px 24px 0}
+ .eylo-scene section:first-of-type>div:first-child{max-width:1100px}
+ .eylo-hero-emblem{width:325px!important;max-height:252px}
+ .eylo-scene h1{font-size:clamp(3rem,3.7vw,4rem);margin-top:-3px}
+ .eylo-scene h1+p{margin-top:18px}
+ .eylo-scene h1+p+div{margin-top:30px}
+ .eylo-scene .eylo-scroll-cue{display:none}
+}
+@media(max-width:640px){
+ .eylo-scene header>div{gap:7px}
+ .eylo-scene header a[aria-label="EYLO home"] img{height:38px;max-width:110px}
+ .eylo-scene section:first-of-type{padding-top:8vh}
+ .eylo-scene h1{font-size:clamp(2.2rem,8vw,3.4rem)}
+ .eylo-photographic-backdrop{background-position:center}
+ .eylo-scene-landscape{background:linear-gradient(180deg,rgba(240,249,255,.48),rgba(245,251,255,.87) 30%,rgba(242,249,255,.84) 60%,rgba(82,144,200,.18))!important}
+}
+@media(prefers-reduced-motion:reduce){.eylo-hero-emblem,.eylo-hero-intro{animation:none!important}}
