@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Search, HelpCircle, BookOpen, Lightbulb, Box } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
 import './eylo-approved-scene.css';
+import './eylo-reference-stage.css';
 
 const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
 
@@ -38,7 +39,25 @@ export default function Landing() {
   return (
     <main id="main-content" className="min-h-screen bg-[#fcfdff] text-[#0d2440]">
       <a href="#research-question" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:shadow-lg">Skip to research search</a>
-      <div className="eylo-scene relative isolate overflow-hidden">
+      {/* The approved desktop reference is rendered directly when its art asset is provided.
+          Interactive links remain real DOM elements, while smaller screens use the responsive
+          editable layout below. Keep this image free of user data. */}
+      <div className="eylo-reference-stage hidden lg:block" aria-label="EYLO introduction">
+        <picture>
+          <img src="/brand/eylo-approved-reference.webp" alt="" className="block h-auto w-full" loading="eager" fetchPriority="high" onError={event => { event.currentTarget.closest('.eylo-reference-stage')?.classList.add('eylo-reference-unavailable'); }} />
+        </picture>
+        <nav aria-label="EYLO desktop navigation" className="eylo-reference-hotspots">
+          <Link to="/" className="eylo-ref-link eylo-ref-home" aria-label="EYLO home"><span className="sr-only">EYLO home</span></Link>
+          <Link to="/discover" className="eylo-ref-link eylo-ref-discover" aria-label="Discover"><span className="sr-only">Discover</span></Link>
+          <a href="#careers" className="eylo-ref-link eylo-ref-careers" aria-label="Careers"><span className="sr-only">Careers</span></a>
+          <Link to="/login" className="eylo-ref-link eylo-ref-signin" aria-label="Sign in"><span className="sr-only">Sign in</span></Link>
+          <Link to="/discover" className="eylo-ref-link eylo-ref-explore" aria-label="Explore Research"><span className="sr-only">Explore Research</span></Link>
+          <Link to={PROJECT_SIGNUP_HREF} className="eylo-ref-link eylo-ref-start" aria-label="Get Started"><span className="sr-only">Get Started</span></Link>
+        </nav>
+        <h1 className="sr-only">Where knowledge moves forward.</h1>
+        <p className="sr-only">DISCOVER. CONNECT. CREATE.</p>
+      </div>
+      <div className="eylo-scene eylo-responsive-scene relative isolate overflow-hidden">
         <div className="eylo-scene-landscape pointer-events-none absolute inset-0 -z-10 bg-[url('/brand/eylo-horizon.svg')] bg-cover bg-center" aria-hidden="true" />
         <header className="relative z-20">
           <div className="mx-auto flex h-[76px] max-w-7xl items-center gap-3 px-5 sm:px-8">

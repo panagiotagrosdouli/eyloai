@@ -1,0 +1,14 @@
+/* Approved 1672×941 desktop reference: positions are taken from the supplied screenshot. */
+.eylo-reference-stage{position:relative;max-width:100%;overflow:hidden;background:#ecf6ff;}
+.eylo-reference-stage img{width:100%;aspect-ratio:1672/941;object-fit:cover;}
+.eylo-reference-hotspots{position:absolute;inset:0;}
+.eylo-ref-link{position:absolute;display:block;border-radius:999px;}
+.eylo-ref-link:focus-visible{outline:3px solid #073c80;outline-offset:3px;background:rgba(255,255,255,.12);}
+.eylo-ref-home{left:5.7%;top:1.5%;width:14%;height:7.5%;}
+.eylo-ref-discover{left:67.5%;top:2.5%;width:7%;height:7%;}
+.eylo-ref-careers{left:74.5%;top:2.5%;width:7%;height:7%;}
+.eylo-ref-signin{left:85%;top:3%;width:8.5%;height:6%;}
+.eylo-ref-explore{left:36.5%;top:54.8%;width:14%;height:7%;}
+.eylo-ref-start{left:51%;top:54.8%;width:12%;height:7%;}
+@media(min-width:1024px){.eylo-responsive-scene{display:none;}.eylo-reference-stage.eylo-reference-unavailable{display:none;}.eylo-reference-stage.eylo-reference-unavailable + .eylo-responsive-scene{display:block;}}
+@media(max-width:1023px){.eylo-reference-stage{display:none;}.eylo-responsive-scene{display:block;}}
