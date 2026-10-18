@@ -34,7 +34,7 @@ export default function Landing() {
   };
 
   return (
-    <main id="main-content" className="min-h-screen overflow-hidden bg-[#fbfdff] text-slate-900">
+    <main id="main-content" className="min-h-screen overflow-hidden bg-[#f8fafc] text-slate-900">
       <a href="#research-question" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-[#153c72] focus:shadow-lg">Skip to research search</a>
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-2xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-5 sm:px-8">
@@ -46,32 +46,32 @@ export default function Landing() {
         </div>
       </header>
 
-      <section className="relative isolate overflow-hidden bg-[linear-gradient(145deg,#f7fbff_0%,#f0f7ff_51%,#f7fdf9_100%)] px-5 pb-20 pt-16 sm:px-8 sm:pb-28 sm:pt-24">
-        <div className="pointer-events-none absolute -right-32 -top-48 h-[35rem] w-[35rem] rounded-full bg-[#9fd2f0]/25 blur-3xl" aria-hidden="true" />
-        <div className="pointer-events-none absolute -bottom-32 -left-40 h-[30rem] w-[30rem] rounded-full bg-[#b0e5d4]/25 blur-3xl" aria-hidden="true" />
+      <section className="relative isolate overflow-hidden bg-[linear-gradient(160deg,#f8fafc_0%,#edf2f7_65%,#f8fafc_100%)] px-5 pb-20 pt-16 sm:px-8 sm:pb-28 sm:pt-24">
+        <div className="pointer-events-none absolute -right-32 -top-48 h-[35rem] w-[35rem] rounded-full bg-[#b1c6db]/20 blur-3xl" aria-hidden="true" />
+        <div className="pointer-events-none absolute -bottom-32 -left-40 h-[30rem] w-[30rem] rounded-full bg-[#cbd5e1]/25 blur-3xl" aria-hidden="true" />
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.04fr_0.96fr] lg:gap-10">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#cbdff1] bg-white/85 px-4 py-2 text-xs font-semibold tracking-[0.11em] text-[#2866a0] shadow-sm"><Sparkles size={14} /> MEET EYLO & EYRA <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[#63b5a6]" /></div>
-            <h1 className="mt-7 font-heading text-[clamp(3.3rem,5.5vw,5.7rem)] font-semibold leading-[1.02] tracking-[-0.07em] text-[#173450]">From research questions to <span className="bg-gradient-to-r from-[#3479c0] via-[#5e95c6] to-[#3d9b92] bg-clip-text text-transparent">evidence-backed progress.</span></h1>
-            <p className="mt-7 max-w-xl text-lg leading-8 text-[#4c657b]">Find scholarly papers with links to their sources, organize evidence in your workspace, discover researchers and plan your next step with EYRA — your AI research companion.</p>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#cbdff1] bg-white/85 px-4 py-2 text-xs font-semibold tracking-[0.11em] text-[#2866a0] shadow-sm"><Sparkles size={14} /> RESEARCH INTELLIGENCE · EYLO <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[#63b5a6]" /></div>
+            <h1 className="mt-7 font-heading text-[clamp(3.3rem,5.5vw,5.7rem)] font-semibold leading-[1.02] tracking-[-0.07em] text-[#173450]">Research starts with <span className="text-[#315779]">better evidence.</span></h1>
+            <p className="mt-7 max-w-xl text-lg leading-8 text-[#4c657b]">Discover scholarly literature, trace findings to their sources, organize research projects, and develop informed next steps with EYRA. Built for rigorous research workflows.</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link to={PROJECT_SIGNUP_HREF} className="inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-[#1c528e] px-7 py-4 text-sm font-semibold text-white shadow-[0_12px_30px_-12px_rgba(28,82,142,0.55)] transition hover:-translate-y-0.5 hover:bg-[#2d6cad]">Start your journey <ArrowRight size={17} /></Link>
-              <Link to="/discover" className="inline-flex min-h-13 items-center gap-2 rounded-2xl border border-[#c7d9e8] bg-white/85 px-6 py-4 text-sm font-semibold text-[#234a70] transition hover:border-[#6da5ce] hover:bg-white">Explore research <MoveUpRight size={16} /></Link>
+              <Link to={PROJECT_SIGNUP_HREF} className="inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-[#1c528e] px-7 py-4 text-sm font-semibold text-white shadow-[0_12px_30px_-12px_rgba(28,82,142,0.55)] transition hover:-translate-y-0.5 hover:bg-[#2d6cad]">Create your research workspace <ArrowRight size={17} /></Link>
+              <Link to="/discover" className="inline-flex min-h-13 items-center gap-2 rounded-2xl border border-[#c7d9e8] bg-white/85 px-6 py-4 text-sm font-semibold text-[#234a70] transition hover:border-[#6da5ce] hover:bg-white">Search scholarly literature <MoveUpRight size={16} /></Link>
             </div>
             <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-[#617e94]"><span>✦ Explore sources before signing up</span><span>✦ Private saved workspace after sign-in</span><span>✦ AI interpretation clearly distinguished from evidence</span></div>
           </div>
           <div className="relative mx-auto w-full max-w-[31rem]" aria-label="Illustration of connected EYLO research and innovation tools">
             <div className="absolute inset-10 rounded-full bg-gradient-to-tr from-[#b6e6e0]/70 to-[#bbd9f7]/80 blur-[65px]" />
             <div className="relative rounded-[2.5rem] border border-white/90 bg-white/65 p-4 shadow-[0_35px_100px_-45px_rgba(51,100,145,0.38)] backdrop-blur-xl sm:p-6">
-              <div className="flex items-center justify-between"><div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#356fad] to-[#6bb4cc] text-white"><Sparkles size={19} /></span><div><p className="text-sm font-bold text-[#20466e]">EYRA</p><p className="text-[11px] text-[#6b8aa0]">Your research companion</p></div></div><span className="rounded-full bg-[#e5f6ee] px-3 py-1 text-[10px] font-semibold text-[#3d8c75]">Explore possibilities</span></div>
-              <div className="mt-5 rounded-2xl border border-[#e0eaf3] bg-white p-5 shadow-sm"><p className="text-xs font-semibold uppercase tracking-[0.13em] text-[#7194b1]">It starts with a question</p><p className="mt-2 font-heading text-xl font-semibold leading-snug text-[#1e4263]">What could your next big idea become?</p><div className="mt-4 flex items-center gap-2 rounded-xl bg-[#eff7fc] px-3 py-2.5 text-xs text-[#5b86a8]"><Search size={14} /> Explore scientific possibilities <ArrowRight className="ml-auto" size={14} /></div></div>
+              <div className="flex items-center justify-between"><div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#356fad] to-[#6bb4cc] text-white"><Sparkles size={19} /></span><div><p className="text-sm font-bold text-[#20466e]">EYRA</p><p className="text-[11px] text-[#6b8aa0]">Your research companion</p></div></div><span className="rounded-full bg-[#e5f6ee] px-3 py-1 text-[10px] font-semibold text-[#3d8c75]">Research workspace preview</span></div>
+              <div className="mt-5 rounded-2xl border border-[#e0eaf3] bg-white p-5 shadow-sm"><p className="text-xs font-semibold uppercase tracking-[0.13em] text-[#7194b1]">It starts with a question</p><p className="mt-2 font-heading text-xl font-semibold leading-snug text-[#1e4263]">How does this evidence inform the next experiment?</p><div className="mt-4 flex items-center gap-2 rounded-xl bg-[#eff7fc] px-3 py-2.5 text-xs text-[#5b86a8]"><Search size={14} /> Search scholarly evidence <ArrowRight className="ml-auto" size={14} /></div></div>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl border border-[#dfeaf5] bg-[#f4f9ff] p-4"><BookOpen className="text-[#477fb4]" size={22} /><p className="mt-4 text-sm font-bold text-[#284e72]">Discover</p><p className="mt-1 text-xs text-[#6d8ba4]">Evidence & ideas</p></div>
                 <div className="rounded-2xl border border-[#e1eee8] bg-[#f2faf6] p-4"><Users className="text-[#389784]" size={22} /><p className="mt-4 text-sm font-bold text-[#284e72]">Connect</p><p className="mt-1 text-xs text-[#6d8ba4]">People & expertise</p></div>
                 <div className="rounded-2xl border border-[#e8e3f5] bg-[#f8f5ff] p-4"><Lightbulb className="text-[#8c7bc0]" size={22} /><p className="mt-4 text-sm font-bold text-[#284e72]">Create</p><p className="mt-1 text-xs text-[#6d8ba4]">Projects & pathways</p></div>
                 <div className="rounded-2xl border border-[#f4e9d8] bg-[#fffaf2] p-4"><Rocket className="text-[#cc9553]" size={22} /><p className="mt-4 text-sm font-bold text-[#284e72]">Grow</p><p className="mt-1 text-xs text-[#6d8ba4]">Funding & impact</p></div>
               </div>
-              <p className="mt-4 text-center text-[11px] text-[#7290a5]">Your curiosity. Real knowledge. New directions.</p>
+              <p className="mt-4 text-center text-[11px] text-[#7290a5]">Illustrative interface · Research evidence requires verification</p>
             </div>
           </div>
         </div>
@@ -80,20 +80,31 @@ export default function Landing() {
             <label htmlFor="research-question" className="sr-only">Research question</label>
             <Search size={19} className="mx-3 hidden text-[#76a0bd] md:block" aria-hidden="true" />
             <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="Try: trajectory prediction for autonomous driving" className="min-w-0 flex-1 rounded-xl bg-transparent px-4 py-3 text-base text-[#20466e] outline-none placeholder:text-[#92aab9] focus-visible:ring-2 focus-visible:ring-[#7eb1d1]" />
-            <button type="submit" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#1c528e] px-6 text-sm font-semibold text-white hover:bg-[#2a6ba9]">Discover with EYLO <ArrowRight size={16} /></button>
+            <button type="submit" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#1c528e] px-6 text-sm font-semibold text-white hover:bg-[#2a6ba9]">Search literature <ArrowRight size={16} /></button>
           </form>
           <p className="px-2 pt-3 text-xs text-[#58758d]">Search real scholarly indexes without creating an account. Results include source links; verify AI interpretations before relying on them.</p>
           <div className="flex flex-wrap gap-2 px-2 pb-1 pt-3">{EXAMPLES.map(example => <button key={example} type="button" onClick={() => setQuestion(example)} className="rounded-full border border-[#d8e8f1] bg-[#f6fbff] px-3 py-2 text-xs text-[#63839d] hover:border-[#80afcf] hover:text-[#1c528e]">{example}</button>)}</div>
         </div>
       </section>
 
+      <section aria-labelledby="standards-heading" className="border-y border-slate-200 bg-[#f1f5f9] px-5 py-10 sm:px-8">
+        <div className="mx-auto max-w-6xl">
+          <p id="standards-heading" className="text-xs font-semibold uppercase tracking-[0.18em] text-[#365b7d]">Built around research integrity</p>
+          <div className="mt-5 grid gap-5 md:grid-cols-3">
+            <div className="border-l-2 border-[#829bb1] pl-4"><h3 className="text-sm font-semibold text-slate-900">Traceable sources</h3><p className="mt-2 text-sm leading-6 text-slate-600">Follow scholarly records back to their original source. Metadata is not a substitute for reading the paper.</p></div>
+            <div className="border-l-2 border-[#829bb1] pl-4"><h3 className="text-sm font-semibold text-slate-900">Evidence, not certainty</h3><p className="mt-2 text-sm leading-6 text-slate-600">Treat AI synthesis as an interpretation to verify, not an independently established scientific finding.</p></div>
+            <div className="border-l-2 border-[#829bb1] pl-4"><h3 className="text-sm font-semibold text-slate-900">Research continuity</h3><p className="mt-2 text-sm leading-6 text-slate-600">Carry selected papers, researcher profiles, and next steps into your private workspace.</p></div>
+          </div>
+        </div>
+      </section>
+
       <section id="capabilities" className="border-t border-slate-200 bg-white px-5 py-20 sm:px-8 sm:py-24" aria-labelledby="capabilities-heading">
         <div className="mx-auto max-w-6xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#356ba0]">Inside EYLO</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#356ba0]">A structured research workflow</p>
           <div className="mt-4 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
-              <h2 id="capabilities-heading" className="max-w-3xl font-heading text-3xl font-semibold tracking-tight sm:text-5xl">More than a search engine.<br /><span className="text-[#416b91]">One place to move ideas forward.</span></h2>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">Find knowledge, discover people, manage projects and explore opportunities. The tools connect around your research goals — with EYRA as your AI assistant.</p>
+              <h2 id="capabilities-heading" className="max-w-3xl font-heading text-3xl font-semibold tracking-tight sm:text-5xl">From discovery to informed decisions.<br /><span className="text-[#416b91]">A workspace for rigorous inquiry.</span></h2>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">Trace publications to their original records, connect evidence to projects, identify relevant researchers, and plan next steps. EYRA supports interpretation while you retain scholarly judgment.</p>
             </div>
             <Link to={PROJECT_SIGNUP_HREF} className="inline-flex shrink-0 items-center gap-2 self-start rounded-xl bg-[#153c72] px-5 py-3 text-sm font-semibold text-white hover:bg-[#25578d]">Create your workspace <ArrowRight size={16} /></Link>
           </div>
@@ -133,13 +144,13 @@ export default function Landing() {
       <section className="border-t border-slate-200 px-5 py-20 sm:px-8 sm:py-28" aria-labelledby="what-eylo-does">
         <div className="mx-auto max-w-5xl">
           <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-            <div><p className="text-xs uppercase tracking-[0.18em] text-[#356ba0]">One connected workspace</p><h2 id="what-eylo-does" className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">From curiosity to collaboration.</h2></div>
+            <div><p className="text-xs uppercase tracking-[0.18em] text-[#356ba0]">Research process</p><h2 id="what-eylo-does" className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">A clear path from question to evidence.</h2></div>
             <Link to="/discover" className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-950">Explore EYLO <ArrowRight size={16} /></Link>
           </div>
           <div className="mt-9 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6"><p className="text-xs text-[#356ba0]">01 / DISCOVER</p><h3 className="mt-5 text-lg font-semibold">Find your evidence</h3><p className="mt-3 text-sm leading-6 text-slate-600">Explore real and recent papers, with help framing your question and investigating possible research gaps.</p></div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-6"><p className="text-xs text-[#356ba0]">02 / CONNECT</p><h3 className="mt-5 text-lg font-semibold">Find your people</h3><p className="mt-3 text-sm leading-6 text-slate-600">Discover researchers, potential PhD collaborators and relevant research institutions.</p></div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-6"><p className="text-xs text-[#356ba0]">03 / BUILD</p><h3 className="mt-5 text-lg font-semibold">Make progress</h3><p className="mt-3 text-sm leading-6 text-slate-600">Bring papers, people, plans and your next steps into a project supported by EYRA.</p></div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6"><p className="text-xs text-[#356ba0]">01 / DISCOVER</p><h3 className="mt-5 text-lg font-semibold">Find your evidence</h3><p className="mt-3 text-sm leading-6 text-slate-600">Search scholarly indexes for relevant publications, review source links and inspect limitations before drawing conclusions.</p></div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6"><p className="text-xs text-[#356ba0]">02 / CONNECT</p><h3 className="mt-5 text-lg font-semibold">Find your people</h3><p className="mt-3 text-sm leading-6 text-slate-600">Explore publication-backed researcher profiles and institutional information without assuming supervisory availability.</p></div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6"><p className="text-xs text-[#356ba0]">03 / BUILD</p><h3 className="mt-5 text-lg font-semibold">Make progress</h3><p className="mt-3 text-sm leading-6 text-slate-600">Organize evidence, researchers and milestones in a private project, with EYRA assisting your next research action.</p></div>
           </div>
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-8">
             <p className="max-w-lg text-sm leading-6 text-slate-600">EYRA helps with research and collaboration preparation. Contacting researchers or booking meetings requires your approval and connected services.</p>
