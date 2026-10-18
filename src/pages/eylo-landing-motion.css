@@ -1,0 +1,41 @@
+/* Restrained, compositor-friendly motion for the editorial EYLO landing. */
+@keyframes eylo-arrive {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes eylo-horizon-drift {
+  from { transform: scale(1.025) translate3d(-0.3%, 0, 0); }
+  to { transform: scale(1.025) translate3d(0.3%, 0, 0); }
+}
+
+.eylo-reveal-logo,
+.eylo-reveal-title,
+.eylo-reveal-subtitle,
+.eylo-reveal-actions,
+.eylo-reveal-search {
+  animation: eylo-arrive 760ms cubic-bezier(.2,.7,.2,1) both;
+}
+.eylo-reveal-logo { animation-delay: 80ms; }
+.eylo-reveal-title { animation-delay: 175ms; }
+.eylo-reveal-subtitle { animation-delay: 270ms; }
+.eylo-reveal-actions { animation-delay: 350ms; }
+.eylo-reveal-search { animation-delay: 420ms; }
+.eylo-horizon-motion { animation: eylo-horizon-drift 15s ease-in-out infinite alternate; }
+.eylo-interactive-cta { transition: transform 200ms ease, background-color 200ms ease, box-shadow 200ms ease; }
+.eylo-interactive-cta:hover { transform: translateY(-2px); }
+.eylo-interactive-cta:active { transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .eylo-reveal-logo,
+  .eylo-reveal-title,
+  .eylo-reveal-subtitle,
+  .eylo-reveal-actions,
+  .eylo-reveal-search,
+  .eylo-horizon-motion {
+    animation: none !important;
+  }
+  .eylo-interactive-cta { transition: none !important; }
+  .eylo-interactive-cta:hover,
+  .eylo-interactive-cta:active { transform: none; }
+}
