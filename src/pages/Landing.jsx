@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Search, HelpCircle, BookOpen, Lightbulb, Box } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
+import './eylo-landing-motion.css';
 
 const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
 
@@ -48,17 +49,18 @@ export default function Landing() {
       </header>
 
       <section className="relative isolate min-h-[680px] overflow-hidden px-5 pb-20 pt-20 sm:px-8 sm:pt-24 lg:min-h-[730px] lg:pt-20">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[url('/brand/eylo-horizon.svg')] bg-cover bg-center" />
+        <div aria-hidden="true" className="eylo-horizon-motion pointer-events-none absolute inset-0 -z-10 bg-[url('/brand/eylo-horizon.svg')] bg-cover bg-center" />
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-2/3 bg-gradient-to-b from-white/65 via-white/45 to-transparent" />
+        <div className="eylo-knowledge-field pointer-events-none absolute inset-0 -z-10" aria-hidden="true"><span className="eylo-knowledge-orbit eylo-knowledge-orbit-one" /><span className="eylo-knowledge-orbit eylo-knowledge-orbit-two" /><span className="eylo-knowledge-orbit eylo-knowledge-orbit-three" /><span className="eylo-knowledge-glow" /></div>
         <div className="mx-auto flex max-w-6xl flex-col items-center text-center">
-          <img src="/brand/eylo-light.svg" alt="EYLO" width="390" height="230" className="h-auto w-[min(64vw,315px)] object-contain drop-shadow-[0_8px_25px_rgba(43,111,163,0.10)] sm:w-[360px]" fetchPriority="high" />
-          <h1 className="mt-10 max-w-5xl font-serif text-[clamp(2.6rem,5.1vw,5.3rem)] font-normal leading-[1.09] tracking-[-0.045em] text-[#102b4e]">The future begins with a question.</h1>
-          <p className="mt-6 text-sm font-medium tracking-[0.18em] text-[#4b6886] sm:text-base sm:tracking-[0.28em]">Discover. Connect. Create.</p>
-          <div className="mt-9 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row sm:gap-5">
-            <Link to="/discover" className="inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-full bg-[#0b2646] px-9 py-3 text-sm font-semibold text-white shadow-[0_14px_26px_-17px_rgba(8,38,76,0.7)] transition hover:bg-[#214e7c] sm:w-auto">Explore Research <ArrowRight size={17} /></Link>
-            <Link to={PROJECT_SIGNUP_HREF} className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-[#42617f] bg-white/80 px-9 py-3 text-sm font-semibold text-[#0b2646] transition hover:bg-white sm:w-auto">Get Started</Link>
+          <img src="/brand/eylo-light.svg" alt="EYLO" width="390" height="230" className="eylo-breathing-logo h-auto w-[min(64vw,315px)] object-contain drop-shadow-[0_8px_25px_rgba(43,111,163,0.10)] sm:w-[360px]" fetchPriority="high" />
+          <h1 className="eylo-arrive-title mt-10 max-w-5xl font-serif text-[clamp(2.6rem,5.1vw,5.3rem)] font-normal leading-[1.09] tracking-[-0.045em] text-[#102b4e]">The future begins with a question.</h1>
+          <p className="eylo-arrive-subline mt-6 text-sm font-medium tracking-[0.18em] text-[#4b6886] sm:text-base sm:tracking-[0.28em]">Discover. Connect. Create.</p>
+          <div className="eylo-arrive-actions mt-9 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row sm:gap-5">
+            <Link to="/discover" className="eylo-lift inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-full bg-[#0b2646] px-9 py-3 text-sm font-semibold text-white shadow-[0_14px_26px_-17px_rgba(8,38,76,0.7)] transition hover:bg-[#214e7c] sm:w-auto">Explore Research <ArrowRight size={17} /></Link>
+            <Link to={PROJECT_SIGNUP_HREF} className="eylo-lift inline-flex min-h-12 w-full items-center justify-center rounded-full border border-[#42617f] bg-white/80 px-9 py-3 text-sm font-semibold text-[#0b2646] transition hover:bg-white sm:w-auto">Get Started</Link>
           </div>
-          <form onSubmit={explore} className="mt-12 flex w-full max-w-xl items-center rounded-full border border-[#d5e4f0] bg-white/90 p-1.5 shadow-[0_14px_40px_-25px_rgba(28,88,135,0.5)]">
+          <form onSubmit={explore} className="eylo-arrive-search mt-12 flex w-full max-w-xl items-center rounded-full border border-[#d5e4f0] bg-white/90 p-1.5 shadow-[0_14px_40px_-25px_rgba(28,88,135,0.5)]">
             <Search className="ml-4 shrink-0 text-[#587998]" size={18} aria-hidden="true" />
             <label htmlFor="research-question" className="sr-only">Research question</label>
             <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="Ask a research question…" className="w-full min-w-0 flex-1 bg-transparent px-3 py-3 text-sm text-[#0d2440] outline-none placeholder:text-[#718ba3] focus-visible:ring-2 focus-visible:ring-[#74b8e1]" />
