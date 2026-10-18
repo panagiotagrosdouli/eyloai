@@ -38,7 +38,7 @@ export default function Landing() {
       <a href="#research-question" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-[#153c72] focus:shadow-lg">Skip to research search</a>
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-2xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-5 sm:px-8">
-          <Link to="/" aria-label="EYLO home" className="mr-auto"><span className="inline-flex items-center gap-2.5" aria-label="EYLO"><span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-[14px] bg-gradient-to-br from-[#2866b0] via-[#66a7d9] to-[#a6dbce] shadow-[0_9px_26px_-10px_rgba(25,88,157,0.45)]"><span className="absolute h-7 w-7 rotate-45 rounded-[7px] border-[1.5px] border-white/70" /><span className="relative h-3.5 w-3.5 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.9)]" /></span><span className="font-heading text-[1.65rem] font-bold tracking-[-0.075em] text-[#14365c]">EYLO<span className="text-[#4c91c6]">.</span></span></span></Link>
+          <Link to="/" aria-label="EYLO home" className="mr-auto"><img src="/brand/eylo-light.svg" alt="EYLO" className="h-11 w-auto max-w-[175px] object-contain sm:h-12" /></Link>
           <a href="#capabilities" className="hidden rounded-lg px-3 py-2 text-sm text-slate-600 hover:text-slate-950 sm:inline-flex">What EYLO does</a>
           <a href="#careers" className="hidden rounded-lg px-3 py-2 text-sm text-slate-600 hover:text-slate-950 md:inline-flex">Careers</a>
           <Link to="/login" className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:text-slate-950">Sign in</Link>
@@ -176,7 +176,7 @@ export default function Landing() {
 
             <footer className="border-t border-slate-200 px-5 py-7 sm:px-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <span className="inline-flex items-center gap-2.5" aria-label="EYLO"><span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-[14px] bg-gradient-to-br from-[#2866b0] via-[#66a7d9] to-[#a6dbce] shadow-[0_9px_26px_-10px_rgba(25,88,157,0.45)]"><span className="absolute h-7 w-7 rotate-45 rounded-[7px] border-[1.5px] border-white/70" /><span className="relative h-3.5 w-3.5 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.9)]" /></span><span className="font-heading text-[1.65rem] font-bold tracking-[-0.075em] text-[#14365c]">EYLO<span className="text-[#4c91c6]">.</span></span></span>
+          <img src="/brand/eylo-light.svg" alt="EYLO" className="h-11 w-auto max-w-[175px] object-contain sm:h-12" />
           <div className="flex flex-wrap gap-5"><Link to="/discover" className="hover:text-slate-900">Discover</Link><a href="#careers" className="hover:text-slate-900">Careers</a><Link to="/login" className="hover:text-slate-900">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span></div>
         </div>
       </footer>
