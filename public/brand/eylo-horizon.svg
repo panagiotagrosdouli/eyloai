@@ -1,1 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#fbfdff"/><stop offset=".58" stop-color="#eff8ff"/><stop offset="1" stop-color="#dceefb"/></linearGradient><linearGradient id="water" x2="0" y2="1"><stop stop-color="#d5ecfc"/><stop offset="1" stop-color="#f5faff"/></linearGradient><linearGradient id="mist" x2="0" y2="1"><stop stop-color="#ffffff" stop-opacity=".1"/><stop offset="1" stop-color="#ffffff" stop-opacity=".9"/></linearGradient></defs><rect width="1600" height="900" fill="url(#sky)"/><path d="M0 690 L90 630 155 666 242 616 325 651 407 596 494 655 581 615 667 659 772 584 869 642 964 591 1071 637 1160 599 1252 644 1338 590 1430 618 1504 575 1600 634 V900 H0Z" fill="#a9cce7" opacity=".65"/><path d="M0 745 L100 688 206 718 298 679 375 720 460 695 560 743 673 675 773 711 875 670 988 726 1089 684 1214 715 1336 657 1412 700 1528 638 1600 673 V900 H0Z" fill="#78add5" opacity=".24"/><rect y="733" width="1600" height="167" fill="url(#water)"/><rect y="690" width="1600" height="200" fill="url(#mist)"/><path d="M0 870 Q360 806 740 852 T1600 824 V900 H0Z" fill="#fff" opacity=".75"/><path d="M0 879 Q560 820 930 866 T1600 840" stroke="#8bb8d7" opacity=".34" stroke-width="3" fill="none"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+<defs>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fcfeff"/><stop offset=".45" stop-color="#ecf6fc"/><stop offset="1" stop-color="#cbe5f6"/></linearGradient>
+<linearGradient id="distant" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#8ebbd9"/><stop offset="1" stop-color="#d7ecf7"/></linearGradient>
+<linearGradient id="front" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#88b1ce"/><stop offset="1" stop-color="#c6deec"/></linearGradient>
+<linearGradient id="fog" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".06"/><stop offset="1" stop-color="#fff" stop-opacity=".92"/></linearGradient>
+<linearGradient id="lake" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d0e6f4"/><stop offset="1" stop-color="#f8fcfe"/></linearGradient>
+</defs>
+<rect width="1600" height="900" fill="url(#sky)"/>
+<!-- Broad distant mountain peaks stay visible behind the lower hero, not over the headline. -->
+<path d="M0 640 105 575 162 604 267 508 355 579 437 535 515 590 650 471 749 558 843 507 947 581 1068 473 1191 569 1291 513 1385 569 1488 492 1600 578V900H0Z" fill="url(#distant)" opacity=".75"/>
+<path d="M0 708 105 621 183 650 297 567 399 636 511 560 625 650 769 536 897 628 995 583 1100 663 1244 535 1334 616 1479 545 1600 635V900H0Z" fill="#a6c9df" opacity=".72"/>
+<!-- Closer softened ridgeline and delicate snow edges -->
+<path d="M0 792 111 705 200 739 304 654 380 698 506 623 614 725 726 634 815 713 940 622 1068 723 1190 613 1297 699 1395 651 1511 595 1600 681V900H0Z" fill="url(#front)" opacity=".74"/>
+<path d="m267 508 31 28 25-11 32 54-88-71m383-37 45 45 19-10 35 52-99-87m418 2 50 46 22-9 51 59-123-96m420 19 36 35 17-9 50 60-103-86" fill="#f4fbff" opacity=".55"/>
+<path d="M0 720H1600V900H0Z" fill="url(#fog)"/>
+<path d="M0 809Q246 788 477 813T945 808T1600 797V900H0Z" fill="url(#lake)"/>
+<path d="M0 852Q260 838 510 850T1010 850T1600 834" fill="none" stroke="#92bdd6" stroke-opacity=".35" stroke-width="2"/>
+</svg>
