@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Search, HelpCircle, BookOpen, Lightbulb, Box } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
 import './eylo-approved-scene.css';
+import './eylo-live-atmosphere.css';
 
 const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
 
@@ -39,7 +40,14 @@ export default function Landing() {
     <main id="main-content" className="min-h-screen bg-[#fcfdff] text-[#0d2440]">
       <a href="#research-question" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:shadow-lg">Skip to research search</a>
       <div className="eylo-scene relative isolate overflow-hidden">
-        <div className="eylo-scene-landscape pointer-events-none absolute inset-0 -z-10 bg-[url('/brand/eylo-horizon.svg')] bg-cover bg-center" aria-hidden="true" />
+        <div className="eylo-scene-landscape pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
+        <div className="eylo-atmosphere pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+          <div className="eylo-atmosphere-haze" />
+          <div className="eylo-atmosphere-ridge eylo-atmosphere-ridge-back" />
+          <div className="eylo-atmosphere-ridge eylo-atmosphere-ridge-front" />
+          <div className="eylo-atmosphere-water" />
+          <div className="eylo-atmosphere-reflection" />
+        </div>
         <header className="relative z-20">
           <div className="mx-auto flex h-[76px] max-w-7xl items-center gap-3 px-5 sm:px-8">
             <Link to="/" aria-label="EYLO home" className="mr-auto shrink-0">

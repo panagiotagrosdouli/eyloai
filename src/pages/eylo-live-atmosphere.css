@@ -1,0 +1,16 @@
+/* Living EYLO website atmosphere. All logo, typography, buttons and contact elements are real DOM. */
+.eylo-scene{background:linear-gradient(180deg,#dbeaf8 0%,#f5fafe 24%,#f9fcfe 53%,#bdd8ed 85%,#c4e0f2 100%);}
+.eylo-scene-landscape{background:radial-gradient(ellipse 45% 28% at 50% 66%,rgba(255,255,255,.92),transparent 100%);}
+.eylo-atmosphere{overflow:hidden;}
+.eylo-atmosphere-haze{position:absolute;inset:0;background:radial-gradient(ellipse 60% 30% at 50% 63%,rgba(255,255,255,.90),transparent),linear-gradient(180deg,transparent 50%,rgba(240,248,255,.22) 75%,transparent);z-index:4;}
+.eylo-atmosphere-ridge{position:absolute;inset-inline:-4%;bottom:20%;height:28%;background:linear-gradient(180deg,#789bc0,#bed8eb);filter:blur(5px);transform-origin:center bottom;}
+.eylo-atmosphere-ridge-back{opacity:.7;clip-path:polygon(0 70%,7% 50%,14% 65%,23% 21%,30% 58%,39% 37%,47% 75%,59% 53%,69% 28%,77% 54%,87% 14%,94% 49%,100% 33%,100% 100%,0 100%);}
+.eylo-atmosphere-ridge-front{bottom:18%;height:22%;filter:blur(9px);opacity:.43;background:linear-gradient(180deg,#6e96be,#dae9f4);clip-path:polygon(0 68%,8% 49%,17% 72%,26% 44%,35% 76%,45% 52%,57% 79%,67% 40%,78% 66%,87% 48%,95% 57%,100% 35%,100% 100%,0 100%);}
+.eylo-atmosphere-water{position:absolute;bottom:0;left:0;right:0;height:25%;background:linear-gradient(180deg,rgba(198,227,244,.74),rgba(122,174,214,.47) 44%,rgba(92,150,201,.47));}
+.eylo-atmosphere-water:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(178deg,transparent 0 24px,rgba(255,255,255,.17) 25px,transparent 27px 48px);opacity:.48;}
+.eylo-atmosphere-reflection{position:absolute;bottom:-2%;left:43%;width:14%;height:29%;background:linear-gradient(180deg,rgba(255,255,255,.5),transparent);filter:blur(29px);transform:perspective(400px) rotateX(52deg);}
+@keyframes eylo-atmosphere-breathe{0%,100%{transform:translate3d(-.4%,0,0) scale(1.015)}50%{transform:translate3d(.4%,-.5%,0) scale(1.035)}}
+.eylo-atmosphere-ridge{animation:eylo-atmosphere-breathe 24s ease-in-out infinite;}
+.eylo-atmosphere-ridge-front{animation-delay:-12s;}
+@media (prefers-reduced-motion:reduce){.eylo-atmosphere-ridge{animation:none!important;}}
+@media (max-width:640px){.eylo-atmosphere-ridge-back{height:20%;bottom:17%;}.eylo-atmosphere-ridge-front{height:16%;bottom:15%;}.eylo-atmosphere-water{height:21%;}}
