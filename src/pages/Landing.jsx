@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Search, HelpCircle, BookOpen, Lightbulb, Box } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
 import './eylo-approved-scene.css';
-import './eylo-photographic-hero.css';
+import './eylo-reference-live.css';
 
 const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
 
@@ -47,14 +47,14 @@ export default function Landing() {
             <Link to="/" aria-label="EYLO home" className="mr-auto shrink-0">
               <img src="/brand/eylo-light.svg" alt="EYLO" width="180" height="54" className="h-10 w-auto max-w-[130px] object-contain sm:h-12 sm:max-w-[180px]" fetchPriority="high" />
             </Link>
-            <Link to="/discover" className="hidden px-3 py-2 text-sm text-[#17375c] hover:text-[#226fba] sm:inline-flex">Discover</Link>
+            <Link to="/discover" className="px-1 py-2 text-xs text-[#17375c] hover:text-[#226fba] sm:px-3 sm:text-sm">Discover</Link>
             <a href="#careers" className="hidden px-3 py-2 text-sm text-[#17375c] hover:text-[#226fba] sm:inline-flex">Careers</a>
             <Link to="/login" className="rounded-full border border-[#507ba4] bg-white/45 px-4 py-2 text-xs text-[#17375c] transition hover:bg-white/80 sm:px-7 sm:text-sm">Sign in</Link>
           </div>
         </header>
         <section className="relative flex min-h-[calc(100svh-76px)] flex-col items-center px-5 pb-16 pt-8 text-center sm:px-8 sm:pt-9 lg:min-h-[calc(100vh-76px)]">
           <div className="mx-auto flex w-full max-w-6xl flex-col items-center">
-            <img src="/brand/eylo-stacked.svg" alt="EYLO" width="520" height="270" className="eylo-hero-emblem h-auto w-[min(76vw,280px)] object-contain sm:w-[315px]" fetchPriority="high" />
+            <img src="/brand/eylo-stacked.svg" alt="EYLO" width="520" height="270" className="eylo-hero-emblem h-auto w-[min(70vw,285px)] object-contain sm:w-[320px]" fetchPriority="high" />
             <h1 className="eylo-hero-intro mt-0 max-w-5xl font-serif text-[clamp(2.25rem,4.2vw,4.4rem)] font-normal leading-tight tracking-[-0.045em] text-[#0c2850]">Where knowledge moves forward.</h1>
             <p className="eylo-hero-intro mt-5 text-xs font-medium tracking-[0.22em] text-[#43658a] sm:text-sm sm:tracking-[0.32em]">DISCOVER. CONNECT. CREATE.</p>
             <div className="eylo-hero-intro mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row sm:gap-5">
@@ -62,7 +62,7 @@ export default function Landing() {
               <Link to={PROJECT_SIGNUP_HREF} className="eylo-scene-cta inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-full border border-[#a2bdd9] bg-white/60 px-9 py-3 text-sm font-medium text-[#193e68] hover:bg-white/90 sm:w-auto">Get Started <ArrowRight size={16} /></Link>
             </div>
           </div>
-          <div className="mt-auto flex flex-col items-center gap-4 pt-16 lg:invisible">
+          <div className="mt-auto flex flex-col items-center gap-4 pt-16 lg:hidden">
             <a href="#eylo-next" className="eylo-scroll-cue inline-flex flex-col items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-[#294c73] hover:text-[#0c2850]"><span className="text-xl leading-none" aria-hidden="true">⌄</span> SCROLL TO EXPLORE</a>
           </div>
         </section>
