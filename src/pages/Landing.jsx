@@ -28,11 +28,11 @@ export default function Landing() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#f8fafc] text-slate-900">
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-[#f8fafc]/90 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-5 sm:px-8">
-          <Link to="/" aria-label="EYLO home" className="mr-auto"><BrandLogo brand="eylo" size="nav" priority className="[&>img]:brightness-[1.08] [&>img]:saturate-[0.94]" /></Link>
-          <a href="#careers" className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:text-slate-950">Careers</a>
-          <Link to="/login" className="rounded-lg px-3 py-2 text-sm text-slate-600 hover:text-slate-950">Sign in</Link>
-          <Link to={PROJECT_SIGNUP_HREF} className="rounded-xl bg-[#153c72] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#25578d]">Get started</Link>
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-1 px-3 sm:gap-3 sm:px-8">
+          <Link to="/" aria-label="EYLO home" className="mr-auto min-w-0 shrink"><BrandLogo brand="eylo" size="nav" priority className="!h-10 !w-[3.75rem] sm:!h-14 sm:!w-[5.25rem] md:!h-16 md:!w-24 [&>img]:brightness-[1.08] [&>img]:saturate-[0.94]" /></Link>
+          <a href="#careers" className="shrink-0 rounded-lg px-1.5 py-2 text-xs text-slate-600 hover:text-slate-950 sm:px-3 sm:text-sm">Careers</a>
+          <Link to="/login" className="shrink-0 rounded-lg px-1.5 py-2 text-xs text-slate-600 hover:text-slate-950 sm:px-3 sm:text-sm">Sign in</Link>
+          <Link to={PROJECT_SIGNUP_HREF} className="shrink-0 rounded-xl bg-[#153c72] px-2 py-2.5 text-xs font-semibold text-white transition hover:bg-[#25578d] sm:px-4 sm:text-sm">Get started</Link>
         </div>
       </header>
 
