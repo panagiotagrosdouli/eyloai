@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, Search, BookOpen, Users, FolderOpen, Sparkles, Target, Network, Rocket, Lightbulb, MoveUpRight,
+  ArrowRight, BookOpen, Users, FolderOpen, Sparkles, Target, Network, MoveUpRight,
 } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
 
@@ -52,39 +52,27 @@ export default function Landing() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.04fr_0.96fr] lg:gap-10">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#cbdff1] bg-white/85 px-4 py-2 text-xs font-semibold tracking-[0.11em] text-[#2866a0] shadow-sm"><Sparkles size={14} /> RESEARCH INTELLIGENCE · EYLO <span className="ml-1 h-1.5 w-1.5 rounded-full bg-[#63b5a6]" /></div>
-            <h1 className="mt-7 font-heading text-[clamp(3.3rem,5.5vw,5.7rem)] font-semibold leading-[1.02] tracking-[-0.07em] text-[#173450]">Research starts with <span className="text-[#315779]">better evidence.</span></h1>
-            <p className="mt-7 max-w-xl text-lg leading-8 text-[#4c657b]">Discover scholarly literature, trace findings to their sources, organize research projects, and develop informed next steps with EYRA. Built for rigorous research workflows.</p>
+            <h1 className="mt-7 font-heading text-[clamp(3.3rem,5.5vw,5.7rem)] font-semibold leading-[1.02] tracking-[-0.07em] text-[#173450]">Explore research. <span className="text-[#315779]">Connect ideas.</span></h1>
+            <p className="mt-7 max-w-xl text-lg leading-8 text-[#4c657b]">Discover scientific publications, connect with researchers and develop projects. EYRA supports your research process with AI, while you stay close to the evidence.</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link to={PROJECT_SIGNUP_HREF} className="inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-[#1c528e] px-7 py-4 text-sm font-semibold text-white shadow-[0_12px_30px_-12px_rgba(28,82,142,0.55)] transition hover:-translate-y-0.5 hover:bg-[#2d6cad]">Create your research workspace <ArrowRight size={17} /></Link>
-              <Link to="/discover" className="inline-flex min-h-13 items-center gap-2 rounded-2xl border border-[#c7d9e8] bg-white/85 px-6 py-4 text-sm font-semibold text-[#234a70] transition hover:border-[#6da5ce] hover:bg-white">Search scholarly literature <MoveUpRight size={16} /></Link>
+              <Link to={PROJECT_SIGNUP_HREF} className="inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-[#1c528e] px-7 py-4 text-sm font-semibold text-white shadow-[0_12px_30px_-12px_rgba(28,82,142,0.55)] transition hover:-translate-y-0.5 hover:bg-[#2d6cad]">Create a workspace <ArrowRight size={17} /></Link>
+              <Link to="/discover" className="inline-flex min-h-13 items-center gap-2 rounded-2xl border border-[#c7d9e8] bg-white/85 px-6 py-4 text-sm font-semibold text-[#234a70] transition hover:border-[#6da5ce] hover:bg-white">Browse research <MoveUpRight size={16} /></Link>
             </div>
-            <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-[#617e94]"><span>✦ Explore sources before signing up</span><span>✦ Private saved workspace after sign-in</span><span>✦ AI interpretation clearly distinguished from evidence</span></div>
+            <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-[#617e94]"><span>Explore before signing up</span><span>Save research in your workspace</span><span>Follow original scholarly sources</span></div>
           </div>
-          <div className="relative mx-auto w-full max-w-[31rem]" aria-label="Illustration of connected EYLO research and innovation tools">
-            <div className="absolute inset-10 rounded-full bg-gradient-to-tr from-[#b6e6e0]/70 to-[#bbd9f7]/80 blur-[65px]" />
-            <div className="relative rounded-[2.5rem] border border-white/90 bg-white/65 p-4 shadow-[0_35px_100px_-45px_rgba(51,100,145,0.38)] backdrop-blur-xl sm:p-6">
-              <div className="flex items-center justify-between"><div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#356fad] to-[#6bb4cc] text-white"><Sparkles size={19} /></span><div><p className="text-sm font-bold text-[#20466e]">EYRA</p><p className="text-[11px] text-[#6b8aa0]">Your research companion</p></div></div><span className="rounded-full bg-[#e5f6ee] px-3 py-1 text-[10px] font-semibold text-[#3d8c75]">Research workspace preview</span></div>
-              <div className="mt-5 rounded-2xl border border-[#e0eaf3] bg-white p-5 shadow-sm"><p className="text-xs font-semibold uppercase tracking-[0.13em] text-[#7194b1]">It starts with a question</p><p className="mt-2 font-heading text-xl font-semibold leading-snug text-[#1e4263]">How does this evidence inform the next experiment?</p><div className="mt-4 flex items-center gap-2 rounded-xl bg-[#eff7fc] px-3 py-2.5 text-xs text-[#5b86a8]"><Search size={14} /> Search scholarly evidence <ArrowRight className="ml-auto" size={14} /></div></div>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-[#dfeaf5] bg-[#f4f9ff] p-4"><BookOpen className="text-[#477fb4]" size={22} /><p className="mt-4 text-sm font-bold text-[#284e72]">Discover</p><p className="mt-1 text-xs text-[#6d8ba4]">Evidence & ideas</p></div>
-                <div className="rounded-2xl border border-[#e1eee8] bg-[#f2faf6] p-4"><Users className="text-[#389784]" size={22} /><p className="mt-4 text-sm font-bold text-[#284e72]">Connect</p><p className="mt-1 text-xs text-[#6d8ba4]">People & expertise</p></div>
-                <div className="rounded-2xl border border-[#e8e3f5] bg-[#f8f5ff] p-4"><Lightbulb className="text-[#8c7bc0]" size={22} /><p className="mt-4 text-sm font-bold text-[#284e72]">Create</p><p className="mt-1 text-xs text-[#6d8ba4]">Projects & pathways</p></div>
-                <div className="rounded-2xl border border-[#f4e9d8] bg-[#fffaf2] p-4"><Rocket className="text-[#cc9553]" size={22} /><p className="mt-4 text-sm font-bold text-[#284e72]">Grow</p><p className="mt-1 text-xs text-[#6d8ba4]">Funding & impact</p></div>
-              </div>
-              <p className="mt-4 text-center text-[11px] text-[#7290a5]">Illustrative interface · Research evidence requires verification</p>
-            </div>
+          <div className="relative self-center border-l-2 border-[#9bc3dc] pl-6 sm:pl-9" aria-label="Explore research with EYLO">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#47779c]">Begin with a question</p>
+            <h2 className="mt-4 font-heading text-2xl font-semibold leading-snug text-[#193b57] sm:text-3xl">What are you working on?</h2>
+            <p className="mt-3 max-w-md text-sm leading-7 text-[#536f85]">Explore published research and follow the original sources. No account needed to start.</p>
+            <form onSubmit={explore} className="mt-7 rounded-2xl border border-[#d0e0eb] bg-white p-2 shadow-[0_12px_35px_-28px_rgba(37,77,110,0.45)]">
+              <label htmlFor="research-question" className="sr-only">Research question</label>
+              <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="Enter a topic or research question" className="w-full rounded-xl bg-transparent px-3 py-3 text-sm text-[#20466e] outline-none placeholder:text-[#829aac] focus-visible:ring-2 focus-visible:ring-[#7eb1d1]" />
+              <button type="submit" className="mt-1 inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-xl bg-[#1c528e] px-5 text-sm font-semibold text-white hover:bg-[#2a6ba9]">Explore research <ArrowRight size={16} /></button>
+            </form>
+            <div className="mt-4 flex flex-wrap gap-2">{EXAMPLES.map(example => <button key={example} type="button" onClick={() => setQuestion(example)} className="rounded-full border border-[#d6e3ec] bg-white/65 px-3 py-2 text-xs text-[#567a95] hover:border-[#80afcf] hover:text-[#1c528e]">{example}</button>)}</div>
           </div>
         </div>
-        <div className="relative mx-auto mt-16 max-w-5xl rounded-3xl border border-[#d7e7f2] bg-white/80 p-3 shadow-[0_16px_50px_-30px_rgba(55,100,150,0.32)] backdrop-blur-md sm:p-4">
-          <form onSubmit={explore} className="flex flex-col gap-2 md:flex-row md:items-center">
-            <label htmlFor="research-question" className="sr-only">Research question</label>
-            <Search size={19} className="mx-3 hidden text-[#76a0bd] md:block" aria-hidden="true" />
-            <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="Try: trajectory prediction for autonomous driving" className="min-w-0 flex-1 rounded-xl bg-transparent px-4 py-3 text-base text-[#20466e] outline-none placeholder:text-[#92aab9] focus-visible:ring-2 focus-visible:ring-[#7eb1d1]" />
-            <button type="submit" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#1c528e] px-6 text-sm font-semibold text-white hover:bg-[#2a6ba9]">Search literature <ArrowRight size={16} /></button>
-          </form>
-          <p className="px-2 pt-3 text-xs text-[#58758d]">Search real scholarly indexes without creating an account. Results include source links; verify AI interpretations before relying on them.</p>
-          <div className="flex flex-wrap gap-2 px-2 pb-1 pt-3">{EXAMPLES.map(example => <button key={example} type="button" onClick={() => setQuestion(example)} className="rounded-full border border-[#d8e8f1] bg-[#f6fbff] px-3 py-2 text-xs text-[#63839d] hover:border-[#80afcf] hover:text-[#1c528e]">{example}</button>)}</div>
-        </div>
+
       </section>
 
       <section aria-labelledby="standards-heading" className="border-y border-slate-200 bg-[#f1f5f9] px-5 py-10 sm:px-8">
