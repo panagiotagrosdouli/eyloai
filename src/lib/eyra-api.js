@@ -154,7 +154,7 @@ export async function searchResearchPeopleByPublications(query, limit = 25, stri
       for (const authorship of work.authorships || []) {
         const author = authorship.author || {};
         const id = String(author.id || '');
-        if (!/^https:\\/\\/openalex\\.org\\/A\\d+$/.test(id) || !author.display_name) continue;
+        if (!/^https:\/\/openalex\.org\/A\d+$/.test(id) || !author.display_name) continue;
         const institution = authorship.institutions?.[0];
         const country = institution?.country_code || '';
         if (strictOptions.country && country !== strictOptions.country) continue;
