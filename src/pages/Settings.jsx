@@ -217,9 +217,13 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-foreground">Personalization</p>
-                    <p className="text-xs text-muted-foreground">Allow EYRA to learn from your activity</p>
+                    <p className="text-xs text-muted-foreground">Use saved research context when personalization is enabled</p>
                   </div>
                   <button
+                    type="button"
+                    role="switch"
+                    aria-label="Activity personalization"
+                    aria-checked={Boolean(prefs.data_personalization)}
                     onClick={() => savePrefs({ data_personalization: !prefs.data_personalization })}
                     className={`w-10 h-6 rounded-full transition-all ${prefs.data_personalization ? 'bg-primary' : 'bg-border'}`}
                   >
@@ -307,7 +311,7 @@ export default function Settings() {
       case 'privacy':
         return (
           <div>
-            <SectionHeader title="Privacy" desc="Control your data and how it's used." />
+            <SectionHeader title="Privacy" desc="Understand data processing and manage local personalization preferences." />
             <div className="space-y-3">
               <div className="p-4 rounded-xl border border-border bg-card">
                 <p className="text-sm font-semibold text-foreground mb-1">Your Data</p>
@@ -321,11 +325,18 @@ export default function Settings() {
                   <p className="text-xs text-muted-foreground">Use my research history to personalize EYRA</p>
                 </div>
                 <button
+                  type="button"
+                  role="switch"
+                  aria-label="Activity personalization"
+                  aria-checked={Boolean(prefs.data_personalization)}
                   onClick={() => savePrefs({ data_personalization: !prefs.data_personalization })}
                   className={`w-10 h-6 rounded-full transition-all flex-shrink-0 ${prefs.data_personalization ? 'bg-primary' : 'bg-border'}`}
                 >
                   <div className={`w-4 h-4 rounded-full bg-white mx-1 transition-transform ${prefs.data_personalization ? 'translate-x-4' : 'translate-x-0'}`} />
                 </button>
+              </div>
+              <div className="rounded-xl border border-border bg-secondary/20 p-4 text-xs leading-6 text-muted-foreground">
+                This preference is stored on your current device. It is not an account-data deletion request and does not erase previously saved research records. EYLO currently does not provide a verified self-service account deletion or complete data export workflow in this Settings screen.
               </div>
             </div>
           </div>
