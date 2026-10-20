@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import {
   User, Palette, Bell, Brain, Mic, Shield, CreditCard,
-  Eye, ChevronRight, Check, Sun, Moon, Monitor, Volume2, Languages
+  Eye, ChevronRight, Check, Sun, Moon, Monitor, Volume2, Languages, Download
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { loadPreferences, savePreferences } from '@/lib/preferences';
@@ -88,6 +88,25 @@ export default function Settings() {
     const updated = savePreferences(newPrefs);
     setPrefs(updated);
     toast({ title: 'Settings applied', description: 'Saved on this device and active now.' });
+  };
+
+  const exportDevicePreferences = () => {
+    const exportData = {
+      type: 'eylo-device-preferences',
+      version: 1,
+      exported_at: new Date().toISOString(),
+      preferences: loadPreferences(),
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'eylo-device-preferences.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast({ title: 'Device preferences exported', description: 'Your workspace and account data are not included.' });
   };
 
   const enableBrowserNotifications = async () => {
@@ -333,6 +352,14 @@ export default function Settings() {
                   className={`w-10 h-6 rounded-full transition-all flex-shrink-0 ${prefs.data_personalization ? 'bg-primary' : 'bg-border'}`}
                 >
                   <div className={`w-4 h-4 rounded-full bg-white mx-1 transition-transform ${prefs.data_personalization ? 'translate-x-4' : 'translate-x-0'}`} />
+                </button>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4">
+                <h3 className="text-sm font-semibold text-foreground">Download device preferences</h3>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">Export the settings saved in this browser as JSON. This does not export cloud projects, history, papers, billing records or your account.</p>
+                <button type="button" onClick={exportDevicePreferences}
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-secondary">
+                  <Download size={14} aria-hidden="true" /> Export device preferences
                 </button>
               </div>
               <div className="rounded-xl border border-border bg-secondary/20 p-4 text-xs leading-6 text-muted-foreground">
