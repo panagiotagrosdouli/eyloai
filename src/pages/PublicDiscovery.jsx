@@ -258,11 +258,12 @@ export default function PublicDiscovery() {
             <section className="relative overflow-hidden rounded-[2rem] border border-cyan-200/10 bg-slate-950/70 p-6 sm:p-9">
               <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
               <div className="relative">
-                <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-cyan-300"><ShieldCheck size={12} /> Verified report</div>
+                <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-cyan-300"><ShieldCheck size={12} /> Source-linked discovery results</div>
                 <h1 className="mt-3 font-heading text-3xl font-black sm:text-5xl">{initialQuery}</h1>
                 <p className="mt-4 text-xs text-slate-400">{level} · {goal} · {recency.replace('_', ' ')}</p>
                 <div className="mt-5 flex flex-wrap gap-2">{sourceIndexes.map(source => <span key={source} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] text-slate-300">{source}</span>)}</div>
                 <p className="mt-4 text-[10px] text-slate-500">{data.papers.length} deduplicated papers · {data.researchers.length} researchers · {data.institutions.length} institutions</p>
+                <p className="mt-3 max-w-3xl text-xs leading-5 text-slate-400">Bibliographic records come from external indexes. EYLO does not independently verify peer review, claims, findings, or publication quality. Open the original source before relying on a result.</p>
                 {data.papers.length > 0 && (
                   <div className="mt-5 flex flex-wrap items-center gap-3">
                     <button type="button" onClick={() => exportCitations('bib')} className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20"><Download size={14} /> Export BibTeX</button>
