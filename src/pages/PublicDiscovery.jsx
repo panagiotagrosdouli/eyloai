@@ -2,11 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Building2, ExternalLink, Loader2,
-  RefreshCw, Search, ShieldCheck, Users,
+  RefreshCw, Search, ShieldCheck, Users, Download,
 } from 'lucide-react';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import GuidedSearch, { normalizeDiscoveryRequest } from '@/components/discovery/GuidedSearch';
 import BrandLogo from '@/components/brand/BrandLogo';
+import { toBibTeX, toRIS } from '@/utils/citation-export';
 
 function EmptyState({ children }) {
   return <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">{children}</div>;
@@ -149,6 +150,21 @@ export default function PublicDiscovery() {
     return { start, latest, foundational, relevant };
   }, [data.papers]);
 
+  const exportCitations = format => {
+    const papers = data.papers || [];
+    if (!papers.length) return;
+    const content = format === 'bib' ? toBibTeX(papers) : toRIS(papers);
+    const blob = new Blob([content], { type: format === 'bib' ? 'application/x-bibtex;charset=utf-8' : 'application/x-research-info-systems;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'eylo-references.' + format;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  };
+
   const sourceIndexes = [...new Set((data.papers || []).map(paper => paper.source_index || paper.source).filter(Boolean))];
   const unavailableSources = sourceStatus.filter(source => source.status === 'unavailable');
   const availableSources = sourceStatus.filter(source => source.status === 'available');
@@ -231,6 +247,13 @@ export default function PublicDiscovery() {
                 <p className="mt-4 text-xs text-slate-400">{level} · {goal} · {recency.replace('_', ' ')}</p>
                 <div className="mt-5 flex flex-wrap gap-2">{sourceIndexes.map(source => <span key={source} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] text-slate-300">{source}</span>)}</div>
                 <p className="mt-4 text-[10px] text-slate-500">{data.papers.length} deduplicated papers · {data.researchers.length} researchers · {data.institutions.length} institutions</p>
+                {data.papers.length > 0 && (
+                  <div className="mt-5 flex flex-wrap items-center gap-3">
+                    <button type="button" onClick={() => exportCitations('bib')} className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20"><Download size={14} /> Export BibTeX</button>
+                    <button type="button" onClick={() => exportCitations('ris')} className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20"><Download size={14} /> Export RIS</button>
+                    <span className="text-[11px] text-slate-400">Metadata only. Check author names, publication details and DOI against the source before citing.</span>
+                  </div>
+                )}
               </div>
             </section>
 
