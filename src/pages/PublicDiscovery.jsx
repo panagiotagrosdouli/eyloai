@@ -189,6 +189,22 @@ export default function PublicDiscovery() {
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Evidence discovery</p>
             <h1 className="mx-auto mt-3 w-fit font-heading text-4xl font-black tracking-tight sm:text-6xl">Start a search.</h1>
             <div className="mx-auto mt-8 max-w-5xl text-left"><GuidedSearch onSearch={runGuidedSearch} /></div>
+            <div className="mx-auto mt-5 flex max-w-3xl flex-wrap items-center justify-center gap-2" aria-label="Example research searches">
+              <span className="text-xs text-muted-foreground">Try an example:</span>
+              {[
+                'Visual-inertial odometry',
+                'Trajectory prediction for autonomous vehicles',
+                'AI for drug discovery',
+              ].map(example => (
+                <button key={example} type="button" onClick={() => setParams({ q: example })}
+                  className="rounded-full border border-border bg-card px-3 py-2 text-xs text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5">
+                  {example}
+                </button>
+              ))}
+            </div>
+            <p className="mx-auto mt-4 max-w-xl text-xs text-muted-foreground">
+              No account needed to explore public literature. Refine your goal and research level before searching.
+            </p>
           </section>
         )}
 
