@@ -4,6 +4,7 @@ import {
   Target, Wrench, X,
 } from 'lucide-react';
 import { trackGuidedSearchCompleted } from '@/lib/product-analytics';
+import VoiceSearchButton from './VoiceSearchButton';
 
 export const DISCOVERY_LEVELS = [
   { id: 'beginner', label: 'New to the topic', desc: 'Explain terms and choose approachable starting papers', icon: Compass },
@@ -103,6 +104,7 @@ export default function GuidedSearch({
             placeholder="Enter a topic, research question, project, or decision…"
             className="min-w-0 flex-1 bg-transparent px-3 py-3.5 text-sm text-foreground outline-none placeholder:text-muted-foreground"
           />
+          <VoiceSearchButton onTranscript={text => setDraftTopic(text)} />
           {draftTopic && (
             <button type="button" onClick={() => setDraftTopic('')} aria-label="Clear topic" className="rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground">
               <X size={13} />

@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { scoreSupervisorCandidate, normalizeCountry } from '@/lib/supervisor-matching';
 import { findIndustryResearchLabs } from '@/lib/industry-research-labs';
 import { extractCvText } from '@/lib/cv-extraction';
+import VoiceSearchButton from '@/components/discovery/VoiceSearchButton';
 
 const initials = name => String(name || '?').trim().split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase()).join('') || '?';
 
@@ -104,12 +105,19 @@ export default function Researchers() {
       // Field queries frequently match publications rather than author names.
       // Return real named authors from matching papers when author search is sparse.
       const normalizedTopic = q.replace(/\\bph\\.?d\\.?\\b|\\bdoctorate\\b|\\bdoctoral\\b/gi, '').trim();
-      const direct = await searchOpenAlexAuthors(normalizedTopic || q, 25, { throwOnError: true, page: nextPage, country: countryFilter });
-      let data = direct;
-      if (direct.length < 10) {
-        const publicationAuthors = await searchResearchPeopleByPublications(q, 25, { page: nextPage, country: countryFilter });
-        data = [...direct, ...publicationAuthors.filter(person => !direct.some(author => author.id === person.id))].slice(0, 25);
+      // A field is not an author name: query publication authors independently,
+      // so sparse or failed author-name search does not hide relevant researchers.
+      const [authorOutcome, publicationOutcome] = await Promise.allSettled([
+        searchOpenAlexAuthors(normalizedTopic || q, 25, { throwOnError: true, page: nextPage, country: countryFilter }),
+        searchResearchPeopleByPublications(q, 25, { page: nextPage, country: countryFilter }),
+      ]);
+      if (authorOutcome.status === 'rejected' && publicationOutcome.status === 'rejected') {
+        throw new Error('Both researcher providers failed');
       }
+      const direct = authorOutcome.status === 'fulfilled' ? authorOutcome.value : [];
+      const publicationAuthors = publicationOutcome.status === 'fulfilled' ? publicationOutcome.value : [];
+      const data = [...direct, ...publicationAuthors.filter(person =>
+        !direct.some(author => author.id === person.id))].slice(0, 25);
       if (requestId === searchSequence.current) {
         setResults(previous => nextPage === 1 ? data : [
           ...previous,
@@ -247,8 +255,9 @@ Kind regards,
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search by research field, topic, or name..."
-          className="w-full h-12 pl-11 pr-36 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition-all"
+          className="w-full h-12 pl-11 pr-44 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition-all"
         />
+        <span className="absolute right-24 top-1/2 -translate-y-1/2"><VoiceSearchButton onTranscript={text => setQuery(text)} disabled={loading} /></span>
         <button
           type="submit"
           disabled={!query.trim() || loading}
