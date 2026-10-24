@@ -1,6 +1,8 @@
 name: Public production smoke
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       target_url:
@@ -16,11 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Allow production alias to update after merge
+        if: github.event_name == 'push'
+        run: sleep 75
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
       - name: Check public landing, release manifest and robots policy
         env:
-          EYLO_SMOKE_URL: ${{ inputs.target_url }}
+          EYLO_SMOKE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.target_url || 'https://eyloai.vercel.app' }}
         run: node scripts/smoke-public.mjs
