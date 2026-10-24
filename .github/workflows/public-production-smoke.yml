@@ -1,0 +1,26 @@
+name: Public production smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Reviewed public HTTPS origin to check'
+        required: true
+        default: 'https://eyloai.vercel.app'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check public landing, release manifest and robots policy
+        env:
+          EYLO_SMOKE_URL: ${{ inputs.target_url }}
+        run: node scripts/smoke-public.mjs
