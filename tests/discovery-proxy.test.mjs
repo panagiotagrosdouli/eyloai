@@ -143,3 +143,47 @@ test('discovery proxy gives uncached 502 when a research source is unreachable',
     globalThis.fetch = originalFetch;
   }
 });
+
+test('discovery proxy preserves Greek topic queries when searching researchers', async () => {
+  const originalFetch = globalThis.fetch;
+  let requestedUrl = '';
+  globalThis.fetch = async url => {
+    requestedUrl = String(url);
+    return new Response(JSON.stringify({ results: [] }), { status: 200, headers: { 'content-type': 'application/json' } });
+  };
+  try {
+    const response = createResponse();
+    await handler({ method: 'GET', query: { provider: 'openalex_authors', q: 'τεχνητή νοημοσύνη', page: '2', limit: '12', country: 'gr' } }, response);
+    const upstream = new URL(requestedUrl);
+    assert.equal(response.statusCode, 200);
+    assert.equal(upstream.hostname, 'api.openalex.org');
+    assert.equal(upstream.pathname, '/authors');
+    assert.equal(upstream.searchParams.get('search'), 'τεχνητή νοημοσύνη');
+    assert.equal(upstream.searchParams.get('page'), '2');
+    assert.equal(upstream.searchParams.get('per_page'), '12');
+    assert.equal(upstream.searchParams.get('filter'), 'last_known_institutions.country_code:GR');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('discovery proxy rejects malformed paging and country filters without upstream calls', async () => {
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async () => { calls++; throw new Error('unexpected call'); };
+  try {
+    for (const query of [
+      { provider: 'openalex_authors', q: 'robotics', page: '0' },
+      { provider: 'openalex_authors', q: 'robotics', page: '2.5' },
+      { provider: 'openalex_authors', q: 'robotics', page: '201' },
+      { provider: 'openalex_authors', q: 'robotics', country: 'GR|US' },
+    ]) {
+      const response = createResponse();
+      await handler({ method: 'GET', query }, response);
+      assert.equal(response.statusCode, 400);
+    }
+    assert.equal(calls, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
