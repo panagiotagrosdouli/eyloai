@@ -4,9 +4,10 @@ import {
   AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Building2, ExternalLink, Loader2,
   RefreshCw, Search, ShieldCheck, Users, Download,
 } from 'lucide-react';
-import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
+import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchResearchPeopleByPublications, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import GuidedSearch, { normalizeDiscoveryRequest } from '@/components/discovery/GuidedSearch';
 import BrandLogo from '@/components/brand/BrandLogo';
+import VoiceSearchButton from '@/components/discovery/VoiceSearchButton';
 import { toBibTeX, toRIS } from '@/utils/citation-export';
 
 function EmptyState({ children }) {
@@ -49,10 +50,10 @@ function PaperGroup({ title, eyebrow, description, papers }) {
 export default function PublicDiscovery() {
   const [params, setParams] = useSearchParams();
   const initialQuery = params.get('q') || '';
-  const level = params.get('level') || '';
-  const goal = params.get('goal') || '';
-  const recency = params.get('recency') || '';
-  const refined = Boolean(initialQuery && level && goal && recency);
+  const level = params.get('level') || 'researcher';
+  const goal = params.get('goal') || 'review';
+  const recency = params.get('recency') || 'balanced';
+  const refined = Boolean(initialQuery);
   const [query, setQuery] = useState(initialQuery);
   const [data, setData] = useState({ papers: [], researchers: [], institutions: [] });
   const [loading, setLoading] = useState(refined);
@@ -75,7 +76,15 @@ export default function PublicDiscovery() {
 
       const [paperResult, researcherResult, institutionResult] = await Promise.allSettled([
         searchAllPapersWithStatus(initialQuery, { ...profile, limit: 24 }),
-        searchOpenAlexAuthors(initialQuery, 8, { throwOnError: true }),
+        Promise.allSettled([
+          searchOpenAlexAuthors(initialQuery, 8, { throwOnError: true }),
+          searchResearchPeopleByPublications(initialQuery, 12),
+        ]).then(outcomes => {
+          if (outcomes.every(outcome => outcome.status === 'rejected')) throw new Error('Researcher sources unavailable');
+          const direct = outcomes[0].status === 'fulfilled' ? outcomes[0].value : [];
+          const fromPapers = outcomes[1].status === 'fulfilled' ? outcomes[1].value : [];
+          return [...direct, ...fromPapers.filter(person => !direct.some(author => author.id === person.id))].slice(0, 12);
+        }),
         searchOpenAlexInstitutions(initialQuery, 6, { throwOnError: true }),
       ]);
       if (!active) return;
@@ -127,7 +136,7 @@ export default function PublicDiscovery() {
   const submitHeader = event => {
     event.preventDefault();
     const value = query.trim();
-    if (value) setParams({ q: value });
+    if (value) setParams({ q: value, level, goal, recency });
   };
 
   const runGuidedSearch = request => {
@@ -176,7 +185,8 @@ export default function PublicDiscovery() {
           <Link to="/" className="flex items-center gap-2 text-sm font-semibold" aria-label="Back to EYLO"><ArrowLeft size={15} /><BrandLogo brand="eylo" size="nav" priority /></Link>
           <form onSubmit={submitHeader} className="ml-auto flex w-full max-w-2xl items-center rounded-2xl border border-border bg-card p-1.5">
             <Search className="ml-3 text-muted-foreground" size={15} />
-            <input value={query} onChange={event => setQuery(event.target.value)} aria-label="Research topic" className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none" placeholder="Search a research topic…" />
+            <input value={query} onChange={event => setQuery(event.target.value)} aria-label="Research topic" className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none" placeholder="Ask anything: topic, question or researcher…" />
+            <VoiceSearchButton onTranscript={text => setQuery(text)} />
             <button type="submit" className="rounded-xl eyra-gradient px-4 py-2 text-xs font-semibold text-white">Refine</button>
           </form>
           <Link to="/register" className="hidden rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background sm:block">Save research</Link>
@@ -203,7 +213,7 @@ export default function PublicDiscovery() {
               ))}
             </div>
             <p className="mx-auto mt-4 max-w-xl text-xs text-muted-foreground">
-              No account needed to explore public literature. Refine your goal and research level before searching.
+              Search any academic subject by typing or speaking. Results depend on verified scholarly indexes; refine filters whenever needed.
             </p>
           </section>
         )}
@@ -280,7 +290,7 @@ export default function PublicDiscovery() {
             <PaperGroup eyebrow="Broaden the map" title="More relevant evidence" description="Additional deduplicated records from across the connected scholarly indexes." papers={groups.relevant} />
 
             <section>
-              <div className="mb-5"><p className="text-[10px] font-bold uppercase tracking-wider text-primary">People behind the evidence</p><h2 className="mt-1 font-heading text-2xl font-bold">Researchers</h2><p className="mt-2 text-sm text-muted-foreground">Profiles indicate publication activity, not availability or endorsement.</p></div>
+              <div className="mb-5"><p className="text-[10px] font-bold uppercase tracking-wider text-primary">People behind the evidence</p><h2 className="mt-1 font-heading text-2xl font-bold">Researchers</h2><p className="mt-2 text-sm text-muted-foreground">Profiles come from author and topic-matched publication records; this is not an exhaustive directory or a guarantee of expertise, availability or endorsement.</p><Link to={`/researchers?q=${encodeURIComponent(initialQuery)}`} className="mt-3 inline-flex text-sm font-semibold text-primary">Explore more researchers <ArrowRight size={13} className="ml-1 mt-1" /></Link></div>
               {data.researchers.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{data.researchers.map(researcher => (
                 <article key={researcher.id} className="rounded-3xl border border-border bg-card p-5">
                   <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Users size={18} /></div>
