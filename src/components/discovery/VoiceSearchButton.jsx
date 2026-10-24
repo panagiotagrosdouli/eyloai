@@ -20,7 +20,7 @@ export default function VoiceSearchButton({ onTranscript, disabled = false, lang
       recognitionRef.current.stop();
       return;
     }
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = Reflect.get(window, 'SpeechRecognition') || Reflect.get(window, 'webkitSpeechRecognition');
     if (!SpeechRecognition) {
       setError('Voice input is not supported in this browser. Type your search instead.');
       return;
