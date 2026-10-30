@@ -22,7 +22,7 @@ jobs:
         if: github.event_name == 'push'
         run: sleep 75
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '24'
       - name: Check public landing, release manifest and robots policy
