@@ -426,8 +426,8 @@ Be concise and actionable.`,
           )}
 
           {meeting.eyra_prep && !loadingPrep && (
-            <div className="p-5 rounded-xl border border-primary/20 bg-primary/5">
-              <ReactMarkdown className="text-sm prose prose-sm prose-invert max-w-none">{meeting.eyra_prep}</ReactMarkdown>
+            <div className="p-5 rounded-xl border border-primary/20 bg-primary/5 text-sm prose prose-sm prose-invert max-w-none">
+              <ReactMarkdown>{meeting.eyra_prep}</ReactMarkdown>
             </div>
           )}
 
@@ -483,11 +483,11 @@ Be concise and actionable.`,
           )}
 
           {meeting.summary && !loadingDebrief && (
-            <div className="p-5 rounded-xl border border-primary/20 bg-primary/5">
+            <div className="p-5 rounded-xl border border-primary/20 bg-primary/5 text-sm prose prose-sm prose-invert max-w-none">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-3 flex items-center gap-1.5">
                 <Sparkles size={10} /> EYRA Debrief
               </p>
-              <ReactMarkdown className="text-sm prose prose-sm prose-invert max-w-none">{meeting.summary}</ReactMarkdown>
+              <ReactMarkdown>{meeting.summary}</ReactMarkdown>
             </div>
           )}
         </div>
