@@ -94,11 +94,21 @@ async function stripeRequest(path, body, { idempotencyKey } = {}) {
   return result;
 }
 
-function applicationUrl(request) {
-  const configured = process.env.APP_URL?.replace(/\/$/, '');
-  if (configured) return configured;
-  const host = process.env.VERCEL_PROJECT_PRODUCTION_URL || request.headers.host || 'eyloai.vercel.app';
-  return host.startsWith('http') ? host : `https://${host}`;
+function applicationUrl() {
+  // Never build billing return URLs from an untrusted incoming Host header.
+  // Use a reviewed canonical origin; previews require an explicit APP_URL.
+  const raw = process.env.APP_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL || 'eyloai.vercel.app';
+  const candidate = raw.startsWith('https://') ? raw : `https://${raw}`;
+  let url;
+  try {
+    url = new URL(candidate);
+  } catch {
+    throw new Error('Invalid configured billing return URL.');
+  }
+  if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash || url.pathname !== '/') {
+    throw new Error('Billing return URL must be a clean HTTPS origin.');
+  }
+  return url.origin;
 }
 
 function checkoutIdempotencyKey(userId, plan) {
@@ -110,6 +120,7 @@ function checkoutIdempotencyKey(userId, plan) {
 }
 
 export default async function handler(request, response) {
+  response.setHeader('Cache-Control', 'private, no-store');
   if (!['GET', 'POST'].includes(request.method)) {
     response.setHeader('Allow', 'GET, POST');
     return response.status(405).json({ error: 'Method not allowed.' });
@@ -138,7 +149,7 @@ export default async function handler(request, response) {
     }
 
     const action = String(request.body?.action || 'checkout');
-    const appUrl = applicationUrl(request);
+    const appUrl = applicationUrl();
 
     if (action === 'portal') {
       if (!auth.entitlement.stripe_customer_id) {
