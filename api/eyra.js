@@ -126,6 +126,7 @@ async function authenticate(authorization) {
   const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
     headers: { authorization: bearer, apikey: publicKey },
     cache: 'no-store',
+    signal: AbortSignal.timeout(15_000),
   });
   if (!authResponse.ok) {
     console.warn('EYRA auth rejected', { reason: 'supabase_user_rejected', status: authResponse.status });
@@ -313,6 +314,7 @@ export default async function handler(request, response) {
         'content-type': 'application/json',
       },
       body: JSON.stringify(requestBody),
+      signal: AbortSignal.timeout(60_000),
     });
 
     if (!openAiResponse.ok) {
