@@ -14,6 +14,11 @@ updates:
       - dependency-name: react-dom
         update-types:
           - version-update:semver-major
+      # react-leaflet v5 requires React 19; keep the v4 line with React 18.
+      # Revisit this when the React/react-quill migration is completed.
+      - dependency-name: react-leaflet
+        update-types:
+          - version-update:semver-major
     groups:
       production-dependencies:
         dependency-type: production
