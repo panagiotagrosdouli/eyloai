@@ -23,6 +23,13 @@ const checks = [
   { path: '/', type: 'html', label: 'Landing HTML' },
   { path: '/release.json', type: 'json', label: 'Release manifest' },
   { path: '/robots.txt', type: 'text', label: 'Robots policy' },
+  // These routes must be reachable on a fresh, unauthenticated browser request.
+  // An SPA fallback is expected; these checks do not claim client-side auth works.
+  { path: '/discover', type: 'html', label: 'Public discovery route' },
+  { path: '/login', type: 'html', label: 'Login route' },
+  { path: '/register', type: 'html', label: 'Registration route' },
+  { path: '/forgot-password', type: 'html', label: 'Recovery route' },
+  { path: '/api/capabilities', type: 'capabilities', label: 'Server capability endpoint' },
 ];
 
 let failed = false;
@@ -34,13 +41,24 @@ for (const check of checks) {
     const response = await fetch(url, {
       signal: controller.signal,
       redirect: 'manual',
-      headers: { Accept: check.type === 'json' ? 'application/json' : '*/*' },
+      headers: { Accept: ['json', 'capabilities'].includes(check.type) ? 'application/json' : '*/*' },
     });
     if (response.status !== 200) throw new Error(`HTTP ${response.status} (expected 200)`);
     const body = await response.text();
     if (!body.trim()) throw new Error('Empty response');
     if (check.type === 'html' && (!/<html[\s>]/i.test(body) || !/<div[^>]+id=["']root["']/i.test(body))) {
       throw new Error('Not the expected React application HTML');
+    }
+    if (check.type === 'capabilities') {
+      const data = JSON.parse(body);
+      for (const key of ['ai', 'billing', 'scheduled_monitoring', 'institution_analytics']) {
+        if (typeof data[key] !== 'boolean') throw new Error(`Missing or invalid boolean capability: ${key}`);
+      }
+      // The public endpoint must expose availability flags, not credentials.
+      const allowed = new Set(['ai', 'billing', 'scheduled_monitoring', 'institution_analytics']);
+      if (Object.keys(data).some(key => !allowed.has(key))) {
+        throw new Error('Unexpected capability response field');
+      }
     }
     if (check.type === 'json') {
       const data = JSON.parse(body);
