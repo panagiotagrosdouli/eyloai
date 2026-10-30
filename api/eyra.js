@@ -381,9 +381,17 @@ export default async function handler(request, response) {
     });
   } catch (error) {
     await releaseUsage(reservation);
+    const timedOut = error?.name === 'TimeoutError';
     console.error('EYRA function error', {
+      type: timedOut ? 'upstream_timeout' : 'unhandled_error',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
+    if (timedOut) {
+      return response.status(504).json({
+        error: 'EYRA timed out while contacting an external service. Please try again.',
+        code: 'UPSTREAM_TIMEOUT',
+      });
+    }
     return response.status(500).json({ error: 'EYRA is temporarily unavailable.' });
   }
 }
