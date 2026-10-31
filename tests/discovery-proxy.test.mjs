@@ -116,6 +116,38 @@ test('OpenAlex proxy uses a server-side API key without returning it to the brow
   assert.doesNotMatch(String(response.payload), /test-openalex-server-secret/);
 });
 
+test('Semantic Scholar proxy sends an optional server-side API key in its header only', async (t) => {
+  const originalFetch = globalThis.fetch;
+  const originalApiKey = process.env.SEMANTIC_SCHOLAR_API_KEY;
+  process.env.SEMANTIC_SCHOLAR_API_KEY = 'test-semantic-scholar-server-secret';
+  let requestedUrl = '';
+  let requestedHeaders;
+  globalThis.fetch = async (url, options) => {
+    requestedUrl = String(url);
+    requestedHeaders = options.headers;
+    return new Response(JSON.stringify({ data: [] }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+    if (originalApiKey === undefined) delete process.env.SEMANTIC_SCHOLAR_API_KEY;
+    else process.env.SEMANTIC_SCHOLAR_API_KEY = originalApiKey;
+  });
+
+  const response = createResponse();
+  await handler({
+    method: 'GET',
+    query: { provider: 'semantic_scholar', q: 'CRISPR gene editing', limit: '5' },
+  }, response);
+
+  assert.match(requestedUrl, /^https:\/\/api\.semanticscholar\.org\/graph\/v1\/paper\/search\?/);
+  assert.equal(requestedHeaders['x-api-key'], 'test-semantic-scholar-server-secret');
+  assert.doesNotMatch(requestedUrl, /test-semantic-scholar-server-secret/);
+  assert.doesNotMatch(String(response.payload), /test-semantic-scholar-server-secret/);
+});
+
 test('Crossref proxy requests the work type needed to exclude non-paper records', async () => {
   const originalFetch = globalThis.fetch;
   let requestedUrl = '';
