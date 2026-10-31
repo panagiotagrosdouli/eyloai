@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 7396)
-Total output lines: 658
-
 // EYRA Discovery Engine — Real Data Sources
 // OpenAlex, arXiv, Crossref, Europe PMC
 
@@ -9,9 +6,7 @@ import { httpStatusFromError } from './discovery-source-status.js';
 const OPENALEX_BASE = 'https://api.openalex.org';
 const RESEARCH_CONTACT_EMAIL = String(import.meta.env?.VITE_RESEARCH_CONTACT_EMAIL || '').trim();
 const OPENALEX_CONTACT = RESEARCH_CONTACT_EMAIL ? `&mailto=${encodeURIComponent(RESEARCH_CONTACT_EMAIL)}` : '';
-// Keep the browser-side deadline longer than the discovery proxy's 15s
-// upstream deadline so it can return the provider's HTTP status (for example
-// a proxy 504) instead of turning a slow source into a network error.
+// Allow the discovery proxy to return HTTP status for a slow scholarly source.
 const SOURCE_TIMEOUT_MS = 18_000;
 
 async function fetchWithTimeout(url, options = {}) {
@@ -209,7 +204,225 @@ export async function searchResearchPeopleByPublications(query, limit = 25, stri
   }
 }
 
-export async function searchOpenAlexInstitutions(query, li…2396 tokens truncated…&& term.length > 4) return term.slice(0, -1);
+export async function searchOpenAlexInstitutions(query, limit = 6, strictOptions = {}) {
+  try {
+    const directUrl = `${OPENALEX_BASE}/institutions?search=${encodeURIComponent(query)}&per_page=${limit}&sort=relevance_score:desc${OPENALEX_CONTACT}`;
+    const res = await fetchResearchSource('openalex_institutions', query, limit, 'relevance', directUrl, strictOptions);
+    if (!res.ok) throw new Error(`OpenAlex institution request failed: ${res.status}`);
+    const data = await res.json();
+    return (data.results || []).map(i => ({
+      id: i.id,
+      name: i.display_name,
+      type: i.type || 'institution',
+      country: i.country_code || '',
+      works_count: i.works_count || 0,
+      cited_by_count: i.cited_by_count || 0,
+      url: i.homepage_url || `https://openalex.org/institutions/${i.id?.split('/').pop()}`,
+    }));
+  } catch (error) {
+    return emptyOrThrow(error, strictOptions);
+  }
+}
+
+export async function searchArxiv(query, limit = 5, sort = 'relevance', strictOptions = {}) {
+  try {
+    const sortBy = sort === 'recent' ? 'submittedDate' : 'relevance';
+    const directUrl = `https://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(query)}&start=0&max_results=${limit}&sortBy=${sortBy}&sortOrder=descending`;
+    const res = await fetchResearchSource('arxiv', query, limit, sort, directUrl, strictOptions);
+    if (!res.ok) throw new Error(`arXiv request failed: ${res.status}`);
+    const text = await res.text();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(text, 'text/xml');
+    const entries = xml.querySelectorAll('entry');
+    return Array.from(entries).map(e => {
+      const published = e.querySelector('published')?.textContent || '';
+      const year = new Date(published).getFullYear();
+      return {
+        id: e.querySelector('id')?.textContent || '',
+        title: (e.querySelector('title')?.textContent || '').replace(/\s+/g, ' ').trim(),
+        authors: Array.from(e.querySelectorAll('author name')).slice(0, 4).map(n => n.textContent).join(', '),
+        summary: (e.querySelector('summary')?.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 400),
+        year,
+        url: e.querySelector('id')?.textContent || '',
+        type: 'preprint',
+        source: 'arXiv',
+        cited_by_count: 0,
+        open_access: true,
+        _score: Math.max(0, 10 - (new Date().getFullYear() - year) * 0.5), // recency only for arXiv
+      };
+    });
+  } catch (error) {
+    return emptyOrThrow(error, strictOptions);
+  }
+}
+
+export async function searchEuropePMC(query, limit = 5, strictOptions = {}) {
+  try {
+    const directUrl = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(query)}&format=json&pageSize=${limit}&sort=RELEVANCE`;
+    const res = await fetchResearchSource('europe_pmc', query, limit, 'relevance', directUrl, strictOptions);
+    if (!res.ok) throw new Error(`Europe PMC request failed: ${res.status}`);
+    const data = await res.json();
+    return (data.resultList?.result || []).map(r => {
+      const year = parseInt(r.pubYear) || null;
+      const citedBy = parseInt(r.citedByCount) || 0;
+      return {
+        id: r.id || r.pmid || '',
+        doi: r.doi || '',
+        title: r.title || 'Untitled',
+        authors: r.authorString || '',
+        summary: (r.abstractText || '').slice(0, 400),
+        year,
+        url: r.doi ? `https://doi.org/${r.doi}` : `https://europepmc.org/article/${r.source}/${r.id}`,
+        type: r.pubType || r.pubTypeList?.pubType?.[0] || '',
+        source: 'Europe PMC',
+        cited_by_count: citedBy,
+        open_access: r.isOpenAccess === 'Y',
+        _score: Math.min(Math.log10(citedBy + 1) * 10, 40) + Math.max(0, 10 - (new Date().getFullYear() - (year || 2000)) * 0.5),
+      };
+    });
+  } catch (error) {
+    return emptyOrThrow(error, strictOptions);
+  }
+}
+
+export async function searchCrossref(query, limit = 5, sort = 'relevance', strictOptions = {}) {
+  try {
+    const params = new URLSearchParams({
+      query,
+      rows: String(limit),
+      select: 'DOI,title,author,abstract,published,container-title,type,is-referenced-by-count,URL',
+    });
+    if (RESEARCH_CONTACT_EMAIL) params.set('mailto', RESEARCH_CONTACT_EMAIL);
+    if (sort === 'recent') {
+      params.set('sort', 'published');
+      params.set('order', 'desc');
+    }
+    const directUrl = `https://api.crossref.org/works?${params}`;
+    const res = await fetchResearchSource('crossref', query, limit, sort, directUrl, strictOptions);
+    if (!res.ok) throw new Error(`Crossref request failed: ${res.status}`);
+    const data = await res.json();
+
+    return (data.message?.items || []).map((work) => {
+      const dateParts = work.published?.['date-parts']?.[0] || [];
+      const year = Number(dateParts[0]) || null;
+      const authors = (work.author || []).slice(0, 4).map((author) =>
+        [author.given, author.family].filter(Boolean).join(' ')
+      ).filter(Boolean).join(', ');
+      const citedBy = Number(work['is-referenced-by-count']) || 0;
+      const abstract = (work.abstract || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
+      return {
+        id: work.DOI || work.URL,
+        doi: work.DOI || '',
+        title: work.title?.[0] || 'Untitled',
+        authors,
+        summary: abstract.slice(0, 400),
+        year,
+        url: work.DOI ? `https://doi.org/${work.DOI}` : work.URL,
+        type: work.type || '',
+        source: work['container-title']?.[0] || 'Crossref',
+        cited_by_count: citedBy,
+        open_access: false,
+        _score: Math.min(Math.log10(citedBy + 1) * 10, 40)
+          + Math.max(0, 10 - (new Date().getFullYear() - (year || 2000)) * 0.5),
+      };
+    });
+  } catch (error) {
+    return emptyOrThrow(error, strictOptions);
+  }
+}
+
+export async function searchSemanticScholar(query, limit = 8, strictOptions = {}) {
+  try {
+    const fields = [
+      'paperId', 'title', 'authors', 'year', 'abstract', 'url', 'venue',
+      'citationCount', 'openAccessPdf', 'externalIds', 'publicationDate',
+      'publicationTypes',
+    ].join(',');
+    const params = new URLSearchParams({ query, limit: String(limit), fields });
+    const directUrl = `https://api.semanticscholar.org/graph/v1/paper/search?${params}`;
+    const response = await fetchResearchSource('semantic_scholar', query, limit, 'relevance', directUrl, strictOptions);
+    if (!response.ok) throw new Error(`Semantic Scholar request failed: ${response.status}`);
+    const data = await response.json();
+    return (data.data || []).map(paper => {
+      const doi = paper.externalIds?.DOI || '';
+      return {
+        id: paper.paperId,
+        doi,
+        title: paper.title || 'Untitled',
+        authors: (paper.authors || []).slice(0, 4).map(author => author.name).filter(Boolean).join(', '),
+        summary: (paper.abstract || '').slice(0, 400),
+        year: paper.year || (paper.publicationDate ? new Date(paper.publicationDate).getFullYear() : null),
+        url: doi ? `https://doi.org/${doi}` : paper.openAccessPdf?.url || paper.url,
+        type: paper.publicationTypes?.[0] || '',
+        source: paper.venue || 'Semantic Scholar',
+        source_index: 'Semantic Scholar',
+        cited_by_count: paper.citationCount || 0,
+        open_access: Boolean(paper.openAccessPdf?.url),
+      };
+    });
+  } catch (error) {
+    return emptyOrThrow(error, strictOptions);
+  }
+}
+
+function normalizeSearchText(value) {
+  return String(value || '')
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
+function normalizedTitle(title) {
+  return normalizeSearchText(title).slice(0, 100);
+}
+
+function normalizedDoi(value) {
+  let doi = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/(?:dx\.)?doi\.org\//, '')
+    .replace(/^doi:\s*/, '');
+  try {
+    doi = decodeURIComponent(doi);
+  } catch {
+    // Keep the original normalized DOI when a provider returns invalid encoding.
+  }
+  // A trailing `.v2` is part of a DOI unless the issuing source explicitly
+  // supplies a separate version relationship. DOI suffixes are opaque; do not
+  // infer that they are arXiv-style version markers.
+  return doi;
+}
+
+const NON_PAPER_TYPES = new Set([
+  'book', 'book-series', 'book-set', 'edited-book', 'reference-book', 'monograph',
+  'book-chapter', 'book-part', 'reference-entry', 'dataset', 'data-set', 'database', 'component',
+  'journal', 'journal-issue', 'journal-volume', 'journal-supplement', 'proceedings',
+  'proceedings-series', 'report', 'report-series', 'dissertation', 'thesis', 'grant',
+  'peer-review', 'standard',
+]);
+
+function isScholarlyWorkRecord(paper) {
+  const title = String(paper?.title || '').replace(/\s+/g, ' ').trim();
+  if (!title || title.toLowerCase() === 'untitled') return false;
+  const type = String(paper?.type || '').trim().toLowerCase().replace(/[\s_]+/g, '-');
+  if (NON_PAPER_TYPES.has(type)) return false;
+  return !/^(?:table|figure|fig\.?|supplementary(?: material)?|supplemental(?: material)?|appendix)\s*(?:[a-z]?\d+|[ivxlcdm]+)?\s*[:.\-]/i.test(title);
+}
+
+const QUERY_STOP_WORDS = new Set([
+  'and', 'for', 'from', 'into', 'the', 'this', 'that', 'using', 'with', 'aware',
+]);
+
+function queryRoot(term) {
+  if (term.endsWith('ies') && term.length > 5) return `${term.slice(0, -3)}y`;
+  if (term.endsWith('ics') && term.length > 6) return term.slice(0, -3);
+  if (term.endsWith('ing') && term.length > 6) return term.slice(0, -3);
+  if (term.endsWith('ed') && term.length > 5) return term.slice(0, -2);
+  if (term.endsWith('es') && term.length > 5) return term.slice(0, -2);
+  if (term.endsWith('s') && term.length > 4) return term.slice(0, -1);
   return term;
 }
 
