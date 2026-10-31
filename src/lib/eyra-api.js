@@ -530,7 +530,21 @@ function normalizeRankingProfile(query, options = {}) {
 export function rankPaperRecords(records, query, options = {}) {
   const profile = normalizeRankingProfile(query, options);
   const seen = new Set();
-  const uniqueRecords = (records || []).flat().filter(Boolean).filter(isScholarlyWorkRecord).map(paper => {
+  const currentYear = new Date().getFullYear();
+  const uniqueRecords = (records || []).flat().filter(Boolean)
+    .filter(isScholarlyWorkRecord)
+    // Provider metadata can contain malformed or future publication years.
+    // Keep undated records visible, but never present an invalid future year as established research.
+    .filter(paper => {
+      if (paper.year == null || paper.year === '') return true;
+      const year = Number(paper.year);
+      return Number.isInteger(year) && year >= 1500 && year <= currentYear;
+    })
+    .filter(paper => {
+      if (!['latest', 'five_years'].includes(profile.recency) || !paper.year) return true;
+      const earliestYear = currentYear - (profile.recency === 'latest' ? 2 : 5);
+      return Number(paper.year) >= earliestYear;
+    }).map(paper => {
     const doi = normalizedDoi(paper.doi || paper.url);
     const key = doi
       ? `doi:${doi}`

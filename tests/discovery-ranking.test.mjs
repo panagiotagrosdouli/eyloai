@@ -132,6 +132,37 @@ test('filters known Crossref non-paper records but keeps articles and preprints'
   assert.deepEqual(new Set(ranked.map(record => record.id)), new Set(['article', 'preprint']));
 });
 
+test('excludes future-dated and invalid publication records', () => {
+  const currentYear = new Date().getFullYear();
+  const makePaper = (id, year) => ({
+    id, year, title: 'Clinical federated learning privacy',
+    summary: 'Federated learning privacy techniques in clinical research.',
+    source_index: 'OpenAlex', relevance_score: 0.9,
+  });
+  const ranked = rankPaperRecords([
+    makePaper('valid', currentYear),
+    makePaper('future', currentYear + 3),
+    makePaper('invalid', 'not-a-year'),
+  ], 'federated learning privacy', profile);
+  assert.deepEqual(ranked.map(paper => paper.id), ['valid']);
+});
+
+test('enforces the selected two-year and five-year discovery windows', () => {
+  const currentYear = new Date().getFullYear();
+  const makePaper = (id, age) => ({
+    id, year: currentYear - age, title: `Climate adaptation policy ${id}`,
+    summary: 'Climate adaptation policy for vulnerable communities.',
+    source_index: 'OpenAlex', relevance_score: 0.9,
+  });
+  const papers = [makePaper('recent', 1), makePaper('middle', 4), makePaper('old', 8)];
+  assert.deepEqual(
+    rankPaperRecords(papers, 'climate adaptation policy', { ...profile, recency: 'latest' }).map(paper => paper.id),
+    ['recent'],
+  );
+  const fiveYears = rankPaperRecords(papers, 'climate adaptation policy', { ...profile, recency: 'five_years' });
+  assert.deepEqual(new Set(fiveYears.map(paper => paper.id)), new Set(['recent', 'middle']));
+});
+
 test('promotes review literature as a start-here record for beginners', () => {
   const records = [
     {
