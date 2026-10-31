@@ -4,11 +4,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm ci --no-audit --no-fund",
-  "functions": {
-    "api/discovery.js": {
-      "maxDuration": 20
-    }
-  },
   "rewrites": [
     {
       "source": "/supabase/:path*",
@@ -24,5 +19,10 @@
       "path": "/api/monitor",
       "schedule": "0 8 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "api/discovery.js": {
+      "maxDuration": 20
+    }
+  }
 }
