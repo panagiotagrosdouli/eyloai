@@ -10,9 +10,7 @@ const PROVIDERS = new Set([
 
 const MAX_QUERY_LENGTH = 500;
 const MAX_LIMIT = 30;
-// arXiv regularly takes close to ten seconds to answer from the production
-// region. Leave room for that slow but valid response before treating it as
-// unavailable; the Vercel function maxDuration is configured above this limit.
+// arXiv may take close to ten seconds to answer from the production region.
 const UPSTREAM_TIMEOUT_MS = 15_000;
 
 function boundedLimit(value, fallback = 10) {
