@@ -53,11 +53,12 @@ The GitHub repository's Supabase URL, deployed environment variables and any con
 ## Latest evidence snapshot — 2026-10-31
 
 - Production URL: [https://eyloai.vercel.app](https://eyloai.vercel.app)
-- Reviewed production commit: `c51b1118e4f8208d478d120cc3d642d30a612296` (PR #189); Vercel deployment `dpl_4r9vtR9mged3x2mEZ2o8FRySwJFF` is `READY` and is aliased to the production domain.
-- PR #189 passed the Vercel status check. Local `npm run check` passed with 113 tests, typecheck, lint, and production build. The deterministic anchor diagnostic passed 5/5 fixtures.
+- Reviewed production commit: `f6693282cef388c30d8ec72e21dc590ecc67b2c9` (PR #192); Vercel deployment `dpl_ByyjuQbj1FQX9jXbDxHJnzeetKR2` is `READY` and aliased to the production domain.
+- PRs #191 and #192 passed Vercel status checks. Local `npm run check` passed with 115 tests, typecheck, lint, and production build.
 - Production public smoke checks passed 8/8: landing HTML, release manifest, robots policy, discovery route, login route, registration route, password-recovery route, and server capability endpoint.
 - Production capabilities: AI available, billing disabled, scheduled monitoring unavailable, institution analytics available. No live charges were enabled.
-- The live proxy benchmark returned results for all 5 queries but had source coverage warnings in 5/5: only OpenAlex and Crossref were consistently available (2/5 indexes). Europe PMC returned HTTP 503, Semantic Scholar HTTP 429, and arXiv did not return an HTTP status during this run. Average heuristic anchor coverage was 0.00 because the source coverage gate was not met; this automated diagnostic is not human-judged relevance.
-- PR #189 makes the UI and EYRA warnings show sanitized provider HTTP statuses. Provider availability can change, so repeat the live check before launch.
+- The corrected live proxy benchmark received arXiv results; the previous Node benchmark had falsely marked arXiv unavailable because it depended on the browser-only `DOMParser`. Across 5 queries, 3–4 of 5 indexes responded. Europe PMC returned HTTP 503; Semantic Scholar returned HTTP 429 in 4/5 queries.
+- Only 2/5 queries met the minimum source-coverage criteria. Their average heuristic anchor coverage was 0.65; one passed and one failed the heuristic gate. The remaining three queries had fewer than five results or insufficient source diversity. This benchmark is not a human-judged relevance study; keep the release decision NO-GO.
+
 
 These checks do not prove cross-user Supabase RLS, authenticated persistence/deletion, EYRA scientific accuracy, complete DOI metadata fidelity, mobile coverage, or payment flows. Keep all launch-gate boxes unchecked until their own evidence is recorded.
