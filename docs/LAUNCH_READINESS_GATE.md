@@ -60,5 +60,4 @@ The GitHub repository's Supabase URL, deployed environment variables and any con
 - The live proxy benchmark returned results for all 5 queries but had source coverage warnings in 5/5: only OpenAlex and Crossref were consistently available (2/5 indexes). Europe PMC returned HTTP 503, Semantic Scholar HTTP 429, and arXiv did not return an HTTP status during this run. Average heuristic anchor coverage was 0.00 because the source coverage gate was not met; this automated diagnostic is not human-judged relevance.
 - PR #189 makes the UI and EYRA warnings show sanitized provider HTTP statuses. Provider availability can change, so repeat the live check before launch.
 
-
 These checks do not prove cross-user Supabase RLS, authenticated persistence/deletion, EYRA scientific accuracy, complete DOI metadata fidelity, mobile coverage, or payment flows. Keep all launch-gate boxes unchecked until their own evidence is recorded.
