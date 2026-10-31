@@ -92,6 +92,9 @@ for (const testCase of CASES) {
     unavailable_sources: result.unavailable_source_count,
     available_source_names: result.source_status.filter(source => source.status === 'available').map(source => source.label),
     unavailable_source_names: result.source_status.filter(source => source.status === 'unavailable').map(source => source.label),
+    unavailable_source_status: result.source_status
+      .filter(source => source.status === 'unavailable')
+      .map(source => source.error_status ? `${source.label} HTTP ${source.error_status}` : `${source.label} no HTTP status`),
     top_result: top[0]?.title || 'No live record',
     source_coverage_sufficient: sourceCoverageSufficient,
     coverage_warning: !sourceCoverageSufficient,
