@@ -86,7 +86,7 @@ function buildProviderUrl(provider, query, limit, sort, page = 1, country = '') 
     const params = new URLSearchParams({
       query,
       rows: String(limit),
-      select: 'DOI,title,author,abstract,published,container-title,is-referenced-by-count,URL',
+      select: 'DOI,title,author,abstract,published,container-title,type,is-referenced-by-count,URL',
     });
     if (email) params.set('mailto', email);
     if (sort === 'recent') {
