@@ -122,6 +122,28 @@ test('promotes review literature as a start-here record for beginners', () => {
   assert.ok(ranked.some(record => record.id === 'survey' && record.discovery_category === 'start_here'));
 });
 
+test('uses Greek query terms and ignores accent differences when ranking papers', () => {
+  const records = [
+    {
+      id: 'greek-paper',
+      title: 'Ανιχνευση καρκινου με τεχνητη νοημοσυνη',
+      summary: 'Αξιολόγηση μεθόδων τεχνητής νοημοσύνης για έγκαιρη ανίχνευση καρκίνου.',
+      year: 2025,
+      source_index: 'OpenAlex',
+    },
+    {
+      id: 'unrelated-paper',
+      title: 'Climate adaptation for coastal cities',
+      summary: 'Planning flood resilience and climate adaptation for coastlines.',
+      year: 2025,
+      source_index: 'Crossref',
+    },
+  ];
+
+  const ranked = rankPaperRecords(records, 'ανίχνευση καρκίνου τεχνητή νοημοσύνη', profile);
+  assert.deepEqual(ranked.map(record => record.id), ['greek-paper']);
+});
+
 test('rejects records that negate the lead research concept', () => {
   const records = [
     {

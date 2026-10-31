@@ -338,8 +338,17 @@ export async function searchSemanticScholar(query, limit = 8, strictOptions = {}
   }
 }
 
+function normalizeSearchText(value) {
+  return String(value || '')
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
 function normalizedTitle(title) {
-  return String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 100);
+  return normalizeSearchText(title).slice(0, 100);
 }
 
 function normalizedDoi(value) {
@@ -406,7 +415,7 @@ function termMatches(searchable, term) {
 function queryCoverage(paper, query) {
   const terms = queryTerms(query);
   if (!terms.length) return 0.5;
-  const searchable = `${paper.title || ''} ${paper.summary || ''}`.toLowerCase();
+  const searchable = normalizeSearchText(`${paper.title || ''} ${paper.summary || ''}`);
   const matches = terms.filter(term => termMatches(searchable, term)).length;
   return matches / terms.length;
 }
@@ -414,14 +423,14 @@ function queryCoverage(paper, query) {
 function matchesLeadConcept(paper, query) {
   const [leadTerm] = queryTerms(query);
   if (!leadTerm) return true;
-  const searchable = `${paper.title || ''} ${paper.summary || ''}`.toLowerCase();
+  const searchable = normalizeSearchText(`${paper.title || ''} ${paper.summary || ''}`);
   return termMatches(searchable, leadTerm);
 }
 
 function negatesLeadConcept(paper, query) {
   const [leadTerm] = queryTerms(query);
   if (!leadTerm) return false;
-  const searchable = `${paper.title || ''} ${paper.summary || ''}`.toLowerCase();
+  const searchable = normalizeSearchText(`${paper.title || ''} ${paper.summary || ''}`);
   const root = queryRoot(leadTerm);
   return [`without ${leadTerm}`, `without ${root}`, `non-${leadTerm}`, `non ${leadTerm}`]
     .some(pattern => searchable.includes(pattern));
