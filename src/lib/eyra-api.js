@@ -6,7 +6,8 @@ import { httpStatusFromError } from './discovery-source-status.js';
 const OPENALEX_BASE = 'https://api.openalex.org';
 const RESEARCH_CONTACT_EMAIL = String(import.meta.env?.VITE_RESEARCH_CONTACT_EMAIL || '').trim();
 const OPENALEX_CONTACT = RESEARCH_CONTACT_EMAIL ? `&mailto=${encodeURIComponent(RESEARCH_CONTACT_EMAIL)}` : '';
-const SOURCE_TIMEOUT_MS = 12_000;
+// Allow the discovery proxy to return HTTP status for a slow scholarly source.
+const SOURCE_TIMEOUT_MS = 18_000;
 
 async function fetchWithTimeout(url, options = {}) {
   const controller = new AbortController();

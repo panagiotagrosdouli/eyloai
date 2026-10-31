@@ -19,5 +19,10 @@
       "path": "/api/monitor",
       "schedule": "0 8 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "api/discovery.js": {
+      "maxDuration": 20
+    }
+  }
 }
