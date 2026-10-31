@@ -107,7 +107,7 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
     const res = await fetchResearchSource('openalex_authors', query, limit, 'relevance', directUrl, { page, country });
     if (!res.ok) throw new Error(`OpenAlex author request failed: ${res.status}`);
     const data = await res.json();
-    return (data.results || []).map(a => ({
+    const authors = (data.results || []).map(a => ({
       id: a.id,
       name: a.display_name,
       // An absent OpenAlex affiliation is unknown, not proof of independence.
@@ -129,6 +129,11 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
       openalex_id: a.id,
       // h-index proxy: not in API but we show works/citations
     }));
+    // OpenAlex's author search may return no rows for multiword research topics
+    // even when its works index has matching papers. Recover real people from
+    // those papers' authorship records instead of returning an empty list.
+    if (!authors.length) return searchResearchPeopleByPublications(query, limit, strictOptions);
+    return authors;
   } catch (error) {
     return emptyOrThrow(error, strictOptions);
   }
