@@ -26,6 +26,13 @@ function contactEmail() {
   ).trim();
 }
 
+function authorizeOpenAlex(params) {
+  const email = contactEmail();
+  const apiKey = String(process.env.OPENALEX_API_KEY || '').trim();
+  if (email) params.set('mailto', email);
+  if (apiKey) params.set('api_key', apiKey);
+}
+
 function buildProviderUrl(provider, query, limit, sort, page = 1, country = '') {
   const email = contactEmail();
 
@@ -35,7 +42,7 @@ function buildProviderUrl(provider, query, limit, sort, page = 1, country = '') 
       per_page: String(limit),
       sort: sort === 'recent' ? 'publication_date:desc' : 'relevance_score:desc',
     });
-    if (email) params.set('mailto', email);
+    authorizeOpenAlex(params);
     return `https://api.openalex.org/works?${params}`;
   }
 
@@ -47,7 +54,7 @@ function buildProviderUrl(provider, query, limit, sort, page = 1, country = '') 
       sort: 'relevance_score:desc',
     });
     if (country) params.set('filter', `last_known_institutions.country_code:${country}`);
-    if (email) params.set('mailto', email);
+    authorizeOpenAlex(params);
     return `https://api.openalex.org/authors?${params}`;
   }
 
@@ -57,7 +64,7 @@ function buildProviderUrl(provider, query, limit, sort, page = 1, country = '') 
       per_page: String(limit),
       sort: 'relevance_score:desc',
     });
-    if (email) params.set('mailto', email);
+    authorizeOpenAlex(params);
     return `https://api.openalex.org/institutions?${params}`;
   }
 

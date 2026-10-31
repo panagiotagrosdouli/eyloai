@@ -88,6 +88,34 @@ test('discovery proxy bounds provider limits and emits cache/source headers', as
   }
 });
 
+test('OpenAlex proxy uses a server-side API key without returning it to the browser', async (t) => {
+  const originalFetch = globalThis.fetch;
+  const originalApiKey = process.env.OPENALEX_API_KEY;
+  process.env.OPENALEX_API_KEY = 'test-openalex-server-secret';
+  let requestedUrl = '';
+  globalThis.fetch = async (url) => {
+    requestedUrl = String(url);
+    return new Response(JSON.stringify({ results: [] }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+    if (originalApiKey === undefined) delete process.env.OPENALEX_API_KEY;
+    else process.env.OPENALEX_API_KEY = originalApiKey;
+  });
+
+  const response = createResponse();
+  await handler({
+    method: 'GET',
+    query: { provider: 'openalex_works', q: 'CRISPR gene editing', limit: '5' },
+  }, response);
+
+  assert.equal(new URL(requestedUrl).searchParams.get('api_key'), 'test-openalex-server-secret');
+  assert.doesNotMatch(String(response.payload), /test-openalex-server-secret/);
+});
+
 test('Crossref proxy requests the work type needed to exclude non-paper records', async () => {
   const originalFetch = globalThis.fetch;
   let requestedUrl = '';
