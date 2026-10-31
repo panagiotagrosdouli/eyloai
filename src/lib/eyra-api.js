@@ -21,7 +21,7 @@ function emptyOrThrow(error, options = {}) {
   return [];
 }
 
-function proxyUrl(provider, query, limit, sort = 'relevance', page = 1, country = '') {
+function proxyUrl(provider, query, limit, sort = 'relevance', page = 1, country = '', baseUrl = '') {
   const params = new URLSearchParams({
     provider,
     q: query,
@@ -32,17 +32,32 @@ function proxyUrl(provider, query, limit, sort = 'relevance', page = 1, country 
     params.set('page', String(page));
     if (country) params.set('country', country);
   }
-  return `/api/discovery?${params}`;
+  const path = `/api/discovery?${params}`;
+  return baseUrl ? new URL(path, baseUrl).toString() : path;
 }
 
 async function fetchResearchSource(provider, query, limit, sort, directUrl, options = {}) {
-  const shouldUseProxy = typeof window !== 'undefined' && !import.meta.env?.DEV;
+  const configuredProxyBase = String(options.proxyBaseUrl || '').trim();
+  const proxyBaseUrl = configuredProxyBase ? new URL(configuredProxyBase).origin : '';
+  const shouldUseProxy = Boolean(proxyBaseUrl) || (typeof window !== 'undefined' && !import.meta.env?.DEV);
 
   if (shouldUseProxy) {
     try {
-      const proxied = await fetchWithTimeout(proxyUrl(provider, query, limit, sort, options.page || 1, options.country || ''), options);
+      const proxied = await fetchWithTimeout(proxyUrl(
+        provider,
+        query,
+        limit,
+        sort,
+        options.page || 1,
+        options.country || '',
+        proxyBaseUrl,
+      ), options);
+      // An explicitly configured proxy is the benchmark target. Do not make a
+      // failed deployment proxy look healthy by silently querying providers directly.
+      if (proxyBaseUrl) return proxied;
       if (proxied.ok || proxied.status < 500) return proxied;
-    } catch {
+    } catch (error) {
+      if (proxyBaseUrl) throw error;
       // Fall back to the provider directly when the same-origin proxy itself is unavailable.
     }
   }
@@ -73,7 +88,7 @@ export async function searchOpenAlexWorks(query, limit = 10, sort = 'relevance',
   try {
     const sortValue = sort === 'recent' ? 'publication_date:desc' : 'relevance_score:desc';
     const directUrl = `${OPENALEX_BASE}/works?search=${encodeURIComponent(query)}&per_page=${limit}&sort=${sortValue}${OPENALEX_CONTACT}`;
-    const res = await fetchResearchSource('openalex_works', query, limit, sort, directUrl);
+    const res = await fetchResearchSource('openalex_works', query, limit, sort, directUrl, strictOptions);
     if (!res.ok) throw new Error(`OpenAlex request failed: ${res.status}`);
     const data = await res.json();
     return (data.results || []).map(w => ({
@@ -104,7 +119,7 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
     const country = /^[A-Z]{2}$/.test(String(strictOptions.country || '').toUpperCase()) ? String(strictOptions.country).toUpperCase() : '';
     const countryFilter = country ? `&filter=last_known_institutions.country_code:${country}` : '';
     const directUrl = `${OPENALEX_BASE}/authors?search=${encodeURIComponent(query)}&per_page=${limit}&page=${page}&sort=relevance_score:desc${countryFilter}${OPENALEX_CONTACT}`;
-    const res = await fetchResearchSource('openalex_authors', query, limit, 'relevance', directUrl, { page, country });
+    const res = await fetchResearchSource('openalex_authors', query, limit, 'relevance', directUrl, { ...strictOptions, page, country });
     if (!res.ok) throw new Error(`OpenAlex author request failed: ${res.status}`);
     const data = await res.json();
     const authors = (data.results || []).map(a => ({
@@ -150,7 +165,7 @@ export async function searchResearchPeopleByPublications(query, limit = 25, stri
     // Page one can use EYLO's proxy. Other pages are fetched directly until
     // the works proxy supports a page argument.
     const response = page === 1
-      ? await fetchResearchSource('openalex_works', topic, 25, 'relevance', directUrl)
+      ? await fetchResearchSource('openalex_works', topic, 25, 'relevance', directUrl, strictOptions)
       : await fetchWithTimeout(directUrl);
     if (!response.ok) throw new Error(`OpenAlex publication search failed: ${response.status}`);
     const payload = await response.json();
@@ -189,7 +204,7 @@ export async function searchResearchPeopleByPublications(query, limit = 25, stri
 export async function searchOpenAlexInstitutions(query, limit = 6, strictOptions = {}) {
   try {
     const directUrl = `${OPENALEX_BASE}/institutions?search=${encodeURIComponent(query)}&per_page=${limit}&sort=relevance_score:desc${OPENALEX_CONTACT}`;
-    const res = await fetchResearchSource('openalex_institutions', query, limit, 'relevance', directUrl);
+    const res = await fetchResearchSource('openalex_institutions', query, limit, 'relevance', directUrl, strictOptions);
     if (!res.ok) throw new Error(`OpenAlex institution request failed: ${res.status}`);
     const data = await res.json();
     return (data.results || []).map(i => ({
@@ -210,7 +225,7 @@ export async function searchArxiv(query, limit = 5, sort = 'relevance', strictOp
   try {
     const sortBy = sort === 'recent' ? 'submittedDate' : 'relevance';
     const directUrl = `https://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(query)}&start=0&max_results=${limit}&sortBy=${sortBy}&sortOrder=descending`;
-    const res = await fetchResearchSource('arxiv', query, limit, sort, directUrl);
+    const res = await fetchResearchSource('arxiv', query, limit, sort, directUrl, strictOptions);
     if (!res.ok) throw new Error(`arXiv request failed: ${res.status}`);
     const text = await res.text();
     const parser = new DOMParser();
@@ -241,7 +256,7 @@ export async function searchArxiv(query, limit = 5, sort = 'relevance', strictOp
 export async function searchEuropePMC(query, limit = 5, strictOptions = {}) {
   try {
     const directUrl = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(query)}&format=json&pageSize=${limit}&sort=RELEVANCE`;
-    const res = await fetchResearchSource('europe_pmc', query, limit, 'relevance', directUrl);
+    const res = await fetchResearchSource('europe_pmc', query, limit, 'relevance', directUrl, strictOptions);
     if (!res.ok) throw new Error(`Europe PMC request failed: ${res.status}`);
     const data = await res.json();
     return (data.resultList?.result || []).map(r => {
@@ -280,7 +295,7 @@ export async function searchCrossref(query, limit = 5, sort = 'relevance', stric
       params.set('order', 'desc');
     }
     const directUrl = `https://api.crossref.org/works?${params}`;
-    const res = await fetchResearchSource('crossref', query, limit, sort, directUrl);
+    const res = await fetchResearchSource('crossref', query, limit, sort, directUrl, strictOptions);
     if (!res.ok) throw new Error(`Crossref request failed: ${res.status}`);
     const data = await res.json();
 
@@ -323,7 +338,7 @@ export async function searchSemanticScholar(query, limit = 8, strictOptions = {}
     ].join(',');
     const params = new URLSearchParams({ query, limit: String(limit), fields });
     const directUrl = `https://api.semanticscholar.org/graph/v1/paper/search?${params}`;
-    const response = await fetchResearchSource('semantic_scholar', query, limit, 'relevance', directUrl);
+    const response = await fetchResearchSource('semantic_scholar', query, limit, 'relevance', directUrl, strictOptions);
     if (!response.ok) throw new Error(`Semantic Scholar request failed: ${response.status}`);
     const data = await response.json();
     return (data.data || []).map(paper => {
@@ -590,13 +605,22 @@ export function rankPaperRecords(records, query, options = {}) {
 // Retrieve broadly, preserve source health, deduplicate, then rank for the user's level and goal.
 export async function searchAllPapersWithStatus(query, options = {}) {
   const normalizedProfile = normalizeRankingProfile(query, options);
+  const proxyBaseUrl = options && typeof options === 'object' && 'proxyBaseUrl' in options
+    ? options.proxyBaseUrl
+    : '';
+  const sourceRequestOptions = {
+    throwOnError: true,
+    ...(typeof proxyBaseUrl === 'string' && proxyBaseUrl
+      ? { proxyBaseUrl }
+      : {}),
+  };
   const sort = ['latest', 'five_years'].includes(normalizedProfile.recency) ? 'recent' : 'relevance';
   const definitions = [
-    { id: 'openalex', label: 'OpenAlex', load: () => searchOpenAlexWorks(query, 12, sort, { throwOnError: true }) },
-    { id: 'arxiv', label: 'arXiv', load: () => searchArxiv(query, 8, sort, { throwOnError: true }) },
-    { id: 'europe_pmc', label: 'Europe PMC', load: () => searchEuropePMC(query, 8, { throwOnError: true }) },
-    { id: 'crossref', label: 'Crossref', load: () => searchCrossref(query, 8, sort, { throwOnError: true }) },
-    { id: 'semantic_scholar', label: 'Semantic Scholar', load: () => searchSemanticScholar(query, 10, { throwOnError: true }) },
+    { id: 'openalex', label: 'OpenAlex', load: () => searchOpenAlexWorks(query, 12, sort, sourceRequestOptions) },
+    { id: 'arxiv', label: 'arXiv', load: () => searchArxiv(query, 8, sort, sourceRequestOptions) },
+    { id: 'europe_pmc', label: 'Europe PMC', load: () => searchEuropePMC(query, 8, sourceRequestOptions) },
+    { id: 'crossref', label: 'Crossref', load: () => searchCrossref(query, 8, sort, sourceRequestOptions) },
+    { id: 'semantic_scholar', label: 'Semantic Scholar', load: () => searchSemanticScholar(query, 10, sourceRequestOptions) },
   ];
 
   const settled = await Promise.allSettled(definitions.map(source => source.load()));

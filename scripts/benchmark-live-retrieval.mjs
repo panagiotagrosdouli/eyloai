@@ -1,5 +1,11 @@
 import { searchAllPapersWithStatus } from '../src/lib/eyra-api.js';
 
+const configuredBaseUrl = process.env.EYLO_LIVE_BASE_URL || 'https://eyloai.vercel.app';
+const parsedBaseUrl = new URL(configuredBaseUrl);
+if (!['https:', 'http:'].includes(parsedBaseUrl.protocol)) {
+  throw new Error('EYLO_LIVE_BASE_URL must use HTTPS (HTTP is allowed for local development).');
+}
+
 const CASES = [
   {
     query: 'robotics for independent ageing',
@@ -48,8 +54,8 @@ const CASES = [
 ];
 
 const TOP_K = 10;
-const MIN_CASE_PRECISION = 0.6;
-const MIN_AVERAGE_PRECISION = 0.7;
+const MIN_CASE_ANCHOR_COVERAGE = 0.6;
+const MIN_AVERAGE_ANCHOR_COVERAGE = 0.7;
 
 function matchesCase(paper, testCase) {
   const text = `${paper.title || ''} ${paper.summary || ''}`.toLowerCase();
@@ -66,43 +72,49 @@ for (const testCase of CASES) {
     goal: 'review',
     recency: 'balanced',
     limit: TOP_K,
+    proxyBaseUrl: parsedBaseUrl.origin,
   });
   const top = result.papers.slice(0, TOP_K);
-  const relevant = top.filter(paper => matchesCase(paper, testCase)).length;
-  const precision = top.length ? relevant / top.length : 0;
+  const anchorMatches = top.filter(paper => matchesCase(paper, testCase)).length;
+  const anchorCoverage = top.length ? anchorMatches / top.length : 0;
   const representedSources = new Set(top.map(paper => paper.source_index).filter(Boolean));
-  const assessable = top.length >= 5
+  const sourceCoverageSufficient = top.length >= 5
     && result.available_source_count >= 3
     && representedSources.size >= 2;
 
   rows.push({
     query: testCase.query,
     records: top.length,
-    precision_at_10: Number(precision.toFixed(2)),
+    heuristic_anchor_coverage_at_10: Number(anchorCoverage.toFixed(2)),
+    anchor_matches: anchorMatches,
     represented_sources: representedSources.size,
     available_sources: result.available_source_count,
     unavailable_sources: result.unavailable_source_count,
+    available_source_names: result.source_status.filter(source => source.status === 'available').map(source => source.label),
+    unavailable_source_names: result.source_status.filter(source => source.status === 'unavailable').map(source => source.label),
     top_result: top[0]?.title || 'No live record',
-    assessable,
-    coverage_warning: !assessable,
-    passed: assessable ? precision >= MIN_CASE_PRECISION : null,
+    source_coverage_sufficient: sourceCoverageSufficient,
+    coverage_warning: !sourceCoverageSufficient,
+    anchor_gate_passed: sourceCoverageSufficient ? anchorCoverage >= MIN_CASE_ANCHOR_COVERAGE : null,
   });
 }
 
 console.table(rows);
-const assessedRows = rows.filter(row => row.assessable);
-const averagePrecision = assessedRows.length
-  ? assessedRows.reduce((sum, row) => sum + row.precision_at_10, 0) / assessedRows.length
+const sourceCoveredRows = rows.filter(row => row.source_coverage_sufficient);
+const averageAnchorCoverage = sourceCoveredRows.length
+  ? sourceCoveredRows.reduce((sum, row) => sum + row.heuristic_anchor_coverage_at_10, 0) / sourceCoveredRows.length
   : 0;
-const failedCases = assessedRows.filter(row => !row.passed);
+const failedCases = sourceCoveredRows.filter(row => !row.anchor_gate_passed);
 const coverageWarnings = rows.filter(row => row.coverage_warning);
 
-console.log(`Assessable cases: ${assessedRows.length}/${rows.length}`);
-console.log(`Average precision@${TOP_K}: ${averagePrecision.toFixed(2)}`);
-console.log(`Assessed cases passed: ${assessedRows.length - failedCases.length}/${assessedRows.length}`);
+console.log(`Source-covered cases: ${sourceCoveredRows.length}/${rows.length}`);
+console.log(`Average heuristic anchor coverage@${TOP_K}: ${averageAnchorCoverage.toFixed(2)}`);
+console.log(`Source-covered heuristic gates passed: ${sourceCoveredRows.length - failedCases.length}/${sourceCoveredRows.length}`);
 console.log(`Source coverage warnings: ${coverageWarnings.length}/${rows.length}`);
+console.log(`Proxy target: ${parsedBaseUrl.origin}`);
+console.log('This automated anchor diagnostic is not a human-judged relevance benchmark.');
 
-if (assessedRows.length < 2 || failedCases.length || averagePrecision < MIN_AVERAGE_PRECISION) {
-  console.error('Relevance benchmark failed. Review ranking or source coverage before release.');
+if (sourceCoveredRows.length < 2 || failedCases.length || averageAnchorCoverage < MIN_AVERAGE_ANCHOR_COVERAGE) {
+  console.error('Live discovery anchor diagnostic failed. Review ranking or source coverage before release.');
   process.exitCode = 1;
 }
