@@ -21,3 +21,8 @@ test('workspace-only EYRA analysis is not labelled as verified live research', (
   assert.match(page, /NO LIVE SOURCE RECORDS WERE RETRIEVED/);
   assert.match(page, /Workspace-only draft — no live sources verified/);
 });
+
+test('EYRA cannot present OpenAlex authors as verified professors or supervisors', () => {
+  const engine = readFileSync(new URL('../src/lib/eyra-engine.js', import.meta.url), 'utf8');
+  assert.match(engine, /OpenAlex author records show publication authorship, not verified professor rank/);
+});
