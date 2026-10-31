@@ -5,6 +5,7 @@ import {
   RefreshCw, Search, ShieldCheck, Users, Download,
 } from 'lucide-react';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchResearchPeopleByPublications, searchOpenAlexInstitutions } from '@/lib/eyra-api';
+import { countAvailablePaperIndexes, PAPER_INDEX_SOURCE_IDS } from '@/lib/discovery-source-status';
 import GuidedSearch, { normalizeDiscoveryRequest } from '@/components/discovery/GuidedSearch';
 import BrandLogo from '@/components/brand/BrandLogo';
 import VoiceSearchButton from '@/components/discovery/VoiceSearchButton';
@@ -113,14 +114,18 @@ export default function PublicDiscovery() {
       ];
       const nextData = { papers: paperBundle.papers || [], researchers, institutions };
       const totalRecords = nextData.papers.length + researchers.length + institutions.length;
-      const availableCount = nextSourceStatus.filter(source => source.status === 'available').length;
+      const availablePaperIndexCount = countAvailablePaperIndexes(nextSourceStatus);
 
       setSourceStatus(nextSourceStatus);
       setData(nextData);
       if (!totalRecords) {
-        setError(availableCount
-          ? 'No strong live records matched this exact framing. Add a method, application, population or date range.'
-          : 'The live research indexes are temporarily unavailable. No records have been invented.');
+        if (availablePaperIndexCount === PAPER_INDEX_SOURCE_IDS.length) {
+          setError('No strong live records matched this exact framing. Add a method, application, population or date range.');
+        } else if (availablePaperIndexCount > 0) {
+          setError(`No records came back from the ${availablePaperIndexCount} of ${PAPER_INDEX_SOURCE_IDS.length} paper indexes that responded. Other indexes were unavailable, so this does not establish that no literature exists.`);
+        } else {
+          setError('The scholarly paper indexes are temporarily unavailable. No records have been invented.');
+        }
       }
       setLoading(false);
     };
@@ -177,6 +182,7 @@ export default function PublicDiscovery() {
   const sourceIndexes = [...new Set((data.papers || []).map(paper => paper.source_index || paper.source).filter(Boolean))];
   const unavailableSources = sourceStatus.filter(source => source.status === 'unavailable');
   const availableSources = sourceStatus.filter(source => source.status === 'available');
+  const availablePaperIndexCount = countAvailablePaperIndexes(sourceStatus);
 
   return (
     <main className="eylo-action-canvas min-h-screen bg-background text-foreground">
@@ -241,7 +247,7 @@ export default function PublicDiscovery() {
             <div className="flex items-start gap-3">
               <AlertTriangle size={17} className="mt-0.5 shrink-0 text-amber-300" aria-hidden="true" />
               <p className="leading-6">
-                <strong>Partial live retrieval.</strong> Showing verified records from {availableSources.length} available sources.
+                <strong>Partial live retrieval.</strong> {availablePaperIndexCount} of {PAPER_INDEX_SOURCE_IDS.length} scholarly paper indexes are available.
                 {' '}{unavailableSources.map(source => source.label).join(', ')} did not respond.
               </p>
             </div>
