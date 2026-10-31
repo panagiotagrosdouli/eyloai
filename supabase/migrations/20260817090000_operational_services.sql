@@ -162,10 +162,14 @@ begin
   else
     member_ids := array[requester]::uuid[];
     workspace_id := requester::text;
-    select coalesce(nullif(organization, ''), nullif(full_name, ''), 'My workspace')
+    select coalesce(
+      nullif(profile.data ->> 'organization', ''),
+      nullif(profile.data ->> 'full_name', ''),
+      'My workspace'
+    )
       into workspace_name
-      from public.profiles
-     where id = requester
+      from public.profiles as profile
+     where profile.user_id = requester
      limit 1;
     workspace_name := coalesce(workspace_name, 'My workspace');
   end if;
