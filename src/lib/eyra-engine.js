@@ -3,6 +3,7 @@
 
 import { base44 } from '@/api/base44Client';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitutions } from './eyra-api';
+import { formatUnavailableSource } from './discovery-source-status.js';
 import { searchFundingOpportunities } from './funding-api';
 import { filterUnsupportedEvidenceClaims } from './research-provenance.mjs';
 
@@ -185,7 +186,7 @@ export async function runEyraDiscovery(input, onProgress) {
       ? (sourceStatus.length === unavailableSources.length ? 'unavailable' : 'partial')
       : (papers.length ? 'complete' : 'empty'),
     retrieval_warning: unavailableSources.length
-      ? `Partial live retrieval: ${unavailableSources.map(source => source.label).join(', ')} did not respond.`
+      ? `Partial live retrieval: ${unavailableSources.map(formatUnavailableSource).join('; ')}.`
       : '',
     papers,
     researchers,

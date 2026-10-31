@@ -1,6 +1,8 @@
 // EYRA Discovery Engine — Real Data Sources
 // OpenAlex, arXiv, Crossref, Europe PMC
 
+import { httpStatusFromError } from './discovery-source-status.js';
+
 const OPENALEX_BASE = 'https://api.openalex.org';
 const RESEARCH_CONTACT_EMAIL = String(import.meta.env?.VITE_RESEARCH_CONTACT_EMAIL || '').trim();
 const OPENALEX_CONTACT = RESEARCH_CONTACT_EMAIL ? `&mailto=${encodeURIComponent(RESEARCH_CONTACT_EMAIL)}` : '';
@@ -629,6 +631,7 @@ export async function searchAllPapersWithStatus(query, options = {}) {
     label: definitions[sourceIndex].label,
     status: result.status === 'fulfilled' ? 'available' : 'unavailable',
     count: result.status === 'fulfilled' ? result.value.length : 0,
+    error_status: result.status === 'rejected' ? httpStatusFromError(result.reason) : null,
   }));
   const sources = settled.map((result, sourceIndex) => result.status === 'fulfilled'
     ? result.value.map((item, itemIndex) => ({

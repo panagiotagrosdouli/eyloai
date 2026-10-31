@@ -5,7 +5,7 @@ import {
   RefreshCw, Search, ShieldCheck, Users, Download,
 } from 'lucide-react';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchResearchPeopleByPublications, searchOpenAlexInstitutions } from '@/lib/eyra-api';
-import { countAvailablePaperIndexes, PAPER_INDEX_SOURCE_IDS } from '@/lib/discovery-source-status';
+import { countAvailablePaperIndexes, formatUnavailableSource, PAPER_INDEX_SOURCE_IDS } from '@/lib/discovery-source-status';
 import { publicationTypeLabel } from '@/lib/publication-type-label';
 import GuidedSearch, { normalizeDiscoveryRequest } from '@/components/discovery/GuidedSearch';
 import BrandLogo from '@/components/brand/BrandLogo';
@@ -250,7 +250,7 @@ export default function PublicDiscovery() {
               <AlertTriangle size={17} className="mt-0.5 shrink-0 text-amber-300" aria-hidden="true" />
               <p className="leading-6">
                 <strong>Partial live retrieval.</strong> {availablePaperIndexCount} of {PAPER_INDEX_SOURCE_IDS.length} scholarly paper indexes are available.
-                {' '}{unavailableSources.map(source => source.label).join(', ')} did not respond.
+                {' '}{unavailableSources.map(formatUnavailableSource).join('; ')}.
               </p>
             </div>
             <button type="button" onClick={() => setAttempt(value => value + 1)}
