@@ -53,10 +53,11 @@ The GitHub repository's Supabase URL, deployed environment variables and any con
 ## Latest evidence snapshot — 2026-10-31
 
 - Production URL: [https://eyloai.vercel.app](https://eyloai.vercel.app)
-- Reviewed production commit: `13250eb31b52b703d2496788e7d0ea7e137a79fe`; Vercel deployment: `dpl_5dPMbH4vVi1nBtXCkj2nAbwVQCnB` (`READY`, production target).
-- Candidate commit `0c366514cfbb1efd407d57f8eef0e540d5d91cac` passed GitHub Build, Product quality, and EYLO Quality Gate; local `npm run check` passed with 111 tests, typecheck, lint, and build.
+- Reviewed production commit: `c51b1118e4f8208d478d120cc3d642d30a612296` (PR #189); Vercel deployment `dpl_4r9vtR9mged3x2mEZ2o8FRySwJFF` is `READY` and is aliased to the production domain.
+- PR #189 passed the Vercel status check. Local `npm run check` passed with 113 tests, typecheck, lint, and production build. The deterministic anchor diagnostic passed 5/5 fixtures.
 - Production public smoke checks passed 8/8: landing HTML, release manifest, robots policy, discovery route, login route, registration route, password-recovery route, and server capability endpoint.
-- A live discovery query returned a partial-results banner showing 3 of 5 paper indexes available; Europe PMC and Semantic Scholar did not respond. The UI identifies provider-reported record types and states that peer review, claims, findings, and publication quality are not independently verified.
-- Production capabilities report AI available and billing disabled. No live charges were enabled.
+- Production capabilities: AI available, billing disabled, scheduled monitoring unavailable, institution analytics available. No live charges were enabled.
+- The live proxy benchmark returned results for all 5 queries but had source coverage warnings in 5/5: only OpenAlex and Crossref were consistently available (2/5 indexes). Europe PMC returned HTTP 503, Semantic Scholar HTTP 429, and arXiv did not return an HTTP status during this run. Average heuristic anchor coverage was 0.00 because the source coverage gate was not met; this automated diagnostic is not human-judged relevance.
+- PR #189 makes the UI and EYRA warnings show sanitized provider HTTP statuses. Provider availability can change, so repeat the live check before launch.
 
 These checks do not prove cross-user Supabase RLS, authenticated persistence/deletion, EYRA scientific accuracy, complete DOI metadata fidelity, mobile coverage, or payment flows. Keep all launch-gate boxes unchecked until their own evidence is recorded.
