@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchResearchPeopleByPublications, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import { countAvailablePaperIndexes, PAPER_INDEX_SOURCE_IDS } from '@/lib/discovery-source-status';
+import { publicationTypeLabel } from '@/lib/publication-type-label';
 import GuidedSearch, { normalizeDiscoveryRequest } from '@/components/discovery/GuidedSearch';
 import BrandLogo from '@/components/brand/BrandLogo';
 import VoiceSearchButton from '@/components/discovery/VoiceSearchButton';
@@ -21,6 +22,7 @@ function PaperCard({ paper }) {
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-primary">{paper.source_index || paper.source}</span>
         <span className="text-[10px] text-muted-foreground">{paper.year || 'Year unavailable'}</span>
+        <span className="text-[10px] text-muted-foreground">{publicationTypeLabel(paper.type)}</span>
         {paper.open_access && <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold text-emerald-400">Open access</span>}
       </div>
       <h3 className="font-heading text-base font-semibold leading-6 text-foreground sm:text-lg">{paper.title}</h3>
