@@ -89,6 +89,49 @@ test('filters table, figure and supplementary child records', () => {
   assert.equal(ranked[0].id, 'paper');
 });
 
+test('filters known Crossref non-paper records but keeps articles and preprints', () => {
+  const records = [
+    {
+      id: 'article',
+      title: 'CRISPR gene editing for inherited disease',
+      type: 'journal-article',
+      year: 2025,
+      source_index: 'Crossref',
+    },
+    {
+      id: 'preprint',
+      title: 'CRISPR gene editing methods',
+      type: 'posted-content',
+      year: 2025,
+      source_index: 'Crossref',
+    },
+    {
+      id: 'reference-entry',
+      title: 'CRISPR gene editing',
+      type: 'reference-entry',
+      year: 2025,
+      source_index: 'Crossref',
+    },
+    {
+      id: 'dataset',
+      title: 'CRISPR gene editing benchmark data',
+      type: 'dataset',
+      year: 2025,
+      source_index: 'Crossref',
+    },
+    {
+      id: 'database',
+      title: 'CRISPR gene editing entries',
+      type: 'database',
+      year: 2025,
+      source_index: 'Crossref',
+    },
+  ];
+
+  const ranked = rankPaperRecords(records, 'CRISPR gene editing', profile);
+  assert.deepEqual(new Set(ranked.map(record => record.id)), new Set(['article', 'preprint']));
+});
+
 test('promotes review literature as a start-here record for beginners', () => {
   const records = [
     {

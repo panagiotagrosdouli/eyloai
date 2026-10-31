@@ -221,6 +221,7 @@ export async function searchArxiv(query, limit = 5, sort = 'relevance', strictOp
         summary: (e.querySelector('summary')?.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 400),
         year,
         url: e.querySelector('id')?.textContent || '',
+        type: 'preprint',
         source: 'arXiv',
         cited_by_count: 0,
         open_access: true,
@@ -249,6 +250,7 @@ export async function searchEuropePMC(query, limit = 5, strictOptions = {}) {
         summary: (r.abstractText || '').slice(0, 400),
         year,
         url: r.doi ? `https://doi.org/${r.doi}` : `https://europepmc.org/article/${r.source}/${r.id}`,
+        type: r.pubType || r.pubTypeList?.pubType?.[0] || '',
         source: 'Europe PMC',
         cited_by_count: citedBy,
         open_access: r.isOpenAccess === 'Y',
@@ -265,7 +267,7 @@ export async function searchCrossref(query, limit = 5, sort = 'relevance', stric
     const params = new URLSearchParams({
       query,
       rows: String(limit),
-      select: 'DOI,title,author,abstract,published,container-title,is-referenced-by-count,URL',
+      select: 'DOI,title,author,abstract,published,container-title,type,is-referenced-by-count,URL',
     });
     if (RESEARCH_CONTACT_EMAIL) params.set('mailto', RESEARCH_CONTACT_EMAIL);
     if (sort === 'recent') {
@@ -294,6 +296,7 @@ export async function searchCrossref(query, limit = 5, sort = 'relevance', stric
         summary: abstract.slice(0, 400),
         year,
         url: work.DOI ? `https://doi.org/${work.DOI}` : work.URL,
+        type: work.type || '',
         source: work['container-title']?.[0] || 'Crossref',
         cited_by_count: citedBy,
         open_access: false,
@@ -311,6 +314,7 @@ export async function searchSemanticScholar(query, limit = 8, strictOptions = {}
     const fields = [
       'paperId', 'title', 'authors', 'year', 'abstract', 'url', 'venue',
       'citationCount', 'openAccessPdf', 'externalIds', 'publicationDate',
+      'publicationTypes',
     ].join(',');
     const params = new URLSearchParams({ query, limit: String(limit), fields });
     const directUrl = `https://api.semanticscholar.org/graph/v1/paper/search?${params}`;
@@ -327,6 +331,7 @@ export async function searchSemanticScholar(query, limit = 8, strictOptions = {}
         summary: (paper.abstract || '').slice(0, 400),
         year: paper.year || (paper.publicationDate ? new Date(paper.publicationDate).getFullYear() : null),
         url: doi ? `https://doi.org/${doi}` : paper.openAccessPdf?.url || paper.url,
+        type: paper.publicationTypes?.[0] || '',
         source: paper.venue || 'Semantic Scholar',
         source_index: 'Semantic Scholar',
         cited_by_count: paper.citationCount || 0,
@@ -368,9 +373,19 @@ function normalizedDoi(value) {
   return doi;
 }
 
+const NON_PAPER_TYPES = new Set([
+  'book', 'book-series', 'book-set', 'edited-book', 'reference-book', 'monograph',
+  'book-chapter', 'book-part', 'reference-entry', 'dataset', 'data-set', 'database', 'component',
+  'journal', 'journal-issue', 'journal-volume', 'journal-supplement', 'proceedings',
+  'proceedings-series', 'report', 'report-series', 'dissertation', 'thesis', 'grant',
+  'peer-review', 'standard',
+]);
+
 function isScholarlyWorkRecord(paper) {
   const title = String(paper?.title || '').replace(/\s+/g, ' ').trim();
   if (!title || title.toLowerCase() === 'untitled') return false;
+  const type = String(paper?.type || '').trim().toLowerCase().replace(/[\s_]+/g, '-');
+  if (NON_PAPER_TYPES.has(type)) return false;
   return !/^(?:table|figure|fig\.?|supplementary(?: material)?|supplemental(?: material)?|appendix)\s*(?:[a-z]?\d+|[ivxlcdm]+)?\s*[:.\-]/i.test(title);
 }
 

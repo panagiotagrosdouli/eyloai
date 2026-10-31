@@ -88,6 +88,32 @@ test('discovery proxy bounds provider limits and emits cache/source headers', as
   }
 });
 
+test('Crossref proxy requests the work type needed to exclude non-paper records', async () => {
+  const originalFetch = globalThis.fetch;
+  let requestedUrl = '';
+  globalThis.fetch = async (url) => {
+    requestedUrl = String(url);
+    return new Response(JSON.stringify({ message: { items: [] } }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+
+  try {
+    const response = createResponse();
+    await handler({
+      method: 'GET',
+      query: { provider: 'crossref', q: 'CRISPR gene editing', limit: '8' },
+    }, response);
+
+    const params = new URL(requestedUrl).searchParams;
+    assert.equal(params.get('select').split(',').includes('type'), true);
+    assert.equal(response.statusCode, 200);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('discovery proxy rejects overlong research queries', async () => {
   const response = createResponse();
   await handler(
