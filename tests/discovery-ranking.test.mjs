@@ -10,7 +10,7 @@ const profile = {
   limit: 20,
 };
 
-test('deduplicates DOI versions across scholarly sources', () => {
+test('does not collapse distinct DOI suffixes into a guessed version family', () => {
   const records = [
     {
       id: 'openalex-1',
@@ -35,6 +35,32 @@ test('deduplicates DOI versions across scholarly sources', () => {
   ];
 
   const ranked = rankPaperRecords(records, 'federated learning privacy', profile);
+  assert.equal(ranked.length, 2);
+  assert.deepEqual(new Set(ranked.map(record => record.doi)), new Set([
+    '10.1000/example.v2',
+    'https://doi.org/10.1000/example',
+  ]));
+});
+
+test('deduplicates identical DOIs after URL, prefix, case, and encoding normalization', () => {
+  const records = [
+    {
+      id: 'openalex-2',
+      doi: 'https://doi.org/10.1000/ABC%2FXYZ',
+      title: 'Robust graph learning for climate research',
+      year: 2025,
+      source_index: 'OpenAlex',
+    },
+    {
+      id: 'crossref-2',
+      doi: 'doi:10.1000/abc/xyz',
+      title: 'Robust graph learning for climate research',
+      year: 2025,
+      source_index: 'Crossref',
+    },
+  ];
+
+  const ranked = rankPaperRecords(records, 'robust graph learning', profile);
   assert.equal(ranked.length, 1);
 });
 

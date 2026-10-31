@@ -353,7 +353,10 @@ function normalizedDoi(value) {
   } catch {
     // Keep the original normalized DOI when a provider returns invalid encoding.
   }
-  return doi.replace(/\.v\d+$/i, '');
+  // A trailing `.v2` is part of a DOI unless the issuing source explicitly
+  // supplies a separate version relationship. DOI suffixes are opaque; do not
+  // infer that they are arXiv-style version markers.
+  return doi;
 }
 
 function isScholarlyWorkRecord(paper) {
