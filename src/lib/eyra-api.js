@@ -267,7 +267,7 @@ export async function searchCrossref(query, limit = 5, sort = 'relevance', stric
     const params = new URLSearchParams({
       query,
       rows: String(limit),
-      select: 'DOI,title,author,abstract,published,container-title,is-referenced-by-count,URL',
+      select: 'DOI,title,author,abstract,published,container-title,type,is-referenced-by-count,URL',
     });
     if (RESEARCH_CONTACT_EMAIL) params.set('mailto', RESEARCH_CONTACT_EMAIL);
     if (sort === 'recent') {
