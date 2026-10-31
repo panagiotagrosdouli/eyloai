@@ -137,13 +137,15 @@ const metadataNoiseResult = rankPaperRecords([
   recency: 'balanced',
   limit: 10,
 });
-const metadataQualityPassed = metadataNoiseResult.length === 1
-  && metadataNoiseResult[0].doi === '10.32920/25613349';
+const metadataQualityPassed = metadataNoiseResult.length === 2
+  && metadataNoiseResult.some(paper => paper.doi === '10.32920/25613349')
+  && metadataNoiseResult.some(paper => paper.doi === '10.32920/25613349.v1')
+  && metadataNoiseResult.every(paper => !['crossref-table', 'crossref-figure'].includes(paper.id));
 
 console.table(rows);
 const failed = rows.filter(row => !row.passed);
 console.log(`Deterministic ranking cases passed: ${rows.length - failed.length}/${rows.length}`);
-console.log(`Metadata normalization regression: ${metadataQualityPassed ? 'passed' : 'failed'}`);
+console.log(`DOI suffix preservation regression: ${metadataQualityPassed ? 'passed' : 'failed'}`);
 
 if (failed.length || !metadataQualityPassed) {
   console.error('Discovery quality benchmark failed.');
