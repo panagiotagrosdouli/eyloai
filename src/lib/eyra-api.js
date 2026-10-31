@@ -2,6 +2,7 @@
 // OpenAlex, arXiv, Crossref, Europe PMC
 
 import { httpStatusFromError } from './discovery-source-status.js';
+import { parseArxivFeed } from './arxiv-feed.js';
 
 const OPENALEX_BASE = 'https://api.openalex.org';
 const RESEARCH_CONTACT_EMAIL = String(import.meta.env?.VITE_RESEARCH_CONTACT_EMAIL || '').trim();
@@ -231,19 +232,17 @@ export async function searchArxiv(query, limit = 5, sort = 'relevance', strictOp
     const res = await fetchResearchSource('arxiv', query, limit, sort, directUrl, strictOptions);
     if (!res.ok) throw new Error(`arXiv request failed: ${res.status}`);
     const text = await res.text();
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(text, 'text/xml');
-    const entries = xml.querySelectorAll('entry');
-    return Array.from(entries).map(e => {
-      const published = e.querySelector('published')?.textContent || '';
+    const entries = parseArxivFeed(text);
+    return entries.map(entry => {
+      const published = entry.published;
       const year = new Date(published).getFullYear();
       return {
-        id: e.querySelector('id')?.textContent || '',
-        title: (e.querySelector('title')?.textContent || '').replace(/\s+/g, ' ').trim(),
-        authors: Array.from(e.querySelectorAll('author name')).slice(0, 4).map(n => n.textContent).join(', '),
-        summary: (e.querySelector('summary')?.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 400),
+        id: entry.id,
+        title: entry.title,
+        authors: entry.authors.slice(0, 4).join(', '),
+        summary: entry.summary.slice(0, 400),
         year,
-        url: e.querySelector('id')?.textContent || '',
+        url: entry.id,
         type: 'preprint',
         source: 'arXiv',
         cited_by_count: 0,
