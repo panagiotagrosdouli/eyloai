@@ -45,9 +45,11 @@ Recommended primary metrics:
 
 Report metrics by domain and user intent, not only as a single aggregate number.
 
-### 3. Live retrieval health
+### 3. Live retrieval health and automated anchor diagnostic
 
-`npm run benchmark:relevance:live` should be used as an operational check rather than a deterministic CI gate because upstream indexes can be slow or temporarily unavailable.
+`npm run benchmark:relevance:live` queries the configured deployment's `/api/discovery` proxy (production by default, override with `EYLO_LIVE_BASE_URL`). It is an operational health check, not a deterministic CI gate, because upstream indexes can be slow or temporarily unavailable. A proxy error is reported as an error; the check does not silently switch to direct provider requests.
+
+The script also reports **heuristic anchor coverage**, based on literal concept groups. This is not precision, judged relevance, or evidence of scientific quality. It is a coarse diagnostic for obviously off-topic results and must not be used as a substitute for the human-judged set below.
 
 Track:
 

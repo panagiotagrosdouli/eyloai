@@ -22,3 +22,28 @@ test('Crossref client requests and preserves record type for local development',
   assert.equal(params.get('select').split(',').includes('type'), true);
   assert.equal(papers[0].type, 'journal-article');
 });
+
+test('live retrieval can target the deployed proxy without falling back to direct providers', async (t) => {
+  const originalFetch = globalThis.fetch;
+  const requestedUrls = [];
+  globalThis.fetch = async url => {
+    requestedUrls.push(String(url));
+    return new Response('rate limited', { status: 429 });
+  };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  await assert.rejects(
+    searchCrossref('climate adaptation for coastal cities', 5, 'relevance', {
+      proxyBaseUrl: 'https://eyloai.vercel.app',
+      throwOnError: true,
+    }),
+    /Crossref request failed: 429/,
+  );
+
+  assert.equal(requestedUrls.length, 1);
+  const requestUrl = new URL(requestedUrls[0]);
+  assert.equal(requestUrl.origin, 'https://eyloai.vercel.app');
+  assert.equal(requestUrl.pathname, '/api/discovery');
+  assert.equal(requestUrl.searchParams.get('provider'), 'crossref');
+  assert.equal(requestUrl.searchParams.get('q'), 'climate adaptation for coastal cities');
+});
