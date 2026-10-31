@@ -33,6 +33,12 @@ function authorizeOpenAlex(params) {
   if (apiKey) params.set('api_key', apiKey);
 }
 
+function providerHeaders(provider) {
+  if (provider !== 'semantic_scholar') return {};
+  const apiKey = String(process.env.SEMANTIC_SCHOLAR_API_KEY || '').trim();
+  return apiKey ? { 'x-api-key': apiKey } : {};
+}
+
 function buildProviderUrl(provider, query, limit, sort, page = 1, country = '') {
   const email = contactEmail();
 
@@ -156,6 +162,7 @@ export default async function handler(request, response) {
       headers: {
         accept: provider === 'arxiv' ? 'application/atom+xml, application/xml;q=0.9, */*;q=0.8' : 'application/json, */*;q=0.8',
         'user-agent': 'EYLO scholarly discovery proxy',
+        ...providerHeaders(provider),
       },
     });
 
