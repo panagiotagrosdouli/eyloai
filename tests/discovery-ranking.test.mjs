@@ -119,6 +119,13 @@ test('filters known Crossref non-paper records but keeps articles and preprints'
       year: 2025,
       source_index: 'Crossref',
     },
+    {
+      id: 'database',
+      title: 'CRISPR gene editing entries',
+      type: 'database',
+      year: 2025,
+      source_index: 'Crossref',
+    },
   ];
 
   const ranked = rankPaperRecords(records, 'CRISPR gene editing', profile);

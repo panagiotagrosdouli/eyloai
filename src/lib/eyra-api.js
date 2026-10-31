@@ -375,7 +375,7 @@ function normalizedDoi(value) {
 
 const NON_PAPER_TYPES = new Set([
   'book', 'book-series', 'book-set', 'edited-book', 'reference-book', 'monograph',
-  'book-chapter', 'book-part', 'reference-entry', 'dataset', 'data-set', 'component',
+  'book-chapter', 'book-part', 'reference-entry', 'dataset', 'data-set', 'database', 'component',
   'journal', 'journal-issue', 'journal-volume', 'journal-supplement', 'proceedings',
   'proceedings-series', 'report', 'report-series', 'dissertation', 'thesis', 'grant',
   'peer-review', 'standard',
