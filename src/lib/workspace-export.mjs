@@ -72,3 +72,16 @@ export async function collectWorkspaceExport({
     record_counts: totals,
   };
 }
+
+/**
+ * Revalidate the authenticated account immediately before creating the local
+ * personal-data file. A user may sign out or switch accounts while the many
+ * paginated requests are running. The export must not download old-account
+ * data under a new session, even if all the database reads already succeeded.
+ */
+export function assertWorkspaceExportOwner(originalUserId, currentUser) {
+  if (!originalUserId || !currentUser?.id || originalUserId !== currentUser.id) {
+    throw new Error('The signed-in account changed during export. No workspace file was created.');
+  }
+  return true;
+}
