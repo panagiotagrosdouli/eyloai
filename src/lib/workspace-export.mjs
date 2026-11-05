@@ -3,6 +3,17 @@
  * This is NOT a complete GDPR data export: billing, auth provider logs,
  * AI/provider logs, operational backups and other processors are excluded.
  */
+export const MAX_WORKSPACE_EXPORT_BYTES = 50 * 1024 * 1024; // 50 MiB maximum local JSON file
+const DEFAULT_MAX_TOTAL_ROWS = 50_000;
+
+export class WorkspaceExportSizeError extends Error {
+  constructor() {
+    super('Workspace export exceeds the safe download size limit. Contact support for an alternative data export.');
+    this.name = 'WorkspaceExportSizeError';
+    this.code = 'WORKSPACE_EXPORT_SIZE_LIMIT';
+  }
+}
+
 export const WORKSPACE_EXPORT_TABLES = Object.freeze([
   'projects', 'ideas', 'meetings', 'saved_papers', 'saved_researchers',
   'saved_opportunities', 'search_history', 'watchlists',
@@ -12,6 +23,8 @@ export const WORKSPACE_EXPORT_TABLES = Object.freeze([
 export async function collectWorkspaceExport({
   userId, email = '', userMetadata = null, profile = null, fetchPage,
   pageSize = 200, maxRowsPerTable = 20000,
+  maxTotalRows = DEFAULT_MAX_TOTAL_ROWS,
+  maxExportBytes = MAX_WORKSPACE_EXPORT_BYTES,
   exportedAt = () => new Date().toISOString(),
 }) {
   if (typeof userId !== 'string' || !userId.trim()) throw new Error('Authenticated user identity is required.');
@@ -20,6 +33,16 @@ export async function collectWorkspaceExport({
   if (!Number.isInteger(maxRowsPerTable) || maxRowsPerTable < pageSize) {
     throw new RangeError('Invalid export maximum.');
   }
+  if (!Number.isSafeInteger(maxTotalRows) || maxTotalRows < pageSize) {
+    throw new RangeError('Invalid total-row safety limit.');
+  }
+  if (!Number.isSafeInteger(maxExportBytes) || maxExportBytes < 1) {
+    throw new RangeError('Invalid export byte safety limit.');
+  }
+  const encoder = new TextEncoder();
+  const encodedLength = value => encoder.encode(JSON.stringify(value)).byteLength;
+  let totalRows = 0;
+  let estimatedBytes = 0;
   const collections = {};
   const totals = {};
   for (const table of WORKSPACE_EXPORT_TABLES) {
@@ -37,6 +60,14 @@ export async function collectWorkspaceExport({
         }
         if (seen.has(row.id)) throw new Error(`Cannot export ${table}: unstable pagination returned a duplicate.`);
         seen.add(row.id);
+        totalRows += 1;
+        if (totalRows > maxTotalRows) {
+          throw new WorkspaceExportSizeError();
+        }
+        estimatedBytes += encodedLength(row);
+        if (estimatedBytes > maxExportBytes) {
+          throw new WorkspaceExportSizeError();
+        }
         results.push(row);
       }
       if (results.length > maxRowsPerTable) throw new Error(`Cannot export ${table}: safety limit exceeded.`);
@@ -56,7 +87,7 @@ export async function collectWorkspaceExport({
     totals[table] = results.length;
   }
 
-  return {
+  const result = {
     format: 'eylo-workspace-json',
     version: 1,
     exported_at: exportedAt(),
@@ -71,6 +102,12 @@ export async function collectWorkspaceExport({
     collections,
     record_counts: totals,
   };
+  // Metadata, profile and all JSON punctuation also contribute to the final
+  // download. Do not silently exceed the limit through user_metadata alone.
+  if (encodedLength(result) > maxExportBytes) {
+    throw new WorkspaceExportSizeError();
+  }
+  return result;
 }
 
 /**
