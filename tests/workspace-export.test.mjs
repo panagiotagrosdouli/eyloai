@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { collectWorkspaceExport, WORKSPACE_EXPORT_TABLES, assertWorkspaceExportOwner } from '../src/lib/workspace-export.mjs';
+import {
+  collectWorkspaceExport, WORKSPACE_EXPORT_TABLES, assertWorkspaceExportOwner,
+  MAX_WORKSPACE_EXPORT_BYTES, WorkspaceExportSizeError,
+} from '../src/lib/workspace-export.mjs';
 
 const owner = '00000000-0000-4000-8000-000000000001';
 function makeFetcher(dataByTable = {}) {
@@ -81,4 +84,48 @@ test('a workspace export cannot be downloaded after the browser changes user acc
   assert.throws(() => assertWorkspaceExportOwner(owner, null), /account changed/);
   assert.throws(() => assertWorkspaceExportOwner(owner, { id: '' }), /account changed/);
   assert.throws(() => assertWorkspaceExportOwner('', { id: owner }), /account changed/);
+});
+
+test('workspace download enforces total rows across all ten collections', async () => {
+  const fetcher = makeFetcher({
+    projects: [row('projects', 1), row('projects', 2)],
+    ideas: [row('ideas', 1), row('ideas', 2)],
+  });
+  await assert.rejects(
+    collectWorkspaceExport({
+      userId: owner, pageSize: 2, maxTotalRows: 3,
+      fetchPage: fetcher.fetchPage,
+    }),
+    error => error instanceof WorkspaceExportSizeError && error.code === 'WORKSPACE_EXPORT_SIZE_LIMIT',
+  );
+});
+
+test('workspace download measures actual UTF-8 byte size of row contents', async () => {
+  const record = row('projects', 1);
+  record.data.title = '🔬'.repeat(200);
+  const fetcher = makeFetcher({ projects: [record] });
+  await assert.rejects(
+    collectWorkspaceExport({ userId: owner, maxExportBytes: 300, fetchPage: fetcher.fetchPage }),
+    error => error instanceof WorkspaceExportSizeError,
+  );
+});
+
+test('workspace download limits metadata even when tables are empty', async () => {
+  await assert.rejects(
+    collectWorkspaceExport({
+      userId: owner,
+      userMetadata: { research_interests: 'x'.repeat(3000) },
+      maxExportBytes: 1000,
+      fetchPage: makeFetcher().fetchPage,
+    }),
+    error => error.code === 'WORKSPACE_EXPORT_SIZE_LIMIT',
+  );
+});
+
+test('workspace download rejects invalid byte and total row ceilings', async () => {
+  const fetchPage = makeFetcher().fetchPage;
+  for (const options of [{ maxExportBytes: 0 }, { maxTotalRows: 0 }, { maxTotalRows: 1, pageSize: 2 }]) {
+    await assert.rejects(collectWorkspaceExport({ userId: owner, fetchPage, ...options }), /safety limit/);
+  }
+  assert.equal(MAX_WORKSPACE_EXPORT_BYTES, 50 * 1024 * 1024);
 });
