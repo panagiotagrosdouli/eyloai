@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { loadPreferences, savePreferences } from '@/lib/preferences';
-import { collectWorkspaceExport } from '@/lib/workspace-export.mjs';
+import { collectWorkspaceExport, assertWorkspaceExportOwner } from '@/lib/workspace-export.mjs';
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 
 const SECTIONS = [
@@ -142,6 +142,12 @@ export default function Settings() {
             .order('id', { ascending: true })
             .range(offset, offset + limit - 1),
       });
+      // A shared browser can switch accounts while this potentially long
+      // export is collecting pages. Revalidate the current server-confirmed
+      // account before any personal-data file is generated or downloaded.
+      const currentSession = await getUsableSession({ required: true, validate: true });
+      assertWorkspaceExportOwner(userId, currentSession?.user);
+
       // Only construct/download the file after every table has been read.
       // A failed or interrupted export never downloads a misleading partial file.
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
