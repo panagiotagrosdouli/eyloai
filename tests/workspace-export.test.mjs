@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { collectWorkspaceExport, WORKSPACE_EXPORT_TABLES } from '../src/lib/workspace-export.mjs';
+import { collectWorkspaceExport, WORKSPACE_EXPORT_TABLES, assertWorkspaceExportOwner } from '../src/lib/workspace-export.mjs';
 
 const owner = '00000000-0000-4000-8000-000000000001';
 function makeFetcher(dataByTable = {}) {
@@ -71,4 +71,14 @@ test('rejects missing session, invalid page sizes and unscoped exports', async (
   await assert.rejects(collectWorkspaceExport({ userId: '', fetchPage: async () => ({ data: [] }) }), /identity/);
   await assert.rejects(collectWorkspaceExport({ userId: owner, fetchPage: null }), /fetcher/);
   await assert.rejects(collectWorkspaceExport({ userId: owner, fetchPage: async () => ({ data: [] }), pageSize: 1000 }), /page size/);
+});
+
+
+test('a workspace export cannot be downloaded after the browser changes user accounts', () => {
+  const accountB = '00000000-0000-4000-8000-000000000002';
+  assert.equal(assertWorkspaceExportOwner(owner, { id: owner }), true);
+  assert.throws(() => assertWorkspaceExportOwner(owner, { id: accountB }), /account changed/);
+  assert.throws(() => assertWorkspaceExportOwner(owner, null), /account changed/);
+  assert.throws(() => assertWorkspaceExportOwner(owner, { id: '' }), /account changed/);
+  assert.throws(() => assertWorkspaceExportOwner('', { id: owner }), /account changed/);
 });
