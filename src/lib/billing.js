@@ -55,13 +55,18 @@ async function billingRequest(options = {}) {
   return response;
 }
 
-async function billingIsConfigured() {
+async function billingCapabilities() {
   const response = await fetch('/api/capabilities', {
     headers: { accept: 'application/json' },
   });
   if (!response.ok) throw new Error('Could not verify deployment capabilities.');
   const capabilities = await response.json();
-  return capabilities.billing === true;
+  return {
+    configured: capabilities.billing === true,
+    earlyAccessAiActions: Number.isInteger(capabilities.early_access_monthly_ai_actions)
+      && capabilities.early_access_monthly_ai_actions > 0
+      ? capabilities.early_access_monthly_ai_actions : null,
+  };
 }
 
 export async function getBillingStatus() {
@@ -69,8 +74,13 @@ export async function getBillingStatus() {
   // this public capability before touching authentication so premium tools do
   // not get blocked by an irrelevant subscription request.
   try {
-    const configured = await billingIsConfigured();
-    if (!configured) return { ...EARLY_ACCESS_STATUS };
+    const capabilities = await billingCapabilities();
+    if (!capabilities.configured) {
+      return {
+        ...EARLY_ACCESS_STATUS,
+        limits: { ...EARLY_ACCESS_STATUS.limits, ai_actions: capabilities.earlyAccessAiActions },
+      };
+    }
   } catch {
     // If capability detection is unavailable, fail closed through the
     // authenticated billing endpoint instead of guessing an entitlement.

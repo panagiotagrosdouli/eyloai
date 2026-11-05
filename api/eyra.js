@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { earlyAccessUsageLimit } from '../src/lib/eyra-early-access-policy.mjs';
 
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 // Supabase publishable keys are browser-safe identifiers. This is the same
@@ -160,12 +161,12 @@ function usageState(identity) {
     month,
     plan,
     used: 0,
-    limit: plan === 'early_access' ? null : PLAN_LIMITS[plan],
+    limit: plan === 'early_access' ? earlyAccessUsageLimit() : PLAN_LIMITS[plan],
   };
 }
 
 async function reserveUsage(identity, usage) {
-  if (usage.plan === 'early_access') {
+  if (usage.plan === 'early_access' && usage.limit === null) {
     return { allowed: true, used: 0, actionId: null };
   }
 
@@ -278,10 +279,19 @@ export default async function handler(request, response) {
     }
 
     const usage = usageState(identity);
+    // A configured quota is never bypassed because the quota backend is missing.
+    if (usage.plan === 'early_access' && usage.limit !== null && !identity.serverKey) {
+      return response.status(503).json({
+        error: 'EYRA usage safeguards are temporarily unavailable.',
+        code: 'EYRA_USAGE_BACKEND_UNAVAILABLE',
+      });
+    }
     reservation = await reserveUsage(identity, usage);
     if (!reservation.allowed) {
       return response.status(429).json({
-        error: `The free plan includes ${usage.limit} EYRA AI actions per month. Upgrade to continue.`,
+        error: usage.plan === 'early_access'
+          ? `Early access includes ${usage.limit} EYRA AI actions per month.`
+          : `The free plan includes ${usage.limit} EYRA AI actions per month. Upgrade to continue.`,
         code: 'PLAN_LIMIT_REACHED',
         plan: usage.plan,
         usage: { used: reservation.used, limit: usage.limit, month: usage.month },

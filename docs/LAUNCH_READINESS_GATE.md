@@ -62,3 +62,35 @@ The GitHub repository's Supabase URL, deployed environment variables and any con
 
 
 These checks do not prove cross-user Supabase RLS, authenticated persistence/deletion, EYRA scientific accuracy, complete DOI metadata fidelity, mobile coverage, or payment flows. Keep all launch-gate boxes unchecked until their own evidence is recorded.
+
+
+## Early-access AI usage safety gate — code proposal (2026-11-05)
+
+A production EYRA deployment with Stripe billing disabled previously treated
+all authenticated requests as unmetered early access. This can cause unbounded
+model spend and is **not** a public-launch-ready cost-control policy.
+
+An optional `EYRA_EARLY_ACCESS_MONTHLY_LIMIT` setting now enables the existing
+server-side atomic `reserve_eyra_usage` RPC, even when Stripe is disabled.
+Use a positive integer, for example `20`. No setting means no behavior change.
+If the setting is configured but a server-only `SUPABASE_SECRET_KEY` is absent,
+EYRA fails closed with HTTP 503 **before** making an OpenAI request. The public
+capability endpoint advertises AI as unavailable in this case, not unlimited.
+The frontend reads the same configured cap for its early-access status.
+
+Operational requirements BEFORE enabling this flag:
+
+1. Confirm the real production Supabase project ID and that the billing/usage
+   migration is applied; inspect RPC grants, tables and security advisors.
+2. Set the appropriate **server-only** `SUPABASE_SECRET_KEY` on Vercel. Never
+   use `VITE_` for secret keys; never paste key values into chat or GitHub.
+3. Run isolated test accounts through quota acceptance (first request), quota
+   exhausted (429), upstream failure refund, restart, and next-month reset.
+4. Set a conservative cap informed by a tracked AI budget. Add per-minute
+   abuse controls and monitor total spend; monthly account caps alone do not
+   prevent account farming or multi-account abuse.
+5. Do not enable billing or perform live customer writes as part of the PR.
+
+This is a deployment **preparation**, not verification of the currently
+connected Supabase database. The available connector project does not match
+EYLO production and must not be changed.
