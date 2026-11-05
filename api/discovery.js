@@ -1,3 +1,5 @@
+import { readBoundedScholarlyResponse, ScholarlyResponseTooLargeError } from '../src/lib/discovery-response-limit.mjs';
+
 const PROVIDERS = new Set([
   'openalex_works',
   'openalex_authors',
@@ -167,9 +169,14 @@ export default async function handler(request, response) {
       },
     });
 
-    const body = Buffer.from(await upstream.arrayBuffer());
+    const body = await readBoundedScholarlyResponse(upstream);
     response.status(upstream.status);
-    response.setHeader('Content-Type', upstream.headers.get('content-type') || (provider === 'arxiv' ? 'application/atom+xml; charset=utf-8' : 'application/json; charset=utf-8'));
+    // A compromised provider must never turn this same-origin endpoint into
+    // an HTML/JavaScript page. Return only the expected scholarly media type.
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('Content-Type', provider === 'arxiv'
+      ? 'application/atom+xml; charset=utf-8'
+      : 'application/json; charset=utf-8');
     // Cache only successful scholarly results. A transient provider outage or
     // rate limit must never poison the shared cache for subsequent researchers.
     response.setHeader(
@@ -180,9 +187,13 @@ export default async function handler(request, response) {
     return response.send(body);
   } catch (error) {
     response.setHeader('Cache-Control', 'no-store');
-    const timedOut = error?.name === 'AbortError';
+    const timedOut = error?.name === 'AbortError' || error?.name === 'TimeoutError';
+    const oversized = error instanceof ScholarlyResponseTooLargeError;
     return response.status(timedOut ? 504 : 502).json({
-      error: timedOut ? 'Scholarly source timed out.' : 'Scholarly source is temporarily unavailable.',
+      error: oversized
+        ? 'Scholarly source returned an unexpectedly large response.'
+        : timedOut ? 'Scholarly source timed out.' : 'Scholarly source is temporarily unavailable.',
+      ...(oversized ? { code: 'SOURCE_RESPONSE_TOO_LARGE' } : {}),
     });
   } finally {
     clearTimeout(timeout);
