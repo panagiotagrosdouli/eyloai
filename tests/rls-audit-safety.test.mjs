@@ -37,6 +37,8 @@ test('audit target cannot be redirected to attacker-controlled or unrelated host
 
 test('server-only service keys and reused tokens are forbidden', () => {
   assert.throws(() => auditPlan({ ...config, EYLO_RLS_PUBLIC_KEY: 'sb_secret_not_allowed' }, ['--live']));
+  const forgedPrivilegedKey = 'eyJhbGciOiJIUzI1NiJ9.' + Buffer.from(JSON.stringify({ role: 'service_role' })).toString('base64url') + '.signature';
+  assert.throws(() => auditPlan({ ...config, EYLO_RLS_PUBLIC_KEY: forgedPrivilegedKey }, ['--live']));
   assert.throws(() => auditPlan({ ...config, EYLO_RLS_TOKEN_B: config.EYLO_RLS_TOKEN_A }, ['--live']));
 });
 
