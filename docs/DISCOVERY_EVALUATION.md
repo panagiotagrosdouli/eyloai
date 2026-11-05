@@ -92,7 +92,7 @@ that model makes a semantic error.
   when model verdicts are deliberately wrong. Its success must **not** be called
   scientific validation.
 - `EYLO_EVAL_LIVE=1 npm run benchmark:eyra:live` is an **explicitly paid, opt-in**
-  model benchmark. Configure `OPENAI_API_KEY` only in your local protected
+  model benchmark (using shared system instructions). Configure `OPENAI_API_KEY` only in your local protected
   environment; never in the repository or chat. The runner uses the same
   review prompt as production and collects precision, recall, confusion counts,
   total tokens and review latency on the labelled synthetic cases.
