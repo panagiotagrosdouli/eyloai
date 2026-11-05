@@ -12,7 +12,7 @@ export const WORKSPACE_EXPORT_TABLES = Object.freeze([
 export async function collectWorkspaceExport({
   userId, email = '', userMetadata = null, profile = null, fetchPage,
   pageSize = 200, maxRowsPerTable = 20000,
-  onProgress = () => {}, exportedAt = () => new Date().toISOString(),
+  exportedAt = () => new Date().toISOString(),
 }) {
   if (typeof userId !== 'string' || !userId.trim()) throw new Error('Authenticated user identity is required.');
   if (typeof fetchPage !== 'function') throw new TypeError('Read-only page fetcher is required.');
@@ -54,7 +54,6 @@ export async function collectWorkspaceExport({
     }
     collections[table] = results;
     totals[table] = results.length;
-    onProgress({ table, exported: results.length });
   }
 
   return {
