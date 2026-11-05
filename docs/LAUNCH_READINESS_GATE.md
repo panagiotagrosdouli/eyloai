@@ -62,3 +62,15 @@ The GitHub repository's Supabase URL, deployed environment variables and any con
 
 
 These checks do not prove cross-user Supabase RLS, authenticated persistence/deletion, EYRA scientific accuracy, complete DOI metadata fidelity, mobile coverage, or payment flows. Keep all launch-gate boxes unchecked until their own evidence is recorded.
+
+
+## Analytics SQL schema mismatch — 2026-11-05 follow-up
+
+Source review found that the existing analytics SQL queried `public.profiles`
+using columns (`id`, `organization`, `full_name`, `created_at`) that
+conflict with the repository's base profile schema (`user_id`, `data`,
+`created_date`). The historical SQL sources and their schema regression tests
+were corrected in a draft PR. **These edits do not fix an already-applied
+production migration.** See `docs/ANALYTICS_SCHEMA_REPAIR.md` for the verified
+project identification, new migration and authenticated staging checks needed.
+Analytics and overall release status remain unverified / NO-GO.
