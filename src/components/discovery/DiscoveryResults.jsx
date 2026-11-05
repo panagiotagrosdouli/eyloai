@@ -22,9 +22,9 @@ const TABS = [
 ];
 
 const CONFIDENCE_CONFIG = {
-  HIGH: { color: 'text-green-400 bg-green-500/10 border-green-500/20', label: 'Strong support' },
-  MEDIUM: { color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', label: 'Moderate support' },
-  LOW: { color: 'text-red-400 bg-red-500/10 border-red-500/20', label: 'Limited support' },
+  HIGH: { color: 'text-green-400 bg-green-500/10 border-green-500/20', label: 'Broad source coverage' },
+  MEDIUM: { color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', label: 'Moderate source coverage' },
+  LOW: { color: 'text-red-400 bg-red-500/10 border-red-500/20', label: 'Limited source coverage' },
 };
 
 function ConfidenceBadge({ level }) {
@@ -234,7 +234,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
       <div className="mb-5 px-4 py-3 rounded-xl border border-border/50 bg-secondary/30 flex items-center gap-3">
         <Lock size={12} className="text-primary flex-shrink-0" />
         <p className="text-[11px] text-muted-foreground leading-relaxed">
-          <span className="font-semibold text-foreground">Real data, grounded analysis.</span> Papers, researchers and institutions come from connected scholarly sources; funding fields come from Grants.gov. AI analyzes retrieved records and never substitutes invented records.
+          <span className="font-semibold text-foreground">Retrieved records and AI interpretation are different.</span> Source records come from connected scholarly indexes; funding fields come from Grants.gov. Source coverage does not measure scientific correctness. EYRA's claims require independent source checks; excerpt-based AI review is only a preliminary safeguard.
         </p>
       </div>
 
@@ -251,6 +251,16 @@ export default function DiscoveryResults({ results, onNewSearch }) {
       {results.ai_status === 'skipped' && (
         <div role="status" className="mb-4 rounded-xl border border-border bg-secondary/30 px-4 py-3 text-xs leading-5 text-muted-foreground">
           {results.ai_error} No AI synthesis has been fabricated.
+        </div>
+      )}
+      {results.evidence_review_warning && (
+        <div role="status" className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs leading-5 text-amber-300">
+          {results.evidence_review_warning}
+        </div>
+      )}
+      {results.evidence_review?.status === 'model_assessed' && (
+        <div role="status" className="mb-4 rounded-xl border border-border bg-secondary/20 px-4 py-3 text-xs leading-5 text-muted-foreground">
+          EYRA performed a separate AI review of cited abstract excerpts: {results.evidence_review.claims_retained} of {results.evidence_review.claims_checked} claims passed. This does not establish scientific truth. Confirm findings against original full-text studies.
         </div>
       )}
       {results.funding_error && (
@@ -364,16 +374,18 @@ export default function DiscoveryResults({ results, onNewSearch }) {
             <div>
               <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
                 <ShieldCheck size={13} className="text-primary" />
-                Key Findings from Real Data
+                Key findings · AI-reviewed abstract excerpts
               </h3>
               <div className="space-y-2">
                 {results.key_findings.map((f, i) => (
                   <div key={i} className="p-4 rounded-xl border border-border bg-card">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <p className="text-sm text-foreground font-medium flex-1">{f.finding}</p>
-                      <ConfidenceBadge level={f.confidence} />
+                      <span className="text-[10px] text-muted-foreground">AI-reviewed excerpt</span>
                     </div>
                     <EvidenceNote text={f.evidence} />
+                    {f.source_excerpt && <p className="mt-2 text-xs italic text-muted-foreground">Excerpt: “{f.source_excerpt}”</p>}
+                    {f.source_url && <a href={f.source_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline">Read cited source <ExternalLink size={11} /></a>}
                   </div>
                 ))}
               </div>
@@ -641,7 +653,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           {/* Trends from real papers */}
           {results.trends?.length > 0 && (
             <div className="mb-6">
-              <h3 className="font-semibold text-xs uppercase tracking-wider text-muted-foreground mb-3">Emerging Trends · From real paper analysis</h3>
+              <h3 className="font-semibold text-xs uppercase tracking-wider text-muted-foreground mb-3">Potential trends · AI-reviewed abstract excerpts</h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 {results.trends.map((t, i) => (
                   <div key={i} className="p-4 rounded-xl border border-border bg-card">
@@ -651,7 +663,9 @@ export default function DiscoveryResults({ results, onNewSearch }) {
                       {t.year_range && <span className="text-[10px] text-muted-foreground ml-auto">{t.year_range}</span>}
                     </div>
                     <p className="text-xs text-muted-foreground leading-relaxed">{t.description}</p>
-                    {t.evidence && <EvidenceNote text={`Evidence: ${t.evidence}`} />}
+                    {t.evidence && <EvidenceNote text={`Citation: ${t.evidence}`} />}
+                    {t.source_excerpt && <p className="mt-2 text-xs italic text-muted-foreground">Excerpt: “{t.source_excerpt}”</p>}
+                    {t.source_url && <a href={t.source_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline">Read cited source <ExternalLink size={11} /></a>}
                   </div>
                 ))}
               </div>
