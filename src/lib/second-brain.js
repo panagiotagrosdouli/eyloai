@@ -3,6 +3,11 @@
 // Used by Dashboard, Executive Briefing, For You Feed, etc.
 
 import { base44 } from '@/api/base44Client';
+import { getUsableSession } from '@/lib/supabaseClient';
+import { makeEyraCacheKey } from '@/lib/eyra-cache-key.mjs';
+
+// A mission must never be reused across different accounts on the same browser.
+const dailyMissionCache = new Map();
 
 /**
  * Build the full user knowledge profile from all data sources.
@@ -113,15 +118,13 @@ function buildContextString(profile) {
 
 /**
  * Generate today's daily mission based on user profile.
- * Cached in localStorage per day.
+ * Cached in user-scoped volatile memory per day and profile.
  */
 export async function getDailyMission(profile) {
-  const today = new Date().toDateString();
-  const cacheKey = `eyra_mission_${today}`;
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) {
-    try { return JSON.parse(cached); } catch {}
-  }
+  const session = await getUsableSession({ required: true, validate: true });
+  const cacheKey = makeEyraCacheKey('daily-mission', session.user.id, profile.contextString);
+  const cached = dailyMissionCache.get(cacheKey);
+  if (cached) return cached;
 
   const isNewUser = profile.stats.activityScore < 10;
   
@@ -161,7 +164,7 @@ Respond as JSON:
     },
   });
 
-  localStorage.setItem(cacheKey, JSON.stringify(result));
+  dailyMissionCache.set(cacheKey, result);
   return result;
 }
 
