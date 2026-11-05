@@ -34,20 +34,22 @@ if (plan.mode === 'preflight') {
     });
     const content = await res.text();
     let data = null;
-    if (content) { try { data = JSON.parse(content); } catch { /* No user data is logged. */ } }
-    return { status: res.status, ok: res.ok, rows: Array.isArray(data) ? data : [] };
+    if (content) {
+      try { data = JSON.parse(content); } catch {
+        if (res.ok) throw new Error('An audit endpoint returned malformed successful JSON.');
+      }
+    } else if (res.ok && (options.method || 'GET') === 'GET') {
+      throw new Error('An audit GET returned an empty successful response.');
+    }
+    return { status: res.status, ok: res.ok, data, rows: Array.isArray(data) ? data : [] };
   };
 
   const currentIdentity = async token => {
     const response = await request(token, '/auth/v1/user');
-    if (!response.ok) throw new Error('A disposable account session failed authentication.');
-    // Auth user endpoint returns a user object, not an array.
-    const res = await fetch(`${base}/auth/v1/user`, {
-      headers: { apikey: key, authorization: `Bearer ${token}` },
-      signal: AbortSignal.timeout(15000), cache: 'no-store',
-    });
-    if (!res.ok) throw new Error('Could not validate disposable user session.');
-    const user = await res.json();
+    if (!response.ok || !response.data || Array.isArray(response.data)) {
+      throw new Error('A disposable account session failed authentication.');
+    }
+    const user = response.data;
     if (!/^[0-9a-f-]{36}$/i.test(String(user.id || ''))) throw new Error('Invalid test account identifier.');
     return user.id;
   };
@@ -104,6 +106,10 @@ if (plan.mode === 'preflight') {
             continue;
           }
           const id = created.rows[0].id;
+          if (!/^[0-9a-f-]{36}$/i.test(String(id || ''))) {
+            failures.push(`${table}: invalid disposable fixture identifier`);
+            continue;
+          }
           createdIds.push({ owner, table, id });
           const own = await readExact(owner, table, id);
           if (!own.ok || own.rows.length !== 1 || own.rows[0].data?.audit_marker !== marker) {
