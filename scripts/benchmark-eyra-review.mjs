@@ -3,6 +3,7 @@
 import { EVIDENCE_REVIEW_CASES as CASES } from '../tests/fixtures/eyra-review-cases.mjs';
 import { reviewableClaims, selectExcerptSupportedClaims } from '../src/lib/evidence-verification.mjs';
 import { buildEvidenceReviewPrompt, EVIDENCE_REVIEW_SCHEMA } from '../src/lib/evidence-review-prompt.mjs';
+import { EYRA_INSTRUCTIONS } from '../src/lib/eyra-server-instructions.mjs';
 
 const synth = item => ({
   papers: [{ title: item.title, summary: item.abstract, url: 'https://example.org/illustrative-only' }],
@@ -49,6 +50,7 @@ if (process.argv.includes('--live')) {
       headers: { authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'content-type': 'application/json' },
       body: JSON.stringify({
         model, store: false,
+        instructions: EYRA_INSTRUCTIONS,
         input: buildEvidenceReviewPrompt(reviewableClaims(analysis), papers),
         text: { format: { type: 'json_schema', name: 'eyra_evaluation', strict: true, schema: required(EVIDENCE_REVIEW_SCHEMA) } },
       }),
