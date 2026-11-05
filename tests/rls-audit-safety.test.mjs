@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { auditPlan, verifiedSupabaseOrigin, USER_OWNED_TABLES } from '../src/lib/rls-audit-guards.mjs';
+import { validatePostgrestResult, confirmsDeniedAccess } from '../src/lib/rls-audit-results.mjs';
 
 const exampleRef = 'abcdefghijklmnopqrst';
 const url = `https://${exampleRef}.supabase.co`;
@@ -52,4 +53,25 @@ test('cannot specify arbitrary tables or unknown command-line flags', () => {
   assert.throws(() => auditPlan({ ...config, EYLO_RLS_TABLES: 'auth.users' }, ['--live']));
   assert.throws(() => auditPlan(config, ['--live', '--delete-everything']));
   assert.deepEqual(auditPlan({ ...config, EYLO_RLS_TABLES: 'projects,saved_papers' }, ['--live']).tables, ['projects', 'saved_papers']);
+});
+
+test('a successful response must contain a real PostgREST row array', () => {
+  assert.deepEqual(validatePostgrestResult({ status: 200, ok: true, data: [] }).rows, []);
+  assert.throws(() => validatePostgrestResult({ status: 200, ok: true, data: { message: 'OK' } }), /row array/);
+  assert.throws(() => validatePostgrestResult({ status: 200, ok: true, data: null }), /row array/);
+});
+
+test('backend outages do not masquerade as correctly blocked access', () => {
+  for (const status of [404, 408, 429, 500, 502, 503]) {
+    assert.equal(confirmsDeniedAccess({ status, ok: false, rows: [] }), false);
+  }
+  assert.equal(confirmsDeniedAccess({ status: 200, ok: true, rows: [{ user_id: 'other-user' }] }), false);
+  assert.equal(confirmsDeniedAccess({ status: 200, ok: true, rows: [] }), true);
+  assert.equal(confirmsDeniedAccess({ status: 401, ok: false, rows: [] }), true);
+  assert.equal(confirmsDeniedAccess({ status: 403, ok: false, rows: [] }), true);
+});
+
+test('malformed success cannot be treated as a denied access', () => {
+  assert.equal(confirmsDeniedAccess({ status: 200, ok: true, data: null }), false);
+  assert.equal(confirmsDeniedAccess(null), false);
 });
