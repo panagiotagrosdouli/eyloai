@@ -163,10 +163,12 @@ export default function Settings() {
         URL.revokeObjectURL(url);
       }
       toast({ title: 'Workspace downloaded', description: 'Your saved research records were exported to this device. Keep the JSON file private.' });
-    } catch {
+    } catch (error) {
       toast({
         title: 'Workspace export could not be completed',
-        description: 'No partial file was downloaded. Check your connection and account access, then try again.',
+        description: error?.code === 'WORKSPACE_EXPORT_SIZE_LIMIT'
+          ? 'The export exceeds the 50 MiB safety limit. Contact support for another way to access your data. No partial file was downloaded.'
+          : 'No partial file was downloaded. Check your connection and account access, then try again.',
         variant: 'destructive',
       });
     } finally {
@@ -431,7 +433,7 @@ export default function Settings() {
                 <h3 className="text-sm font-semibold text-foreground">Download saved research workspace</h3>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
                   Export your profile and saved projects, papers, researchers, opportunities, meetings, ideas, history, watchlists, monitoring results and notifications as JSON.
-                  This is a partial workspace export, not a complete account-data export. Payment records, provider logs and backups are not included.
+                  This is a partial workspace export, not a complete account-data export. Payment records, provider logs and backups are not included. Downloads are limited to 50 MiB and 50,000 records for device safety.
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   The file is stored unencrypted on this device. Keep it private and delete it when no longer needed.
