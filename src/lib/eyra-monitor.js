@@ -5,6 +5,18 @@
  */
 import { searchOpenAlexWorks, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { base44 } from '@/api/base44Client';
+import { getUsableSession } from '@/lib/supabaseClient';
+import { makeEyraCacheKey } from '@/lib/eyra-cache-key.mjs';
+
+// Personalized content is kept in volatile memory, never persisted across browser sessions.
+const monitorCache = new Map();
+const analysisCache = new Map();
+
+async function currentCacheUserId() {
+  const session = await getUsableSession({ required: true, validate: true });
+  if (!session?.user?.id) throw new Error('Sign in to access personalized EYRA intelligence.');
+  return session.user.id;
+}
 
 const LAST_VISIT_KEY = 'eyra_last_visit_ts';
 
@@ -32,11 +44,12 @@ function assignPriority(item) {
  * Returns structured discoveries grouped by type, each with source + evidence.
  */
 export async function runMonitor(projects, searchHistory = []) {
-  const cacheKey = `eyra_monitor_${new Date().toDateString()}`;
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) {
-    try { return JSON.parse(cached); } catch {}
-  }
+  const cacheKey = makeEyraCacheKey('monitor', await currentCacheUserId(), {
+    projects: projects.slice(0, 3).map(({ id, title, goal }) => ({ id, title, goal })),
+    searches: searchHistory.slice(0, 3).map(({ query }) => query),
+  });
+  const cached = monitorCache.get(cacheKey);
+  if (cached) return cached;
 
   // Build search queries from projects + recent searches
   const queries = [];
@@ -116,7 +129,7 @@ export async function runMonitor(projects, searchHistory = []) {
     noData: uniquePapers.length === 0 && uniqueResearchers.length === 0,
   };
 
-  localStorage.setItem(cacheKey, JSON.stringify(result));
+  if (!result.noData) monitorCache.set(cacheKey, result);
   return result;
 }
 
@@ -125,9 +138,13 @@ export async function runMonitor(projects, searchHistory = []) {
  * Strictly only references real data passed in — no invention allowed in prompt.
  */
 export async function analyzeDiscoveries(monitorResult, projects) {
-  const cacheKey = `eyra_analysis_${new Date().toDateString()}`;
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) { try { return JSON.parse(cached); } catch {} }
+  const cacheKey = makeEyraCacheKey('analysis', await currentCacheUserId(), {
+    projects: projects.slice(0, 3).map(({ id, title, goal }) => ({ id, title, goal })),
+    papers: monitorResult.papers.slice(0, 8).map(({ id, title, year, authors }) => ({ id, title, year, authors })),
+    researchers: monitorResult.researchers.slice(0, 5).map(({ id, name, institution }) => ({ id, name, institution })),
+  });
+  const cached = analysisCache.get(cacheKey);
+  if (cached) return cached;
 
   if (monitorResult.noData || (monitorResult.papers.length === 0 && monitorResult.researchers.length === 0)) {
     return { items: [], trend: null, gap: null };
@@ -198,6 +215,6 @@ CRITICAL: Only reference [P1]-[P${Math.min(8, monitorResult.papers.length)}] and
   });
 
   const analysis = { items: result?.items || [], trend: result?.trend || null, gap: result?.gap || null };
-  localStorage.setItem(cacheKey, JSON.stringify(analysis));
+  analysisCache.set(cacheKey, analysis);
   return analysis;
 }
