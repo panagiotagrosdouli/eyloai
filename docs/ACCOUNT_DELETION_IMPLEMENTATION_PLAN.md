@@ -48,3 +48,15 @@ an expected row owner is wrong or pagination is unstable.
 Live acceptance requires the **real EYLO production Supabase project**,
 a disposable account with records across multiple pages, and a browser test.
 The currently connected unrelated project must remain untouched.
+
+
+### Client-side export resource limits (release candidate enhancement)
+
+The in-browser partial workspace JSON download applies a 50-MiB final JSON
+size ceiling and a 50,000-record combined ceiling (in addition to the
+per-table ceiling). Both the accumulated UTF-8 row sizes and the final
+payload including account metadata are checked. If a limit is exceeded,
+**no partial file is produced**; the UI tells the user to contact support
+for an alternative personal-data access pathway. This guard limits browser
+memory exhaustion but does not satisfy a complete data-access request;
+support and legal/privacy procedures must address legitimately large exports.
