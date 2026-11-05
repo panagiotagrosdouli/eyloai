@@ -62,3 +62,24 @@ The GitHub repository's Supabase URL, deployed environment variables and any con
 
 
 These checks do not prove cross-user Supabase RLS, authenticated persistence/deletion, EYRA scientific accuracy, complete DOI metadata fidelity, mobile coverage, or payment flows. Keep all launch-gate boxes unchecked until their own evidence is recorded.
+
+
+## Discovery proxy response safety — draft change (2026-11-06)
+
+The public `/api/discovery` handler currently fetches from an allowlist of
+scholarly providers. The proposed change caps provider response bodies at
+4 MiB **in the server-side stream reader**, independent of whether the
+provider provides an honest `Content-Length`. Oversized results fail with an
+uncached HTTP 502 and code `SOURCE_RESPONSE_TOO_LARGE`; they must not be
+confused with an empty scientific search result. A header-only length check
+is insufficient, so the reader also counts received bytes.
+
+The proxy also forces a safe response media type (JSON for metadata providers,
+Atom XML for arXiv) and `X-Content-Type-Options: nosniff`, avoiding direct
+reflection of an upstream `text/html` response under EYLO's origin.
+
+**Limits:** This does not implement per-IP rate limiting, authenticated
+quotas for public discovery, or full provider content validation. Review
+provider-specific payload sizes and false positives with a real network
+benchmark before deploying. Verify that a provider error and an oversized
+response are communicated as source failures, never zero evidence.
