@@ -8,6 +8,7 @@
  */
 import { randomUUID } from 'node:crypto';
 import { auditPlan, USER_OWNED_TABLES } from '../src/lib/rls-audit-guards.mjs';
+import { validatePostgrestResult, confirmsDeniedAccess } from '../src/lib/rls-audit-results.mjs';
 
 const args = process.argv.slice(2);
 const plan = auditPlan(process.env, args);
@@ -41,7 +42,8 @@ if (plan.mode === 'preflight') {
     } else if (res.ok && (options.method || 'GET') === 'GET') {
       throw new Error('An audit GET returned an empty successful response.');
     }
-    return { status: res.status, ok: res.ok, data, rows: Array.isArray(data) ? data : [] };
+    const parsed = { status: res.status, ok: res.ok, data };
+    return path.startsWith('/rest/v1/') ? validatePostgrestResult(parsed) : parsed;
   };
 
   const currentIdentity = async token => {
@@ -117,11 +119,11 @@ if (plan.mode === 'preflight') {
             continue;
           }
           const foreignRead = await readExact(stranger, table, id);
-          if (foreignRead.ok && foreignRead.rows.length) failures.push(`${table}: another user can SELECT owner's fixture`);
+          if (!confirmsDeniedAccess(foreignRead)) failures.push(`${table}: cross-account SELECT not proven blocked (HTTP ${foreignRead.status})`);
           const anonRead = await request(null, path(table, id));
-          if (anonRead.ok && anonRead.rows.length) failures.push(`${table}: anonymous client can SELECT private fixture`);
+          if (!confirmsDeniedAccess(anonRead)) failures.push(`${table}: anonymous SELECT not proven blocked (HTTP ${anonRead.status})`);
           const attemptPatch = await mutate(stranger, table, id, 'PATCH', marker);
-          if (attemptPatch.ok && attemptPatch.rows.length) failures.push(`${table}: another user can PATCH owner's fixture`);
+          if (!confirmsDeniedAccess(attemptPatch)) failures.push(`${table}: cross-account PATCH not proven blocked (HTTP ${attemptPatch.status})`);
           const afterPatch = await readExact(owner, table, id);
           if (!afterPatch.ok || afterPatch.rows.length !== 1 ||
               afterPatch.rows[0].data?.audit_marker !== marker ||
@@ -129,7 +131,7 @@ if (plan.mode === 'preflight') {
             failures.push(`${table}: unauthorized PATCH changed owner data`);
           }
           const attemptDelete = await mutate(stranger, table, id, 'DELETE', marker);
-          if (attemptDelete.ok && attemptDelete.rows.length) failures.push(`${table}: another user can DELETE owner's fixture`);
+          if (!confirmsDeniedAccess(attemptDelete)) failures.push(`${table}: cross-account DELETE not proven blocked (HTTP ${attemptDelete.status})`);
           const afterDelete = await readExact(owner, table, id);
           if (!afterDelete.ok || afterDelete.rows.length !== 1) {
             failures.push(`${table}: unauthorized DELETE removed owner data`);
@@ -141,7 +143,9 @@ if (plan.mode === 'preflight') {
       for (const { owner, table, id } of createdIds.reverse()) {
         try {
           const cleanup = await request(owner.token, path(table, id), { method: 'DELETE', prefer: 'return=representation' });
-          if (!cleanup.ok) failures.push(`${table}: cleanup failed (HTTP ${cleanup.status})`);
+          if (!cleanup.ok || !cleanup.rows?.some(row => row.id === id)) {
+            failures.push(`${table}: cleanup not confirmed (HTTP ${cleanup.status}); inspect disposable test records`);
+          }
         } catch {
           failures.push(`${table}: cleanup failed; inspect disposable test account records`);
         }
