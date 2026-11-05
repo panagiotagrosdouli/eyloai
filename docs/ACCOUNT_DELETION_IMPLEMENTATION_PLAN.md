@@ -32,3 +32,19 @@
 ## Release gate
 
 Do not ship a Delete Account button that implies completion before the above is implemented, security-tested and reviewed against the live environment.
+
+
+## Partial research-workspace export proposal (2026-11-05)
+
+A draft implementation adds **Settings → Privacy → Download saved workspace**.
+It reads the verified user's profile and ten owner-scoped research tables via
+Supabase and downloads a JSON file **in the user's browser**. This is a
+convenience export, not a complete Art. 15/20 GDPR request fulfillment or
+account deletion. It does not include billing, third-party or server logs,
+Auth internals, backups or retention records; the UI states those limitations.
+The export fails without downloading a partial file if any table is inaccessible,
+an expected row owner is wrong or pagination is unstable.
+
+Live acceptance requires the **real EYLO production Supabase project**,
+a disposable account with records across multiple pages, and a browser test.
+The currently connected unrelated project must remain untouched.

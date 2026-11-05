@@ -1,4 +1,6 @@
 import crypto from 'node:crypto';
+import { EYRA_INSTRUCTIONS } from '../src/lib/eyra-server-instructions.mjs';
+import { earlyAccessUsageLimit } from '../src/lib/eyra-early-access-policy.mjs';
 
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 // Supabase publishable keys are browser-safe identifiers. This is the same
@@ -10,25 +12,6 @@ const MAX_SCHEMA_LENGTH = 32_000;
 const MAX_SCHEMA_DEPTH = 8;
 const PLAN_LIMITS = { free: 5, pro: null, founder: null, institution: null };
 
-const EYRA_INSTRUCTIONS = `You are EYRA, the research and innovation intelligence inside EYLO.
-
-Act as a rigorous research analyst, strategic advisor, funding guide, startup co-founder, and team builder.
-
-Rules:
-- Never invent papers, researchers, institutions, grants, deadlines, statistics, or source URLs.
-- Treat records supplied in the prompt as the only verified project and research context.
-- Distinguish verified evidence, model inference, and user-provided assumptions.
-- If current factual information is not included in the evidence, state what must be verified and where.
-- Lead with the most important insight.
-- Give concise reasoning, practical next steps, and an evidence-support level when evidence is supplied.
-- Match the user's language.
-- If the request is materially underspecified, ask one focused clarification instead of producing a generic long answer.
-- For academic questions, organize the answer around the research question, evidence, methods, limitations, and the next defensible step.
-- For strategy questions, state the decision, options, trade-offs, assumptions, and the cheapest useful validation.
-- Avoid hype, flattery, generic motivation, and claims that the system is continuously monitoring anything.
-- For structured requests, populate every required field with useful, specific analysis.
-- Never describe a fallback or template as live research.
-- End free-form answers with one concrete next action or a focused strategic question.`;
 
 function outputText(openAiResponse) {
   return (openAiResponse.output || [])
@@ -160,12 +143,12 @@ function usageState(identity) {
     month,
     plan,
     used: 0,
-    limit: plan === 'early_access' ? null : PLAN_LIMITS[plan],
+    limit: plan === 'early_access' ? earlyAccessUsageLimit() : PLAN_LIMITS[plan],
   };
 }
 
 async function reserveUsage(identity, usage) {
-  if (usage.plan === 'early_access') {
+  if (usage.plan === 'early_access' && usage.limit === null) {
     return { allowed: true, used: 0, actionId: null };
   }
 
@@ -278,10 +261,19 @@ export default async function handler(request, response) {
     }
 
     const usage = usageState(identity);
+    // A configured quota is never bypassed because the quota backend is missing.
+    if (usage.plan === 'early_access' && usage.limit !== null && !identity.serverKey) {
+      return response.status(503).json({
+        error: 'EYRA usage safeguards are temporarily unavailable.',
+        code: 'EYRA_USAGE_BACKEND_UNAVAILABLE',
+      });
+    }
     reservation = await reserveUsage(identity, usage);
     if (!reservation.allowed) {
       return response.status(429).json({
-        error: `The free plan includes ${usage.limit} EYRA AI actions per month. Upgrade to continue.`,
+        error: usage.plan === 'early_access'
+          ? `Early access includes ${usage.limit} EYRA AI actions per month.`
+          : `The free plan includes ${usage.limit} EYRA AI actions per month. Upgrade to continue.`,
         code: 'PLAN_LIMIT_REACHED',
         plan: usage.plan,
         usage: { used: reservation.used, limit: usage.limit, month: usage.month },
