@@ -6,6 +6,7 @@ const keys = [
   'OPENAI_API_KEY', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET',
   'STRIPE_PRO_PRICE_ID', 'STRIPE_FOUNDER_PRICE_ID',
   'SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY',
+  'EYRA_EARLY_ACCESS_MONTHLY_LIMIT',
 ];
 const snapshot = Object.fromEntries(keys.map(key => [key, process.env[key]]));
 afterEach(() => {
@@ -74,4 +75,29 @@ test('non-GET requests reject without being cached', () => {
   assert.equal(res.statusCode, 405);
   assert.equal(res.headers.Allow, 'GET');
   assert.equal(res.headers['Cache-Control'], 'no-store');
+});
+
+
+test('early-access cap is public but does not expose credentials', () => {
+  clearKeys();
+  process.env.OPENAI_API_KEY = 'test-only';
+  process.env.EYRA_EARLY_ACCESS_MONTHLY_LIMIT = '12';
+  const missing = response();
+  handler({ method: 'GET' }, missing);
+  assert.equal(missing.body.ai, false, 'do not advertise available AI when quota cannot be enforced');
+  assert.equal(missing.body.early_access_monthly_ai_actions, 12);
+  process.env.SUPABASE_SECRET_KEY = 'test-only';
+  const ready = response();
+  handler({ method: 'GET' }, ready);
+  assert.equal(ready.body.ai, true);
+  assert.equal(JSON.stringify(ready.body).includes('test-only'), false);
+});
+
+test('invalid early-access cap fails closed', () => {
+  clearKeys();
+  process.env.EYRA_EARLY_ACCESS_MONTHLY_LIMIT = '-2';
+  const res = response();
+  handler({ method: 'GET' }, res);
+  assert.equal(res.statusCode, 503);
+  assert.equal(res.body.early_access_monthly_ai_actions, undefined);
 });
