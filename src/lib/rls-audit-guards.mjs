@@ -41,9 +41,19 @@ export function auditPlan(env, args = []) {
       verifiedSupabaseOrigin(env.EYLO_RLS_CONFIRMED_PRODUCTION_URL, expectedRef) !== origin) {
     throw new Error('Confirm the production project URL separately before live checks.');
   }
-  if (!env.EYLO_RLS_PUBLIC_KEY ||
-      String(env.EYLO_RLS_PUBLIC_KEY).startsWith('sb_secret_') ||
-      String(env.EYLO_RLS_PUBLIC_KEY).startsWith('sb_service_')) {
+  const publicKey = String(env.EYLO_RLS_PUBLIC_KEY || '').trim();
+  const legacyJwtSegments = publicKey.split('.');
+  let privilegedOrMalformedLegacyKey = false;
+  if (legacyJwtSegments.length === 3) {
+    try {
+      const payload = JSON.parse(atob(legacyJwtSegments[1].replace(/-/g, '+').replace(/_/g, '/')));
+      privilegedOrMalformedLegacyKey = payload.role !== 'anon';
+    } catch {
+      privilegedOrMalformedLegacyKey = true;
+    }
+  }
+  if (!publicKey || publicKey.startsWith('sb_secret_') ||
+      publicKey.startsWith('sb_service_') || privilegedOrMalformedLegacyKey) {
     throw new Error('A public Supabase publishable/anon key is required; never use a server secret.');
   }
   for (const key of ['EYLO_RLS_TOKEN_A', 'EYLO_RLS_TOKEN_B']) {
@@ -64,7 +74,7 @@ export function auditPlan(env, args = []) {
   }
   return {
     mode: 'live', writes: wantsWrites, origin, tables,
-    publicKey: env.EYLO_RLS_PUBLIC_KEY,
+    publicKey,
     tokenA: env.EYLO_RLS_TOKEN_A,
     tokenB: env.EYLO_RLS_TOKEN_B,
   };
