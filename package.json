@@ -23,7 +23,8 @@
     "test:greeting": "node scripts/test-local-greeting.mjs",
     "test:services": "node scripts/test-service-server-keys.mjs",
     "audit:rls": "node scripts/audit-rls-two-users.mjs",
-    "prepare:analytics-repair": "node scripts/prepare-analytics-repair.mjs"
+    "prepare:analytics-repair": "node scripts/prepare-analytics-repair.mjs",
+    "evaluate:eyra:human": "node scripts/evaluate-eyra-human.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
