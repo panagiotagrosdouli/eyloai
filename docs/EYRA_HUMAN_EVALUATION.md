@@ -132,6 +132,50 @@ adjudication have been finalized. This workflow cannot itself prove
 that humans did the labeling; audit independent annotations and their
 timestamps separately.
 
+## Collect completed blinded reviews and prepare independent adjudication
+
+**Do this only after both independent reviewers finish their packets, before
+any annotator sees another person's decision or the AI model's prediction.**
+
+The original `source-candidates.json` file must be preserved byte for
+byte. Save each completed packet locally and run:
+
+```bash
+npm run reconcile:eyra:annotations -- \
+  --source /secure/study/source-candidates.json \
+  --audit /secure/study/blind-packets/source-audit.json \
+  --reviewer-a /secure/study/reviewer-a-completed.json \
+  --reviewer-b /secure/study/reviewer-b-completed.json \
+  --out /secure/study/NEW-adjudication-draft.json
+```
+
+The tool **requires an unused output filename** and verifies:
+
+- The raw source file's SHA-256 equals the study audit's recorded digest.
+- Reviewer pseudonyms and the study seed match the originally generated
+  blinded packets; the same cases, original order, domain, claim, title,
+  abstract and source URL are present without modification or extra fields.
+- Every reviewer supplies an allowed verdict and a human rationale of at
+  least ten characters. Incomplete or leaked model/ground-truth fields
+  cause refusal, not silently recorded negative assessments.
+
+The output is a **draft only**: both original verdicts and rationales are
+preserved; cases are returned in source-manifest order; disagreements
+are flagged; *every* `adjudicated_verdict` is `null`, the final rationale
+and resolution are blank, and **no `model_review` is attached**. An
+independent adjudicator must inspect all cases (including agreements),
+write final rationales, and document conflicts or overrides. Only after
+the adjudicator has frozen the final labels may a researcher attach
+saved model responses to the separate evaluation dataset and run the
+human-scoring command below.
+
+The digest detects accidental changes and mismatch with the recorded
+manifest, but **cannot prove a reviewer was human, independent or
+qualified**. Store the raw manifest, completed files, consent/conflict
+records, adjudication log and version-locked model output in a
+controlled research repository. Do not commit confidential or
+copyright-restricted abstracts to the app repository.
+
 ## Offline evaluation
 
 With a private, adjudicated JSON file and its saved model responses, run:
