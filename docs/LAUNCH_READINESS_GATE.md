@@ -160,3 +160,15 @@ run**. The existing synthetic 8/8 false-acceptance example remains a
 known safety limitation; strict response completeness alone cannot solve
 semantic entailment errors. See `docs/EYRA_HUMAN_EVALUATION.md`.
 Release Gate B remains OPEN / NO-GO until actual external review.
+
+
+## Blind human review packet workflow — 2026-11-06
+
+Offline `npm run prepare:eyra:annotations` prepares two separate reviewer
+packets from a strict **source-only** manifest. A manifest with model answers,
+labels or extra metadata is rejected. Packet order is reproducibly seeded,
+and reviewer outputs must be collected separately before model exposure.
+The offline evaluation tool now reports exact agreement and Cohen's κ per
+domain; a written resolution is required for every disagreement or override.
+This is only infrastructure. No real experts have independently annotated
+source claims here, so the scientific acceptance gate remains **NO-GO**.
