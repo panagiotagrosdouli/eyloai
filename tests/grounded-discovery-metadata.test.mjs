@@ -54,6 +54,11 @@ test('missing publication metadata and unranked authors are not invented', () =>
 
 test('the production discovery result overrides model-provided metadata with source-derived values', () => {
   const source = readFileSync(new URL('../src/lib/eyra-engine.js', import.meta.url), 'utf8');
-  assert.match(source, /\.\.\.aiAnalysis,\s+\.\.\.groundedDiscoveryMetadata\(papers, researchers, aiAnalysis\.keywords\)/);
+  const modelFieldsAt = source.indexOf('    ...aiAnalysis,');
+  const groundedFieldsAt = source.indexOf('    ...groundedDiscoveryMetadata(papers, researchers, aiAnalysis.keywords),');
+  const evidenceFieldsAt = source.indexOf('    evidence_review: evidenceReview,', modelFieldsAt);
+  assert.ok(modelFieldsAt !== -1, 'model output is included for interpretation');
+  assert.ok(groundedFieldsAt > modelFieldsAt, 'source-derived values override any generated statistics');
+  assert.ok(evidenceFieldsAt > groundedFieldsAt, 'source-derived fields remain in the final discovery result');
   assert.match(source, /import \{ groundedDiscoveryMetadata \} from '.\/grounded-discovery-metadata\.mjs'/);
 });
