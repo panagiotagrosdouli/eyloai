@@ -1,4 +1,5 @@
 import { earlyAccessUsageLimit } from '../src/lib/eyra-early-access-policy.mjs';
+import { analyticsEnabled } from '../src/lib/analytics-readiness.mjs';
 
 function supabaseServerConfigured() {
   return Boolean(
@@ -34,8 +35,8 @@ export default function handler(request, response) {
     // is enabled only after explicit consent to send each active query to the
     // selected external research/funding source.
     scheduled_monitoring: false,
-    // Analytics is served by an authenticated, least-privilege database RPC;
-    // no Vercel service-role credential is required.
-    institution_analytics: true,
+    // This RPC is only advertised after explicit acceptance of the ACTUAL
+    // production Supabase schema, grants and two-account isolation.
+    institution_analytics: analyticsEnabled(),
   });
 }
