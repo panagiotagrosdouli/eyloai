@@ -56,9 +56,81 @@ of the deployed reviewer model on the corresponding claim.
 ```
 
 The example above is **schema illustration**, not evaluated human data.
+The evaluator now reports **per-domain and overall** raw agreement,
+disagreement counts and four-category Cohen's κ in addition to the
+AI metrics. If the category marginals make chance agreement 100%, κ is
+reported as `null` (undefined), not falsely as perfect reliability.
+As a conservative *engineering screening* threshold, each domain must
+have at least 80% raw reviewer agreement. This is not a universal
+psychometric quality standard and does not establish correct labels.
+
 The CLI cannot verify that the reviewers were independent; separate
 annotation records, conflicts, pre-registration, sampling and signed
 adjudication must be audited by the research lead.
+
+## Preparing blinded annotation packets (no AI calls)
+
+Create a **private, source-only** manifest with claims sampled independently
+from actual scientific papers. The manifest must NOT include human labels,
+model predictions or adjudications. It has the following structure:
+
+```json
+{
+  "protocol": "eyra-source-candidates-v1",
+  "dataset_id": "YOUR-PREREGISTERED-STUDY",
+  "cases": [
+    {
+      "id": "case-001",
+      "domain": "medicine",
+      "claim": "The trial showed a statistically significant effect.",
+      "paper": {
+        "title": "Publication title from the actual record",
+        "abstract": "An authentic abstract excerpt, long enough to assess the proposed claim.",
+        "url": "https://doi.org/YOUR-REAL-DOI"
+      }
+    }
+  ]
+}
+```
+
+This is only a schema example. No real papers, labels or permission to
+reproduce copyrighted text are supplied by the repository.
+
+To generate two **blinded, source-only** packets in a new private output
+directory (not already existing):
+
+```bash
+npm run prepare:eyra:annotations -- \
+  --source /secure/study/source-candidates.json \
+  --out /secure/study/blind-packets \
+  --seed PREREGISTERED-SEED
+```
+
+The local-only command writes `reviewer-a.json`,
+`reviewer-b.json` and `source-audit.json` containing source SHA-256,
+sampling seed, dataset ID and case count. Packets are deterministically
+ordered separately for each reviewer and contain **neither predicted
+verdicts nor ground-truth labels**. They include blank `verdict` and
+`rationale` fields. Use separate secure distribution, have annotators
+work independently, and collect both completed responses before showing
+either analyst's judgments or any EYRA predictions.
+
+The script refuses extra source case fields (including `model_review`,
+`adjudicated_verdict` and `expected_supported`), repeated IDs, and
+preexisting target directories. The seed enables replication, not
+independence or source authenticity. Do not commit actual manuscripts,
+personal reviewer identities or proprietary abstracts.
+
+Reconcile the two completed packets using an independent adjudicator,
+recording each original reviewer ID and verdict. If reviewers disagree,
+or adjudication overrides both agreeing reviewers, the final evaluation
+file must include an `adjudication_resolution` explanation of **at
+least 15 characters** per affected case. Ordinary adjudication still
+requires the separate `adjudication_rationale` field. Attach the saved
+AI reviewer response only **after** independent annotation and
+adjudication have been finalized. This workflow cannot itself prove
+that humans did the labeling; audit independent annotations and their
+timestamps separately.
 
 ## Offline evaluation
 
@@ -78,6 +150,7 @@ Missing model outputs are not treated as correctly rejected claims.
 ### Engineering screening thresholds (not a launch decision)
 
 - At least four independently represented scientific domains.
+- At least 80% exact independent-annotator agreement in *each* domain; report Cohen's κ and the complete disagreement resolution log.
 - At least **20 positive and 75 negative** adjudicated claims in *each*
   domain, to avoid overly narrow zero-error claims. The 75 negative
   threshold permits a Wilson upper bound below 5% only if no false
