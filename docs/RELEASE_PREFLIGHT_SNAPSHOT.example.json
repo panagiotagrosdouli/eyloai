@@ -1,0 +1,16 @@
+{
+  "main_sha": "d7db2952796bf046e318cc720042056f5c7f92ce",
+  "production_sha": "d7db2952796bf046e318cc720042056f5c7f92ce",
+  "release_candidate_sha": "8c65fedffa142cf58e867cd25ef47cdeb6692f49",
+  "intended_supabase_ref": "kbzjngpzxpniaumlupaa",
+  "connected_supabase_refs": [
+    "umzrggayitzfgrrofjnw"
+  ],
+  "production_env_keys": [
+    "OPENAI_MODEL",
+    "OPENAI_API_KEY",
+    "VITE_SUPABASE_URL",
+    "VITE_SUPABASE_ANON_KEY"
+  ],
+  "accepted_gate_evidence": {}
+}
