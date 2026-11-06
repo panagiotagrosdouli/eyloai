@@ -129,3 +129,24 @@ reported as unavailable rather than synthesized. Source-derived statistics
 and matching phrases still do not validate citation metadata or scientific
 meaning. Unit tests use synthetic records and do not replace live independent
 relevance/semantic evaluation.
+
+
+## Human-adjudicated scientific claim scoring (2026-11-06 candidate)
+
+The new `npm run evaluate:eyra:human -- --dataset <path>` tool scores
+independently labelled paper-claim pairs and **saved model-review responses**.
+It reports confusion matrices for (1) the raw second-model verdict and
+(2) the claims actually retained after the deterministic excerpt gate.
+Outputs contain per-domain sample counts and two-sided 95% Wilson
+intervals for false acceptance. The default command requires a dataset;
+no human-labelled dataset has been collected or evaluated so far.
+See `docs/EYRA_HUMAN_EVALUATION.md` for pre-adjudication, sampling,
+privacy guidance and conservative screening criteria. A passed tool
+run does **not** constitute external scientific validation or authorize
+commercial release.
+
+The runtime verifier now also requires one consistent model review per
+claim ID. Missing, duplicated or invented IDs fail closed instead of
+publishing a partial selection of favorable verdicts. This **does not
+fix** the known semantic false-acceptance pathway when a complete,
+incorrect model response quotes real text.
