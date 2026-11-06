@@ -172,3 +172,14 @@ The offline evaluation tool now reports exact agreement and Cohen's κ per
 domain; a written resolution is required for every disagreement or override.
 This is only infrastructure. No real experts have independently annotated
 source claims here, so the scientific acceptance gate remains **NO-GO**.
+
+
+## Human annotation hand-off integrity — 2026-11-06
+
+The integrated candidate includes an offline `reconcile:eyra:annotations`
+step. It checks the source manifest's SHA-256 and the expected blinded
+packet structure, prevents edits to scientific claims or abstracts between
+reviewers, refuses unfilled verdicts and writes only a non-overwriting
+**draft**, preserving both original decisions and disagreements. This is a
+workflow guard; it does not supply actual independent human evaluations or
+a certified scientific dataset. Human study and staging gates remain NO-GO.
