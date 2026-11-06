@@ -1,4 +1,10 @@
 import test from 'node:test';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import assert from 'node:assert/strict';
 import {
   buildBlindEyraPacket, validateEyraSourceManifest, verifyIndependentEyraPackets,
@@ -58,4 +64,30 @@ test('packet comparison requires different reviewers with the same exact cases',
   b.cases.pop();
   assert.throws(() => verifyIndependentEyraPackets(a, b), /same evaluation cases/);
   assert.throws(() => verifyIndependentEyraPackets(a, a), /two distinct/);
+});
+
+test('offline packet CLI creates both private files and never overwrites an existing study', () => {
+  const root = mkdtempSync(join(tmpdir(), 'eyra-blind-review-'));
+  try {
+    const source = join(root, 'sources.json');
+    const out = join(root, 'packets');
+    writeFileSync(source, JSON.stringify(manifest));
+    const script = fileURLToPath(new URL('../scripts/prepare-eyra-annotations.mjs', import.meta.url));
+    const args = [script, '--source', source, '--out', out, '--seed', 'synthetic-test-seed'];
+    const first = spawnSync(process.execPath, args, { encoding: 'utf8', timeout: 10000 });
+    assert.equal(first.status, 0, first.stderr);
+    const a = JSON.parse(readFileSync(join(out, 'reviewer-a.json'), 'utf8'));
+    const b = JSON.parse(readFileSync(join(out, 'reviewer-b.json'), 'utf8'));
+    const audit = JSON.parse(readFileSync(join(out, 'source-audit.json'), 'utf8'));
+    assert.equal(verifyIndependentEyraPackets(a, b), true);
+    assert.equal(a.cases.length, manifest.cases.length);
+    assert.equal(audit.case_count, manifest.cases.length);
+    assert.match(audit.source_sha256, /^[0-9a-f]{64}$/);
+    const originalPacket = readFileSync(join(out, 'reviewer-a.json'), 'utf8');
+    const second = spawnSync(process.execPath, args, { encoding: 'utf8', timeout: 10000 });
+    assert.notEqual(second.status, 0, 'existing annotation packets must not be overwritten');
+    assert.equal(readFileSync(join(out, 'reviewer-a.json'), 'utf8'), originalPacket);
+  } finally {
+    rmSync(root, { force: true, recursive: true });
+  }
 });
