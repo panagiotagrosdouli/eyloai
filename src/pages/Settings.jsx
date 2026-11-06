@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { loadPreferences, savePreferences } from '@/lib/preferences';
+import AccountDeletionRequestCard from '@/components/privacy/AccountDeletionRequestCard';
 
 const SECTIONS = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -363,8 +364,9 @@ export default function Settings() {
                 </button>
               </div>
               <div className="rounded-xl border border-border bg-secondary/20 p-4 text-xs leading-6 text-muted-foreground">
-                This preference is stored on your current device. It is not an account-data deletion request and does not erase previously saved research records. EYLO currently does not provide a verified self-service account deletion or complete data export workflow in this Settings screen.
+                This preference is stored on your current device. It does not erase your previously saved research records. The deletion request below is not automatic account removal or a complete data export.
               </div>
+              <AccountDeletionRequestCard />
             </div>
           </div>
         );
