@@ -6,6 +6,7 @@ const ENVIRONMENT_KEYS = [
   'SUPABASE_SECRET_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
   'CRON_SECRET',
+  'EYLO_ANALYTICS_ENABLED',
 ];
 
 const previousEnvironment = Object.fromEntries(
@@ -71,6 +72,9 @@ try {
     throw new Error('Monitoring incorrectly exposed a modern Supabase secret as a Bearer token.');
   }
 
+  // The service integration test explicitly exercises the post-acceptance
+  // enabled state. The default-disabled state is tested independently.
+  process.env.EYLO_ANALYTICS_ENABLED = '1';
   let analyticsHeaders = {};
   globalThis.fetch = async (url, options = {}) => {
     const target = String(url);
@@ -81,7 +85,15 @@ try {
         institution_name: 'My workspace',
         members: 1,
         ai_actions_this_month: 0,
-        counts: {},
+        generated_at: '2026-11-06T00:00:00Z',
+        counts: {
+          projects: 0,
+          saved_papers: 0,
+          saved_researchers: 0,
+          saved_opportunities: 0,
+          meetings: 0,
+          watchlists: 0,
+        },
       });
     }
     throw new Error(`Unexpected analytics request: ${target}`);
