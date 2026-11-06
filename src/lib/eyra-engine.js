@@ -6,7 +6,7 @@ import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitu
 import { formatUnavailableSource } from './discovery-source-status.js';
 import { searchFundingOpportunities } from './funding-api';
 import { filterUnsupportedEvidenceClaims } from './research-provenance.mjs';
-import { reviewableClaims, selectExcerptSupportedClaims } from './evidence-verification.mjs';
+import { reviewableClaims, selectExcerptSupportedClaims, validateEvidenceReviewBatch } from './evidence-verification.mjs';
 import { buildEvidenceReviewPrompt, EVIDENCE_REVIEW_SCHEMA } from './evidence-review-prompt.mjs';
 
 // ── Simple session cache ─────────────────────────────────────
@@ -321,6 +321,9 @@ async function requestEvidenceReview(claims, papers) {
     prompt: buildEvidenceReviewPrompt(claims, papers),
     response_json_schema: EVIDENCE_REVIEW_SCHEMA,
   });
-  if (!Array.isArray(result?.reviews)) throw new Error('Evidence reviewer returned no valid reviews.');
+  const batch = validateEvidenceReviewBatch(claims, result?.reviews);
+  if (!batch.ok) {
+    throw new Error('Evidence reviewer returned an incomplete or inconsistent set of claims.');
+  }
   return result.reviews;
 }
