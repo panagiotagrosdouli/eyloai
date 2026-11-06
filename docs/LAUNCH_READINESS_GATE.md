@@ -197,3 +197,15 @@ credentials are absent from Vercel's returned list. Account deletion is
 still design only, and independent human EYRA evaluation has not happened.
 **Release decision remains NO-GO**; the script deliberately does not
 certify a GO even when evidence has been self-declared complete.
+
+
+## Grants.gov source integrity and bounded reading — draft candidate
+
+`api/opportunities.js` now bounds Grants.gov JSON search and detail
+responses in-stream (2 MiB / 1 MiB). Non-JSON, malformed, or oversized
+search responses return source errors, not empty funding lists. Unavailable
+detail is separately flagged in the result and the Funding / Opportunity
+Radar pages, with no invented eligibility or amount. Private research
+queries are not browser-cached. See
+`docs/FUNDING_SOURCE_RESPONSE_SAFETY.md`. A live real-record comparison
+with official opportunities remains **unchecked** and release status NO-GO.
