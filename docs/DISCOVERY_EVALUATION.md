@@ -147,3 +147,17 @@ false-acceptance intervals. A domain needs at least 80% exact agreement
 to pass the engineering screening gate, though that alone is not evidence
 of ground-truth quality or reviewer independence. No real human study has
 been performed or verified. See `docs/EYRA_HUMAN_EVALUATION.md`.
+
+
+## Audited two-reviewer hand-off (2026-11-06)
+
+`npm run reconcile:eyra:annotations -- --source <source-only-manifest>
+--audit <source-audit.json> --reviewer-a <reviewer-a-complete.json>
+--reviewer-b <reviewer-b-complete.json> --out <new-draft.json>` validates
+original source SHA-256 and the expected blind packet content (claim, title,
+abstract, URL, order), confirms complete labels and rationale, and writes
+only an **adjudication draft** with blank final labels and flagged
+disagreements. Source mutations, hidden model verdicts, missing human answers
+and existing output files are rejected; no external requests are made.
+See `docs/EYRA_HUMAN_EVALUATION.md` for the full human review protocol.
+No real independent review study has been conducted or verified.
