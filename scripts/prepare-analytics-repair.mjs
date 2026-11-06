@@ -8,7 +8,6 @@ import { resolve, dirname, basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
-const FIX_NAME = 'fix_analytics_profile_schema';
 
 export function buildAnalyticsRepairSql(source) {
   const required = [
