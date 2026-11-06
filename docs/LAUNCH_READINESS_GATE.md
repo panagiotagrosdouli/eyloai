@@ -127,3 +127,22 @@ were corrected in a draft PR. **These edits do not fix an already-applied
 production migration.** See `docs/ANALYTICS_SCHEMA_REPAIR.md` for the verified
 project identification, new migration and authenticated staging checks needed.
 Analytics and overall release status remain unverified / NO-GO.
+
+
+## Institution Analytics truthful availability gate — proposed release-candidate change
+
+The `/api/capabilities` endpoint no longer reports `institution_analytics:
+true` unconditionally. Both that capability and the authenticated
+`/api/admin-analytics` backend now require the **explicit** server-side
+`EYLO_ANALYTICS_ENABLED=1` setting. Default is disabled, including when
+Supabase is connected but its deployed analytics RPC has not been inspected.
+This setting is **not evidence of successful security review**; it is a
+post-acceptance operator switch. Do not set it to `1` until the actual
+production project, SQL schema, grants and signed-in account-isolation tests
+have passed and release evidence is recorded.
+
+The analytics endpoint also sets `Cache-Control: private, no-store` for
+success and failure, refuses absent authentication, and validates the
+shape of the RPC response before presenting per-user metrics. These
+checks do not substitute for RLS, `SECURITY DEFINER` review or execution
+with real test accounts. Do not enable analytics simply because CI passes.
