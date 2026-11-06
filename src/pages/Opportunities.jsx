@@ -99,9 +99,10 @@ ${verified.map((item) => JSON.stringify({
   deadline: item.deadline,
   amount: item.amount,
   categories: item.categories,
+  detail_status: item.detail_status,
 })).join('\n')}
 
-Return one ranking object for every supplied id. Do not add opportunities or change factual fields. match_score measures relevance to the query, not probability of winning. difficulty is an eligibility/application-complexity assessment.`,
+Return one ranking object for every supplied id. Do not add opportunities or change factual fields. match_score measures relevance to the query, not probability of winning. difficulty is an eligibility/application-complexity assessment. If detail_status is unavailable, do not infer missing eligibility, amount, or other details; tell the user to consult the official notice.`,
           response_json_schema: {
             type: 'object',
             properties: {
@@ -229,6 +230,12 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
         </div>
       )}
 
+      {sourceMeta?.partial_results && !loading && (
+        <div role="status" className="mb-5 max-w-2xl rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-300">
+          Details could not be verified for {sourceMeta.detail_unavailable_count} official listing(s). Eligibility, amounts and descriptions may be incomplete. Open the official source before relying on these results.
+        </div>
+      )}
+
       {rankingError && (
         <div role="status" className="mb-5 max-w-2xl rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-300">
           {rankingError}
@@ -238,7 +245,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
       {sourceMeta && !loading && (
         <div className="mb-5 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
           <span className="rounded-full border border-green-500/20 bg-green-500/5 px-2 py-1 text-green-300">
-            {results.length} verified records
+            {results.length} official listings
           </span>
           <span>Source: {sourceMeta.source}</span>
           <span>Retrieved {new Date(sourceMeta.retrieved_at).toLocaleString()}</span>

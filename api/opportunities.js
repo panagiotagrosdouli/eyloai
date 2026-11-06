@@ -1,3 +1,8 @@
+import {
+  readFundingJsonResponse, FundingSourceResponseError,
+  MAX_GRANTS_SEARCH_BYTES, MAX_GRANTS_DETAIL_BYTES,
+} from '../src/lib/funding-response-guard.mjs';
+
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 const GRANTS_SEARCH_URL = 'https://api.grants.gov/v1/api/search2';
 const GRANTS_DETAIL_URL = 'https://api.grants.gov/v1/api/fetchOpportunity';
@@ -54,8 +59,11 @@ async function fetchGrantDetail(hit) {
       signal: AbortSignal.timeout(8_000),
     });
     if (!detailResponse.ok) throw new Error(`Detail request failed: ${detailResponse.status}`);
-    const detailPayload = await detailResponse.json();
-    const detail = detailPayload?.data || {};
+    const detailPayload = await readFundingJsonResponse(detailResponse, MAX_GRANTS_DETAIL_BYTES);
+    if (detailPayload.errorcode !== 0 || !detailPayload.data || typeof detailPayload.data !== 'object') {
+      throw new FundingSourceResponseError('FUNDING_INVALID_RESPONSE', 'Funding source rejected a detail request.');
+    }
+    const detail = detailPayload.data;
     const record = detail.synopsis || detail.forecast || {};
     const eligibility = (record.applicantTypes || []).map((item) => item.description).filter(Boolean);
     const instruments = (record.fundingInstruments || []).map((item) => item.description).filter(Boolean);
@@ -79,6 +87,7 @@ async function fetchGrantDetail(hit) {
       categories: (record.fundingActivityCategories || []).map((item) => item.description).filter(Boolean),
       source: 'Grants.gov',
       source_url: `https://www.grants.gov/search-results-detail/${hit.id}`,
+      detail_status: 'verified',
       is_expiring: deadlineDays !== null && deadlineDays >= 0 && deadlineDays <= 60,
       is_new: (() => {
         const opened = daysUntil(hit.openDate);
@@ -105,6 +114,7 @@ async function fetchGrantDetail(hit) {
       categories: [],
       source: 'Grants.gov',
       source_url: `https://www.grants.gov/search-results-detail/${hit.id}`,
+      detail_status: 'unavailable',
       is_expiring: deadlineDays !== null && deadlineDays >= 0 && deadlineDays <= 60,
       is_new: false,
       retrieved_at: new Date().toISOString(),
@@ -113,6 +123,7 @@ async function fetchGrantDetail(hit) {
 }
 
 export default async function handler(request, response) {
+  response.setHeader('Cache-Control', 'private, no-store');
   if (request.method !== 'GET') {
     response.setHeader('Allow', 'GET');
     return response.status(405).json({ error: 'Method not allowed.' });
@@ -144,24 +155,40 @@ export default async function handler(request, response) {
       return response.status(502).json({ error: 'The official funding source is temporarily unavailable.' });
     }
 
-    const searchPayload = await searchResponse.json();
+    const searchPayload = await readFundingJsonResponse(searchResponse, MAX_GRANTS_SEARCH_BYTES);
     if (searchPayload?.errorcode !== 0) {
       return response.status(502).json({ error: 'The official funding source rejected the search.' });
     }
 
-    const hits = searchPayload?.data?.oppHits || [];
+    const hits = searchPayload?.data?.oppHits;
+    if (!Array.isArray(hits) || hits.some(hit =>
+      !hit || !Number.isSafeInteger(Number(hit.id)) || Number(hit.id) <= 0
+    )) {
+      return response.status(502).json({
+        error: 'The official funding source returned invalid opportunity records.',
+        code: 'FUNDING_INVALID_RESPONSE',
+      });
+    }
     const items = await Promise.all(hits.slice(0, limit).map(fetchGrantDetail));
+    const detailUnavailableCount = items.filter(item => item.detail_status === 'unavailable').length;
 
-    response.setHeader('Cache-Control', 'private, max-age=300');
     return response.status(200).json({
       query,
       source: 'Grants.gov',
       source_url: 'https://www.grants.gov/search-grants',
       retrieved_at: new Date().toISOString(),
       hit_count: Number(searchPayload?.data?.hitCount || items.length),
+      partial_results: detailUnavailableCount > 0,
+      detail_unavailable_count: detailUnavailableCount,
       items,
     });
   } catch (error) {
+    if (error instanceof FundingSourceResponseError) {
+      return response.status(502).json({
+        error: 'The official funding source returned an unusable response.',
+        code: error.code,
+      });
+    }
     console.error('Funding search error', {
       message: error instanceof Error ? error.message : 'Unknown error',
     });
