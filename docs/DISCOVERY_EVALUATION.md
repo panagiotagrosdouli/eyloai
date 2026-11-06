@@ -130,3 +130,20 @@ omissions or duplicates fail closed. That protects against *malformed or
 partial review batches*, not a model's coherent but semantically incorrect
 support verdict. The prior synthetic 8/8 false-acceptance diagnostic remains
 an open scientific reliability blocker.
+
+
+## Blinded dual-review workflow (2026-11-06)
+
+`npm run prepare:eyra:annotations -- --source <source-only-manifest> --out
+<new-private-directory> --seed <preregistered-seed>` creates **two
+blinded, independently ordered** reviewer packets without any model answers
+or ground-truth labels. Two independent reviewers should annotate each case
+without seeing each other’s decisions or EYRA output, and any disagreements
+must receive a documented adjudication resolution before model scoring.
+
+`npm run evaluate:eyra:human` now reports *per-domain and overall*
+annotator raw agreement and Cohen's κ along with precision, recall and
+false-acceptance intervals. A domain needs at least 80% exact agreement
+to pass the engineering screening gate, though that alone is not evidence
+of ground-truth quality or reviewer independence. No real human study has
+been performed or verified. See `docs/EYRA_HUMAN_EVALUATION.md`.
