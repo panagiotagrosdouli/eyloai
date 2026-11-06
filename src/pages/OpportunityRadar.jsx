@@ -106,9 +106,10 @@ ${verified.map((item) => JSON.stringify({
   deadline: item.deadline,
   amount: item.amount,
   categories: item.categories,
+  detail_status: item.detail_status,
 })).join('\n')}
 
-Return one item for every supplied id. Do not create opportunities, deadlines, amounts, agencies or URLs. match_score is relevance to the supplied context, never probability of award. priority may use relevance plus the factual deadline.`,
+Return one item for every supplied id. Do not create opportunities, deadlines, amounts, agencies or URLs. match_score is relevance to the supplied context, never probability of award. priority may use relevance plus the factual deadline. When detail_status is unavailable, avoid suitability claims based on absent eligibility, amount or synopsis; direct the user to the official notice.`,
             response_json_schema: {
               type: 'object',
               properties: {
@@ -144,7 +145,7 @@ Return one item for every supplied id. Do not create opportunities, deadlines, a
         }
       }
 
-      toast({ title: `Loaded ${verified.length} verified opportunities` });
+      toast({ title: `Loaded ${verified.length} official funding listings` });
     } catch (error) {
       setRadarError(error instanceof Error ? error.message : 'Opportunity Radar failed.');
     } finally {
@@ -255,6 +256,12 @@ Rules:
           {radarError}
         </div>
       )}
+      {sourceMeta?.partial_results && !loading && (
+        <div role="status" className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-300">
+          The official source did not provide full details for {sourceMeta.detail_unavailable_count} listing(s). Eligibility and amounts may be incomplete; verify them in the official notice before applying.
+        </div>
+      )}
+
       {rankingError && (
         <div role="status" className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-300">
           {rankingError}
@@ -263,7 +270,7 @@ Rules:
       {sourceMeta && !loading && (
         <div className="mb-4 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
           <span className="rounded-full border border-green-500/20 bg-green-500/5 px-2 py-1 text-green-300">
-            {feed.length} verified records
+            {feed.length} official listings
           </span>
           <span>{sourceMeta.source}</span>
           <span>Retrieved {new Date(sourceMeta.retrieved_at).toLocaleString()}</span>
