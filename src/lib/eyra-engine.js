@@ -8,6 +8,7 @@ import { searchFundingOpportunities } from './funding-api';
 import { filterUnsupportedEvidenceClaims } from './research-provenance.mjs';
 import { reviewableClaims, selectExcerptSupportedClaims } from './evidence-verification.mjs';
 import { buildEvidenceReviewPrompt, EVIDENCE_REVIEW_SCHEMA } from './evidence-review-prompt.mjs';
+import { groundedDiscoveryMetadata } from './grounded-discovery-metadata.mjs';
 
 // ── Simple session cache ─────────────────────────────────────
 const CACHE_TTL = 15 * 60 * 1000; // 15 min
@@ -216,6 +217,9 @@ export async function runEyraDiscovery(input, onProgress) {
     researchers,
     institutions,
     ...aiAnalysis,
+    // Source metadata cannot be supplied by the model. Override generated
+    // statistics, coverage and keywords with actual retrieved records.
+    ...groundedDiscoveryMetadata(papers, researchers, aiAnalysis.keywords),
     evidence_review: evidenceReview,
     evidence_review_warning: evidenceReviewWarning,
     funding_opportunities: verifiedFunding,
