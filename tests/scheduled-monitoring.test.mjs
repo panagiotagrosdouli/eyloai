@@ -157,7 +157,12 @@ test('old disabled watchlists cannot starve 66 active watchlists over three boun
       return new Response(null, { status: 204 });
     }
     if (target.hostname === 'api.openalex.org') {
-      return new Response(JSON.stringify({ results: [] }), { status: 200 });
+      // OpenAlex replies with application/json, not Node Response's
+      // default text/plain. Keep source content-type checks strict.
+      return new Response(JSON.stringify({ results: [] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
     }
     throw Error('Unexpected monitoring test request: ' + String(url));
   };
