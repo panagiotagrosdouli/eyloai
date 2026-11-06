@@ -183,3 +183,17 @@ reviewers, refuses unfilled verdicts and writes only a non-overwriting
 **draft**, preserving both original decisions and disagreements. This is a
 workflow guard; it does not supply actual independent human evaluations or
 a certified scientific dataset. Human study and staging gates remain NO-GO.
+
+
+## Verified release preflight — 2026-11-06 (no promotion)
+
+See `docs/RELEASE_ACCEPTANCE_2026-11-06.md` and the offline
+`npm run audit:release -- --snapshot docs/RELEASE_PREFLIGHT_SNAPSHOT.example.json`.
+This read-only inventory records the actual Vercel key **names**, unchanged
+production commit, unrelated connected Supabase ref and presence of a
+live-mode Stripe account (not authorization to charge). The connected
+workspace lacks access to the intended Supabase project; Stripe server
+credentials are absent from Vercel's returned list. Account deletion is
+still design only, and independent human EYRA evaluation has not happened.
+**Release decision remains NO-GO**; the script deliberately does not
+certify a GO even when evidence has been self-declared complete.
