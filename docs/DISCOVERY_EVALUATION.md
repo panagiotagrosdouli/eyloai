@@ -111,3 +111,21 @@ Do not publish an accuracy percentage based only on these illustrative cases.
 The benchmark runs no external AI calls unless `--live` and
 `EYLO_EVAL_LIVE=1` are both supplied. It does not exercise production user
 accounts or change user data.
+
+
+## Source-derived discovery metadata (2026-11-06 release-candidate change)
+
+The discovery result now overrides any AI-generated record counts, publication
+range and top-cited researcher with statistics calculated from the retrieved
+paper and researcher objects. "Papers retrieved" is deliberate: the evidence
+reviewer sees **at most 12 short abstract excerpts**, not full texts or every
+retrieved paper. The top-cited researcher is merely the maximum reported
+`citation_count` among the retrieved author records with numeric counts; it
+is not a global scholarly ranking, employment verification or peer-review score.
+
+Model-suggested research keywords are displayed only when their normalized
+word sequence occurs in a retrieved title or abstract. Missing data is
+reported as unavailable rather than synthesized. Source-derived statistics
+and matching phrases still do not validate citation metadata or scientific
+meaning. Unit tests use synthetic records and do not replace live independent
+relevance/semantic evaluation.
