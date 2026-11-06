@@ -1,7 +1,8 @@
+import { monitorWatchlistsQuery } from '../src/lib/monitor-scheduling.mjs';
+
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 const OPENALEX_URL = 'https://api.openalex.org/works';
 const GRANTS_URL = 'https://api.grants.gov/v1/api/search2';
-const MAX_WATCHLISTS_PER_RUN = 30;
 
 function supabaseServerKey() {
   return process.env.SUPABASE_SECRET_KEY
@@ -113,7 +114,23 @@ async function searchGrants(query) {
 async function processWatchlist(row, seen) {
   const data = row.data || {};
   const query = String(data.query || '').trim();
-  if (!query || data.active === false) return { inserted: 0, notifications: 0 };
+  if (data.active === false) return { inserted: 0, notifications: 0 };
+  if (!query) {
+    // An old active watchlist without a query must not remain permanently
+    // first in the oldest-first queue. Mark it invalid and rotate its
+    // updated_date via the existing server-side trigger; never fetch upstream.
+    await supabase(`watchlists?id=eq.${encodeURIComponent(row.id)}`, {
+      method: 'PATCH',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ data: {
+        ...data,
+        lastCheckedAt: new Date().toISOString(),
+        lastCheckStatus: 'invalid_query',
+        lastResultCount: 0,
+      } }),
+    });
+    return { inserted: 0, notifications: 0, invalidQuery: true };
+  }
 
   const records = data.type === 'funding program'
     ? await searchGrants(query)
@@ -198,7 +215,9 @@ export default async function handler(request, response) {
 
   try {
     const [watchlists, discoveries] = await Promise.all([
-      supabase(`watchlists?select=id,user_id,data&order=updated_date.asc&limit=${MAX_WATCHLISTS_PER_RUN}`),
+      // The filter is applied IN PostgREST, before LIMIT. Otherwise inactive
+      // old rows occupy the entire page, starving all active subscribers.
+      supabase(monitorWatchlistsQuery()),
       supabase('monitoring_discoveries?select=user_id,data&order=created_date.desc&limit=5000'),
     ]);
     const seen = new Set((discoveries || []).map(row => `${row.user_id}:${row.data?.external_id}`));
@@ -206,6 +225,7 @@ export default async function handler(request, response) {
     let notifications = 0;
     let failed = 0;
     let checked = 0;
+    let invalidQueries = 0;
     const failedWatchlistIds = [];
 
     for (let index = 0; index < watchlists.length; index += 5) {
@@ -216,6 +236,7 @@ export default async function handler(request, response) {
         if (result.status === 'fulfilled') {
           inserted += result.value.inserted;
           notifications += result.value.notifications;
+          if (result.value.invalidQuery) invalidQueries += 1;
           continue;
         }
         failed += 1;
@@ -257,6 +278,7 @@ export default async function handler(request, response) {
       inserted,
       notifications,
       failed,
+      invalid_queries: invalidQueries,
       partial_failure: failed > 0,
       completed_at: new Date().toISOString(),
     });
