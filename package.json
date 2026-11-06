@@ -23,7 +23,8 @@
     "test:greeting": "node scripts/test-local-greeting.mjs",
     "test:services": "node scripts/test-service-server-keys.mjs",
     "evaluate:eyra:human": "node scripts/evaluate-eyra-human.mjs",
-    "prepare:eyra:annotations": "node scripts/prepare-eyra-annotations.mjs"
+    "prepare:eyra:annotations": "node scripts/prepare-eyra-annotations.mjs",
+    "reconcile:eyra:annotations": "node scripts/reconcile-eyra-annotations.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
