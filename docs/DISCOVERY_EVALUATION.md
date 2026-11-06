@@ -111,3 +111,22 @@ Do not publish an accuracy percentage based only on these illustrative cases.
 The benchmark runs no external AI calls unless `--live` and
 `EYLO_EVAL_LIVE=1` are both supplied. It does not exercise production user
 accounts or change user data.
+
+
+## Human-adjudicated scientific claim scoring (2026-11-06 candidate)
+
+The `npm run evaluate:eyra:human -- --dataset <path>` command evaluates
+independently labelled paper-claim pairs and saved second-model responses
+**offline**. It compares raw model judgments with claims actually published
+after deterministic excerpt checking, with precision, recall, confusion
+counts, per-domain denominators and Wilson 95% false-acceptance bounds.
+The evaluator requires real independent adjudication provenance to run in
+human-study mode; no such real dataset has been collected or assessed yet.
+See `docs/EYRA_HUMAN_EVALUATION.md` for the protocol and stringent
+screening thresholds. This is not a production accuracy certification.
+
+The runtime verifier now requires a complete, consistent set of claim IDs;
+omissions or duplicates fail closed. That protects against *malformed or
+partial review batches*, not a model's coherent but semantically incorrect
+support verdict. The prior synthetic 8/8 false-acceptance diagnostic remains
+an open scientific reliability blocker.
