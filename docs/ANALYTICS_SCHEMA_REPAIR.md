@@ -28,15 +28,17 @@ independently verifying its project ref against the Vercel deployment):
    `private.get_workspace_analytics_internal()` definition, public
    gateway privileges and actual migration history. Do not assume the
    production schema is identical to local source.
-2. Generate a **new** corrective migration with the currently installed
-   Supabase CLI (`supabase migration new fix_analytics_profile_schema`)
-   in a checked-out repository. Do **not** re-run/edit a historical
-   applied migration as a means of upgrading an existing database.
-3. Carry forward only the reviewed, corrected
-   `private.get_workspace_analytics_internal()` function definition
-   from the final analytics migration into the newly generated
-   migration; preserve the explicit function grant/revoke boundaries.
-   Verify whether the actual schema needs any additional compatibility.
+2. On a checked-out repository with the current Supabase CLI installed,
+   run `supabase --version`, then `supabase migration new fix_analytics_profile_schema`.
+   **Copy the exact newly created file path from the CLI output.**
+3. Run `node scripts/prepare-analytics-repair.mjs --check` to validate the
+   reviewed source. Then run `node scripts/prepare-analytics-repair.mjs --write
+   supabase/migrations/<CLI-created-filename>.sql` (substitute the **actual**
+   new path). This fills only that empty, correctly named migration with the
+   reviewed private aggregation and public invoker gateway SQL and explicit
+   function permissions. The script rejects existing non-empty files.
+   Do **not** re-run/edit a historical applied migration as an upgrade.
+   Review the full generated diff and actual schema compatibility before use.
 4. Apply and exercise the migration **first in staging** with an
    authenticated disposable account and an institution admin. Verify
    that an ordinary user sees only their own counts, an institution
