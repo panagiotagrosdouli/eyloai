@@ -16,15 +16,13 @@ async function requestStatus(method, confirmation) {
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const error = new Error(
+    throw Object.assign(new Error(
       response.status === 503
         ? 'Deletion requests are not yet available on this deployment.'
         : response.status === 401
           ? 'Please sign in again to view or submit a deletion request.'
           : 'We could not verify the request status. No account deletion was performed.',
-    );
-    error.status = response.status;
-    throw error;
+    ), { status: response.status });
   }
   return result;
 }
