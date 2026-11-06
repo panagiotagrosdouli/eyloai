@@ -32,9 +32,60 @@ export function reviewableClaims(analysis = {}) {
   return result;
 }
 
+/**
+ * Fail closed if the second model omitted, duplicated or invented claim IDs.
+ * A complete response is necessary for auditing but NEVER proves that a
+ * "supported" semantic judgment is correct.
+ */
+export function validateEvidenceReviewBatch(candidates, reviews) {
+  if (!Array.isArray(candidates) || !Array.isArray(reviews)) {
+    return { ok: false, reason: 'missing_review_batch' };
+  }
+  const ids = new Set();
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate.id !== 'string' || !candidate.id || ids.has(candidate.id)) {
+      return { ok: false, reason: 'invalid_claim_ids' };
+    }
+    ids.add(candidate.id);
+  }
+  if (reviews.length !== ids.size) return { ok: false, reason: 'incomplete_review_batch' };
+  const seen = new Set();
+  for (const review of reviews) {
+    if (!review || typeof review !== 'object' || Array.isArray(review)) {
+      return { ok: false, reason: 'invalid_review' };
+    }
+    const { claim_id: claimId, verdict, source_id: sourceId, quote } = review;
+    if (typeof claimId !== 'string' || !ids.has(claimId) || seen.has(claimId)) {
+      return { ok: false, reason: 'unknown_or_duplicate_claim' };
+    }
+    if (!['supported', 'partial', 'unsupported', 'insufficient'].includes(verdict)
+        || typeof quote !== 'string' || typeof sourceId !== 'string') {
+      return { ok: false, reason: 'invalid_verdict' };
+    }
+    if (verdict !== 'supported' && quote.trim()) {
+      return { ok: false, reason: 'non_supported_quote' };
+    }
+    seen.add(claimId);
+  }
+  return { ok: true };
+}
+
 export function selectExcerptSupportedClaims(analysis = {}, reviews, papers = []) {
   const paperSample = (Array.isArray(papers) ? papers : []).slice(0, MAX_PAPERS);
   const candidates = reviewableClaims(analysis);
+  const batch = validateEvidenceReviewBatch(candidates, reviews);
+  if (!batch.ok) {
+    return {
+      key_findings: [],
+      trends: [],
+      evidence_review: {
+        status: 'invalid_batch',
+        claims_checked: candidates.length,
+        claims_retained: 0,
+        limitation: 'Second-model review was incomplete or inconsistent; no AI-reviewed claims were published.',
+      },
+    };
+  }
   const byId = new Map(candidates.map(claim => [claim.id, claim]));
   const accepted = new Map();
 
