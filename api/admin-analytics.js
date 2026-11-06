@@ -1,3 +1,5 @@
+import { analyticsEnabled, validWorkspaceAnalyticsPayload } from '../src/lib/analytics-readiness.mjs';
+
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_QOF_tW8ve4IFUsflluOhww_aRubMF0V';
 
@@ -9,9 +11,24 @@ function supabasePublicKey() {
 }
 
 export default async function handler(request, response) {
-  if (request.method !== 'GET') return response.status(405).json({ error: 'Method not allowed.' });
-  if (!request.headers.authorization?.startsWith('Bearer ')) {
+  // The response includes per-user metrics. Apply no-store to ALL paths,
+  // including authentication failures and upstream errors.
+  response.setHeader('Cache-Control', 'private, no-store');
+  if (request.method !== 'GET') {
+    response.setHeader('Allow', 'GET');
+    return response.status(405).json({ error: 'Method not allowed.' });
+  }
+
+  const authorization = request.headers?.authorization;
+  if (typeof authorization !== 'string' || !/^Bearer \S+$/.test(authorization)) {
     return response.status(401).json({ error: 'Authentication required.' });
+  }
+
+  if (!analyticsEnabled()) {
+    return response.status(503).json({
+      error: 'Workspace analytics is awaiting verified database setup.',
+      code: 'ANALYTICS_NOT_ENABLED',
+    });
   }
 
   try {
@@ -20,12 +37,14 @@ export default async function handler(request, response) {
       method: 'POST',
       headers: {
         apikey: supabasePublicKey(),
-        authorization: request.headers.authorization,
+        authorization,
         'content-type': 'application/json',
       },
       body: '{}',
+      cache: 'no-store',
+      signal: AbortSignal.timeout(15_000),
     });
-    const result = await upstream.json().catch(() => ({}));
+    const result = await upstream.json().catch(() => null);
 
     if (!upstream.ok) {
       const status = [401, 403].includes(upstream.status) ? upstream.status : 502;
@@ -34,10 +53,21 @@ export default async function handler(request, response) {
       });
     }
 
-    response.setHeader('Cache-Control', 'private, no-store');
+    if (!validWorkspaceAnalyticsPayload(result)) {
+      return response.status(502).json({
+        error: 'Workspace analytics returned an invalid response.',
+        code: 'ANALYTICS_INVALID_RESPONSE',
+      });
+    }
+
     return response.status(200).json(result);
   } catch (error) {
-    console.error('Workspace analytics failed', { message: error instanceof Error ? error.message : 'Unknown error' });
-    return response.status(500).json({ error: 'Workspace analytics is temporarily unavailable.' });
+    const timedOut = error?.name === 'TimeoutError' || error?.name === 'AbortError';
+    console.error('Workspace analytics failed', {
+      type: timedOut ? 'upstream_timeout' : 'upstream_error',
+    });
+    return response.status(timedOut ? 504 : 502).json({
+      error: 'Workspace analytics is temporarily unavailable.',
+    });
   }
 }
