@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { reviewableClaims, selectExcerptSupportedClaims } from '../src/lib/evidence-verification.mjs';
+import { reviewableClaims, selectExcerptSupportedClaims, validateEvidenceReviewBatch } from '../src/lib/evidence-verification.mjs';
 
 const papers = [
   { summary: 'The model reduced trajectory error on the held-out pedestrian test set.', url: 'https://doi.org/10.1234/example' },
@@ -69,4 +69,44 @@ test('rejects a quote that is trivially short', () => {
     claim_id: 'F0', verdict: 'supported', source_id: 'P1', quote: 'reduced trajectory',
   }], papers);
   assert.equal(output.key_findings.length, 0);
+});
+
+test('rejects incomplete model output rather than publishing only its favorable verdicts', () => {
+  const candidateIds = reviewableClaims(analysis);
+  const batch = [{ claim_id: 'F0', verdict: 'supported', source_id: 'P1', quote: papers[0].summary }];
+  assert.equal(validateEvidenceReviewBatch(candidateIds, batch).ok, false);
+  const output = selectExcerptSupportedClaims(analysis, batch, papers);
+  assert.equal(output.evidence_review.status, 'invalid_batch');
+  assert.deepEqual(output.key_findings, []);
+});
+
+test('rejects conflicting, duplicate or invented reviewer claim IDs', () => {
+  const expected = reviewableClaims(analysis);
+  const valid = expected.map(c => ({ claim_id: c.id, verdict: 'insufficient', source_id: '', quote: '' }));
+  assert.equal(validateEvidenceReviewBatch(expected, valid).ok, true);
+  const duplicate = [valid[0], valid[0], valid[2]];
+  assert.equal(validateEvidenceReviewBatch(expected, duplicate).ok, false);
+  const unknown = [...valid.slice(0, 2), { ...valid[2], claim_id: 'F999' }];
+  assert.equal(validateEvidenceReviewBatch(expected, unknown).ok, false);
+  assert.deepEqual(selectExcerptSupportedClaims(analysis, duplicate, papers).key_findings, []);
+});
+
+test('rejects non-supported verdicts with a genuine quote attached', () => {
+  const expected = reviewableClaims(analysis);
+  const invalid = expected.map((c, i) => ({
+    claim_id: c.id, verdict: i === 0 ? 'unsupported' : 'insufficient',
+    source_id: 'P1', quote: i === 0 ? papers[0].summary : '',
+  }));
+  assert.equal(validateEvidenceReviewBatch(expected, invalid).ok, false);
+  assert.equal(selectExcerptSupportedClaims(analysis, invalid, papers).evidence_review.status, 'invalid_batch');
+});
+
+test('still allows a complete, consistent reviewer batch with a genuine quote', () => {
+  const expected = reviewableClaims(analysis);
+  const batch = expected.map((c, i) => ({
+    claim_id: c.id, verdict: i === 0 ? 'supported' : 'insufficient',
+    source_id: i === 0 ? 'P1' : '', quote: i === 0 ? papers[0].summary : '',
+  }));
+  assert.equal(validateEvidenceReviewBatch(expected, batch).ok, true);
+  assert.equal(selectExcerptSupportedClaims(analysis, batch, papers).key_findings.length, 1);
 });
