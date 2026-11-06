@@ -332,10 +332,10 @@ export default function DiscoveryResults({ results, onNewSearch }) {
               {results.data_summary && (
                 <div className="mt-4 pt-4 border-t border-primary/15 grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
-                    { label: 'Papers analysed', value: results.data_summary.total_papers },
+                    { label: 'Papers retrieved', value: results.data_summary.total_papers },
                     { label: 'Researchers found', value: results.data_summary.total_researchers },
                     { label: 'Publication range', value: results.data_summary.date_range },
-                    { label: 'Top cited author', value: results.data_summary.top_researcher || '—' },
+                    { label: 'Most cited retrieved researcher', value: results.data_summary.top_researcher || '—' },
                   ].map(s => (
                     <div key={s.label} className="text-center">
                       <p className="font-bold text-sm text-foreground">{s.value}</p>
@@ -445,7 +445,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           {/* Keywords */}
           {results.keywords?.length > 0 && (
             <div>
-              <h3 className="font-semibold text-xs mb-3 text-muted-foreground uppercase tracking-wider">Research Keywords · Extracted from real papers</h3>
+              <h3 className="font-semibold text-xs mb-3 text-muted-foreground uppercase tracking-wider">Keywords appearing in retrieved titles or abstracts</h3>
               <div className="flex flex-wrap gap-2">
                 {results.keywords.map((kw, i) => (
                   <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-secondary text-foreground border border-border/60">{kw}</span>
