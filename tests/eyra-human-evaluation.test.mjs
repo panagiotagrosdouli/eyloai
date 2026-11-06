@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateAdjudicatedEvidence, wilson95, HUMAN_REVIEW_PROTOCOL } from '../src/lib/eyra-human-evaluation.mjs';
+import { evaluateAdjudicatedEvidence, wilson95, HUMAN_REVIEW_PROTOCOL, interRaterAgreement } from '../src/lib/eyra-human-evaluation.mjs';
 
 function caseItem(id, supported, {
   domain = 'medicine', verdict = supported ? 'supported' : 'unsupported',
@@ -76,4 +76,58 @@ test('tiny or single-domain datasets cannot pass screening even if all outcomes 
   assert.equal(scored.screening_passed, false);
   assert.equal(scored.domains.medicine.published.positive_cases, 1);
   assert.equal(scored.domains.medicine.published.negative_cases, 1);
+});
+
+test('Cohen kappa reports chance-corrected agreement and explicitly identifies undefined values', () => {
+  const balanced = interRaterAgreement([
+    ['supported', 'supported'],
+    ['unsupported', 'unsupported'],
+    ['supported', 'unsupported'],
+    ['unsupported', 'supported'],
+  ]);
+  assert.equal(balanced.cases, 4);
+  assert.equal(balanced.disagreements, 2);
+  assert.equal(balanced.exact_agreement, 0.5);
+  assert.equal(balanced.cohen_kappa, 0);
+  const allOneClass = interRaterAgreement([['supported', 'supported'], ['supported', 'supported']]);
+  assert.equal(allOneClass.exact_agreement, 1);
+  assert.equal(allOneClass.cohen_kappa, null);
+  assert.match(allOneClass.note, /undefined/);
+  assert.throws(() => interRaterAgreement([]), /Two valid/);
+});
+
+test('human label disagreement needs explicit written adjudication', () => {
+  const item = caseItem('disagreement-1', true);
+  item.independent_labels[1].verdict = 'partial';
+  assert.throws(
+    () => evaluateAdjudicatedEvidence(fixture([item]), { requireHuman: false }),
+    /adjudication resolution/,
+  );
+  item.adjudication_resolution = 'The second reader missed the observed study outcome; adjudicator resolved the discrepancy.';
+  const result = evaluateAdjudicatedEvidence(fixture([item]), { requireHuman: false });
+  assert.equal(result.overall.agreement.disagreements, 1);
+  assert.equal(result.domains.medicine.agreement.exact_agreement, 0);
+  assert.equal(result.screening_passed, false);
+});
+
+test('unexpected adjudicated label change also requires a documented resolution', () => {
+  const item = caseItem('override-1', false);
+  item.adjudicated_verdict = 'supported';
+  assert.throws(
+    () => evaluateAdjudicatedEvidence(fixture([item]), { requireHuman: false }),
+    /adjudication resolution/,
+  );
+  item.adjudication_resolution = 'The adjudicator independently reviewed the source and changed the initial agreement.';
+  assert.equal(evaluateAdjudicatedEvidence(fixture([item]), { requireHuman: false }).cases, 1);
+});
+
+test('agreement is reported per domain and overall, not just a pooled scientific accuracy number', () => {
+  const first = caseItem('a', true, { domain: 'medicine' });
+  const second = caseItem('b', false, { domain: 'climate' });
+  second.independent_labels[1].verdict = 'insufficient';
+  second.adjudication_resolution = 'Reviewers differed in the negative label but both rejected support; adjudicator chose unsupported.';
+  const result = evaluateAdjudicatedEvidence(fixture([first, second]), { requireHuman: false });
+  assert.equal(result.overall.agreement.exact_agreement, 0.5);
+  assert.equal(result.domains.medicine.agreement.exact_agreement, 1);
+  assert.equal(result.domains.climate.agreement.exact_agreement, 0);
 });
