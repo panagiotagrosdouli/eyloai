@@ -209,3 +209,18 @@ Radar pages, with no invented eligibility or amount. Private research
 queries are not browser-cached. See
 `docs/FUNDING_SOURCE_RESPONSE_SAFETY.md`. A live real-record comparison
 with official opportunities remains **unchecked** and release status NO-GO.
+
+## Scheduled monitor fairness — reviewed code, pending real Supabase validation
+
+A bounded PostgREST query now filters `data.active !== false` at the
+database before selecting the 30 oldest watchlists; the previous
+fetch-then-filter logic could permanently starve active subscribers.
+The `updated_date` trigger rotates successful and failed checks,
+and empty queries now receive an `invalid_query` status and
+rotation instead of blocking the queue. Synthetic integration tests
+exercise 40 disabled and 66 eligible rows over three runs. See
+`docs/MONITOR_SCHEDULING_FAIRNESS.md`.
+
+The actual database indexes, trigger, provider load, watchlist consent,
+scheduler authentication and production runtime **remain unverified**.
+Monitoring remains disabled and release decision **NO-GO**.
