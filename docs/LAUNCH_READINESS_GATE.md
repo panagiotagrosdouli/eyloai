@@ -146,3 +146,17 @@ success and failure, refuses absent authentication, and validates the
 shape of the RPC response before presenting per-user metrics. These
 checks do not substitute for RLS, `SECURITY DEFINER` review or execution
 with real test accounts. Do not enable analytics simply because CI passes.
+
+
+## Evidence-review integrity and independent-human evaluation — 2026-11-06
+
+The integrated candidate rejects incomplete, duplicate and conflicting
+second-model reviewer results rather than publishing favorable fragments.
+The offline independent-human evaluation runner compares model verdicts
+and actually retained claims with independently adjudicated labels,
+including per-domain 95% false-acceptance uncertainty bounds.
+**No real human-labelled evaluation corpus or live-model study has been
+run**. The existing synthetic 8/8 false-acceptance example remains a
+known safety limitation; strict response completeness alone cannot solve
+semantic entailment errors. See `docs/EYRA_HUMAN_EVALUATION.md`.
+Release Gate B remains OPEN / NO-GO until actual external review.
