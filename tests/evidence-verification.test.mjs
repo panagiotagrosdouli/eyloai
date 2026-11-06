@@ -15,15 +15,22 @@ const analysis = {
   trends: [{ description: 'Intersections with multiple agents were investigated', evidence: '[P2]', title: 'Traffic sensing' }],
 };
 
+const completeReviews = (provided) => {
+  const byId = new Map(provided.map(review => [review.claim_id, review]));
+  return reviewableClaims(analysis).map(claim => (
+    byId.get(claim.id) || { claim_id: claim.id, verdict: 'insufficient', source_id: '', quote: '' }
+  ));
+};
+
 test('selects only paper-cited claims for semantic review', () => {
   assert.deepEqual(reviewableClaims(analysis).map(item => item.id), ['F0', 'F1', 'T0']);
 });
 
 test('accepts a model-assessed claim only with an exact excerpt from its cited abstract', () => {
-  const output = selectExcerptSupportedClaims(analysis, [{
+  const output = selectExcerptSupportedClaims(analysis, completeReviews([{
     claim_id: 'F0', verdict: 'supported', source_id: 'P1',
     quote: 'reduced trajectory error on the held-out pedestrian test set',
-  }], papers);
+  }]), papers);
   assert.equal(output.key_findings.length, 1);
   assert.equal(output.key_findings[0].source_id, '[P1]');
   assert.equal(output.trends.length, 0);
@@ -49,25 +56,25 @@ test('rejects unsupported source text and fails closed when review is missing', 
 });
 
 test('allows trend with a source-matching excerpt but never claims scientific proof', () => {
-  const output = selectExcerptSupportedClaims(analysis, [{
+  const output = selectExcerptSupportedClaims(analysis, completeReviews([{
     claim_id: 'T0', verdict: 'supported', source_id: 'P2',
     quote: 'investigated multimodal intersections using fixed roadside cameras',
-  }], papers);
+  }]), papers);
   assert.equal(output.trends.length, 1);
   assert.match(output.trends[0].evidence_review_label, /not independent verification/);
 });
 
 test('does not accept excerpts from paper titles when no abstract supports them', () => {
-  const output = selectExcerptSupportedClaims(analysis, [{
+  const output = selectExcerptSupportedClaims(analysis, completeReviews([{
     claim_id: 'F0', verdict: 'supported', source_id: 'P1', quote: papers[0].summary,
-  }], [{ title: papers[0].summary, summary: '', url: 'https://example.org' }]);
+  }]), [{ title: papers[0].summary, summary: '', url: 'https://example.org' }]);
   assert.equal(output.key_findings.length, 0);
 });
 
 test('rejects a quote that is trivially short', () => {
-  const output = selectExcerptSupportedClaims(analysis, [{
+  const output = selectExcerptSupportedClaims(analysis, completeReviews([{
     claim_id: 'F0', verdict: 'supported', source_id: 'P1', quote: 'reduced trajectory',
-  }], papers);
+  }]), papers);
   assert.equal(output.key_findings.length, 0);
 });
 
