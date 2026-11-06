@@ -113,3 +113,77 @@ test('monitoring retains failure state and clears consecutive failures after suc
   assert.match(source, /consecutiveFailures: 0/);
   assert.match(source, /Could not persist watchlist failure status/);
 });
+
+test('old disabled watchlists cannot starve 66 active watchlists over three bounded runs', async () => {
+  const previousFetch = globalThis.fetch;
+  const oldSecret = process.env.CRON_SECRET;
+  const oldKey = process.env.SUPABASE_SECRET_KEY;
+  process.env.CRON_SECRET = 'unit-cron-secret';
+  process.env.SUPABASE_SECRET_KEY = 'sb_secret_scheduler_unit_test';
+  const database = [
+    ...Array.from({ length: 40 }, (_, i) => ({
+      id: 'disabled-' + i, user_id: 'test-account', updated_date: i + 1,
+      data: { active: false, query: 'disabled must not run' },
+    })),
+    ...Array.from({ length: 66 }, (_, i) => ({
+      id: 'active-' + i, user_id: 'test-account', updated_date: i + 41,
+      data: { ...(i === 0 ? {} : { active: true }), query: i === 1 ? '   ' : 'paper topic ' + i },
+    })),
+  ];
+  let updatedClock = 1000;
+  let eligibleListingCalls = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const target = new URL(String(url));
+    if (target.pathname === '/rest/v1/watchlists' && (!options.method || options.method === 'GET')) {
+      const or = target.searchParams.get('or');
+      assert.equal(or, '(data->>active.is.null,data->>active.neq.false)');
+      assert.equal(target.searchParams.get('order'), 'updated_date.asc,id.asc');
+      assert.equal(target.searchParams.get('limit'), '30');
+      eligibleListingCalls++;
+      const available = database.filter(row => row.data.active !== false)
+        .sort((a, b) => a.updated_date - b.updated_date || a.id.localeCompare(b.id))
+        .slice(0, Number(target.searchParams.get('limit')));
+      return new Response(JSON.stringify(available), { status: 200 });
+    }
+    if (target.pathname === '/rest/v1/monitoring_discoveries' && (!options.method || options.method === 'GET')) {
+      return new Response('[]', { status: 200 });
+    }
+    if (target.pathname === '/rest/v1/watchlists' && options.method === 'PATCH') {
+      const match = target.searchParams.get('id');
+      const row = database.find(x => x.id === match?.replace(/^eq\./, ''));
+      assert.ok(row, 'update must target an existing watchlist');
+      row.data = JSON.parse(options.body).data;
+      row.updated_date = ++updatedClock; // model the set_updated_date trigger
+      return new Response(null, { status: 204 });
+    }
+    if (target.hostname === 'api.openalex.org') {
+      return new Response(JSON.stringify({ results: [] }), { status: 200 });
+    }
+    throw Error('Unexpected monitoring test request: ' + String(url));
+  };
+  try {
+    const runs = [];
+    for (let i = 0; i < 3; i++) {
+      const res = responseMock();
+      await monitor({ method: 'GET', headers: { authorization: 'Bearer unit-cron-secret' } }, res);
+      assert.equal(res.statusCode, 200, 'one monitoring run must finish without provider errors');
+      assert.equal(res.payload.checked, 30);
+      assert.equal(res.payload.failed, 0);
+      assert.equal(res.payload.skipped, 0);
+      runs.push(res.payload);
+    }
+    assert.equal(eligibleListingCalls, 3);
+    assert.equal(database.filter(row => row.id.startsWith('active-')
+      && (row.data.lastCheckStatus === 'success' || row.data.lastCheckStatus === 'invalid_query')).length, 66);
+    assert.equal(database.find(row => row.id === 'active-0').data.lastCheckStatus, 'success', 'legacy active row is included');
+    assert.equal(database.find(row => row.id === 'active-1').data.lastCheckStatus, 'invalid_query');
+    assert.ok(runs.some(x => x.invalid_queries === 1));
+    assert.equal(database.filter(row => row.id.startsWith('disabled-') && row.data.lastCheckedAt).length, 0);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (oldSecret === undefined) delete process.env.CRON_SECRET;
+    else process.env.CRON_SECRET = oldSecret;
+    if (oldKey === undefined) delete process.env.SUPABASE_SECRET_KEY;
+    else process.env.SUPABASE_SECRET_KEY = oldKey;
+  }
+});
