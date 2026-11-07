@@ -30,7 +30,7 @@ export const LANGUAGE_LOCALES = {
 };
 
 const ACCENTS = {
-  blue: ['213 94% 55%', '217 91% 60%'],
+  blue: ['205 67% 34%', '205 58% 42%'],
   purple: ['264 83% 63%', '271 81% 56%'],
   teal: ['173 80% 40%', '174 72% 45%'],
   green: ['142 71% 45%', '142 69% 50%'],
@@ -75,9 +75,17 @@ export function applyPreferences(preferences = loadPreferences()) {
   applyTheme(prefs.theme);
   root.lang = locale.split('-')[0];
   root.dir = prefs.language === 'ar' ? 'rtl' : 'ltr';
-  root.style.setProperty('--primary', primary);
-  root.style.setProperty('--ring', primary);
-  root.style.setProperty('--accent-brand', accent);
+  // The default EYLO identity is supplied by light/dark CSS tokens so contrast
+  // remains correct in both themes. An explicit personal accent is optional.
+  if (prefs.accent === 'blue') {
+    root.style.removeProperty('--primary');
+    root.style.removeProperty('--ring');
+    root.style.removeProperty('--accent-brand');
+  } else {
+    root.style.setProperty('--primary', primary);
+    root.style.setProperty('--ring', primary);
+    root.style.setProperty('--accent-brand', accent);
+  }
 
   ['comfort', 'focus', 'high_contrast', 'large_text', 'reading'].forEach((mode) => {
     root.classList.toggle(`a11y-${mode.replace('_', '-')}`, prefs.accessibility.includes(mode));

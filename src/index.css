@@ -18,7 +18,7 @@
   --secondary-foreground: 220 25% 28%;
   --muted: 210 22% 96%;
   --muted-foreground: 215 14% 50%;
-  --accent: 250 68% 56%;
+  --accent: 205 58% 42%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 72% 50%;
   --destructive-foreground: 0 0% 98%;
@@ -37,7 +37,7 @@
 
 /* In light mode, text gradients adapt */
 :root.light .eyra-text-gradient {
-  background: linear-gradient(135deg, hsl(210, 100%, 40%), hsl(250, 70%, 50%));
+  background: linear-gradient(135deg, hsl(210, 100%, 40%), hsl(205, 62%, 44%));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -72,7 +72,7 @@
     --muted: 222 20% 14%;
     --muted-foreground: 215 14% 58%;
     /* Soft purple accent */
-    --accent: 250 65% 64%;
+    --accent: 205 58% 53%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 70% 56%;
     --destructive-foreground: 0 0% 98%;
@@ -80,10 +80,10 @@
     --input: 222 17% 18%;
     --ring: 213 94% 62%;
     --chart-1: 210 100% 60%;
-    --chart-2: 250 70% 62%;
-    --chart-3: 165 60% 48%;
-    --chart-4: 38 80% 60%;
-    --chart-5: 280 60% 58%;
+    --chart-2: 202 64% 47%;
+    --chart-3: 196 58% 55%;
+    --chart-4: 211 44% 64%;
+    --chart-5: 215 47% 39%;
     --radius: 0.75rem;
     --font-heading: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
@@ -127,31 +127,31 @@
 
 /* Core EYRA gradient */
 .eyra-gradient {
-  background: linear-gradient(135deg, hsl(213, 94%, 56%), hsl(230, 80%, 60%), hsl(250, 65%, 64%));
+  background: linear-gradient(135deg, hsl(213, 94%, 56%), hsl(230, 80%, 60%), hsl(205, 58%, 52%));
 }
 
 /* Subtle glow — not neon */
 .eyra-glow {
-  box-shadow: 0 0 40px -15px hsla(210, 100%, 60%, 0.3), 0 0 80px -30px hsla(250, 70%, 62%, 0.15);
+  box-shadow: 0 0 40px -15px hsla(210, 100%, 60%, 0.3), 0 0 80px -30px hsla(205, 65%, 55%, 0.15);
 }
 
 /* Text gradient */
 .eyra-text-gradient {
-  background: linear-gradient(135deg, hsl(210, 100%, 70%), hsl(250, 70%, 72%));
+  background: linear-gradient(135deg, hsl(210, 100%, 70%), hsl(205, 63%, 65%));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .eylo-text-gradient {
-  background: linear-gradient(90deg, #fff 0%, hsl(210, 100%, 78%) 60%, hsl(250, 70%, 80%) 100%);
+  background: linear-gradient(90deg, #fff 0%, hsl(210, 100%, 78%) 60%, hsl(205, 62%, 67%) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .impact-gradient {
-  background: linear-gradient(135deg, hsl(210, 100%, 65%), hsl(250, 70%, 68%));
+  background: linear-gradient(135deg, hsl(210, 100%, 65%), hsl(205, 63%, 61%));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -162,7 +162,7 @@
   background:
     radial-gradient(ellipse 70% 50% at 50% 0%, hsla(222, 70%, 14%, 0.85) 0%, transparent 70%),
     radial-gradient(ellipse 35% 35% at 15% 60%, hsla(210, 100%, 25%, 0.1) 0%, transparent 60%),
-    radial-gradient(ellipse 35% 35% at 85% 30%, hsla(250, 70%, 35%, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 35% 35% at 85% 30%, hsla(205, 70%, 35%, 0.08) 0%, transparent 60%),
     hsl(224, 40%, 5%);
 }
 
@@ -174,7 +174,7 @@
 
 /* Orb for loading state */
 .eyra-orb {
-  background: conic-gradient(from 0deg, hsl(210,100%,55%), hsl(225,80%,58%), hsl(250,70%,62%), hsl(275,65%,60%), hsl(210,100%,55%));
+  background: conic-gradient(from 0deg, hsl(210,100%,55%), hsl(225,80%,58%), hsl(205,70%,55%), hsl(195,65%,48%), hsl(210,100%,55%));
   filter: blur(1px);
 }
 
@@ -201,7 +201,7 @@
   isolation: isolate;
   background:
     radial-gradient(circle at 12% 8%, hsla(190, 100%, 55%, 0.10), transparent 30%),
-    radial-gradient(circle at 88% 18%, hsla(258, 95%, 65%, 0.12), transparent 34%),
+    radial-gradient(circle at 88% 18%, hsla(203, 72%, 60%, 0.12), transparent 34%),
     radial-gradient(circle at 50% 110%, hsla(215, 100%, 55%, 0.10), transparent 42%),
     hsl(224 42% 5% / 0.98);
 }
@@ -210,7 +210,7 @@
 .eylo-command-deck {
   background:
     linear-gradient(120deg, hsla(222, 55%, 7%, 0.96), hsla(224, 45%, 8%, 0.84)),
-    radial-gradient(circle at 80% 20%, hsla(260, 100%, 65%, 0.18), transparent 34%);
+    radial-gradient(circle at 80% 20%, hsla(205, 72%, 55%, 0.18), transparent 34%);
   box-shadow: 0 32px 90px -45px hsla(205, 100%, 60%, 0.35), inset 0 1px 0 hsla(200, 100%, 90%, 0.05);
 }
 
@@ -272,7 +272,7 @@
 
 .eyra-intelligence-core::after {
   inset: 0.35rem;
-  border: 1px solid hsla(262, 90%, 72%, 0.55);
+  border: 1px solid hsla(205, 73%, 68%, 0.55);
   animation: spin-slow 9s linear infinite reverse;
 }
 
@@ -549,4 +549,101 @@ body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* EYLO academic color system — one family across public pages and workspace.
+   Keep status colors for errors and success: those communicate meaning, not branding. */
+:root {
+  --eylo-navy: #102b49;
+  --eylo-blue: #1d5f91;
+  --eylo-blue-hover: #174672;
+  --eylo-canvas: #f8fafc;
+  --eylo-surface: #ffffff;
+  --eylo-border: #d9e3ec;
+  --eylo-ink-muted: #536b82;
+}
+:root.light {
+  --background: 210 40% 98%;
+  --foreground: 210 64% 17%;
+  --card: 0 0% 100%;
+  --card-foreground: 210 64% 17%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 210 64% 17%;
+  --primary: 205 67% 34%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 208 33% 95%;
+  --secondary-foreground: 210 48% 25%;
+  --muted: 208 30% 96%;
+  --muted-foreground: 210 20% 42%;
+  --accent: 205 58% 42%;
+  --accent-foreground: 0 0% 100%;
+  --border: 208 28% 89%;
+  --input: 208 28% 89%;
+  --ring: 205 67% 34%;
+  --sidebar-background: 210 40% 98%;
+  --sidebar-foreground: 210 23% 42%;
+  --sidebar-primary: 205 67% 34%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 208 33% 94%;
+  --sidebar-accent-foreground: 210 64% 17%;
+  --sidebar-border: 208 28% 89%;
+  --sidebar-ring: 205 67% 34%;
+}
+:root.dark {
+  --background: 213 53% 9%;
+  --foreground: 207 34% 95%;
+  --card: 213 43% 13%;
+  --card-foreground: 207 34% 95%;
+  --popover: 213 43% 13%;
+  --popover-foreground: 207 34% 95%;
+  --primary: 203 70% 70%;
+  --primary-foreground: 213 53% 9%;
+  --secondary: 213 35% 18%;
+  --secondary-foreground: 206 31% 86%;
+  --muted: 213 35% 18%;
+  --muted-foreground: 207 22% 72%;
+  --accent: 203 65% 65%;
+  --accent-foreground: 213 53% 9%;
+  --border: 211 27% 27%;
+  --input: 211 27% 27%;
+  --ring: 203 70% 70%;
+  --sidebar-background: 213 53% 9%;
+  --sidebar-foreground: 207 24% 77%;
+  --sidebar-primary: 203 70% 70%;
+  --sidebar-primary-foreground: 213 53% 9%;
+  --sidebar-accent: 213 35% 18%;
+  --sidebar-accent-foreground: 207 34% 95%;
+  --sidebar-border: 211 27% 27%;
+  --sidebar-ring: 203 70% 70%;
+}
+.eyra-gradient {
+  background: linear-gradient(120deg, var(--eylo-blue-hover), var(--eylo-blue));
+}
+.eyra-text-gradient,
+.eylo-text-gradient,
+.impact-gradient,
+:root.light .eyra-text-gradient,
+:root.light .eylo-text-gradient {
+  background: linear-gradient(110deg, #102b49 10%, #1d5f91 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+:root.dark .eyra-text-gradient,
+:root.dark .eylo-text-gradient,
+:root.dark .impact-gradient {
+  background: linear-gradient(110deg, #f1f7fc 10%, #94c7e9 90%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.eyra-glow { box-shadow: 0 0 36px -17px rgba(29, 95, 145, 0.3); }
+.eyra-orb { background: conic-gradient(from 0deg, #102b49, #1d5f91, #4a8ebc, #7eb5d9, #102b49); }
+:root.light .eylo-action-canvas,
+:root.light .eylo-app-canvas {
+  background: linear-gradient(180deg, var(--eylo-surface) 0%, var(--eylo-canvas) 100%);
+}
+:root.dark .eylo-app-canvas,
+:root.dark .eylo-action-canvas {
+  background: hsl(var(--background));
 }
