@@ -28,7 +28,7 @@ export default function ForgotPassword() {
 
   const onSubmit = async ({ email }) => {
     setFormError("");
-    const resetUrl = new URL("/reset-password", window.location.origin);
+    const resetUrl = new URL(`${import.meta.env.BASE_URL}reset-password`, window.location.origin);
     resetUrl.searchParams.set("from", destination);
     const result = await resetPassword(email, resetUrl.toString());
     if (!result.ok) {
