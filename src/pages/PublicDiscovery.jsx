@@ -18,14 +18,14 @@ function EmptyState({ children }) {
 
 function PaperCard({ paper }) {
   return (
-    <article className="group rounded-3xl border border-border bg-card/80 p-5 transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_22px_60px_-40px_hsl(var(--primary))] sm:p-6">
+    <article className="group rounded-xl border border-[#DCE6EF] bg-card p-5 transition-colors hover:border-[#8FB4D2] hover:shadow-[0_18px_45px_-34px_rgba(16,43,73,0.35)] sm:p-6">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-primary">{paper.source_index || paper.source}</span>
         <span className="text-[10px] text-muted-foreground">{paper.year || 'Year unavailable'}</span>
         <span className="text-[10px] text-muted-foreground">{publicationTypeLabel(paper.type)}</span>
         {paper.open_access && <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold text-emerald-400">Open access</span>}
       </div>
-      <h3 className="font-heading text-base font-semibold leading-6 text-foreground sm:text-lg">{paper.title}</h3>
+      <h3 className="font-serif text-lg font-normal leading-7 text-foreground sm:text-xl">{paper.title}</h3>
       <p className="mt-2 text-xs text-muted-foreground">{paper.authors || 'Authors unavailable'}</p>
       {paper.summary && <p className="mt-4 line-clamp-3 text-sm leading-6 text-muted-foreground">{paper.summary}</p>}
       <div className="mt-5 flex items-center justify-between gap-3">
@@ -195,7 +195,7 @@ export default function PublicDiscovery() {
             <Search className="ml-3 text-muted-foreground" size={15} />
             <input value={query} onChange={event => setQuery(event.target.value)} aria-label="Research topic" className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none" placeholder="Ask anything: topic, question or researcher…" />
             <VoiceSearchButton onTranscript={text => setQuery(text)} />
-            <button type="submit" className="rounded-xl eyra-gradient px-4 py-2 text-xs font-semibold text-white">Refine</button>
+            <button type="submit" className="rounded-lg bg-[#174672] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#245D91]">Refine</button>
           </form>
           <Link to="/register" className="hidden rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background sm:block">Save research</Link>
         </div>
@@ -205,14 +205,14 @@ export default function PublicDiscovery() {
         {!initialQuery && (
           <section className="mx-auto max-w-5xl py-12 text-center sm:py-20">
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Evidence discovery</p>
-            <h1 className="mx-auto mt-3 w-fit font-heading text-4xl font-black tracking-tight sm:text-6xl">Start a search.</h1>
+            <h1 className="mx-auto mt-4 max-w-4xl font-serif text-4xl font-normal leading-tight tracking-tight text-[#102B49] sm:text-6xl">Explore science with confidence.</h1>
             <div className="mx-auto mt-8 max-w-5xl text-left"><GuidedSearch onSearch={runGuidedSearch} /></div>
             <div className="mx-auto mt-5 flex max-w-3xl flex-wrap items-center justify-center gap-2" aria-label="Example research searches">
               <span className="text-xs text-muted-foreground">Try an example:</span>
               {[
-                'Visual-inertial odometry',
-                'Trajectory prediction for autonomous vehicles',
-                'AI for drug discovery',
+                'Climate change adaptation',
+                'Public health interventions',
+                'Machine learning interpretability',
               ].map(example => (
                 <button key={example} type="button" onClick={() => setParams({ q: example })}
                   className="rounded-full border border-border bg-card px-3 py-2 text-xs text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5">
@@ -230,7 +230,7 @@ export default function PublicDiscovery() {
           <section className="mx-auto max-w-5xl py-8 sm:py-14">
             <div className="mb-7 max-w-3xl">
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{initialQuery}</p>
-              <h1 className="mt-2 font-heading text-3xl font-black sm:text-5xl">Set the scope.</h1>
+              <h1 className="mt-2 font-serif text-3xl font-normal tracking-tight sm:text-5xl">Refine your research question.</h1>
             </div>
             <GuidedSearch initialTopic={initialQuery} initialRefine onSearch={runGuidedSearch} />
           </section>
@@ -277,7 +277,7 @@ export default function PublicDiscovery() {
               <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
               <div className="relative">
                 <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-cyan-300"><ShieldCheck size={12} /> Source-linked discovery results</div>
-                <h1 className="mt-3 font-heading text-3xl font-black sm:text-5xl">{initialQuery}</h1>
+                <h1 className="mt-3 font-serif text-3xl font-normal tracking-tight sm:text-5xl">{initialQuery}</h1>
                 <p className="mt-4 text-xs text-slate-400">{level} · {goal} · {recency.replace('_', ' ')}</p>
                 <div className="mt-5 flex flex-wrap gap-2">{sourceIndexes.map(source => <span key={source} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] text-slate-300">{source}</span>)}</div>
                 <p className="mt-4 text-[10px] text-slate-500">{data.papers.length} deduplicated papers · {data.researchers.length} researchers · {data.institutions.length} institutions</p>

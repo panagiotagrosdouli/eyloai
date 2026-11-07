@@ -1,8 +1,8 @@
 import React from 'react';
 
 const BRAND_ASSETS = {
-  eylo: '/brand/eylo-light.svg',
-  eyra: '/brand/eyra.png',
+  eylo: `${import.meta.env.BASE_URL}brand/eylo-light.svg`,
+  eyra: `${import.meta.env.BASE_URL}brand/eyra.png`,
 };
 
 const SIZE_CLASSES = {
@@ -52,7 +52,8 @@ export function EyraOrb({ className = '', decorative = true }) {
       role={decorative ? undefined : 'img'}
       aria-label={decorative ? undefined : 'EYRA'}
       aria-hidden={decorative ? 'true' : undefined}
-      className={`block shrink-0 rounded-xl border border-white/10 bg-[#050712] bg-[url('/brand/eyra.png')] bg-[length:auto_220%] bg-[position:13%_50%] bg-no-repeat shadow-[0_8px_24px_-16px_rgba(56,189,248,0.9)] ${className}`}
+      style={{ backgroundImage: `url(${BRAND_ASSETS.eyra})` }}
+      className={`block shrink-0 rounded-xl border border-white/10 bg-[#050712] bg-[length:auto_220%] bg-[position:13%_50%] bg-no-repeat shadow-[0_8px_24px_-16px_rgba(56,189,248,0.9)] ${className}`}
     />
   );
 }

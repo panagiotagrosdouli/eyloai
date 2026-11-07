@@ -135,6 +135,7 @@ export default function Projects() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-8">
         <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">Research workspace</p>
           <h1 className="eylo-page-heading">Your projects</h1>
           <p className="mt-2 max-w-lg text-sm text-muted-foreground">Every research idea, paper and next step in one calm workspace.</p>
         </div>
