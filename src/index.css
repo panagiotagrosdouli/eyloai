@@ -639,10 +639,11 @@ body {
 }
 .eyra-glow { box-shadow: 0 0 36px -17px rgba(29, 95, 145, 0.3); }
 .eyra-orb { background: conic-gradient(from 0deg, #102b49, #1d5f91, #4a8ebc, #7eb5d9, #102b49); }
-.eylo-action-canvas,
+:root.light .eylo-action-canvas,
 :root.light .eylo-app-canvas {
   background: linear-gradient(180deg, var(--eylo-surface) 0%, var(--eylo-canvas) 100%);
 }
-:root.dark .eylo-app-canvas {
+:root.dark .eylo-app-canvas,
+:root.dark .eylo-action-canvas {
   background: hsl(var(--background));
 }
