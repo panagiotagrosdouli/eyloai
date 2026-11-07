@@ -42,3 +42,25 @@ export function rankCareers(items, cvText) {
     return { ...item, match_terms: overlaps, match_score: words.length ? Math.round(overlaps.length / Math.min(words.length, 8) * 100) : null };
   }).sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1));
 }
+
+
+export async function loadGeneralCareerListings(signal) {
+  const response = await fetch(API_BASE + '/api/general-jobs', {
+    headers: { accept: 'application/json' },
+    signal,
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || 'General career listings are unavailable.');
+  return { ...result, items: Array.isArray(result.items) ? result.items : [] };
+}
+
+export function filterCareerListings(items, query) {
+  const terms = String(query || '').toLowerCase().match(/[a-z0-9][a-z0-9-]{1,}/g) || [];
+  if (!terms.length) return [];
+  return items.filter(item => {
+    const searchable = [item.title, item.organization, item.country, item.description]
+      .join(' ')
+      .toLowerCase();
+    return terms.some(term => searchable.includes(term));
+  });
+}
