@@ -17,19 +17,31 @@ test('general listings remove HTML and encoded markup from descriptions', async 
   const previousFetch = globalThis.fetch;
   globalThis.fetch = async url => ({
     ok: true,
-    json: async () => String(url).includes('raw.githubusercontent.com')
-      ? { source: 'Remotive', items: [{ id: 'remotive-789', title: 'Global researcher', organization: 'Remote Lab', country: 'Worldwide', description: 'Global data work.', source_url: 'https://remotive.com/remote-jobs/research/789' }] }
-      : ({
-      data: [{
-        id: 123,
-        title: 'Research analyst',
-        company_name: 'Example employer',
-        location: 'Remote',
-        url: 'https://www.arbeitnow.com/jobs/example/role-123',
-        description: '&lt;p&gt;Build careful models &amp; reports&lt;/p&gt;&lt;script&gt;alert(1)&lt;/script&gt;',
-      }],
-    }),
-      }),
+    json: async () => {
+      if (String(url).includes('raw.githubusercontent.com')) {
+        return {
+          source: 'Remotive',
+          items: [{
+            id: 'remotive-789',
+            title: 'Global researcher',
+            organization: 'Remote Lab',
+            country: 'Worldwide',
+            description: 'Global data work.',
+            source_url: 'https://remotive.com/remote-jobs/research/789',
+          }],
+        };
+      }
+      return {
+        data: [{
+          id: 123,
+          title: 'Research analyst',
+          company_name: 'Example employer',
+          location: 'Remote',
+          url: 'https://www.arbeitnow.com/jobs/example/role-123',
+          description: '&lt;p&gt;Build careful models &amp; reports&lt;/p&gt;&lt;script&gt;alert(1)&lt;/script&gt;',
+        }],
+      };
+    },
   });
   const response = createResponse();
 
