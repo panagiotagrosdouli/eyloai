@@ -36,7 +36,7 @@ function normalizeJob(job, feed) {
   const title = plainText(job.title || '');
   if (!sourceUrl || !title) return null;
   return {
-    id: 'arbeitnow-' + String(job.slug || job.id || sourceUrl),
+    id: feed.source.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + String(job.slug || job.id || sourceUrl),
     title,
     organization: plainText(job.company_name || ''),
     country: plainText(job.location || feed.region),
