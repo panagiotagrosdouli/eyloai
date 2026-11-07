@@ -32,7 +32,7 @@ const Library = lazy(() => import('@/pages/Library'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
 const Researchers = lazy(() => import('@/pages/Researchers'));
-const Careers = lazy(() => import('@/pages/Careers'));
+const PublicCareers = lazy(() => import('@/pages/PublicCareers'));
 const Opportunities = lazy(() => import('@/pages/Opportunities'));
 const History = lazy(() => import('@/pages/History'));
 const Profile = lazy(() => import('@/pages/Profile'));
@@ -126,7 +126,6 @@ const AuthenticatedApp = () => {
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/researchers" element={<Researchers />} />
-          <Route path="/careers" element={<Careers />} />
           <Route path="/opportunities" element={<Opportunities />} />
           <Route path="/history" element={<History />} />
           <Route path="/challenges" element={<Challenges />} />
@@ -177,6 +176,7 @@ function App() {
               <Route path="/company/:section" element={<CompanyPage />} />
               <Route path="/discover" element={<PublicDiscovery />} />
               <Route path="/find-researchers" element={<PublicResearchers />} />
+              <Route path="/careers" element={<PublicCareers />} />
               {/* Authentication pages stay reachable even if session bootstrap fails. */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
