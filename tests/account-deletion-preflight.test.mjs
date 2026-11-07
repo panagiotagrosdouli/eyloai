@@ -100,7 +100,7 @@ test('read-only preflight is separately disabled by default and mismatched Supab
 
 test('preflight rejects unauthenticated users before any count query', async () => {
   const db = mockStorage();
-  for (const auth of [undefined, 'Bearer ', 'untrusted']) {
+  for (const auth of [null, 'Bearer ', 'untrusted']) {
     const r = response();
     await preflight(request(auth), r);
     assert.equal(r.statusCode, 401);
