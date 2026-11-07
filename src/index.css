@@ -526,3 +526,27 @@ body {
     transition: none !important;
   }
 }
+
+/* Academic product surface: consistent editorial rhythm and accessible focus. */
+.eylo-page-heading {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: -0.038em;
+  line-height: 1.16;
+}
+.eylo-action-canvas {
+  --eylo-academic-navy: #102b49;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 48rem);
+}
+.eylo-action-canvas :where(button, a, input, textarea, select):focus-visible,
+.eylo-app-canvas :where(button, a, input, textarea, select):focus-visible {
+  outline: 2px solid #327cad;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .eylo-action-canvas :where(*, *::before, *::after) {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
