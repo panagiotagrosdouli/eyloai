@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Search, HelpCircle, BookOpen, Lightbulb, Box } from 'lucide-react';
+import { ArrowRight, Search, BookOpen, CheckCircle2, FolderOpen, Sparkles, CalendarCheck, Compass } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
 import './eylo-approved-scene.css';
 import './eylo-reference-live.css';
@@ -32,49 +32,59 @@ export default function Landing() {
               <img src="/brand/eylo-light.svg" alt="EYLO" width="180" height="54" className="h-10 w-auto max-w-[130px] object-contain sm:h-12 sm:max-w-[180px]" fetchPriority="high" />
             </Link>
             <Link to="/discover" className="px-1 py-2 text-xs text-[#17375c] hover:text-[#226fba] sm:px-3 sm:text-sm">Discover</Link>
-            <Link to="/contact" className="hidden px-3 py-2 text-sm text-[#17375c] hover:text-[#226fba] sm:inline-flex">Contact</Link>
+            <a href="#how-it-works" className="hidden px-3 py-2 text-sm text-[#17375c] hover:text-[#226fba] sm:inline-flex">How it works</a>
+            <Link to="/contact" className="hidden px-3 py-2 text-sm text-[#17375c] hover:text-[#226fba] md:inline-flex">Contact</Link>
             <Link to="/login" className="rounded-full border border-[#507ba4] bg-white/45 px-4 py-2 text-xs text-[#17375c] transition hover:bg-white/80 sm:px-7 sm:text-sm">Sign in</Link>
           </div>
         </header>
-        <section className="relative flex min-h-[calc(100svh-76px)] flex-col items-center px-5 pb-16 pt-8 text-center sm:px-8 sm:pt-9 lg:min-h-[calc(100vh-76px)]">
-          <div className="mx-auto flex w-full max-w-6xl flex-col items-center">
-            <img src="/brand/eylo-stacked.svg" alt="EYLO" width="520" height="270" className="eylo-hero-emblem h-auto w-[min(70vw,285px)] object-contain sm:w-[320px]" fetchPriority="high" />
-            <h1 className="eylo-hero-intro mt-0 max-w-5xl font-serif text-[clamp(2.25rem,4.2vw,4.4rem)] font-normal leading-tight tracking-[-0.045em] text-[#0c2850]">Where knowledge moves forward.</h1>
-            <p className="eylo-hero-intro mt-5 text-xs font-medium tracking-[0.22em] text-[#43658a] sm:text-sm sm:tracking-[0.32em]">DISCOVER. CONNECT. CREATE.</p>
-            <div className="eylo-hero-intro mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row sm:gap-5">
-              <Link to="/discover" className="eylo-scene-cta inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#092c57] to-[#287cbd] px-9 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(7,41,91,0.75)] hover:brightness-110 sm:w-auto">Explore Research <ArrowRight size={16} /></Link>
-              <Link to={PROJECT_SIGNUP_HREF} className="eylo-scene-cta inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-full border border-[#a2bdd9] bg-white/60 px-9 py-3 text-sm font-medium text-[#193e68] hover:bg-white/90 sm:w-auto">Get Started <ArrowRight size={16} /></Link>
+        <section className="relative flex min-h-[calc(100svh-76px)] flex-col items-center justify-center px-5 pb-12 pt-8 text-center sm:px-8 sm:py-12">
+          <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
+            <img src="/brand/eylo-stacked.svg" alt="EYLO" width="520" height="270" className="eylo-hero-emblem h-auto w-[min(46vw,190px)] object-contain sm:w-[220px]" fetchPriority="high" />
+            <p className="eylo-hero-intro mt-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#235c91] sm:text-xs">AI-powered research workspace</p>
+            <h1 className="eylo-hero-intro mt-4 max-w-4xl font-serif text-[clamp(2.2rem,4.5vw,4.1rem)] font-normal leading-[1.1] tracking-[-0.04em] text-[#0c2850]">Discover research. Connect ideas. Advance science.</h1>
+            <p className="eylo-hero-intro mt-5 max-w-2xl text-base leading-7 text-[#244768] sm:text-lg">Explore scientific literature, discover relevant researchers, and turn evidence into structured research projects with EYRA.</p>
+            <form onSubmit={explore} role="search" className="eylo-hero-intro mt-7 flex w-full max-w-2xl items-center gap-2 rounded-2xl border border-[#a8c6e0] bg-white/95 p-2 shadow-[0_12px_35px_-18px_rgba(12,40,80,.4)] focus-within:ring-2 focus-within:ring-[#2779b9]">
+              <Search className="ml-3 shrink-0 text-[#51789b]" size={19} aria-hidden="true" />
+              <label htmlFor="research-question" className="sr-only">Ask a research question or search scientific literature</label>
+              <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="Ask a research question…" className="min-w-0 flex-1 bg-transparent px-1 py-3 text-sm text-[#0c2850] outline-none placeholder:text-[#67829c] sm:text-base" />
+              <button type="submit" aria-label="Search scientific research" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#153c72] text-white transition hover:bg-[#25578d]"><ArrowRight size={20} /></button>
+            </form>
+            <div className="eylo-hero-intro mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-2 text-xs text-[#355a7c]">
+              <span>Try a topic:</span>
+              {['Visual-Inertial SLAM', 'Autonomous Systems', 'AI for Healthcare'].map(topic => (
+                <button key={topic} type="button" onClick={() => { trackSearchStarted('homepage_suggestion'); navigate(`/discover?q=${encodeURIComponent(topic)}`); }} className="min-h-9 rounded-full border border-[#a8c6e0] bg-white/70 px-3 font-medium hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c68a0]">{topic}</button>
+              ))}
             </div>
-          </div>
-          <div className="mt-auto flex flex-col items-center gap-4 pt-16 lg:hidden">
-            <a href="#eylo-next" className="eylo-scroll-cue inline-flex flex-col items-center gap-2 text-[10px] font-medium tracking-[0.2em] text-[#294c73] hover:text-[#0c2850]"><span className="text-xl leading-none" aria-hidden="true">⌄</span> SCROLL TO EXPLORE</a>
+            <div className="eylo-hero-intro mt-7 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row sm:gap-4">
+              <Link to="/discover" className="eylo-scene-cta inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#092c57] to-[#287cbd] px-8 py-3 text-sm font-semibold text-white hover:brightness-110 sm:w-auto">Explore research <ArrowRight size={16} /></Link>
+              <Link to={PROJECT_SIGNUP_HREF} className="eylo-scene-cta inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[#8eadcc] bg-white/85 px-8 py-3 text-sm font-semibold text-[#193e68] hover:bg-white sm:w-auto">Create your workspace <ArrowRight size={16} /></Link>
+            </div>
+            <p className="eylo-hero-intro mt-5 text-xs leading-5 text-[#4c6984]">Explore public research sources without an account. Sign in to save evidence and manage projects.</p>
           </div>
         </section>
       </div>
 
-      <section id="eylo-next" className="bg-white px-5 py-10 sm:px-8">
-        <form onSubmit={explore} className="mx-auto flex w-full max-w-xl items-center gap-2 rounded-full border border-[#d5e4f0] bg-white p-2 shadow-sm">
-          <Search className="ml-3 shrink-0 text-[#587998]" size={18} aria-hidden="true" />
-          <label htmlFor="research-question" className="sr-only">Research question</label>
-          <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="Ask a research question…" className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm outline-none placeholder:text-[#718ba3]" />
-          <button type="submit" aria-label="Search research" className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[#256eac] hover:bg-[#e8f4ff]"><ArrowRight size={20} /></button>
-        </form>
-      </section>
-
-      <section aria-label="How EYLO works" className="border-y border-[#e3edf4] bg-white px-5 py-12 sm:px-8">
-        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 text-center sm:grid-cols-4">
-          {[
-            { icon: HelpCircle, label: 'Question', line: 'Start with curiosity.' },
-            { icon: BookOpen, label: 'Evidence', line: 'Explore scholarly sources.' },
-            { icon: Lightbulb, label: 'Insight', line: 'Understand the findings.' },
-            { icon: Box, label: 'Project', line: 'Move ideas forward.' },
-          ].map(({ icon: Icon, label, line }) => (
-            <div key={label} className="flex flex-col items-center">
-              <Icon aria-hidden="true" className="mb-3 text-[#2a658f]" size={27} strokeWidth={1.4} />
-              <h2 className="font-serif text-2xl text-[#102b4e]">{label}</h2>
-              <p className="mt-1 text-xs text-[#71859a] sm:text-sm">{line}</p>
-            </div>
-          ))}
+      <section id="how-it-works" aria-labelledby="how-title" className="border-y border-[#e3edf4] bg-white px-5 py-16 sm:px-8">
+        <div className="mx-auto max-w-6xl">
+          <p className="text-xs font-semibold uppercase tracking-[.2em] text-[#517da1]">Your research journey</p>
+          <h2 id="how-title" className="mt-3 font-serif text-3xl text-[#102b4e] sm:text-4xl">From question to next step.</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-[#5c7087]">One connected workflow instead of disconnected research tools.</p>
+          <ol className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { icon: Compass, title: 'Discover', detail: 'Search scientific literature and researchers.' },
+              { icon: CheckCircle2, title: 'Evaluate', detail: 'Check sources, metadata and evidence.' },
+              { icon: BookOpen, title: 'Organize', detail: 'Save relevant work to your library.' },
+              { icon: Sparkles, title: 'Reason', detail: 'Use EYRA to explore evidence and uncertainty.' },
+              { icon: FolderOpen, title: 'Plan', detail: 'Connect findings to projects and milestones.' },
+              { icon: CalendarCheck, title: 'Advance', detail: 'Choose a concrete next research action.' },
+            ].map(({ icon: Icon, title, detail }, index) => (
+              <li key={title} className="rounded-2xl border border-[#d9e7f2] bg-[#f8fbfe] p-5">
+                <div className="flex items-center justify-between"><Icon size={23} strokeWidth={1.6} className="text-[#2a658f]" aria-hidden="true"/><span className="text-xs font-semibold text-[#7190a9]">{String(index + 1).padStart(2, '0')}</span></div>
+                <h3 className="mt-4 text-lg font-semibold text-[#102b4e]">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[#5c7087]">{detail}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
