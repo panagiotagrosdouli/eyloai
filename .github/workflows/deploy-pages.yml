@@ -49,6 +49,7 @@ jobs:
             const html = fs.readFileSync('dist/index.html', 'utf8');
             if (!html.includes('/eyloai/assets/')) throw new Error('Vite assets must use /eyloai/ base');
             if (html.includes('src=\"/src/main.jsx\"')) throw new Error('Source entrypoint found: not a built bundle');
+            if (!html.includes('https://panagiotagrosdouli.github.io/eyloai/')) throw new Error('Canonical URL must refer to the actual host');
           "
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
