@@ -147,9 +147,10 @@ export default async function handler(request, response) {
     ? []
     : index === FEEDS.length ? result.value.items : result.value);
   const remoteSnapshotResult = results[FEEDS.length];
-  const remotiveSnapshotAt = remoteSnapshotResult?.status === 'fulfilled'
-    ? remoteSnapshotResult.value.retrieved_at
-    : null;
+  let remotiveSnapshotAt = null;
+  if (remoteSnapshotResult && remoteSnapshotResult.status === 'fulfilled') {
+    remotiveSnapshotAt = remoteSnapshotResult.value.retrieved_at;
+  }
   const failed = results.flatMap((result, index) => result.status === 'rejected' ? [sourceNames[index]] : []);
   if (!items.length) {
     return response.status(502).json({
