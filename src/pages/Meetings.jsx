@@ -48,7 +48,7 @@ export default function Meetings() {
     try {
       if (data.id) {
         await base44.entities.Meeting.update(data.id, data);
-        toast({ title: 'Meeting updated' });
+        toast({ title: 'Meeting plan updated' });
       } else {
         await base44.entities.Meeting.create(data);
         toast({ title: 'Meeting plan saved', description: 'No invitation was sent. Share the details with participants yourself.' });
@@ -179,8 +179,8 @@ export default function Meetings() {
             <Calendar size={22} className="text-muted-foreground" />
           </div>
           <p className="text-sm font-medium mb-1">No {tab.toLowerCase()} meetings</p>
-          <p className="text-xs text-muted-foreground mb-4">Schedule a meeting to get started</p>
-          <button onClick={() => setShowForm(true)} className="text-xs text-primary font-medium hover:underline">+ New Meeting</button>
+          <p className="text-xs text-muted-foreground mb-4">Create a meeting plan to get started</p>
+          <button onClick={() => setShowForm(true)} className="text-xs text-primary font-medium hover:underline">+ New Meeting Plan</button>
         </div>
       ) : (
         <div className="space-y-3">
