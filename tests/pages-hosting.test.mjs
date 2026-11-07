@@ -90,7 +90,7 @@ test('Public professor finder is accessible without authentication and does not 
   assert.ok(finder.includes('searchOpenAlexAuthors'));
   assert.ok(finder.includes('searchResearchPeopleByPublications'));
   assert.ok(finder.includes('Prepare inquiry'));
-  assert.ok(finder.includes('No email or meeting is sent or booked'));
+  assert.ok(finder.includes('A meeting is confirmed only when the researcher agrees'));
 });
 
 test('Supabase email redirects are documented for the GitHub Pages project path', () => {
