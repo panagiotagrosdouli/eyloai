@@ -261,7 +261,7 @@ export default function PublicDiscovery() {
               <button type="button" onClick={() => navigatePanel('discover')} aria-current={activePanel === 'discover' ? 'page' : undefined} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left ${activePanel === 'discover' ? 'bg-[#ECF4FA] font-semibold text-[#173C5D]' : 'hover:bg-[#F0F5F9]'}`}><Search size={17}/> Discover</button>
               <button type="button" onClick={() => navigatePanel('papers')} aria-current={activePanel === 'papers' ? 'page' : undefined} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left ${activePanel === 'papers' ? 'bg-[#ECF4FA] font-semibold text-[#173C5D]' : 'hover:bg-[#F0F5F9]'}`}><BookOpen size={17}/> Papers</button>
               <Link to="/find-researchers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><Users size={17}/> Researchers</Link>
-              <Link to="/careers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><GraduationCap size={17}/> Opportunities</Link>
+              <Link to="/careers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><GraduationCap size={17}/> Careers</Link>
             </nav>
             <div className="mt-7 border-t border-[#E2E8EF] pt-5 text-[13px] text-[#6A7886]">
               <button type="button" onClick={() => navigatePanel('saved')} aria-current={activePanel === 'saved' ? 'page' : undefined} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left ${activePanel === 'saved' ? 'bg-[#ECF4FA] font-semibold text-[#173C5D]' : 'hover:bg-[#F0F5F9]'}`}><Bookmark size={17}/> Saved <span className="ml-auto text-[11px]">{savedPapers.length || ''}</span></button>
