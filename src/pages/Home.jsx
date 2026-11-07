@@ -2,14 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { runEyraDiscovery } from '@/lib/eyra-engine';
 import { useToast } from '@/components/ui/use-toast';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { SearchHeroCompact } from '@/components/discovery/SearchHero';
+import GuidedSearch from '@/components/discovery/GuidedSearch';
 import DiscoveryResults from '@/components/discovery/DiscoveryResults';
 import LoadingState from '@/components/discovery/LoadingState';
 import EyraHome from '@/components/dashboard/EyraHome';
 
-export default function Home() {
-  const [state, setState] = useState('dashboard'); // dashboard | loading | results
+export default function Home({ searchOnly = false }) {
+  const [state, setState] = useState(searchOnly ? 'search' : 'dashboard'); // dashboard | search | loading | results
   const [results, setResults] = useState(null);
   const [progress, setProgress] = useState(null);
   const [currentQuery, setCurrentQuery] = useState('');
@@ -66,7 +67,7 @@ export default function Home() {
     } catch (err) {
       if (searchId !== activeSearchId.current) return;
       toast({ title: 'Research request failed', description: err instanceof Error ? err.message : 'Please try your research request again.', variant: 'destructive' });
-      setState('dashboard');
+      setState(searchOnly ? 'search' : 'dashboard');
     }
   };
 
@@ -94,8 +95,29 @@ export default function Home() {
   if (state === 'results') {
     return (
       <div>
-        <SearchHeroCompact onSearch={handleSearch} currentQuery={currentQuery} onBack={() => { activeSearchId.current += 1; setState('dashboard'); }} />
+        <SearchHeroCompact onSearch={handleSearch} currentQuery={currentQuery} onBack={() => { activeSearchId.current += 1; setState(searchOnly ? 'search' : 'dashboard'); }} />
         <DiscoveryResults results={results} onNewSearch={handleSearch} />
+      </div>
+    );
+  }
+
+  if (state === 'search') {
+    return (
+      <div className="eylo-page">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Literature discovery</p>
+            <h1 className="eylo-page-heading mt-2">Build your evidence base.</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Search scholarly work, set the scope, then follow the papers and researchers behind each result.</p>
+          </div>
+          <Link to="/home" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:text-primary">
+            <span aria-hidden="true">←</span> Workspace
+          </Link>
+        </div>
+        <section aria-label="Research search" className="eylo-surface p-5 sm:p-8">
+          <GuidedSearch onSearch={handleSearch} />
+          <p className="mt-4 border-t border-border/60 pt-4 text-xs leading-5 text-muted-foreground">Retrieved papers link to their academic sources. EYRA’s interpretations are shown separately from source evidence.</p>
+        </section>
       </div>
     );
   }
