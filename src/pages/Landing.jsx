@@ -9,8 +9,6 @@ const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=
 
 export default function Landing() {
   const [question, setQuestion] = useState('');
-  const [careerForm, setCareerForm] = useState({ name: '', email: '', interest: 'Research & Evidence', message: '', website: '' });
-  const [careerStatus, setCareerStatus] = useState({ submitting: false, error: '', sent: false });
   const navigate = useNavigate();
 
   const explore = event => {
@@ -20,20 +18,6 @@ export default function Landing() {
     navigate(query ? `/discover?q=${encodeURIComponent(query)}` : '/discover');
   };
 
-  const submitCareer = async event => {
-    event.preventDefault();
-    if (careerStatus.submitting) return;
-    setCareerStatus({ submitting: true, error: '', sent: false });
-    try {
-      const response = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(careerForm) });
-      const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.error || 'Could not send your message.');
-      setCareerStatus({ submitting: false, error: '', sent: true });
-      setCareerForm({ name: '', email: '', interest: 'Research & Evidence', message: '', website: '' });
-    } catch (error) {
-      setCareerStatus({ submitting: false, error: error.message || 'Could not send your message.', sent: false });
-    }
-  };
 
 
   return (
@@ -48,7 +32,7 @@ export default function Landing() {
               <img src="/brand/eylo-light.svg" alt="EYLO" width="180" height="54" className="h-10 w-auto max-w-[130px] object-contain sm:h-12 sm:max-w-[180px]" fetchPriority="high" />
             </Link>
             <Link to="/discover" className="px-1 py-2 text-xs text-[#17375c] hover:text-[#226fba] sm:px-3 sm:text-sm">Discover</Link>
-            <a href="#careers" className="hidden px-3 py-2 text-sm text-[#17375c] hover:text-[#226fba] sm:inline-flex">Careers</a>
+            <Link to="/contact" className="hidden px-3 py-2 text-sm text-[#17375c] hover:text-[#226fba] sm:inline-flex">Contact</Link>
             <Link to="/login" className="rounded-full border border-[#507ba4] bg-white/45 px-4 py-2 text-xs text-[#17375c] transition hover:bg-white/80 sm:px-7 sm:text-sm">Sign in</Link>
           </div>
         </header>
@@ -111,43 +95,11 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="careers" className="border-t border-slate-200 bg-white px-5 py-20 sm:px-8 sm:py-24" aria-labelledby="careers-heading">
-        <div className="mx-auto max-w-5xl">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#356ba0]">EYLO / CAREERS & COLLABORATION</p>
-          <h2 id="careers-heading" className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Help shape the future of research.</h2>
-          <p className="mt-5 max-w-3xl text-base leading-7 text-slate-600">We’re building EYLO for people who want to turn knowledge into meaningful work. If you care about research, technology or making complex ideas easier to explore, we’d like to hear from you.</p>
-          <div className="mt-9 grid gap-4 md:grid-cols-3">
-            <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6"><h3 className="text-lg font-semibold">Research & Evidence</h3><p className="mt-3 text-sm leading-6 text-slate-600">Scholarly discovery, research quality and scientific methods.</p></article>
-            <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6"><h3 className="text-lg font-semibold">AI & Engineering</h3><p className="mt-3 text-sm leading-6 text-slate-600">Reliable technology, responsible AI and product development.</p></article>
-            <article className="rounded-2xl border border-slate-200 bg-slate-50 p-6"><h3 className="text-lg font-semibold">Design & Partnerships</h3><p className="mt-3 text-sm leading-6 text-slate-600">Human-centered product design and research community connections.</p></article>
-          </div>
-          <div className="mt-10 max-w-2xl rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-7">
-            <h3 className="text-xl font-semibold text-slate-900">Introduce yourself</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Share your background and how you would like to contribute. This is an expression of interest, not an application for an advertised vacancy.</p>
-            <form onSubmit={submitCareer} className="mt-6 grid gap-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="grid gap-2 text-sm font-medium text-slate-800">Your name<input required minLength={2} maxLength={100} value={careerForm.name} onChange={e => setCareerForm(s => ({ ...s, name: e.target.value }))} autoComplete="name" className="rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-[#7eb1d1]" /></label>
-                <label className="grid gap-2 text-sm font-medium text-slate-800">Email<input type="email" required maxLength={200} value={careerForm.email} onChange={e => setCareerForm(s => ({ ...s, email: e.target.value }))} autoComplete="email" className="rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-[#7eb1d1]" /></label>
-              </div>
-              <label className="grid gap-2 text-sm font-medium text-slate-800">Area of interest<select value={careerForm.interest} onChange={e => setCareerForm(s => ({ ...s, interest: e.target.value }))} className="rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-[#7eb1d1]"><option>Research & Evidence</option><option>AI & Engineering</option><option>Design & Partnerships</option><option>Other</option></select></label>
-              <label className="grid gap-2 text-sm font-medium text-slate-800">A little about you<textarea required minLength={20} maxLength={2400} rows={5} value={careerForm.message} onChange={e => setCareerForm(s => ({ ...s, message: e.target.value }))} placeholder="What do you work on, and how might we collaborate?" className="resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus-visible:ring-2 focus-visible:ring-[#7eb1d1]" /></label>
-              <div className="hidden" aria-hidden="true"><label>Website<input tabIndex={-1} autoComplete="off" value={careerForm.website} onChange={e => setCareerForm(s => ({ ...s, website: e.target.value }))} /></label></div>
-              <p className="text-xs leading-5 text-slate-500">Your details will be used to review and reply to your enquiry. Please don't include sensitive personal information.</p>
-              {careerStatus.error && <p role="alert" className="text-sm text-red-700">{careerStatus.error}</p>}
-              {careerStatus.sent && <p role="status" className="text-sm text-green-800">Thank you. Your message was sent to the EYLO team.</p>}
-              <button type="submit" disabled={careerStatus.submitting} className="inline-flex w-fit items-center gap-2 rounded-xl bg-[#153c72] px-6 py-3 text-sm font-semibold text-white hover:bg-[#25578d] disabled:cursor-wait disabled:opacity-60">{careerStatus.submitting ? 'Sending…' : 'Send your introduction'} <ArrowRight size={16} /></button>
-            </form>
-          </div>
-          <p className="mt-4 text-xs text-slate-500">Open to conversations and future collaboration. No paid vacancies are currently advertised.</p>
-        </div>
-      </section>
-
-
       <footer className="border-t border-slate-200 bg-white px-5 py-7 sm:px-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <img src="/brand/eylo-light.svg" alt="EYLO" width="160" height="48" loading="lazy" className="h-10 w-auto max-w-[150px] object-contain" />
           <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-3">
-            <Link to="/discover" className="hover:text-slate-900">Discover</Link><a href="#careers" className="hover:text-slate-900">Careers</a><Link to="/login" className="hover:text-slate-900">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span>
+            <Link to="/discover" className="hover:text-slate-900">Discover</Link><Link to="/contact" className="hover:text-slate-900">Contact</Link><Link to="/login" className="hover:text-slate-900">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span>
           </nav>
         </div>
       </footer>
