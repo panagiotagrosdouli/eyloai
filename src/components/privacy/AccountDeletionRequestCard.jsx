@@ -166,7 +166,10 @@ export default function AccountDeletionRequestCard() {
                 ))}
               </dl>
               <p className="text-xs leading-5 text-amber-400">
-                Storage, subscriptions, logs, backups and session revocation still require independent checks.
+                {inventory.billing_review?.stripe_subscription_link_recorded || inventory.billing_review?.local_paid_plan_recorded
+                  ? 'This account has a local paid-plan or Stripe subscription link requiring independent billing review. '
+                  : 'No local paid-plan or linked subscription has been confirmed; Stripe must still be checked independently. '}
+                Storage, invoices, logs, backups and session revocation also require independent checks.
                 Your account and data remain unchanged.
               </p>
             </div>
