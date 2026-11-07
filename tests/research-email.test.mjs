@@ -13,7 +13,7 @@ test('researcher email validation rejects incomplete and whitespace-containing a
   assert.equal(isValidEmailAddress('not an email'), false);
   assert.equal(isValidEmailAddress('name@university'), false);
   assert.equal(isValidEmailAddress('name @university.edu'), false);
-  assert.equal(isValidEmailAddress('x'.repeat(246) + '@uni.edu'), false);
+  assert.equal(isValidEmailAddress('x'.repeat(65) + '@uni.edu'), false);
 });
 
 test('research email drafts preserve real line breaks for mailto bodies', () => {
