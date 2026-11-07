@@ -18,11 +18,12 @@ function decodeEntities(value = '') {
 }
 
 function plainText(value = '') {
-  return decodeEntities(String(value)
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
+  return decodeEntities(value)
+    .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, ' ')
+    .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, ' ')
     .replace(/<[^>]*>/g, ' ')
-    .replace(/\s+/g, ' ')).trim();
+    .replace(/\\s+/g, ' ')
+    .trim();
 }
 function safePostingUrl(value) {
   try {
