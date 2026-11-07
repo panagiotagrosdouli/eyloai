@@ -28,7 +28,7 @@ export default function Register() {
 
   const onSubmit = async ({ fullName, email, password }) => {
     setFormError("");
-    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    const callbackUrl = new URL(`${import.meta.env.BASE_URL}auth/callback`, window.location.origin);
     callbackUrl.searchParams.set("from", destination);
 
     try {
@@ -43,7 +43,7 @@ export default function Register() {
       // Email confirmation is not always enabled. Only promise a confirmation
       // message when the provider did not issue a valid session.
       if (result.data?.session) {
-        window.location.assign(destination);
+        window.location.assign(`${import.meta.env.BASE_URL}${destination.replace(/^\\//, "")}`);
         return;
       }
       setSentEmail(email);
