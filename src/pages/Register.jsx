@@ -43,7 +43,7 @@ export default function Register() {
       // Email confirmation is not always enabled. Only promise a confirmation
       // message when the provider did not issue a valid session.
       if (result.data?.session) {
-        window.location.assign(`${import.meta.env.BASE_URL}${destination.replace(/^\\//, "")}`);
+        window.location.assign(`${import.meta.env.BASE_URL}${destination.replace(/^[/]/, "")}`);
         return;
       }
       setSentEmail(email);
