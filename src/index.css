@@ -434,3 +434,21 @@ body { min-width: 320px; background: hsl(var(--background)); letter-spacing: -0.
   html { scroll-behavior: auto; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+
+/* The public research discovery page shares the company site's light EYLO identity.
+   Scoped tokens leave signed-in workspace themes and all other routes untouched. */
+.eylo-public-discovery {
+  --background: 0 0% 100%;
+  --foreground: 215 35% 17%;
+  --card: 0 0% 100%;
+  --card-foreground: 215 35% 17%;
+  --muted: 210 30% 97%;
+  --muted-foreground: 211 17% 43%;
+  --primary: 207 65% 35%;
+  --primary-foreground: 0 0% 100%;
+  --border: 210 26% 89%;
+  --input: 210 26% 89%;
+  --ring: 202 80% 56%;
+  color-scheme: light;
+}
