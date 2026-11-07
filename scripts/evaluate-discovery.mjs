@@ -16,7 +16,7 @@ if (mode === 'template') {
   const template = {
     warning: 'Unjudged template. Assign independent relevance grades before calculating metrics.',
     rubric: { 0: 'Not relevant', 1: 'Partially relevant', 2: 'Directly relevant' },
-    judgments: dataset.queries.flatMap(query => query.results.slice(0, 10).map(record => ({
+    judgments: dataset.queries.flatMap(query => [...new Map(query.results.slice(0, 10).map(record => [canonicalRecordId(record), record])).values()].map(record => ({
       query_id: query.id,
       record_id: canonicalRecordId(record),
       title: record.title || '',
