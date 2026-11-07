@@ -115,7 +115,7 @@ export default function Home({ searchOnly = false }) {
           </Link>
         </div>
         <section aria-label="Research search" className="eylo-surface p-5 sm:p-8">
-          <GuidedSearch onSearch={handleSearch} />
+          <GuidedSearch key={currentQuery || "new-search"} onSearch={handleSearch} initialTopic={currentQuery} defaultLevel="researcher" />
           <p className="mt-4 border-t border-border/60 pt-4 text-xs leading-5 text-muted-foreground">Retrieved papers link to their academic sources. EYRA’s interpretations are shown separately from source evidence.</p>
         </section>
       </div>
