@@ -21,6 +21,7 @@ test('general listings remove HTML and encoded markup from descriptions', async 
       if (String(url).includes('raw.githubusercontent.com')) {
         return {
           source: 'Remotive',
+          retrieved_at: '2026-11-07T00:00:00.000Z',
           items: [{
             id: 'remotive-789',
             title: 'Global researcher',
