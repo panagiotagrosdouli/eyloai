@@ -20,7 +20,7 @@ export function serverHeaders() {
   return headers;
 }
 
-async export async function verifiedUser(authorization) {
+export async function verifiedUser(authorization) {
   const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     headers: { apikey: publicKey(), authorization },
     cache: 'no-store',
@@ -35,7 +35,7 @@ async export async function verifiedUser(authorization) {
   return body.id;
 }
 
-async export async function existingRequest(userId) {
+export async function existingRequest(userId) {
   const path = `${REQUEST_TABLE}?user_id=eq.${encodeURIComponent(userId)}&select=status,requested_at&limit=1`;
   const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: serverHeaders(),
