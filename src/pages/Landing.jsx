@@ -118,10 +118,10 @@ export default function Landing() {
               <span className="h-2 w-2 rounded-full bg-[#9FC8E8] shadow-[0_0_14px_#9FC8E8]" /> Research, connected
             </p>
             <h1 id="eylo-hero-title" className="mt-7 max-w-2xl text-[clamp(3.4rem,7.1vw,6.6rem)] font-medium leading-[0.91] tracking-[-0.075em] text-[#F6F7EF]">
-              Research, <span className="font-serif font-normal italic text-[#B9D8EE]">connected.</span>
+              Find the research.<br /><span className="font-serif font-normal italic text-[#B9D8EE]">Move it forward.</span>
             </h1>
             <p className="mt-7 max-w-lg text-base leading-7 text-[#D5E4EF] sm:text-lg sm:leading-8">
-              Discover evidence. Find researchers. Explore opportunities. Move your ideas forward.
+              Discover papers, researchers and opportunities — in one research workspace.
             </p>
             <form role="search" onSubmit={explore} className="mt-9 flex w-full max-w-xl items-center gap-2 rounded-2xl border border-white/15 bg-white p-2 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.65)] transition focus-within:ring-4 focus-within:ring-[#B9D8EE]/25">
               <Search className="ml-3 shrink-0 text-[#567895]" size={20} aria-hidden="true" />
@@ -200,17 +200,24 @@ export default function Landing() {
       </section>
 
 
-      <section aria-label="EYLO research journey" className="bg-[#F7FAFD] px-5 py-10 sm:px-8 sm:py-16">
-        <div className="mx-auto max-w-7xl">
-          <div className="relative isolate overflow-hidden rounded-[2rem] border border-[#C8DBEB] bg-[#DCECF8] shadow-[0_24px_65px_-42px_rgba(10,44,84,0.5)]">
-            <img src={`${import.meta.env.BASE_URL}brand/eylo-alpine-landscape.svg`} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#102E50]/90 via-[#153F66]/65 to-[#1B5A85]/10" />
-            <div className="relative grid min-h-[350px] items-center gap-7 px-7 py-10 text-white sm:px-12 sm:py-16 lg:grid-cols-[.9fr_1.1fr]">
-              <div><p className="text-[11px] font-bold uppercase tracking-[.22em] text-[#BCE9F5]">A clearer path from curiosity to progress</p><h2 className="mt-5 max-w-lg font-serif text-5xl leading-[.97] tracking-[-.06em] sm:text-6xl">One question.<br/><span className="italic text-[#BCE9F5]">New horizons.</span></h2><p className="mt-5 max-w-sm text-sm leading-7 text-[#E2EEF7]">Evidence, people and next steps — connected around your research.</p><Link to="/discover" className="mt-8 inline-flex min-h-11 items-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-[#173D67] transition hover:bg-[#D7EFF8]">Start exploring <ArrowRight size={16}/></Link></div>
-              <div className="grid grid-cols-2 gap-3 self-end sm:gap-4">
-                {[{number:"01",title:"Discover",description:"Source-linked papers",icon:BookOpen},{number:"02",title:"Connect",description:"Researchers & topics",icon:Users},{number:"03",title:"Explore",description:"Open questions",icon:Sparkles},{number:"04",title:"Advance",description:"Roles & funding",icon:Briefcase}].map(({number,title,description,icon:Icon})=><div key={number} className="rounded-2xl border border-white/30 bg-[#0C3155]/65 p-4 shadow-lg backdrop-blur-md sm:p-6"><div className="flex items-center justify-between text-[#BCE9F5]"><span className="text-[10px] font-bold tracking-[.17em]">{number}</span><Icon size={19}/></div><h3 className="mt-8 font-serif text-3xl font-semibold">{title}</h3><p className="mt-2 text-xs text-[#D6E8F3]">{description}</p></div>)}
+      <section aria-label="Explore EYLO's research workflow" className="bg-[#F7FAFD] px-5 py-12 sm:px-8 sm:py-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-6">
+            <div><p className="text-[11px] font-bold uppercase tracking-[.2em] text-[#3977A4]">The EYLO experience</p><h2 className="mt-3 max-w-2xl font-serif text-4xl leading-tight tracking-[-.05em] text-[#102B49] sm:text-5xl">From a question to your next step.</h2></div>
+            <Link to="/discover" className="inline-flex min-h-10 items-center gap-2 border-b border-[#276C99] text-sm font-semibold text-[#205987]">Explore live discovery <ArrowRight size={16}/></Link>
+          </div>
+          <div className="grid overflow-hidden rounded-[1.6rem] border border-[#D6E4EF] bg-white shadow-[0_28px_80px_-60px_rgba(16,43,73,.5)] lg:grid-cols-[1.12fr_.88fr]">
+            <div className="relative min-h-[360px] overflow-hidden bg-[radial-gradient(ellipse_at_25%_30%,#E5F5FF_0%,#EFF7FC_50%,#DDEDF8_100%)] p-6 sm:p-10">
+              <div className="absolute -right-20 -top-24 h-72 w-72 rounded-full border border-[#B1D1E9]"/><div className="absolute -bottom-28 -left-20 h-80 w-80 rounded-full border border-[#B1D1E9]"/>
+              <div className="relative mx-auto max-w-md rounded-2xl border border-[#D5E4F0] bg-white p-5 shadow-[0_25px_60px_-28px_rgba(16,43,73,.36)]">
+                <div className="flex items-center justify-between border-b border-[#E8EFF5] pb-4"><div className="flex items-center gap-2 text-sm font-semibold text-[#173F67]"><Search size={17}/> Research discovery</div><span className="rounded-full bg-[#EAF7F9] px-2.5 py-1 text-[10px] font-semibold text-[#2B8392]">Illustrative workflow</span></div>
+                <div className="mt-5 rounded-xl border border-[#CBDCE9] bg-[#F5FAFE] px-4 py-3 text-sm font-medium text-[#466781]">What do we know about climate adaptation?</div>
+                <div className="mt-5 space-y-3">
+                  {[{icon:BookOpen,label:'Find source-linked papers',meta:'Evidence'},{icon:Users,label:'Discover related researchers',meta:'People'},{icon:Sparkles,label:'Explore emerging questions',meta:'Ideas'}].map(({icon:Icon,label,meta})=><div key={label} className="flex items-center gap-3 rounded-xl border border-[#E1EAF2] bg-white p-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[#E6F2FA] text-[#2E739D]"><Icon size={19}/></span><div className="flex-1"><p className="text-xs font-semibold text-[#264762]">{label}</p><p className="mt-1 text-[10px] text-[#7C91A5]">{meta}</p></div><ArrowRight size={15} className="text-[#89A9BF]"/></div>)}
+                </div>
               </div>
             </div>
+            <div className="flex flex-col justify-center p-8 sm:p-12"><span className="w-fit rounded-full bg-[#EAF4FA] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.15em] text-[#3479A4]">Research-first AI</span><h3 className="mt-6 font-serif text-4xl leading-[1.03] tracking-[-.055em] text-[#102B49] sm:text-5xl">Less searching.<br/><span className="italic text-[#3A86B4]">More clarity.</span></h3><p className="mt-5 max-w-md text-sm leading-7 text-[#63798D]">Explore connected research evidence, people and opportunities without losing the context behind your question.</p><div className="mt-7 flex flex-wrap gap-2">{['Scholarly sources','Researchers','Research paths'].map(label=><span key={label} className="rounded-full border border-[#D9E6EF] px-3 py-2 text-xs font-medium text-[#436B89]">{label}</span>)}</div><Link to="/discover" className="mt-9 inline-flex min-h-11 w-fit items-center gap-2 rounded-full bg-[#174672] px-6 text-sm font-semibold text-white transition hover:bg-[#245D91]">See EYLO AI <ArrowRight size={16}/></Link></div>
           </div>
         </div>
       </section>
