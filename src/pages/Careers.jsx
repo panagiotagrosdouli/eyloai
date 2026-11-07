@@ -12,6 +12,7 @@ export default function Careers() {
   const [items, setItems] = useState([]);
   const [sourceUrl, setSourceUrl] = useState('');
   const [retrievedAt, setRetrievedAt] = useState('');
+  const [remotiveSnapshotAt, setRemotiveSnapshotAt] = useState('');
   const [cvText, setCvText] = useState('');
   const [cvName, setCvName] = useState('');
   const [cvError, setCvError] = useState('');
@@ -45,6 +46,7 @@ export default function Careers() {
     setItems(results);
     setSourceUrl(research?.source_url || '');
     setRetrievedAt([research?.retrieved_at, general?.retrieved_at].filter(Boolean).sort().at(-1) || '');
+    setRemotiveSnapshotAt(general?.remotive_snapshot_retrieved_at || '');
     if (researchResult.status === 'rejected' && generalResult.status === 'rejected') {
       setError('Career listings are temporarily unavailable. Please try again shortly.');
     } else if (!results.length) {
@@ -121,6 +123,7 @@ export default function Careers() {
           <div className="mx-auto mt-2 flex max-w-4xl items-center justify-between gap-3 text-[11px] text-muted-foreground">
             <span>Search terms go to EURAXESS · job feeds are matched locally</span> <span aria-hidden="true">·</span> <a href="https://www.arbeitnow.com/" target="_blank" rel="noreferrer" className="hover:underline">Europe/UK listings by Arbeitnow</a> <span aria-hidden="true">·</span> <a href="https://remotive.com/remote-jobs/api" target="_blank" rel="noreferrer" className="hover:underline">Remote listings by Remotive</a>
             {sourceUrl && <a href={sourceUrl} target="_blank" rel="noreferrer" className="hover:underline">Source search <ExternalLink size={11} className="inline" /></a>}
+            <p className="basis-full text-[10px] leading-5">Remotive listings can be delayed by the provider and EYLO refreshes the snapshot daily.{remotiveSnapshotAt ? ' Snapshot refreshed ' + new Date(remotiveSnapshotAt).toLocaleString() + '.' : ''}</p>
           </div>
         </form>
       </section>
@@ -168,7 +171,7 @@ export default function Careers() {
       {consentOpen && <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/50 p-4" role="presentation">
         <section role="dialog" aria-modal="true" aria-labelledby="cv-match-title" className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl">
           <div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Before the search</p><h2 id="cv-match-title" className="mt-2 text-xl font-semibold text-foreground">Use CV keywords to find roles?</h2></div><button type="button" aria-label="Close" onClick={() => setConsentOpen(false)} className="grid h-9 w-9 place-items-center rounded-lg hover:bg-muted"><X size={16} /></button></div>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">EYLO will send these extracted search terms to EURAXESS. Your CV file and full text stay in this browser. General Europe/UK and Remotive listings are downloaded without your CV terms and matched locally. Remotive listings can be delayed by up to 24 hours; check each posting’s location restrictions.</p>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">EYLO will send these extracted search terms to EURAXESS. Your CV file and full text stay in this browser. General Europe/UK and Remotive listings are downloaded without your CV terms and matched locally. Remotive listings may be delayed by up to 24 hours by the provider and the snapshot refreshes daily; check each posting’s location restrictions.</p>
           <div className="mt-4 flex flex-wrap gap-2">{consentTerms.map(term => <span key={term} className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">{term}</span>)}</div>
           <div className="mt-5 flex justify-end gap-2"><button type="button" onClick={() => setConsentOpen(false)} className="min-h-10 rounded-lg border border-border px-4 text-sm font-semibold text-foreground">Cancel</button><button type="button" onClick={confirmCvMatch} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Search EURAXESS + local listings <ArrowRight size={14} /></button></div>
         </section>
