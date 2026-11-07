@@ -51,6 +51,7 @@ const VoiceAssistant = lazy(() => import('@/pages/VoiceAssistant'));
 const PitchDeckBuilder = lazy(() => import('@/pages/PitchDeckBuilder'));
 const GrantBuilder = lazy(() => import('@/pages/GrantBuilder'));
 const InstitutionAdmin = lazy(() => import('@/pages/InstitutionAdmin'));
+const OwnerConsole = lazy(() => import('@/pages/OwnerConsole'));
 
 const AiTool = ({ minimum, children }) => (
   <CapabilityGate capability="ai">
@@ -142,6 +143,7 @@ const AuthenticatedApp = () => {
           <Route path="/pitchdeck" element={<AiTool minimum="founder"><PitchDeckBuilder /></AiTool>} />
           <Route path="/grant-builder" element={<AiTool minimum="founder"><GrantBuilder /></AiTool>} />
           <Route path="/institution" element={<CapabilityGate capability="institution_analytics"><InstitutionAdmin /></CapabilityGate>} />
+          <Route path="/owner" element={<OwnerConsole />} />
         </Route>
       </Route>
 
