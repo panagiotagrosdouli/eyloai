@@ -17,7 +17,9 @@ test('general listings remove HTML and encoded markup from descriptions', async 
   const previousFetch = globalThis.fetch;
   globalThis.fetch = async url => ({
     ok: true,
-    json: async () => ({
+    json: async () => String(url).includes('raw.githubusercontent.com')
+      ? { source: 'Remotive', items: [{ id: 'remotive-789', title: 'Global researcher', organization: 'Remote Lab', country: 'Worldwide', description: 'Global data work.', source_url: 'https://remotive.com/remote-jobs/research/789' }] }
+      : ({
       data: [{
         id: 123,
         title: 'Research analyst',
@@ -27,6 +29,7 @@ test('general listings remove HTML and encoded markup from descriptions', async 
         description: '&lt;p&gt;Build careful models &amp; reports&lt;/p&gt;&lt;script&gt;alert(1)&lt;/script&gt;',
       }],
     }),
+      }),
   });
   const response = createResponse();
 
@@ -36,6 +39,10 @@ test('general listings remove HTML and encoded markup from descriptions', async 
     assert.ok(response.body.items.length > 0);
     assert.equal(response.body.items[0].description, 'Build careful models & reports');
     assert.equal(response.body.items[0].source, 'Arbeitnow Europe');
+    const remote = response.body.items.find(item => item.source === 'Remotive');
+    assert.equal(remote.title, 'Global researcher');
+    assert.equal(response.body.remotive_provider_delay_hours, 24);
+    assert.equal(response.body.remotive_attribution_url, 'https://remotive.com/remote-jobs/api');
   } finally {
     globalThis.fetch = previousFetch;
   }
@@ -45,6 +52,9 @@ test('general listings disclose a provider failure while serving the available f
   const previousFetch = globalThis.fetch;
   globalThis.fetch = async url => {
     if (String(url).includes('arbeitnow.co.uk')) throw new Error('temporary outage');
+    if (String(url).includes('raw.githubusercontent.com')) {
+      return { ok: true, json: async () => ({ source: 'Remotive', items: [] }) };
+    }
     return {
       ok: true,
       json: async () => ({
@@ -81,7 +91,7 @@ test('general listings return an error when every provider fails', async () => {
   try {
     await handler({ method: 'GET', headers: {}, query: {} }, response);
     assert.equal(response.statusCode, 502);
-    assert.deepEqual(response.body.failed_sources, ['Arbeitnow Europe', 'Arbeitnow UK']);
+    assert.deepEqual(response.body.failed_sources, ['Arbeitnow Europe', 'Arbeitnow UK', 'Remotive']);
   } finally {
     globalThis.fetch = previousFetch;
   }
