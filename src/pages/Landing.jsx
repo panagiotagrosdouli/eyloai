@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Search, BookOpen, CheckCircle2, FolderOpen, Sparkles, CalendarCheck, ShieldCheck, LibraryBig, Users, FileText } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
+import { searchOpenAlexWorks } from '@/lib/eyra-api';
 
 const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
 
 export default function Landing() {
   const [question, setQuestion] = useState('');
   const [previewTab, setPreviewTab] = useState('Papers');
+  const [liveRecords, setLiveRecords] = useState([]);
+  const [recordsLoading, setRecordsLoading] = useState(true);
+  const [recordsError, setRecordsError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    searchOpenAlexWorks('climate adaptation', 3, 'recent', { throwOnError: true })
+      .then(records => {
+        if (active) setLiveRecords(records);
+      })
+      .catch(() => {
+        if (active) setRecordsError('Live sample is temporarily unavailable.');
+      })
+      .finally(() => {
+        if (active) setRecordsLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
   const navigate = useNavigate();
 
   const explore = event => {
@@ -33,28 +52,66 @@ export default function Landing() {
           <Link to="/login" className="rounded-lg border border-[#B9CADB] bg-white px-4 py-2 text-sm font-medium text-[#173D67] transition hover:bg-[#F1F6FB]">Sign in</Link>
         </div>
       </header>
-      <section className="border-b border-[#E3EAF1] bg-white px-5 pb-16 pt-16 sm:px-8 sm:pb-20 sm:pt-24" aria-labelledby="eylo-hero-title">
-        <div className="mx-auto max-w-5xl text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#276A99]">A connected workspace for research and careers</p>
-          <h1 id="eylo-hero-title" className="mx-auto mt-6 max-w-4xl font-serif text-[clamp(2.6rem,5.5vw,5rem)] font-normal leading-[1.08] tracking-[-0.045em] text-[#102B49]">Find the evidence. Find your people. Find your next move.</h1>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#526A82] sm:text-lg">Search real research literature, discover the people behind it, explore funding, and connect your experience to labs and next steps.</p>
-          <form role="search" onSubmit={explore} className="mx-auto mt-10 flex w-full max-w-2xl items-center gap-2 rounded-xl border border-[#BFCFDB] bg-white p-2 shadow-[0_12px_32px_-24px_rgba(16,43,73,0.3)] focus-within:ring-2 focus-within:ring-[#347BA8]">
-            <Search className="ml-3 shrink-0 text-[#567895]" size={20} aria-hidden="true" />
-            <label htmlFor="research-question" className="sr-only">Research question</label>
-            <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="What would you like to research?" className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm text-[#142D49] outline-none placeholder:text-[#788CA0]" />
-            <button type="submit" aria-label="Explore research" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#174672] text-white transition hover:bg-[#245D91]"><ArrowRight size={19} /></button>
-          </form>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-[#526B83]">
-            <span>Try a topic:</span>
-            {['Climate adaptation', 'Public health', 'Machine learning'].map(topic => (
-              <button key={topic} type="button" onClick={() => { trackSearchStarted('homepage_suggestion'); navigate(`/discover?q=${encodeURIComponent(topic)}`); }} className="min-h-9 rounded-full border border-[#D6E1EB] bg-[#F6F9FC] px-3 font-medium hover:bg-[#EAF2F8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c68a0]">{topic}</button>
-            ))}
+      <section className="relative overflow-hidden border-b border-[#E3EAF1] bg-white px-5 py-12 sm:px-8 sm:py-16 lg:py-20" aria-labelledby="eylo-hero-title">
+        <div className="pointer-events-none absolute -right-32 -top-40 h-[34rem] w-[34rem] rounded-full bg-[#DCEBF6] opacity-70 blur-3xl" aria-hidden="true" />
+        <div className="pointer-events-none absolute -bottom-48 left-1/3 h-80 w-80 rounded-full bg-[#E7F1EC] opacity-60 blur-3xl" aria-hidden="true" />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+          <div>
+            <p className="inline-flex items-center gap-2 rounded-full border border-[#D9E6EF] bg-white/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#276A99]"><span className="h-1.5 w-1.5 rounded-full bg-[#5C9C76]" />Research, connected</p>
+            <h1 id="eylo-hero-title" className="mt-6 max-w-xl font-serif text-[clamp(2.8rem,6vw,5rem)] font-normal leading-[1.02] tracking-[-0.055em] text-[#102B49]">Make research move.</h1>
+            <p className="mt-5 max-w-md text-base leading-7 text-[#526A82] sm:text-lg">Papers, people and opportunities — brought into one clear view.</p>
+            <form role="search" onSubmit={explore} className="mt-8 flex w-full max-w-xl items-center gap-2 rounded-xl border border-[#BFCFDB] bg-white p-2 shadow-[0_12px_32px_-24px_rgba(16,43,73,0.3)] focus-within:ring-2 focus-within:ring-[#347BA8]">
+              <Search className="ml-3 shrink-0 text-[#567895]" size={20} aria-hidden="true" />
+              <label htmlFor="research-question" className="sr-only">Research question</label>
+              <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="Ask a research question" className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm text-[#142D49] outline-none placeholder:text-[#788CA0]" />
+              <button type="submit" aria-label="Explore research" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#174672] text-white transition hover:bg-[#245D91]"><ArrowRight size={19} /></button>
+            </form>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs text-[#526B83]">
+              {['Climate adaptation', 'Public health', 'Machine learning'].map(topic => (
+                <button key={topic} type="button" onClick={() => { trackSearchStarted('homepage_suggestion'); navigate('/discover?q=' + encodeURIComponent(topic)); }} className="min-h-9 rounded-full border border-[#D6E1EB] bg-white/80 px-3 font-medium transition hover:border-[#9DB8CF] hover:bg-[#F2F7FB] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c68a0]">{topic}</button>
+              ))}
+            </div>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link to="/discover" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#174672] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#245D91]">Explore research <ArrowRight size={16} /></Link>
+              <Link to={PROJECT_SIGNUP_HREF} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#B9CADB] bg-white/80 px-5 py-3 text-sm font-semibold text-[#174672] hover:bg-[#F2F7FB]">Build a workspace <ArrowRight size={16} /></Link>
+            </div>
+            <p className="mt-4 text-[11px] leading-5 text-[#61778E]">Search public records without signing in.</p>
           </div>
-          <div className="mx-auto mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link to="/discover" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#174672] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#245D91]">Explore research <ArrowRight size={16} /></Link>
-            <Link to={PROJECT_SIGNUP_HREF} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#B9CADB] bg-white px-6 py-3 text-sm font-semibold text-[#174672] hover:bg-[#F2F7FB]">Create workspace <ArrowRight size={16} /></Link>
+
+          <div className="relative mx-auto w-full max-w-2xl">
+            <div className="pointer-events-none absolute -inset-5 rounded-[2rem] bg-gradient-to-br from-[#DDECF7] via-white to-[#E3F0E8] opacity-80 blur-2xl" aria-hidden="true" />
+            <div className="relative overflow-hidden rounded-[1.6rem] border border-[#D8E4EE] bg-white/95 shadow-[0_32px_90px_-48px_rgba(17,48,78,0.42)] backdrop-blur">
+              <div className="flex items-center justify-between border-b border-[#E6EDF3] px-5 py-4 sm:px-6">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#EAF2F8] text-[#1D5986]"><BookOpen size={19} aria-hidden="true" /></span>
+                  <div><p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#71869A]">Live research preview</p><h2 className="mt-0.5 text-sm font-semibold text-[#173A5D]">Climate adaptation</h2></div>
+                </div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EDF7F0] px-2.5 py-1 text-[10px] font-semibold text-[#3D7654]"><span className="h-1.5 w-1.5 rounded-full bg-[#64A678]" />OpenAlex</span>
+              </div>
+              <div className="space-y-3 p-4 sm:p-5" aria-live="polite">
+                {recordsLoading && <div role="status" className="space-y-3"><div className="h-20 animate-pulse rounded-xl bg-[#F1F5F8]" /><div className="h-20 animate-pulse rounded-xl bg-[#F1F5F8]" /><span className="sr-only">Loading live papers</span></div>}
+                {recordsError && <p role="status" className="rounded-xl bg-[#F8FAFC] p-4 text-sm text-[#65798D]">{recordsError}</p>}
+                {!recordsLoading && !recordsError && liveRecords.map(record => (
+                  <article key={record.id} className="rounded-xl border border-[#E4EBF1] bg-[#FBFCFE] p-4 transition hover:border-[#BDD0DE]">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-[#173A5D]">{record.title}</h3>
+                      <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[10px] font-medium text-[#75889B]">{record.year || '—'}</span>
+                    </div>
+                    <p className="mt-2 line-clamp-1 text-xs text-[#61788E]">{record.authors || 'Authors not listed'}</p>
+                    <p className="mt-3 flex items-center gap-2 text-[10px] text-[#74879A]"><span className="rounded bg-[#EAF2F8] px-2 py-1 text-[#356E98]">{record.source}</span><span>{(record.cited_by_count || 0).toLocaleString()} citations</span></p>
+                  </article>
+                ))}
+                {!recordsLoading && !recordsError && liveRecords.length === 0 && <p className="rounded-xl bg-[#F8FAFC] p-4 text-sm text-[#65798D]">No records returned for this sample topic.</p>}
+              </div>
+              <div className="flex items-center justify-between border-t border-[#E6EDF3] px-5 py-3 sm:px-6">
+                <p className="text-[10px] text-[#7B8FA1]">{recordsLoading ? 'Retrieving source records…' : liveRecords.length + ' source records · retrieved live'}</p>
+                <Link to="/discover?q=climate%20adaptation" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1C5B8B] hover:underline">Open in Discover <ArrowRight size={13} /></Link>
+              </div>
+            </div>
+            <div className="relative mt-3 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[10px] font-medium uppercase tracking-[0.12em] text-[#6D8498]">
+              <span>Evidence</span><span aria-hidden="true">→</span><span>People</span><span aria-hidden="true">→</span><span>Opportunity</span><span aria-hidden="true">→</span><span>Project</span>
+            </div>
           </div>
-          <p className="mt-5 text-xs leading-5 text-[#61778E]">Explore scholarly sources without creating an account. Sign in to save evidence and manage projects.</p>
         </div>
       </section>
 
@@ -91,7 +148,7 @@ export default function Landing() {
               </>}
               {previewTab === 'People' && <div className="rounded-xl border border-[#DCE6EF] bg-[#FBFCFE] p-6"><Users size={22} className="text-[#28658D]" aria-hidden="true"/><h4 className="mt-4 text-base font-semibold text-[#173452]">Find the people behind the literature</h4><p className="mt-2 text-sm leading-6 text-[#61788E]">Explore author records and follow researchers connected to your topic. Check names, affiliations and expertise against the original sources.</p><Link to="/discover" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Search papers and researchers <ArrowRight size={15}/></Link></div>}
               {previewTab === 'Funding' && <div className="rounded-xl border border-[#DCE6EF] bg-[#FBFCFE] p-6"><FolderOpen size={22} className="text-[#28658D]" aria-hidden="true"/><h4 className="mt-4 text-base font-semibold text-[#173452]">Find funding for your next research step</h4><p className="mt-2 text-sm leading-6 text-[#61788E]">Find grants, scholarships, competitions and accelerators from official sources. Check deadlines and eligibility in the original notice.</p><Link to="/login?from=%2Fopportunities" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Explore funding <ArrowRight size={15}/></Link></div>}
-              {previewTab === 'Career' && <div className="rounded-xl border border-[#DCE6EF] bg-[#FBFCFE] p-6"><FileText size={22} className="text-[#28658D]" aria-hidden="true"/><h4 className="mt-4 text-base font-semibold text-[#173452]">Turn your experience into research matches</h4><p className="mt-2 text-sm leading-6 text-[#61788E]">Use your profile and CV to explore researchers, supervisors and labs related to your expertise. CV text is analyzed in your browser; matches are suggestions to review, not job offers.</p><div className="mt-4 flex flex-col items-start gap-3"><Link to="/login?from=%2Fresearchers" className="inline-flex items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Explore profile matching <ArrowRight size={15}/></Link><a href="https://euraxess.ec.europa.eu/jobs/search" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Browse research jobs on EURAXESS <ArrowRight size={15}/></a></div><p className="mt-2 text-xs leading-5 text-[#697D90]">Job listings and applications are hosted by EURAXESS.</p></div>}
+              {previewTab === 'Career' && <div className="rounded-xl border border-[#DCE6EF] bg-[#FBFCFE] p-6"><FileText size={22} className="text-[#28658D]" aria-hidden="true"/><h4 className="mt-4 text-base font-semibold text-[#173452]">Turn your experience into research matches</h4><p className="mt-2 text-sm leading-6 text-[#61788E]">Use your profile and CV to explore researchers, supervisors and labs related to your expertise. CV text is analyzed in your browser; matches are suggestions to review, not job offers.</p><div className="mt-4 flex flex-col items-start gap-3"><Link to="/login?from=%2Fresearchers" className="inline-flex items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Explore profile matching <ArrowRight size={15}/></Link><span className="rounded-lg border border-[#DCE6EF] bg-white px-3 py-2 text-[11px] text-[#61788E]">CV stays in your browser · matches are suggestions</span></div></div>}
             </div>
           </div>
         </div>
