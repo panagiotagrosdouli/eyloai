@@ -118,90 +118,90 @@ export default function Landing() {
         </div>
       </header>
 
-      <section aria-labelledby="eylo-hero-title" className="relative isolate overflow-hidden bg-[#112F2C] text-white">
-        <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.12]" aria-hidden="true" style={{ backgroundImage: 'radial-gradient(#d8e7d3 0.7px, transparent 0.7px)', backgroundSize: '21px 21px' }} />
-        <div className="pointer-events-none absolute -right-56 -top-72 -z-10 h-[46rem] w-[46rem] rounded-full bg-[#467F68]/35 blur-3xl" aria-hidden="true" />
+      <section aria-labelledby="eylo-hero-title" className="relative isolate overflow-hidden bg-[#102B49] text-white">
+        <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.12]" aria-hidden="true" style={{ backgroundImage: 'radial-gradient(#D6E7F5 0.7px, transparent 0.7px)', backgroundSize: '21px 21px' }} />
+        <div className="pointer-events-none absolute -right-56 -top-72 -z-10 h-[46rem] w-[46rem] rounded-full bg-[#245D91]/35 blur-3xl" aria-hidden="true" />
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 pb-16 pt-14 sm:px-8 sm:pb-20 sm:pt-20 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10 lg:pb-24 lg:pt-24">
           <div className="relative z-10">
-            <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#B9D6B1]">
-              <span className="h-2 w-2 rounded-full bg-[#B5D48A] shadow-[0_0_14px_#B5D48A]" /> Research, connected
+            <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#B9D8EE]">
+              <span className="h-2 w-2 rounded-full bg-[#9FC8E8] shadow-[0_0_14px_#9FC8E8]" /> Research, connected
             </p>
             <h1 id="eylo-hero-title" className="mt-7 max-w-2xl text-[clamp(3.4rem,7.1vw,6.6rem)] font-medium leading-[0.91] tracking-[-0.075em] text-[#F6F7EF]">
-              Research is a <span className="font-serif font-normal italic text-[#B9D6B1]">network.</span>
+              Research is a <span className="font-serif font-normal italic text-[#B9D8EE]">network.</span>
             </h1>
-            <p className="mt-7 max-w-lg text-base leading-7 text-[#D1DED6] sm:text-lg sm:leading-8">
+            <p className="mt-7 max-w-lg text-base leading-7 text-[#D5E4EF] sm:text-lg sm:leading-8">
               EYLO connects the evidence, people and opportunities around your next idea.
             </p>
-            <form role="search" onSubmit={explore} className="mt-9 flex w-full max-w-xl items-center gap-2 rounded-2xl border border-white/15 bg-white p-2 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.65)] transition focus-within:ring-4 focus-within:ring-[#B9D6B1]/25">
-              <Search className="ml-3 shrink-0 text-[#627A70]" size={20} aria-hidden="true" />
+            <form role="search" onSubmit={explore} className="mt-9 flex w-full max-w-xl items-center gap-2 rounded-2xl border border-white/15 bg-white p-2 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.65)] transition focus-within:ring-4 focus-within:ring-[#B9D8EE]/25">
+              <Search className="ml-3 shrink-0 text-[#567895]" size={20} aria-hidden="true" />
               <label htmlFor="research-question" className="sr-only">Research question</label>
-              <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="What are you curious about?" className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm text-[#183B34] outline-none placeholder:text-[#81928A]" />
-              <button type="submit" aria-label="Explore research" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#B9D6B1] text-[#153B32] transition hover:bg-[#CDE3C5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"><ArrowRight size={19} /></button>
+              <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="What are you curious about?" className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm text-[#173A5D] outline-none placeholder:text-[#788CA0]" />
+              <button type="submit" aria-label="Explore research" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#B9D8EE] text-[#173D67] transition hover:bg-[#D8E9F5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"><ArrowRight size={19} /></button>
             </form>
-            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2 text-xs text-[#B8C9BF]">
+            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2 text-xs text-[#C7D7E4]">
               <span className="mr-1">Try</span>
               {['Climate adaptation', 'Public health', 'Machine learning'].map(topic => (
-                <button key={topic} type="button" onClick={() => { trackSearchStarted('homepage_suggestion'); navigate('/discover?q=' + encodeURIComponent(topic)); }} className="rounded-full border border-white/15 px-3 py-1.5 transition hover:border-[#B9D6B1]/60 hover:bg-white/5 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B9D6B1]">{topic}</button>
+                <button key={topic} type="button" onClick={() => { trackSearchStarted('homepage_suggestion'); navigate('/discover?q=' + encodeURIComponent(topic)); }} className="rounded-full border border-white/15 px-3 py-1.5 transition hover:border-[#B9D8EE]/60 hover:bg-white/5 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B9D8EE]">{topic}</button>
               ))}
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
-              <Link to="/discover" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#B9D6B1] px-5 text-sm font-semibold text-[#153B32] transition hover:bg-[#CDE3C5]">Explore research <ArrowRight size={16} /></Link>
-              <span className="inline-flex items-center gap-2 text-xs font-medium text-[#C0D0C6]"><CheckCircle2 size={15} className="text-[#B9D6B1]" />Start searching, no sign-in needed</span>
+              <Link to="/discover" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#B9D8EE] px-5 text-sm font-semibold text-[#173D67] transition hover:bg-[#D8E9F5]">Explore research <ArrowRight size={16} /></Link>
+              <span className="inline-flex items-center gap-2 text-xs font-medium text-[#C7D7E4]"><CheckCircle2 size={15} className="text-[#B9D8EE]" />Start searching, no sign-in needed</span>
             </div>
           </div>
 
           <div className="relative mx-auto w-full max-w-[620px]">
-            <div className="pointer-events-none absolute inset-0 -z-10 scale-90 rounded-full bg-[#9ECBB1]/20 blur-[80px]" aria-hidden="true" />
-            <div className="relative min-h-[420px] overflow-hidden rounded-[2rem] border border-white/10 bg-[#173B36]/80 p-5 shadow-[0_35px_110px_-42px_rgba(0,0,0,0.6)] backdrop-blur sm:min-h-[500px] sm:p-7">
+            <div className="pointer-events-none absolute inset-0 -z-10 scale-90 rounded-full bg-[#8DB9D8]/20 blur-[80px]" aria-hidden="true" />
+            <div className="relative min-h-[420px] overflow-hidden rounded-[2rem] border border-white/10 bg-[#173A5D]/80 p-5 shadow-[0_35px_110px_-42px_rgba(0,0,0,0.6)] backdrop-blur sm:min-h-[500px] sm:p-7">
               <div className="absolute inset-0 opacity-80" aria-hidden="true">
                 <svg viewBox="0 0 620 500" className="h-full w-full" fill="none">
-                  <circle cx="320" cy="244" r="155" stroke="#B5D48A" strokeOpacity=".17" />
-                  <circle cx="320" cy="244" r="108" stroke="#B5D48A" strokeOpacity=".14" />
-                  <path d="M71 357 198 270l115-99 132 43 101-117M114 93l84 177 120 73 127-99 101 106M198 270l-30 132 150-59 127 14 101-106M313 171l6 173M71 357l43-264 199 78 233-74" stroke="#B8D2BF" strokeOpacity=".27" strokeWidth="1.2" />
-                  <circle cx="320" cy="244" r="5" fill="#C6E6B2" />
-                  <circle cx="198" cy="270" r="4" fill="#C6E6B2" />
-                  <circle cx="313" cy="171" r="4" fill="#C6E6B2" />
-                  <circle cx="440" cy="214" r="4" fill="#C6E6B2" />
-                  <circle cx="168" cy="402" r="3" fill="#C6E6B2" />
-                  <circle cx="541" cy="117" r="3" fill="#C6E6B2" />
-                  <circle cx="440" cy="398" r="3" fill="#C6E6B2" />
-                  <circle cx="114" cy="93" r="3" fill="#C6E6B2" />
-                  <circle cx="519" cy="344" r="3" fill="#C6E6B2" />
+                  <circle cx="320" cy="244" r="155" stroke="#9FC8E8" strokeOpacity=".17" />
+                  <circle cx="320" cy="244" r="108" stroke="#9FC8E8" strokeOpacity=".14" />
+                  <path d="M71 357 198 270l115-99 132 43 101-117M114 93l84 177 120 73 127-99 101 106M198 270l-30 132 150-59 127 14 101-106M313 171l6 173M71 357l43-264 199 78 233-74" stroke="#B7D1E3" strokeOpacity=".27" strokeWidth="1.2" />
+                  <circle cx="320" cy="244" r="5" fill="#D1E7F6" />
+                  <circle cx="198" cy="270" r="4" fill="#D1E7F6" />
+                  <circle cx="313" cy="171" r="4" fill="#D1E7F6" />
+                  <circle cx="440" cy="214" r="4" fill="#D1E7F6" />
+                  <circle cx="168" cy="402" r="3" fill="#D1E7F6" />
+                  <circle cx="541" cy="117" r="3" fill="#D1E7F6" />
+                  <circle cx="440" cy="398" r="3" fill="#D1E7F6" />
+                  <circle cx="114" cy="93" r="3" fill="#D1E7F6" />
+                  <circle cx="519" cy="344" r="3" fill="#D1E7F6" />
                 </svg>
               </div>
               <div className="relative flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#B9D6B1]">One question. Many connections.</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#B9D8EE]">One question. Many connections.</p>
                   <p className="mt-2 text-sm text-white/70">A glimpse into climate adaptation</p>
                 </div>
-                <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[10px] font-medium text-[#D5E4D7]"><span className="h-1.5 w-1.5 rounded-full bg-[#B9D6B1]" />Evidence graph</span>
+                <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[10px] font-medium text-[#D5E4D7]"><span className="h-1.5 w-1.5 rounded-full bg-[#B9D8EE]" />Evidence graph</span>
               </div>
               <div className="relative mt-10 grid min-h-[285px] grid-cols-2 items-center gap-3 sm:mt-14">
-                <div className="absolute left-1/2 top-1/2 grid h-24 w-24 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-[#C2DFAF]/45 bg-[#B9D6B1] text-center text-xs font-bold leading-4 text-[#173B32] shadow-[0_0_48px_rgba(185,214,177,0.28)] sm:h-28 sm:w-28">climate<br />adaptation</div>
-                <div className="relative z-10 self-start rounded-2xl border border-white/10 bg-[#204840]/90 p-3.5 shadow-xl backdrop-blur sm:ml-2 sm:max-w-[210px] sm:p-4">
-                  <div className="flex items-center gap-2 text-[#C9E4C0]"><BookOpen size={14} /><span className="text-[9px] font-bold uppercase tracking-[0.14em]">Evidence</span></div>
+                <div className="absolute left-1/2 top-1/2 grid h-24 w-24 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-[#C2DFAF]/45 bg-[#B9D8EE] text-center text-xs font-bold leading-4 text-[#173B32] shadow-[0_0_48px_rgba(185,216,238,0.28)] sm:h-28 sm:w-28">climate<br />adaptation</div>
+                <div className="relative z-10 self-start rounded-2xl border border-white/10 bg-[#1B4D74]/90 p-3.5 shadow-xl backdrop-blur sm:ml-2 sm:max-w-[210px] sm:p-4">
+                  <div className="flex items-center gap-2 text-[#D6E7F5]"><BookOpen size={14} /><span className="text-[9px] font-bold uppercase tracking-[0.14em]">Evidence</span></div>
                   <p className="mt-2 line-clamp-2 text-[11px] font-medium leading-4 text-white sm:text-xs">{liveRecords[0]?.title || 'Research on climate adaptation'}</p>
                   <p className="mt-2 text-[9px] text-white/55">{recordsLoading ? 'Finding live records…' : recordsError ? 'OpenAlex sample unavailable' : liveRecords[0] ? 'OpenAlex · ' + (liveRecords[0].year || 'Research') : 'OpenAlex · source-linked'}</p>
                 </div>
-                <div className="relative z-10 col-start-2 row-start-1 mt-20 justify-self-end rounded-2xl border border-white/10 bg-[#204840]/90 p-3.5 shadow-xl backdrop-blur sm:mr-1 sm:max-w-[180px] sm:p-4">
-                  <div className="flex items-center gap-2 text-[#C9E4C0]"><Users size={14} /><span className="text-[9px] font-bold uppercase tracking-[0.14em]">People</span></div>
+                <div className="relative z-10 col-start-2 row-start-1 mt-20 justify-self-end rounded-2xl border border-white/10 bg-[#1B4D74]/90 p-3.5 shadow-xl backdrop-blur sm:mr-1 sm:max-w-[180px] sm:p-4">
+                  <div className="flex items-center gap-2 text-[#D6E7F5]"><Users size={14} /><span className="text-[9px] font-bold uppercase tracking-[0.14em]">People</span></div>
                   <p className="mt-2 text-[11px] font-medium leading-4 text-white sm:text-xs">Researchers & shared interests</p>
                   <p className="mt-2 text-[9px] text-white/55">Discover public profiles</p>
                 </div>
-                <div className="relative z-10 col-start-1 row-start-2 mb-2 self-end rounded-2xl border border-white/10 bg-[#204840]/90 p-3.5 shadow-xl backdrop-blur sm:ml-2 sm:max-w-[185px] sm:p-4">
-                  <div className="flex items-center gap-2 text-[#C9E4C0]"><Sparkles size={14} /><span className="text-[9px] font-bold uppercase tracking-[0.14em]">Open questions</span></div>
+                <div className="relative z-10 col-start-1 row-start-2 mb-2 self-end rounded-2xl border border-white/10 bg-[#1B4D74]/90 p-3.5 shadow-xl backdrop-blur sm:ml-2 sm:max-w-[185px] sm:p-4">
+                  <div className="flex items-center gap-2 text-[#D6E7F5]"><Sparkles size={14} /><span className="text-[9px] font-bold uppercase tracking-[0.14em]">Open questions</span></div>
                   <p className="mt-2 text-[11px] font-medium leading-4 text-white sm:text-xs">Patterns worth exploring</p>
                   <p className="mt-2 text-[9px] text-white/55">AI-assisted · verify the evidence</p>
                 </div>
-                <div className="relative z-10 col-start-2 row-start-2 mb-8 justify-self-end self-end rounded-2xl border border-white/10 bg-[#204840]/90 p-3.5 shadow-xl backdrop-blur sm:mr-1 sm:max-w-[175px] sm:p-4">
-                  <div className="flex items-center gap-2 text-[#C9E4C0]"><Briefcase size={14} /><span className="text-[9px] font-bold uppercase tracking-[0.14em]">Next steps</span></div>
+                <div className="relative z-10 col-start-2 row-start-2 mb-8 justify-self-end self-end rounded-2xl border border-white/10 bg-[#1B4D74]/90 p-3.5 shadow-xl backdrop-blur sm:mr-1 sm:max-w-[175px] sm:p-4">
+                  <div className="flex items-center gap-2 text-[#D6E7F5]"><Briefcase size={14} /><span className="text-[9px] font-bold uppercase tracking-[0.14em]">Next steps</span></div>
                   <p className="mt-2 text-[11px] font-medium leading-4 text-white sm:text-xs">Calls, roles & projects</p>
                   <p className="mt-2 text-[9px] text-white/55">Explore opportunities</p>
                 </div>
               </div>
               <div className="relative flex items-center justify-between border-t border-white/10 pt-4 text-[10px] text-white/55">
                 <span>From discovery to direction</span>
-                <Link to="/discover?q=climate%20adaptation" className="inline-flex min-h-8 items-center gap-1 font-semibold text-[#CBE2C4] hover:text-white">See the evidence <ArrowRight size={13} /></Link>
+                <Link to="/discover?q=climate%20adaptation" className="inline-flex min-h-8 items-center gap-1 font-semibold text-[#D6E7F5] hover:text-white">See the evidence <ArrowRight size={13} /></Link>
               </div>
             </div>
           </div>
