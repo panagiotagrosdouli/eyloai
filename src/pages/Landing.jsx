@@ -1,72 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {
-  ArrowRight, BookOpen, Briefcase, CheckCircle2,
-  FileText, Search, Sparkles, Users,
-} from 'lucide-react';
+import { ArrowRight, BookOpen, Search, Users, Briefcase, ExternalLink, Menu, X } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
 import { searchOpenAlexWorks } from '@/lib/eyra-api';
 
-const WORKFLOWS = [
-  {
-    id: 'papers',
-    label: 'Papers',
-    icon: BookOpen,
-    source: 'OpenAlex · live records',
-    title: 'Start with the evidence.',
-    description: 'Explore scholarly literature with source links.',
-    href: '/discover?q=climate%20adaptation',
-    action: 'Explore papers',
-  },
-  {
-    id: 'connections',
-    label: 'Connections',
-    icon: Users,
-    source: 'OpenAlex · researcher records',
-    title: 'Find people by what they study.',
-    description: 'Discover researchers through their published work.',
-    href: '/login?from=%2Fresearchers',
-    action: 'Explore connections',
-    note: 'A public researcher profile does not confirm hiring or PhD availability.',
-  },
-  {
-    id: 'gaps',
-    label: 'Research gaps',
-    icon: Sparkles,
-    source: 'AI-assisted · exploratory',
-    title: 'Turn open questions into a research map.',
-    description: 'Explore possible gaps in the literature.',
-    href: '/login?from=%2Flabs%2Fresearch-landscape',
-    action: 'Map a research landscape',
-    note: 'Gap signals are hypotheses to check against the original studies.',
-  },
-  {
-    id: 'careers',
-    label: 'PhD & careers',
-    icon: Briefcase,
-    source: 'EURAXESS · official listings',
-    title: 'Find roles connected to your research.',
-    description: 'Explore research roles and PhD opportunities.',
-    href: '/login?from=%2Fcareers',
-    action: 'Explore research careers',
-    note: 'CV matching supports TXT and Markdown files; it does not determine eligibility.',
-  },
-  {
-    id: 'funding',
-    label: 'Funding',
-    icon: FileText,
-    source: 'Grants.gov · United States',
-    title: 'Find calls that can move a project forward.',
-    description: 'Review official US funding opportunities.',
-    href: '/login?from=%2Fopportunities',
-    action: 'Explore funding calls',
-    note: 'Current funding search covers Grants.gov, not every international funder.',
-  },
+const workflows = [
+  { label: 'Discover', subtitle: 'Find the evidence.', description: 'Explore scholarly literature and trace records back to their sources.', icon: BookOpen, href: '/discover' },
+  { label: 'Connect', subtitle: 'See the people.', description: 'Explore researchers and institutions through their public scholarly work.', icon: Users, href: '/login?from=%2Fresearchers' },
+  { label: 'Advance', subtitle: 'Find the next step.', description: 'Explore research roles, projects and available funding records.', icon: Briefcase, href: '/login?from=%2Fcareers' },
 ];
 
 export default function Landing() {
   const [question, setQuestion] = useState('');
-  const [activeWorkflow, setActiveWorkflow] = useState('papers');
+  const [menuOpen, setMenuOpen] = useState(false);
   const [liveRecords, setLiveRecords] = useState([]);
   const [recordsLoading, setRecordsLoading] = useState(true);
   const [recordsError, setRecordsError] = useState('');
@@ -76,7 +22,7 @@ export default function Landing() {
     let active = true;
     searchOpenAlexWorks('climate adaptation', 3, 'recent', { throwOnError: true })
       .then(records => { if (active) setLiveRecords(records); })
-      .catch(() => { if (active) setRecordsError('Live sample is temporarily unavailable.'); })
+      .catch(() => { if (active) setRecordsError('Live evidence unavailable right now.'); })
       .finally(() => { if (active) setRecordsLoading(false); });
     return () => { active = false; };
   }, []);
@@ -88,220 +34,45 @@ export default function Landing() {
     navigate(query ? `/discover?q=${encodeURIComponent(query)}` : '/discover');
   };
 
-  const selected = WORKFLOWS.find(item => item.id === activeWorkflow) || WORKFLOWS[0];
-  const SelectedIcon = selected.icon;
-
   return (
-    <main id="main-content" className="min-h-screen bg-[#F7F9FC] text-[#142D49]">
-      <a href="#research-question" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:shadow-lg">Skip to research search</a>
-
-      <header className="sticky top-0 z-40 border-b border-[#DFE7EF]/90 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-[72px] max-w-7xl items-center gap-4 px-5 sm:px-8">
-          <Link to="/" aria-label="EYLO home" className="mr-auto shrink-0">
-            <img src={`${import.meta.env.BASE_URL}brand/eylo-light.svg`} alt="EYLO" width="180" height="54" className="h-10 w-auto max-w-[130px] object-contain sm:h-12 sm:max-w-[180px]" fetchPriority="high" />
-          </Link>
-          <nav aria-label="Main navigation" className="hidden items-center gap-1 md:flex">
-            <a href="#eylo-does" className="rounded-lg px-3 py-2 text-sm font-medium text-[#405B77] transition hover:bg-[#F2F6FA] hover:text-[#174C7C]">What we do</a>
-            <a href="#how-it-works" className="rounded-lg px-3 py-2 text-sm font-medium text-[#405B77] transition hover:bg-[#F2F6FA] hover:text-[#174C7C]">How it works</a>
-            <a href="#about-eylo" className="rounded-lg px-3 py-2 text-sm font-medium text-[#405B77] transition hover:bg-[#F2F6FA] hover:text-[#174C7C]">Our vision</a>
-          </nav>
-          <div className="flex items-center gap-3"><Link to="/login" className="hidden px-3 py-2 text-sm font-medium text-[#405B77] hover:text-[#174C7C] sm:inline-flex">Sign in</Link><Link to="/discover" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[#174672] px-4 text-sm font-semibold text-white transition hover:bg-[#245D91]">See EYLO AI <ArrowRight size={15} /></Link></div>
+    <main id="main-content" className="min-h-screen bg-[#fff] text-[#15191E]">
+      <a href="#research-question" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:bg-white focus:px-4 focus:py-3">Skip to research search</a>
+      <header className="sticky top-0 z-50 border-b border-black/[.07] bg-white/[.94] backdrop-blur-xl">
+        <div className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between gap-5 px-6 md:px-12">
+          <Link to="/" aria-label="EYLO home" className="shrink-0"><img src={`${import.meta.env.BASE_URL}brand/eylo-light.svg`} alt="EYLO" width="150" height="44" className="h-[40px] w-auto max-w-[140px] object-contain" fetchPriority="high"/></Link>
+          <nav aria-label="Main navigation" className="hidden items-center gap-9 md:flex"><a className="text-[13px] font-medium text-[#3F4851] transition hover:text-black" href="#platform">Platform</a><a className="text-[13px] font-medium text-[#3F4851] transition hover:text-black" href="#experience">Experience</a><a className="text-[13px] font-medium text-[#3F4851] transition hover:text-black" href="#vision">Vision</a><Link className="text-[13px] font-medium text-[#3F4851] transition hover:text-black" to="/contact">Contact</Link></nav>
+          <div className="flex items-center gap-3"><Link to="/login" className="hidden text-[13px] font-medium text-[#3F4851] sm:inline-flex">Sign in</Link><Link to="/discover" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[#161B20] px-5 text-[13px] font-semibold text-white transition hover:bg-[#39434D]">Explore EYLO <ArrowRight size={15}/></Link><button aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} type="button" className="grid h-10 w-10 place-items-center rounded-full border border-[#E2E5E7] md:hidden" onClick={() => setMenuOpen(value => !value)}>{menuOpen ? <X size={19}/> : <Menu size={19}/>}</button></div>
         </div>
+        {menuOpen && <nav aria-label="Mobile navigation" className="flex flex-col gap-5 border-t border-[#E7EAED] bg-white px-7 py-6 text-sm font-medium md:hidden">{[['Platform','#platform'],['Experience','#experience'],['Vision','#vision']].map(([name,href])=><a key={href} href={href} onClick={()=>setMenuOpen(false)}>{name}</a>)}<Link to="/contact" onClick={()=>setMenuOpen(false)}>Contact</Link></nav>}
       </header>
 
-      <section aria-labelledby="eylo-hero-title" className="relative isolate overflow-hidden bg-[#102B49] text-white">
-        <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.12]" aria-hidden="true" style={{ backgroundImage: 'radial-gradient(#D6E7F5 0.7px, transparent 0.7px)', backgroundSize: '21px 21px' }} />
-        <div className="pointer-events-none absolute -right-56 -top-72 -z-10 h-[46rem] w-[46rem] rounded-full bg-[#245D91]/35 blur-3xl" aria-hidden="true" />
-        <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 pb-16 pt-14 sm:px-8 sm:pb-20 sm:pt-20 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10 lg:pb-24 lg:pt-24">
-          <div className="relative z-10">
-            <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#B9D8EE]">
-              <span className="h-2 w-2 rounded-full bg-[#9FC8E8] shadow-[0_0_14px_#9FC8E8]" /> Research, connected
-            </p>
-            <h1 id="eylo-hero-title" className="mt-7 max-w-2xl text-[clamp(3.4rem,7.1vw,6.6rem)] font-medium leading-[0.91] tracking-[-0.075em] text-[#F6F7EF]">
-              Find the research.<br /><span className="font-serif font-normal italic text-[#B9D8EE]">Move it forward.</span>
-            </h1>
-            <p className="mt-7 max-w-lg text-base leading-7 text-[#D5E4EF] sm:text-lg sm:leading-8">
-              Discover papers, researchers and opportunities — in one research workspace.
-            </p>
-            <form role="search" onSubmit={explore} className="mt-9 flex w-full max-w-xl items-center gap-2 rounded-2xl border border-white/15 bg-white p-2 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.65)] transition focus-within:ring-4 focus-within:ring-[#B9D8EE]/25">
-              <Search className="ml-3 shrink-0 text-[#567895]" size={20} aria-hidden="true" />
-              <label htmlFor="research-question" className="sr-only">Research question</label>
-              <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="What are you curious about?" className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm text-[#173A5D] outline-none placeholder:text-[#788CA0]" />
-              <button type="submit" aria-label="Explore research" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#B9D8EE] text-[#173D67] transition hover:bg-[#D8E9F5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"><ArrowRight size={19} /></button>
-            </form>
-            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2 text-xs text-[#C7D7E4]">
-              <span className="mr-1">Try</span>
-              {['Climate adaptation', 'Public health', 'Machine learning'].map(topic => (
-                <button key={topic} type="button" onClick={() => { trackSearchStarted('homepage_suggestion'); navigate('/discover?q=' + encodeURIComponent(topic)); }} className="rounded-full border border-white/15 px-3 py-1.5 transition hover:border-[#B9D8EE]/60 hover:bg-white/5 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B9D8EE]">{topic}</button>
-              ))}
-            </div>
-            <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
-              <Link to="/discover" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#B9D8EE] px-5 text-sm font-semibold text-[#173D67] transition hover:bg-[#D8E9F5]">See EYLO AI <ArrowRight size={16} /></Link>
-              <span className="inline-flex items-center gap-2 text-xs font-medium text-[#C7D7E4]"><CheckCircle2 size={15} className="text-[#B9D8EE]" />Start searching, no sign-in needed</span>
-            </div>
-          </div>
-
-          <div className="relative mx-auto w-full max-w-[620px]">
-            <div className="pointer-events-none absolute inset-0 -z-10 scale-90 rounded-full bg-[#8DB9D8]/20 blur-[80px]" aria-hidden="true" />
-            <div className="relative min-h-[420px] overflow-hidden rounded-[2rem] border border-white/10 bg-[#173A5D]/80 p-5 shadow-[0_35px_110px_-42px_rgba(0,0,0,0.6)] backdrop-blur sm:min-h-[500px] sm:p-7">
-              <div className="absolute inset-0 opacity-80" aria-hidden="true">
-                <svg viewBox="0 0 620 500" className="h-full w-full" fill="none">
-                  <circle cx="320" cy="244" r="155" stroke="#9FC8E8" strokeOpacity=".17" />
-                  <circle cx="320" cy="244" r="108" stroke="#9FC8E8" strokeOpacity=".14" />
-                  <path d="M71 357 198 270l115-99 132 43 101-117M114 93l84 177 120 73 127-99 101 106M198 270l-30 132 150-59 127 14 101-106M313 171l6 173M71 357l43-264 199 78 233-74" stroke="#B7D1E3" strokeOpacity=".27" strokeWidth="1.2" />
-                  <circle cx="320" cy="244" r="5" fill="#D1E7F6" />
-                  <circle cx="198" cy="270" r="4" fill="#D1E7F6" />
-                  <circle cx="313" cy="171" r="4" fill="#D1E7F6" />
-                  <circle cx="440" cy="214" r="4" fill="#D1E7F6" />
-                  <circle cx="168" cy="402" r="3" fill="#D1E7F6" />
-                  <circle cx="541" cy="117" r="3" fill="#D1E7F6" />
-                  <circle cx="440" cy="398" r="3" fill="#D1E7F6" />
-                  <circle cx="114" cy="93" r="3" fill="#D1E7F6" />
-                  <circle cx="519" cy="344" r="3" fill="#D1E7F6" />
-                </svg>
-              </div>
-              <div className="relative flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#B9D8EE]">One question. Many connections.</p>
-                  <p className="mt-2 text-sm text-white/70">A glimpse into climate adaptation</p>
-                </div>
-                <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[10px] font-medium text-[#D5E4D7]"><span className="h-1.5 w-1.5 rounded-full bg-[#B9D8EE]" />Evidence graph</span>
-              </div>
-              <div className="relative mt-10 grid min-h-[285px] grid-cols-2 items-center gap-3 sm:mt-14">
-                <div className="absolute left-1/2 top-1/2 grid h-24 w-24 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-[#C2DFAF]/45 bg-[#B9D8EE] text-center text-xs font-bold leading-4 text-[#173B32] shadow-[0_0_48px_rgba(185,216,238,0.28)] sm:h-28 sm:w-28">climate<br />adaptation</div>
-                <div className="relative z-10 self-start rounded-2xl border border-white/10 bg-[#1B4D74]/90 p-3.5 shadow-xl backdrop-blur sm:ml-2 sm:max-w-[210px] sm:p-4">
-                  <div className="flex items-center gap-2 text-[#D6E7F5]"><BookOpen size={14} /><span className="text-[9px] font-bold uppercase tracking-[0.14em]">Evidence</span></div>
-                  <p className="mt-2 line-clamp-2 text-[11px] font-medium leading-4 text-white sm:text-xs">{liveRecords[0]?.title || 'Research on climate adaptation'}</p>
-                  <p className="mt-2 text-[9px] text-white/55">{recordsLoading ? 'Finding live records…' : recordsError ? 'OpenAlex sample unavailable' : liveRecords[0] ? 'OpenAlex · ' + (liveRecords[0].year || 'Research') : 'OpenAlex · source-linked'}</p>
-                </div>
-                <div className="relative z-10 col-start-2 row-start-1 mt-20 justify-self-end rounded-2xl border border-white/10 bg-[#1B4D74]/90 p-3.5 shadow-xl backdrop-blur sm:mr-1 sm:max-w-[180px] sm:p-4">
-                  <div className="flex items-center gap-2 text-[#D6E7F5]"><Users size={14} /><span className="text-[9px] font-bold uppercase tracking-[0.14em]">People</span></div>
-                  <p className="mt-2 text-[11px] font-medium leading-4 text-white sm:text-xs">Researchers & shared interests</p>
-                  <p className="mt-2 text-[9px] text-white/55">Discover public profiles</p>
-                </div>
-                <div className="relative z-10 col-start-1 row-start-2 mb-2 self-end rounded-2xl border border-white/10 bg-[#1B4D74]/90 p-3.5 shadow-xl backdrop-blur sm:ml-2 sm:max-w-[185px] sm:p-4">
-                  <div className="flex items-center gap-2 text-[#D6E7F5]"><Sparkles size={14} /><span className="text-[9px] font-bold uppercase tracking-[0.14em]">Open questions</span></div>
-                  <p className="mt-2 text-[11px] font-medium leading-4 text-white sm:text-xs">Patterns worth exploring</p>
-                  <p className="mt-2 text-[9px] text-white/55">AI-assisted · verify the evidence</p>
-                </div>
-                <div className="relative z-10 col-start-2 row-start-2 mb-8 justify-self-end self-end rounded-2xl border border-white/10 bg-[#1B4D74]/90 p-3.5 shadow-xl backdrop-blur sm:mr-1 sm:max-w-[175px] sm:p-4">
-                  <div className="flex items-center gap-2 text-[#D6E7F5]"><Briefcase size={14} /><span className="text-[9px] font-bold uppercase tracking-[0.14em]">Next steps</span></div>
-                  <p className="mt-2 text-[11px] font-medium leading-4 text-white sm:text-xs">Calls, roles & projects</p>
-                  <p className="mt-2 text-[9px] text-white/55">Explore opportunities</p>
-                </div>
-              </div>
-              <div className="relative flex items-center justify-between border-t border-white/10 pt-4 text-[10px] text-white/55">
-                <span>From discovery to direction</span>
-                <Link to="/discover?q=climate%20adaptation" className="inline-flex min-h-8 items-center gap-1 font-semibold text-[#D6E7F5] hover:text-white">See the evidence <ArrowRight size={13} /></Link>
+      <section className="relative isolate overflow-hidden bg-[#F7F8FA]">
+        <div className="mx-auto flex min-h-[680px] max-w-[1440px] flex-col items-center justify-center px-6 pb-0 pt-24 text-center md:min-h-[770px] md:px-12 md:pt-32">
+          <p className="text-[11px] font-semibold uppercase tracking-[.27em] text-[#6C737A]">EYLO / THE RESEARCH PLATFORM</p>
+          <h1 className="mt-8 max-w-[1050px] text-[clamp(3.8rem,9vw,9.2rem)] font-semibold leading-[.93] tracking-[-.085em] text-[#15191E]">Where research<br/>finds direction<span className="text-[#5292C1]">.</span></h1>
+          <p className="mt-8 max-w-xl text-base leading-7 text-[#59646D] sm:text-lg">Discover knowledge, people and opportunities.<br className="hidden sm:block"/> One platform. A clearer way forward.</p>
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-3"><Link to="/discover" className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[#151A20] px-7 text-sm font-semibold text-white transition hover:bg-[#39434D]">Explore the platform <ArrowRight size={16}/></Link><a href="#platform" className="inline-flex min-h-12 items-center rounded-full border border-[#CBD1D6] bg-white px-7 text-sm font-semibold text-[#242C33] transition hover:border-[#7A8B98]">Discover EYLO</a></div>
+          <div className="relative mt-16 w-full max-w-[1160px] translate-y-1 overflow-hidden rounded-t-[26px] border border-[#D4DBE2] bg-white shadow-[0_35px_100px_-35px_rgba(25,40,55,.25)] md:mt-20">
+            <div className="flex h-11 items-center gap-2 border-b border-[#E5EAF0] bg-[#FBFCFD] px-5"><span className="h-2.5 w-2.5 rounded-full bg-[#D6DDE4]"/><span className="h-2.5 w-2.5 rounded-full bg-[#D6DDE4]"/><span className="h-2.5 w-2.5 rounded-full bg-[#D6DDE4]"/><span className="mx-auto text-[11px] font-medium tracking-[.1em] text-[#86929E]">EYLO / RESEARCH DISCOVERY</span></div>
+            <div className="grid min-h-[265px] gap-6 p-6 text-left sm:p-10 md:grid-cols-[.7fr_1.3fr] md:gap-10">
+              <div><p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#7491A7]">A research question</p><h2 className="mt-5 max-w-xs text-3xl font-semibold leading-[1.13] tracking-[-.05em] text-[#202C36] sm:text-4xl">Explore what the evidence says.</h2><p className="mt-4 text-xs leading-6 text-[#71808E]">Source-linked scholarly discovery, with context you can inspect.</p><span className="mt-6 inline-flex items-center gap-2 text-xs font-semibold text-[#316F9C]">Illustrative product view <ExternalLink size={12}/></span></div>
+              <div className="rounded-2xl border border-[#E2E9F0] bg-[#F8FBFD] p-5 sm:p-7"><div className="flex items-center gap-3 border-b border-[#E0E8F0] pb-5 text-[#31556F]"><Search size={18}/><span className="text-sm font-semibold">Climate adaptation</span><span className="ml-auto hidden rounded-full bg-white px-3 py-1.5 text-[10px] font-medium text-[#6486A0] sm:inline-flex">Scholarly records</span></div>
+                <div className="mt-5 space-y-3">{[0,1,2].map((index)=><div key={index} className="flex items-start gap-4 rounded-xl border border-[#E4EAF0] bg-white px-4 py-4"><span className="mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#EDF3F8] text-[#557C9C]"><BookOpen size={15}/></span><div className="min-w-0"><p className="line-clamp-2 text-xs font-semibold leading-5 text-[#334A5D]">{liveRecords[index]?.title || ['Explore scholarly evidence','Review relevant publications','Trace evidence to source records'][index]}</p><p className="mt-1.5 text-[10px] text-[#8594A1]">{recordsLoading ? 'Loading live sample…' : recordsError ? 'Illustrative preview · live sample unavailable' : liveRecords[index] ? `OpenAlex · ${liveRecords[index].year || 'Scholarly work'}` : 'Illustrative preview'}</p></div></div>)}</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
+      <section id="platform" className="bg-white px-6 py-24 sm:py-32 md:px-12"><div className="mx-auto max-w-[1200px]"><div className="mx-auto max-w-[850px] text-center"><p className="text-[11px] font-bold uppercase tracking-[.25em] text-[#81909C]">THE PLATFORM</p><h2 className="mt-5 text-[clamp(2.75rem,6vw,5.5rem)] font-semibold leading-[1.03] tracking-[-.075em]">Everything connects.</h2><p className="mx-auto mt-6 max-w-lg text-base leading-7 text-[#687682]">From an initial question to the work and people around it.</p></div>
+          <div className="mt-16 grid gap-4 lg:grid-cols-3">{workflows.map(({label,subtitle,description,icon:Icon,href})=><Link to={href} key={label} className="group flex min-h-[385px] flex-col overflow-hidden rounded-[22px] border border-[#E6E9ED] bg-[#F5F7F9] p-9 transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-30px_rgba(15,31,47,.25)]"><div className="relative flex h-[130px] items-center justify-center"><div className="absolute h-24 w-24 rounded-full border border-[#C8D4DD]"/><div className="absolute h-36 w-36 rounded-full border border-[#DDE5EB]"/><span className="relative grid h-16 w-16 place-items-center rounded-2xl bg-white text-[#345F7E] shadow-sm"><Icon size={28} strokeWidth={1.5}/></span></div><p className="mt-8 text-[11px] font-semibold uppercase tracking-[.2em] text-[#6C879B]">{label}</p><h3 className="mt-3 text-[2rem] font-semibold tracking-[-.05em] text-[#242E37]">{subtitle}</h3><p className="mt-3 max-w-xs text-sm leading-6 text-[#6B7783]">{description}</p><span className="mt-auto inline-flex items-center gap-2 pt-8 text-sm font-semibold text-[#2F6184]">Explore <ArrowRight size={15}/></span></Link>)}</div>
+        </div></section>
 
-      <section aria-label="Explore EYLO's research workflow" className="bg-[#F7FAFD] px-5 py-12 sm:px-8 sm:py-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-6">
-            <div><p className="text-[11px] font-bold uppercase tracking-[.2em] text-[#3977A4]">The EYLO experience</p><h2 className="mt-3 max-w-2xl font-serif text-4xl leading-tight tracking-[-.05em] text-[#102B49] sm:text-5xl">From a question to your next step.</h2></div>
-            <Link to="/discover" className="inline-flex min-h-10 items-center gap-2 border-b border-[#276C99] text-sm font-semibold text-[#205987]">Explore live discovery <ArrowRight size={16}/></Link>
-          </div>
-          <div className="grid overflow-hidden rounded-[1.6rem] border border-[#D6E4EF] bg-white shadow-[0_28px_80px_-60px_rgba(16,43,73,.5)] lg:grid-cols-[1.12fr_.88fr]">
-            <div className="relative min-h-[360px] overflow-hidden bg-[radial-gradient(ellipse_at_25%_30%,#E5F5FF_0%,#EFF7FC_50%,#DDEDF8_100%)] p-6 sm:p-10">
-              <div className="absolute -right-20 -top-24 h-72 w-72 rounded-full border border-[#B1D1E9]"/><div className="absolute -bottom-28 -left-20 h-80 w-80 rounded-full border border-[#B1D1E9]"/>
-              <div className="relative mx-auto max-w-md rounded-2xl border border-[#D5E4F0] bg-white p-5 shadow-[0_25px_60px_-28px_rgba(16,43,73,.36)]">
-                <div className="flex items-center justify-between border-b border-[#E8EFF5] pb-4"><div className="flex items-center gap-2 text-sm font-semibold text-[#173F67]"><Search size={17}/> Research discovery</div><span className="rounded-full bg-[#EAF7F9] px-2.5 py-1 text-[10px] font-semibold text-[#2B8392]">Illustrative workflow</span></div>
-                <div className="mt-5 rounded-xl border border-[#CBDCE9] bg-[#F5FAFE] px-4 py-3 text-sm font-medium text-[#466781]">What do we know about climate adaptation?</div>
-                <div className="mt-5 space-y-3">
-                  {[{icon:BookOpen,label:'Find source-linked papers',meta:'Evidence'},{icon:Users,label:'Discover related researchers',meta:'People'},{icon:Sparkles,label:'Explore emerging questions',meta:'Ideas'}].map(({icon:Icon,label,meta})=><div key={label} className="flex items-center gap-3 rounded-xl border border-[#E1EAF2] bg-white p-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[#E6F2FA] text-[#2E739D]"><Icon size={19}/></span><div className="flex-1"><p className="text-xs font-semibold text-[#264762]">{label}</p><p className="mt-1 text-[10px] text-[#7C91A5]">{meta}</p></div><ArrowRight size={15} className="text-[#89A9BF]"/></div>)}
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col justify-center p-8 sm:p-12"><span className="w-fit rounded-full bg-[#EAF4FA] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.15em] text-[#3479A4]">Research-first AI</span><h3 className="mt-6 font-serif text-4xl leading-[1.03] tracking-[-.055em] text-[#102B49] sm:text-5xl">Less searching.<br/><span className="italic text-[#3A86B4]">More clarity.</span></h3><p className="mt-5 max-w-md text-sm leading-7 text-[#63798D]">Explore connected research evidence, people and opportunities without losing the context behind your question.</p><div className="mt-7 flex flex-wrap gap-2">{['Scholarly sources','Researchers','Research paths'].map(label=><span key={label} className="rounded-full border border-[#D9E6EF] px-3 py-2 text-xs font-medium text-[#436B89]">{label}</span>)}</div><Link to="/discover" className="mt-9 inline-flex min-h-11 w-fit items-center gap-2 rounded-full bg-[#174672] px-6 text-sm font-semibold text-white transition hover:bg-[#245D91]">See EYLO AI <ArrowRight size={16}/></Link></div>
-          </div>
-        </div>
-      </section>
+      <section id="experience" className="overflow-hidden bg-[#111820] px-6 py-24 text-white sm:py-32 md:px-12"><div className="mx-auto grid max-w-[1200px] items-center gap-12 lg:grid-cols-[.85fr_1.15fr]"><div><p className="text-[11px] font-bold uppercase tracking-[.25em] text-[#9DB5C8]">THE EXPERIENCE</p><h2 className="mt-6 max-w-md text-[clamp(3.2rem,6vw,6rem)] font-semibold leading-[1] tracking-[-.075em]">Less noise.<br/>More insight.</h2><p className="mt-6 max-w-sm text-base leading-7 text-[#B3C0CC]">The next discovery starts with a question. Explore real scholarly sources before signing in.</p><Link to="/discover" className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-[#17212A]">See it in action <ArrowRight size={16}/></Link></div><div className="rounded-[25px] border border-white/10 bg-[#1D2833] p-6 shadow-2xl sm:p-10"><p className="text-xs font-semibold tracking-[.14em] text-[#ADC4D8]">START EXPLORING</p><form role="search" onSubmit={explore} className="mt-6 flex min-w-0 items-center gap-2 rounded-2xl bg-white p-2 text-[#152B3C] focus-within:ring-4 focus-within:ring-[#9EBACF]/30"><Search size={20} className="ml-3 shrink-0 text-[#698094]"/><label htmlFor="research-question" className="sr-only">Research question</label><input id="research-question" value={question} onChange={event=>setQuestion(event.target.value)} placeholder="What are you curious about?" className="min-w-0 flex-1 bg-transparent px-2 py-3.5 text-sm text-[#162E41] outline-none placeholder:text-[#82929E]"/><button type="submit" aria-label="Explore research" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#17212B] text-white transition hover:bg-[#33516A]"><ArrowRight size={18}/></button></form><div className="mt-5 flex flex-wrap gap-2">{['Climate adaptation','Public health','Machine learning'].map(topic=><button key={topic} type="button" onClick={()=>{trackSearchStarted('homepage_suggestion');navigate('/discover?q='+encodeURIComponent(topic));}} className="rounded-full border border-[#48596A] px-3 py-2 text-xs text-[#D3E0EC] transition hover:border-white/60">{topic}</button>)}</div><p className="mt-7 text-xs leading-6 text-[#8EA4B8]">Scholarly discovery uses source records from services including OpenAlex. AI-assisted interpretations should be verified against original sources.</p></div></div></section>
 
-      <section id="eylo-does" aria-labelledby="eylo-does-title" className="border-b border-[#DFE7EF] bg-[#F6F9FC] px-5 py-16 sm:px-8 sm:py-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#37749B]">What we do</p>
-            <h2 id="eylo-does-title" className="mt-4 font-serif text-4xl leading-[1.06] tracking-[-0.05em] text-[#102B49] sm:text-5xl">Everything your research needs to move forward.</h2>
-            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[#536B82]">Explore papers, people and opportunities in one connected research journey.</p>
-          </div>
+      <section id="vision" className="bg-[#F5F6F7] px-6 py-28 text-center sm:py-36 md:px-12"><div className="mx-auto max-w-[900px]"><p className="text-[11px] font-bold uppercase tracking-[.25em] text-[#7A8791]">OUR VISION</p><h2 className="mt-7 text-[clamp(3rem,7vw,7rem)] font-semibold leading-[.99] tracking-[-.08em] text-[#171D23]">Great ideas deserve<br/>a clearer path.</h2><p className="mx-auto mt-8 max-w-md text-sm leading-7 text-[#6C7781]">We are building a more connected way to discover research and explore where it can lead.</p><Link to="/contact" className="mt-9 inline-flex min-h-12 items-center gap-2 rounded-full border border-[#B7C1C9] bg-white px-7 text-sm font-semibold text-[#26333E]">Get in touch <ArrowRight size={16}/></Link></div></section>
 
-          <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-[1.5rem] border border-[#D9E4EF] bg-white shadow-[0_24px_75px_-54px_rgba(16,43,73,0.45)]">
-            <div className="flex gap-1 overflow-x-auto border-b border-[#E3EAF2] px-3 pt-3 sm:justify-center sm:px-5" role="tablist" aria-label="What EYLO AI does">
-              {WORKFLOWS.map(({ id, label, icon: Icon }) => (
-                <button key={id} id={'workflow-tab-' + id} type="button" role="tab" aria-controls="workflow-panel" aria-selected={activeWorkflow === id} onClick={() => setActiveWorkflow(id)} className={'inline-flex min-h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-xs font-semibold transition sm:px-5 sm:text-sm ' + (activeWorkflow === id ? 'border-[#205986] text-[#153C62]' : 'border-transparent text-[#647A90] hover:text-[#153C62]')}>
-                  <Icon size={15} aria-hidden="true" />{label}
-                </button>
-              ))}
-            </div>
-            <div id="workflow-panel" role="tabpanel" aria-labelledby={'workflow-tab-' + activeWorkflow} className="grid min-h-[210px] gap-6 p-6 sm:p-9 md:grid-cols-[1fr_auto] md:items-center">
-              <div>
-                <p className="inline-flex items-center gap-2 rounded-full bg-[#EDF4F8] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#356E98]"><SelectedIcon size={12} aria-hidden="true" />{selected.source}</p>
-                <h3 className="mt-4 max-w-lg font-serif text-2xl leading-tight tracking-[-0.03em] text-[#173A5D] sm:text-3xl">{selected.title}</h3>
-                <p className="mt-3 max-w-xl text-sm leading-6 text-[#61788E]">{selected.description}</p>
-                {selected.note && <p className="mt-3 max-w-xl text-xs leading-5 text-[#697D90]">{selected.note}</p>}
-                {activeWorkflow === 'papers' && liveRecords.length > 0 && (
-                  <div className="mt-4 space-y-1.5">
-                    {liveRecords.slice(0, 2).map(record => <p key={record.id} className="line-clamp-1 text-xs font-medium text-[#405B77]"><span className="mr-2 text-[#6D8498]">{record.year || 'Paper'}</span>{record.title}</p>)}
-                  </div>
-                )}
-              </div>
-              <Link to={selected.href} className="inline-flex min-h-11 w-fit items-center justify-center gap-2 rounded-lg bg-[#174672] px-4 text-sm font-semibold text-white transition hover:bg-[#245D91]">
-                {selected.action}<ArrowRight size={15} />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="how-it-works" aria-labelledby="how-title" className="border-b border-[#DFE7EF] bg-white px-5 py-16 sm:px-8 sm:py-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#37749B]">How it works</p><h2 id="how-title" className="mt-4 font-serif text-5xl leading-none tracking-[-.055em] text-[#102B49] sm:text-6xl">Ask. Explore. <span className="italic text-[#3E86B2]">Advance.</span></h2></div><Link to="/discover" className="inline-flex items-center gap-2 border-b border-[#286C9A] pb-2 text-sm font-semibold text-[#215780]">Try research discovery <ArrowRight size={16}/></Link></div>
-          <ol className="mt-10 grid gap-4 md:grid-cols-3">
-            {[{number:"01",title:"Ask",text:"Begin with a research question.",icon:Search},{number:"02",title:"Explore",text:"Find source-linked evidence.",icon:BookOpen},{number:"03",title:"Advance",text:"Connect your next steps.",icon:ArrowRight}].map(({number,title,text,icon:Icon})=><li key={number} className="group relative overflow-hidden rounded-[1.5rem] border border-[#DDE7F0] bg-[linear-gradient(155deg,#EDF6FC,#FFFFFF_68%)] p-7 transition hover:-translate-y-1 hover:shadow-xl"><div className="absolute -right-10 -top-10 h-44 w-44 rounded-full border border-[#BFD7E9]"/><div className="relative flex items-center justify-between"><span className="font-serif text-5xl italic text-[#96B9D3]">{number}</span><span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#173F67] text-white"><Icon size={21}/></span></div><h3 className="relative mt-16 font-serif text-4xl font-semibold text-[#133556]">{title}</h3><p className="relative mt-2 text-sm text-[#5E758C]">{text}</p></li>)}
-          </ol>
-        </div>
-      </section>
-
-      <section id="about-eylo" aria-labelledby="about-title" className="bg-[#F1F5F9] px-5 py-16 sm:px-8 sm:py-20">
-        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2 lg:gap-16">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#37749B]">Who we are</p>
-            <h2 id="about-title" className="mt-4 font-serif text-3xl leading-tight tracking-[-0.05em] text-[#102B49] sm:text-4xl">Research deserves a connected future.</h2>
-            <p className="mt-5 max-w-xl text-sm leading-7 text-[#536B82]">EYLO brings research discovery and next steps into one workspace.</p>
-          </div>
-          <div className="border-l-2 border-[#8CB4D1] pl-6 lg:pl-8">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#37749B]">Our vision</p>
-            <h3 className="mt-4 font-serif text-3xl leading-tight tracking-[-0.05em] text-[#102B49] sm:text-4xl">From discovery to direction.</h3>
-            <p className="mt-5 max-w-xl text-sm leading-7 text-[#536B82]">Our goal: make credible research easier to discover, connect and act on.</p>
-          </div>
-        </div>
-        <div className="mx-auto mt-12 max-w-6xl rounded-[1.5rem] bg-[#102B49] px-6 py-8 text-white sm:flex sm:items-center sm:justify-between sm:gap-8 sm:px-9">
-          <div>
-            <p className="text-lg font-semibold">Ready to see EYLO AI in action?</p>
-            <p className="mt-1 text-sm text-[#D5E4EF]">Explore the real research discovery experience.</p>
-          </div>
-          <Link to="/discover" className="mt-5 inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#B9D8EE] px-6 text-sm font-semibold text-[#173D67] transition hover:bg-[#D8E9F5] sm:mt-0">
-            See EYLO AI <ArrowRight size={16} />
-          </Link>
-        </div>
-      </section>
-
-      <footer className="border-t border-slate-200 bg-[#F8FAFC] px-5 py-7 sm:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <img src={`${import.meta.env.BASE_URL}brand/eylo-light.svg`} alt="EYLO" width="160" height="48" loading="lazy" className="h-10 w-auto max-w-[150px] object-contain" />
-          <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-3">
-            <Link to="/discover" className="hover:text-slate-900">Discover</Link>
-            <a href="#eylo-does" className="hover:text-slate-900">What EYLO does</a>
-            <Link to="/login" className="hover:text-slate-900">Sign in</Link><Link to="/contact" className="hover:text-slate-900">Contact</Link>
-            <span>© {new Date().getFullYear()} EYLO</span>
-          </nav>
-        </div>
-      </footer>
+      <footer className="border-t border-[#E7E9EC] bg-white px-6 py-9 md:px-12"><div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-6 sm:flex-row sm:items-center"><img src={`${import.meta.env.BASE_URL}brand/eylo-light.svg`} alt="EYLO" width="130" height="40" className="h-9 w-auto" loading="lazy"/><nav aria-label="Footer" className="flex flex-wrap gap-5 text-xs font-medium text-[#66727D]"><Link to="/discover">Platform</Link><Link to="/contact">Contact</Link><Link to="/login">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span></nav></div></footer>
     </main>
   );
 }
