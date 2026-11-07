@@ -92,7 +92,10 @@ async function loadRemotiveJobs() {
   if (snapshot?.source !== 'Remotive' || !Array.isArray(snapshot?.items)) {
     throw new Error('Remotive snapshot is invalid.');
   }
-  return snapshot.items.slice(0, MAX_REMOTIVE_ITEMS).map(normalizeRemotiveJob).filter(Boolean);
+  return {
+    items: snapshot.items.slice(0, MAX_REMOTIVE_ITEMS).map(normalizeRemotiveJob).filter(Boolean),
+    retrieved_at: typeof snapshot.retrieved_at === 'string' ? snapshot.retrieved_at : null,
+  };
 }
 
 function setCors(response, origin = '') {
@@ -138,7 +141,12 @@ export default async function handler(request, response) {
     loadRemotiveJobs(),
   ];
   const results = await Promise.allSettled(requests);
-  const items = results.flatMap(result => result.status === 'fulfilled' ? result.value : []);
+  const items = results.flatMap((result, index) => result.status !== 'fulfilled'
+    ? []
+    : index === FEEDS.length ? result.value.items : result.value);
+  const remotiveSnapshotAt = results[FEEDS.length]?.status === 'fulfilled'
+    ? results[FEEDS.length].value.retrieved_at
+    : null;
   const failed = results.flatMap((result, index) => result.status === 'rejected' ? [sourceNames[index]] : []);
   if (!items.length) {
     return response.status(502).json({
@@ -155,6 +163,7 @@ export default async function handler(request, response) {
     attribution_url: 'https://www.arbeitnow.com/',
     remotive_attribution_url: 'https://remotive.com/remote-jobs/api',
     remotive_provider_delay_hours: 24,
+    remotive_snapshot_retrieved_at: remotiveSnapshotAt,
     items,
     failed_sources: failed,
   });
