@@ -115,7 +115,7 @@ export default function Careers() {
             <button type="submit" disabled={loading} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60">{loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}<span className="hidden sm:inline">Search roles</span></button>
           </div>
           <div className="mx-auto mt-2 flex max-w-4xl items-center justify-between gap-3 text-[11px] text-muted-foreground">
-            <span>Search terms go to EURAXESS · general Europe/UK listings are matched locally</span>
+            <span>Search terms go to EURAXESS · general Europe/UK listings are matched locally</span> <span aria-hidden="true">·</span> <a href="https://www.arbeitnow.com/" target="_blank" rel="noreferrer" className="hover:underline">Job listings by Arbeitnow</a>
             {sourceUrl && <a href={sourceUrl} target="_blank" rel="noreferrer" className="hover:underline">Source search <ExternalLink size={11} className="inline" /></a>}
           </div>
         </form>
