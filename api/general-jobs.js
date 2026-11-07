@@ -7,8 +7,8 @@ const MAX_ITEMS_PER_FEED = 50;
 
 function plainText(value = '') {
   return String(value)
-    .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, ' ')
-    .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, ' ')
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
     .replace(/<[^>]*>/g, ' ')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/gi, '&')
@@ -16,14 +16,14 @@ function plainText(value = '') {
     .replace(/&#39;|&apos;/gi, "'")
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
-    .replace(/\\s+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
 function safePostingUrl(value) {
   try {
     const url = new URL(value);
-    return url.protocol === 'https:' && /(^|\\.)arbeitnow\\.(com|co\\.uk)$/i.test(url.hostname)
+    return url.protocol === 'https:' && /(^|\.)arbeitnow\.(com|co\.uk)$/i.test(url.hostname)
       ? url.toString()
       : '';
   } catch {
@@ -56,7 +56,7 @@ function setCors(response, origin = '') {
   ]);
   try {
     const hostname = new URL(origin).hostname;
-    if (allowed.has(origin) || /\\.vercel\\.app$/i.test(hostname)) {
+    if (allowed.has(origin) || /\.vercel\.app$/i.test(hostname)) {
       response.setHeader('Access-Control-Allow-Origin', origin);
       response.setHeader('Vary', 'Origin');
     }
