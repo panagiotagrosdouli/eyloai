@@ -405,7 +405,7 @@ export default function PublicDiscovery() {
             </section>
           </div>
         )}
-        </div>
+        </div>}
         </div>
       </div>
     </main>
