@@ -40,8 +40,9 @@ test('Public research discovery remains discipline-neutral', () => {
   assert.match(landing, /finds direction/);
   assert.match(landing, /Scholarly discovery/);
   assert.match(landing, /Source-linked scholarly discovery/);
-  assert.match(landing, /liveRecords\[0\]/);
-  assert.match(landing, /searchOpenAlexWorks/);
+  assert.match(landing, /Enter EYLO AI/);
+  assert.match(landing, /to="\/discover"/);
+  assert.doesNotMatch(landing, /role="search"/);
 });
 
 test('Static Pages discovery does not call missing same-origin server functions', () => {
