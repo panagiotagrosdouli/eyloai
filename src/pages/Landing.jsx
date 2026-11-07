@@ -11,16 +11,6 @@ const workflows = [
 export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  return () => { active = false; };
-  }, []);
-
-  const explore = event => {
-    event?.preventDefault();
-    const query = question.trim();
-    if (query) trackSearchStarted('homepage');
-    navigate(query ? `/discover?q=${encodeURIComponent(query)}` : '/discover');
-  };
-
   return (
     <main id="main-content" className="min-h-screen bg-[#FFFFFF] text-[#182A38]">
       <header className="sticky top-0 z-50 border-b border-black/[.07] bg-white/[.94] backdrop-blur-xl">
