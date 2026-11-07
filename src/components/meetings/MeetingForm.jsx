@@ -74,11 +74,13 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
   return (
     <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-6 space-y-4">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="font-heading font-bold text-base">{initial.id ? 'Edit Meeting' : 'Schedule a Meeting'}</h2>
+        <h2 className="font-heading font-bold text-base">{initial.id ? 'Edit Meeting Plan' : 'Plan a Meeting'}</h2>
         <button type="button" onClick={onCancel} className="p-1.5 rounded-lg hover:bg-secondary transition-colors">
           <X size={15} className="text-muted-foreground" />
         </button>
       </div>
+
+      <p className="-mt-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs leading-5 text-muted-foreground">Saving creates a personal plan in your EYLO workspace. It does not send invitations or confirm participant availability.</p>
 
       {error && <div role="alert" className="rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-xs text-red-200">{error}</div>}
 
@@ -129,10 +131,10 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
       </div>
 
       <div>
-        <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">Status</label>
+        <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">Personal plan status</label>
         <select value={form.status || 'scheduled'} onChange={e => set('status', e.target.value)}
           className="w-full px-3 py-2 rounded-lg border border-border bg-secondary text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40">
-          <option value="scheduled">Scheduled</option>
+          <option value="scheduled">Planned</option>
           <option value="in_progress">In progress</option>
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
@@ -195,7 +197,7 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
       <div className="flex gap-3 pt-2">
         <button type="submit" disabled={saving}
           className="flex-1 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity">
-          {saving ? 'Saving...' : initial.id ? 'Update Meeting' : 'Schedule Meeting'}
+          {saving ? 'Saving...' : initial.id ? 'Update Meeting Plan' : 'Save Meeting Plan'}
         </button>
         <button type="button" onClick={onCancel}
           className="px-4 py-2.5 rounded-xl border border-border text-sm text-muted-foreground hover:bg-secondary transition-colors">
