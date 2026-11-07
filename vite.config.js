@@ -14,5 +14,12 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    ...(process.env.EYLO_GITHUB_PAGES === 'true' ? [{
+      name: 'eylo-github-pages-canonical',
+      transformIndexHtml: html => html.replaceAll(
+        'https://eyloai.vercel.app/',
+        'https://panagiotagrosdouli.github.io/eyloai/',
+      ),
+    }] : []),
   ]
 });
