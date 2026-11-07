@@ -166,7 +166,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         eyra_analysis: results.goal_analysis || '',
         status: 'active',
       });
-      const uniqueTop = (items, identifier) => [...new Map(
+      const uniqueTop = (items, identifier) => [...new globalThis.Map(
         (items || []).filter(item => item?.title || item?.name)
           .map(item => [item[identifier] || item.id || item.doi || item.source_id || item.name || item.title, item]),
       ).values()];
