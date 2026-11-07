@@ -71,7 +71,7 @@ const PageLoader = () => (
 );
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, authError } = useAuth();
+  const { isLoadingAuth, authError, refreshSession } = useAuth();
 
   if (!environment.ok) {
     return <ConfigurationError />;
@@ -95,8 +95,15 @@ const AuthenticatedApp = () => {
         <div className="mx-auto max-w-lg rounded-2xl border bg-card p-8 shadow-sm">
           <h1 className="text-2xl font-semibold">Authentication unavailable</h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            EYLO AI could not verify your session. Refresh the page or try again shortly.
+            EYLO AI could not verify your session. Check your connection and retry. Your local session has not been cleared.
           </p>
+          <button
+            type="button"
+            onClick={() => refreshSession()}
+            className="mt-5 min-h-11 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            Try again
+          </button>
         </div>
       </main>
     );
