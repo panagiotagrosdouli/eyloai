@@ -80,3 +80,25 @@ test('Account and recovery links preserve GitHub Pages routing base', () => {
   }
   assert.match(read('src/pages/Register.jsx'), /window\.location\.assign/);
 });
+
+test('Public professor finder is accessible without authentication and does not fabricate bookings', () => {
+  const app = read('src/App.jsx');
+  const finder = read('src/pages/PublicResearchers.jsx');
+  const discovery = read('src/pages/PublicDiscovery.jsx');
+  assert.ok(app.includes('path="/find-researchers"'));
+  assert.ok(discovery.includes('to="/find-researchers"'));
+  assert.ok(finder.includes('searchOpenAlexAuthors'));
+  assert.ok(finder.includes('searchResearchPeopleByPublications'));
+  assert.ok(finder.includes('Prepare inquiry'));
+  assert.ok(finder.includes('No email or meeting is sent or booked'));
+});
+
+test('Supabase email redirects are documented for the GitHub Pages project path', () => {
+  const guide = read('docs/GITHUB_PAGES_AUTH_CONFIGURATION.md');
+  assert.ok(guide.includes('github.io/eyloai/auth/callback'));
+  assert.ok(guide.includes('github.io/eyloai/reset-password'));
+  assert.ok(guide.includes('Authentication'));
+  const callback = read('src/pages/AuthCallback.jsx');
+  assert.ok(callback.includes('window.history.replaceState'));
+  assert.ok(callback.includes('destination.slice(1)'));
+});

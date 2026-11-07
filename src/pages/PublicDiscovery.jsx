@@ -260,7 +260,7 @@ export default function PublicDiscovery() {
             <nav className="space-y-1 text-[13px] text-[#526477]">
               <button type="button" onClick={() => navigatePanel('discover')} aria-current={activePanel === 'discover' ? 'page' : undefined} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left ${activePanel === 'discover' ? 'bg-[#ECF4FA] font-semibold text-[#173C5D]' : 'hover:bg-[#F0F5F9]'}`}><Search size={17}/> Discover</button>
               <button type="button" onClick={() => navigatePanel('papers')} aria-current={activePanel === 'papers' ? 'page' : undefined} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left ${activePanel === 'papers' ? 'bg-[#ECF4FA] font-semibold text-[#173C5D]' : 'hover:bg-[#F0F5F9]'}`}><BookOpen size={17}/> Papers</button>
-              <Link to="/login?from=%2Fresearchers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><Users size={17}/> Researchers</Link>
+              <Link to="/find-researchers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><Users size={17}/> Researchers</Link>
               <Link to="/login?from=%2Fcareers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><GraduationCap size={17}/> Opportunities</Link>
             </nav>
             <div className="mt-7 border-t border-[#E2E8EF] pt-5 text-[13px] text-[#6A7886]">
@@ -272,7 +272,7 @@ export default function PublicDiscovery() {
         <div id="papers" className="min-w-0 px-4 py-10 sm:px-8 lg:px-10">
         <div className="mb-5 flex flex-wrap gap-2 text-xs lg:hidden" aria-label="Research sections">
           {['discover', 'papers', 'saved', 'history'].map(panel => <button key={panel} type="button" onClick={() => navigatePanel(panel)} aria-pressed={activePanel === panel} className={`rounded-full border px-4 py-2.5 capitalize ${activePanel === panel ? 'border-[#8DB5D0] bg-[#ECF4FA] font-semibold text-[#173C5D]' : 'border-[#E0E8EE] bg-white text-[#526477]'}`}>{panel}</button>)}
-          <Link to="/login?from=%2Fresearchers" className="rounded-full border border-[#E0E8EE] px-4 py-2.5">Researchers</Link>
+          <Link to="/find-researchers" className="rounded-full border border-[#E0E8EE] px-4 py-2.5">Researchers</Link>
           <Link to="/login?from=%2Fcareers" className="rounded-full border border-[#E0E8EE] px-4 py-2.5">Opportunities</Link>
         </div>
         {activePanel === 'saved' && <section aria-label="Saved papers" className="mx-auto max-w-5xl pb-12">
@@ -302,6 +302,7 @@ export default function PublicDiscovery() {
                 </button>
               ))}
             </div>
+            <div className="mx-auto mt-6 flex justify-center"><Link to="/find-researchers" className="inline-flex items-center gap-2 rounded-xl border border-[#D3E3EF] bg-white px-5 py-3 text-sm font-semibold text-[#285E83]">Find researchers & professors <ArrowRight size={15}/></Link></div>
             <p className="mx-auto mt-4 max-w-xl text-xs text-muted-foreground">
               Search any academic subject by typing or speaking. Results depend on verified scholarly indexes; refine filters whenever needed.
             </p>

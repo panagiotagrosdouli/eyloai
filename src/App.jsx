@@ -25,6 +25,7 @@ const Landing = lazy(() => import('@/pages/Landing'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const CompanyPage = lazy(() => import('@/pages/CompanyPage'));
 const PublicDiscovery = lazy(() => import('@/pages/PublicDiscovery'));
+const PublicResearchers = lazy(() => import('@/pages/PublicResearchers'));
 const AppLayout = lazy(() => import('@/components/layout/AppLayout'));
 const Home = lazy(() => import('@/pages/Home'));
 const Library = lazy(() => import('@/pages/Library'));
@@ -168,6 +169,7 @@ function App() {
               <Route path="/company" element={<CompanyPage />} />
               <Route path="/company/:section" element={<CompanyPage />} />
               <Route path="/discover" element={<PublicDiscovery />} />
+              <Route path="/find-researchers" element={<PublicResearchers />} />
               {/* Authentication pages stay reachable even if session bootstrap fails. */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
