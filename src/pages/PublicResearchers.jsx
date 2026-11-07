@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, BookOpen, Copy, ExternalLink, GraduationCap, Loader2, Search, Users } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Copy, ExternalLink, Loader2, Search, Users } from 'lucide-react';
 import { searchOpenAlexAuthors, searchResearchPeopleByPublications } from '@/lib/eyra-api';
 import BrandLogo from '@/components/brand/BrandLogo';
 
