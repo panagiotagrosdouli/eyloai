@@ -102,3 +102,13 @@ test('Supabase email redirects are documented for the GitHub Pages project path'
   assert.ok(callback.includes('window.history.replaceState'));
   assert.ok(callback.includes('destination.slice(1)'));
 });
+
+test('Public researcher outreach never claims mail app opening sends a message', () => {
+  const finder = read('src/pages/PublicResearchers.jsx');
+  assert.ok(finder.includes('mailto:'));
+  assert.ok(finder.includes('institutionalEmail'));
+  assert.ok(finder.includes('OUTREACH_KEY'));
+  assert.ok(finder.includes('Opening your email app does not send the message'));
+  assert.ok(finder.includes('A meeting is confirmed only when the researcher agrees'));
+  assert.ok(finder.includes('Browser storage'));
+});
