@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowDownRight, ArrowRight, BookOpen, Briefcase, CheckCircle2,
-  FileText, FolderOpen, Search, ShieldCheck,
-  Sparkles, Users,
+  ArrowRight, BookOpen, Briefcase, CheckCircle2,
+  FileText, Search, Sparkles, Users,
 } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
 import { searchOpenAlexWorks } from '@/lib/eyra-api';
 
-const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
 const WORKFLOWS = [
   {
     id: 'papers',
@@ -66,12 +64,6 @@ const WORKFLOWS = [
   },
 ];
 
-const STEPS = [
-  { number: '01', title: 'Ask a better question', text: 'Start with a topic, a challenge or the next step you need.' },
-  { number: '02', title: 'Follow the evidence', text: 'Review source-linked papers and the people behind the work.' },
-  { number: '03', title: 'Make a move', text: 'Carry useful findings into a project, role search or funding call.' },
-];
-
 export default function Landing() {
   const [question, setQuestion] = useState('');
   const [activeWorkflow, setActiveWorkflow] = useState('papers');
@@ -110,9 +102,7 @@ export default function Landing() {
           </Link>
           <nav aria-label="Main navigation" className="hidden items-center gap-1 md:flex">
             <Link to="/discover" className="rounded-lg px-3 py-2 text-sm font-medium text-[#405B77] transition hover:bg-[#F2F6FA] hover:text-[#174C7C]">Discover</Link>
-            <a href="#journey" className="rounded-lg px-3 py-2 text-sm font-medium text-[#405B77] transition hover:bg-[#F2F6FA] hover:text-[#174C7C]">What you can do</a>
-            <a href="#trust" className="rounded-lg px-3 py-2 text-sm font-medium text-[#405B77] transition hover:bg-[#F2F6FA] hover:text-[#174C7C]">Evidence & trust</a>
-            <Link to="/contact" className="rounded-lg px-3 py-2 text-sm font-medium text-[#405B77] transition hover:bg-[#F2F6FA] hover:text-[#174C7C]">Contact</Link>
+            <a href="#eylo-does" className="rounded-lg px-3 py-2 text-sm font-medium text-[#405B77] transition hover:bg-[#F2F6FA] hover:text-[#174C7C]">What EYLO does</a>
           </nav>
           <Link to="/login" className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[#C4D2DF] bg-white px-4 text-sm font-semibold text-[#173D67] transition hover:border-[#8EAAC0] hover:bg-[#F4F8FB]">Sign in</Link>
         </div>
@@ -256,9 +246,7 @@ export default function Landing() {
           <img src={`${import.meta.env.BASE_URL}brand/eylo-light.svg`} alt="EYLO" width="160" height="48" loading="lazy" className="h-10 w-auto max-w-[150px] object-contain" />
           <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-3">
             <Link to="/discover" className="hover:text-slate-900">Discover</Link>
-            <a href="#journey" className="hover:text-slate-900">Workflows</a>
-            <a href="#trust" className="hover:text-slate-900">Evidence & trust</a>
-            <Link to="/contact" className="hover:text-slate-900">Contact</Link>
+            <a href="#eylo-does" className="hover:text-slate-900">What EYLO does</a>
             <Link to="/login" className="hover:text-slate-900">Sign in</Link>
             <span>© {new Date().getFullYear()} EYLO</span>
           </nav>
