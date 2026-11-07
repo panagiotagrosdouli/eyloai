@@ -38,7 +38,7 @@ export default function AuthCallback() {
         if (window.opener && !window.opener.closed) {
           window.opener.postMessage({ type: OAUTH_COMPLETE_MESSAGE }, window.location.origin);
           const root = import.meta.env.BASE_URL || '/';
-          window.opener.location.assign(root + destination.replace(/^\\//, ''));
+          window.opener.location.assign(root + destination.slice(1));
           window.close();
           return;
         }
