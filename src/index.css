@@ -299,261 +299,9 @@
 }
 
 
-/* Product-wide interaction, accessibility, and reading defaults. */
+/* Shared EYLO product system: consistent surfaces, spacing, focus and motion. */
 :root {
   --accent-brand: 217 91% 60%;
-  color-scheme: dark;
-}
-
-html.light { color-scheme: light; }
-html { scroll-behavior: smooth; }
-body {
-  min-width: 320px;
-  background: hsl(var(--background));
-}
-
-::selection {
-  color: hsl(var(--primary-foreground));
-  background: hsl(var(--primary) / 0.55);
-}
-
-:where(a, button, input, textarea, select, [tabindex]):focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 3px;
-}
-
-:where(button, [role='button'], a) {
-  -webkit-tap-highlight-color: transparent;
-}
-
-:where(input, textarea, select) {
-  font-size: max(1rem, 16px);
-}
-
-.a11y-large-text { font-size: 112.5%; }
-.a11y-high-contrast {
-  --muted-foreground: 214 30% 82%;
-  --border: 214 30% 45%;
-}
-.a11y-high-contrast :where(.text-muted-foreground) { opacity: 1; }
-.a11y-comfort body { filter: saturate(0.84); }
-.a11y-comfort .card-glow,
-.a11y-comfort .eylo-glass-panel { box-shadow: none; }
-.a11y-focus .eylo-command-deck::before,
-.a11y-focus .eyra-neural-shell::before { display: none; }
-.a11y-reading main :where(p, li) { line-height: 1.78; }
-.a11y-reading main :where(article, section) { text-wrap: pretty; }
-
-@media (min-width: 640px) {
-  :where(input, textarea, select) { font-size: inherit; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-
-/* Unified product canvas: every tool sits in the same research-intelligence world. */
-.eylo-app-canvas {
-  position: relative;
-  isolation: isolate;
-  background:
-    radial-gradient(circle at 50% -8rem, hsl(var(--primary) / 0.07), transparent 32rem),
-    hsl(var(--background));
-}
-
-.eylo-app-canvas main :where(.bg-card) {
-  box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.02);
-}
-
-.eylo-app-canvas main :where(h1, h2) {
-  text-wrap: balance;
-}
-
-.eylo-app-canvas main :where(p) {
-  text-wrap: pretty;
-}
-
-.guided-discovery fieldset button {
-  min-height: 5.25rem;
-}
-
-.guided-discovery--compact fieldset button {
-  min-height: 4.5rem;
-}
-
-:root.light .eylo-app-canvas {
-  background:
-    radial-gradient(circle at 8% 3%, hsl(var(--primary) / 0.08), transparent 24rem),
-    radial-gradient(circle at 92% 18%, hsl(var(--accent) / 0.06), transparent 28rem),
-    hsl(var(--background));
-}
-
-/* EYLO premium workspace — shared across all authenticated pages.
-   Tokens respect the existing theme switch; these refinements avoid feature-specific overrides. */
-@layer base {
-  html { scroll-behavior: smooth; }
-  body { letter-spacing: -0.008em; }
-  :where(button, a, input, textarea, select):focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 3px;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-  }
-}
-@layer components {
-  .eylo-page {
-    @apply mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12;
-  }
-  .eylo-page-heading {
-    @apply font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl;
-  }
-  .eylo-surface {
-    @apply rounded-2xl border border-border/80 bg-card shadow-sm;
-  }
-  .eylo-action {
-    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50;
-  }
-}
-
-/* Shared premium treatment on every authenticated route, including legacy feature pages.
-   Restrict to workspace canvas so public authentication and marketing retain their own layout. */
-.eylo-app-canvas {
-  --eylo-content-max: 1120px;
-  background: hsl(var(--background));
-}
-.eylo-app-canvas main > :first-child {
-  color: hsl(var(--foreground));
-}
-.eylo-app-canvas :where(h1) {
-  font-family: var(--font-heading);
-  letter-spacing: -0.045em;
-  line-height: 1.16;
-}
-.eylo-app-canvas :where(h2, h3) {
-  letter-spacing: -0.025em;
-}
-.eylo-app-canvas :where(input, textarea, select) {
-  accent-color: hsl(var(--primary));
-}
-.eylo-app-canvas :where(button, a, input, textarea, select) {
-  -webkit-tap-highlight-color: transparent;
-}
-.eylo-app-canvas :where(button, a) {
-  transition-duration: 160ms;
-}
-.eylo-app-canvas .eyra-gradient {
-  background: hsl(var(--primary));
-}
-.eylo-app-canvas .card-glow:hover {
-  box-shadow: 0 5px 24px -18px hsl(var(--foreground) / 0.15);
-  border-color: hsl(var(--border));
-}
-.eylo-app-canvas :where(.animate-pulse-glow) {
-  animation: none;
-}
-@media (prefers-reduced-motion: reduce) {
-  .eylo-app-canvas :where(*, *::before, *::after) {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-
-/* EYLO 2026 — unified editorial workspace.
-   Shared rules apply across legacy pages without changing their business logic. */
-@layer components {
-  .eylo-page {
-    @apply mx-auto w-full max-w-7xl px-5 py-10 sm:px-8 sm:py-14;
-  }
-  .eylo-page-heading {
-    @apply font-heading text-3xl font-semibold tracking-tight sm:text-[2.6rem];
-  }
-  .eylo-surface {
-    @apply rounded-2xl border border-border/70 bg-card shadow-sm;
-  }
-  .eylo-action {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-50;
-  }
-}
-
-.eylo-app-canvas {
-  --eylo-content-max: 1200px;
-  background: hsl(var(--background));
-}
-.eylo-app-canvas :where(h1, h2, h3) {
-  font-family: var(--font-heading);
-  text-wrap: balance;
-}
-.eylo-app-canvas :where(h1) { letter-spacing: -0.052em; }
-.eylo-app-canvas :where(h2) { letter-spacing: -0.038em; }
-.eylo-app-canvas :where(input, select, textarea) {
-  border-radius: 0.75rem;
-  transition: border-color 180ms ease, box-shadow 180ms ease;
-}
-.eylo-app-canvas :where(input, textarea, select):focus-visible {
-  border-color: hsl(var(--primary) / 0.65);
-  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.10);
-}
-.eylo-app-canvas :where(article, section) {
-  scroll-margin-top: 6rem;
-}
-.eylo-app-canvas :where(.rounded-2xl.border.bg-card, .eylo-surface) {
-  box-shadow: 0 12px 35px -28px hsl(var(--foreground) / 0.26);
-}
-:root.light {
-  --background: 210 22% 98%;
-  --card: 0 0% 100%;
-  --border: 214 19% 88%;
-  --muted-foreground: 218 12% 43%;
-  --primary: 217 60% 28%;
-}
-:root.light .eylo-app-canvas {
-  background: linear-gradient(180deg, #f8fafc 0%, #f6f8fb 28rem, #f8fafc 100%);
-}
-@media (prefers-reduced-motion: reduce) {
-  .eylo-app-canvas :where(button, a, input, textarea) {
-    transition: none !important;
-  }
-}
-
-/* Academic product surface: consistent editorial rhythm and accessible focus. */
-.eylo-page-heading {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-weight: 400;
-  letter-spacing: -0.038em;
-  line-height: 1.16;
-}
-.eylo-action-canvas {
-  --eylo-academic-navy: #102b49;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 48rem);
-}
-.eylo-action-canvas :where(button, a, input, textarea, select):focus-visible,
-.eylo-app-canvas :where(button, a, input, textarea, select):focus-visible {
-  outline: 2px solid #327cad;
-  outline-offset: 3px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .eylo-action-canvas :where(*, *::before, *::after) {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* EYLO academic color system — one family across public pages and workspace.
-   Keep status colors for errors and success: those communicate meaning, not branding. */
-:root {
   --eylo-navy: #102b49;
   --eylo-blue: #1d5f91;
   --eylo-blue-hover: #174672;
@@ -561,6 +309,7 @@ body {
   --eylo-surface: #ffffff;
   --eylo-border: #d9e3ec;
   --eylo-ink-muted: #536b82;
+  color-scheme: dark;
 }
 :root.light {
   --background: 210 40% 98%;
@@ -577,6 +326,8 @@ body {
   --muted-foreground: 210 20% 42%;
   --accent: 205 58% 42%;
   --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 50%;
+  --destructive-foreground: 0 0% 98%;
   --border: 208 28% 89%;
   --input: 208 28% 89%;
   --ring: 205 67% 34%;
@@ -588,6 +339,7 @@ body {
   --sidebar-accent-foreground: 210 64% 17%;
   --sidebar-border: 208 28% 89%;
   --sidebar-ring: 205 67% 34%;
+  color-scheme: light;
 }
 :root.dark {
   --background: 213 53% 9%;
@@ -615,35 +367,70 @@ body {
   --sidebar-accent-foreground: 207 34% 95%;
   --sidebar-border: 211 27% 27%;
   --sidebar-ring: 203 70% 70%;
+  color-scheme: dark;
 }
-.eyra-gradient {
-  background: linear-gradient(120deg, var(--eylo-blue-hover), var(--eylo-blue));
+html { scroll-behavior: smooth; }
+body { min-width: 320px; background: hsl(var(--background)); letter-spacing: -0.008em; }
+::selection { color: hsl(var(--primary-foreground)); background: hsl(var(--primary) / 0.55); }
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 3px;
 }
-.eyra-text-gradient,
-.eylo-text-gradient,
-.impact-gradient,
-:root.light .eyra-text-gradient,
-:root.light .eylo-text-gradient {
+:where(button, [role='button'], a) { -webkit-tap-highlight-color: transparent; }
+:where(input, textarea, select) { font-size: max(1rem, 16px); }
+@media (min-width: 640px) { :where(input, textarea, select) { font-size: inherit; } }
+
+.a11y-large-text { font-size: 112.5%; }
+.a11y-high-contrast { --muted-foreground: 214 30% 82%; --border: 214 30% 45%; }
+.a11y-high-contrast :where(.text-muted-foreground) { opacity: 1; }
+.a11y-comfort body { filter: saturate(0.84); }
+.a11y-comfort .card-glow, .a11y-comfort .eylo-glass-panel { box-shadow: none; }
+.a11y-focus .eylo-command-deck::before, .a11y-focus .eyra-neural-shell::before { display: none; }
+.a11y-reading main :where(p, li) { line-height: 1.78; }
+.a11y-reading main :where(article, section) { text-wrap: pretty; }
+
+@layer components {
+  .eylo-page { @apply mx-auto w-full max-w-7xl px-5 py-8 sm:px-8 sm:py-12; }
+  .eylo-page-heading { @apply text-3xl font-semibold tracking-tight text-foreground sm:text-[2.6rem]; }
+  .eylo-surface { @apply rounded-2xl border border-border/70 bg-card shadow-sm; }
+  .eylo-action { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-50; }
+}
+
+.eylo-app-canvas { position: relative; isolation: isolate; min-height: 100vh; --eylo-content-max: 1200px; background: hsl(var(--background)); }
+.eylo-app-canvas main > :first-child { color: hsl(var(--foreground)); }
+.eylo-app-canvas main :where(h1, h2, h3) { font-family: var(--font-heading); text-wrap: balance; }
+.eylo-app-canvas main :where(h1) { letter-spacing: -0.052em; line-height: 1.16; }
+.eylo-app-canvas main :where(h2) { letter-spacing: -0.038em; }
+.eylo-app-canvas main :where(p) { text-wrap: pretty; }
+.eylo-app-canvas main :where(section, article) { scroll-margin-top: 6rem; }
+.eylo-app-canvas main :where(.rounded-2xl.border.bg-card, .eylo-surface) { box-shadow: 0 12px 35px -28px hsl(var(--foreground) / 0.26); }
+.eylo-app-canvas :where(input, select, textarea) { accent-color: hsl(var(--primary)); border-radius: 0.75rem; transition: border-color 180ms ease, box-shadow 180ms ease; }
+.eylo-app-canvas :where(input, textarea, select):focus-visible { border-color: hsl(var(--primary) / 0.65); box-shadow: 0 0 0 3px hsl(var(--primary) / 0.10); }
+.eylo-app-canvas :where(button, a) { transition-duration: 160ms; }
+.eylo-app-canvas .eyra-gradient, .eyra-gradient { background: linear-gradient(120deg, var(--eylo-blue-hover), var(--eylo-blue)); }
+.eylo-app-canvas .card-glow:hover { box-shadow: 0 5px 24px -18px hsl(var(--foreground) / 0.15); border-color: hsl(var(--border)); }
+.eylo-app-canvas .animate-pulse-glow { animation: none; }
+
+.eylo-page-heading { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; letter-spacing: -0.038em; line-height: 1.16; }
+.eylo-action-canvas { --eylo-academic-navy: #102b49; background: linear-gradient(180deg, #fff 0%, #f8fafc 48rem); }
+:where(.eylo-app-canvas, .eylo-action-canvas) :where(button, a, input, textarea, select):focus-visible { outline-color: #327cad; }
+.eyra-text-gradient, .eylo-text-gradient, .impact-gradient {
   background: linear-gradient(110deg, #102b49 10%, #1d5f91 90%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
-:root.dark .eyra-text-gradient,
-:root.dark .eylo-text-gradient,
-:root.dark .impact-gradient {
+:root.dark .eyra-text-gradient, :root.dark .eylo-text-gradient, :root.dark .impact-gradient {
   background: linear-gradient(110deg, #f1f7fc 10%, #94c7e9 90%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
 .eyra-glow { box-shadow: 0 0 36px -17px rgba(29, 95, 145, 0.3); }
 .eyra-orb { background: conic-gradient(from 0deg, #102b49, #1d5f91, #4a8ebc, #7eb5d9, #102b49); }
-:root.light .eylo-action-canvas,
-:root.light .eylo-app-canvas {
-  background: linear-gradient(180deg, var(--eylo-surface) 0%, var(--eylo-canvas) 100%);
-}
-:root.dark .eylo-app-canvas,
-:root.dark .eylo-action-canvas {
-  background: hsl(var(--background));
+:root.light .eylo-app-canvas, :root.light .eylo-action-canvas { background: linear-gradient(180deg, var(--eylo-surface) 0%, var(--eylo-canvas) 100%); }
+:root.dark .eylo-app-canvas, :root.dark .eylo-action-canvas { background: hsl(var(--background)); }
+
+.guided-discovery fieldset button { min-height: 5.25rem; }
+.guided-discovery--compact fieldset button { min-height: 4.5rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }

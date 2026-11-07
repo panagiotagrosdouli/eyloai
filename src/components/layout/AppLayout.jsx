@@ -16,7 +16,7 @@ import { trackActivatedReturn } from '@/lib/product-analytics';
 
 const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
-  { label: 'Discover', path: '/discover', icon: Search },
+  { label: 'Discover', path: '/search', icon: Search },
   { label: 'Connect', path: '/researchers', icon: Users },
   { label: 'Careers', path: '/careers', icon: Briefcase },
   { label: 'Projects', path: '/projects', icon: FolderOpen },
@@ -248,7 +248,7 @@ export default function AppLayout() {
       <EyraCommandCenter open={eyraOpen} onClose={() => setEyraOpen(false)} />
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl lg:hidden" aria-label="Primary mobile navigation">
-        <div className="mx-auto grid max-w-md grid-cols-5 items-end">
+        <div className="mx-auto grid max-w-lg grid-cols-6 items-end">
           {[PRIMARY_NAV[0], PRIMARY_NAV[1]].map(item => {
             const Icon = item.icon; const active = isActive(item.path);
             return <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}><Icon size={18} /><span>{item.label}</span></Link>;
