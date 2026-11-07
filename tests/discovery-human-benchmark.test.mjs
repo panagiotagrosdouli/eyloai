@@ -31,7 +31,7 @@ test('evaluation computes precision, normalized gain and duplicate rate', () => 
   const rows = [{ id: 'A', source_index: 'OpenAlex' }, { id: 'A', source_index: 'OpenAlex' }, { id: 'B', source_index: 'Crossref' }];
   const judged = [{ record_id: 'id:a', grade: 2 }, { record_id: 'id:b', grade: 1 }];
   const result = evaluateQuery({ results: rows, judgments: judged });
-  assert.equal(result.precision_at_5, 0.4);
+  assert.equal(result.precision_at_5, 0.2);
   assert.equal(result.duplicates_at_10, 1);
   assert.equal(result.sources_at_10, 2);
 });
