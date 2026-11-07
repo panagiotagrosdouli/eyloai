@@ -137,3 +137,32 @@ Relevant documentation:
   https://supabase.com/docs/guides/auth/sessions
 
 **All live acceptance gates remain NO-GO.**
+
+## Owner-scoped billing risk checkpoint (read-only)
+
+The preflight now includes **one additional, bounded, owner-filtered GET**
+against `billing_entitlements` for `plan`, `subscription_status`,
+`stripe_customer_id`, and `stripe_subscription_id`.
+These four fields stay on the server: only booleans indicating whether
+a local paid-plan, customer link or subscription link exists are returned
+to the user. Raw Stripe IDs and payment data are never returned in the
+response, and the endpoint performs **no Stripe API call**.
+
+No local billing row means **unknown**, NOT "safe to delete".
+`requires_independent_stripe_review` is **always true**, irrespective
+of local records. A failed request, malformed row, duplicate rows or
+unexpected entitlement status causes the entire preflight to fail
+without publishing partial/falsely reassuring evidence.
+
+The server's ability to check a local link does **not** verify whether
+a remote Stripe subscription is still active or whether cancellation,
+tax, invoices, disputes and retention require further action.
+A future final deletion workflow must obtain live, independently
+authorized Stripe and Supabase evidence, plus an actual **fresh-user
+authentication** proof tied to that session. In particular,
+a recent account-wide `last_sign_in_at` timestamp by itself is
+NOT proof that the specific Bearer session was recently reauthenticated.
+
+The request intake and inventory remain disabled by default.
+A verified Bearer token authorizes **only an intake request or
+read-only inventory**, NEVER irreversible account deletion.
