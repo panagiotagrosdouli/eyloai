@@ -1,6 +1,11 @@
 name: Refresh free global remote jobs
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/remotive-jobs.yml'
+      - 'scripts/update-remotive-snapshot.mjs'
   workflow_dispatch:
   schedule:
     - cron: '17 5 * * *'
