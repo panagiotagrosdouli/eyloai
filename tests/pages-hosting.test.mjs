@@ -38,3 +38,10 @@ test('Public research discovery remains discipline-neutral', () => {
   }
   assert.match(landing, /Research begins with evidence/);
 });
+
+test('Static Pages discovery does not call missing same-origin server functions', () => {
+  const discovery = read('src/lib/eyra-api.js');
+  assert.match(discovery, /staticPagesHost = import\.meta\.env\?\.BASE_URL === '\/eyloai\/'/);
+  assert.match(discovery, /!staticPagesHost/);
+  assert.match(discovery, /return fetchWithTimeout\(directUrl, options\)/);
+});
