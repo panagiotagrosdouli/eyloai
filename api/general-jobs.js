@@ -5,21 +5,25 @@ const FEEDS = [
 const TIMEOUT_MS = 10000;
 const MAX_ITEMS_PER_FEED = 50;
 
-function plainText(value = '') {
+function decodeEntities(value = '') {
   return String(value)
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<[^>]*>/g, ' ')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/gi, '&')
     .replace(/&quot;/gi, '"')
     .replace(/&#39;|&apos;/gi, "'")
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
-    .replace(/\s+/g, ' ')
-    .trim();
+    .replace(/&#(\\d+);/g, (_, number) => String.fromCodePoint(Number(number)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, number) => String.fromCodePoint(parseInt(number, 16)));
 }
 
+function plainText(value = '') {
+  return decodeEntities(String(value)
+    .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, ' ')
+    .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\\s+/g, ' ')).trim();
+}
 function safePostingUrl(value) {
   try {
     const url = new URL(value);
