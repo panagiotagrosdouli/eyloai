@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Search, BookOpen, CheckCircle2, FolderOpen, Sparkles, CalendarCheck, Compass } from 'lucide-react';
+import { ArrowRight, Search, BookOpen, CheckCircle2, FolderOpen, Sparkles, CalendarCheck, Compass, ShieldCheck, LibraryBig } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
-import './eylo-approved-scene.css';
-import './eylo-reference-live.css';
 
 const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
 
@@ -21,48 +19,57 @@ export default function Landing() {
 
 
   return (
-    <main id="main-content" className="min-h-screen bg-[#fcfdff] text-[#0d2440]">
+    <main id="main-content" className="min-h-screen bg-[#F7F9FC] text-[#142D49]">
       <a href="#research-question" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:shadow-lg">Skip to research search</a>
-      <div className="eylo-scene relative isolate overflow-hidden">
-        <div className="eylo-scene-landscape pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
-        <div className="eylo-photographic-backdrop pointer-events-none absolute inset-0 -z-10" aria-hidden="true" />
-        <header className="relative z-20">
-          <div className="mx-auto flex h-[76px] max-w-7xl items-center gap-3 px-5 sm:px-8">
-            <Link to="/" aria-label="EYLO home" className="mr-auto shrink-0">
-              <img src="/brand/eylo-light.svg" alt="EYLO" width="180" height="54" className="h-10 w-auto max-w-[130px] object-contain sm:h-12 sm:max-w-[180px]" fetchPriority="high" />
-            </Link>
-            <Link to="/discover" className="px-1 py-2 text-xs text-[#17375c] hover:text-[#226fba] sm:px-3 sm:text-sm">Discover</Link>
-            <a href="#how-it-works" className="hidden px-3 py-2 text-sm text-[#17375c] hover:text-[#226fba] sm:inline-flex">How it works</a>
-            <Link to="/contact" className="hidden px-3 py-2 text-sm text-[#17375c] hover:text-[#226fba] md:inline-flex">Contact</Link>
-            <Link to="/login" className="rounded-full border border-[#507ba4] bg-white/45 px-4 py-2 text-xs text-[#17375c] transition hover:bg-white/80 sm:px-7 sm:text-sm">Sign in</Link>
+
+      <header className="border-b border-[#DFE7EF] bg-white">
+        <div className="mx-auto flex h-[76px] max-w-7xl items-center gap-3 px-5 sm:px-8">
+          <Link to="/" aria-label="EYLO home" className="mr-auto shrink-0"><img src="/brand/eylo-light.svg" alt="EYLO" width="180" height="54" className="h-10 w-auto max-w-[130px] object-contain sm:h-12 sm:max-w-[180px]" fetchPriority="high" /></Link>
+          <Link to="/discover" className="hidden px-2 py-2 text-sm text-[#405B77] hover:text-[#174C7C] sm:inline-flex">Discover</Link>
+          <a href="#how-it-works" className="hidden px-2 py-2 text-sm text-[#405B77] hover:text-[#174C7C] sm:inline-flex">How it works</a>
+          <a href="#methodology" className="hidden px-2 py-2 text-sm text-[#405B77] hover:text-[#174C7C] md:inline-flex">Methodology</a>
+          <Link to="/contact" className="hidden px-2 py-2 text-sm text-[#405B77] hover:text-[#174C7C] lg:inline-flex">Contact</Link>
+          <Link to="/login" className="rounded-lg border border-[#B9CADB] bg-white px-4 py-2 text-sm font-medium text-[#173D67] transition hover:bg-[#F1F6FB]">Sign in</Link>
+        </div>
+      </header>
+      <section className="border-b border-[#E3EAF1] bg-white px-5 pb-16 pt-16 sm:px-8 sm:pb-20 sm:pt-24" aria-labelledby="eylo-hero-title">
+        <div className="mx-auto max-w-5xl text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#276A99]">Scientific discovery & research workspace</p>
+          <h1 id="eylo-hero-title" className="mx-auto mt-6 max-w-4xl font-serif text-[clamp(2.6rem,5.5vw,5rem)] font-normal leading-[1.08] tracking-[-0.045em] text-[#102B49]">Research begins with evidence.</h1>
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#526A82] sm:text-lg">Discover scholarly literature, explore researchers, and organize evidence into structured research projects — with AI assistance.</p>
+          <form role="search" onSubmit={explore} className="mx-auto mt-10 flex w-full max-w-2xl items-center gap-2 rounded-xl border border-[#BFCFDB] bg-white p-2 shadow-[0_12px_32px_-24px_rgba(16,43,73,0.3)] focus-within:ring-2 focus-within:ring-[#347BA8]">
+            <Search className="ml-3 shrink-0 text-[#567895]" size={20} aria-hidden="true" />
+            <label htmlFor="research-question" className="sr-only">Research question</label>
+            <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="Enter a research question or topic" className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm text-[#142D49] outline-none placeholder:text-[#788CA0]" />
+            <button type="submit" aria-label="Explore research" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#174672] text-white transition hover:bg-[#245D91]"><ArrowRight size={19} /></button>
+          </form>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-[#526B83]">
+            <span>Try a topic:</span>
+            {['Visual-Inertial SLAM', 'Autonomous Systems', 'AI for Healthcare'].map(topic => (
+              <button key={topic} type="button" onClick={() => { trackSearchStarted('homepage_suggestion'); navigate(`/discover?q=${encodeURIComponent(topic)}`); }} className="min-h-9 rounded-full border border-[#D6E1EB] bg-[#F6F9FC] px-3 font-medium hover:bg-[#EAF2F8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c68a0]">{topic}</button>
+            ))}
           </div>
-        </header>
-        <section className="relative flex min-h-[calc(100svh-76px)] flex-col items-center justify-center px-5 pb-12 pt-8 text-center sm:px-8 sm:py-12">
-          <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
-            <img src="/brand/eylo-stacked.svg" alt="EYLO" width="520" height="270" className="eylo-hero-emblem h-auto w-[min(46vw,190px)] object-contain sm:w-[220px]" fetchPriority="high" />
-            <p className="eylo-hero-intro mt-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#235c91] sm:text-xs">AI-powered research workspace</p>
-            <h1 className="eylo-hero-intro mt-4 max-w-4xl font-serif text-[clamp(2.2rem,4.5vw,4.1rem)] font-normal leading-[1.1] tracking-[-0.04em] text-[#0c2850]">Discover research. Connect ideas. Advance science.</h1>
-            <p className="eylo-hero-intro mt-5 max-w-2xl text-base leading-7 text-[#244768] sm:text-lg">Explore scientific literature, discover relevant researchers, and turn evidence into structured research projects with EYRA.</p>
-            <form onSubmit={explore} role="search" className="eylo-hero-intro mt-7 flex w-full max-w-2xl items-center gap-2 rounded-2xl border border-[#a8c6e0] bg-white/95 p-2 shadow-[0_12px_35px_-18px_rgba(12,40,80,.4)] focus-within:ring-2 focus-within:ring-[#2779b9]">
-              <Search className="ml-3 shrink-0 text-[#51789b]" size={19} aria-hidden="true" />
-              <label htmlFor="research-question" className="sr-only">Ask a research question or search scientific literature</label>
-              <input id="research-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="Ask a research question…" className="min-w-0 flex-1 bg-transparent px-1 py-3 text-sm text-[#0c2850] outline-none placeholder:text-[#67829c] sm:text-base" />
-              <button type="submit" aria-label="Search scientific research" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#153c72] text-white transition hover:bg-[#25578d]"><ArrowRight size={20} /></button>
-            </form>
-            <div className="eylo-hero-intro mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-2 text-xs text-[#355a7c]">
-              <span>Try a topic:</span>
-              {['Visual-Inertial SLAM', 'Autonomous Systems', 'AI for Healthcare'].map(topic => (
-                <button key={topic} type="button" onClick={() => { trackSearchStarted('homepage_suggestion'); navigate(`/discover?q=${encodeURIComponent(topic)}`); }} className="min-h-9 rounded-full border border-[#a8c6e0] bg-white/70 px-3 font-medium hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c68a0]">{topic}</button>
-              ))}
-            </div>
-            <div className="eylo-hero-intro mt-7 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row sm:gap-4">
-              <Link to="/discover" className="eylo-scene-cta inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#092c57] to-[#287cbd] px-8 py-3 text-sm font-semibold text-white hover:brightness-110 sm:w-auto">Explore research <ArrowRight size={16} /></Link>
-              <Link to={PROJECT_SIGNUP_HREF} className="eylo-scene-cta inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[#8eadcc] bg-white/85 px-8 py-3 text-sm font-semibold text-[#193e68] hover:bg-white sm:w-auto">Create your workspace <ArrowRight size={16} /></Link>
-            </div>
-            <p className="eylo-hero-intro mt-5 text-xs leading-5 text-[#4c6984]">Explore public research sources without an account. Sign in to save evidence and manage projects.</p>
+          <div className="mx-auto mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link to="/discover" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#174672] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#245D91]">Explore research <ArrowRight size={16} /></Link>
+            <Link to={PROJECT_SIGNUP_HREF} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#B9CADB] bg-white px-6 py-3 text-sm font-semibold text-[#174672] hover:bg-[#F2F7FB]">Create workspace <ArrowRight size={16} /></Link>
           </div>
-        </section>
-      </div>
+          <p className="mt-5 text-xs leading-5 text-[#61778E]">Search public scholarly records without an account. Sign in to save evidence and manage projects.</p>
+        </div>
+      </section>
+      <section id="methodology" className="border-b border-[#E3EAF1] bg-[#F7F9FC] px-5 py-12 sm:px-8" aria-labelledby="trust-heading">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-8 max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.17em] text-[#38749B]">Built for transparent research</p>
+            <h2 id="trust-heading" className="mt-3 font-serif text-3xl text-[#173653] sm:text-4xl">Follow the evidence, not just the answer.</h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <article className="rounded-xl border border-[#DEE7F0] bg-white p-6"><BookOpen className="text-[#2D6B94]" size={23} aria-hidden="true" /><h3 className="mt-4 text-base font-semibold">Scholarly sources</h3><p className="mt-2 text-sm leading-6 text-[#5B7187]">Discover records from OpenAlex, arXiv, Crossref, Europe PMC and Semantic Scholar, with links to original sources.</p></article>
+            <article className="rounded-xl border border-[#DEE7F0] bg-white p-6"><ShieldCheck className="text-[#2D6B94]" size={23} aria-hidden="true" /><h3 className="mt-4 text-base font-semibold">Traceable research context</h3><p className="mt-2 text-sm leading-6 text-[#5B7187]">Distinguish scholarly records from AI-generated interpretation. Verify important claims at the source.</p></article>
+            <article className="rounded-xl border border-[#DEE7F0] bg-white p-6"><LibraryBig className="text-[#2D6B94]" size={23} aria-hidden="true" /><h3 className="mt-4 text-base font-semibold">From evidence to action</h3><p className="mt-2 text-sm leading-6 text-[#5B7187]">Collect relevant papers, organize project milestones and use EYRA to plan your next research step.</p></article>
+          </div>
+          <p className="mt-5 max-w-4xl text-xs leading-6 text-[#657A90]">EYLO supports research judgment; it does not independently validate scientific findings. AI-generated summaries and suggestions require human verification.</p>
+        </div>
+      </section>
 
       <section id="how-it-works" aria-labelledby="how-title" className="border-y border-[#e3edf4] bg-white px-5 py-16 sm:px-8">
         <div className="mx-auto max-w-6xl">
