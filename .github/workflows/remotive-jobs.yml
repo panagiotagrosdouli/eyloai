@@ -1,6 +1,7 @@
 name: Refresh free global remote jobs
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '17 5 * * *'
 
