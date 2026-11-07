@@ -3,10 +3,10 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, Copy, ExternalLink, Loader2, Mail, Search, Users } from 'lucide-react';
 import { searchOpenAlexAuthors, searchResearchPeopleByPublications } from '@/lib/eyra-api';
 import BrandLogo from '@/components/brand/BrandLogo';
+import { isValidEmailAddress, parseResearchEmailDraft } from '@/lib/research-email';
 
 const examples = ['Robotics and machine learning', 'Public health', 'Climate adaptation'];
 const OUTREACH_KEY = 'eylo-outreach-drafts-v1';
-const EMAIL_PATTERN = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
 const readOutreach = () => {
   try { const stored = JSON.parse(window.localStorage.getItem(OUTREACH_KEY) || '[]'); return Array.isArray(stored) ? stored.slice(0, 50) : []; }
   catch { return []; }
@@ -93,7 +93,7 @@ Best regards,
     const email = institutionalEmail.trim().toLowerCase();
     const key = selected.name + '|' + topic;
     const entry = {
-      key, name: selected.name, topic, email: EMAIL_PATTERN.test(email) ? email : '',
+      key, name: selected.name, topic, email: isValidEmailAddress(email) ? email : '',
       draft: selected.draft, status, updatedAt: new Date().toISOString(),
     };
     const updated = [entry, ...outreachRecords.filter(item => item.key !== key)].slice(0, 50);
@@ -103,13 +103,11 @@ Best regards,
   };
 
   const openEmailDraft = () => {
-    if (!selected || !EMAIL_PATTERN.test(institutionalEmail.trim())) {
+    if (!selected || !isValidEmailAddress(institutionalEmail.trim())) {
       setOutreachMessage('Enter a verified institutional email address before preparing an email.');
       return;
     }
-    const lines = selected.draft.split('\\n');
-    const title = lines[0]?.startsWith('Subject:') ? lines[0].slice(8).trim() : 'Research inquiry';
-    const body = lines[0]?.startsWith('Subject:') ? lines.slice(2).join('\\n') : selected.draft;
+    const { subject, body } = parseResearchEmailDraft(selected.draft);
     const url = 'mailto:' + encodeURIComponent(institutionalEmail.trim()) + '?subject=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(body);
     upsertOutreach('email_app_opened');
     window.location.href = url;
@@ -133,7 +131,7 @@ Best regards,
         {error && <div role="alert" className="mt-9 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">{error}</div>}
         {searched && !loading && !error && <p className="mt-9 text-sm text-[#6B7F8E]">{researchers.length ? `${researchers.length} relevant public profiles found` : "No public profiles matched this query. Try another topic or researcher name."}</p>}
         {!loading && <div className="mt-7 grid gap-4 md:grid-cols-2">{researchers.map(person=><article key={person.id || person.profile_url || person.name} className="rounded-2xl border border-[#DCE7EF] bg-white p-6 shadow-[0_12px_25px_-24px_rgba(24,54,76,.3)]"><div className="flex items-start gap-3"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#EFF6FB] text-[#2A739B]"><Users size={21}/></span><div className="min-w-0"><h2 className="text-lg font-bold tracking-tight">{person.name}</h2><p className="mt-1 text-xs leading-5 text-[#667D8D]">{person.institution || 'Institution not listed'}</p><p className="mt-2 text-xs text-[#718898]">{typeof person.works_count==='number'?person.works_count+' indexed works · ':''}Scholarly directory data</p></div></div><div className="mt-6 flex flex-wrap gap-3">{person.profile_url && <a href={person.profile_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-[#D7E5EF] px-4 py-2.5 text-xs font-semibold text-[#28698F]">View source profile <ExternalLink size={14}/></a>}<button type="button" onClick={()=>createDraft(person)} className="inline-flex items-center gap-2 rounded-xl bg-[#172A40] px-4 py-2.5 text-xs font-semibold text-white">Prepare inquiry <ArrowRight size={14}/></button></div></article>)}</div>}
-        {selected && <section aria-label="Research outreach draft" className="mt-10 max-w-4xl rounded-2xl border border-[#BCD9EB] bg-[#F5FAFD] p-6 sm:p-8"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[.14em] text-[#4E89AC]">Editable outreach draft</p><h2 className="mt-2 text-2xl font-bold">Contact {selected.name}</h2></div><button onClick={copyDraft} type="button" className="inline-flex items-center gap-2 rounded-xl bg-[#172A40] px-4 py-2.5 text-sm font-semibold text-white"><Copy size={15}/>{copied?'Copied':'Copy draft'}</button></div><textarea value={selected.draft} onChange={event=>setSelected({...selected,draft:event.target.value})} rows={13} aria-label="Edit your outreach message" className="mt-5 w-full resize-y rounded-xl border border-[#D6E5EE] bg-white p-4 text-sm leading-6 outline-none focus:ring-2 focus:ring-[#8FBAD3]"/><div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end"><div><label htmlFor="official-email" className="text-xs font-semibold text-[#3B5971]">Verified institutional email (enter manually)</label><input id="official-email" type="email" value={institutionalEmail} onChange={event=>{setInstitutionalEmail(event.target.value);setOutreachMessage('');}} placeholder="researcher@university.edu" className="mt-2 min-h-11 w-full rounded-xl border border-[#D6E5EE] bg-white px-4 text-sm outline-none focus:ring-2 focus:ring-[#8FBAD3]"/></div><button type="button" onClick={openEmailDraft} disabled={!EMAIL_PATTERN.test(institutionalEmail.trim())} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#172A40] px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"><Mail size={16}/> Open email app</button></div>
+        {selected && <section aria-label="Research outreach draft" className="mt-10 max-w-4xl rounded-2xl border border-[#BCD9EB] bg-[#F5FAFD] p-6 sm:p-8"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[.14em] text-[#4E89AC]">Editable outreach draft</p><h2 className="mt-2 text-2xl font-bold">Contact {selected.name}</h2></div><button onClick={copyDraft} type="button" className="inline-flex items-center gap-2 rounded-xl bg-[#172A40] px-4 py-2.5 text-sm font-semibold text-white"><Copy size={15}/>{copied?'Copied':'Copy draft'}</button></div><textarea value={selected.draft} onChange={event=>setSelected({...selected,draft:event.target.value})} rows={13} aria-label="Edit your outreach message" className="mt-5 w-full resize-y rounded-xl border border-[#D6E5EE] bg-white p-4 text-sm leading-6 outline-none focus:ring-2 focus:ring-[#8FBAD3]"/><div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end"><div><label htmlFor="official-email" className="text-xs font-semibold text-[#3B5971]">Verified institutional email (enter manually)</label><input id="official-email" type="email" value={institutionalEmail} onChange={event=>{setInstitutionalEmail(event.target.value);setOutreachMessage('');}} placeholder="researcher@university.edu" className="mt-2 min-h-11 w-full rounded-xl border border-[#D6E5EE] bg-white px-4 text-sm outline-none focus:ring-2 focus:ring-[#8FBAD3]"/></div><button type="button" onClick={openEmailDraft} disabled={!isValidEmailAddress(institutionalEmail.trim())} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#172A40] px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"><Mail size={16}/> Open email app</button></div>
         <button type="button" onClick={()=>upsertOutreach('draft')} className="mt-3 rounded-xl border border-[#C9DCE8] bg-white px-4 py-2.5 text-xs font-semibold text-[#285E83]">Save draft on this device</button>
         {outreachMessage && <p role="status" className="mt-3 text-xs font-medium text-[#326B87]">{outreachMessage}</p>}
         <p className="mt-3 text-xs leading-6 text-[#6E8494]">Only enter an address you independently verified on an official university website. Opening your email app does not send the message. A meeting is confirmed only when the researcher agrees.</p></section>}
