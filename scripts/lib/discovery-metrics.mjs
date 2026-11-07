@@ -45,7 +45,13 @@ export function evaluateQuery({ results, judgments, k = 10 }) {
   const missing = top.map(canonicalRecordId).filter(id => !map.has(id));
   // Never turn missing labels into zero-relevance labels: that biases metrics.
   if (missing.length) throw new Error(`Unjudged top-${k} records: ${missing.join(', ')}`);
-  const grades = top.map(row => map.get(canonicalRecordId(row)));
+  const credited = new Set();
+  const grades = top.map(row => {
+    const id = canonicalRecordId(row);
+    if (credited.has(id)) return 0; // Duplicate occupies a rank but earns no extra relevance credit.
+    credited.add(id);
+    return map.get(id);
+  });
   const idealGrades = judgments.map(row => Number(row.grade));
   const sources = new Set(top.map(row => row.source_index).filter(Boolean));
   return {
