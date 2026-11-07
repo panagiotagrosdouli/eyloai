@@ -204,9 +204,32 @@ Kind regards,
   };
 
   const saveResearcher = async (r) => {
+    const openalexId = r.openalex_id || r.id;
+    const projectId = searchParams.get('project_id');
     try {
+      const project = projectId ? await base44.entities.Project.get(projectId) : null;
+      let existing = null;
+      try {
+        const matches = await base44.entities.SavedResearcher.filter({ openalex_id: openalexId }, '-created_date', 1);
+        existing = Array.isArray(matches) ? matches.find(item => item.openalex_id === openalexId) || matches[0] : null;
+      } catch {
+        // Continue with a new library record if the duplicate lookup is unavailable.
+      }
+      if (existing) {
+        if (project && existing.project_id && existing.project_id !== project.id) {
+          toast({ title: 'Already linked to another project', description: 'The researcher was left in their current project.' });
+          return;
+        }
+        if (project && !existing.project_id) {
+          await base44.entities.SavedResearcher.update(existing.id, { project_id: project.id, project_title: project.title || '' });
+          toast({ title: `Added to ${project.title || 'project'}`, description: 'Researcher saved to your Library.' });
+          return;
+        }
+        toast({ title: project ? 'Already in this project' : 'Researcher already in Library' });
+        return;
+      }
       await base44.entities.SavedResearcher.create({
-        openalex_id: r.openalex_id || r.id,
+        openalex_id: openalexId,
         source: 'OpenAlex',
         name: r.name,
         institution: r.institution,
@@ -215,8 +238,9 @@ Kind regards,
         works_count: r.works_count,
         citation_count: r.citation_count,
         profile_url: r.profile_url,
+        ...(project ? { project_id: project.id, project_title: project.title || '' } : {}),
       });
-      toast({ title: 'Researcher saved to library' });
+      toast({ title: project ? `Added to ${project.title || 'project'}` : 'Researcher saved to library' });
     } catch (error) {
       toast({ title: 'Could not save researcher', description: error?.message || 'Please try again.', variant: 'destructive' });
     }
@@ -229,6 +253,11 @@ Kind regards,
         <h1 className="eylo-page-heading">Find researchers</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Search researchers worldwide across PhD subjects using live OpenAlex records. Academic rank and PhD supervision availability are not verified.</p>
       </div>
+      {searchParams.get('project_id') && (
+        <div className="mb-5 max-w-2xl rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs leading-5 text-foreground">
+          Search in the context of <strong>{searchParams.get('project_title') || 'your project'}</strong>. Saved researchers are added to this project and your Library.
+        </div>
+      )}
 
       <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
         <p className="text-sm font-semibold">PhD supervisor candidates matched to your profile</p>
