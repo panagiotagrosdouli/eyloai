@@ -2,7 +2,7 @@ import test, { beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import preflight from '../api/account-deletion-preflight.js';
 import {
-  DELETION_OWNER_TABLES, exactPostgrestCount, deletionReviewReport,
+  DELETION_OWNER_TABLES, exactPostgrestCount, deletionReviewReport, billingLinkReview,
 } from '../src/lib/account-deletion-preflight.mjs';
 import { deletionPreflightEnabled } from '../src/lib/account-deletion-request-policy.mjs';
 
@@ -47,7 +47,15 @@ const jsonResponse = (data, status = 200) => new Response(JSON.stringify(data), 
   status, headers: { 'content-type': 'application/json' },
 });
 
-function mockStorage({ pending = true, missingTable = null, missingCount = null, user = A } = {}) {
+function mockStorage({
+  pending = true, missingTable = null, missingCount = null,
+  user = A, billingFailed = false, billingRows = [{
+    plan: 'pro',
+    subscription_status: 'active',
+    stripe_customer_id: 'cus_PRIVATE_IDENTIFIER',
+    stripe_subscription_id: 'sub_PRIVATE_IDENTIFIER',
+  }],
+} = {}) {
   const calls = [];
   const counts = Object.fromEntries(DELETION_OWNER_TABLES.map((table, i) => [table, i % 3]));
   globalThis.fetch = async (target, options = {}) => {
@@ -67,6 +75,13 @@ function mockStorage({ pending = true, missingTable = null, missingCount = null,
       assert.equal(method, 'GET');
       assert.equal(url.searchParams.get('user_id'), `eq.${user}`);
       return jsonResponse(pending ? [{ status: 'pending_review', requested_at: '2026-11-07T00:00:00Z' }] : []);
+    }
+    if (url.pathname === '/rest/v1/billing_entitlements' && method === 'GET') {
+      assert.equal(url.searchParams.get('user_id'), `eq.${user}`);
+      assert.equal(url.searchParams.get('select'), 'plan,subscription_status,stripe_customer_id,stripe_subscription_id');
+      assert.equal(url.searchParams.get('limit'), '1');
+      return billingFailed ? jsonResponse({ message: 'billing unavailable' }, 503)
+        : jsonResponse(billingRows);
     }
     const table = url.pathname.split('/').at(-1);
     assert.ok(DELETION_OWNER_TABLES.includes(table));
@@ -131,6 +146,11 @@ test("counts exactly the verified owner\'s rows, never uses attacker-supplied ID
   assert.equal(r.body.deletion_authorized, false);
   assert.equal(r.body.request_status, 'pending_review');
   assert.deepEqual(r.body.verified_user_row_counts, db.counts);
+  assert.equal(r.body.billing_review.local_paid_plan_recorded, true);
+  assert.equal(r.body.billing_review.stripe_subscription_link_recorded, true);
+  assert.equal(r.body.billing_review.requires_independent_stripe_review, true);
+  assert.equal(JSON.stringify(r.body).includes('cus_PRIVATE_IDENTIFIER'), false);
+  assert.equal(JSON.stringify(r.body).includes('sub_PRIVATE_IDENTIFIER'), false);
   assert.ok(r.body.unresolved_checks.includes('supabase_storage_objects'));
   assert.ok(r.body.unresolved_checks.includes('external_stripe_subscription_and_payment_retention'));
   assert.ok(db.calls.every(call => ['GET', 'HEAD'].includes(call.method)));
@@ -173,11 +193,54 @@ test('exact counts reject unknown and unsafe PostgREST headers', () => {
 
 test('a complete inventory NEVER claims erasure is approved', () => {
   const counts = Object.fromEntries(DELETION_OWNER_TABLES.map(key => [key, 0]));
-  const result = deletionReviewReport(counts, 'pending_review');
+  const bill = billingLinkReview([]);
+  const result = deletionReviewReport(counts, 'pending_review', bill);
   assert.equal(result.deletion_authorized, false);
   assert.equal(result.account_deleted, false);
   assert.equal(result.unresolved_checks.length >= 5, true);
   const truncated = { ...counts };
   delete truncated.institution_memberships;
   assert.throws(() => deletionReviewReport(truncated, 'pending_review'), /Incomplete/);
+});
+
+test('local missing billing record still forces independent Stripe review', async () => {
+  mockStorage({ billingRows: [] });
+  const r = response();
+  await preflight(request(), r);
+  assert.equal(r.statusCode, 200);
+  assert.equal(r.body.billing_review.local_record_found, false);
+  assert.equal(r.body.billing_review.requires_independent_stripe_review, true);
+  assert.match(r.body.billing_review.warning, /does not prove/);
+});
+
+test('failed or malformed local billing reads refuse the entire preflight', async () => {
+  for (const mode of [
+    { billingFailed: true },
+    { billingRows: [{ plan: 'pro', subscription_status: 'active' }, { plan: 'free', subscription_status: 'active' }] },
+    { billingRows: [{ plan: 'impossible', subscription_status: 'active' }] },
+    { billingRows: [{ plan: 'pro', subscription_status: null }] },
+  ]) {
+    const db = mockStorage(mode);
+    const r = response();
+    await preflight(request(), r);
+    assert.equal(r.statusCode, 502);
+    assert.equal(r.body.code, 'DELETION_INVENTORY_UNVERIFIED');
+    assert.equal(r.body.billing_review, undefined);
+    assert.ok(db.calls.every(c => ['GET', 'HEAD'].includes(c.method)));
+  }
+});
+
+test('billing risk summary never exposes payment IDs or authorizes deletion', () => {
+  const summary = billingLinkReview([{
+    plan: 'founder',
+    subscription_status: 'past_due',
+    stripe_customer_id: 'cus_very_sensitive',
+    stripe_subscription_id: 'sub_very_sensitive',
+  }]);
+  assert.equal(summary.local_paid_plan_recorded, true);
+  assert.equal(summary.stripe_subscription_link_recorded, true);
+  assert.equal(summary.requires_independent_stripe_review, true);
+  assert.equal(JSON.stringify(summary).includes('cus_very_sensitive'), false);
+  assert.equal(JSON.stringify(summary).includes('sub_very_sensitive'), false);
+  assert.throws(() => deletionReviewReport({}, 'pending_review', null), /Incomplete/);
 });
