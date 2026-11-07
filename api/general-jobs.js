@@ -15,7 +15,7 @@ function decodeEntities(value = '') {
     .replace(/&#39;|&apos;/gi, "'")
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
-.replace(/&#(\d+);/g, (_, number) => {
+    .replace(/&#(\d+);/g, (_, number) => {
       const codePoint = Number(number);
       return codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : ' ';
     })
