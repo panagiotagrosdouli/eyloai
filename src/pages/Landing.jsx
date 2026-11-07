@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Search, BookOpen, CheckCircle2, FolderOpen, Sparkles, CalendarCheck, Compass, ShieldCheck, LibraryBig, ExternalLink, Users, FileText } from 'lucide-react';
+import { ArrowRight, Search, BookOpen, CheckCircle2, FolderOpen, Sparkles, CalendarCheck, ShieldCheck, LibraryBig, ExternalLink, Users, FileText } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
 
 const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
