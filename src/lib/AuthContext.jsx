@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { appPath, stripAppBase } from '@/lib/auth/routePaths';
 import {
   AUTH_REQUIRED_EVENT,
   isSupabaseConfigured,
@@ -142,17 +143,20 @@ export const AuthProvider = ({ children }) => {
     authChecked: state.status !== 'loading',
     logout: async (shouldRedirect = true) => {
       const result = await signOut();
-      if (result.ok && shouldRedirect) window.location.assign('/login');
+      if (result.ok && shouldRedirect) window.location.assign(appPath('/login', import.meta.env.BASE_URL || '/'));
       return result;
     },
     checkUserAuth: refreshSession,
     checkAppState: refreshSession,
     navigateToLogin: () => {
-      const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-      const loginUrl = returnTo && returnTo !== '/login'
-        ? `/login?from=${encodeURIComponent(returnTo)}`
-        : '/login';
-      window.location.assign(loginUrl);
+      const baseUrl = import.meta.env.BASE_URL || '/';
+      const currentPath = stripAppBase(window.location.pathname, baseUrl);
+      const returnTo = `${currentPath}${window.location.search}${window.location.hash}`;
+      const loginUrl = appPath('/login', baseUrl);
+      const target = returnTo && returnTo !== '/login'
+        ? `${loginUrl}?from=${encodeURIComponent(returnTo)}`
+        : loginUrl;
+      window.location.assign(target);
     },
     isSupabaseConfigured,
     mapSupabaseError,
