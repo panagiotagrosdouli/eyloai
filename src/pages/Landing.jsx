@@ -8,7 +8,7 @@ const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=
 
 export default function Landing() {
   const [question, setQuestion] = useState('');
-  const [previewTab, setPreviewTab] = useState('Papers');
+  const [previewTab, setPreviewTab] = useState('Connections');
   const [liveRecords, setLiveRecords] = useState([]);
   const [recordsLoading, setRecordsLoading] = useState(true);
   const [recordsError, setRecordsError] = useState('');
@@ -58,8 +58,8 @@ export default function Landing() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-[#D9E6EF] bg-white/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#276A99]"><span className="h-1.5 w-1.5 rounded-full bg-[#5C9C76]" />Research, connected</p>
-            <h1 id="eylo-hero-title" className="mt-6 max-w-xl font-serif text-[clamp(2.8rem,6vw,5rem)] font-normal leading-[1.02] tracking-[-0.055em] text-[#102B49]">Make research move.</h1>
-            <p className="mt-5 max-w-md text-base leading-7 text-[#526A82] sm:text-lg">Papers, people and opportunities — brought into one clear view.</p>
+            <h1 id="eylo-hero-title" className="mt-6 max-w-xl font-serif text-[clamp(2.8rem,6vw,5rem)] font-normal leading-[1.02] tracking-[-0.055em] text-[#102B49]">Find your people. Move your research forward.</h1>
+            <p className="mt-5 max-w-md text-base leading-7 text-[#526A82] sm:text-lg">Connect shared interests to papers, research gaps, PhD supervisors and roles that fit your experience.</p>
             <form role="search" onSubmit={explore} className="mt-8 flex w-full max-w-xl items-center gap-2 rounded-xl border border-[#BFCFDB] bg-white p-2 shadow-[0_12px_32px_-24px_rgba(16,43,73,0.3)] focus-within:ring-2 focus-within:ring-[#347BA8]">
               <Search className="ml-3 shrink-0 text-[#567895]" size={20} aria-hidden="true" />
               <label htmlFor="research-question" className="sr-only">Research question</label>
@@ -118,37 +118,65 @@ export default function Landing() {
       <section id="research-preview" aria-labelledby="preview-title" className="border-b border-[#DFE7EF] bg-[#F6F9FC] px-5 py-20 sm:px-8">
         <div className="mx-auto grid max-w-6xl items-start gap-10 lg:grid-cols-[0.83fr_1.17fr] lg:gap-14">
           <div className="lg:pt-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#37749B]">Research discovery</p>
-            <h2 id="preview-title" className="mt-4 max-w-md font-serif text-4xl leading-tight text-[#102B49] sm:text-5xl">A whole research path, in one place.</h2>
-            <p className="mt-5 max-w-md text-base leading-8 text-[#536B82]">Move from live scholarly records to researchers, funding opportunities, and a research plan. Follow the source at every step.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#37749B]">Your next research move</p>
+            <h2 id="preview-title" className="mt-4 max-w-md font-serif text-4xl leading-tight text-[#102B49] sm:text-5xl">One profile. More ways forward.</h2>
+            <p className="mt-5 max-w-md text-base leading-8 text-[#536B82]">Find people, ideas and opportunities that connect to your interests.</p>
             <Link to="/discover" className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#174672] px-5 py-3 text-sm font-semibold text-white hover:bg-[#245D91]">Explore scholarly research <ArrowRight size={16}/></Link>
-            <p className="mt-5 max-w-sm text-xs leading-6 text-[#697D90]">Illustrative workflow preview. Search results are retrieved live in Discover; provider coverage can vary.</p>
+            <p className="mt-5 max-w-sm text-xs leading-6 text-[#697D90]">Illustrative preview. People and gap signals are suggestions to investigate; verify research in the original sources.</p>
           </div>
           <div className="overflow-hidden rounded-2xl border border-[#D9E4EF] bg-white shadow-[0_20px_70px_-48px_rgba(16,43,73,0.35)]">
             <div className="border-b border-[#E3EAF2] px-6 py-5 sm:px-7">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6D8498]">EYLO research workspace</p>
-              <h3 className="mt-2 text-xl font-semibold text-[#173A5D]">Research, people, opportunity</h3>
+              <h3 className="mt-2 text-xl font-semibold text-[#173A5D]">Your research map</h3>
               <div role="tablist" aria-label="Explore EYLO workflows" className="mt-5 flex gap-1 border-b border-[#E4EBF1]">
-                {['Papers', 'People', 'Funding', 'Career'].map(tab => <button key={tab} id={'preview-tab-' + tab.toLowerCase()} type="button" role="tab" aria-controls="preview-tab-panel" aria-selected={previewTab === tab} onClick={()=>setPreviewTab(tab)} className={'min-h-11 border-b-2 px-3 py-2 text-sm font-medium transition ' + (previewTab === tab ? 'border-[#205986] text-[#153C62]' : 'border-transparent text-[#647A90] hover:text-[#153C62]')}>{tab}</button>)}
+                {['Connections', 'Research gaps', 'Papers', 'PhD & jobs', 'Calls'].map(tab => <button key={tab} id={'preview-tab-' + tab.toLowerCase()} type="button" role="tab" aria-controls="preview-tab-panel" aria-selected={previewTab === tab} onClick={()=>setPreviewTab(tab)} className={'min-h-11 border-b-2 px-3 py-2 text-sm font-medium transition ' + (previewTab === tab ? 'border-[#205986] text-[#153C62]' : 'border-transparent text-[#647A90] hover:text-[#153C62]')}>{tab}</button>)}
               </div>
             </div>
             <div id="preview-tab-panel" role="tabpanel" aria-labelledby={'preview-tab-' + previewTab.toLowerCase()} className="space-y-4 p-5 sm:p-7">
-              {previewTab === 'Papers' && <>
-                <article className="rounded-xl border border-[#DCE6EF] bg-[#FBFCFE] p-5">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#356E98]">Discover scholarly literature</p>
-                  <h4 className="mt-3 text-base font-semibold leading-7 text-[#173452]">Find publications relevant to your research question</h4>
-                  <p className="mt-2 text-sm leading-6 text-[#61788E]">Review titles, authors, publication dates and source links before deciding what evidence is useful.</p>
-                  <Link to="/discover" className="mt-4 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Search the literature <ArrowRight size={15}/></Link>
-                </article>
-                <article className="rounded-xl border border-[#DCE6EF] bg-white p-5">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#356E98]">Evaluate research evidence</p>
-                  <h4 className="mt-3 text-base font-semibold text-[#173452]">Follow sources. Assess relevance. Keep context.</h4>
-                  <p className="mt-2 text-sm leading-6 text-[#61788E]">Examine original records and distinguish reported findings from AI-assisted interpretations.</p>
-                </article>
-              </>}
-              {previewTab === 'People' && <div className="rounded-xl border border-[#DCE6EF] bg-[#FBFCFE] p-6"><Users size={22} className="text-[#28658D]" aria-hidden="true"/><h4 className="mt-4 text-base font-semibold text-[#173452]">Find the people behind the literature</h4><p className="mt-2 text-sm leading-6 text-[#61788E]">Explore author records and follow researchers connected to your topic. Check names, affiliations and expertise against the original sources.</p><Link to="/discover" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Search papers and researchers <ArrowRight size={15}/></Link></div>}
-              {previewTab === 'Funding' && <div className="rounded-xl border border-[#DCE6EF] bg-[#FBFCFE] p-6"><FolderOpen size={22} className="text-[#28658D]" aria-hidden="true"/><h4 className="mt-4 text-base font-semibold text-[#173452]">Find funding for your next research step</h4><p className="mt-2 text-sm leading-6 text-[#61788E]">Find grants, scholarships, competitions and accelerators from official sources. Check deadlines and eligibility in the original notice.</p><Link to="/login?from=%2Fopportunities" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Explore funding <ArrowRight size={15}/></Link></div>}
-              {previewTab === 'Career' && <div className="rounded-xl border border-[#DCE6EF] bg-[#FBFCFE] p-6"><FileText size={22} className="text-[#28658D]" aria-hidden="true"/><h4 className="mt-4 text-base font-semibold text-[#173452]">Turn your experience into research matches</h4><p className="mt-2 text-sm leading-6 text-[#61788E]">Use your profile and CV to explore researchers, supervisors and labs related to your expertise. CV text is analyzed in your browser; matches are suggestions to review, not job offers.</p><div className="mt-4 flex flex-col items-start gap-3"><Link to="/login?from=%2Fresearchers" className="inline-flex items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Explore profile matching <ArrowRight size={15}/></Link><span className="rounded-lg border border-[#DCE6EF] bg-white px-3 py-2 text-[11px] text-[#61788E]">CV stays in your browser · matches are suggestions</span></div></div>}
+              {previewTab === 'Connections' && <div className="space-y-3">
+                <div className="flex items-center justify-between"><p className="text-xs font-semibold text-[#173A5D]">Researchers with shared interests</p><span className="rounded-full bg-[#EDF7F0] px-2.5 py-1 text-[10px] font-medium text-[#3D7654]">3 topic overlaps</span></div>
+                {[
+                  {initials:'AM',name:'A. Morgan',field:'Climate adaptation · coastal cities',shared:'Shared: resilience planning'},
+                  {initials:'JL',name:'J. Lee',field:'Public health · heat exposure',shared:'Shared: community data'},
+                  {initials:'SK',name:'S. Khan',field:'Environmental policy · equity',shared:'Shared: local adaptation'}
+                ].map(person=><article key={person.initials} className="flex items-center gap-3 rounded-xl border border-[#E2EAF1] bg-[#FBFCFE] p-3.5"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#E7F0F7] text-xs font-semibold text-[#1D5986]">{person.initials}</div><div className="min-w-0 flex-1"><h4 className="text-sm font-semibold text-[#173452]">{person.name}</h4><p className="truncate text-xs text-[#61788E]">{person.field}</p><p className="mt-1 text-[10px] font-medium text-[#37749B]">{person.shared}</p></div><ArrowRight size={15} className="shrink-0 text-[#7890A4]" aria-hidden="true"/></article>)}
+                <Link to="/login?from=%2Fresearchers" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Explore researcher connections <ArrowRight size={15}/></Link>
+              </div>}
+              {previewTab === 'Research gaps' && <div className="space-y-3">
+                <p className="text-xs font-semibold text-[#173A5D]">Questions the literature may leave open</p>
+                {[
+                  {label:'Understudied populations',detail:'Whose experience is missing?'},
+                  {label:'Methods rarely compared',detail:'Which approach works best, and where?'},
+                  {label:'Evidence gaps by place',detail:'Do findings hold across regions?'}
+                ].map((gap,index)=><article key={gap.label} className="flex items-center gap-3 rounded-xl border border-[#E2EAF1] bg-[#FBFCFE] p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#EDF4F8] text-xs font-semibold text-[#356E98]">0{index+1}</span><div><h4 className="text-sm font-semibold text-[#173452]">{gap.label}</h4><p className="mt-0.5 text-xs text-[#61788E]">{gap.detail}</p></div></article>)}
+                <p className="rounded-lg bg-[#F4F8FB] px-3 py-2 text-[10px] text-[#61788E]">Exploratory signals to verify in the original studies.</p>
+                <Link to="/labs/research-landscape" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Map a research landscape <ArrowRight size={15}/></Link>
+              </div>}
+              {previewTab === 'Papers' && <div className="space-y-3">
+                <p className="text-xs font-semibold text-[#173A5D]">Follow a question through its evidence</p>
+                {[
+                  {label:'Read the work',detail:'Relevant papers with source links'},
+                  {label:'See the connections',detail:'Authors, topics and related studies'},
+                  {label:'Keep the context',detail:'Save evidence to a research project'}
+                ].map((item,index)=><article key={item.label} className="flex items-center gap-3 rounded-xl border border-[#E2EAF1] bg-[#FBFCFE] p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#EDF4F8] text-xs font-semibold text-[#356E98]">0{index+1}</span><div><h4 className="text-sm font-semibold text-[#173452]">{item.label}</h4><p className="mt-0.5 text-xs text-[#61788E]">{item.detail}</p></div></article>)}
+                <Link to="/discover" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Explore scholarly research <ArrowRight size={15}/></Link>
+              </div>}
+              {previewTab === 'PhD & jobs' && <div className="space-y-3">
+                <div className="flex items-center justify-between"><p className="text-xs font-semibold text-[#173A5D]">Opportunities shaped around your profile</p><FileText size={18} className="text-[#28658D]" aria-hidden="true"/></div>
+                <article className="rounded-xl border border-[#E2EAF1] bg-[#FBFCFE] p-4"><div className="flex items-center justify-between gap-3"><h4 className="text-sm font-semibold text-[#173452]">PhD supervisors & research labs</h4><span className="rounded-full bg-[#EAF2F8] px-2 py-1 text-[10px] text-[#356E98]">Interest match</span></div><p className="mt-1 text-xs text-[#61788E]">Find researchers working on the questions you care about.</p></article>
+                <article className="rounded-xl border border-[#E2EAF1] bg-[#FBFCFE] p-4"><div className="flex items-center justify-between gap-3"><h4 className="text-sm font-semibold text-[#173452]">Research roles & fellowships</h4><span className="rounded-full bg-[#EDF7F0] px-2 py-1 text-[10px] text-[#3D7654]">CV match</span></div><p className="mt-1 text-xs text-[#61788E]">Surface roles connected to your skills and experience.</p></article>
+                <p className="text-[10px] text-[#71869A]">Add your CV privately; review every suggested match.</p>
+                <Link to="/labs/professional-path" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Explore your next step <ArrowRight size={15}/></Link>
+              </div>}
+              {previewTab === 'Calls' && <div className="space-y-3">
+                <p className="text-xs font-semibold text-[#173A5D]">Calls that can move your idea forward</p>
+                {[
+                  {type:'RESEARCH CALL',title:'Collaborative research funding',detail:'Eligibility · scope · deadline'},
+                  {type:'FELLOWSHIP',title:'Early-career researcher support',detail:'Fit your project to the call'},
+                  {type:'OPEN CALL',title:'Research challenges & partnerships',detail:'Find collaborators and next steps'}
+                ].map(item=><article key={item.title} className="rounded-xl border border-[#E2EAF1] bg-[#FBFCFE] p-4"><p className="text-[9px] font-semibold tracking-[0.14em] text-[#477B9D]">{item.type}</p><h4 className="mt-1 text-sm font-semibold text-[#173452]">{item.title}</h4><p className="mt-1 text-xs text-[#61788E]">{item.detail}</p></article>)}
+                <Link to="/login?from=%2Fopportunities" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Explore calls & funding <ArrowRight size={15}/></Link>
+              </div>}
             </div>
           </div>
         </div>
@@ -158,14 +186,14 @@ export default function Landing() {
         <div className="mx-auto max-w-6xl">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#37749B]">How EYLO works</p>
           <h2 id="how-title" className="mt-4 font-serif text-4xl text-[#102B49] sm:text-5xl">Question. Evidence. People. Progress.</h2>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-[#587187]">A focused research journey, from asking a question to organizing the findings you can examine and build upon.</p>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-[#587187]">One path from your research question to the people and opportunities that can move it forward.</p>
           <ol className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             {[
-              {icon: Search, title:'Ask', text:'Start with a research question, topic or methodological challenge.'},
-              {icon: BookOpen, title:'Discover', text:'Explore scholarly literature, source records and relevant research context.'},
-              {icon: Users, title:'Connect', text:'Find researchers and labs through the work they publish.'},
-              {icon: FolderOpen, title:'Build', text:'Save evidence, organize a project and plan milestones.'},
-              {icon: Sparkles, title:'Advance', text:'Explore verified funding and turn findings into a practical next action.'}
+              {icon: Search, title:'Explore', text:'Start with an interest, question or CV.'},
+              {icon: BookOpen, title:'Spot gaps', text:'See what is known and what may be missing.'},
+              {icon: Users, title:'Connect', text:'Meet researchers with overlapping interests.'},
+              {icon: FileText, title:'Find your fit', text:'Explore PhDs, supervisors and research roles.'},
+              {icon: Sparkles, title:'Take the next step', text:'Find calls, funding and collaborators.'}
             ].map(({icon:Icon,title,text},index)=><li key={title} className="rounded-xl border border-[#DDE7F0] bg-white p-7"><div className="flex items-center justify-between"><Icon size={24} className="text-[#2C719C]" aria-hidden="true"/><span className="text-xs font-semibold text-[#8A9BAC]">0{index+1}</span></div><h3 className="mt-6 text-xl font-semibold text-[#173452]">{title}</h3><p className="mt-3 text-sm leading-7 text-[#61778B]">{text}</p></li>)}
           </ol>
         </div>
@@ -217,7 +245,7 @@ export default function Landing() {
         <div className="mx-auto max-w-4xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#37749B]">About EYLO</p>
           <h2 id="about-title" className="mt-4 font-serif text-4xl text-[#102B49] sm:text-5xl">Research begins with a question. Progress needs evidence.</h2>
-          <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-[#587187]">EYLO is an independently developed research software platform designed to support scientific discovery, source-aware analysis and structured research workflows. Our goal is to help researchers move from questions to evidence to meaningful projects.</p>
+          <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-[#587187]">EYLO connects your interests to research, people and opportunities — so the next step is easier to find.</p>
           <div className="mt-7 flex flex-wrap justify-center gap-4 text-sm">
             <Link to="/discover" className="inline-flex items-center gap-2 font-semibold text-[#1B5B8A] hover:underline">Explore EYLO <ArrowRight size={16}/></Link>
             <Link to="/contact" className="inline-flex items-center gap-2 font-semibold text-[#1B5B8A] hover:underline">Contact <ArrowRight size={16}/></Link>
