@@ -1,13 +1,22 @@
 import { analyticsEnabled, validWorkspaceAnalyticsPayload } from '../src/lib/analytics-readiness.mjs';
 
-const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
-const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_QOF_tW8ve4IFUsflluOhww_aRubMF0V';
-
-function supabasePublicKey() {
-  return process.env.SUPABASE_PUBLISHABLE_KEY
+function configuredSupabaseAnalytics() {
+  const url = String(process.env.VITE_SUPABASE_URL || '').trim();
+  const key = String(
+    process.env.SUPABASE_PUBLISHABLE_KEY
     || process.env.SUPABASE_ANON_KEY
     || process.env.VITE_SUPABASE_ANON_KEY
-    || DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+    || '',
+  ).trim();
+
+  if (!url || !key) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' || !parsed.hostname.endsWith('.supabase.co')) return null;
+  } catch {
+    return null;
+  }
+  return { url, key };
 }
 
 export default async function handler(request, response) {
@@ -31,12 +40,19 @@ export default async function handler(request, response) {
     });
   }
 
+  const supabase = configuredSupabaseAnalytics();
+  if (!supabase) {
+    return response.status(503).json({
+      error: 'Workspace analytics is awaiting verified database setup.',
+      code: 'ANALYTICS_NOT_CONFIGURED',
+    });
+  }
+
   try {
-    const url = process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-    const upstream = await fetch(`${url}/rest/v1/rpc/get_workspace_analytics`, {
+    const upstream = await fetch(`${supabase.url}/rest/v1/rpc/get_workspace_analytics`, {
       method: 'POST',
       headers: {
-        apikey: supabasePublicKey(),
+        apikey: supabase.key,
         authorization,
         'content-type': 'application/json',
       },
