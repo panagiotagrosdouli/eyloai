@@ -146,8 +146,9 @@ export default async function handler(request, response) {
   const items = results.flatMap((result, index) => result.status !== 'fulfilled'
     ? []
     : index === FEEDS.length ? result.value.items : result.value);
-  const remotiveSnapshotAt = results[FEEDS.length]?.status === 'fulfilled'
-    ? results[FEEDS.length].value.retrieved_at
+  const remoteSnapshotResult = results[FEEDS.length];
+  const remotiveSnapshotAt = remoteSnapshotResult?.status === 'fulfilled'
+    ? remoteSnapshotResult.value.retrieved_at
     : null;
   const failed = results.flatMap((result, index) => result.status === 'rejected' ? [sourceNames[index]] : []);
   if (!items.length) {
