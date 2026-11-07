@@ -7,7 +7,7 @@ import {
 } from '../src/lib/account-deletion-request-policy.mjs';
 
 const keys = [
-  'EYLO_DELETION_REQUESTS_ENABLED', 'SUPABASE_SECRET_KEY',
+  'EYLO_DELETION_REQUESTS_ENABLED', 'EYLO_DELETION_PREFLIGHT_ENABLED', 'SUPABASE_SECRET_KEY',
   'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_PUBLISHABLE_KEY',
   'SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY', 'VITE_SUPABASE_URL',
 ];
@@ -133,12 +133,14 @@ test('a verified owner can submit once; repeats return the same pending request'
   await handler(request('GET'), initial);
   assert.equal(initial.statusCode, 200);
   assert.equal(initial.body.request_status, 'not_requested');
+  assert.equal(initial.body.preflight_available, false);
   const first = response();
   await handler(request('POST', 'Bearer account-one', {
     confirmation: ACCOUNT_DELETION_CONFIRMATION,
   }), first);
   assert.equal(first.statusCode, 202);
   assert.equal(first.body.request_status, 'pending_review');
+  assert.equal(first.body.preflight_available, false);
   assert.match(first.body.notice, /NOT been deleted/);
   assert.match(first.body.notice, /Stripe subscription remains unchanged/);
   const second = response();
@@ -199,4 +201,15 @@ test('migration grants server-only access and contains no irreversible delete ac
   const endpoint = readFileSync(new URL('../api/account-deletion-request.js', import.meta.url), 'utf8');
   assert.doesNotMatch(endpoint, /auth\/v1\/admin\/users/);
   assert.doesNotMatch(endpoint, /stripe\.com/);
+});
+
+test('preflight availability requires the independent server-only switch', async () => {
+  mockDatabase();
+  process.env.EYLO_DELETION_PREFLIGHT_ENABLED = '1';
+  const r = response();
+  await handler(request('GET'), r);
+  assert.equal(r.statusCode, 200);
+  assert.equal(r.body.preflight_available, true);
+  delete process.env.EYLO_DELETION_REQUESTS_ENABLED;
+  assert.equal(deletionIntakeEnabled(), false);
 });
