@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import handler from '../api/account-deletion-request.js';
 import {
   deletionIntakeEnabled, validDeletionRequestBody, ACCOUNT_DELETION_CONFIRMATION,
+  deletionSubmissionAction,
 } from '../src/lib/account-deletion-request-policy.mjs';
 
 const keys = [
@@ -212,4 +213,64 @@ test('preflight availability requires the independent server-only switch', async
   assert.equal(r.body.preflight_available, true);
   delete process.env.EYLO_DELETION_REQUESTS_ENABLED;
   assert.equal(deletionIntakeEnabled(), false);
+});
+
+test('terminal requests cannot masquerade as newly accepted intake', async () => {
+  const db = mockDatabase();
+  for (const status of ['completed', 'declined']) {
+    db.rows.set(users['Bearer account-one'], {
+      status, requested_at: '2026-11-07T00:00:00Z',
+    });
+    const requestStatus = response();
+    await handler(request('GET'), requestStatus);
+    assert.equal(requestStatus.statusCode, 200);
+    assert.equal(requestStatus.body.request_status, status, 'status remains visible for manual follow-up');
+    const newSubmission = response();
+    await handler(request('POST', 'Bearer account-one', {
+      confirmation: ACCOUNT_DELETION_CONFIRMATION,
+    }), newSubmission);
+    assert.equal(newSubmission.statusCode, 409);
+    assert.equal(newSubmission.body.code, 'DELETION_REQUEST_CLOSED');
+    assert.equal(newSubmission.body.request_status, undefined);
+    assert.match(newSubmission.body.notice, /NOT been deleted/);
+  }
+  assert.equal(db.calls.filter(call => call.method === 'POST').length, 0);
+  assert.ok(db.calls.every(call => !['DELETE', 'PATCH'].includes(call.method)));
+});
+
+test('active review statuses remain safely idempotent and require no new writes', async () => {
+  const db = mockDatabase();
+  for (const status of ['pending_review', 'in_review', 'blocked_billing']) {
+    db.rows.set(users['Bearer account-one'], {
+      status, requested_at: '2026-11-07T00:00:00Z',
+    });
+    const res = response();
+    await handler(request('POST', 'Bearer account-one', {
+      confirmation: ACCOUNT_DELETION_CONFIRMATION,
+    }), res);
+    assert.equal(res.statusCode, 202);
+    assert.equal(res.body.request_status, status);
+  }
+  assert.equal(db.calls.filter(call => call.method === 'POST').length, 0);
+});
+
+test('only known request states are accepted in the lifecycle classifier', () => {
+  assert.equal(deletionSubmissionAction(null), 'create');
+  for (const state of ['pending_review', 'in_review', 'blocked_billing'])
+    assert.equal(deletionSubmissionAction(state), 'existing');
+  for (const state of ['completed', 'declined'])
+    assert.equal(deletionSubmissionAction(state), 'closed');
+  for (const unexpected of [undefined, '', 'deleted', 'in-progress', 0])
+    assert.throws(() => deletionSubmissionAction(unexpected), /Unknown/);
+});
+
+test('revoked or expired Bearer credentials cannot query or create an owner request', async () => {
+  const db = mockDatabase();
+  const res = response();
+  await handler(request('POST', 'Bearer expired-token', {
+    confirmation: ACCOUNT_DELETION_CONFIRMATION,
+  }), res);
+  assert.equal(res.statusCode, 401);
+  assert.equal(res.body.request_status, undefined);
+  assert.equal(db.calls.filter(call => call.path.startsWith('/rest/v1/')).length, 0);
 });
