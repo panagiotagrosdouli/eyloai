@@ -1,6 +1,6 @@
 import { deletionPreflightEnabled, EYLO_SUPABASE_PROJECT } from '../src/lib/account-deletion-request-policy.mjs';
 import {
-  DELETION_OWNER_TABLES, exactPostgrestCount, deletionReviewReport,
+  DELETION_OWNER_TABLES, exactPostgrestCount, deletionReviewReport, billingLinkReview,
 } from '../src/lib/account-deletion-preflight.mjs';
 import {
   verifiedUser, existingRequest, serverHeaders,
@@ -22,6 +22,25 @@ async function countOwnedRecords(table, userId) {
   });
   // Do not accept HEAD responses with missing/unknown totals or errors.
   return exactPostgrestCount(response);
+}
+
+async function readOwnedBillingLinks(userId) {
+  // Server-only, owner-scoped read. No raw Stripe identifiers are ever
+  // returned to the browser or persisted by this request.
+  const query = new URLSearchParams({
+    user_id: `eq.${userId}`,
+    select: 'plan,subscription_status,stripe_customer_id,stripe_subscription_id',
+    limit: '1',
+  });
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/billing_entitlements?${query}`, {
+    method: 'GET',
+    headers: serverHeaders(),
+    cache: 'no-store',
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) throw new Error('Owner billing links could not be verified.');
+  const rows = await response.json();
+  return billingLinkReview(rows);
 }
 
 export default async function handler(request, response) {
@@ -61,7 +80,8 @@ export default async function handler(request, response) {
       const numbers = await Promise.all(batch.map(table => countOwnedRecords(table, userId)));
       for (let j = 0; j < batch.length; j++) counts[batch[j]] = numbers[j];
     }
-    return response.status(200).json(deletionReviewReport(counts, entry.status));
+    const billingReview = await readOwnedBillingLinks(userId);
+    return response.status(200).json(deletionReviewReport(counts, entry.status, billingReview));
   } catch (error) {
     console.error('Owner deletion preflight failed', {
       type: error?.name === 'TimeoutError' ? 'upstream_timeout' : 'unverified_schema_or_count',
