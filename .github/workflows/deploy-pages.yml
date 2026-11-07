@@ -1,0 +1,84 @@
+name: Deploy EYLO frontend to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: eylo-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build frontend with GitHub Pages base path
+        env:
+          EYLO_GITHUB_PAGES: 'true'
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: npm run build
+      - name: Prepare SPA fallback and identifiable release
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          cp dist/index.html dist/404.html
+          node --input-type=module -e "
+            import fs from 'node:fs';
+            const p = 'dist/release.json';
+            const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+            data.git_commit = process.env.GITHUB_SHA;
+            data.hosting = 'github-pages-frontend';
+            fs.writeFileSync(p, JSON.stringify(data, null, 2) + '\\n');
+          "
+          node -e "
+            const fs = require('node:fs');
+            const html = fs.readFileSync('dist/index.html', 'utf8');
+            if (!html.includes('/eyloai/assets/')) throw new Error('Vite assets must use /eyloai/ base');
+            if (html.includes('src=\"/src/main.jsx\"')) throw new Error('Source entrypoint found: not a built bundle');
+          "
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Verify deployed frontend release
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          node --input-type=module -e "
+            const origin = 'https://panagiotagrosdouli.github.io/eyloai/';
+            const response = await fetch(new URL('release.json', origin));
+            if (!response.ok) throw new Error('GitHub Pages release manifest: HTTP ' + response.status);
+            const release = await response.json();
+            if (release.git_commit !== process.env.GITHUB_SHA) {
+              throw new Error('GitHub Pages is serving a stale release');
+            }
+            const page = await fetch(origin);
+            if (!page.ok) throw new Error('GitHub Pages root: HTTP ' + page.status);
+            const html = await page.text();
+            if (!html.includes('/eyloai/assets/')) throw new Error('Missing deployed Vite assets');
+            console.log('GitHub Pages frontend deployment verified:', process.env.GITHUB_SHA);
+          "
