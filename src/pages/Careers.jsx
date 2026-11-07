@@ -132,7 +132,7 @@ export default function Careers() {
         <div className="space-y-4">
           {sourceNotice && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{sourceNotice}</div>}
           {error && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{error}</div>}
-          {loading && <div role="status" className="flex items-center gap-3 rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground"><Loader2 size={16} className="animate-spin" />Searching EURAXESS and loading Europe/UK listings…</div>}
+          {loading && <div role="status" className="flex items-center gap-3 rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground"><Loader2 size={16} className="animate-spin" />Searching EURAXESS and loading Europe/UK and remote listings…</div>}
           {!loading && !error && items.length > 0 && <p className="text-xs text-muted-foreground">{rankedItems.length} matching research, Europe/UK and remote roles · {retrievedAt ? 'updated ' + new Date(retrievedAt).toLocaleString() : 'current source records'} · sorted by CV overlap</p>}
           {!loading && rankedItems.map(item => (
             <article key={item.id} className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
@@ -159,7 +159,7 @@ export default function Careers() {
 
         <aside className="h-fit rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary"><FileText size={18} /></span><div><h2 className="text-sm font-semibold text-foreground">Match to your CV</h2><p className="text-[11px] text-muted-foreground">Private, browser-side matching</p></div></div>
-          <p className="mt-3 text-xs leading-5 text-muted-foreground">Your CV stays in this browser. EYLO compares its terms with listings downloaded from EURAXESS and Arbeitnow. It never decides eligibility or hiring fit.</p>
+          <p className="mt-3 text-xs leading-5 text-muted-foreground">Your CV stays in this browser. EYLO compares its terms with listings downloaded from EURAXESS, Arbeitnow and Remotive. It never decides eligibility or hiring fit.</p>
           <label className="mt-4 flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-muted/40"><Upload size={14} />{cvName || 'Choose your CV'}<input className="sr-only" type="file" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown" onChange={event => handleCvFile(event.target.files?.[0])} /></label>
           {cvError && <p role="alert" className="mt-2 text-xs text-destructive">{cvError}</p>}
           {cvText && <div className="mt-3 rounded-lg border border-border bg-muted/20 p-3"><p className="text-[10px] text-muted-foreground">Ready to match · {Math.min(cvText.length, 120000).toLocaleString()} characters</p><button type="button" onClick={startCvMatch} disabled={loading} className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50">Match roles to my CV <ArrowRight size={14} /></button></div>}
