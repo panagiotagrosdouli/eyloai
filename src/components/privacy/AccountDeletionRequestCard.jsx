@@ -68,7 +68,10 @@ export default function AccountDeletionRequestCard() {
       setPhase('ready');
     } catch (error) {
       setMessage(error.message);
-      setPhase(error.status === 503 ? 'unavailable' : 'ready');
+      // A terminal request cannot be resubmitted. Do not leave an enabled
+      // button suggesting that a rejected request could be accepted by retry.
+      setPhase(error.status === 503 ? 'unavailable'
+        : error.status === 409 || error.status === 401 ? 'error' : 'ready');
     }
   };
 
