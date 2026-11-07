@@ -8,10 +8,10 @@ import { useCapabilities } from '@/lib/capabilities';
 import { useAuth } from '@/lib/AuthContext';
 
 const START_POINTS = [
-  { title: 'Explore the literature', description: 'Search real academic indexes and inspect original papers.', href: '/discover', icon: BookOpen },
-  { title: 'Find researchers', description: 'Discover researchers and inspect their scholarly profiles.', href: '/researchers', icon: Users },
-  { title: 'Explore funding', description: 'Review opportunities with links to their official sources.', href: '/opportunities', icon: Zap },
-  { title: 'Capture an idea', description: 'Keep an early research direction in your workspace.', href: '/ideas', icon: Lightbulb },
+  { title: 'Literature', description: 'Find papers across academic indexes.', href: '/discover', icon: BookOpen },
+  { title: 'People', description: 'Find researchers through their published work.', href: '/researchers', icon: Users },
+  { title: 'Funding', description: 'Explore current opportunities at the source.', href: '/opportunities', icon: Zap },
+  { title: 'Ideas', description: 'Capture a question and develop it into a project.', href: '/ideas', icon: Lightbulb },
 ];
 
 function ProjectRow({ project }) {
@@ -58,17 +58,29 @@ export default function EyraHome({ onSearch }) {
 
   return (
     <div className="min-h-[calc(100vh-4.5rem)] bg-background">
-      <div className="mx-auto w-full max-w-6xl px-5 pb-24 pt-8 sm:px-8 sm:pt-10">
-        <header className="flex flex-wrap items-start justify-between gap-5 border-b border-border/70 pb-7">
-          <div className="max-w-2xl">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.13em] text-primary">Your research workspace</p>
-            <p className="text-sm text-muted-foreground">{greeting.greeting}</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.045em] text-foreground sm:text-[2.75rem] sm:leading-[1.14]">What would you like to research?</h1>
-            <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">Start with a topic. EYLO helps you find papers, understand evidence, connect with researchers and build a project.</p>
+      <div className="mx-auto w-full max-w-6xl px-5 pb-24 pt-6 sm:px-8 sm:pt-8">
+        <header className="relative isolate overflow-hidden rounded-[2rem] border border-primary/10 bg-gradient-to-br from-primary/[0.09] via-card to-secondary/60 p-6 shadow-[0_28px_90px_-58px_rgba(73,49,118,0.35)] sm:p-9">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-28 -z-10 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <div className="max-w-2xl">
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-primary/15 bg-background/70 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">EYLO research workspace</span>
+                <span className="text-xs text-muted-foreground">{greeting.greeting}</span>
+              </div>
+              <h1 className="text-3xl font-semibold tracking-[-0.05em] text-foreground sm:text-[3.1rem] sm:leading-[1.08]">Move your research forward.</h1>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">One place to find evidence, meet the right people and turn a question into a project.</p>
+            </div>
+            <Link to="/projects" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90">
+              <Plus size={17} aria-hidden="true" /> Start a project <ArrowRight size={15} aria-hidden="true" />
+            </Link>
           </div>
-          <Link to="/projects" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-foreground shadow-sm hover:bg-secondary">
-            <Plus size={17} aria-hidden="true" /> New project
-          </Link>
+          <div className="mt-7 flex flex-wrap gap-2 border-t border-border/50 pt-5" aria-label="EYLO research workflows">
+            {['Papers', 'Researchers', 'Research roles', 'Funding'].map(label => (
+              <span key={label} className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/65 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary/70" aria-hidden="true" />{label}
+              </span>
+            ))}
+          </div>
         </header>
 
         <div className="mt-7 grid gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(17rem,0.9fr)]">
@@ -76,8 +88,8 @@ export default function EyraHome({ onSearch }) {
             <div className="mb-6 flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary"><Compass size={19} aria-hidden="true" /></span>
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Start with a question</p>
-                <h2 id="ask-heading" className="mt-1 text-xl font-semibold tracking-tight text-foreground">Search academic research</h2>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Begin with a question</p>
+                <h2 id="ask-heading" className="mt-1 text-xl font-semibold tracking-tight text-foreground">Search the literature</h2>
               </div>
             </div>
             <GuidedSearch onSearch={onSearch} defaultLevel={defaultLevel} />
