@@ -45,3 +45,11 @@ test('Static Pages discovery does not call missing same-origin server functions'
   assert.match(discovery, /!staticPagesHost/);
   assert.match(discovery, /return fetchWithTimeout\(directUrl, options\)/);
 });
+
+test('Account and recovery links preserve GitHub Pages routing base', () => {
+  for (const path of ['src/pages/Login.jsx', 'src/pages/Register.jsx', 'src/pages/ForgotPassword.jsx']) {
+    const source = read(path);
+    assert.match(source, /import\.meta\.env\.BASE_URL/);
+  }
+  assert.match(read('src/pages/Register.jsx'), /window\.location\.assign/);
+});
