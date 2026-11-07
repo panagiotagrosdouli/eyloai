@@ -1,6 +1,10 @@
 # EYLO account deletion — implementation and release plan
 
-**Status: design only; account deletion is NOT implemented or enabled.**
+**Status: final account deletion is NOT implemented or enabled.**
+A **draft, opt-in request-only intake** (not deletion) is described in
+`docs/ACCOUNT_DELETION_REQUEST_INTAKE.md`. The intake is disabled by
+default, its migration has not been deployed to the actual EYLOAI
+Supabase project, and no real request has been accepted.
 
 ## Dependencies before implementation
 
