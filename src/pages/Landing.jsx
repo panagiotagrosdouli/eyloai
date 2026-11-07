@@ -58,8 +58,8 @@ export default function Landing() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-[#D9E6EF] bg-white/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#276A99]"><span className="h-1.5 w-1.5 rounded-full bg-[#5C9C76]" />Research, connected</p>
-            <h1 id="eylo-hero-title" className="mt-6 max-w-xl font-serif text-[clamp(2.8rem,6vw,5rem)] font-normal leading-[1.02] tracking-[-0.055em] text-[#102B49]">Find your people. Move your research forward.</h1>
-            <p className="mt-5 max-w-md text-base leading-7 text-[#526A82] sm:text-lg">Connect shared interests to papers, research gaps, PhD supervisors and roles that fit your experience.</p>
+            <h1 id="eylo-hero-title" className="mt-6 max-w-xl font-serif text-[clamp(2.8rem,6vw,5rem)] font-normal leading-[1.02] tracking-[-0.055em] text-[#102B49]">Find your next research move.</h1>
+            <p className="mt-5 max-w-md text-base leading-7 text-[#526A82] sm:text-lg">Connect with researchers who share your interests. Find research gaps, PhD supervisors, funding calls and roles matched to your experience.</p>
             <form role="search" onSubmit={explore} className="mt-8 flex w-full max-w-xl items-center gap-2 rounded-xl border border-[#BFCFDB] bg-white p-2 shadow-[0_12px_32px_-24px_rgba(16,43,73,0.3)] focus-within:ring-2 focus-within:ring-[#347BA8]">
               <Search className="ml-3 shrink-0 text-[#567895]" size={20} aria-hidden="true" />
               <label htmlFor="research-question" className="sr-only">Research question</label>
