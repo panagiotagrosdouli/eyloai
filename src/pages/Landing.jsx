@@ -25,7 +25,7 @@ export default function Landing() {
 
       <header className="border-b border-[#DFE7EF] bg-white">
         <div className="mx-auto flex h-[76px] max-w-7xl items-center gap-3 px-5 sm:px-8">
-          <Link to="/" aria-label="EYLO home" className="mr-auto shrink-0"><img src="/brand/eylo-light.svg" alt="EYLO" width="180" height="54" className="h-10 w-auto max-w-[130px] object-contain sm:h-12 sm:max-w-[180px]" fetchPriority="high" /></Link>
+          <Link to="/" aria-label="EYLO home" className="mr-auto shrink-0"><img src={`${import.meta.env.BASE_URL}brand/eylo-light.svg`} alt="EYLO" width="180" height="54" className="h-10 w-auto max-w-[130px] object-contain sm:h-12 sm:max-w-[180px]" fetchPriority="high" /></Link>
           <Link to="/discover" className="hidden px-2 py-2 text-sm text-[#405B77] hover:text-[#174C7C] sm:inline-flex">Discover</Link>
           <a href="#how-it-works" className="hidden px-2 py-2 text-sm text-[#405B77] hover:text-[#174C7C] sm:inline-flex">How it works</a>
           <a href="#methodology" className="hidden px-2 py-2 text-sm text-[#405B77] hover:text-[#174C7C] md:inline-flex">Methodology</a>
@@ -167,7 +167,7 @@ export default function Landing() {
 
       <footer className="border-t border-slate-200 bg-white px-5 py-7 sm:px-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <img src="/brand/eylo-light.svg" alt="EYLO" width="160" height="48" loading="lazy" className="h-10 w-auto max-w-[150px] object-contain" />
+          <img src={`${import.meta.env.BASE_URL}brand/eylo-light.svg`} alt="EYLO" width="160" height="48" loading="lazy" className="h-10 w-auto max-w-[150px] object-contain" />
           <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-3">
             <Link to="/discover" className="hover:text-slate-900">Discover</Link><a href="#methodology" className="hover:text-slate-900">Methodology</a><a href="#about-eylo" className="hover:text-slate-900">About</a><Link to="/contact" className="hover:text-slate-900">Contact</Link><Link to="/login" className="hover:text-slate-900">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span>
           </nav>
