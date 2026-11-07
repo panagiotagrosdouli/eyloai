@@ -15,7 +15,10 @@ function decodeEntities(value = '') {
     .replace(/&#39;|&apos;/gi, "'")
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
-    .replace(/&#(\d+);/g, (_, number) => String.fromCodePoint(Number(number)))
+.replace(/&#(\d+);/g, (_, number) => {
+      const codePoint = Number(number);
+      return codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : ' ';
+    })
     .replace(/&#x([0-9a-f]+);/gi, (_, number) => {
       const codePoint = parseInt(number, 16);
       return codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : ' ';
@@ -60,7 +63,7 @@ function normalizeJob(job, feed) {
 function normalizeRemotiveJob(job) {
   try {
     const sourceUrl = new URL(job?.source_url || job?.url);
-    if (sourceUrl.protocol !== 'https:' || !/(^|\.)remotive\.com$/i.test(sourceUrl.hostname)) return null;
+    if (sourceUrl.protocol !== 'https:' || !['remotive.com', 'www.remotive.com'].includes(sourceUrl.hostname.toLowerCase())) return null;
     const title = plainText(job?.title || '');
     const id = String(job?.id || '').trim();
     if (!title || !id) return null;
