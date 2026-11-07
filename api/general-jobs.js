@@ -89,7 +89,7 @@ async function loadRemotiveJobs() {
   });
   if (!upstream.ok) throw new Error('Remotive snapshot returned ' + upstream.status);
   const snapshot = await upstream.json();
-  if (snapshot?.source !== 'Remotive' || !Array.isArray(snapshot?.items)) {
+  if (snapshot?.source !== 'Remotive' || !Array.isArray(snapshot?.items) || !snapshot.items.length || !snapshot.retrieved_at) {
     throw new Error('Remotive snapshot is invalid.');
   }
   return {
