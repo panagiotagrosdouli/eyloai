@@ -49,10 +49,14 @@ export default function Careers() {
       setError('Career listings are temporarily unavailable. Please try again shortly.');
     } else if (!results.length) {
       setError('No current roles matched that search. Try a broader research topic.');
-    } else if (researchResult.status === 'rejected' || generalResult.status === 'rejected') {
-      setSourceNotice(researchResult.status === 'rejected'
-        ? 'EURAXESS is temporarily unavailable; showing matching Europe and UK listings.'
-        : 'General Europe and UK listings are temporarily unavailable; showing EURAXESS research roles.');
+    } else {
+      const unavailableSources = [];
+      if (researchResult.status === 'rejected') unavailableSources.push('EURAXESS');
+      if (generalResult.status === 'rejected') unavailableSources.push('general listings');
+      else if (general?.failed_sources?.length) unavailableSources.push(...general.failed_sources);
+      if (unavailableSources.length) {
+        setSourceNotice('Some sources are temporarily unavailable (' + unavailableSources.join(', ') + '). Showing available listings.');
+      }
     }
     setLoading(false);
   };
