@@ -28,4 +28,5 @@ jobs:
       - name: Check public landing, release manifest and robots policy
         env:
           EYLO_SMOKE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.target_url || 'https://eyloai.vercel.app' }}
+          EYLO_EXPECTED_GIT_SHA: ${{ github.event_name == 'push' && github.sha || '' }}
         run: node scripts/smoke-public.mjs
