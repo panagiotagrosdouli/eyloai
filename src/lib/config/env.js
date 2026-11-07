@@ -3,7 +3,14 @@ const REQUIRED_ENVIRONMENT_VARIABLES = [
   'VITE_SUPABASE_ANON_KEY',
 ];
 
-function readEnvironment(source = import.meta.env ?? {}) {
+/**
+ * @typedef {Object} SupabaseEnvironmentSource
+ * @property {string} [VITE_SUPABASE_URL]
+ * @property {string} [VITE_SUPABASE_ANON_KEY]
+ */
+
+/** @param {SupabaseEnvironmentSource} [source] */
+function readEnvironment(source = /** @type {SupabaseEnvironmentSource} */ (import.meta.env ?? {})) {
   return {
     VITE_SUPABASE_URL: source.VITE_SUPABASE_URL?.trim() || '',
     VITE_SUPABASE_ANON_KEY: source.VITE_SUPABASE_ANON_KEY?.trim() || '',
@@ -19,7 +26,8 @@ function isValidSupabaseUrl(value) {
   }
 }
 
-export function validateEnvironment(source = import.meta.env ?? {}) {
+/** @param {SupabaseEnvironmentSource} [source] */
+export function validateEnvironment(source = /** @type {SupabaseEnvironmentSource} */ (import.meta.env ?? {})) {
   const values = readEnvironment(source);
   const missing = REQUIRED_ENVIRONMENT_VARIABLES.filter((name) => !values[name]);
   const invalid = [];
