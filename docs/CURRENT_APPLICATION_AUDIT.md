@@ -1,6 +1,6 @@
 # Current application audit
 
-_Last reviewed: 2026-09-25._
+_Last reviewed: 2026-09-25. Follow-up: 2026-11-07._
 
 EYLO is a React/Vite research workspace with public scholarly discovery and an authenticated Supabase-backed workspace.
 
@@ -38,7 +38,6 @@ Experimental scenario, impact, research-landscape, team, professional-path and v
 
 - Strict internal auth redirect validation.
 - Centralized auth service and product-safe auth error mapping.
-- Explicit environment configuration handling.
 - Supabase RLS ownership policies and privileged server-only tables.
 - Partial-source retrieval resilience and metadata-noise filtering.
 - Lazy-loaded route surfaces.
@@ -55,3 +54,11 @@ Experimental scenario, impact, research-landscape, team, professional-path and v
 - Add server-side caching/rate-control for scholarly providers where operational evidence justifies it.
 - Complete live cross-user RLS verification and production OAuth/recovery tests.
 - Complete jurisdiction-specific privacy/terms/legal review before representing the engineering data-flow document as a legal policy.
+
+## Follow-up review — 2026-11-07
+
+A targeted source review of `src/lib/config/env.js` found that it still supplied hard-coded `VITE_SUPABASE_URL` and publishable-key fallbacks when environment configuration was absent. This contradicted the launch-gate requirement that a missing configuration must not silently select a project. The source and release-gate document were inspected at main commit `32f4546f02698a2838c339cdd351470421dc29c8`.
+
+PR #217 removes those fallbacks and adds deterministic missing/valid/invalid configuration regression tests. Its latest observed GitHub Actions checks passed (build, build-and-benchmark, imports and verify) on commit `ebf6c47ec3a4cd83e7d820781de8378a3fbfec30`. The PR remains draft; Vercel preview was blocked by the account deployment rate limit.
+
+This review did not verify deployed Supabase project identity, production environment variables, live RLS policies or two-account isolation. No database or deployment was changed. Those release gates remain unverified. The current overall release decision remains **NO-GO** until the launch-readiness gate records evidence for all required production checks.
