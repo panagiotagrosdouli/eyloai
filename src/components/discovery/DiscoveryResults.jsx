@@ -55,10 +55,34 @@ export default function DiscoveryResults({ results, onNewSearch }) {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const savePaper = async (paper) => {
+  const saveOrAttach = async (entityName, matchKey, matchValue, payload, project = null) => {
+    const withProject = project
+      ? { ...payload, project_id: project.id, project_title: project.title || '' }
+      : payload;
+    let existing = null;
     try {
-      await base44.entities.SavedPaper.create({
-        source_id: paper.id,
+      const matches = await base44.entities[entityName].filter({ [matchKey]: matchValue }, '-created_date', 1);
+      existing = Array.isArray(matches) ? matches.find(item => item[matchKey] === matchValue) || matches[0] : null;
+    } catch {
+      // A failed lookup should not prevent saving a source record.
+    }
+    if (existing) {
+      if (!project || existing.project_id === project.id) {
+        return { record: existing, linked: Boolean(project && existing.project_id === project.id), conflict: false };
+      }
+      if (existing.project_id) return { record: existing, linked: false, conflict: true };
+      const record = await base44.entities[entityName].update(existing.id, withProject);
+      return { record, linked: true, conflict: false };
+    }
+    const record = await base44.entities[entityName].create(withProject);
+    return { record, linked: Boolean(project), conflict: false };
+  };
+
+  const savePaper = async (paper) => {
+    const sourceId = paper.id || paper.doi || paper.url || paper.title;
+    try {
+      const saved = await saveOrAttach('SavedPaper', 'source_id', sourceId, {
+        source_id: sourceId,
         doi: paper.doi || '',
         title: paper.title,
         authors: paper.authors,
@@ -69,27 +93,34 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         cited_by_count: paper.cited_by_count,
         open_access: paper.open_access,
         url: paper.url,
+      }, projectCreated);
+      toast({
+        title: saved.conflict ? 'Paper is linked to another project' : projectCreated ? 'Paper added to project' : saved.linked ? 'Paper already in this project' : 'Paper saved to library',
+        description: saved.conflict ? 'It was left in its current project.' : undefined,
       });
-      toast({ title: 'Paper saved to library' });
     } catch (error) {
       toast({ title: 'Could not save this paper', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
     }
   };
 
   const saveResearcher = async (r) => {
+    const openalexId = r.openalex_id || r.id || r.name;
     try {
-      await base44.entities.SavedResearcher.create({
-      openalex_id: r.openalex_id || r.id,
-      source: 'OpenAlex',
-      name: r.name,
-      institution: r.institution,
-      country: r.country,
-      research_areas: r.research_areas,
-      works_count: r.works_count,
-      citation_count: r.citation_count,
+      const saved = await saveOrAttach('SavedResearcher', 'openalex_id', openalexId, {
+        openalex_id: openalexId,
+        source: 'OpenAlex',
+        name: r.name,
+        institution: r.institution,
+        country: r.country,
+        research_areas: r.research_areas,
+        works_count: r.works_count,
+        citation_count: r.citation_count,
         profile_url: r.profile_url,
+      }, projectCreated);
+      toast({
+        title: saved.conflict ? 'Researcher is linked to another project' : projectCreated ? 'Researcher added to project' : saved.linked ? 'Researcher already in this project' : 'Researcher saved to library',
+        description: saved.conflict ? 'They were left in their current project.' : undefined,
       });
-      toast({ title: 'Researcher saved to library' });
     } catch (error) {
       toast({ title: 'Could not save this researcher', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
     }
@@ -135,12 +166,88 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         eyra_analysis: results.goal_analysis || '',
         status: 'active',
       });
-      setProjectCreated(project);
-      toast({ title: 'Project workspace created' });
+      const uniqueTop = (items, identifier) => [...new globalThis.Map(
+        (items || []).filter(item => item?.title || item?.name)
+          .map(item => [item[identifier] || item.id || item.doi || item.source_id || item.name || item.title, item]),
+      ).values()];
+      const papers = uniqueTop(results.papers, 'id').slice(0, 5);
+      const researchers = uniqueTop(results.researchers, 'openalex_id').slice(0, 3);
+      const opportunities = uniqueTop(results.funding_opportunities, 'source_id').slice(0, 2);
+      const seeds = [
+        ...papers.map(paper => ({
+          kind: 'papers',
+          run: () => saveOrAttach('SavedPaper', 'source_id', paper.id || paper.doi || paper.url || paper.title, {
+            source_id: paper.id || paper.doi || paper.url || paper.title,
+            doi: paper.doi || '',
+            title: paper.title,
+            authors: paper.authors,
+            summary: paper.summary,
+            year: paper.year,
+            source: paper.source,
+            source_index: paper.source_index || paper.source,
+            cited_by_count: paper.cited_by_count,
+            open_access: paper.open_access,
+            url: paper.url,
+          }, project),
+        })),
+        ...researchers.map(researcher => {
+          const openalexId = researcher.openalex_id || researcher.id || researcher.name;
+          return {
+            kind: 'researchers',
+            run: () => saveOrAttach('SavedResearcher', 'openalex_id', openalexId, {
+              openalex_id: openalexId,
+              source: 'OpenAlex',
+              name: researcher.name,
+              institution: researcher.institution,
+              country: researcher.country,
+              research_areas: researcher.research_areas,
+              works_count: researcher.works_count,
+              citation_count: researcher.citation_count,
+              profile_url: researcher.profile_url,
+            }, project),
+          };
+        }),
+        ...opportunities.map(opportunity => {
+          const sourceId = opportunity.source_id || opportunity.id || opportunity.source_url || opportunity.url || opportunity.title;
+          return {
+            kind: 'opportunities',
+            run: () => saveOrAttach('SavedOpportunity', 'source_id', sourceId, {
+              title: opportunity.title,
+              type: opportunity.type,
+              description: opportunity.description,
+              source: opportunity.source || 'Grants.gov',
+              source_id: sourceId,
+              url: opportunity.source_url || opportunity.url,
+              agency: opportunity.agency,
+              eligibility: opportunity.eligibility,
+              deadline: opportunity.deadline,
+              amount: opportunity.amount,
+              status: opportunity.status,
+            }, project),
+          };
+        }),
+      ];
+      const outcomes = await Promise.allSettled(seeds.map(async seed => ({ kind: seed.kind, ...(await seed.run()) })));
+      const linkedCounts = { papers: 0, researchers: 0, opportunities: 0 };
+      let linkIssues = 0;
+      outcomes.forEach(outcome => {
+        if (outcome.status !== 'fulfilled' || !outcome.value.linked) {
+          linkIssues += 1;
+          return;
+        }
+        linkedCounts[outcome.value.kind] += 1;
+      });
+      setProjectCreated({ ...project, linkedCounts, linkIssues });
+      const linkedSummary = Object.entries(linkedCounts).filter(([, count]) => count > 0).map(([kind, count]) => `${count} ${kind}`).join(', ');
+      toast({
+        title: 'Project workspace created',
+        description: linkedSummary ? `Added ${linkedSummary} from this search.` : 'Open the project to start organizing your research.',
+      });
     } catch {
       toast({ title: 'Could not create project', variant: 'destructive' });
+    } finally {
+      setCreatingProject(false);
     }
-    setCreatingProject(false);
   };
 
   const evidenceCoverage = results.confidence_overall || (
@@ -212,7 +319,8 @@ export default function DiscoveryResults({ results, onNewSearch }) {
               <img src="/brand/eyra.png" alt="EYRA" className="w-full h-full object-contain" />
             </div>
             <div className="flex-1">
-              <p className="text-xs font-semibold text-foreground mb-2">Project created. Explore the full report:</p>
+              <p className="text-xs font-semibold text-foreground mb-2">Project created · {projectCreated.linkedCounts?.papers || 0} papers, {projectCreated.linkedCounts?.researchers || 0} researchers and {projectCreated.linkedCounts?.opportunities || 0} opportunities added.</p>
+              {projectCreated.linkIssues > 0 && <p className="mb-2 text-[11px] text-amber-500">{projectCreated.linkIssues} item(s) could not be linked or already belong to another project.</p>}
               <div className="flex flex-wrap gap-2">
                 {[{ label: 'Researchers', tab: 'researchers' }, { label: 'Funding', tab: 'funding' }, { label: 'Roadmap', tab: 'roadmap' }].map(item => (
                   <button key={item.tab} onClick={() => setActiveTab(item.tab)}
