@@ -65,7 +65,7 @@ test('general listings disclose a provider failure while serving the available f
   globalThis.fetch = async url => {
     if (String(url).includes('arbeitnow.co.uk')) throw new Error('temporary outage');
     if (String(url).includes('raw.githubusercontent.com')) {
-      return { ok: true, json: async () => ({ source: 'Remotive', items: [] }) };
+      return { ok: true, json: async () => ({ source: 'Remotive', retrieved_at: '2026-11-07T00:00:00.000Z', items: [] }) };
     }
     return {
       ok: true,
@@ -87,7 +87,7 @@ test('general listings disclose a provider failure while serving the available f
     await handler({ method: 'GET', headers: { origin: 'https://panagiotagrosdouli.github.io' }, query: {} }, response);
     assert.equal(response.statusCode, 200);
     assert.equal(response.body.items.length, 1);
-    assert.deepEqual(response.body.failed_sources, ['Arbeitnow UK']);
+    assert.deepEqual(response.body.failed_sources, ['Arbeitnow UK', 'Remotive']);
     assert.equal(response.headers['Access-Control-Allow-Origin'], 'https://panagiotagrosdouli.github.io');
     assert.match(response.headers['Cache-Control'], /s-maxage/);
   } finally {
