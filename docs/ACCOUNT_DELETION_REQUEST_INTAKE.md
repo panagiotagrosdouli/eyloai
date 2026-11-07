@@ -166,3 +166,25 @@ NOT proof that the specific Bearer session was recently reauthenticated.
 The request intake and inventory remain disabled by default.
 A verified Bearer token authorizes **only an intake request or
 read-only inventory**, NEVER irreversible account deletion.
+
+## Closed requests and fresh authentication — independent review required
+
+A subsequent POST for a request already marked `completed` or
+`declined` now returns HTTP **409 `DELETION_REQUEST_CLOSED`**, rather
+than the misleading HTTP 202 acknowledgement previously returned.
+An existing open request (`pending_review`, `in_review`,
+`blocked_billing`) remains idempotent and does not create a duplicate.
+The user can read their previous status with GET and is advised to
+contact support about a new request. A reviewed **reopening** workflow
+is not yet built; this is a privacy/operational acceptance blocker.
+
+Current Bearer token checks require a valid Supabase Auth `/auth/v1/user`
+response. The tests cover expired/revoked credentials that Auth actually
+rejects, but a valid unexpired bearer token can still be used for
+**request intake or read-only inventory**. Neither endpoint executes
+account deletion. Before implementing actual deletion, the operator must
+build a separate session-bound step-up verification mechanism and verify
+its freshness, replay resistance, revocation behavior, billing state
+and consent with disposable users. Merely checking the account's global
+`last_sign_in_at` or the JWT's issued-at timestamp is insufficient
+evidence of recent user reauthentication.
