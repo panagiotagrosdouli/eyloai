@@ -13,16 +13,16 @@ function decodeEntities(value = '') {
     .replace(/&#39;|&apos;/gi, "'")
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
-    .replace(/&#(\\d+);/g, (_, number) => String.fromCodePoint(Number(number)))
+    .replace(/&#(\d+);/g, (_, number) => String.fromCodePoint(Number(number)))
     .replace(/&#x([0-9a-f]+);/gi, (_, number) => String.fromCodePoint(parseInt(number, 16)));
 }
 
 function plainText(value = '') {
   return decodeEntities(String(value)
-    .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, ' ')
-    .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, ' ')
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
     .replace(/<[^>]*>/g, ' ')
-    .replace(/\\s+/g, ' ')).trim();
+    .replace(/\s+/g, ' ')).trim();
 }
 function safePostingUrl(value) {
   try {
