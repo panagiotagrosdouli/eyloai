@@ -24,6 +24,7 @@ const CATEGORIES = [
   { key: 'competition', label: 'Competitions' },
   { key: 'accelerator', label: 'Accelerators' },
   { key: 'scholarship', label: 'Scholarships' },
+  { key: 'call', label: 'Calls' },
 ];
 
 const QUICK_SEARCHES = [
