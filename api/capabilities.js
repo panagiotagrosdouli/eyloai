@@ -1,3 +1,5 @@
+import { analyticsEnabled } from '../src/lib/analytics-readiness.mjs';
+
 function supabaseServerConfigured() {
   return Boolean(
     process.env.SUPABASE_SECRET_KEY
@@ -24,8 +26,8 @@ export default function handler(request, response) {
     // is enabled only after explicit consent to send each active query to the
     // selected external research/funding source.
     scheduled_monitoring: false,
-    // Analytics is served by an authenticated, least-privilege database RPC;
-    // no Vercel service-role credential is required.
-    institution_analytics: true,
+    // Do not advertise the RPC before actual production Supabase acceptance.
+    // Operator enablement is a manual post-verification switch.
+    institution_analytics: analyticsEnabled(),
   });
 }

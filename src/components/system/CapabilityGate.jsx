@@ -7,7 +7,7 @@ const COPY = {
   institution_analytics: {
     eyebrow: 'Deployment capability',
     title: 'Institution analytics needs administrator setup.',
-    description: 'The dashboard is implemented, but this deployment does not yet have the protected server credentials required to aggregate organization data safely.',
+    description: 'The analytics dashboard is implemented, but its database schema, permissions and account isolation must be verified before it can be enabled on this deployment.',
     action: 'Return to workspace',
     href: '/home',
   },
