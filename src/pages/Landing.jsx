@@ -33,10 +33,10 @@ export default function Landing() {
             <img src={import.meta.env.BASE_URL + 'brand/eylo-light.svg'} alt="EYLO" width="148" height="43" className="h-[42px] w-auto max-w-[148px] object-contain" fetchPriority="high" />
           </Link>
           <nav aria-label="Company navigation" className="hidden items-center gap-9 lg:flex">
-            <a href="#product" className="text-[13px] font-medium text-[#3B5467] transition hover:text-black">Product</a>
-            <a href="#audience" className="text-[13px] font-medium text-[#3B5467] transition hover:text-black">For academics</a>
-            <a href="#features" className="text-[13px] font-medium text-[#3B5467] transition hover:text-black">What EYLO does</a>
-            <Link to="/contact" className="text-[13px] font-medium text-[#3B5467] transition hover:text-black">Company</Link>
+            <Link to="/company" className="text-[13px] font-medium text-[#3B5467] transition hover:text-black">About EYLO</Link>
+            <Link to="/company/what-we-do" className="text-[13px] font-medium text-[#3B5467] transition hover:text-black">What we do</Link>
+            <Link to="/company/vision" className="text-[13px] font-medium text-[#3B5467] transition hover:text-black">Vision</Link>
+            <Link to="/company/careers" className="text-[13px] font-medium text-[#3B5467] transition hover:text-black">Careers</Link>
           </nav>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link to="/login" className="hidden min-h-10 items-center rounded-xl border border-[#DEDEDE] px-4 text-[13px] font-medium text-[#272727] transition hover:bg-[#F7F7F7] sm:inline-flex">Log in</Link>
@@ -45,10 +45,10 @@ export default function Landing() {
           </div>
         </div>
         {menuOpen && <nav aria-label="Mobile navigation" className="flex flex-col gap-5 border-t border-[#E0E9F0] bg-white px-7 py-6 text-sm font-medium lg:hidden">
-          <a href="#product" onClick={() => setMenuOpen(false)}>Product</a>
-          <a href="#audience" onClick={() => setMenuOpen(false)}>For academics</a>
-          <a href="#features" onClick={() => setMenuOpen(false)}>What EYLO does</a>
-          <Link to="/contact" onClick={() => setMenuOpen(false)}>Company</Link>
+          <Link to="/company" onClick={() => setMenuOpen(false)}>About EYLO</Link>
+          <Link to="/company/what-we-do" onClick={() => setMenuOpen(false)}>What we do</Link>
+          <Link to="/company/vision" onClick={() => setMenuOpen(false)}>Vision</Link>
+          <Link to="/company/careers" onClick={() => setMenuOpen(false)}>Careers</Link>
           <Link to="/login" onClick={() => setMenuOpen(false)}>Log in</Link>
         </nav>}
       </header>
@@ -128,7 +128,7 @@ export default function Landing() {
       <footer className="border-t border-[#E0E9F0] bg-white px-5 py-9 sm:px-9 lg:px-16">
         <div className="mx-auto flex max-w-[1350px] flex-col justify-between gap-6 sm:flex-row sm:items-center">
           <Link to="/" aria-label="EYLO home"><img src={import.meta.env.BASE_URL + 'brand/eylo-light.svg'} alt="EYLO" width="130" height="38" loading="lazy" className="h-[38px] w-auto"/></Link>
-          <nav aria-label="Footer" className="flex flex-wrap gap-5 text-xs font-medium text-[#536C7E]"><Link to="/discover">EYLO AI</Link><Link to="/contact">Company</Link><Link to="/login">Log in</Link><span>© {new Date().getFullYear()} EYLO</span></nav>
+          <nav aria-label="Footer" className="flex flex-wrap gap-5 text-xs font-medium text-[#536C7E]"><Link to="/discover">EYLO AI</Link><Link to="/company">About EYLO</Link><Link to="/company/careers">Careers</Link><Link to="/login">Log in</Link><span>© {new Date().getFullYear()} EYLO</span></nav>
         </div>
       </footer>
     </main>

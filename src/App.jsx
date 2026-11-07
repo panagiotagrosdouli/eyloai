@@ -23,6 +23,7 @@ const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
 const Landing = lazy(() => import('@/pages/Landing'));
 const Contact = lazy(() => import('@/pages/Contact'));
+const CompanyPage = lazy(() => import('@/pages/CompanyPage'));
 const PublicDiscovery = lazy(() => import('@/pages/PublicDiscovery'));
 const AppLayout = lazy(() => import('@/components/layout/AppLayout'));
 const Home = lazy(() => import('@/pages/Home'));
@@ -164,6 +165,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/company" element={<CompanyPage />} />
+              <Route path="/company/:section" element={<CompanyPage />} />
               <Route path="/discover" element={<PublicDiscovery />} />
               {/* Authentication pages stay reachable even if session bootstrap fails. */}
               <Route path="/login" element={<Login />} />

@@ -45,6 +45,27 @@ test('Public research discovery remains discipline-neutral', () => {
   assert.doesNotMatch(landing, /searchOpenAlexWorks/);
 });
 
+test('Corporate sections are separate routes from public EYLO AI discovery', () => {
+  const app = read('src/App.jsx');
+  const landing = read('src/pages/Landing.jsx');
+  const company = read('src/pages/CompanyPage.jsx');
+  assert.match(app, /path="\/company"/);
+  assert.match(app, /path="\/company\/:section"/);
+  assert.match(app, /path="\/discover"/);
+  for (const segment of ['what-we-do', 'vision', 'careers']) {
+    assert.ok(landing.includes('/company/' + segment));
+    assert.ok(company.includes(segment));
+  }
+  assert.match(company, /Enter EYLO AI/);
+});
+
+test('Pages deploy uses the public Supabase configuration without empty GitHub Secret overrides', () => {
+  const workflow = read('.github/workflows/deploy-pages.yml');
+  assert.match(workflow, /verify-pages-auth-env\.mjs/);
+  assert.doesNotMatch(workflow, /VITE_SUPABASE_URL:\s*\$\{\{ secrets\./);
+  assert.doesNotMatch(workflow, /VITE_SUPABASE_ANON_KEY:\s*\$\{\{ secrets\./);
+});
+
 test('Static Pages discovery does not call missing same-origin server functions', () => {
   const discovery = read('src/lib/eyra-api.js');
   assert.match(discovery, /staticPagesHost = import\.meta\.env\?\.BASE_URL === '\/eyloai\/'/);
