@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Building2, ExternalLink, Loader2,
-  RefreshCw, Search, ShieldCheck, Users, Download,
+  RefreshCw, Search, ShieldCheck, Users, Download, Bookmark, Clock3, GraduationCap,
 } from 'lucide-react';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchResearchPeopleByPublications, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import { countAvailablePaperIndexes, formatUnavailableSource, PAPER_INDEX_SOURCE_IDS } from '@/lib/discovery-source-status';
@@ -187,25 +187,41 @@ export default function PublicDiscovery() {
   const availablePaperIndexCount = countAvailablePaperIndexes(sourceStatus);
 
   return (
-    <main className="eylo-action-canvas min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 px-4 sm:px-8">
+    <main className="eylo-public-discovery min-h-screen bg-white text-[#172A40]">
+      <header className="sticky top-0 z-30 border-b border-[#E6ECF2] bg-white/95 backdrop-blur-xl">
+        <div className="mx-auto flex h-[76px] max-w-[1500px] items-center gap-4 px-4 sm:px-8">
           <Link to="/" className="flex items-center gap-2 text-sm font-semibold" aria-label="Back to EYLO"><ArrowLeft size={15} /><BrandLogo brand="eylo" size="nav" priority /></Link>
-          <form onSubmit={submitHeader} className="ml-auto flex w-full max-w-2xl items-center rounded-2xl border border-border bg-card p-1.5">
+          <form onSubmit={submitHeader} className="ml-auto flex w-full max-w-2xl items-center rounded-xl border border-[#DDE6EF] bg-white p-1.5 shadow-sm">
             <Search className="ml-3 text-muted-foreground" size={15} />
             <input value={query} onChange={event => setQuery(event.target.value)} aria-label="Research topic" className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none" placeholder="Ask anything: topic, question or researcher…" />
             <VoiceSearchButton onTranscript={text => setQuery(text)} />
-            <button type="submit" className="rounded-lg bg-[#174672] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#245D91]">Refine</button>
+            <button type="submit" className="rounded-lg bg-[#172A40] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#285274]">Refine</button>
           </form>
-          <Link to="/register" className="hidden rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background sm:block">Save research</Link>
+          <Link to="/register" className="hidden rounded-xl bg-[#F0F5F9] px-4 py-2 text-sm font-semibold text-[#173C5D] sm:block">Save research</Link>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
+      <div className="mx-auto grid max-w-[1500px] lg:grid-cols-[230px_minmax(0,1fr)]">
+        <aside aria-label="EYLO research navigation" className="hidden border-r border-[#E8EDF2] bg-[#FCFDFE] px-5 py-8 lg:block">
+          <div className="sticky top-[110px]">
+            <div className="mb-7 px-3"><BrandLogo brand="eylo" size="nav" /></div>
+            <nav className="space-y-1 text-[13px] text-[#526477]">
+              <Link to="/discover" aria-current="page" className="flex items-center gap-3 rounded-xl bg-[#ECF4FA] px-3 py-3 font-semibold text-[#173C5D]"><Search size={17}/> Discover</Link>
+              <a href="#papers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><BookOpen size={17}/> Papers</a>
+              <Link to="/login?from=%2Fresearchers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><Users size={17}/> Researchers</Link>
+              <Link to="/login?from=%2Fcareers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><GraduationCap size={17}/> Opportunities</Link>
+            </nav>
+            <div className="mt-7 border-t border-[#E2E8EF] pt-5 text-[13px] text-[#6A7886]">
+              <Link to="/register" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><Bookmark size={17}/> Saved</Link>
+              <Link to="/login?from=%2Fhistory" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><Clock3 size={17}/> History</Link>
+            </div>
+          </div>
+        </aside>
+        <div id="papers" className="min-w-0 px-4 py-10 sm:px-8 lg:px-10">
         {!initialQuery && (
-          <section className="mx-auto max-w-5xl py-12 text-center sm:py-20">
+          <section className="mx-auto max-w-5xl py-8 text-center sm:py-12">
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Evidence discovery</p>
-            <h1 className="mx-auto mt-4 max-w-4xl font-serif text-4xl font-normal leading-tight tracking-tight text-[#102B49] sm:text-6xl">Explore science with confidence.</h1>
+            <h1 className="mx-auto mt-4 max-w-4xl text-4xl font-bold leading-tight tracking-[-.055em] text-[#172A40] sm:text-6xl">Explore science with confidence.</h1>
             <div className="mx-auto mt-8 max-w-5xl text-left"><GuidedSearch onSearch={runGuidedSearch} /></div>
             <div className="mx-auto mt-5 flex max-w-3xl flex-wrap items-center justify-center gap-2" aria-label="Example research searches">
               <span className="text-xs text-muted-foreground">Try an example:</span>
@@ -245,9 +261,9 @@ export default function PublicDiscovery() {
         )}
 
         {!loading && refined && unavailableSources.length > 0 && availableSources.length > 0 && (
-          <div role="status" className="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-4 text-sm text-amber-100 sm:flex-row sm:items-center sm:justify-between">
+          <div role="status" className="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-4 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <AlertTriangle size={17} className="mt-0.5 shrink-0 text-amber-300" aria-hidden="true" />
+              <AlertTriangle size={17} className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true" />
               <p className="leading-6">
                 <strong>Partial live retrieval.</strong> {availablePaperIndexCount} of {PAPER_INDEX_SOURCE_IDS.length} scholarly paper indexes are available.
                 {' '}{unavailableSources.map(formatUnavailableSource).join('; ')}.
@@ -273,18 +289,18 @@ export default function PublicDiscovery() {
 
         {!loading && !error && refined && (
           <div className="space-y-14">
-            <section className="relative overflow-hidden rounded-[2rem] border border-cyan-200/10 bg-slate-950/70 p-6 sm:p-9">
-              <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+            <section className="relative overflow-hidden rounded-[1.5rem] border border-[#DCE6EF] bg-[#F7FAFC] p-6 sm:p-9">
+              <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-[#DCEBF7]/50 blur-3xl" />
               <div className="relative">
-                <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-cyan-300"><ShieldCheck size={12} /> Source-linked discovery results</div>
-                <h1 className="mt-3 font-serif text-3xl font-normal tracking-tight sm:text-5xl">{initialQuery}</h1>
-                <p className="mt-4 text-xs text-slate-400">{level} · {goal} · {recency.replace('_', ' ')}</p>
-                <div className="mt-5 flex flex-wrap gap-2">{sourceIndexes.map(source => <span key={source} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] text-slate-300">{source}</span>)}</div>
-                <p className="mt-4 text-[10px] text-slate-500">{data.papers.length} deduplicated papers · {data.researchers.length} researchers · {data.institutions.length} institutions</p>
+                <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#3B7BA5]"><ShieldCheck size={12} /> Source-linked discovery results</div>
+                <h1 className="mt-3 text-3xl font-bold tracking-[-.055em] sm:text-5xl">{initialQuery}</h1>
+                <p className="mt-4 text-xs text-[#63798A]">{level} · {goal} · {recency.replace('_', ' ')}</p>
+                <div className="mt-5 flex flex-wrap gap-2">{sourceIndexes.map(source => <span key={source} className="rounded-full border border-[#D4E3EF] bg-white px-3 py-1.5 text-[10px] text-[#566D7D]">{source}</span>)}</div>
+                <p className="mt-4 text-[10px] text-[#718596]">{data.papers.length} deduplicated papers · {data.researchers.length} researchers · {data.institutions.length} institutions</p>
                 <p className="mt-3 max-w-3xl text-xs leading-5 text-slate-400">Bibliographic records come from external indexes. EYLO does not independently verify peer review, claims, findings, or publication quality. Open the original source before relying on a result.</p>
                 {data.papers.length > 0 && (
                   <div className="mt-5 flex flex-wrap items-center gap-3">
-                    <button type="button" onClick={() => exportCitations('bib')} className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20"><Download size={14} /> Export BibTeX</button>
+                    <button type="button" onClick={() => exportCitations('bib')} className="inline-flex items-center gap-2 rounded-xl border border-[#D4E3EF] bg-white px-3 py-2 text-xs font-semibold text-[#173C5D] hover:bg-[#EAF4FB]"><Download size={14} /> Export BibTeX</button>
                     <button type="button" onClick={() => exportCitations('ris')} className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20"><Download size={14} /> Export RIS</button>
                     <span className="text-[11px] text-slate-400">Metadata only. Check author names, publication details and DOI against the source before citing.</span>
                   </div>
@@ -318,11 +334,12 @@ export default function PublicDiscovery() {
               ))}</div> : <EmptyState>No institutions found for this phrase.</EmptyState>}
             </section>
 
-            <section className="rounded-[2rem] eyra-gradient p-8 text-white sm:p-12">
+            <section className="rounded-[2rem] bg-[#172A40] p-8 text-white sm:p-12">
               <div className="max-w-2xl"><BookOpen className="mb-5" size={26} /><h2 className="font-heading text-3xl font-bold">Keep the path, not just the links.</h2><p className="mt-3 text-sm leading-6 text-white/80">Create an EYLO workspace to save evidence, compare researchers, build milestones, and ask EYRA follow-up questions with the same context.</p><Link to={`/register?idea=${encodeURIComponent(initialQuery)}`} className="mt-7 inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950">Create free project <ArrowRight size={14} /></Link></div>
             </section>
           </div>
         )}
+        </div>
       </div>
     </main>
   );
