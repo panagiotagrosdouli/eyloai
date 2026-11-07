@@ -92,8 +92,10 @@ async function loadRemotiveJobs() {
   if (snapshot?.source !== 'Remotive' || !Array.isArray(snapshot?.items) || !snapshot.items.length || !snapshot.retrieved_at) {
     throw new Error('Remotive snapshot is invalid.');
   }
+  const items = snapshot.items.slice(0, MAX_REMOTIVE_ITEMS).map(normalizeRemotiveJob).filter(Boolean);
+  if (!items.length) throw new Error('Remotive snapshot has no usable listings.');
   return {
-    items: snapshot.items.slice(0, MAX_REMOTIVE_ITEMS).map(normalizeRemotiveJob).filter(Boolean),
+    items,
     retrieved_at: typeof snapshot.retrieved_at === 'string' ? snapshot.retrieved_at : null,
   };
 }
