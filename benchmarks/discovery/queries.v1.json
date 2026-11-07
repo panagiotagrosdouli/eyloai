@@ -1,0 +1,356 @@
+{
+  "version": "1.0",
+  "description": "Curated prompts, not relevance judgments or verified gold answers.",
+  "queries": [
+    {
+      "id": "COM-01",
+      "domain": "computer_science",
+      "intent": "review",
+      "level": "student",
+      "query": "visual inertial SLAM robust low light"
+    },
+    {
+      "id": "COM-02",
+      "domain": "computer_science",
+      "intent": "methods",
+      "level": "researcher",
+      "query": "uncertainty aware pedestrian trajectory prediction"
+    },
+    {
+      "id": "COM-03",
+      "domain": "computer_science",
+      "intent": "review",
+      "level": "researcher",
+      "query": "federated learning non IID medical imaging"
+    },
+    {
+      "id": "COM-04",
+      "domain": "computer_science",
+      "intent": "methods",
+      "level": "student",
+      "query": "retrieval augmented generation factuality evaluation"
+    },
+    {
+      "id": "COM-05",
+      "domain": "computer_science",
+      "intent": "foundational",
+      "level": "researcher",
+      "query": "formal verification autonomous robot planning"
+    },
+    {
+      "id": "COM-06",
+      "domain": "computer_science",
+      "intent": "review",
+      "level": "researcher",
+      "query": "graph neural networks molecular property prediction"
+    },
+    {
+      "id": "COM-07",
+      "domain": "computer_science",
+      "intent": "methods",
+      "level": "student",
+      "query": "energy efficient inference on edge devices"
+    },
+    {
+      "id": "COM-08",
+      "domain": "computer_science",
+      "intent": "review",
+      "level": "researcher",
+      "query": "privacy preserving synthetic data generation"
+    },
+    {
+      "id": "COM-09",
+      "domain": "computer_science",
+      "intent": "recent",
+      "level": "researcher",
+      "query": "multimodal transformer sensor fusion autonomous driving"
+    },
+    {
+      "id": "COM-10",
+      "domain": "computer_science",
+      "intent": "foundational",
+      "level": "student",
+      "query": "calibration of deep neural network uncertainty"
+    },
+    {
+      "id": "BIO-01",
+      "domain": "biomedicine",
+      "intent": "review",
+      "level": "student",
+      "query": "machine learning early detection pancreatic cancer"
+    },
+    {
+      "id": "BIO-02",
+      "domain": "biomedicine",
+      "intent": "recent",
+      "level": "researcher",
+      "query": "long COVID cognitive symptoms longitudinal cohort"
+    },
+    {
+      "id": "BIO-03",
+      "domain": "biomedicine",
+      "intent": "methods",
+      "level": "researcher",
+      "query": "single cell RNA sequencing tumor microenvironment"
+    },
+    {
+      "id": "BIO-04",
+      "domain": "biomedicine",
+      "intent": "review",
+      "level": "student",
+      "query": "antimicrobial resistance wastewater surveillance"
+    },
+    {
+      "id": "BIO-05",
+      "domain": "biomedicine",
+      "intent": "methods",
+      "level": "researcher",
+      "query": "wearable sensors atrial fibrillation screening"
+    },
+    {
+      "id": "BIO-06",
+      "domain": "biomedicine",
+      "intent": "review",
+      "level": "researcher",
+      "query": "microbiome interventions inflammatory bowel disease randomized trials"
+    },
+    {
+      "id": "BIO-07",
+      "domain": "biomedicine",
+      "intent": "recent",
+      "level": "student",
+      "query": "Alzheimer disease plasma biomarkers clinical validation"
+    },
+    {
+      "id": "BIO-08",
+      "domain": "biomedicine",
+      "intent": "methods",
+      "level": "researcher",
+      "query": "CRISPR off target effects detection methods"
+    },
+    {
+      "id": "BIO-09",
+      "domain": "biomedicine",
+      "intent": "review",
+      "level": "researcher",
+      "query": "vaccine effectiveness older adults observational bias"
+    },
+    {
+      "id": "BIO-10",
+      "domain": "biomedicine",
+      "intent": "foundational",
+      "level": "student",
+      "query": "sleep deprivation executive function systematic review"
+    },
+    {
+      "id": "CLI-01",
+      "domain": "climate_sustainability",
+      "intent": "review",
+      "level": "student",
+      "query": "urban heat island mitigation green roofs"
+    },
+    {
+      "id": "CLI-02",
+      "domain": "climate_sustainability",
+      "intent": "methods",
+      "level": "researcher",
+      "query": "coastal flood adaptation sea level rise cities"
+    },
+    {
+      "id": "CLI-03",
+      "domain": "climate_sustainability",
+      "intent": "review",
+      "level": "researcher",
+      "query": "battery recycling life cycle assessment lithium ion"
+    },
+    {
+      "id": "CLI-04",
+      "domain": "climate_sustainability",
+      "intent": "recent",
+      "level": "student",
+      "query": "carbon capture mineralization basalt field trials"
+    },
+    {
+      "id": "CLI-05",
+      "domain": "climate_sustainability",
+      "intent": "review",
+      "level": "researcher",
+      "query": "climate migration and agricultural livelihoods"
+    },
+    {
+      "id": "CLI-06",
+      "domain": "climate_sustainability",
+      "intent": "methods",
+      "level": "researcher",
+      "query": "wildfire risk prediction remote sensing"
+    },
+    {
+      "id": "CLI-07",
+      "domain": "climate_sustainability",
+      "intent": "review",
+      "level": "student",
+      "query": "green hydrogen electrolysis water resource impacts"
+    },
+    {
+      "id": "CLI-08",
+      "domain": "climate_sustainability",
+      "intent": "methods",
+      "level": "researcher",
+      "query": "methane emissions satellite detection validation"
+    },
+    {
+      "id": "CLI-09",
+      "domain": "climate_sustainability",
+      "intent": "recent",
+      "level": "researcher",
+      "query": "biodiversity recovery after wetland restoration"
+    },
+    {
+      "id": "CLI-10",
+      "domain": "climate_sustainability",
+      "intent": "foundational",
+      "level": "student",
+      "query": "electricity grid demand response renewable integration"
+    },
+    {
+      "id": "SOC-01",
+      "domain": "social_sciences",
+      "intent": "review",
+      "level": "student",
+      "query": "algorithmic fairness university admissions"
+    },
+    {
+      "id": "SOC-02",
+      "domain": "social_sciences",
+      "intent": "recent",
+      "level": "researcher",
+      "query": "digital divide rural higher education"
+    },
+    {
+      "id": "SOC-03",
+      "domain": "social_sciences",
+      "intent": "review",
+      "level": "researcher",
+      "query": "teacher feedback formative assessment student achievement"
+    },
+    {
+      "id": "SOC-04",
+      "domain": "social_sciences",
+      "intent": "methods",
+      "level": "student",
+      "query": "remote work social isolation longitudinal studies"
+    },
+    {
+      "id": "SOC-05",
+      "domain": "social_sciences",
+      "intent": "review",
+      "level": "researcher",
+      "query": "misinformation correction effectiveness social media"
+    },
+    {
+      "id": "SOC-06",
+      "domain": "social_sciences",
+      "intent": "recent",
+      "level": "researcher",
+      "query": "open science incentives early career researchers"
+    },
+    {
+      "id": "SOC-07",
+      "domain": "social_sciences",
+      "intent": "review",
+      "level": "student",
+      "query": "housing affordability mental health population studies"
+    },
+    {
+      "id": "SOC-08",
+      "domain": "social_sciences",
+      "intent": "methods",
+      "level": "researcher",
+      "query": "participatory research indigenous data governance"
+    },
+    {
+      "id": "SOC-09",
+      "domain": "social_sciences",
+      "intent": "review",
+      "level": "researcher",
+      "query": "migration integration language learning outcomes"
+    },
+    {
+      "id": "SOC-10",
+      "domain": "social_sciences",
+      "intent": "recent",
+      "level": "student",
+      "query": "AI assisted grading student trust education"
+    },
+    {
+      "id": "INT-01",
+      "domain": "interdisciplinary",
+      "intent": "review",
+      "level": "student",
+      "query": "AI triage ethics emergency departments"
+    },
+    {
+      "id": "INT-02",
+      "domain": "interdisciplinary",
+      "intent": "methods",
+      "level": "researcher",
+      "query": "robotics independent living older adults"
+    },
+    {
+      "id": "INT-03",
+      "domain": "interdisciplinary",
+      "intent": "recent",
+      "level": "researcher",
+      "query": "human AI collaboration scientific hypothesis generation"
+    },
+    {
+      "id": "INT-04",
+      "domain": "interdisciplinary",
+      "intent": "review",
+      "level": "student",
+      "query": "digital twins sustainable urban water management"
+    },
+    {
+      "id": "INT-05",
+      "domain": "interdisciplinary",
+      "intent": "methods",
+      "level": "researcher",
+      "query": "explainable AI climate hazard forecasting"
+    },
+    {
+      "id": "INT-06",
+      "domain": "interdisciplinary",
+      "intent": "methods",
+      "level": "researcher",
+      "query": "natural language processing biomedical systematic reviews"
+    },
+    {
+      "id": "INT-07",
+      "domain": "interdisciplinary",
+      "intent": "review",
+      "level": "student",
+      "query": "citizen science biodiversity monitoring data quality"
+    },
+    {
+      "id": "INT-08",
+      "domain": "interdisciplinary",
+      "intent": "recent",
+      "level": "researcher",
+      "query": "virtual reality rehabilitation stroke usability"
+    },
+    {
+      "id": "INT-09",
+      "domain": "interdisciplinary",
+      "intent": "review",
+      "level": "researcher",
+      "query": "responsible generative AI scholarly writing integrity"
+    },
+    {
+      "id": "INT-10",
+      "domain": "interdisciplinary",
+      "intent": "methods",
+      "level": "student",
+      "query": "remote sensing infectious disease risk modeling"
+    }
+  ]
+}
