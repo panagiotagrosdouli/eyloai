@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, ChevronRight, Compass, FolderOpen, Lightbulb, Loader2, Plus, Search, Users, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Briefcase, ChevronRight, Compass, FolderOpen, Loader2, Plus, Search, Users, Zap } from 'lucide-react';
 import { buildUserProfile } from '@/lib/second-brain';
 import GuidedSearch from '@/components/discovery/GuidedSearch';
 import { getLocalGreeting } from '@/lib/local-greeting';
@@ -8,10 +8,10 @@ import { useCapabilities } from '@/lib/capabilities';
 import { useAuth } from '@/lib/AuthContext';
 
 const START_POINTS = [
-  { title: 'Literature', description: 'Find papers across academic indexes.', href: '/discover', icon: BookOpen },
-  { title: 'People', description: 'Find researchers through their published work.', href: '/researchers', icon: Users },
-  { title: 'Funding', description: 'Explore current opportunities at the source.', href: '/opportunities', icon: Zap },
-  { title: 'Ideas', description: 'Capture a question and develop it into a project.', href: '/ideas', icon: Lightbulb },
+  { eyebrow: 'Evidence', title: 'Explore the literature', description: 'Search academic sources and open the original papers.', action: 'Search papers', href: '/discover', icon: BookOpen },
+  { eyebrow: 'Connections', title: 'Find your people', description: 'Discover researchers through their published work.', action: 'Explore researchers', href: '/researchers', icon: Users },
+  { eyebrow: 'Next step', title: 'Find a research role', description: 'Compare official listings with your CV in this browser.', action: 'Browse careers', href: '/careers', icon: Briefcase },
+  { eyebrow: 'Funding', title: 'Find an opportunity', description: 'Review records and follow the link to the official source.', action: 'Explore funding', href: '/opportunities', icon: Zap },
 ];
 
 function ProjectRow({ project }) {
@@ -133,14 +133,22 @@ export default function EyraHome({ onSearch }) {
         </section>
 
         <section className="mt-10" aria-labelledby="explore-heading">
-          <div className="mb-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">A connected research journey</p><h2 id="explore-heading" className="mt-2 text-2xl font-semibold tracking-tight">Explore your next step</h2></div>
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+            <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">One connected research workspace</p><h2 id="explore-heading" className="mt-2 text-2xl font-semibold tracking-tight">What do you need next?</h2></div>
+            <p className="max-w-sm text-sm text-muted-foreground">Go from evidence to people, opportunities and your next move.</p>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {START_POINTS.map(({ title, description, href, icon: Icon }) => (
-              <Link key={href} to={href} className="group flex min-h-48 flex-col rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-colors hover:border-primary/30 hover:bg-secondary/30">
-                <span className="mb-6 grid h-10 w-10 place-items-center rounded-xl bg-secondary text-primary"><Icon size={19} aria-hidden="true" /></span>
-                <h3 className="text-sm font-semibold">{title}</h3>
-                <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">{description}</p>
-                <ArrowRight size={17} className="mt-4 self-end text-muted-foreground group-hover:text-primary" aria-hidden="true" />
+            {START_POINTS.map(({ eyebrow, title, description, action, href, icon: Icon }) => (
+              <Link key={href} to={href} className="group relative flex min-h-52 flex-col overflow-hidden rounded-[1.4rem] border border-border/70 bg-card p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
+                <div className="flex items-center justify-between">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/8 text-primary ring-1 ring-primary/10"><Icon size={18} aria-hidden="true" /></span>
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{eyebrow}</span>
+                </div>
+                <h3 className="mt-6 text-base font-semibold tracking-tight text-foreground">{title}</h3>
+                <p className="mt-2 flex-1 text-sm leading-5 text-muted-foreground">{description}</p>
+                <span className="mt-5 inline-flex items-center justify-between border-t border-border/70 pt-3 text-xs font-semibold text-foreground">
+                  {action}<ArrowRight size={15} className="text-primary transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                </span>
               </Link>
             ))}
           </div>
