@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, Copy, ExternalLink, Loader2, Mail, Search, Users } from 'lucide-react';
 import { searchOpenAlexAuthors, searchResearchPeopleByPublications } from '@/lib/eyra-api';
 import BrandLogo from '@/components/brand/BrandLogo';
-import { isValidEmailAddress, parseResearchEmailDraft } from '@/lib/research-email';
+import { isValidEmailAddress, parseResearchEmailDraft } from '@/lib/research-email.mjs';
 
 const examples = ['Robotics and machine learning', 'Public health', 'Climate adaptation'];
 const OUTREACH_KEY = 'eylo-outreach-drafts-v1';
