@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
   Activity, Award, BookOpen, Brain, Briefcase, ChevronDown, FileEdit, FolderOpen, History,
   Home, LayoutDashboard, LayoutGrid, Lightbulb, Menu, Mic, Presentation,
-  Rocket, Search, Settings, Sparkles, Target, TrendingUp, Trophy, User, Users,
+  Rocket, Search, Settings, Sparkles, Target, Trophy, User, Users,
   Video, X, Zap,
 } from 'lucide-react';
 import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
