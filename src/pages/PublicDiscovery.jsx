@@ -261,7 +261,7 @@ export default function PublicDiscovery() {
               <button type="button" onClick={() => navigatePanel('discover')} aria-current={activePanel === 'discover' ? 'page' : undefined} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left ${activePanel === 'discover' ? 'bg-[#ECF4FA] font-semibold text-[#173C5D]' : 'hover:bg-[#F0F5F9]'}`}><Search size={17}/> Discover</button>
               <button type="button" onClick={() => navigatePanel('papers')} aria-current={activePanel === 'papers' ? 'page' : undefined} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left ${activePanel === 'papers' ? 'bg-[#ECF4FA] font-semibold text-[#173C5D]' : 'hover:bg-[#F0F5F9]'}`}><BookOpen size={17}/> Papers</button>
               <Link to="/find-researchers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><Users size={17}/> Researchers</Link>
-              <Link to="/login?from=%2Fcareers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><GraduationCap size={17}/> Opportunities</Link>
+              <Link to="/careers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#F0F5F9]"><GraduationCap size={17}/> Careers</Link>
             </nav>
             <div className="mt-7 border-t border-[#E2E8EF] pt-5 text-[13px] text-[#6A7886]">
               <button type="button" onClick={() => navigatePanel('saved')} aria-current={activePanel === 'saved' ? 'page' : undefined} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left ${activePanel === 'saved' ? 'bg-[#ECF4FA] font-semibold text-[#173C5D]' : 'hover:bg-[#F0F5F9]'}`}><Bookmark size={17}/> Saved <span className="ml-auto text-[11px]">{savedPapers.length || ''}</span></button>
@@ -273,7 +273,7 @@ export default function PublicDiscovery() {
         <div className="mb-5 flex flex-wrap gap-2 text-xs lg:hidden" aria-label="Research sections">
           {['discover', 'papers', 'saved', 'history'].map(panel => <button key={panel} type="button" onClick={() => navigatePanel(panel)} aria-pressed={activePanel === panel} className={`rounded-full border px-4 py-2.5 capitalize ${activePanel === panel ? 'border-[#8DB5D0] bg-[#ECF4FA] font-semibold text-[#173C5D]' : 'border-[#E0E8EE] bg-white text-[#526477]'}`}>{panel}</button>)}
           <Link to="/find-researchers" className="rounded-full border border-[#E0E8EE] px-4 py-2.5">Researchers</Link>
-          <Link to="/login?from=%2Fcareers" className="rounded-full border border-[#E0E8EE] px-4 py-2.5">Opportunities</Link>
+          <Link to="/careers" className="rounded-full border border-[#E0E8EE] px-4 py-2.5">Careers</Link>
         </div>
         {activePanel === 'saved' && <section aria-label="Saved papers" className="mx-auto max-w-5xl pb-12">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[.18em] text-[#4F83A7]">Your browser library</p><h1 className="mt-2 text-3xl font-bold tracking-tight">Saved papers</h1><p className="mt-2 text-sm text-[#6A7886]">Saved only on this device and browser. Sign in to access your research workspace.</p></div>{savedPapers.length > 0 && <button type="button" onClick={() => { setSavedPapers([]); writeBrowserList(SAVED_KEY, []); }} className="inline-flex items-center gap-2 rounded-xl border border-[#DFE6EC] px-3 py-2 text-xs font-medium"><Trash2 size={14}/> Clear saved</button>}</div>

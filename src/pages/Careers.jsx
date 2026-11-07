@@ -161,7 +161,7 @@ export default function Careers() {
           {cvError && <p role="alert" className="mt-2 text-xs text-destructive">{cvError}</p>}
           {cvText && <div className="mt-3 rounded-lg border border-border bg-muted/20 p-3"><p className="text-[10px] text-muted-foreground">Ready to match · {Math.min(cvText.length, 120000).toLocaleString()} characters</p><button type="button" onClick={startCvMatch} disabled={loading} className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50">Match roles to my CV <ArrowRight size={14} /></button></div>}
           <p className="mt-3 text-[10px] text-muted-foreground">Supported: PDF, DOCX, TXT and Markdown · up to 5 MB. Scanned PDFs may need OCR.</p>
-          <Link to={'/researchers' + (query ? '?q=' + encodeURIComponent(query) : '')} className="mt-4 inline-flex min-h-9 items-center gap-2 text-xs font-semibold text-primary hover:underline">Explore potential supervisors <ArrowRight size={13} /></Link>
+          <Link to={'/find-researchers' + (query ? '?q=' + encodeURIComponent(query) : '')} className="mt-4 inline-flex min-h-9 items-center gap-2 text-xs font-semibold text-primary hover:underline">Explore potential supervisors <ArrowRight size={13} /></Link>
         </aside>
       </section>
 
