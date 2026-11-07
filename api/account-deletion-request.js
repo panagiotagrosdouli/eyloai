@@ -1,5 +1,6 @@
 import {
   deletionIntakeEnabled, deletionPreflightEnabled, validDeletionRequestBody, validUserId,
+  deletionSubmissionAction,
 } from '../src/lib/account-deletion-request-policy.mjs';
 
 const SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
@@ -97,10 +98,27 @@ export default async function handler(request, response) {
     if (!userId) return response.status(401).json({ error: 'Authentication required.' });
 
     let entry = await existingRequest(userId);
-    if (request.method === 'POST' && !entry) {
-      await createRequest(userId);
-      entry = await existingRequest(userId);
-      if (!entry) throw new Error('Account deletion request could not be verified after submission.');
+    if (request.method === 'POST') {
+      const action = deletionSubmissionAction(entry?.status ?? null);
+      if (action === 'closed') {
+        return response.status(409).json({
+          code: 'DELETION_REQUEST_CLOSED',
+          error: 'A previous deletion request is closed. No new request was recorded; a reviewed reopening process is required.',
+          notice: NOTICE,
+        });
+      }
+      if (action === 'create') {
+        await createRequest(userId);
+        entry = await existingRequest(userId);
+        if (!entry) throw new Error('Account deletion request could not be verified after submission.');
+        if (deletionSubmissionAction(entry.status) === 'closed') {
+          return response.status(409).json({
+            code: 'DELETION_REQUEST_CLOSED',
+            error: 'The stored deletion request is already closed. No new request was recorded.',
+            notice: NOTICE,
+          });
+        }
+      }
     }
 
     return response.status(request.method === 'POST' ? 202 : 200).json({
