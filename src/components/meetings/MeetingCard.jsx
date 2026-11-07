@@ -5,6 +5,7 @@ import moment from 'moment';
 const TYPE_LABELS = {
   project_meeting: 'Project Meeting',
   research_discussion: 'Research Discussion',
+  phd_supervision: 'Potential PhD Supervision Discussion',
   collaboration_call: 'Collaboration Call',
   mentor_call: 'Mentor Call',
   funding_preparation: 'Funding Prep',
@@ -20,6 +21,13 @@ const TYPE_COLORS = {
   funding_preparation: 'bg-amber-500/10 text-amber-400',
   startup_planning: 'bg-chart-3/10 text-purple-400',
   team_sync: 'bg-secondary text-muted-foreground',
+};
+
+const STATUS_LABELS = {
+  scheduled: 'Planned',
+  in_progress: 'In progress',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
 };
 
 const STATUS_COLORS = {
@@ -50,7 +58,7 @@ export default function MeetingCard({ meeting, onClick }) {
               {TYPE_LABELS[meeting.call_type] || 'Meeting'}
             </span>
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[meeting.status] || STATUS_COLORS.scheduled}`}>
-              {meeting.status || 'scheduled'}
+              {STATUS_LABELS[meeting.status] || 'Planned'}
             </span>
             {meeting.eyra_prep && (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold flex items-center gap-1">
