@@ -14,7 +14,7 @@ const WORKFLOWS = [
     icon: BookOpen,
     source: 'OpenAlex · live records',
     title: 'Start with the evidence.',
-    description: 'Search scholarly records, inspect their sources, and carry the useful work into a project.',
+    description: 'Explore scholarly literature with source links.',
     href: '/discover?q=climate%20adaptation',
     action: 'Explore papers',
   },
@@ -24,7 +24,7 @@ const WORKFLOWS = [
     icon: Users,
     source: 'OpenAlex · researcher records',
     title: 'Find people by what they study.',
-    description: 'Explore researchers and compare their public scholarly topics with your interests.',
+    description: 'Discover researchers through their published work.',
     href: '/login?from=%2Fresearchers',
     action: 'Explore connections',
     note: 'A public researcher profile does not confirm hiring or PhD availability.',
@@ -35,7 +35,7 @@ const WORKFLOWS = [
     icon: Sparkles,
     source: 'AI-assisted · exploratory',
     title: 'Turn open questions into a research map.',
-    description: 'Compare approaches, populations and evidence across a literature landscape.',
+    description: 'Explore possible gaps in the literature.',
     href: '/login?from=%2Flabs%2Fresearch-landscape',
     action: 'Map a research landscape',
     note: 'Gap signals are hypotheses to check against the original studies.',
@@ -46,7 +46,7 @@ const WORKFLOWS = [
     icon: Briefcase,
     source: 'EURAXESS · official listings',
     title: 'Find roles connected to your research.',
-    description: 'Search current research roles and compare listing text with your CV in your browser.',
+    description: 'Explore research roles and PhD opportunities.',
     href: '/login?from=%2Fcareers',
     action: 'Explore research careers',
     note: 'CV matching supports TXT and Markdown files; it does not determine eligibility.',
@@ -57,7 +57,7 @@ const WORKFLOWS = [
     icon: FileText,
     source: 'Grants.gov · United States',
     title: 'Find calls that can move a project forward.',
-    description: 'Search official US grant records and review deadlines, eligibility and source details.',
+    description: 'Review official US funding opportunities.',
     href: '/login?from=%2Fopportunities',
     action: 'Explore funding calls',
     note: 'Current funding search covers Grants.gov, not every international funder.',
@@ -118,10 +118,10 @@ export default function Landing() {
               <span className="h-2 w-2 rounded-full bg-[#9FC8E8] shadow-[0_0_14px_#9FC8E8]" /> Research, connected
             </p>
             <h1 id="eylo-hero-title" className="mt-7 max-w-2xl text-[clamp(3.4rem,7.1vw,6.6rem)] font-medium leading-[0.91] tracking-[-0.075em] text-[#F6F7EF]">
-              Research is a <span className="font-serif font-normal italic text-[#B9D8EE]">network.</span>
+              Research, <span className="font-serif font-normal italic text-[#B9D8EE]">connected.</span>
             </h1>
             <p className="mt-7 max-w-lg text-base leading-7 text-[#D5E4EF] sm:text-lg sm:leading-8">
-              EYLO AI brings research, people, open questions and opportunities together so you can see where an idea can go.
+              Discover evidence. Find researchers. Explore opportunities. Move your ideas forward.
             </p>
             <form role="search" onSubmit={explore} className="mt-9 flex w-full max-w-xl items-center gap-2 rounded-2xl border border-white/15 bg-white p-2 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.65)] transition focus-within:ring-4 focus-within:ring-[#B9D8EE]/25">
               <Search className="ml-3 shrink-0 text-[#567895]" size={20} aria-hidden="true" />
@@ -199,12 +199,28 @@ export default function Landing() {
         </div>
       </section>
 
+
+      <section aria-label="EYLO research journey" className="bg-[#F7FAFD] px-5 py-10 sm:px-8 sm:py-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="relative isolate overflow-hidden rounded-[2rem] border border-[#C8DBEB] bg-[#DCECF8] shadow-[0_24px_65px_-42px_rgba(10,44,84,0.5)]">
+            <img src={`${import.meta.env.BASE_URL}brand/eylo-alpine-landscape.svg`} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#102E50]/90 via-[#153F66]/65 to-[#1B5A85]/10" />
+            <div className="relative grid min-h-[350px] items-center gap-7 px-7 py-10 text-white sm:px-12 sm:py-16 lg:grid-cols-[.9fr_1.1fr]">
+              <div><p className="text-[11px] font-bold uppercase tracking-[.22em] text-[#BCE9F5]">A clearer path from curiosity to progress</p><h2 className="mt-5 max-w-lg font-serif text-5xl leading-[.97] tracking-[-.06em] sm:text-6xl">One question.<br/><span className="italic text-[#BCE9F5]">New horizons.</span></h2><p className="mt-5 max-w-sm text-sm leading-7 text-[#E2EEF7]">Evidence, people and next steps — connected around your research.</p><Link to="/discover" className="mt-8 inline-flex min-h-11 items-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-[#173D67] transition hover:bg-[#D7EFF8]">Start exploring <ArrowRight size={16}/></Link></div>
+              <div className="grid grid-cols-2 gap-3 self-end sm:gap-4">
+                {[{number:"01",title:"Discover",description:"Source-linked papers",icon:BookOpen},{number:"02",title:"Connect",description:"Researchers & topics",icon:Users},{number:"03",title:"Explore",description:"Open questions",icon:Sparkles},{number:"04",title:"Advance",description:"Roles & funding",icon:Briefcase}].map(({number,title,description,icon:Icon})=><div key={number} className="rounded-2xl border border-white/30 bg-[#0C3155]/65 p-4 shadow-lg backdrop-blur-md sm:p-6"><div className="flex items-center justify-between text-[#BCE9F5]"><span className="text-[10px] font-bold tracking-[.17em]">{number}</span><Icon size={19}/></div><h3 className="mt-8 font-serif text-3xl font-semibold">{title}</h3><p className="mt-2 text-xs text-[#D6E8F3]">{description}</p></div>)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="eylo-does" aria-labelledby="eylo-does-title" className="border-b border-[#DFE7EF] bg-[#F6F9FC] px-5 py-16 sm:px-8 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#37749B]">What we do</p>
-            <h2 id="eylo-does-title" className="mt-4 font-serif text-4xl leading-[1.06] tracking-[-0.05em] text-[#102B49] sm:text-5xl">One place for the next step in your research.</h2>
-            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[#536B82]">EYLO AI connects papers, people, open questions and research opportunities around what you want to explore.</p>
+            <h2 id="eylo-does-title" className="mt-4 font-serif text-4xl leading-[1.06] tracking-[-0.05em] text-[#102B49] sm:text-5xl">Everything your research needs to move forward.</h2>
+            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[#536B82]">Explore papers, people and opportunities in one connected research journey.</p>
           </div>
 
           <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-[1.5rem] border border-[#D9E4EF] bg-white shadow-[0_24px_75px_-54px_rgba(16,43,73,0.45)]">
@@ -235,24 +251,11 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="how-it-works" aria-labelledby="how-title" className="border-b border-[#DFE7EF] bg-white px-5 py-16 sm:px-8 sm:py-20">
+      <section id="how-it-works" aria-labelledby="how-title" className="border-b border-[#DFE7EF] bg-white px-5 py-16 sm:px-8 sm:py-24">
         <div className="mx-auto max-w-6xl">
-          <div className="max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#37749B]">How it works</p>
-            <h2 id="how-title" className="mt-4 font-serif text-4xl leading-tight tracking-[-0.05em] text-[#102B49] sm:text-5xl">A question becomes a way forward.</h2>
-          </div>
-          <ol className="mt-9 grid gap-3 md:grid-cols-3">
-            {[
-              { number: '01', title: 'Ask', text: 'Start with a topic, a problem or an idea you want to explore.' },
-              { number: '02', title: 'Connect', text: 'Follow the evidence to people, open questions and related work.' },
-              { number: '03', title: 'Move forward', text: 'Save discoveries and explore projects, roles or funding calls.' },
-            ].map(({ number, title, text }) => (
-              <li key={number} className="rounded-2xl border border-[#DDE7F0] bg-[#FBFCFE] p-6 sm:p-7">
-                <span className="text-xs font-bold tracking-[0.16em] text-[#6E879C]">{number}</span>
-                <h3 className="mt-5 text-lg font-semibold text-[#173452]">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-[#61778B]">{text}</p>
-              </li>
-            ))}
+          <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#37749B]">How it works</p><h2 id="how-title" className="mt-4 font-serif text-5xl leading-none tracking-[-.055em] text-[#102B49] sm:text-6xl">Ask. Explore. <span className="italic text-[#3E86B2]">Advance.</span></h2></div><Link to="/discover" className="inline-flex items-center gap-2 border-b border-[#286C9A] pb-2 text-sm font-semibold text-[#215780]">Try research discovery <ArrowRight size={16}/></Link></div>
+          <ol className="mt-10 grid gap-4 md:grid-cols-3">
+            {[{number:"01",title:"Ask",text:"Begin with a research question.",icon:Search},{number:"02",title:"Explore",text:"Find source-linked evidence.",icon:BookOpen},{number:"03",title:"Advance",text:"Connect your next steps.",icon:ArrowRight}].map(({number,title,text,icon:Icon})=><li key={number} className="group relative overflow-hidden rounded-[1.5rem] border border-[#DDE7F0] bg-[linear-gradient(155deg,#EDF6FC,#FFFFFF_68%)] p-7 transition hover:-translate-y-1 hover:shadow-xl"><div className="absolute -right-10 -top-10 h-44 w-44 rounded-full border border-[#BFD7E9]"/><div className="relative flex items-center justify-between"><span className="font-serif text-5xl italic text-[#96B9D3]">{number}</span><span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#173F67] text-white"><Icon size={21}/></span></div><h3 className="relative mt-16 font-serif text-4xl font-semibold text-[#133556]">{title}</h3><p className="relative mt-2 text-sm text-[#5E758C]">{text}</p></li>)}
           </ol>
         </div>
       </section>
@@ -261,13 +264,13 @@ export default function Landing() {
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2 lg:gap-16">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#37749B]">Who we are</p>
-            <h2 id="about-title" className="mt-4 font-serif text-3xl leading-tight tracking-[-0.05em] text-[#102B49] sm:text-4xl">We’re building a more connected way to do research.</h2>
-            <p className="mt-5 max-w-xl text-sm leading-7 text-[#536B82]">EYLO AI is a research discovery platform for people who want to find knowledge, collaborators and opportunities without losing the thread between them.</p>
+            <h2 id="about-title" className="mt-4 font-serif text-3xl leading-tight tracking-[-0.05em] text-[#102B49] sm:text-4xl">Research deserves a connected future.</h2>
+            <p className="mt-5 max-w-xl text-sm leading-7 text-[#536B82]">EYLO brings research discovery and next steps into one workspace.</p>
           </div>
           <div className="border-l-2 border-[#8CB4D1] pl-6 lg:pl-8">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#37749B]">Our vision</p>
-            <h3 className="mt-4 font-serif text-3xl leading-tight tracking-[-0.05em] text-[#102B49] sm:text-4xl">Every good question should have a clearer path to progress.</h3>
-            <p className="mt-5 max-w-xl text-sm leading-7 text-[#536B82]">We imagine a research world where evidence is easier to navigate, relevant people are easier to find, and promising ideas can reach the resources they need.</p>
+            <h3 className="mt-4 font-serif text-3xl leading-tight tracking-[-0.05em] text-[#102B49] sm:text-4xl">From discovery to direction.</h3>
+            <p className="mt-5 max-w-xl text-sm leading-7 text-[#536B82]">Our goal: make credible research easier to discover, connect and act on.</p>
           </div>
         </div>
         <div className="mx-auto mt-12 max-w-6xl rounded-[1.5rem] bg-[#102B49] px-6 py-8 text-white sm:flex sm:items-center sm:justify-between sm:gap-8 sm:px-9">
@@ -287,7 +290,7 @@ export default function Landing() {
           <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-3">
             <Link to="/discover" className="hover:text-slate-900">Discover</Link>
             <a href="#eylo-does" className="hover:text-slate-900">What EYLO does</a>
-            <Link to="/login" className="hover:text-slate-900">Sign in</Link>
+            <Link to="/login" className="hover:text-slate-900">Sign in</Link><Link to="/contact" className="hover:text-slate-900">Contact</Link>
             <span>© {new Date().getFullYear()} EYLO</span>
           </nav>
         </div>
