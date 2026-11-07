@@ -143,7 +143,7 @@ export default function Careers() {
               {cvText && !item.match_terms?.length && <p className="mt-3 text-xs text-muted-foreground">No direct keyword overlap found in the listing text.</p>}
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
                 <span className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"><ShieldCheck size={12} />Original record · inspect eligibility at source</span>
-                <a href={item.source_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground">View official posting <ExternalLink size={12} /></a>
+                <a href={item.source_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground">Open original listing <ExternalLink size={12} /></a>
               </div>
             </article>
           ))}
