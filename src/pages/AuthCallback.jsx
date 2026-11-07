@@ -30,10 +30,15 @@ export default function AuthCallback() {
           return;
         }
 
+        // Remove URL-fragment credentials after the Supabase client has established the session.
+        if (window.location.hash && /(?:access_token|refresh_token)=/.test(window.location.hash)) {
+          window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+        }
         const destination = getSafeRedirect(searchParams.get('from'));
         if (window.opener && !window.opener.closed) {
           window.opener.postMessage({ type: OAUTH_COMPLETE_MESSAGE }, window.location.origin);
-          window.opener.location.assign(destination);
+          const root = import.meta.env.BASE_URL || '/';
+          window.opener.location.assign(root + destination.replace(/^\\//, ''));
           window.close();
           return;
         }
