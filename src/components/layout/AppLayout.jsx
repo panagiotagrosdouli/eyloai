@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
-  Activity, Award, BookOpen, Brain, ChevronDown, FileEdit, FolderOpen, History,
+  Activity, Award, BookOpen, Brain, Briefcase, ChevronDown, FileEdit, FolderOpen, History,
   Home, LayoutDashboard, LayoutGrid, Lightbulb, Menu, Mic, Presentation,
   Rocket, Search, Settings, Sparkles, Target, TrendingUp, Trophy, User, Users,
   Video, X, Zap,
@@ -17,12 +17,19 @@ import { trackActivatedReturn } from '@/lib/product-analytics';
 const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
   { label: 'Discover', path: '/discover', icon: Search },
-  { label: 'People', path: '/researchers', icon: Users },
-  { label: 'Funding', path: '/opportunities', icon: Award },
+  { label: 'Connect', path: '/researchers', icon: Users },
+  { label: 'Careers', path: '/careers', icon: Briefcase },
   { label: 'Projects', path: '/projects', icon: FolderOpen },
 ];
 
 const TOOL_GROUPS = [
+  {
+    section: 'Research calls',
+    description: 'Funding and collaboration opportunities',
+    items: [
+      { label: 'Funding & calls', path: '/opportunities', icon: Award, desc: 'Search official funding records' },
+    ],
+  },
   {
     section: 'Workspace',
     description: 'Research work that stays connected to projects',
@@ -36,8 +43,8 @@ const TOOL_GROUPS = [
     ],
   },
   {
-    section: 'Labs',
-    description: 'Experimental workflows',
+    section: 'Research tools',
+    description: 'Planning and analysis tools',
     items: [
       { label: 'Open challenges', path: '/challenges', icon: Trophy, desc: 'Research and innovation challenges', badge: 'Live sources' },
       { label: 'Executive briefing', path: '/briefing', icon: Brain, desc: 'A sourced view of priorities and risks', badge: 'Assisted' },
@@ -46,7 +53,7 @@ const TOOL_GROUPS = [
       { label: 'Impact review', path: '/labs/impact', icon: Target, desc: 'Test impact assumptions and pathways', badge: 'Experimental' },
       { label: 'Scenario planner', path: '/labs/scenario', icon: Rocket, desc: 'Compare plausible project directions', badge: 'Experimental' },
       { label: 'Team planner', path: '/labs/team', icon: Users, desc: 'Explore roles and expertise fit', badge: 'Experimental' },
-      { label: 'Professional path', path: '/labs/professional-path', icon: TrendingUp, desc: 'Explore skills, milestones and direction', badge: 'Experimental' },
+
       { label: 'Voice workspace', path: '/labs/voice', icon: Mic, desc: 'Dictate a sourced research question', badge: 'Experimental' },
       { label: 'Grant workspace', path: '/grant-builder', icon: FileEdit, desc: 'Draft and track an application', badge: 'Assisted' },
       { label: 'Pitch deck', path: '/pitchdeck', icon: Presentation, desc: 'Build a sourced presentation', badge: 'Assisted' },

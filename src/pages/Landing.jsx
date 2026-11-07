@@ -165,8 +165,8 @@ export default function Landing() {
                 <div className="flex items-center justify-between"><p className="text-xs font-semibold text-[#173A5D]">Opportunities shaped around your profile</p><FileText size={18} className="text-[#28658D]" aria-hidden="true"/></div>
                 <article className="rounded-xl border border-[#E2EAF1] bg-[#FBFCFE] p-4"><div className="flex items-center justify-between gap-3"><h4 className="text-sm font-semibold text-[#173452]">PhD supervisors & research labs</h4><span className="rounded-full bg-[#EAF2F8] px-2 py-1 text-[10px] text-[#356E98]">Interest match</span></div><p className="mt-1 text-xs text-[#61788E]">Find researchers working on the questions you care about.</p></article>
                 <article className="rounded-xl border border-[#E2EAF1] bg-[#FBFCFE] p-4"><div className="flex items-center justify-between gap-3"><h4 className="text-sm font-semibold text-[#173452]">Research roles & fellowships</h4><span className="rounded-full bg-[#EDF7F0] px-2 py-1 text-[10px] text-[#3D7654]">CV match</span></div><p className="mt-1 text-xs text-[#61788E]">Surface roles connected to your skills and experience.</p></article>
-                <p className="text-[10px] text-[#71869A]">Add your CV privately; review every suggested match.</p>
-                <Link to="/labs/professional-path" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Explore your next step <ArrowRight size={15}/></Link>
+                <p className="text-[10px] text-[#71869A]">Your CV stays in this browser. Review the match before applying.</p>
+                <Link to="/careers" className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Explore research careers <ArrowRight size={15}/></Link>
               </div>}
               {previewTab === 'Calls' && <div className="space-y-3">
                 <p className="text-xs font-semibold text-[#173A5D]">Calls that can move your idea forward</p>
