@@ -21,7 +21,9 @@ async function requestStatus(method, confirmation) {
         ? 'Deletion requests are not yet available on this deployment.'
         : response.status === 401
           ? 'Please sign in again to view or submit a deletion request.'
-          : 'We could not verify the request status. No account deletion was performed.',
+          : response.status === 409 && result?.code === 'DELETION_REQUEST_CLOSED'
+            ? 'A previous request was closed. No new request was recorded. Please contact support to review a new request.'
+            : 'We could not verify the request status. No account deletion was performed.',
     ), { status: response.status });
   }
   return result;
