@@ -2,7 +2,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function isValidEmailAddress(value) {
   const email = String(value || '').trim();
-  const [localPart, domain] = email.split('@');
+  const separator = email.lastIndexOf('@');
+  if (separator <= 0) return false;
+  const localPart = email.slice(0, separator);
+  const domain = email.slice(separator + 1);
   return email.length <= 254 && localPart.length <= 64 && domain.length <= 253 && EMAIL_PATTERN.test(email);
 }
 
