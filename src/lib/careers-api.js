@@ -55,15 +55,15 @@ export function normalizeRemotiveSnapshot(snapshot) {
     try {
       const sourceUrl = new URL(job?.source_url || job?.url);
       if (sourceUrl.protocol !== 'https:' || !['remotive.com', 'www.remotive.com'].includes(sourceUrl.hostname.toLowerCase())) return [];
-      const title = String(job?.title || '').replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 240);
+      const title = String(job?.title || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 240);
       const id = String(job?.id || '').trim().slice(0, 180);
       if (!title || !id) return [];
       return [{
         id,
         title,
-        organization: String(job?.organization || job?.company_name || '').replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 180),
-        country: String(job?.country || job?.candidate_required_location || 'Remote').replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 180),
-        description: String(job?.description || '').replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 700),
+        organization: String(job?.organization || job?.company_name || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 180),
+        country: String(job?.country || job?.candidate_required_location || 'Remote').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 180),
+        description: String(job?.description || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 700),
         deadline: '',
         source: 'Remotive',
         source_url: sourceUrl.toString(),
