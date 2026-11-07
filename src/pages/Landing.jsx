@@ -101,10 +101,11 @@ export default function Landing() {
             <img src={`${import.meta.env.BASE_URL}brand/eylo-light.svg`} alt="EYLO" width="180" height="54" className="h-10 w-auto max-w-[130px] object-contain sm:h-12 sm:max-w-[180px]" fetchPriority="high" />
           </Link>
           <nav aria-label="Main navigation" className="hidden items-center gap-1 md:flex">
-            <Link to="/discover" className="rounded-lg px-3 py-2 text-sm font-medium text-[#405B77] transition hover:bg-[#F2F6FA] hover:text-[#174C7C]">Discover</Link>
-            <a href="#eylo-does" className="rounded-lg px-3 py-2 text-sm font-medium text-[#405B77] transition hover:bg-[#F2F6FA] hover:text-[#174C7C]">What EYLO does</a>
+            <a href="#eylo-does" className="rounded-lg px-3 py-2 text-sm font-medium text-[#405B77] transition hover:bg-[#F2F6FA] hover:text-[#174C7C]">What we do</a>
+            <a href="#how-it-works" className="rounded-lg px-3 py-2 text-sm font-medium text-[#405B77] transition hover:bg-[#F2F6FA] hover:text-[#174C7C]">How it works</a>
+            <a href="#about-eylo" className="rounded-lg px-3 py-2 text-sm font-medium text-[#405B77] transition hover:bg-[#F2F6FA] hover:text-[#174C7C]">Our vision</a>
           </nav>
-          <Link to="/login" className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[#C4D2DF] bg-white px-4 text-sm font-semibold text-[#173D67] transition hover:border-[#8EAAC0] hover:bg-[#F4F8FB]">Sign in</Link>
+          <div className="flex items-center gap-3"><Link to="/login" className="hidden px-3 py-2 text-sm font-medium text-[#405B77] hover:text-[#174C7C] sm:inline-flex">Sign in</Link><Link to="/discover" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[#174672] px-4 text-sm font-semibold text-white transition hover:bg-[#245D91]">See EYLO AI <ArrowRight size={15} /></Link></div>
         </div>
       </header>
 
@@ -120,7 +121,7 @@ export default function Landing() {
               Research is a <span className="font-serif font-normal italic text-[#B9D8EE]">network.</span>
             </h1>
             <p className="mt-7 max-w-lg text-base leading-7 text-[#D5E4EF] sm:text-lg sm:leading-8">
-              EYLO connects the evidence, people and opportunities around your next idea.
+              EYLO AI brings research, people, open questions and opportunities together so you can see where an idea can go.
             </p>
             <form role="search" onSubmit={explore} className="mt-9 flex w-full max-w-xl items-center gap-2 rounded-2xl border border-white/15 bg-white p-2 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.65)] transition focus-within:ring-4 focus-within:ring-[#B9D8EE]/25">
               <Search className="ml-3 shrink-0 text-[#567895]" size={20} aria-hidden="true" />
@@ -135,7 +136,7 @@ export default function Landing() {
               ))}
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
-              <Link to="/discover" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#B9D8EE] px-5 text-sm font-semibold text-[#173D67] transition hover:bg-[#D8E9F5]">Explore research <ArrowRight size={16} /></Link>
+              <Link to="/discover" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#B9D8EE] px-5 text-sm font-semibold text-[#173D67] transition hover:bg-[#D8E9F5]">See EYLO AI <ArrowRight size={16} /></Link>
               <span className="inline-flex items-center gap-2 text-xs font-medium text-[#C7D7E4]"><CheckCircle2 size={15} className="text-[#B9D8EE]" />Start searching, no sign-in needed</span>
             </div>
           </div>
@@ -201,13 +202,13 @@ export default function Landing() {
       <section id="eylo-does" aria-labelledby="eylo-does-title" className="border-b border-[#DFE7EF] bg-[#F6F9FC] px-5 py-16 sm:px-8 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#37749B]">What EYLO does</p>
-            <h2 id="eylo-does-title" className="mt-4 font-serif text-4xl leading-[1.06] tracking-[-0.05em] text-[#102B49] sm:text-5xl">From your question to your next move.</h2>
-            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[#536B82]">Find evidence, connect with people who share your interests, spot open questions and explore research roles or funding — all around the work you care about.</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#37749B]">What we do</p>
+            <h2 id="eylo-does-title" className="mt-4 font-serif text-4xl leading-[1.06] tracking-[-0.05em] text-[#102B49] sm:text-5xl">One place for the next step in your research.</h2>
+            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[#536B82]">EYLO AI connects papers, people, open questions and research opportunities around what you want to explore.</p>
           </div>
 
           <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-[1.5rem] border border-[#D9E4EF] bg-white shadow-[0_24px_75px_-54px_rgba(16,43,73,0.45)]">
-            <div className="flex gap-1 overflow-x-auto border-b border-[#E3EAF2] px-3 pt-3 sm:justify-center sm:px-5" role="tablist" aria-label="What EYLO can help you do">
+            <div className="flex gap-1 overflow-x-auto border-b border-[#E3EAF2] px-3 pt-3 sm:justify-center sm:px-5" role="tablist" aria-label="What EYLO AI does">
               {WORKFLOWS.map(({ id, label, icon: Icon }) => (
                 <button key={id} id={'workflow-tab-' + id} type="button" role="tab" aria-controls="workflow-panel" aria-selected={activeWorkflow === id} onClick={() => setActiveWorkflow(id)} className={'inline-flex min-h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-xs font-semibold transition sm:px-5 sm:text-sm ' + (activeWorkflow === id ? 'border-[#205986] text-[#153C62]' : 'border-transparent text-[#647A90] hover:text-[#153C62]')}>
                   <Icon size={15} aria-hidden="true" />{label}
@@ -231,13 +232,52 @@ export default function Landing() {
               </Link>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="mt-9 text-center">
-            <Link to="/discover" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#174672] px-7 text-sm font-semibold text-white shadow-[0_12px_30px_-16px_rgba(23,70,114,0.65)] transition hover:bg-[#245D91] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#174672]">
-              See EYLO here <ArrowRight size={16} />
-            </Link>
-            <p className="mt-3 text-xs text-[#61788E]">Explore EYLO directly — no detour.</p>
+      <section id="how-it-works" aria-labelledby="how-title" className="border-b border-[#DFE7EF] bg-white px-5 py-16 sm:px-8 sm:py-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#37749B]">How it works</p>
+            <h2 id="how-title" className="mt-4 font-serif text-4xl leading-tight tracking-[-0.05em] text-[#102B49] sm:text-5xl">A question becomes a way forward.</h2>
           </div>
+          <ol className="mt-9 grid gap-3 md:grid-cols-3">
+            {[
+              { number: '01', title: 'Ask', text: 'Start with a topic, a problem or an idea you want to explore.' },
+              { number: '02', title: 'Connect', text: 'Follow the evidence to people, open questions and related work.' },
+              { number: '03', title: 'Move forward', text: 'Save discoveries and explore projects, roles or funding calls.' },
+            ].map(({ number, title, text }) => (
+              <li key={number} className="rounded-2xl border border-[#DDE7F0] bg-[#FBFCFE] p-6 sm:p-7">
+                <span className="text-xs font-bold tracking-[0.16em] text-[#6E879C]">{number}</span>
+                <h3 className="mt-5 text-lg font-semibold text-[#173452]">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[#61778B]">{text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section id="about-eylo" aria-labelledby="about-title" className="bg-[#F1F5F9] px-5 py-16 sm:px-8 sm:py-20">
+        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2 lg:gap-16">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#37749B]">Who we are</p>
+            <h2 id="about-title" className="mt-4 font-serif text-3xl leading-tight tracking-[-0.05em] text-[#102B49] sm:text-4xl">We’re building a more connected way to do research.</h2>
+            <p className="mt-5 max-w-xl text-sm leading-7 text-[#536B82]">EYLO AI is a research discovery platform for people who want to find knowledge, collaborators and opportunities without losing the thread between them.</p>
+          </div>
+          <div className="border-l-2 border-[#8CB4D1] pl-6 lg:pl-8">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#37749B]">Our vision</p>
+            <h3 className="mt-4 font-serif text-3xl leading-tight tracking-[-0.05em] text-[#102B49] sm:text-4xl">Every good question should have a clearer path to progress.</h3>
+            <p className="mt-5 max-w-xl text-sm leading-7 text-[#536B82]">We imagine a research world where evidence is easier to navigate, relevant people are easier to find, and promising ideas can reach the resources they need.</p>
+          </div>
+        </div>
+        <div className="mx-auto mt-12 max-w-6xl rounded-[1.5rem] bg-[#102B49] px-6 py-8 text-white sm:flex sm:items-center sm:justify-between sm:gap-8 sm:px-9">
+          <div>
+            <p className="text-lg font-semibold">Ready to see EYLO AI in action?</p>
+            <p className="mt-1 text-sm text-[#D5E4EF]">Explore the real research discovery experience.</p>
+          </div>
+          <Link to="/discover" className="mt-5 inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#B9D8EE] px-6 text-sm font-semibold text-[#173D67] transition hover:bg-[#D8E9F5] sm:mt-0">
+            See EYLO AI <ArrowRight size={16} />
+          </Link>
         </div>
       </section>
 
