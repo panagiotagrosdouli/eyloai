@@ -1,12 +1,13 @@
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 const GRANTS_SEARCH_URL = 'https://api.grants.gov/v1/api/search2';
 const GRANTS_DETAIL_URL = 'https://api.grants.gov/v1/api/fetchOpportunity';
+const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_QOF_tW8ve4IFUsflluOhww_aRubMF0V';
 const MAX_QUERY_LENGTH = 240;
 const MAX_RESULTS = 15;
 
 async function authenticate(authorization) {
   if (!authorization?.startsWith('Bearer ')) return false;
-  const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const anonKey = process.env.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_PUBLISHABLE_KEY;
   const supabaseUrl = process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
   if (!anonKey) return false;
 
