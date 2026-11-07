@@ -85,3 +85,55 @@ that all personal data has been erased.
 **Release decision: NO-GO.** Unit tests and a READY Vercel build
 cannot replace live RLS isolation tests, completion of actual deletion,
 or privacy/legal review. No real user record was accessed or deleted.
+
+## Read-only owner data preflight (follow-up draft)
+
+A second server-only switch, `EYLO_DELETION_PREFLIGHT_ENABLED=1`, can
+expose `GET /api/account-deletion-preflight` **only when** request intake
+is also independently enabled and the current user already has an open
+request (`pending_review`, `in_review` or `blocked_billing`).
+The requester identity is reverified using Supabase Auth and supplied
+`user_id` query strings or request bodies are entirely ignored.
+
+The endpoint sends **HEAD requests**, using `Prefer: count=exact`,
+`select=user_id` and a filter on the verified Auth user ID, to inspect
+only aggregate record counts from these 14 classes:
+
+- profiles, projects, ideas, meetings
+- saved_papers, saved_researchers, saved_opportunities, search_history
+- watchlists, monitoring_discoveries, notifications
+- eyra_usage_actions, institution_memberships, billing_entitlements
+
+Each HEAD must succeed and provide a numeric `Content-Range` total.
+Unknown counts, missing tables, changed schemas or permission errors
+return HTTP 502 **without publishing a partial/false-zero inventory**.
+The browser displays read-only counts only after the user explicitly
+clicks the inventory button; the endpoint never returns the user ID,
+raw research, paper titles, emails or customer identifiers.
+
+This list is derived from repository migrations only. **It is NOT a
+complete, validated live schema inventory** and cannot inspect
+Supabase Storage, Stripe invoices and subscription state, backups,
+AI provider or application logs, institutional ownership transfer,
+session revocation or the actual deployed migration history. Those
+always remain explicit independent review blockers. Even if every
+reported count is zero, the response always sets
+`account_deleted: false` and `deletion_authorized: false`.
+
+Data counting alone never authorizes service-role DELETE access,
+`auth.admin.deleteUser()`, Stripe cancellation or a user-facing
+"account removed" message. This preflight makes **no modifications**,
+uses bounded batches of four HEAD calls and does not enable final
+deletion. The feature remains off until the correct Supabase project,
+schema and access boundaries have been verified with disposable
+accounts and the responsible operators approve read-only use.
+
+Relevant documentation:
+- PostgREST exact row counts via HEAD:
+  https://postgrest.org/en/stable/references/api/pagination_count.html
+- Supabase user deletion and storage object caveats:
+  https://supabase.com/docs/guides/auth/managing-user-data
+- Supabase JWT session lifecycle:
+  https://supabase.com/docs/guides/auth/sessions
+
+**All live acceptance gates remain NO-GO.**
