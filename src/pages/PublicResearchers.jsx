@@ -108,7 +108,7 @@ Best regards,
       return;
     }
     const { subject, body } = parseResearchEmailDraft(selected.draft);
-    const url = 'mailto:' + encodeURIComponent(institutionalEmail.trim()) + '?subject=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(body);
+    const url = 'mailto:' + encodeURIComponent(institutionalEmail.trim()) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
     upsertOutreach('email_app_opened');
     window.location.href = url;
   };
