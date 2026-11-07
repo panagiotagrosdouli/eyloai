@@ -16,7 +16,10 @@ function decodeEntities(value = '') {
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
     .replace(/&#(\d+);/g, (_, number) => String.fromCodePoint(Number(number)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, number) => String.fromCodePoint(parseInt(number, 16)));
+    .replace(/&#x([0-9a-f]+);/gi, (_, number) => {
+      const codePoint = parseInt(number, 16);
+      return codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : ' ';
+    });
 }
 
 function plainText(value = '') {
