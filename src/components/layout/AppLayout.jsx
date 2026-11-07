@@ -16,9 +16,10 @@ import { trackActivatedReturn } from '@/lib/product-analytics';
 
 const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
-  { label: 'Projects', path: '/projects', icon: FolderOpen },
   { label: 'Discover', path: '/discover', icon: Search },
-  { label: 'Researchers', path: '/researchers', icon: Users },
+  { label: 'People', path: '/researchers', icon: Users },
+  { label: 'Funding', path: '/opportunities', icon: Award },
+  { label: 'Projects', path: '/projects', icon: FolderOpen },
 ];
 
 const TOOL_GROUPS = [
@@ -27,7 +28,6 @@ const TOOL_GROUPS = [
     description: 'Research work that stays connected to projects',
     items: [
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
-      { label: 'Funding', path: '/opportunities', icon: Award, desc: 'Funding matches for your projects' },
       { label: 'For you', path: '/foryou', icon: Sparkles, desc: 'Updates from your saved research context', badge: 'Workspace' },
       { label: 'Idea workspace', path: '/ideas', icon: Lightbulb, desc: 'Capture and develop research ideas', badge: 'Workspace' },
       { label: 'Meetings', path: '/meetings', icon: Video, desc: 'Keep notes, decisions and actions', badge: 'Workspace' },
