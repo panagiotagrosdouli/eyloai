@@ -57,7 +57,7 @@ function normalizeJob(job, feed) {
 function normalizeRemotiveJob(job) {
   try {
     const sourceUrl = new URL(job?.source_url || job?.url);
-    if (sourceUrl.protocol !== 'https:' || !/(^|\\.)remotive\\.com$/i.test(sourceUrl.hostname)) return null;
+    if (sourceUrl.protocol !== 'https:' || !/(^|\.)remotive\.com$/i.test(sourceUrl.hostname)) return null;
     const title = plainText(job?.title || '');
     const id = String(job?.id || '').trim();
     if (!title || !id) return null;
