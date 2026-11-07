@@ -105,7 +105,7 @@ export default function Careers() {
               <Briefcase size={13} aria-hidden="true" /> Research careers
             </p>
             <h1 className="mt-5 max-w-2xl font-serif text-4xl leading-tight tracking-tight text-foreground sm:text-5xl">Your next role, connected to your research.</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">Search research roles on EURAXESS and general roles from Europe and the UK. Match listings to your CV in your browser, then review the original posting.</p>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">Search research roles on EURAXESS, general roles in Europe and the UK, and remote jobs listed globally on Remotive. Location restrictions apply. CV matching stays in your browser; review every original posting.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {TOPICS.map(topic => <button key={topic} type="button" onClick={() => runSearch(topic)} className="min-h-10 rounded-full border border-border bg-background px-3 text-xs font-medium text-foreground transition hover:border-primary/40">{topic}</button>)}
@@ -119,7 +119,7 @@ export default function Careers() {
             <button type="submit" disabled={loading} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60">{loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}<span className="hidden sm:inline">Search roles</span></button>
           </div>
           <div className="mx-auto mt-2 flex max-w-4xl items-center justify-between gap-3 text-[11px] text-muted-foreground">
-            <span>Search terms go to EURAXESS · general Europe/UK listings are matched locally</span> <span aria-hidden="true">·</span> <a href="https://www.arbeitnow.com/" target="_blank" rel="noreferrer" className="hover:underline">Job listings by Arbeitnow</a>
+            <span>Search terms go to EURAXESS · job feeds are matched locally</span> <span aria-hidden="true">·</span> <a href="https://www.arbeitnow.com/" target="_blank" rel="noreferrer" className="hover:underline">Europe/UK listings by Arbeitnow</a> <span aria-hidden="true">·</span> <a href="https://remotive.com/remote-jobs/api" target="_blank" rel="noreferrer" className="hover:underline">Remote listings by Remotive</a>
             {sourceUrl && <a href={sourceUrl} target="_blank" rel="noreferrer" className="hover:underline">Source search <ExternalLink size={11} className="inline" /></a>}
           </div>
         </form>
@@ -130,7 +130,7 @@ export default function Careers() {
           {sourceNotice && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{sourceNotice}</div>}
           {error && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{error}</div>}
           {loading && <div role="status" className="flex items-center gap-3 rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground"><Loader2 size={16} className="animate-spin" />Searching EURAXESS and loading Europe/UK listings…</div>}
-          {!loading && !error && items.length > 0 && <p className="text-xs text-muted-foreground">{rankedItems.length} matching roles across EURAXESS and Europe/UK listings · {retrievedAt ? 'updated ' + new Date(retrievedAt).toLocaleString() : 'current source records'} · sorted by CV overlap</p>}
+          {!loading && !error && items.length > 0 && <p className="text-xs text-muted-foreground">{rankedItems.length} matching research, Europe/UK and remote roles · {retrievedAt ? 'updated ' + new Date(retrievedAt).toLocaleString() : 'current source records'} · sorted by CV overlap</p>}
           {!loading && rankedItems.map(item => (
             <article key={item.id} className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -168,7 +168,7 @@ export default function Careers() {
       {consentOpen && <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/50 p-4" role="presentation">
         <section role="dialog" aria-modal="true" aria-labelledby="cv-match-title" className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl">
           <div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Before the search</p><h2 id="cv-match-title" className="mt-2 text-xl font-semibold text-foreground">Use CV keywords to find roles?</h2></div><button type="button" aria-label="Close" onClick={() => setConsentOpen(false)} className="grid h-9 w-9 place-items-center rounded-lg hover:bg-muted"><X size={16} /></button></div>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">EYLO will send these extracted search terms to EURAXESS. Your CV file and full text stay in this browser. General Europe and UK listings are downloaded without your CV terms and matched locally.</p>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">EYLO will send these extracted search terms to EURAXESS. Your CV file and full text stay in this browser. General Europe/UK and Remotive listings are downloaded without your CV terms and matched locally. Remotive listings can be delayed by up to 24 hours; check each posting’s location restrictions.</p>
           <div className="mt-4 flex flex-wrap gap-2">{consentTerms.map(term => <span key={term} className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">{term}</span>)}</div>
           <div className="mt-5 flex justify-end gap-2"><button type="button" onClick={() => setConsentOpen(false)} className="min-h-10 rounded-lg border border-border px-4 text-sm font-semibold text-foreground">Cancel</button><button type="button" onClick={confirmCvMatch} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Search EURAXESS + local listings <ArrowRight size={14} /></button></div>
         </section>
