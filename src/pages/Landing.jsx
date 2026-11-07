@@ -1,55 +1,105 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Search, Users, Briefcase, ExternalLink, Menu, X } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Menu, X, BookOpen, Users, Compass, Search } from 'lucide-react';
 
-const workflows = [
-  { label: 'Discover', subtitle: 'Find the evidence.', description: 'Explore scholarly literature and trace records back to their sources.', icon: BookOpen, href: '/discover' },
-  { label: 'Connect', subtitle: 'See the people.', description: 'Explore researchers and institutions through their public scholarly work.', icon: Users, href: '/login?from=%2Fresearchers' },
-  { label: 'Advance', subtitle: 'Find the next step.', description: 'Explore research roles, projects and available funding records.', icon: Briefcase, href: '/login?from=%2Fcareers' },
+const pillars = [
+  { number: '01', title: 'Knowledge', description: 'Explore scholarly records with links to the original sources.', icon: BookOpen },
+  { number: '02', title: 'People', description: 'Discover researchers and institutions through their published work.', icon: Users },
+  { number: '03', title: 'Possibility', description: 'Find research opportunities and build on the work that matters.', icon: Compass },
 ];
 
 export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <main id="main-content" className="min-h-screen bg-[#FFFFFF] text-[#182A38]">
-      <header className="sticky top-0 z-50 border-b border-black/[.07] bg-white/[.94] backdrop-blur-xl">
-        <div className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between gap-5 px-6 md:px-12">
-          <Link to="/" aria-label="EYLO home" className="shrink-0"><img src={`${import.meta.env.BASE_URL}brand/eylo-light.svg`} alt="EYLO" width="150" height="44" className="h-[40px] w-auto max-w-[140px] object-contain" fetchPriority="high"/></Link>
-          <nav aria-label="Main navigation" className="hidden items-center gap-9 md:flex"><a className="text-[13px] font-medium text-[#435D6A] transition hover:text-black" href="#platform">Platform</a><a className="text-[13px] font-medium text-[#435D6A] transition hover:text-black" href="#experience">Experience</a><a className="text-[13px] font-medium text-[#435D6A] transition hover:text-black" href="#vision">Vision</a><Link className="text-[13px] font-medium text-[#435D6A] transition hover:text-black" to="/contact">Contact</Link></nav>
-          <div className="flex items-center gap-3"><Link to="/login" className="hidden text-[13px] font-medium text-[#435D6A] sm:inline-flex">Sign in</Link><Link to="/discover" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[#1B3547] px-5 text-[13px] font-semibold text-white transition hover:bg-[#2D5267]">Enter EYLO AI <ArrowRight size={15}/></Link><button aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} type="button" className="grid h-10 w-10 place-items-center rounded-full border border-[#E2E5E7] md:hidden" onClick={() => setMenuOpen(value => !value)}>{menuOpen ? <X size={19}/> : <Menu size={19}/>}</button></div>
+    <main id="main-content" className="min-h-screen bg-[#F6F5F1] text-[#1B2529]">
+      <a href="#about" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:bg-white focus:px-5 focus:py-3">Skip to content</a>
+      <header className="sticky top-0 z-50 border-b border-[#293A3B]/10 bg-[#F6F5F1]/95 backdrop-blur-xl">
+        <div className="mx-auto flex h-[76px] max-w-[1450px] items-center justify-between gap-5 px-5 sm:px-9 lg:px-16">
+          <Link to="/" aria-label="EYLO home" className="inline-flex items-center">
+            <img src={import.meta.env.BASE_URL + 'brand/eylo-light.svg'} alt="EYLO" width="142" height="42" className="h-10 w-auto max-w-[142px] object-contain" fetchPriority="high" />
+          </Link>
+          <nav aria-label="Company navigation" className="hidden items-center gap-9 md:flex">
+            <a href="#about" className="text-[13px] font-medium text-[#4D5D60] transition hover:text-[#111A1D]">Company</a>
+            <a href="#product" className="text-[13px] font-medium text-[#4D5D60] transition hover:text-[#111A1D]">Product</a>
+            <a href="#vision" className="text-[13px] font-medium text-[#4D5D60] transition hover:text-[#111A1D]">Vision</a>
+            <Link to="/contact" className="text-[13px] font-medium text-[#4D5D60] transition hover:text-[#111A1D]">Contact</Link>
+          </nav>
+          <div className="flex items-center gap-3">
+            <Link to="/discover" className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#1B292E] px-5 text-xs font-semibold tracking-[.01em] text-white transition hover:bg-[#41565A] sm:text-sm">
+              Enter EYLO AI <ArrowUpRight size={16} aria-hidden="true" />
+            </Link>
+            <button type="button" aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} onClick={() => setMenuOpen(value => !value)} className="grid h-11 w-11 place-items-center rounded-full border border-[#CFD2CD] text-[#293D41] md:hidden">
+              {menuOpen ? <X size={19} /> : <Menu size={19} />}
+            </button>
+          </div>
         </div>
-        {menuOpen && <nav aria-label="Mobile navigation" className="flex flex-col gap-5 border-t border-[#E7EAED] bg-white px-7 py-6 text-sm font-medium md:hidden">{[['Platform','#platform'],['Experience','#experience'],['Vision','#vision']].map(([name,href])=><a key={href} href={href} onClick={()=>setMenuOpen(false)}>{name}</a>)}<Link to="/contact" onClick={()=>setMenuOpen(false)}>Contact</Link></nav>}
+        {menuOpen && <nav aria-label="Mobile navigation" className="flex flex-col gap-5 border-t border-[#DCE0DC] px-7 py-6 text-sm font-medium md:hidden">
+          <a onClick={() => setMenuOpen(false)} href="#about">Company</a>
+          <a onClick={() => setMenuOpen(false)} href="#product">Product</a>
+          <a onClick={() => setMenuOpen(false)} href="#vision">Vision</a>
+          <Link onClick={() => setMenuOpen(false)} to="/contact">Contact</Link>
+        </nav>}
       </header>
 
-      <section className="relative isolate overflow-hidden bg-[#F8FAF9]">
-        <div className="mx-auto flex min-h-[600px] max-w-[1440px] flex-col items-center justify-center px-6 pb-0 pt-14 text-center md:min-h-[650px] md:px-12 md:pt-20">
-          <p className="text-[11px] font-semibold uppercase tracking-[.27em] text-[#637986]">EYLO / THE RESEARCH PLATFORM</p>
-          <h1 className="mt-8 max-w-[1050px] text-[clamp(3.8rem,9vw,9.2rem)] font-semibold leading-[.93] tracking-[-.085em] text-[#182A38]">Where research<br/>finds direction<span className="text-[#5F899C]">.</span></h1>
-          <p className="mt-8 max-w-xl text-base leading-7 text-[#566B77] sm:text-lg">A focused research platform for students, academics and researchers.<br className="hidden sm:block"/> Explore evidence, people and opportunities with clarity.</p>
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-3"><Link to="/discover" className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[#1B3547] px-8 text-sm font-semibold text-white transition hover:bg-[#315D73]">Enter EYLO AI <ArrowRight size={16}/></Link><a href="#platform" className="inline-flex min-h-12 items-center rounded-full border border-[#C9D7DB] bg-white px-7 text-sm font-semibold text-[#263D4A] transition hover:border-[#708C97]">What we do</a></div>
-          <p className="mt-4 text-xs font-medium text-[#637C87]">Visit the EYLO AI application to explore research. Public discovery does not require an account.</p>
-          <div className="relative mt-12 w-full max-w-[1160px] translate-y-1 overflow-hidden rounded-t-[26px] border border-[#D5E2E5] bg-white shadow-[0_35px_100px_-35px_rgba(25,40,55,.25)] md:mt-14">
-            <div className="flex h-11 items-center gap-2 border-b border-[#E5EAF0] bg-[#FBFCFD] px-5"><span className="h-2.5 w-2.5 rounded-full bg-[#D6DDE4]"/><span className="h-2.5 w-2.5 rounded-full bg-[#D6DDE4]"/><span className="h-2.5 w-2.5 rounded-full bg-[#D6DDE4]"/><span className="mx-auto text-[11px] font-medium tracking-[.1em] text-[#86929E]">EYLO / RESEARCH DISCOVERY</span></div>
-            <div className="grid min-h-[265px] gap-6 p-6 text-left sm:p-10 md:grid-cols-[.7fr_1.3fr] md:gap-10">
-              <div><p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#607D8D]">A research question</p><h2 className="mt-5 max-w-xs text-3xl font-semibold leading-[1.13] tracking-[-.05em] text-[#1D3544] sm:text-4xl">Explore what the evidence says.</h2><p className="mt-4 text-xs leading-6 text-[#71808E]">Source-linked scholarly discovery, with context you can inspect.</p><span className="mt-6 inline-flex items-center gap-2 text-xs font-semibold text-[#32657F]">Illustrative product view <ExternalLink size={12}/></span></div>
-              <div className="rounded-2xl border border-[#E2E9F0] bg-[#F8FBFD] p-5 sm:p-7"><div className="flex items-center gap-3 border-b border-[#E0E8F0] pb-5 text-[#31556F]"><Search size={18}/><span className="text-sm font-semibold">Climate adaptation</span><span className="ml-auto hidden rounded-full bg-white px-3 py-1.5 text-[10px] font-medium text-[#6486A0] sm:inline-flex">Scholarly records</span></div>
-                <div className="mt-5 space-y-3">{['Scholarly literature','Researchers and institutions','Research opportunities'].map((label,index)=><div key={label} className="flex items-start gap-4 rounded-xl border border-[#E4EAF0] bg-white px-4 py-4"><span className="mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#EDF3F8] text-[#557C9C]"><BookOpen size={15}/></span><div className="min-w-0"><p className="text-xs font-semibold leading-5 text-[#334A5D]">{label}</p><p className="mt-1.5 text-[10px] text-[#8594A1]">{['Source-linked evidence discovery','Public scholarly profiles','Related roles and funding records'][index]}</p></div></div>)}</div>
+      <section id="about" className="relative overflow-hidden">
+        <div className="mx-auto max-w-[1450px] px-5 pb-14 pt-16 sm:px-9 sm:pt-24 lg:px-16 lg:pt-28">
+          <div className="grid items-end gap-10 lg:grid-cols-[1.12fr_.88fr]">
+            <div>
+              <p className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[.22em] text-[#6B7F7D]"><span className="h-[2px] w-9 bg-[#7C9890]" />A company for curious minds</p>
+              <h1 className="mt-9 max-w-[850px] font-serif text-[clamp(4rem,9vw,9rem)] font-normal leading-[.88] tracking-[-.065em] text-[#1B292E]">
+                Make space<br />for <em className="font-normal text-[#6F8780]">discovery.</em>
+              </h1>
+            </div>
+            <div className="max-w-[420px] pb-2 lg:justify-self-end lg:pb-5">
+              <p className="text-[clamp(1.15rem,2vw,1.45rem)] leading-[1.5] text-[#4D6060]">EYLO brings research, people and opportunities together — giving every idea a clearer path forward.</p>
+              <div className="mt-8 flex flex-wrap items-center gap-5">
+                <Link to="/discover" className="inline-flex min-h-12 items-center gap-3 border-b-2 border-[#1C2F31] pb-1 text-sm font-semibold text-[#1C2F31] transition hover:gap-5">Explore EYLO AI <ArrowUpRight size={18} /></Link>
+                <a href="#product" className="text-sm font-medium text-[#71807C] hover:text-[#22383A]">See what we do</a>
               </div>
             </div>
           </div>
+
+          <div id="product" className="relative mt-16 overflow-hidden rounded-[24px] border border-[#C4D2CE] bg-[#DDE6E3] shadow-[0_35px_90px_-58px_rgba(29,49,49,.5)] sm:mt-20 lg:mt-24">
+            <div className="grid min-h-[510px] lg:grid-cols-[.36fr_.64fr]">
+              <div className="relative flex flex-col justify-between overflow-hidden bg-[#223536] p-7 text-[#F0F1EA] sm:p-10 lg:p-12">
+                <div><p className="text-[10px] font-semibold uppercase tracking-[.2em] text-[#C1D3CB]">Introducing the platform</p><h2 className="mt-8 max-w-xs font-serif text-[clamp(2.8rem,4vw,4.4rem)] leading-[.98] tracking-[-.055em]">A clearer view of what matters.</h2></div>
+                <div className="mt-12"><p className="max-w-xs text-sm leading-7 text-[#D6E2DD]">Knowledge is connected. Your tools should be, too.</p><Link to="/discover" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#F5F5EE] px-5 text-xs font-semibold text-[#1B292E] transition hover:bg-white">Enter EYLO AI <ArrowRight size={16}/></Link></div>
+                <div aria-hidden="true" className="pointer-events-none absolute -right-36 top-16 h-80 w-80 rounded-full border border-[#94A9A0]/20"/>
+              </div>
+              <div className="flex items-center justify-center bg-[radial-gradient(ellipse_at_40%_30%,#EEF3F0_0%,#DFE7E3_74%)] px-5 py-12 sm:px-10 lg:py-16">
+                <div className="w-full max-w-[730px] overflow-hidden rounded-xl border border-[#D6DFDB] bg-[#FCFDFB] shadow-[0_30px_75px_-28px_rgba(35,53,55,.35)]">
+                  <div className="flex h-11 items-center justify-between border-b border-[#E5EBE7] bg-white px-5"><span className="text-[11px] font-semibold tracking-[.18em] text-[#496762]">EYLO / DISCOVERY</span><span className="flex gap-1.5" aria-hidden="true"><i className="h-2 w-2 rounded-full bg-[#CCD7D0]"/><i className="h-2 w-2 rounded-full bg-[#CCD7D0]"/><i className="h-2 w-2 rounded-full bg-[#CCD7D0]"/></span></div>
+                  <div className="grid gap-7 p-5 sm:p-8">
+                    <div><p className="text-[10px] font-semibold uppercase tracking-[.16em] text-[#6C8A7D]">Research discovery</p><h3 className="mt-3 font-serif text-3xl leading-tight text-[#263B39] sm:text-4xl">Follow the question.</h3></div>
+                    <div className="flex items-center gap-3 rounded-xl border border-[#D8E2DD] bg-[#F5F8F6] px-4 py-4"><Search size={19} className="shrink-0 text-[#65847B]"/><span className="min-w-0 truncate text-sm text-[#587168]">Explore a topic or research question</span><span className="ml-auto hidden rounded-lg bg-[#253C3B] px-3 py-2 text-[10px] font-semibold text-white sm:inline-flex">Discover</span></div>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      {[{icon:BookOpen,label:'Evidence',detail:'Source-linked records'},{icon:Users,label:'People',detail:'Researchers & institutions'},{icon:Compass,label:'Opportunities',detail:'Relevant next steps'}].map(({icon:Icon,label,detail})=><div key={label} className="rounded-lg border border-[#E3EAE5] bg-white p-4"><Icon size={20} className="text-[#678A7E]"/><p className="mt-5 text-sm font-semibold text-[#2D4643]">{label}</p><p className="mt-1.5 text-[11px] leading-5 text-[#80928C]">{detail}</p></div>)}
+                    </div>
+                  </div>
+                  <p className="border-t border-[#EEF0ED] px-5 py-3 text-[10px] text-[#8A9A94] sm:px-8">Illustrative interface · Explore the working product via Enter EYLO AI.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p className="mt-4 text-right text-[10px] uppercase tracking-[.18em] text-[#8A9690]">Research, thoughtfully connected.</p>
         </div>
       </section>
 
-      <section id="platform" className="bg-white px-6 py-24 sm:py-32 md:px-12"><div className="mx-auto max-w-[1200px]"><div className="mx-auto max-w-[850px] text-center"><p className="text-[11px] font-bold uppercase tracking-[.25em] text-[#718896]">THE PLATFORM</p><h2 className="mt-5 text-[clamp(2.75rem,6vw,5.5rem)] font-semibold leading-[1.03] tracking-[-.075em]">Everything connects.</h2><p className="mx-auto mt-6 max-w-lg text-base leading-7 text-[#617782]">From an initial question to the work and people around it.</p></div>
-          <div className="mt-16 grid gap-4 lg:grid-cols-3">{workflows.map(({label,subtitle,description,icon:Icon,href})=><Link to={href} key={label} className="group flex min-h-[385px] flex-col overflow-hidden rounded-[22px] border border-[#DEE8E9] bg-[#F4F8F7] p-9 transition hover:-translate-y-1 hover:shadow-[0_24px_55px_-30px_rgba(15,31,47,.25)]"><div className="relative flex h-[130px] items-center justify-center"><div className="absolute h-24 w-24 rounded-full border border-[#C8D4DD]"/><div className="absolute h-36 w-36 rounded-full border border-[#DDE5EB]"/><span className="relative grid h-16 w-16 place-items-center rounded-2xl bg-white text-[#3C6980] shadow-sm"><Icon size={28} strokeWidth={1.5}/></span></div><p className="mt-8 text-[11px] font-semibold uppercase tracking-[.2em] text-[#607E8E]">{label}</p><h3 className="mt-3 text-[2rem] font-semibold tracking-[-.05em] text-[#223D4B]">{subtitle}</h3><p className="mt-3 max-w-xs text-sm leading-6 text-[#5B7580]">{description}</p><span className="mt-auto inline-flex items-center gap-2 pt-8 text-sm font-semibold text-[#315D73]">Explore <ArrowRight size={15}/></span></Link>)}</div>
-        </div></section>
+      <section className="border-t border-[#E2E5DE] bg-[#FAFAF7] px-5 py-24 sm:px-9 sm:py-32 lg:px-16">
+        <div className="mx-auto max-w-[1290px]">
+          <div className="mb-12 grid gap-6 lg:grid-cols-[.6fr_.4fr] lg:items-end"><div><p className="text-[11px] font-bold uppercase tracking-[.22em] text-[#789087]">What we make possible</p><h2 className="mt-5 font-serif text-5xl leading-[1] tracking-[-.055em] text-[#1B2F30] sm:text-7xl">One connected path.</h2></div><p className="max-w-sm text-sm leading-7 text-[#667975] lg:justify-self-end">Designed for students, academics and researchers who want to go further with their work.</p></div>
+          <div className="border-t border-[#CCD7D1]">{pillars.map(({number,title,description,icon:Icon})=><div key={title} className="grid gap-4 border-b border-[#CCD7D1] py-8 sm:grid-cols-[80px_1fr_1fr_auto] sm:items-center sm:gap-8 sm:py-10"><span className="text-xs font-semibold tracking-[.2em] text-[#879891]">{number}</span><h3 className="font-serif text-4xl tracking-[-.04em] text-[#263C3B] sm:text-5xl">{title}</h3><p className="max-w-sm text-sm leading-7 text-[#61746E]">{description}</p><Icon className="hidden text-[#8CA59A] sm:block" size={27} strokeWidth={1.2}/></div>)}</div>
+        </div>
+      </section>
 
-      <section id="experience" className="overflow-hidden bg-[#193344] px-6 py-24 text-white sm:py-32 md:px-12"><div className="mx-auto grid max-w-[1200px] items-center gap-12 lg:grid-cols-[.85fr_1.15fr]"><div><p className="text-[11px] font-bold uppercase tracking-[.25em] text-[#B5D3DB]">THE EXPERIENCE</p><h2 className="mt-6 max-w-md text-[clamp(3.2rem,6vw,6rem)] font-semibold leading-[1] tracking-[-.075em]">Less noise.<br/>More insight.</h2><p className="mt-6 max-w-sm text-base leading-7 text-[#D5E3E8]">The next discovery starts with a question. Explore real scholarly sources before signing in.</p><Link to="/discover" className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-[#213C4D]">Launch EYLO AI <ArrowRight size={16}/></Link></div><div className="rounded-[25px] border border-white/10 bg-[#254559] p-6 shadow-2xl sm:p-10"><p className="text-xs font-semibold tracking-[.14em] text-[#ADC4D8]">ENTER THE PLATFORM</p><Link to="/discover" className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-[#193447]">Enter EYLO AI <ArrowRight size={16}/></Link><p className="mt-7 text-xs leading-6 text-[#B3CAD3]">Scholarly discovery uses source records from services including OpenAlex. AI-assisted interpretations should be verified against original sources.</p></div></div></section>
+      <section id="vision" className="bg-[#233736] px-5 py-28 text-[#F4F5EE] sm:px-9 sm:py-36 lg:px-16">
+        <div className="mx-auto grid max-w-[1290px] gap-12 lg:grid-cols-[.35fr_.65fr]"><p className="text-[11px] font-bold uppercase tracking-[.22em] text-[#B5C9BF]">Our vision</p><div><h2 className="max-w-4xl font-serif text-[clamp(3.6rem,7vw,7.2rem)] leading-[.99] tracking-[-.065em]">Better questions.<br/><span className="italic text-[#B5C9BF]">Brighter possibilities.</span></h2><p className="mt-9 max-w-lg text-base leading-8 text-[#D3DED7]">We believe useful research tools should make knowledge easier to explore, understand and connect.</p><div className="mt-10 flex flex-wrap gap-4"><Link to="/discover" className="inline-flex min-h-12 items-center gap-3 rounded-full bg-[#F5F5EE] px-7 text-sm font-semibold text-[#233736] hover:bg-white">Enter EYLO AI <ArrowUpRight size={18}/></Link><Link to="/contact" className="inline-flex min-h-12 items-center gap-3 rounded-full border border-[#93ABA1] px-7 text-sm font-semibold text-white hover:bg-white/10">Get in touch <ArrowUpRight size={18}/></Link></div></div></div>
+      </section>
 
-      <section id="vision" className="bg-[#F7F9F8] px-6 py-28 text-center sm:py-36 md:px-12"><div className="mx-auto max-w-[900px]"><p className="text-[11px] font-bold uppercase tracking-[.25em] text-[#647C89]">OUR VISION</p><h2 className="mt-7 text-[clamp(3rem,7vw,7rem)] font-semibold leading-[.99] tracking-[-.08em] text-[#183140]">Great ideas deserve<br/>a clearer path.</h2><p className="mx-auto mt-8 max-w-md text-sm leading-7 text-[#6C7781]">We are building a more connected way to discover research and explore where it can lead.</p><Link to="/contact" className="mt-9 inline-flex min-h-12 items-center gap-2 rounded-full border border-[#BFCDD2] bg-white px-7 text-sm font-semibold text-[#294755]">Get in touch <ArrowRight size={16}/></Link></div></section>
-
-      <footer className="border-t border-[#E7E9EC] bg-white px-6 py-9 md:px-12"><div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-6 sm:flex-row sm:items-center"><img src={`${import.meta.env.BASE_URL}brand/eylo-light.svg`} alt="EYLO" width="130" height="40" className="h-9 w-auto" loading="lazy"/><nav aria-label="Footer" className="flex flex-wrap gap-5 text-xs font-medium text-[#66727D]"><Link to="/discover">Enter EYLO AI</Link><Link to="/contact">Contact</Link><Link to="/login">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span></nav></div></footer>
+      <footer className="bg-[#F6F5F1] px-5 py-10 sm:px-9 lg:px-16">
+        <div className="mx-auto flex max-w-[1290px] flex-col gap-7 sm:flex-row sm:items-center sm:justify-between"><img src={import.meta.env.BASE_URL + 'brand/eylo-light.svg'} alt="EYLO" width="132" height="40" loading="lazy" className="h-10 w-auto"/><div className="flex flex-wrap items-center gap-6 text-xs font-medium text-[#667873]"><Link to="/discover" className="hover:text-[#1C3630]">EYLO AI</Link><Link to="/contact" className="hover:text-[#1C3630]">Contact</Link><Link to="/login" className="hover:text-[#1C3630]">Sign in</Link><span>© {new Date().getFullYear()} EYLO</span></div></div>
+      </footer>
     </main>
   );
 }
