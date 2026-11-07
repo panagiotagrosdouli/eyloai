@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Briefcase, ExternalLink, FileText, Loader2, MapPin, Search, ShieldCheck, Upload, X } from 'lucide-react';
 import { extractCvText } from '@/lib/cv-extraction';
-import { cvSearchTerms, rankCareers, searchCareers } from '@/lib/careers-api';
+import { cvSearchTerms, filterCareerListings, loadGeneralCareerListings, rankCareers, searchCareers } from '@/lib/careers-api';
 
 const TOPICS = ['PhD climate research', 'postdoctoral AI', 'public health research'];
 
@@ -19,6 +19,7 @@ export default function Careers() {
   const [consentOpen, setConsentOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [sourceNotice, setSourceNotice] = useState('');
 
   const rankedItems = useMemo(() => rankCareers(items, cvText), [items, cvText]);
 
@@ -32,18 +33,28 @@ export default function Careers() {
     setParams({ q: clean }, { replace: true });
     setLoading(true);
     setError('');
-    try {
-      const result = await searchCareers(clean, page);
-      setItems(result.items);
-      setSourceUrl(result.source_url);
-      setRetrievedAt(result.retrieved_at);
-      if (!result.items.length) setError('No current roles matched that search. Try a broader research topic.');
-    } catch (requestError) {
-      setItems([]);
-      setError(requestError?.message || 'Research roles could not be loaded.');
-    } finally {
-      setLoading(false);
+    setSourceNotice('');
+    const [researchResult, generalResult] = await Promise.allSettled([
+      searchCareers(clean, page),
+      loadGeneralCareerListings(),
+    ]);
+    const research = researchResult.status === 'fulfilled' ? researchResult.value : null;
+    const general = generalResult.status === 'fulfilled' ? generalResult.value : null;
+    const matchedGeneral = general ? filterCareerListings(general.items, clean) : [];
+    const results = [...(research?.items || []), ...matchedGeneral];
+    setItems(results);
+    setSourceUrl(research?.source_url || '');
+    setRetrievedAt([research?.retrieved_at, general?.retrieved_at].filter(Boolean).sort().at(-1) || '');
+    if (researchResult.status === 'rejected' && generalResult.status === 'rejected') {
+      setError('Career listings are temporarily unavailable. Please try again shortly.');
+    } else if (!results.length) {
+      setError('No current roles matched that search. Try a broader research topic.');
+    } else if (researchResult.status === 'rejected' || generalResult.status === 'rejected') {
+      setSourceNotice(researchResult.status === 'rejected'
+        ? 'EURAXESS is temporarily unavailable; showing matching Europe and UK listings.'
+        : 'General Europe and UK listings are temporarily unavailable; showing EURAXESS research roles.');
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -90,7 +101,7 @@ export default function Careers() {
               <Briefcase size={13} aria-hidden="true" /> Research careers
             </p>
             <h1 className="mt-5 max-w-2xl font-serif text-4xl leading-tight tracking-tight text-foreground sm:text-5xl">Your next role, connected to your research.</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">Search current PhD, postdoctoral and research roles. Match them to your CV in your browser, then review the original posting.</p>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">Search research roles on EURAXESS and general roles from Europe and the UK. Match listings to your CV in your browser, then review the original posting.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {TOPICS.map(topic => <button key={topic} type="button" onClick={() => runSearch(topic)} className="min-h-10 rounded-full border border-border bg-background px-3 text-xs font-medium text-foreground transition hover:border-primary/40">{topic}</button>)}
@@ -104,7 +115,7 @@ export default function Careers() {
             <button type="submit" disabled={loading} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60">{loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}<span className="hidden sm:inline">Search roles</span></button>
           </div>
           <div className="mx-auto mt-2 flex max-w-4xl items-center justify-between gap-3 text-[11px] text-muted-foreground">
-            <span>Search stays in EYLO · live listings from EURAXESS</span>
+            <span>Search terms go to EURAXESS · general Europe/UK listings are matched locally</span>
             {sourceUrl && <a href={sourceUrl} target="_blank" rel="noreferrer" className="hover:underline">Source search <ExternalLink size={11} className="inline" /></a>}
           </div>
         </form>
@@ -112,9 +123,10 @@ export default function Careers() {
 
       <section className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]" aria-label="Career results">
         <div className="space-y-4">
+          {sourceNotice && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{sourceNotice}</div>}
           {error && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{error}</div>}
-          {loading && <div role="status" className="flex items-center gap-3 rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground"><Loader2 size={16} className="animate-spin" />Searching EURAXESS…</div>}
-          {!loading && !error && items.length > 0 && <p className="text-xs text-muted-foreground">{rankedItems.length} roles · {retrievedAt ? 'updated ' + new Date(retrievedAt).toLocaleString() : 'current source records'} · sorted by CV overlap</p>}
+          {loading && <div role="status" className="flex items-center gap-3 rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground"><Loader2 size={16} className="animate-spin" />Searching EURAXESS and loading Europe/UK listings…</div>}
+          {!loading && !error && items.length > 0 && <p className="text-xs text-muted-foreground">{rankedItems.length} matching roles across EURAXESS and Europe/UK listings · {retrievedAt ? 'updated ' + new Date(retrievedAt).toLocaleString() : 'current source records'} · sorted by CV overlap</p>}
           {!loading && rankedItems.map(item => (
             <article key={item.id} className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -140,7 +152,7 @@ export default function Careers() {
 
         <aside className="h-fit rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary"><FileText size={18} /></span><div><h2 className="text-sm font-semibold text-foreground">Match to your CV</h2><p className="text-[11px] text-muted-foreground">Private, browser-side matching</p></div></div>
-          <p className="mt-3 text-xs leading-5 text-muted-foreground">Your CV stays in this browser. EYLO compares its terms with official listing text. It never decides eligibility or hiring fit.</p>
+          <p className="mt-3 text-xs leading-5 text-muted-foreground">Your CV stays in this browser. EYLO compares its terms with listings downloaded from EURAXESS and Arbeitnow. It never decides eligibility or hiring fit.</p>
           <label className="mt-4 flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-muted/40"><Upload size={14} />{cvName || 'Choose your CV'}<input className="sr-only" type="file" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown" onChange={event => handleCvFile(event.target.files?.[0])} /></label>
           {cvError && <p role="alert" className="mt-2 text-xs text-destructive">{cvError}</p>}
           {cvText && <div className="mt-3 rounded-lg border border-border bg-muted/20 p-3"><p className="text-[10px] text-muted-foreground">Ready to match · {Math.min(cvText.length, 120000).toLocaleString()} characters</p><button type="button" onClick={startCvMatch} disabled={loading} className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50">Match roles to my CV <ArrowRight size={14} /></button></div>}
@@ -152,9 +164,9 @@ export default function Careers() {
       {consentOpen && <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/50 p-4" role="presentation">
         <section role="dialog" aria-modal="true" aria-labelledby="cv-match-title" className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl">
           <div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Before the search</p><h2 id="cv-match-title" className="mt-2 text-xl font-semibold text-foreground">Use CV keywords to find roles?</h2></div><button type="button" aria-label="Close" onClick={() => setConsentOpen(false)} className="grid h-9 w-9 place-items-center rounded-lg hover:bg-muted"><X size={16} /></button></div>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">EYLO will send these extracted search terms to EURAXESS. Your CV file and full text stay in this browser. Matching happens locally against the listings returned.</p>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">EYLO will send these extracted search terms to EURAXESS. Your CV file and full text stay in this browser. General Europe and UK listings are downloaded without your CV terms and matched locally.</p>
           <div className="mt-4 flex flex-wrap gap-2">{consentTerms.map(term => <span key={term} className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">{term}</span>)}</div>
-          <div className="mt-5 flex justify-end gap-2"><button type="button" onClick={() => setConsentOpen(false)} className="min-h-10 rounded-lg border border-border px-4 text-sm font-semibold text-foreground">Cancel</button><button type="button" onClick={confirmCvMatch} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Search EURAXESS <ArrowRight size={14} /></button></div>
+          <div className="mt-5 flex justify-end gap-2"><button type="button" onClick={() => setConsentOpen(false)} className="min-h-10 rounded-lg border border-border px-4 text-sm font-semibold text-foreground">Cancel</button><button type="button" onClick={confirmCvMatch} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Search EURAXESS + local listings <ArrowRight size={14} /></button></div>
         </section>
       </div>}
     </main>
