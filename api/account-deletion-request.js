@@ -1,5 +1,5 @@
 import {
-  deletionIntakeEnabled, validDeletionRequestBody, validUserId,
+  deletionIntakeEnabled, deletionPreflightEnabled, validDeletionRequestBody, validUserId,
 } from '../src/lib/account-deletion-request-policy.mjs';
 
 const SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
@@ -13,14 +13,14 @@ function publicKey() {
     || process.env.VITE_SUPABASE_ANON_KEY;
 }
 
-function serverHeaders() {
+export function serverHeaders() {
   const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   const headers = { apikey: key, accept: 'application/json' };
   if (!key.startsWith('sb_')) headers.authorization = `Bearer ${key}`;
   return headers;
 }
 
-async function verifiedUser(authorization) {
+async export async function verifiedUser(authorization) {
   const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     headers: { apikey: publicKey(), authorization },
     cache: 'no-store',
@@ -35,7 +35,7 @@ async function verifiedUser(authorization) {
   return body.id;
 }
 
-async function existingRequest(userId) {
+async export async function existingRequest(userId) {
   const path = `${REQUEST_TABLE}?user_id=eq.${encodeURIComponent(userId)}&select=status,requested_at&limit=1`;
   const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: serverHeaders(),
@@ -105,6 +105,7 @@ export default async function handler(request, response) {
 
     return response.status(request.method === 'POST' ? 202 : 200).json({
       enabled: true,
+      preflight_available: deletionPreflightEnabled(),
       request_status: entry?.status || 'not_requested',
       requested_at: entry?.requested_at || null,
       notice: NOTICE,
