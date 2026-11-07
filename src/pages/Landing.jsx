@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Search, BookOpen, CheckCircle2, FolderOpen, Sparkles, CalendarCheck, ShieldCheck, LibraryBig, ExternalLink, Users, FileText } from 'lucide-react';
+import { ArrowRight, Search, BookOpen, CheckCircle2, FolderOpen, Sparkles, CalendarCheck, ShieldCheck, LibraryBig, Users, FileText } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
 
 const PROJECT_SIGNUP_HREF = `/register?from=${encodeURIComponent('/projects?new=1')}`;
@@ -46,7 +46,7 @@ export default function Landing() {
           </form>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-[#526B83]">
             <span>Try a topic:</span>
-            {['Visual-Inertial SLAM', 'Autonomous Systems', 'AI for Healthcare'].map(topic => (
+            {['Climate adaptation', 'Public health', 'Machine learning'].map(topic => (
               <button key={topic} type="button" onClick={() => { trackSearchStarted('homepage_suggestion'); navigate(`/discover?q=${encodeURIComponent(topic)}`); }} className="min-h-9 rounded-full border border-[#D6E1EB] bg-[#F6F9FC] px-3 font-medium hover:bg-[#EAF2F8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1c68a0]">{topic}</button>
             ))}
           </div>
@@ -61,16 +61,16 @@ export default function Landing() {
       <section id="research-preview" aria-labelledby="preview-title" className="border-b border-[#DFE7EF] bg-[#F6F9FC] px-5 py-20 sm:px-8">
         <div className="mx-auto grid max-w-6xl items-start gap-10 lg:grid-cols-[0.83fr_1.17fr] lg:gap-14">
           <div className="lg:pt-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#37749B]">Research discovery · example</p>
-            <h2 id="preview-title" className="mt-4 max-w-md font-serif text-4xl leading-tight text-[#102B49] sm:text-5xl">Real research starts with real sources.</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#37749B]">Research discovery</p>
+            <h2 id="preview-title" className="mt-4 max-w-md font-serif text-4xl leading-tight text-[#102B49] sm:text-5xl">Explore research across disciplines.</h2>
             <p className="mt-5 max-w-md text-base leading-8 text-[#536B82]">Inspect scholarly records, explore research context and identify the next step — without mistaking an AI suggestion for verified evidence.</p>
-            <Link to="/discover?q=Visual-Inertial%20SLAM" className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#174672] px-5 py-3 text-sm font-semibold text-white hover:bg-[#245D91]">Try this research topic <ArrowRight size={16}/></Link>
-            <p className="mt-5 max-w-sm text-xs leading-6 text-[#697D90]">Illustrative preview, not live search results or an independently validated recommendation.</p>
+            <Link to="/discover" className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#174672] px-5 py-3 text-sm font-semibold text-white hover:bg-[#245D91]">Explore scholarly research <ArrowRight size={16}/></Link>
+            <p className="mt-5 max-w-sm text-xs leading-6 text-[#697D90]">Interface preview showing the workflow, not live results or research-quality claims.</p>
           </div>
           <div className="overflow-hidden rounded-2xl border border-[#D9E4EF] bg-white shadow-[0_20px_70px_-48px_rgba(16,43,73,0.35)]">
             <div className="border-b border-[#E3EAF2] px-6 py-5 sm:px-7">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6D8498]">Research workspace preview</p>
-              <h3 className="mt-2 text-xl font-semibold text-[#173A5D]">Visual-Inertial SLAM</h3>
+              <h3 className="mt-2 text-xl font-semibold text-[#173A5D]">Your research journey</h3>
               <div role="tablist" aria-label="Example research views" className="mt-5 flex gap-1 border-b border-[#E4EBF1]">
                 {['Literature', 'Researchers', 'Projects'].map(tab => <button key={tab} id={'preview-tab-' + tab.toLowerCase()} type="button" role="tab" aria-controls="preview-tab-panel" aria-selected={previewTab === tab} onClick={()=>setPreviewTab(tab)} className={'min-h-11 border-b-2 px-3 py-2 text-sm font-medium transition ' + (previewTab === tab ? 'border-[#205986] text-[#153C62]' : 'border-transparent text-[#647A90] hover:text-[#153C62]')}>{tab}</button>)}
               </div>
@@ -78,18 +78,18 @@ export default function Landing() {
             <div id="preview-tab-panel" role="tabpanel" aria-labelledby={'preview-tab-' + previewTab.toLowerCase()} className="space-y-4 p-5 sm:p-7">
               {previewTab === 'Literature' && <>
                 <article className="rounded-xl border border-[#DCE6EF] bg-[#FBFCFE] p-5">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#356E98]">Foundational literature · example</p>
-                  <h4 className="mt-3 text-base font-semibold leading-7 text-[#173452]">ORB-SLAM3: An Accurate Open-Source Library for Visual, Visual-Inertial, and Multi-Map SLAM</h4>
-                  <p className="mt-2 text-xs leading-5 text-[#61788E]">Campos et al. · IEEE Transactions on Robotics · 2021</p>
-                  <a href="https://arxiv.org/abs/2007.11898" target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">View original publication <ExternalLink size={15}/></a>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#356E98]">Discover scholarly literature</p>
+                  <h4 className="mt-3 text-base font-semibold leading-7 text-[#173452]">Find publications relevant to your research question</h4>
+                  <p className="mt-2 text-sm leading-6 text-[#61788E]">Review titles, authors, publication dates and source links before deciding what evidence is useful.</p>
+                  <Link to="/discover" className="mt-4 inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Search the literature <ArrowRight size={15}/></Link>
                 </article>
                 <article className="rounded-xl border border-[#DCE6EF] bg-white p-5">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#356E98]">Next research step · illustrative suggestion</p>
-                  <h4 className="mt-3 text-base font-semibold text-[#173452]">Compare visual-only and visual-inertial performance</h4>
-                  <p className="mt-2 text-sm leading-6 text-[#61788E]">Build an evaluation project using established benchmarks and document uncertainty, failure cases and limitations.</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#356E98]">Evaluate research evidence</p>
+                  <h4 className="mt-3 text-base font-semibold text-[#173452]">Follow sources. Assess relevance. Keep context.</h4>
+                  <p className="mt-2 text-sm leading-6 text-[#61788E]">Examine original records and distinguish reported findings from AI-assisted interpretations.</p>
                 </article>
               </>}
-              {previewTab === 'Researchers' && <div className="rounded-xl border border-[#DCE6EF] bg-[#FBFCFE] p-6"><Users size={22} className="text-[#28658D]" aria-hidden="true"/><h4 className="mt-4 text-base font-semibold text-[#173452]">Explore researchers behind the literature</h4><p className="mt-2 text-sm leading-6 text-[#61788E]">Review public scholarly author records and follow their publications. Names and affiliations must be checked against original sources.</p><Link to="/discover?q=Visual-Inertial%20SLAM" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Explore public discovery <ArrowRight size={15}/></Link></div>}
+              {previewTab === 'Researchers' && <div className="rounded-xl border border-[#DCE6EF] bg-[#FBFCFE] p-6"><Users size={22} className="text-[#28658D]" aria-hidden="true"/><h4 className="mt-4 text-base font-semibold text-[#173452]">Explore researchers behind the literature</h4><p className="mt-2 text-sm leading-6 text-[#61788E]">Review public scholarly author records and follow their publications. Names and affiliations must be checked against original sources.</p><Link to="/discover" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Explore public discovery <ArrowRight size={15}/></Link></div>}
               {previewTab === 'Projects' && <div className="rounded-xl border border-[#DCE6EF] bg-[#FBFCFE] p-6"><FolderOpen size={22} className="text-[#28658D]" aria-hidden="true"/><h4 className="mt-4 text-base font-semibold text-[#173452]">Turn a research question into a project</h4><p className="mt-2 text-sm leading-6 text-[#61788E]">Save sources, organize research milestones and use EYRA to explore next steps while reviewing the evidence yourself.</p><Link to={PROJECT_SIGNUP_HREF} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#1C5B8B] hover:underline">Create a workspace <ArrowRight size={15}/></Link></div>}
             </div>
           </div>
