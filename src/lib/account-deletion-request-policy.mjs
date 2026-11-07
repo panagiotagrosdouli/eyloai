@@ -13,6 +13,15 @@ export function deletionIntakeEnabled(env = process.env) {
     && (!env.VITE_SUPABASE_URL || env.VITE_SUPABASE_URL === expectedUrl);
 }
 
+/**
+ * Separate operator switch: owner-scoped inventory is available only after
+ * request intake itself has passed staging checks. This never enables erasure.
+ */
+export function deletionPreflightEnabled(env = process.env) {
+  return env.EYLO_DELETION_PREFLIGHT_ENABLED === '1'
+    && deletionIntakeEnabled(env);
+}
+
 export function validDeletionRequestBody(body) {
   return body !== null && typeof body === 'object' && !Array.isArray(body)
     && Object.keys(body).length === 1
