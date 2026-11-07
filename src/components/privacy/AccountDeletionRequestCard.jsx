@@ -32,6 +32,10 @@ export default function AccountDeletionRequestCard() {
   const [status, setStatus] = useState('not_requested');
   const [confirmation, setConfirmation] = useState('');
   const [message, setMessage] = useState('');
+  const [preflightAvailable, setPreflightAvailable] = useState(false);
+  const [inventoryState, setInventoryState] = useState('idle');
+  const [inventory, setInventory] = useState(null);
+  const [inventoryMessage, setInventoryMessage] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -39,6 +43,7 @@ export default function AccountDeletionRequestCard() {
       .then(data => {
         if (!mounted) return;
         setStatus(data.request_status);
+        setPreflightAvailable(data.preflight_available === true);
         setPhase('ready');
       })
       .catch(error => {
@@ -55,12 +60,37 @@ export default function AccountDeletionRequestCard() {
     try {
       const data = await requestStatus('POST', confirmation);
       setStatus(data.request_status);
+      setPreflightAvailable(data.preflight_available === true);
       setMessage('Your request was recorded for review. Your account and saved data have NOT been deleted. Your Stripe subscription, if any, is unchanged.');
       setConfirmation('');
       setPhase('ready');
     } catch (error) {
       setMessage(error.message);
       setPhase(error.status === 503 ? 'unavailable' : 'ready');
+    }
+  };
+
+  const loadReadOnlyInventory = async () => {
+    if (!preflightAvailable || inventoryState === 'loading' || status === 'not_requested') return;
+    setInventoryState('loading');
+    setInventoryMessage('');
+    try {
+      const session = await getUsableSession({ required: true, validate: true });
+      const response = await fetch('/api/account-deletion-preflight', {
+        method: 'GET',
+        headers: { authorization: `Bearer ${session.access_token}` },
+        cache: 'no-store',
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data?.stage !== 'read_only_inventory' || data?.account_deleted !== false) {
+        throw new Error('The deletion inventory could not be verified. No data was deleted.');
+      }
+      setInventory(data);
+      setInventoryState('ready');
+    } catch {
+      setInventory(null);
+      setInventoryState('error');
+      setInventoryMessage('The deletion inventory is unavailable or incomplete. No account data was deleted.');
     }
   };
 
@@ -104,6 +134,45 @@ export default function AccountDeletionRequestCard() {
         </div>
       )}
       {message && phase === 'ready' && <p className="mt-3 text-xs text-muted-foreground" role="status">{message}</p>}
+      {phase === 'ready' && preflightAvailable && status !== 'not_requested'
+        && !['completed', 'declined'].includes(status) && (
+        <div className="mt-4 border-t border-border pt-3">
+          <p className="text-xs leading-5 text-muted-foreground">
+            You can review read-only counts of data associated with your account.
+            This is not a deletion operation and does not verify external storage or billing.
+          </p>
+          <button
+            type="button"
+            onClick={loadReadOnlyInventory}
+            disabled={inventoryState === 'loading'}
+            className="mt-2 rounded-lg border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-secondary disabled:opacity-50"
+          >
+            {inventoryState === 'loading' ? 'Checking inventory…' : 'Review my data inventory'}
+          </button>
+          {inventoryState === 'error' && (
+            <p role="status" className="mt-2 text-xs text-amber-400">{inventoryMessage}</p>
+          )}
+          {inventoryState === 'ready' && inventory && (
+            <div role="region" aria-label="Read-only account data inventory" className="mt-3 space-y-2">
+              <p className="text-xs font-semibold text-foreground">
+                Read-only record counts — not approval to delete
+              </p>
+              <dl className="grid grid-cols-2 gap-2 text-xs">
+                {Object.entries(inventory.verified_user_row_counts || {}).map(([table, count]) => (
+                  <div key={table} className="flex items-center justify-between gap-2 border-b border-border py-1">
+                    <dt className="text-muted-foreground">{table.replaceAll('_', ' ')}</dt>
+                    <dd className="font-semibold text-foreground">{count}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="text-xs leading-5 text-amber-400">
+                Storage, subscriptions, logs, backups and session revocation still require independent checks.
+                Your account and data remain unchanged.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
