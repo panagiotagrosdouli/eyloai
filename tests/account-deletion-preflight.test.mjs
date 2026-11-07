@@ -121,7 +121,7 @@ test('preflight is available only after a pending owner request, not on a mere J
   assert.equal(db.calls.length, 2);
 });
 
-test('counts exactly the verified owner's rows, never uses attacker-supplied ID', async () => {
+test("counts exactly the verified owner\'s rows, never uses attacker-supplied ID", async () => {
   const db = mockStorage();
   const r = response();
   await preflight(request(), r);
