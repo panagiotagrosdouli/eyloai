@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowDownRight, ArrowRight, BookOpen, Briefcase, CheckCircle2,
-  ExternalLink, FileText, FolderOpen, LibraryBig, Search, ShieldCheck,
+  FileText, FolderOpen, Search, ShieldCheck,
   Sparkles, Users,
 } from 'lucide-react';
 import { trackSearchStarted } from '@/lib/product-analytics';
