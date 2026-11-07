@@ -22,6 +22,22 @@ export function deletionPreflightEnabled(env = process.env) {
     && deletionIntakeEnabled(env);
 }
 
+/**
+ * A prior terminal request is not a newly recorded pending request.
+ * Never label a terminal row as accepted. Reopening requires a separately
+ * reviewed lifecycle operation, not an unauthenticated client-side reset.
+ */
+export const DELETION_OPEN_STATUSES = Object.freeze([
+  'pending_review', 'in_review', 'blocked_billing',
+]);
+
+export function deletionSubmissionAction(status) {
+  if (status === null) return 'create';
+  if (DELETION_OPEN_STATUSES.includes(status)) return 'existing';
+  if (status === 'completed' || status === 'declined') return 'closed';
+  throw new Error('Unknown deletion request status.');
+}
+
 export function validDeletionRequestBody(body) {
   return body !== null && typeof body === 'object' && !Array.isArray(body)
     && Object.keys(body).length === 1
