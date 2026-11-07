@@ -36,7 +36,7 @@ test('Public research discovery remains discipline-neutral', () => {
   for (const content of [landing, discover]) {
     assert.doesNotMatch(content, /Visual[- ]inertial|ORB-SLAM|autonomous vehicles/i);
   }
-  assert.match(landing, /Research begins with evidence/);
+  assert.match(landing, /Find the evidence\. Find your people\./);
 });
 
 test('Static Pages discovery does not call missing same-origin server functions', () => {
