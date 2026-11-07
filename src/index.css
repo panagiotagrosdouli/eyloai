@@ -396,10 +396,14 @@ body { min-width: 320px; background: hsl(var(--background)); letter-spacing: -0.
   .eylo-action { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-50; }
 }
 
-.eylo-app-canvas { position: relative; isolation: isolate; min-height: 100vh; background: hsl(var(--background)); }
+.eylo-app-canvas { position: relative; isolation: isolate; min-height: 100vh; --eylo-content-max: 1200px; background: hsl(var(--background)); }
+.eylo-app-canvas main > :first-child { color: hsl(var(--foreground)); }
 .eylo-app-canvas main :where(h1, h2, h3) { font-family: var(--font-heading); text-wrap: balance; }
+.eylo-app-canvas main :where(h1) { letter-spacing: -0.052em; line-height: 1.16; }
+.eylo-app-canvas main :where(h2) { letter-spacing: -0.038em; }
 .eylo-app-canvas main :where(p) { text-wrap: pretty; }
 .eylo-app-canvas main :where(section, article) { scroll-margin-top: 6rem; }
+.eylo-app-canvas main :where(.rounded-2xl.border.bg-card, .eylo-surface) { box-shadow: 0 12px 35px -28px hsl(var(--foreground) / 0.26); }
 .eylo-app-canvas :where(input, select, textarea) { accent-color: hsl(var(--primary)); border-radius: 0.75rem; transition: border-color 180ms ease, box-shadow 180ms ease; }
 .eylo-app-canvas :where(input, textarea, select):focus-visible { border-color: hsl(var(--primary) / 0.65); box-shadow: 0 0 0 3px hsl(var(--primary) / 0.10); }
 .eylo-app-canvas :where(button, a) { transition-duration: 160ms; }
