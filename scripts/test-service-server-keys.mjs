@@ -72,9 +72,10 @@ try {
     throw new Error('Monitoring incorrectly exposed a modern Supabase secret as a Bearer token.');
   }
 
-  // The service integration test explicitly exercises the post-acceptance
-  // enabled state. The default-disabled state is tested independently.
+  // This mock explicitly exercises the post-acceptance path using disposable configuration.
   process.env.EYLO_ANALYTICS_ENABLED = '1';
+  process.env.VITE_SUPABASE_URL = 'https://test-project.supabase.co';
+  process.env.SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_regression_test';
   let analyticsHeaders = {};
   globalThis.fetch = async (url, options = {}) => {
     const target = String(url);
