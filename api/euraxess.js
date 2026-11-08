@@ -37,7 +37,10 @@ function matchingDivEnd(html, start) {
 
 function extractJobs(html) {
   const records = [];
-  const openers = /<div\b(?=[^>]*\bclass=["'][^"']*\bjob-teaser-content\b)[^>]*>/gi;
+  // EURAXESS changed this wrapper from a class to an id. Accept both forms so
+  // a markup-only upstream change does not turn a successful search into an
+  // empty result set.
+  const openers = /<div\b(?=[^>]*(?:\bid=["'][^"']*\bjob-teaser-content\b|\bclass=["'][^"']*\bjob-teaser-content\b))[^>]*>/gi;
   let opener;
   while ((opener = openers.exec(html)) && records.length < MAX_RESULTS) {
     const end = matchingDivEnd(html, opener.index);
@@ -52,9 +55,13 @@ function extractJobs(html) {
     if (!title) continue;
     const raw = plainText(block);
     const countryMatch = raw.match(/\bJOB\s+([A-Z][A-Z -]{1,35})\b/);
+    const labels = [...block.matchAll(/<li\b[^>]*class=["'][^"']*\becl-content-block__label-item\b[^"']*["'][^>]*>([\s\S]*?)<\/li>/gi)]
+      .map(match => plainText(match[1]));
+    const country = labels.find(label => label && !/^JOB$/i.test(label)) || countryMatch?.[1]?.trim() || '';
     const deadlineMatch = raw.match(/Application Deadline:\s*([^|]{3,80}?)(?=\s*(?:Posted on:|Research Field:|Researcher Profile:|$))/i);
-    let description = raw;
-    for (const remove of [title, plainText(organizationLink?.[2] || ''), countryMatch?.[0] || '', deadlineMatch?.[0] || '']) {
+    const descriptionMatch = block.match(/<div\b(?=[^>]*class=["'][^"']*\becl-content-block__description\b)[^>]*>([\s\S]*?)<\/div>/i);
+    let description = descriptionMatch ? plainText(descriptionMatch[1]) : raw;
+    for (const remove of [title, plainText(organizationLink?.[2] || ''), countryMatch?.[0] || '', ...labels, deadlineMatch?.[0] || '']) {
       if (remove) description = description.replace(remove, ' ');
     }
     description = description.replace(/\bJOB\b/g, ' ').replace(/\s+/g, ' ').trim();
@@ -63,7 +70,7 @@ function extractJobs(html) {
       id: sourceUrl,
       title,
       organization: plainText(organizationLink?.[2] || ''),
-      country: countryMatch?.[1]?.trim() || '',
+      country,
       description: description.slice(0, 700),
       deadline: deadlineMatch?.[1]?.trim() || '',
       source: 'EURAXESS',
