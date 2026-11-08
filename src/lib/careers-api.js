@@ -33,14 +33,24 @@ export function cvSearchTerms(text, limit = 6) {
     .map(([word]) => word);
 }
 
-export function rankCareers(items, cvText) {
+export function rankCareers(items, cvText, query = '') {
   const words = [...new Set((String(cvText || '').toLowerCase().match(/[a-z][a-z-]{3,}/g) || [])
     .filter(word => !STOP_WORDS.has(word)))];
+  const queryTerms = [...new Set(String(query || '').toLowerCase().match(/[a-z0-9][a-z0-9-]{1,}/g) || [])];
   return items.map(item => {
-    const searchable = (item.title + ' ' + item.organization + ' ' + item.description).toLowerCase();
+    const searchable = [item.title, item.organization, item.country, item.description].join(' ').toLowerCase();
     const overlaps = words.filter(word => searchable.includes(word)).slice(0, 8);
-    return { ...item, match_terms: overlaps, match_score: words.length ? Math.round(overlaps.length / Math.min(words.length, 8) * 100) : null };
-  }).sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1));
+    const queryMatches = queryTerms.filter(term => searchable.includes(term));
+    return {
+      ...item,
+      match_terms: overlaps,
+      match_score: words.length ? Math.round(overlaps.length / Math.min(words.length, 8) * 100) : null,
+      query_score: queryTerms.length ? Math.round(queryMatches.length / queryTerms.length * 100) : null,
+    };
+  }).sort((a, b) => {
+    if (words.length) return (b.match_score ?? -1) - (a.match_score ?? -1);
+    return (b.query_score ?? -1) - (a.query_score ?? -1);
+  });
 }
 
 
@@ -132,12 +142,15 @@ export async function loadGeneralCareerListings(signal) {
 }
 
 export function filterCareerListings(items, query) {
-  const terms = String(query || '').toLowerCase().match(/[a-z0-9][a-z0-9-]{1,}/g) || [];
+  const terms = [...new Set(String(query || '').toLowerCase().match(/[a-z0-9][a-z0-9-]{1,}/g) || [])];
   if (!terms.length) return [];
   return items.filter(item => {
-    const searchable = [item.title, item.organization, item.country, item.description]
-      .join(' ')
-      .toLowerCase();
-    return terms.some(term => searchable.includes(term));
+    const metadata = [item.title, item.organization, item.country].join(' ').toLowerCase();
+    const searchable = [metadata, item.description].join(' ').toLowerCase();
+    const metadataMatches = terms.filter(term => metadata.includes(term)).length;
+    const totalMatches = terms.filter(term => searchable.includes(term)).length;
+    // Prefer a role whose title/company/location matches. If metadata does not
+    // match, require every query term in the posting text to avoid weak hits.
+    return metadataMatches >= Math.ceil(terms.length / 2) || totalMatches === terms.length;
   });
 }
