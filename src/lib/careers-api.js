@@ -1,6 +1,4 @@
-const API_BASE = import.meta.env?.BASE_URL === '/eyloai/'
-  ? 'https://eyloai.vercel.app'
-  : '';
+import { apiUrl } from '@/lib/api-url';
 const REMOTIVE_SNAPSHOT_URL = 'https://raw.githubusercontent.com/panagiotagrosdouli/eyloai/career-feed/remotive-jobs.json';
 const REMOTIVE_ATTRIBUTION_URL = 'https://remotive.com/remote-jobs/api';
 
@@ -8,7 +6,7 @@ export async function searchCareers(query, page = 0, signal) {
   const cleanQuery = String(query || '').trim().slice(0, 180);
   if (cleanQuery.length < 2) throw new Error('Enter at least two characters to search research roles.');
   const params = new URLSearchParams({ q: cleanQuery, page: String(page) });
-  const response = await fetch(API_BASE + '/api/euraxess?' + params.toString(), {
+  const response = await fetch(apiUrl('/api/euraxess?' + params.toString()), {
     headers: { accept: 'application/json' },
     signal,
   });
@@ -88,7 +86,7 @@ async function loadRemotiveSnapshot(signal) {
 export async function loadGeneralCareerListings(signal) {
   const [generalResult, remotiveResult] = await Promise.allSettled([
     (async () => {
-      const response = await fetch(API_BASE + '/api/general-jobs', {
+      const response = await fetch(apiUrl('/api/general-jobs'), {
         headers: { accept: 'application/json' },
         signal,
       });
