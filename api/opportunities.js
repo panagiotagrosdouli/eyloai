@@ -13,6 +13,7 @@ async function authenticate(authorization) {
 
   const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
     headers: { authorization, apikey: anonKey },
+    signal: AbortSignal.timeout(8_000),
   });
   return authResponse.ok;
 }
