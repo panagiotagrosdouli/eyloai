@@ -73,6 +73,23 @@ test('Static Pages discovery does not call missing same-origin server functions'
   assert.match(discovery, /return fetchWithTimeout\(directUrl, options\)/);
 });
 
+
+test('GitHub Pages routes API calls through the production Vercel backend', () => {
+  const apiUrl = read('src/lib/api-url.js');
+  assert.match(apiUrl, /import\.meta\.env\?\.BASE_URL === GITHUB_PAGES_BASE/);
+  assert.match(apiUrl, /import\.meta\.env\?\.BASE_URL === GITHUB_PAGES_BASE/);
+  for (const path of [
+    'src/lib/capabilities.js',
+    'src/lib/protected-api.js',
+    'src/lib/billing.js',
+    'src/lib/careers-api.js',
+    'src/pages/Contact.jsx',
+  ]) assert.match(read(path), /apiUrl\(/);
+  const cors = read('src/lib/api-cors.mjs');
+  assert.match(cors, /https:\/\/panagiotagrosdouli\.github\.io/);
+  assert.doesNotMatch(cors, /Access-Control-Allow-Credentials/);
+});
+
 test('Account and recovery links preserve GitHub Pages routing base', () => {
   for (const path of ['src/pages/Login.jsx', 'src/pages/Register.jsx', 'src/pages/ForgotPassword.jsx']) {
     const source = read(path);

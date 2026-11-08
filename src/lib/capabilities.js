@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/api-url';
 import { useEffect, useState } from 'react';
 
 const FALLBACK_CAPABILITIES = Object.freeze({
@@ -12,7 +13,7 @@ let capabilityPromise;
 
 export async function getCapabilities({ refresh = false } = {}) {
   if (refresh || !capabilityPromise) {
-    capabilityPromise = fetch('/api/capabilities', {
+    capabilityPromise = fetch(apiUrl('/api/capabilities'), {
       headers: { accept: 'application/json' },
       cache: 'no-store',
     }).then(async response => {

@@ -1,3 +1,4 @@
+import { applyCors } from '../src/lib/api-cors.mjs';
 import crypto from 'node:crypto';
 
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
@@ -221,6 +222,7 @@ async function releaseUsage(reservation) {
 }
 
 export default async function handler(request, response) {
+  if (applyCors(request, response, ["POST"])) return;
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST');
     return response.status(405).json({ error: 'Method not allowed.' });

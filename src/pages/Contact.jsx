@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/api-url';
 import React, { useState } from 'react';
 import { useCapabilities } from '@/lib/capabilities';
 import { Link } from 'react-router-dom';
@@ -12,7 +13,7 @@ export default function Contact() {
     if (careerStatus.submitting) return;
     setCareerStatus({ submitting: true, error: '', sent: false });
     try {
-      const response = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(careerForm) });
+      const response = await fetch(apiUrl('/api/contact'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(careerForm) });
       const result = await response.json().catch(() => ({}));
       if (!response.ok || !result.ok) throw new Error(result.error || 'Could not send your message.');
       setCareerStatus({ submitting: false, error: '', sent: true });
@@ -37,6 +38,7 @@ export default function Contact() {
           <div className="mt-10 max-w-2xl rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-7">
             <h3 className="text-xl font-semibold text-slate-900">Introduce yourself</h3>
             <p className="mt-2 text-sm leading-6 text-slate-600">Share your background and how you would like to contribute. This is an expression of interest, not an application for an advertised vacancy.</p>
+            {!capabilitiesLoading && capabilitiesError && <p role="status" className="mt-4 text-sm text-amber-800">We could not verify the contact service, so the form is temporarily unavailable.</p>}
             {!capabilitiesLoading && !capabilitiesError && !capabilities.contact && <p role="status" className="mt-4 text-sm text-amber-800">The form cannot send messages because email delivery is not configured for this deployment.</p>}
             <form onSubmit={submitCareer} className="mt-6 grid gap-4">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -49,7 +51,7 @@ export default function Contact() {
               <p className="text-xs leading-5 text-slate-500">Your details will be used to review and reply to your enquiry. Please don't include sensitive personal information.</p>
               {careerStatus.error && <p role="alert" className="text-sm text-red-700">{careerStatus.error}</p>}
               {careerStatus.sent && <p role="status" className="text-sm text-green-800">Thank you. Your message was sent to the EYLO team.</p>}
-              <button type="submit" disabled={careerStatus.submitting || (!capabilitiesLoading && !capabilitiesError && !capabilities.contact)} className="inline-flex w-fit items-center gap-2 rounded-xl bg-[#153c72] px-6 py-3 text-sm font-semibold text-white hover:bg-[#25578d] disabled:cursor-wait disabled:opacity-60">{careerStatus.submitting ? 'Sending…' : 'Send your introduction'} <ArrowRight size={16} /></button>
+              <button type="submit" disabled={careerStatus.submitting || capabilitiesLoading || Boolean(capabilitiesError) || !capabilities.contact} className="inline-flex w-fit items-center gap-2 rounded-xl bg-[#153c72] px-6 py-3 text-sm font-semibold text-white hover:bg-[#25578d] disabled:cursor-wait disabled:opacity-60">{careerStatus.submitting ? 'Sending…' : 'Send your introduction'} <ArrowRight size={16} /></button>
             </form>
           </div>
 

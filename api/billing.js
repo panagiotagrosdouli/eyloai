@@ -1,3 +1,4 @@
+import { applyCors } from '../src/lib/api-cors.mjs';
 import crypto from 'node:crypto';
 
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
@@ -120,6 +121,7 @@ function checkoutIdempotencyKey(userId, plan) {
 }
 
 export default async function handler(request, response) {
+  if (applyCors(request, response, ["GET","POST"])) return;
   response.setHeader('Cache-Control', 'private, no-store');
   if (!['GET', 'POST'].includes(request.method)) {
     response.setHeader('Allow', 'GET, POST');
