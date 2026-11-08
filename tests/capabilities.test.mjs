@@ -59,14 +59,19 @@ test('billing requires every secret, price and server-side Supabase credential',
   assert.equal(broken.body.billing, false);
 });
 
-test('AI availability depends on the server key, not browser flags', () => {
+test('AI availability requires both the model key and server-side quota controls', () => {
   clearKeys();
   process.env.OPENAI_API_KEY = 'test-only';
-  const res = response();
-  handler({ method: 'GET' }, res);
-  assert.equal(res.body.ai, true);
-  assert.equal(res.body.billing, false);
-  assert.equal(JSON.stringify(res.body).includes('test-only'), false);
+  const unmetered = response();
+  handler({ method: 'GET' }, unmetered);
+  assert.equal(unmetered.body.ai, false);
+
+  process.env.SUPABASE_SECRET_KEY = 'server-test-only';
+  const ready = response();
+  handler({ method: 'GET' }, ready);
+  assert.equal(ready.body.ai, true);
+  assert.equal(ready.body.billing, false);
+  assert.equal(JSON.stringify(ready.body).includes('test-only'), false);
 });
 
 test('non-GET requests reject without being cached', () => {
