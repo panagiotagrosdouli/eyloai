@@ -1,9 +1,23 @@
 {
   "source": "Remotive",
   "source_url": "https://remotive.com/remote-jobs/api",
-  "retrieved_at": "2026-11-07T22:47:27.323Z",
+  "retrieved_at": "2026-11-08T11:55:32.805Z",
   "provider_delay_hours": 24,
   "items": [
+    {
+      "id": "remotive-2091045",
+      "title": "Tier III Service Desk Engineer",
+      "organization": "Unio Digital",
+      "country": "Worldwide",
+      "description": "Unió Digital is an Arizona-based managed service provider (MSP) delivering Managed IT Services, Low Voltage Cabling, Access Control, Video Surveillance, and Intrusion Services. We believe technology should be intuitive, not intimidating. We are looking for an experienced Tier 3 Service Desk Technician with exceptional problem-solving skills. You will serve as the escalation point within the team, resolving complex technical issues while also leading client onboarding and project initiatives. You are expected to be involved in direct end-user support when required. If you have a passion for ensuring top-quality user support and thrive in a collaborative environment, this role is for you. Duties · Lead and support our helpdesk environment for managed service clients · Coordinate and manage client projects, acting as a bridge between the technical team and the client to ensure project success · Provide above and beyond support to our clients and respond to queries for technical assistance in person, via phone, or electronically as required · Provide training and support to clients during the onboarding process to ensure they understand how to effectively use their new IT systems and s",
+      "salary": "",
+      "category": "Information Technology",
+      "job_type": "full_time",
+      "published_at": "2026-11-07T01:10:55",
+      "deadline": "",
+      "source": "Remotive",
+      "source_url": "https://remotive.com/remote-jobs/information-technology/tier-iii-service-desk-engineer-2091045"
+    },
     {
       "id": "remotive-2091168",
       "title": "US Remote Patient Care Advocate (Customer Service)",
