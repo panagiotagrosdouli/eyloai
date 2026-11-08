@@ -12,11 +12,17 @@ const SOURCE_TIMEOUT_MS = 18_000;
 
 async function fetchWithTimeout(url, options = {}) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), SOURCE_TIMEOUT_MS);
+  const externalSignal = options.signal;
+  const abortFromExternalSignal = () => controller.abort(externalSignal.reason);
+  if (externalSignal?.aborted) abortFromExternalSignal();
+  else externalSignal?.addEventListener('abort', abortFromExternalSignal, { once: true });
+  const timeout = setTimeout(() => controller.abort(new DOMException('The request timed out.', 'TimeoutError')), SOURCE_TIMEOUT_MS);
   try {
-    return await fetch(url, { ...options, signal: controller.signal });
+    const { signal: _externalSignal, ...fetchOptions } = options;
+    return await fetch(url, { ...fetchOptions, signal: controller.signal });
   } finally {
     clearTimeout(timeout);
+    externalSignal?.removeEventListener('abort', abortFromExternalSignal);
   }
 }
 
@@ -175,7 +181,7 @@ export async function searchResearchPeopleByPublications(query, limit = 25, stri
     // the works proxy supports a page argument.
     const response = page === 1
       ? await fetchResearchSource('openalex_works', topic, 25, 'relevance', directUrl, strictOptions)
-      : await fetchWithTimeout(directUrl);
+      : await fetchWithTimeout(directUrl, strictOptions);
     if (!response.ok) throw new Error(`OpenAlex publication search failed: ${response.status}`);
     const payload = await response.json();
     const people = new Map();
@@ -617,6 +623,7 @@ export async function searchAllPapersWithStatus(query, options = {}) {
     : '';
   const sourceRequestOptions = {
     throwOnError: true,
+    ...(options.signal ? { signal: options.signal } : {}),
     ...(typeof proxyBaseUrl === 'string' && proxyBaseUrl
       ? { proxyBaseUrl }
       : {}),

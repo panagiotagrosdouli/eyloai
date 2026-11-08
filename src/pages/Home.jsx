@@ -16,12 +16,16 @@ export default function Home({ searchOnly = false }) {
   const [currentQuery, setCurrentQuery] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeSearchId = useRef(0);
+  const activeSearchController = useRef(null);
   const savedHistorySearchId = useRef(null);
   const { toast } = useToast();
 
   const handleSearch = async (request) => {
     const topic = typeof request === 'string' ? request.trim() : String(request?.topic || request?.query || '').trim();
     if (!topic) return;
+    activeSearchController.current?.abort();
+    const controller = new AbortController();
+    activeSearchController.current = controller;
     const searchId = ++activeSearchId.current;
     savedHistorySearchId.current = null;
     setResults(null);
@@ -31,6 +35,7 @@ export default function Home({ searchOnly = false }) {
 
     try {
       const finalResults = await runEyraDiscovery(request, (partial) => {
+        if (controller.signal.aborted) return;
         if (searchId !== activeSearchId.current) return;
         setProgress({ ...partial });
         // As soon as we have real data + AI done, switch to results view
@@ -56,7 +61,7 @@ export default function Home({ searchOnly = false }) {
           }).catch(() => {});
 
         }
-      });
+      }, { signal: controller.signal });
       if (searchId !== activeSearchId.current) return;
       // Keep any history id that completed during the final progress update.
       setResults(current => ({
@@ -65,13 +70,18 @@ export default function Home({ searchOnly = false }) {
       }));
       setState('results');
     } catch (err) {
-      if (searchId !== activeSearchId.current) return;
+      if (controller.signal.aborted || searchId !== activeSearchId.current) return;
       toast({ title: 'Research request failed', description: err instanceof Error ? err.message : 'Please try your research request again.', variant: 'destructive' });
       setState(searchOnly ? 'search' : 'dashboard');
+    } finally {
+      if (activeSearchController.current === controller) activeSearchController.current = null;
     }
   };
 
-  useEffect(() => () => { activeSearchId.current += 1; }, []);
+  useEffect(() => () => {
+    activeSearchId.current += 1;
+    activeSearchController.current?.abort();
+  }, []);
 
   useEffect(() => {
     const sharedQuery = searchParams.get('q')?.trim();
@@ -95,7 +105,7 @@ export default function Home({ searchOnly = false }) {
   if (state === 'results') {
     return (
       <div>
-        <SearchHeroCompact onSearch={handleSearch} currentQuery={currentQuery} onBack={() => { activeSearchId.current += 1; setState(searchOnly ? 'search' : 'dashboard'); }} />
+        <SearchHeroCompact onSearch={handleSearch} currentQuery={currentQuery} onBack={() => { activeSearchId.current += 1; activeSearchController.current?.abort(); activeSearchController.current = null; setState(searchOnly ? 'search' : 'dashboard'); }} />
         <DiscoveryResults results={results} onNewSearch={handleSearch} />
       </div>
     );
