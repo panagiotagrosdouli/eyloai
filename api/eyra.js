@@ -1,5 +1,6 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 import crypto from 'node:crypto';
+import { FREE_MONTHLY_AI_ACTIONS } from '../src/lib/eyra-usage-policy.mjs';
 
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 // Supabase publishable keys are browser-safe identifiers. This is the same
@@ -9,7 +10,7 @@ const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_QOF_tW8ve4IFUsflluOhww_
 const MAX_PROMPT_LENGTH = 24_000;
 const MAX_SCHEMA_LENGTH = 32_000;
 const MAX_SCHEMA_DEPTH = 8;
-const PLAN_LIMITS = { free: 5, pro: null, founder: null, institution: null };
+const PLAN_LIMITS = { free: FREE_MONTHLY_AI_ACTIONS, pro: null, founder: null, institution: null };
 
 const EYRA_INSTRUCTIONS = `You are EYRA, the research and innovation intelligence inside EYLO.
 
