@@ -79,3 +79,85 @@ A ranking change should not ship solely because it improves one example. Require
 ## Scientific interpretation
 
 Citation count, recency and provider relevance scores are ranking signals, not measures of truth or study quality. EYLO should keep source-backed metadata, model inference and uncertainty visually and semantically distinct.
+
+
+## EYRA scientific claim evaluation (added 2026-11-05)
+
+The separate AI verifier is not a proof system. It uses abstract excerpts and an
+additional model call; a genuine quote can accompany a false conclusion when
+that model makes a semantic error.
+
+- `npm run benchmark:eyra` is a **free, deterministic quote-integrity diagnostic**.
+  It tests a small synthetic set, and reports the known false-acceptance pathway
+  when model verdicts are deliberately wrong. Its success must **not** be called
+  scientific validation.
+- `EYLO_EVAL_LIVE=1 npm run benchmark:eyra:live` is an **explicitly paid, opt-in**
+  model benchmark (using shared system instructions). Configure `OPENAI_API_KEY` only in your local protected
+  environment; never in the repository or chat. The runner uses the same
+  review prompt as production and collects precision, recall, confusion counts,
+  total tokens and review latency on the labelled synthetic cases.
+- No live-model results have been established merely by adding this runner.
+
+**Release gate for the synthetic probe:** zero false acceptances and at least
+75% retention of supported cases. This threshold is an engineering diagnostic,
+not a field accuracy estimate. Any failure is a NO-GO for scientific
+reliability claims. The real release decision also requires **independently
+human-labelled** claims/abstracts, across domains and adversarial phrasing,
+with precision/recall and false-acceptance confidence intervals reported per
+domain. Include contradictory sources, absent abstracts, causal leaps, subtle
+negation, impossible numerical claims, prompt injection and real-paper metadata.
+Do not publish an accuracy percentage based only on these illustrative cases.
+
+The benchmark runs no external AI calls unless `--live` and
+`EYLO_EVAL_LIVE=1` are both supplied. It does not exercise production user
+accounts or change user data.
+
+
+## Human-adjudicated scientific claim scoring (2026-11-06 candidate)
+
+The `npm run evaluate:eyra:human -- --dataset <path>` command evaluates
+independently labelled paper-claim pairs and saved second-model responses
+**offline**. It compares raw model judgments with claims actually published
+after deterministic excerpt checking, with precision, recall, confusion
+counts, per-domain denominators and Wilson 95% false-acceptance bounds.
+The evaluator requires real independent adjudication provenance to run in
+human-study mode; no such real dataset has been collected or assessed yet.
+See `docs/EYRA_HUMAN_EVALUATION.md` for the protocol and stringent
+screening thresholds. This is not a production accuracy certification.
+
+The runtime verifier now requires a complete, consistent set of claim IDs;
+omissions or duplicates fail closed. That protects against *malformed or
+partial review batches*, not a model's coherent but semantically incorrect
+support verdict. The prior synthetic 8/8 false-acceptance diagnostic remains
+an open scientific reliability blocker.
+
+
+## Blinded dual-review workflow (2026-11-06)
+
+`npm run prepare:eyra:annotations -- --source <source-only-manifest> --out
+<new-private-directory> --seed <preregistered-seed>` creates **two
+blinded, independently ordered** reviewer packets without any model answers
+or ground-truth labels. Two independent reviewers should annotate each case
+without seeing each other’s decisions or EYRA output, and any disagreements
+must receive a documented adjudication resolution before model scoring.
+
+`npm run evaluate:eyra:human` now reports *per-domain and overall*
+annotator raw agreement and Cohen's κ along with precision, recall and
+false-acceptance intervals. A domain needs at least 80% exact agreement
+to pass the engineering screening gate, though that alone is not evidence
+of ground-truth quality or reviewer independence. No real human study has
+been performed or verified. See `docs/EYRA_HUMAN_EVALUATION.md`.
+
+
+## Audited two-reviewer hand-off (2026-11-06)
+
+`npm run reconcile:eyra:annotations -- --source <source-only-manifest>
+--audit <source-audit.json> --reviewer-a <reviewer-a-complete.json>
+--reviewer-b <reviewer-b-complete.json> --out <new-draft.json>` validates
+original source SHA-256 and the expected blind packet content (claim, title,
+abstract, URL, order), confirms complete labels and rationale, and writes
+only an **adjudication draft** with blank final labels and flagged
+disagreements. Source mutations, hidden model verdicts, missing human answers
+and existing output files are rejected; no external requests are made.
+See `docs/EYRA_HUMAN_EVALUATION.md` for the full human review protocol.
+No real independent review study has been conducted or verified.
