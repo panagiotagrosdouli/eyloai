@@ -1,3 +1,4 @@
+import { applyCors } from '../src/lib/api-cors.mjs';
 const FEEDS = [
   { source: 'Arbeitnow Europe', url: 'https://www.arbeitnow.com/api/job-board-api?page=1', region: 'Europe' },
   { source: 'Arbeitnow UK', url: 'https://www.arbeitnow.co.uk/api/job-board-api?page=1', region: 'United Kingdom' },
@@ -100,29 +101,9 @@ async function loadRemotiveJobs() {
   };
 }
 
-function setCors(response, origin = '') {
-  const allowed = new Set([
-    'https://panagiotagrosdouli.github.io',
-    'https://eyloai.vercel.app',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-  ]);
-  try {
-    const hostname = new URL(origin).hostname;
-    if (allowed.has(origin) || /\.vercel\.app$/i.test(hostname)) {
-      response.setHeader('Access-Control-Allow-Origin', origin);
-      response.setHeader('Vary', 'Origin');
-    }
-  } catch {
-    // Requests without an Origin header do not need CORS headers.
-  }
-  response.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-}
-
 export default async function handler(request, response) {
-  setCors(response, String(request.headers.origin || ''));
-  if (request.method === 'OPTIONS') return response.status(204).end();
+  if (applyCors(request, response, ["GET"])) return;
+  if (applyCors(request, response, ['GET'])) return;
   if (request.method !== 'GET') {
     response.setHeader('Allow', 'GET, OPTIONS');
     return response.status(405).json({ error: 'Method not allowed.' });
