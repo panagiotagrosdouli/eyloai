@@ -1,3 +1,4 @@
+import { applyCors } from '../src/lib/api-cors.mjs';
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 const GRANTS_SEARCH_URL = 'https://api.grants.gov/v1/api/search2';
 const GRANTS_DETAIL_URL = 'https://api.grants.gov/v1/api/fetchOpportunity';
@@ -115,6 +116,7 @@ async function fetchGrantDetail(hit) {
 }
 
 export default async function handler(request, response) {
+  if (applyCors(request, response, ["GET"])) return;
   if (request.method !== 'GET') {
     response.setHeader('Allow', 'GET');
     return response.status(405).json({ error: 'Method not allowed.' });
