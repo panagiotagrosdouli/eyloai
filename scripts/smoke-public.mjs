@@ -51,11 +51,11 @@ for (const check of checks) {
     }
     if (check.type === 'capabilities') {
       const data = JSON.parse(body);
-      for (const key of ['ai', 'billing', 'scheduled_monitoring', 'institution_analytics']) {
+      for (const key of ['ai', 'contact', 'billing', 'scheduled_monitoring', 'institution_analytics']) {
         if (typeof data[key] !== 'boolean') throw new Error(`Missing or invalid boolean capability: ${key}`);
       }
       // The public endpoint must expose availability flags, not credentials.
-      const allowed = new Set(['ai', 'billing', 'scheduled_monitoring', 'institution_analytics']);
+      const allowed = new Set(['ai', 'contact', 'billing', 'scheduled_monitoring', 'institution_analytics']);
       if (Object.keys(data).some(key => !allowed.has(key))) {
         throw new Error('Unexpected capability response field');
       }

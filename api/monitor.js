@@ -1,7 +1,7 @@
 import { monitorWatchlistsQuery } from '../src/lib/monitor-scheduling.mjs';
 import {
   readMonitorProviderRecords, boundedOpenAlexAbstract,
-} from '../src/lib/monitor-provider-response.mjs';
+} from '../supabase/functions/_shared/monitor-provider-response.mjs';
 
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 const OPENALEX_URL = 'https://api.openalex.org/works';

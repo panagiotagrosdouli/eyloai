@@ -66,7 +66,8 @@ array was interpreted as an empty, *successful* result and the watchlist
 received a success timestamp. OpenAlex inverted-index values could also
 request very large sparse arrays.
 
-The updated monitor:
+The updated Vercel monitor and Supabase Edge scheduler share one provider
+response validator:
 
 - Reads no more than **2 MiB** per provider response, including streamed
   responses without a declared `Content-Length`.
@@ -83,6 +84,7 @@ The updated monitor:
 
 Mock tests include declared and streamed overlarge responses, truncated
 JSON, invalid provider schemas and an integration check of the actual
-`api/monitor.js` handler. These are not live scientific evidence,
+`api/monitor.js` handler. A regression check confirms the scheduled Edge
+function uses the same validator and records failure state. These are not live scientific evidence,
 do not verify real provider uptime, and do not authorize monitoring in
 production. The intended Supabase project remains unverified.

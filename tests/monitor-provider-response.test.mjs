@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   readMonitorProviderRecords, MonitorProviderResponseError,
   boundedOpenAlexAbstract, MAX_MONITOR_PROVIDER_BYTES,
-} from '../src/lib/monitor-provider-response.mjs';
+} from '../supabase/functions/_shared/monitor-provider-response.mjs';
 
 const json = data => new Response(JSON.stringify(data), {
   headers: { 'content-type': 'application/json' },
