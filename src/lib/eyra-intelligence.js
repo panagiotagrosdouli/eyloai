@@ -27,13 +27,14 @@ async function getAccessToken(forceRefresh = false) {
   return session.access_token;
 }
 
-function postAnalysis(accessToken, prompt, responseSchema) {
+function postAnalysis(accessToken, prompt, responseSchema, signal) {
   return fetch('/api/eyra', {
     method: 'POST',
     headers: {
       authorization: `Bearer ${accessToken}`,
       'content-type': 'application/json',
     },
+    signal,
     body: JSON.stringify({
       prompt,
       ...(responseSchema ? { response_json_schema: responseSchema } : {}),
@@ -41,18 +42,20 @@ function postAnalysis(accessToken, prompt, responseSchema) {
   });
 }
 
-async function requestOpenAiAnalysis(prompt, responseSchema) {
+async function requestOpenAiAnalysis(prompt, responseSchema, signal) {
   const cleanPrompt = String(prompt || '').trim();
   if (!cleanPrompt) throw new EyraRequestError('Tell EYRA what you want to analyse.', 400);
 
   let accessToken = await getAccessToken();
-  let response = await postAnalysis(accessToken, cleanPrompt, responseSchema);
+  signal?.throwIfAborted();
+  let response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal);
 
   // A cached browser session can outlive its access token. Refresh once and
   // replay exactly the same request before requiring a new sign-in.
   if (response.status === 401) {
     accessToken = await getAccessToken(true);
-    response = await postAnalysis(accessToken, cleanPrompt, responseSchema);
+    signal?.throwIfAborted();
+    response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal);
   }
 
   if (response.status === 401) {
@@ -85,11 +88,11 @@ async function requestOpenAiAnalysis(prompt, responseSchema) {
 }
 
 /**
- * @param {{prompt?: string, response_json_schema?: Record<string, any>}} [options]
+ * @param {{prompt?: string, response_json_schema?: Record<string, any>, signal?: AbortSignal}} [options]
  * @returns {Promise<any>}
  */
-export async function invokeEyra({ prompt = '', response_json_schema: responseSchema } = {}) {
-  const result = await requestOpenAiAnalysis(prompt, responseSchema);
+export async function invokeEyra({ prompt = '', response_json_schema: responseSchema, signal } = {}) {
+  const result = await requestOpenAiAnalysis(prompt, responseSchema, signal);
   trackEyraActionCompleted();
   return result;
 }
