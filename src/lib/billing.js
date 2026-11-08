@@ -1,4 +1,5 @@
 import { apiUrl } from '@/lib/api-url';
+import { FREE_MONTHLY_AI_ACTIONS } from '@/lib/eyra-usage-policy.mjs';
 import {
   getUsableSession,
   invalidateAuthentication,
@@ -12,7 +13,7 @@ const EARLY_ACCESS_STATUS = Object.freeze({
   renewal_at: '',
   billing_configured: false,
   limits: {
-    ai_actions: null,
+    ai_actions: FREE_MONTHLY_AI_ACTIONS,
     projects: null,
     scheduled_monitoring: false,
   },
