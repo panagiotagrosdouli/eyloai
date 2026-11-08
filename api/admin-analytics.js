@@ -1,3 +1,4 @@
+import { applyCors } from '../src/lib/api-cors.mjs';
 import { analyticsEnabled, validWorkspaceAnalyticsPayload } from '../src/lib/analytics-readiness.mjs';
 
 function configuredSupabaseAnalytics() {
@@ -20,6 +21,7 @@ function configuredSupabaseAnalytics() {
 }
 
 export default async function handler(request, response) {
+  if (applyCors(request, response, ["GET"])) return;
   // The response includes per-user metrics. Apply no-store to ALL paths,
   // including authentication failures and upstream errors.
   response.setHeader('Cache-Control', 'private, no-store');
