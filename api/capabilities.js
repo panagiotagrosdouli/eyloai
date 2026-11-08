@@ -1,3 +1,4 @@
+import { applyCors } from '../src/lib/api-cors.mjs';
 import { analyticsEnabled } from '../src/lib/analytics-readiness.mjs';
 
 function supabaseServerConfigured() {
@@ -8,6 +9,7 @@ function supabaseServerConfigured() {
 }
 
 export default function handler(request, response) {
+  if (applyCors(request, response, ["GET"])) return;
   response.setHeader('Cache-Control', 'no-store');
   if (request.method !== 'GET') {
     response.setHeader('Allow', 'GET');
