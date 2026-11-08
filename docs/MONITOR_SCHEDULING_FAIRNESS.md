@@ -1,0 +1,90 @@
+# Scheduled monitoring — bounded fair watchlist rotation
+
+**Status: code-level mitigation only, not production-enabled monitoring.**
+
+## Why this change
+
+The previous scheduler performed `order=updated_date.asc&limit=30` on
+**all watchlists**, and only then removed `data.active === false` rows
+in JavaScript. Thus a set of 30 oldest inactive rows could consume
+the entire batch forever, preventing all active queries from running.
+Similarly, an active watchlist without a valid search query returned
+early without updating `updated_date`, potentially starving others.
+
+The corrected query uses PostgREST JSON-path filters to select eligible
+rows **before** applying `limit=30`:
+
+```
+or=(data->>active.is.null,data->>active.neq.false)
+order=updated_date.asc,id.asc
+limit=30
+```
+
+The `is.null` clause retains legacy watchlists where the active
+property is absent. The `neq.false` clause excludes explicit
+inactive watchlists. The secondary ID order makes identical
+timestamps deterministic.
+
+The existing `watchlists_set_updated_date` trigger on every PATCH
+rotates completed and failed watchlists to the end of the queue.
+Empty-query watchlists now get a recorded `invalid_query` status
+and a timestamp update **without contacting an external provider**.
+
+Unit tests use a simulated PostgREST server and the actual monitor
+handler, with **40 disabled + 66 eligible** watchlists. They verify that
+all 66 are handled in three 30-item runs, legacy watchlists are
+included, empty queries are recorded, and disabled ones never cause
+upstream requests.
+
+## Release and test limitations
+
+- The PostgREST JSON filter syntax is documented at
+  https://docs.postgrest.org/en/stable/references/api/tables_views.html .
+- Actual migrations, trigger installation, RLS and schema compatibility
+  must be inspected in the **correct** production-linked Supabase
+  project before any real cron is enabled; migration source alone does
+  not establish deployed behavior.
+- If a watchlist's status PATCH fails, fairness is not guaranteed:
+  the endpoint returns a retryable failure, and the operator must
+  fix the database issue rather than treating monitoring as healthy.
+- Watchlists are limited to 30 checks per invocation, with batches of
+  five. That is **not** a promise of daily coverage when there are
+  more than 30 eligible lists; SLOs, cron runtime and scaling must
+  be validated separately under real provider limits.
+- The scheduled monitoring capability is still **disabled** until
+  verified opt-in and access/credential review. This patch does not
+  authorize sending researcher queries to external providers.
+
+Do not turn on the cron or alter any production data based solely
+on synthetic tests. Production monitoring remains NO-GO.
+
+## Provider response validation — proposed follow-up
+
+Scheduled checks previously used unbounded `response.json()` from OpenAlex
+and Grants.gov. A malformed HTTP 200 payload missing the expected records
+array was interpreted as an empty, *successful* result and the watchlist
+received a success timestamp. OpenAlex inverted-index values could also
+request very large sparse arrays.
+
+The updated Vercel monitor and Supabase Edge scheduler share one provider
+response validator:
+
+- Reads no more than **2 MiB** per provider response, including streamed
+  responses without a declared `Content-Length`.
+- Accepts JSON media types, rejects HTML/challenge content and invalid
+  or scalar JSON responses.
+- Requires an OpenAlex `results` array or a Grants.gov
+  `errorcode: 0` with `data.oppHits` array. Rejects more than five
+  records in a requested five-record page and missing result IDs.
+- Decodes at most 150 OpenAlex abstract words, from bounded, validated
+  positional offsets; arbitrary billion-scale offsets are ignored.
+- Reports malformed/oversized responses as *failed* watchlist checks,
+  preserving the scheduler's retryable HTTP 503 response and failure
+  state instead of falsely recording no findings.
+
+Mock tests include declared and streamed overlarge responses, truncated
+JSON, invalid provider schemas and an integration check of the actual
+`api/monitor.js` handler. A regression check confirms the scheduled Edge
+function uses the same validator and records failure state. These are not live scientific evidence,
+do not verify real provider uptime, and do not authorize monitoring in
+production. The intended Supabase project remains unverified.

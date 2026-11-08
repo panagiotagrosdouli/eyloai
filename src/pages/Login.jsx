@@ -47,7 +47,7 @@ export default function Login() {
   };
 
   const callbackUrl = () => {
-    const url = new URL("/auth/callback", window.location.origin);
+    const url = new URL(`${import.meta.env.BASE_URL}auth/callback`, window.location.origin);
     url.searchParams.set("from", destination);
     return url.toString();
   };

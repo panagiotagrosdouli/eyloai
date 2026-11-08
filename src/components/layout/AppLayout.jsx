@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
-  Activity, Award, BookOpen, Brain, ChevronDown, FileEdit, FolderOpen, History,
+  Activity, Award, BookOpen, Brain, Briefcase, ChevronDown, FileEdit, FolderOpen, History,
   Home, LayoutDashboard, LayoutGrid, Lightbulb, Menu, Mic, Presentation,
-  Rocket, Search, Settings, Sparkles, Target, TrendingUp, Trophy, User, Users,
+  Rocket, Search, Settings, Sparkles, Target, Trophy, User, Users,
   Video, X, Zap,
 } from 'lucide-react';
 import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
@@ -16,18 +16,25 @@ import { trackActivatedReturn } from '@/lib/product-analytics';
 
 const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
+  { label: 'Discover', path: '/search', icon: Search },
+  { label: 'Connect', path: '/researchers', icon: Users },
+  { label: 'Careers', path: '/careers', icon: Briefcase },
   { label: 'Projects', path: '/projects', icon: FolderOpen },
-  { label: 'Discover', path: '/discover', icon: Search },
-  { label: 'Researchers', path: '/researchers', icon: Users },
 ];
 
 const TOOL_GROUPS = [
+  {
+    section: 'Research calls',
+    description: 'Funding and collaboration opportunities',
+    items: [
+      { label: 'Funding & calls', path: '/opportunities', icon: Award, desc: 'Search official funding records' },
+    ],
+  },
   {
     section: 'Workspace',
     description: 'Research work that stays connected to projects',
     items: [
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
-      { label: 'Funding', path: '/opportunities', icon: Award, desc: 'Funding matches for your projects' },
       { label: 'For you', path: '/foryou', icon: Sparkles, desc: 'Updates from your saved research context', badge: 'Workspace' },
       { label: 'Idea workspace', path: '/ideas', icon: Lightbulb, desc: 'Capture and develop research ideas', badge: 'Workspace' },
       { label: 'Meetings', path: '/meetings', icon: Video, desc: 'Keep notes, decisions and actions', badge: 'Workspace' },
@@ -36,8 +43,8 @@ const TOOL_GROUPS = [
     ],
   },
   {
-    section: 'Labs',
-    description: 'Experimental workflows',
+    section: 'Research tools',
+    description: 'Planning and analysis tools',
     items: [
       { label: 'Open challenges', path: '/challenges', icon: Trophy, desc: 'Research and innovation challenges', badge: 'Live sources' },
       { label: 'Executive briefing', path: '/briefing', icon: Brain, desc: 'A sourced view of priorities and risks', badge: 'Assisted' },
@@ -46,7 +53,7 @@ const TOOL_GROUPS = [
       { label: 'Impact review', path: '/labs/impact', icon: Target, desc: 'Test impact assumptions and pathways', badge: 'Experimental' },
       { label: 'Scenario planner', path: '/labs/scenario', icon: Rocket, desc: 'Compare plausible project directions', badge: 'Experimental' },
       { label: 'Team planner', path: '/labs/team', icon: Users, desc: 'Explore roles and expertise fit', badge: 'Experimental' },
-      { label: 'Professional path', path: '/labs/professional-path', icon: TrendingUp, desc: 'Explore skills, milestones and direction', badge: 'Experimental' },
+
       { label: 'Voice workspace', path: '/labs/voice', icon: Mic, desc: 'Dictate a sourced research question', badge: 'Experimental' },
       { label: 'Grant workspace', path: '/grant-builder', icon: FileEdit, desc: 'Draft and track an application', badge: 'Assisted' },
       { label: 'Pitch deck', path: '/pitchdeck', icon: Presentation, desc: 'Build a sourced presentation', badge: 'Assisted' },
@@ -241,7 +248,7 @@ export default function AppLayout() {
       <EyraCommandCenter open={eyraOpen} onClose={() => setEyraOpen(false)} />
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl lg:hidden" aria-label="Primary mobile navigation">
-        <div className="mx-auto grid max-w-md grid-cols-5 items-end">
+        <div className="mx-auto grid max-w-lg grid-cols-6 items-end">
           {[PRIMARY_NAV[0], PRIMARY_NAV[1]].map(item => {
             const Icon = item.icon; const active = isActive(item.path);
             return <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}><Icon size={18} /><span>{item.label}</span></Link>;

@@ -3,9 +3,11 @@ import { afterEach, test } from 'node:test';
 import handler from '../api/capabilities.js';
 
 const keys = [
-  'OPENAI_API_KEY', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET',
+  'OPENAI_API_KEY', 'RESEND_API_KEY', 'CONTACT_TO_EMAIL', 'RESEND_FROM_EMAIL',
+  'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET',
   'STRIPE_PRO_PRICE_ID', 'STRIPE_FOUNDER_PRICE_ID',
   'SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY',
+  'EYLO_ANALYTICS_ENABLED',
 ];
 const snapshot = Object.fromEntries(keys.map(key => [key, process.env[key]]));
 afterEach(() => {
@@ -34,10 +36,26 @@ test('capability flags fail closed when optional services are absent', () => {
   assert.equal(res.headers['Cache-Control'], 'no-store');
   assert.equal(res.body.ai, false);
   assert.equal(res.body.billing, false);
+  assert.equal(res.body.contact, false);
   assert.equal(res.body.scheduled_monitoring, false);
+  assert.equal(res.body.institution_analytics, false);
   assert.deepEqual(Object.keys(res.body).sort(), [
-    'ai', 'billing', 'institution_analytics', 'scheduled_monitoring',
+    'ai', 'billing', 'contact', 'institution_analytics', 'scheduled_monitoring',
   ]);
+});
+
+test('contact is available only when all email delivery settings are present', () => {
+  clearKeys();
+  process.env.RESEND_API_KEY = 'test-only';
+  process.env.CONTACT_TO_EMAIL = 'team@example.test';
+  const missingSender = response();
+  handler({ method: 'GET' }, missingSender);
+  assert.equal(missingSender.body.contact, false);
+  process.env.RESEND_FROM_EMAIL = 'EYLO <hello@example.test>';
+  const configured = response();
+  handler({ method: 'GET' }, configured);
+  assert.equal(configured.body.contact, true);
+  assert.equal(JSON.stringify(configured.body).includes('example.test'), false);
 });
 
 test('billing requires every secret, price and server-side Supabase credential', () => {
@@ -57,14 +75,19 @@ test('billing requires every secret, price and server-side Supabase credential',
   assert.equal(broken.body.billing, false);
 });
 
-test('AI availability depends on the server key, not browser flags', () => {
+test('AI availability requires both the model key and server-side quota controls', () => {
   clearKeys();
   process.env.OPENAI_API_KEY = 'test-only';
-  const res = response();
-  handler({ method: 'GET' }, res);
-  assert.equal(res.body.ai, true);
-  assert.equal(res.body.billing, false);
-  assert.equal(JSON.stringify(res.body).includes('test-only'), false);
+  const unmetered = response();
+  handler({ method: 'GET' }, unmetered);
+  assert.equal(unmetered.body.ai, false);
+
+  process.env.SUPABASE_SECRET_KEY = 'server-test-only';
+  const ready = response();
+  handler({ method: 'GET' }, ready);
+  assert.equal(ready.body.ai, true);
+  assert.equal(ready.body.billing, false);
+  assert.equal(JSON.stringify(ready.body).includes('test-only'), false);
 });
 
 test('non-GET requests reject without being cached', () => {
@@ -74,4 +97,20 @@ test('non-GET requests reject without being cached', () => {
   assert.equal(res.statusCode, 405);
   assert.equal(res.headers.Allow, 'GET');
   assert.equal(res.headers['Cache-Control'], 'no-store');
+});
+
+
+test('institution analytics stays disabled unless explicitly enabled after verification', () => {
+  clearKeys();
+  for (const setting of ['', 'true', 'yes', '0', '2']) {
+    process.env.EYLO_ANALYTICS_ENABLED = setting;
+    const res = response();
+    handler({ method: 'GET' }, res);
+    assert.equal(res.body.institution_analytics, false);
+    assert.equal(res.headers['Cache-Control'], 'no-store');
+  }
+  process.env.EYLO_ANALYTICS_ENABLED = '1';
+  const enabled = response();
+  handler({ method: 'GET' }, enabled);
+  assert.equal(enabled.body.institution_analytics, true);
 });

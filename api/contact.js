@@ -1,9 +1,11 @@
+import { applyCors, isAllowedBrowserOrigin } from '../src/lib/api-cors.mjs';
 const MAX_BODY_BYTES = 12000;
 const validEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const clean = (value, max) => String(value || '').trim().slice(0, max);
 const htmlEscape = value => value.replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
 export default async function handler(req, res) {
+  if (applyCors(req, res, ["POST"])) return;
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -11,7 +13,7 @@ export default async function handler(req, res) {
   }
   const origin = req.headers.origin;
   const host = req.headers.host;
-  if (!origin || !host || (() => { try { return new URL(origin).host !== host; } catch { return true; } })()) {
+  if (!isAllowedBrowserOrigin(origin, host)) {
     return res.status(403).json({ error: 'Invalid request origin.' });
   }
   const rawSize = Number(req.headers['content-length'] || 0);
@@ -26,7 +28,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Please complete all fields with valid information.' });
   }
   if (!process.env.RESEND_API_KEY || !process.env.CONTACT_TO_EMAIL || !process.env.RESEND_FROM_EMAIL) {
-    return res.status(503).json({ error: 'Applications are temporarily unavailable. Please try again later.' });
+    return res.status(503).json({ error: 'The contact form is currently unavailable. Please try again later.' });
   }
   try {
     const result = await fetch('https://api.resend.com/emails', {

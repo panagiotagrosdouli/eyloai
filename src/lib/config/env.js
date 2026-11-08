@@ -3,17 +3,17 @@ const REQUIRED_ENVIRONMENT_VARIABLES = [
   'VITE_SUPABASE_ANON_KEY',
 ];
 
-// These are browser-safe Supabase identifiers. They are intentionally public
-// and remain protected by Supabase Auth plus Row Level Security.
-const PUBLIC_SUPABASE_FALLBACK = {
-  VITE_SUPABASE_URL: 'https://kbzjngpzxpniaumlupaa.supabase.co',
-  VITE_SUPABASE_ANON_KEY: 'sb_publishable_QOF_tW8ve4IFUsflluOhww_aRubMF0V',
-};
+/**
+ * @typedef {Object} SupabaseEnvironmentSource
+ * @property {string} [VITE_SUPABASE_URL]
+ * @property {string} [VITE_SUPABASE_ANON_KEY]
+ */
 
-function readEnvironment() {
+/** @param {SupabaseEnvironmentSource} [source] */
+function readEnvironment(source = /** @type {SupabaseEnvironmentSource} */ (import.meta.env ?? {})) {
   return {
-    VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL?.trim() || PUBLIC_SUPABASE_FALLBACK.VITE_SUPABASE_URL,
-    VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY?.trim() || PUBLIC_SUPABASE_FALLBACK.VITE_SUPABASE_ANON_KEY,
+    VITE_SUPABASE_URL: source.VITE_SUPABASE_URL?.trim() || '',
+    VITE_SUPABASE_ANON_KEY: source.VITE_SUPABASE_ANON_KEY?.trim() || '',
   };
 }
 
@@ -26,8 +26,9 @@ function isValidSupabaseUrl(value) {
   }
 }
 
-export function validateEnvironment() {
-  const values = readEnvironment();
+/** @param {SupabaseEnvironmentSource} [source] */
+export function validateEnvironment(source = /** @type {SupabaseEnvironmentSource} */ (import.meta.env ?? {})) {
+  const values = readEnvironment(source);
   const missing = REQUIRED_ENVIRONMENT_VARIABLES.filter((name) => !values[name]);
   const invalid = [];
 

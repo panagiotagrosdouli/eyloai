@@ -60,17 +60,35 @@ The GitHub repository's Supabase URL, deployed environment variables and any con
 - The corrected live proxy benchmark received arXiv results; the previous Node benchmark had falsely marked arXiv unavailable because it depended on the browser-only `DOMParser`. Across 5 queries, 3–4 of 5 indexes responded. Europe PMC returned HTTP 503; Semantic Scholar returned HTTP 429 in 4/5 queries.
 - Only 2/5 queries met the minimum source-coverage criteria. Their average heuristic anchor coverage was 0.65; one passed and one failed the heuristic gate. The remaining three queries had fewer than five results or insufficient source diversity. This benchmark is not a human-judged relevance study; keep the release decision NO-GO.
 
-
 These checks do not prove cross-user Supabase RLS, authenticated persistence/deletion, EYRA scientific accuracy, complete DOI metadata fidelity, mobile coverage, or payment flows. Keep all launch-gate boxes unchecked until their own evidence is recorded.
 
+## Discovery proxy response safety — draft change (2026-11-06)
 
-## Analytics SQL schema mismatch — 2026-11-05 follow-up
+The public `/api/discovery` handler currently fetches from an allowlist of scholarly providers. The proposed change caps provider response bodies at 4 MiB in the server-side stream reader, independent of whether the provider provides an honest `Content-Length`. Oversized results fail with an uncached HTTP 502 and code `SOURCE_RESPONSE_TOO_LARGE`; they must not be confused with an empty scientific search result. A header-only length check is insufficient, so the reader also counts received bytes.
 
-Source review found that the existing analytics SQL queried `public.profiles`
-using columns (`id`, `organization`, `full_name`, `created_at`) that
-conflict with the repository's base profile schema (`user_id`, `data`,
-`created_date`). The historical SQL sources and their schema regression tests
-were corrected in a draft PR. **These edits do not fix an already-applied
-production migration.** See `docs/ANALYTICS_SCHEMA_REPAIR.md` for the verified
-project identification, new migration and authenticated staging checks needed.
-Analytics and overall release status remain unverified / NO-GO.
+The proxy also forces a safe response media type (JSON for metadata providers, Atom XML for arXiv) and `X-Content-Type-Options: nosniff`, avoiding direct reflection of an upstream `text/html` response under EYLO's origin.
+
+**Limits:** This does not implement per-IP rate limiting, authenticated quotas for public discovery, or full provider content validation. Review provider-specific payload sizes and false positives with a real network benchmark before deploying. Verify that a provider error and an oversized response are communicated as source failures, never zero evidence.
+
+## Current verification snapshot — 2026-11-07
+
+### Confirmed fixes on main
+
+- PR #206: Institution Analytics defaults to disabled; the endpoint returns an uncached 503 and does not call Supabase until explicitly enabled. CI passed. No live database verification was done.
+- PR #219: Removed browser-side hard-coded Supabase fallback values. CI passed.
+- PR #220: Removed server-side Analytics Supabase fallbacks; explicitly missing or invalid configuration fails closed. CI passed.
+
+### Production blocker
+
+The GitHub public smoke workflow tested `https://eyloai.vercel.app` against main commit `affcd76e50d750c33667623e1a540a6f9ca16a88` and received HTTP 404 for all 8 checks (landing, manifest, robots, discovery, login, registration, recovery and capabilities). A GitHub Pages deployment succeeded for the same commit, but it is not the Vercel project and does not host the Vercel serverless API. The available Vercel connection did not return an `eyloai` project or deployment. The cause and correct project/domain mapping have not been verified.
+
+### Gates still BLOCKED / NOT RUN
+
+- Actual deployed Supabase project ID and environment values: **BLOCKED** (correct Vercel/Supabase project access not available).
+- Live RLS policy review and two-account read/write/delete isolation: **NOT RUN**.
+- Production OAuth/password recovery and authenticated persistence/deletion: **NOT RUN**.
+- Human-judged scholarly retrieval evaluation: **NOT RUN**. Existing benchmark setup does not substitute for human relevance judgments.
+- EYRA claim/citation audit, billing lifecycle, recovery and mobile/accessibility acceptance: **NOT RUN**.
+- Vercel production deployment for the reviewed main commit: **NOT VERIFIED**.
+
+**Release decision: NO-GO** for public production and closed researcher pilot until the 404 is resolved and the relevant live data-security and research-quality gates pass. GitHub Pages success and CI success do not establish Vercel production readiness.

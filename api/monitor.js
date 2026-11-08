@@ -1,7 +1,12 @@
+import { applyCors } from '../src/lib/api-cors.mjs';
+import { monitorWatchlistsQuery } from '../src/lib/monitor-scheduling.mjs';
+import {
+  readMonitorProviderRecords, boundedOpenAlexAbstract,
+} from '../supabase/functions/_shared/monitor-provider-response.mjs';
+
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 const OPENALEX_URL = 'https://api.openalex.org/works';
 const GRANTS_URL = 'https://api.grants.gov/v1/api/search2';
-const MAX_WATCHLISTS_PER_RUN = 30;
 
 function supabaseServerKey() {
   return process.env.SUPABASE_SECRET_KEY
@@ -46,13 +51,6 @@ export async function fetchResearchProvider(url, options = {}) {
   return lastResponse;
 }
 
-function abstractFromInverted(index) {
-  if (!index) return '';
-  const words = [];
-  Object.entries(index).forEach(([word, positions]) => positions.forEach(position => { words[position] = word; }));
-  return words.filter(Boolean).join(' ').slice(0, 500);
-}
-
 async function searchOpenAlex(query) {
   const params = new URLSearchParams({
     search: query,
@@ -67,12 +65,12 @@ async function searchOpenAlex(query) {
   if (contactEmail) params.set('mailto', contactEmail);
   const response = await fetchResearchProvider(`${OPENALEX_URL}?${params}`);
   if (!response.ok) throw new Error(`OpenAlex failed: ${response.status}`);
-  const payload = await response.json();
-  return (payload.results || []).map(work => ({
+  const works = await readMonitorProviderRecords(response, 'openalex');
+  return works.map(work => ({
     external_id: work.id,
     type: 'paper',
     title: work.title || 'Untitled paper',
-    summary: abstractFromInverted(work.abstract_inverted_index),
+    summary: boundedOpenAlexAbstract(work.abstract_inverted_index),
     source: work.primary_location?.source?.display_name || 'OpenAlex',
     source_url: work.doi || work.id,
     published_at: work.publication_date || '',
@@ -93,8 +91,8 @@ async function searchGrants(query) {
     body: JSON.stringify({ rows: 5, keyword: query, oppStatuses: 'forecasted|posted' }),
   });
   if (!response.ok) throw new Error(`Grants.gov failed: ${response.status}`);
-  const payload = await response.json();
-  return (payload.data?.oppHits || []).map(hit => {
+  const hits = await readMonitorProviderRecords(response, 'grants');
+  return hits.map(hit => {
     const remaining = daysUntil(hit.closeDate);
     return {
       external_id: `grants:${hit.id}`,
@@ -113,7 +111,23 @@ async function searchGrants(query) {
 async function processWatchlist(row, seen) {
   const data = row.data || {};
   const query = String(data.query || '').trim();
-  if (!query || data.active === false) return { inserted: 0, notifications: 0 };
+  if (data.active === false) return { inserted: 0, notifications: 0 };
+  if (!query) {
+    // An old active watchlist without a query must not remain permanently
+    // first in the oldest-first queue. Mark it invalid and rotate its
+    // updated_date via the existing server-side trigger; never fetch upstream.
+    await supabase(`watchlists?id=eq.${encodeURIComponent(row.id)}`, {
+      method: 'PATCH',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ data: {
+        ...data,
+        lastCheckedAt: new Date().toISOString(),
+        lastCheckStatus: 'invalid_query',
+        lastResultCount: 0,
+      } }),
+    });
+    return { inserted: 0, notifications: 0, invalidQuery: true };
+  }
 
   const records = data.type === 'funding program'
     ? await searchGrants(query)
@@ -188,6 +202,7 @@ async function processWatchlist(row, seen) {
 }
 
 export default async function handler(request, response) {
+  if (applyCors(request, response, ["GET"])) return;
   if (request.method !== 'GET') return response.status(405).json({ error: 'Method not allowed.' });
   if (!process.env.CRON_SECRET || request.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     return response.status(401).json({ error: 'Cron authorization required.' });
@@ -198,7 +213,9 @@ export default async function handler(request, response) {
 
   try {
     const [watchlists, discoveries] = await Promise.all([
-      supabase(`watchlists?select=id,user_id,data&order=updated_date.asc&limit=${MAX_WATCHLISTS_PER_RUN}`),
+      // The filter is applied IN PostgREST, before LIMIT. Otherwise inactive
+      // old rows occupy the entire page, starving all active subscribers.
+      supabase(monitorWatchlistsQuery()),
       supabase('monitoring_discoveries?select=user_id,data&order=created_date.desc&limit=5000'),
     ]);
     const seen = new Set((discoveries || []).map(row => `${row.user_id}:${row.data?.external_id}`));
@@ -206,6 +223,7 @@ export default async function handler(request, response) {
     let notifications = 0;
     let failed = 0;
     let checked = 0;
+    let invalidQueries = 0;
     const failedWatchlistIds = [];
 
     for (let index = 0; index < watchlists.length; index += 5) {
@@ -216,6 +234,7 @@ export default async function handler(request, response) {
         if (result.status === 'fulfilled') {
           inserted += result.value.inserted;
           notifications += result.value.notifications;
+          if (result.value.invalidQuery) invalidQueries += 1;
           continue;
         }
         failed += 1;
@@ -257,6 +276,7 @@ export default async function handler(request, response) {
       inserted,
       notifications,
       failed,
+      invalid_queries: invalidQueries,
       partial_failure: failed > 0,
       completed_at: new Date().toISOString(),
     });

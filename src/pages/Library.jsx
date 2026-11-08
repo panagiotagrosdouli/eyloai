@@ -128,7 +128,9 @@ export default function Library() {
     <div className="eylo-page">
       {/* Header */}
       <div className="mb-6">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">Research workspace</p>
         <h1 className="eylo-page-heading">Library</h1>
+        <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">Your saved scientific literature, researchers and opportunities — organized for future reference.</p>
       </div>
 
       {loadNotice && <div role="status" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadNotice}</div>}

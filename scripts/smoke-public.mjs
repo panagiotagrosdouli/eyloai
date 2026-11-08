@@ -51,11 +51,11 @@ for (const check of checks) {
     }
     if (check.type === 'capabilities') {
       const data = JSON.parse(body);
-      for (const key of ['ai', 'billing', 'scheduled_monitoring', 'institution_analytics']) {
+      for (const key of ['ai', 'contact', 'billing', 'scheduled_monitoring', 'institution_analytics']) {
         if (typeof data[key] !== 'boolean') throw new Error(`Missing or invalid boolean capability: ${key}`);
       }
       // The public endpoint must expose availability flags, not credentials.
-      const allowed = new Set(['ai', 'billing', 'scheduled_monitoring', 'institution_analytics']);
+      const allowed = new Set(['ai', 'contact', 'billing', 'scheduled_monitoring', 'institution_analytics']);
       if (Object.keys(data).some(key => !allowed.has(key))) {
         throw new Error('Unexpected capability response field');
       }
@@ -66,6 +66,13 @@ for (const check of checks) {
         throw new Error('Missing release identifier');
       }
       console.log(`  release: ${data.release}`);
+      const expectedSha = process.env.EYLO_EXPECTED_GIT_SHA;
+      if (expectedSha) {
+        if (!/^[a-f0-9]{40}$/i.test(expectedSha)) throw new Error('EYLO_EXPECTED_GIT_SHA must be a 40-character commit SHA');
+        if (data.git_commit?.toLowerCase() !== expectedSha.toLowerCase()) {
+          throw new Error(`Stale deployment: expected commit ${expectedSha.slice(0, 12)}, served ${String(data.git_commit || 'unknown').slice(0, 12)}`);
+        }
+      }
     }
     console.log(`PASS ${check.label}: ${url.pathname}`);
   } catch (error) {

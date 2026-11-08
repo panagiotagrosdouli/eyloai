@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import handler from '../api/discovery.js';
+import { MAX_SCHOLARLY_RESPONSE_BYTES, readBoundedScholarlyResponse } from '../src/lib/discovery-response-limit.mjs';
 
 function createResponse() {
   return {
@@ -271,5 +272,87 @@ test('discovery proxy rejects malformed paging and country filters without upstr
     assert.equal(calls, 0);
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test('scholarly byte reader accepts a small valid provider response', async () => {
+  const value = JSON.stringify({ results: [{ title: 'Paper A' }] });
+  const response = new Response(value, { headers: { 'content-type': 'application/json' } });
+  const bytes = await readBoundedScholarlyResponse(response, 1024);
+  assert.equal(bytes.toString(), value);
+});
+
+test('discovery proxy rejects oversized Content-Length without returning provider content', async () => {
+  const before = globalThis.fetch;
+  globalThis.fetch = async () => new Response('small actual body', {
+    status: 200,
+    headers: {
+      'content-length': String(MAX_SCHOLARLY_RESPONSE_BYTES + 1),
+      'content-type': 'text/html',
+    },
+  });
+  try {
+    const res = createResponse();
+    await handler({ method: 'GET', query: { provider: 'crossref', q: 'AI safety' } }, res);
+    assert.equal(res.statusCode, 502);
+    assert.equal(res.payload.code, 'SOURCE_RESPONSE_TOO_LARGE');
+    assert.equal(res.headers['cache-control'], 'no-store');
+  } finally {
+    globalThis.fetch = before;
+  }
+});
+
+test('discovery proxy refuses oversized chunked responses even with a fake small length header', async () => {
+  const before = globalThis.fetch;
+  globalThis.fetch = async () => new Response(new ReadableStream({
+    start(controller) {
+      controller.enqueue(new Uint8Array(MAX_SCHOLARLY_RESPONSE_BYTES - 32));
+      controller.enqueue(new Uint8Array(128));
+      controller.close();
+    },
+  }), { status: 200, headers: { 'content-length': '32' } });
+  try {
+    const res = createResponse();
+    await handler({ method: 'GET', query: { provider: 'openalex_works', q: 'pedestrian trajectories' } }, res);
+    assert.equal(res.statusCode, 502);
+    assert.equal(res.payload.code, 'SOURCE_RESPONSE_TOO_LARGE');
+    assert.equal(res.headers['cache-control'], 'no-store');
+  } finally {
+    globalThis.fetch = before;
+  }
+});
+
+test('proxy does not reflect upstream HTML media types into its own origin', async () => {
+  const before = globalThis.fetch;
+  globalThis.fetch = async () => new Response('<script>alert("unsafe")</script>', {
+    status: 200,
+    headers: { 'content-type': 'text/html; charset=utf-8' },
+  });
+  try {
+    const res = createResponse();
+    await handler({ method: 'GET', query: { provider: 'openalex_works', q: 'test' } }, res);
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.headers['content-type'], 'application/json; charset=utf-8');
+    assert.equal(res.headers['x-content-type-options'], 'nosniff');
+  } finally {
+    globalThis.fetch = before;
+  }
+});
+
+test('arXiv proxy still returns Atom XML content type with nosniff protection', async () => {
+  const before = globalThis.fetch;
+  globalThis.fetch = async () => new Response('<?xml version="1.0"?><feed></feed>', {
+    status: 200,
+    headers: { 'content-type': 'application/atom+xml' },
+  });
+  try {
+    const res = createResponse();
+    await handler({ method: 'GET', query: { provider: 'arxiv', q: 'transformers' } }, res);
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.headers['content-type'], 'application/atom+xml; charset=utf-8');
+    assert.equal(res.headers['x-content-type-options'], 'nosniff');
+    assert.match(res.payload.toString(), /<feed>/);
+  } finally {
+    globalThis.fetch = before;
   }
 });

@@ -22,13 +22,17 @@ const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
 const Landing = lazy(() => import('@/pages/Landing'));
+const Contact = lazy(() => import('@/pages/Contact'));
+const CompanyPage = lazy(() => import('@/pages/CompanyPage'));
 const PublicDiscovery = lazy(() => import('@/pages/PublicDiscovery'));
+const PublicResearchers = lazy(() => import('@/pages/PublicResearchers'));
 const AppLayout = lazy(() => import('@/components/layout/AppLayout'));
 const Home = lazy(() => import('@/pages/Home'));
 const Library = lazy(() => import('@/pages/Library'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
 const Researchers = lazy(() => import('@/pages/Researchers'));
+const PublicCareers = lazy(() => import('@/pages/PublicCareers'));
 const Opportunities = lazy(() => import('@/pages/Opportunities'));
 const History = lazy(() => import('@/pages/History'));
 const Profile = lazy(() => import('@/pages/Profile'));
@@ -67,7 +71,7 @@ const PageLoader = () => (
 );
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, authError } = useAuth();
+  const { isLoadingAuth, authError, refreshSession } = useAuth();
 
   if (!environment.ok) {
     return <ConfigurationError />;
@@ -91,8 +95,15 @@ const AuthenticatedApp = () => {
         <div className="mx-auto max-w-lg rounded-2xl border bg-card p-8 shadow-sm">
           <h1 className="text-2xl font-semibold">Authentication unavailable</h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            EYLO AI could not verify your session. Refresh the page or try again shortly.
+            EYLO AI could not verify your session. Check your connection and retry. Your local session has not been cleared.
           </p>
+          <button
+            type="button"
+            onClick={() => refreshSession()}
+            className="mt-5 min-h-11 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            Try again
+          </button>
         </div>
       </main>
     );
@@ -110,6 +121,7 @@ const AuthenticatedApp = () => {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/home" element={<Home />} />
+          <Route path="/search" element={<Home searchOnly />} />
           <Route path="/library" element={<Library />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
@@ -154,12 +166,17 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
+        <Router basename={import.meta.env.BASE_URL === '/eyloai/' ? '/eyloai' : '/'}>
           <ScrollToTop />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Landing />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/company" element={<CompanyPage />} />
+              <Route path="/company/:section" element={<CompanyPage />} />
               <Route path="/discover" element={<PublicDiscovery />} />
+              <Route path="/find-researchers" element={<PublicResearchers />} />
+              <Route path="/careers" element={<PublicCareers />} />
               {/* Authentication pages stay reachable even if session bootstrap fails. */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />

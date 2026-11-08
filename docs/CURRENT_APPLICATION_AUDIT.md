@@ -1,6 +1,6 @@
 # Current application audit
 
-_Last reviewed: 2026-09-25._
+_Last reviewed: 2026-09-25. Follow-up: 2026-11-07._
 
 EYLO is a React/Vite research workspace with public scholarly discovery and an authenticated Supabase-backed workspace.
 
@@ -38,7 +38,6 @@ Experimental scenario, impact, research-landscape, team, professional-path and v
 
 - Strict internal auth redirect validation.
 - Centralized auth service and product-safe auth error mapping.
-- Explicit environment configuration handling.
 - Supabase RLS ownership policies and privileged server-only tables.
 - Partial-source retrieval resilience and metadata-noise filtering.
 - Lazy-loaded route surfaces.
@@ -55,3 +54,15 @@ Experimental scenario, impact, research-landscape, team, professional-path and v
 - Add server-side caching/rate-control for scholarly providers where operational evidence justifies it.
 - Complete live cross-user RLS verification and production OAuth/recovery tests.
 - Complete jurisdiction-specific privacy/terms/legal review before representing the engineering data-flow document as a legal policy.
+
+
+
+## Follow-up review — 2026-11-07
+
+A targeted P0 review on main found hard-coded Supabase fallbacks in both browser configuration and the server-side Institution Analytics endpoint. PR #219 removed browser fallbacks; PR #206 made Institution Analytics fail closed by default; PR #220 removed server-side Analytics fallbacks and added explicit configuration checks. All three changes passed their GitHub Actions build/test jobs before merge. Analytics remains disabled and was not tested against a live database.
+
+The live public smoke workflow on main commit `affcd76e50d750c33667623e1a540a6f9ca16a88` returned HTTP 404 for all eight checks: landing HTML, release manifest, robots policy, discovery, login, registration, recovery and capabilities. The GitHub Pages deployment for that commit succeeded at the repository Pages URL, but that is not the configured Vercel production service and does not provide the Vercel serverless API. The available Vercel connection did not expose an `eyloai` project or deployment; project lookup for the production hostname returned not found. The exact reason for the Vercel 404 remains unresolved.
+
+Production Supabase identity, deployed RLS, two-account data isolation, production OAuth/recovery, EYRA scientific accuracy, billing, deletion/export, mobile accessibility and human-judged retrieval quality remain unverified. Main was reported by GitHub as unprotected. See [TECHNICAL_AUDIT_2026-11-07.md](./TECHNICAL_AUDIT_2026-11-07.md) for the evidence-based issue register.
+
+Current release decision: **NO-GO** for public production and researcher pilot while the production URL returns 404 and security/quality gates remain unverified.

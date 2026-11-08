@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/api-url';
 import { getUsableSession, invalidateAuthentication } from '@/lib/supabaseClient';
 
 async function requestWithSession(url, options, forceRefresh) {
@@ -7,7 +8,7 @@ async function requestWithSession(url, options, forceRefresh) {
     validate: true,
   });
 
-  return fetch(url, {
+  return fetch(apiUrl(url), {
     ...options,
     headers: {
       ...options?.headers,

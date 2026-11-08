@@ -1,0 +1,47 @@
+name: Refresh free global remote jobs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/remotive-jobs.yml'
+      - 'scripts/update-remotive-snapshot.mjs'
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: remotive-daily-snapshot
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+
+      - uses: actions/checkout@v4
+        with:
+          ref: career-feed
+          path: feed-data
+          persist-credentials: true
+
+      - name: Fetch and validate the daily free snapshot
+        run: node scripts/update-remotive-snapshot.mjs feed-data/remotive-jobs.json
+
+      - name: Publish the changed snapshot to its data branch
+        working-directory: feed-data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add remotive-jobs.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Refresh daily Remotive jobs snapshot"
+            git push origin HEAD:career-feed
+          fi
