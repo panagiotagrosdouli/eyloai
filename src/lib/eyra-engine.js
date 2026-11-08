@@ -116,39 +116,16 @@ export async function runEyraDiscovery(input, onProgress, options = {}) {
     return { items: [], error: partial.fundingError };
   });
 
-  // Wait for all real data
-  const [paperBundle, researchers, institutions, fundingResult] = await Promise.all([
+  // Do not hold evidence analysis behind the slower funding endpoint.
+  const [paperBundle, researchers, institutions] = await Promise.all([
     papersPromise,
     researchersPromise,
     institutionsPromise,
-    fundingPromise,
   ]);
   signal?.throwIfAborted();
   const papers = paperBundle.papers || [];
-  const sourceStatus = [
-    ...(paperBundle.source_status || []),
-    {
-      id: 'researchers',
-      label: 'OpenAlex researchers',
-      status: partial.researchersError ? 'unavailable' : 'available',
-      count: researchers.length,
-    },
-    {
-      id: 'institutions',
-      label: 'OpenAlex institutions',
-      status: partial.institutionsError ? 'unavailable' : 'available',
-      count: institutions.length,
-    },
-    {
-      id: 'funding',
-      label: 'Grants.gov',
-      status: fundingResult.error ? 'unavailable' : 'available',
-      count: fundingResult.items?.length || 0,
-    },
-  ];
-  const unavailableSources = sourceStatus.filter(source => source.status === 'unavailable');
 
-  // Signal AI analysis starting
+  // Analyze the retrieved scholarly evidence while the funding source is still running.
   partial.status = 'analyzing';
   onProgress && onProgress({ ...partial });
 
@@ -188,6 +165,31 @@ export async function runEyraDiscovery(input, onProgress, options = {}) {
       aiError = error instanceof Error ? error.message : 'EYRA analysis unavailable';
     }
   }
+
+  const fundingResult = await fundingPromise;
+  signal?.throwIfAborted();
+  const sourceStatus = [
+    ...(paperBundle.source_status || []),
+    {
+      id: 'researchers',
+      label: 'OpenAlex researchers',
+      status: partial.researchersError ? 'unavailable' : 'available',
+      count: researchers.length,
+    },
+    {
+      id: 'institutions',
+      label: 'OpenAlex institutions',
+      status: partial.institutionsError ? 'unavailable' : 'available',
+      count: institutions.length,
+    },
+    {
+      id: 'funding',
+      label: 'Grants.gov',
+      status: fundingResult.error ? 'unavailable' : 'available',
+      count: fundingResult.items?.length || 0,
+    },
+  ];
+  const unavailableSources = sourceStatus.filter(source => source.status === 'unavailable');
 
   const verifiedFunding = (fundingResult.items || []).map((item) => ({
     id: item.id,
