@@ -74,7 +74,6 @@ function extractJobs(html) {
 }
 
 export default async function handler(request, response) {
-  if (applyCors(request, response, ["GET"])) return;
   if (applyCors(request, response, ['GET'])) return;
   if (request.method !== 'GET') {
     response.setHeader('Allow', 'GET, OPTIONS');
