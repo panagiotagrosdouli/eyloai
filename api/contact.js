@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Please complete all fields with valid information.' });
   }
   if (!process.env.RESEND_API_KEY || !process.env.CONTACT_TO_EMAIL || !process.env.RESEND_FROM_EMAIL) {
-    return res.status(503).json({ error: 'Applications are temporarily unavailable. Please try again later.' });
+    return res.status(503).json({ error: 'The contact form is currently unavailable. Please try again later.' });
   }
   try {
     const result = await fetch('https://api.resend.com/emails', {
