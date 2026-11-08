@@ -153,22 +153,19 @@ async function authenticate(authorization) {
 
 function usageState(identity) {
   const month = new Date().toISOString().slice(0, 7);
-  const plan = billingActive()
-    ? (PLAN_LIMITS[identity.entitlement.plan] !== undefined ? identity.entitlement.plan : 'free')
-    : 'early_access';
+  const billingEnabled = billingActive();
+  const plan = billingEnabled && PLAN_LIMITS[identity.entitlement.plan] !== undefined
+    ? identity.entitlement.plan
+    : 'free';
   return {
     month,
     plan,
     used: 0,
-    limit: plan === 'early_access' ? null : PLAN_LIMITS[plan],
+    limit: PLAN_LIMITS[plan],
   };
 }
 
 async function reserveUsage(identity, usage) {
-  if (usage.plan === 'early_access') {
-    return { allowed: true, used: 0, actionId: null };
-  }
-
   const actionId = crypto.randomUUID();
   const result = await fetch(
     `${identity.supabaseUrl}/rest/v1/rpc/reserve_eyra_usage`,
@@ -181,6 +178,7 @@ async function reserveUsage(identity, usage) {
         p_usage_month: usage.month,
         p_limit: usage.limit,
       }),
+      signal: AbortSignal.timeout(15_000),
     },
   );
   if (!result.ok) throw new Error(`Usage reservation failed: ${result.status}`);
@@ -206,6 +204,7 @@ async function releaseUsage(reservation) {
         method: 'POST',
         headers: serverHeaders(reservation.serverKey),
         body: JSON.stringify({ p_action_id: reservation.actionId }),
+        signal: AbortSignal.timeout(15_000),
       },
     );
     // HTTP failures do not throw in fetch. Report unsuccessful quota refunds
@@ -275,6 +274,13 @@ export default async function handler(request, response) {
           code: 'INVALID_SCHEMA',
         });
       }
+    }
+
+    if (!identity.serverKey) {
+      return response.status(503).json({
+        error: 'EYRA usage controls are not configured.',
+        code: 'USAGE_CONTROLS_UNAVAILABLE',
+      });
     }
 
     const usage = usageState(identity);
