@@ -22,7 +22,7 @@ export default function Careers() {
   const [error, setError] = useState('');
   const [sourceNotice, setSourceNotice] = useState('');
 
-  const rankedItems = useMemo(() => rankCareers(items, cvText), [items, cvText]);
+  const rankedItems = useMemo(() => rankCareers(items, cvText, query), [items, cvText, query]);
 
   const runSearch = async (term, page = 0) => {
     const clean = String(term || '').trim();
@@ -133,7 +133,7 @@ export default function Careers() {
           {sourceNotice && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{sourceNotice}</div>}
           {error && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{error}</div>}
           {loading && <div role="status" className="flex items-center gap-3 rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground"><Loader2 size={16} className="animate-spin" />Searching EURAXESS and loading Europe/UK and remote listings…</div>}
-          {!loading && !error && items.length > 0 && <p className="text-xs text-muted-foreground">{rankedItems.length} matching research, Europe/UK and remote roles · {retrievedAt ? 'updated ' + new Date(retrievedAt).toLocaleString() : 'current source records'} · sorted by CV overlap</p>}
+          {!loading && !error && items.length > 0 && <p className="text-xs text-muted-foreground">{rankedItems.length} matching research, Europe/UK and remote roles · {retrievedAt ? 'updated ' + new Date(retrievedAt).toLocaleString() : 'current source records'} · sorted by {cvText ? 'CV overlap' : 'search relevance'}</p>}
           {!loading && rankedItems.map(item => (
             <article key={item.id} className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
