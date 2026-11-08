@@ -34,6 +34,7 @@ const TOOL_GROUPS = [
     section: 'Workspace',
     description: 'Research work that stays connected to projects',
     items: [
+      { label: 'Collaborations', path: '/collaborations', icon: Users, desc: 'Find or publish targeted research partnerships, co-author calls and jobs' },
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
       { label: 'For you', path: '/foryou', icon: Sparkles, desc: 'Updates from your saved research context', badge: 'Workspace' },
       { label: 'Idea workspace', path: '/ideas', icon: Lightbulb, desc: 'Capture and develop research ideas', badge: 'Workspace' },
