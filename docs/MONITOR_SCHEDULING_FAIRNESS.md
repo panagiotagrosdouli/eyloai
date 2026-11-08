@@ -57,3 +57,34 @@ upstream requests.
 
 Do not turn on the cron or alter any production data based solely
 on synthetic tests. Production monitoring remains NO-GO.
+
+## Provider response validation — proposed follow-up
+
+Scheduled checks previously used unbounded `response.json()` from OpenAlex
+and Grants.gov. A malformed HTTP 200 payload missing the expected records
+array was interpreted as an empty, *successful* result and the watchlist
+received a success timestamp. OpenAlex inverted-index values could also
+request very large sparse arrays.
+
+The updated Vercel monitor and Supabase Edge scheduler share one provider
+response validator:
+
+- Reads no more than **2 MiB** per provider response, including streamed
+  responses without a declared `Content-Length`.
+- Accepts JSON media types, rejects HTML/challenge content and invalid
+  or scalar JSON responses.
+- Requires an OpenAlex `results` array or a Grants.gov
+  `errorcode: 0` with `data.oppHits` array. Rejects more than five
+  records in a requested five-record page and missing result IDs.
+- Decodes at most 150 OpenAlex abstract words, from bounded, validated
+  positional offsets; arbitrary billion-scale offsets are ignored.
+- Reports malformed/oversized responses as *failed* watchlist checks,
+  preserving the scheduler's retryable HTTP 503 response and failure
+  state instead of falsely recording no findings.
+
+Mock tests include declared and streamed overlarge responses, truncated
+JSON, invalid provider schemas and an integration check of the actual
+`api/monitor.js` handler. A regression check confirms the scheduled Edge
+function uses the same validator and records failure state. These are not live scientific evidence,
+do not verify real provider uptime, and do not authorize monitoring in
+production. The intended Supabase project remains unverified.

@@ -1,5 +1,8 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 import { monitorWatchlistsQuery } from '../src/lib/monitor-scheduling.mjs';
+import {
+  readMonitorProviderRecords, boundedOpenAlexAbstract,
+} from '../supabase/functions/_shared/monitor-provider-response.mjs';
 
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 const OPENALEX_URL = 'https://api.openalex.org/works';
@@ -48,13 +51,6 @@ export async function fetchResearchProvider(url, options = {}) {
   return lastResponse;
 }
 
-function abstractFromInverted(index) {
-  if (!index) return '';
-  const words = [];
-  Object.entries(index).forEach(([word, positions]) => positions.forEach(position => { words[position] = word; }));
-  return words.filter(Boolean).join(' ').slice(0, 500);
-}
-
 async function searchOpenAlex(query) {
   const params = new URLSearchParams({
     search: query,
@@ -69,12 +65,12 @@ async function searchOpenAlex(query) {
   if (contactEmail) params.set('mailto', contactEmail);
   const response = await fetchResearchProvider(`${OPENALEX_URL}?${params}`);
   if (!response.ok) throw new Error(`OpenAlex failed: ${response.status}`);
-  const payload = await response.json();
-  return (payload.results || []).map(work => ({
+  const works = await readMonitorProviderRecords(response, 'openalex');
+  return works.map(work => ({
     external_id: work.id,
     type: 'paper',
     title: work.title || 'Untitled paper',
-    summary: abstractFromInverted(work.abstract_inverted_index),
+    summary: boundedOpenAlexAbstract(work.abstract_inverted_index),
     source: work.primary_location?.source?.display_name || 'OpenAlex',
     source_url: work.doi || work.id,
     published_at: work.publication_date || '',
@@ -95,8 +91,8 @@ async function searchGrants(query) {
     body: JSON.stringify({ rows: 5, keyword: query, oppStatuses: 'forecasted|posted' }),
   });
   if (!response.ok) throw new Error(`Grants.gov failed: ${response.status}`);
-  const payload = await response.json();
-  return (payload.data?.oppHits || []).map(hit => {
+  const hits = await readMonitorProviderRecords(response, 'grants');
+  return hits.map(hit => {
     const remaining = daysUntil(hit.closeDate);
     return {
       external_id: `grants:${hit.id}`,
