@@ -1,4 +1,4 @@
-import { apiUrl } from '@/lib/api-url';
+import { apiUrl } from './api-url.js';
 const REMOTIVE_SNAPSHOT_URL = 'https://raw.githubusercontent.com/panagiotagrosdouli/eyloai/career-feed/remotive-jobs.json';
 const REMOTIVE_ATTRIBUTION_URL = 'https://remotive.com/remote-jobs/api';
 
