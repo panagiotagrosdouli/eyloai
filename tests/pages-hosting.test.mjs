@@ -76,8 +76,8 @@ test('Static Pages discovery does not call missing same-origin server functions'
 
 test('GitHub Pages routes API calls through the production Vercel backend', () => {
   const apiUrl = read('src/lib/api-url.js');
-  assert.match(apiUrl, /env\?\.BASE_URL === '\/eyloai\/'/);
-  assert.match(apiUrl, /env\?\.BASE_URL === '\/eyloai\/'/);
+  assert.match(apiUrl, /import\.meta\.env\?\.BASE_URL === GITHUB_PAGES_BASE/);
+  assert.match(apiUrl, /import\.meta\.env\?\.BASE_URL === GITHUB_PAGES_BASE/);
   for (const path of [
     'src/lib/capabilities.js',
     'src/lib/protected-api.js',
