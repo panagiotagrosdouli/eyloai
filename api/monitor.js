@@ -1,3 +1,4 @@
+import { applyCors } from '../src/lib/api-cors.mjs';
 import { monitorWatchlistsQuery } from '../src/lib/monitor-scheduling.mjs';
 
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
@@ -205,6 +206,7 @@ async function processWatchlist(row, seen) {
 }
 
 export default async function handler(request, response) {
+  if (applyCors(request, response, ["GET"])) return;
   if (request.method !== 'GET') return response.status(405).json({ error: 'Method not allowed.' });
   if (!process.env.CRON_SECRET || request.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     return response.status(401).json({ error: 'Cron authorization required.' });
