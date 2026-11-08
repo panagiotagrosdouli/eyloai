@@ -1,3 +1,6 @@
+import { applyCors } from '../src/lib/api-cors.mjs';
+import { analyticsEnabled } from '../src/lib/analytics-readiness.mjs';
+
 function supabaseServerConfigured() {
   return Boolean(
     process.env.SUPABASE_SECRET_KEY
@@ -6,13 +9,15 @@ function supabaseServerConfigured() {
 }
 
 export default function handler(request, response) {
+  if (applyCors(request, response, ["GET"])) return;
   response.setHeader('Cache-Control', 'no-store');
   if (request.method !== 'GET') {
     response.setHeader('Allow', 'GET');
     return response.status(405).json({ error: 'Method not allowed.' });
   }
   return response.status(200).json({
-    ai: Boolean(process.env.OPENAI_API_KEY),
+    ai: Boolean(process.env.OPENAI_API_KEY && supabaseServerConfigured()),
+    contact: Boolean(process.env.RESEND_API_KEY && process.env.CONTACT_TO_EMAIL && process.env.RESEND_FROM_EMAIL),
     billing: Boolean(
       process.env.STRIPE_SECRET_KEY
       && process.env.STRIPE_WEBHOOK_SECRET
@@ -24,8 +29,8 @@ export default function handler(request, response) {
     // is enabled only after explicit consent to send each active query to the
     // selected external research/funding source.
     scheduled_monitoring: false,
-    // Analytics is served by an authenticated, least-privilege database RPC;
-    // no Vercel service-role credential is required.
-    institution_analytics: true,
+    // Do not advertise the RPC before actual production Supabase acceptance.
+    // Operator enablement is a manual post-verification switch.
+    institution_analytics: analyticsEnabled(),
   });
 }

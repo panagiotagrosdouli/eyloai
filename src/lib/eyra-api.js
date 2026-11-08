@@ -43,7 +43,12 @@ function proxyUrl(provider, query, limit, sort = 'relevance', page = 1, country 
 async function fetchResearchSource(provider, query, limit, sort, directUrl, options = {}) {
   const configuredProxyBase = String(options.proxyBaseUrl || '').trim();
   const proxyBaseUrl = configuredProxyBase ? new URL(configuredProxyBase).origin : '';
-  const shouldUseProxy = Boolean(proxyBaseUrl) || (typeof window !== 'undefined' && !import.meta.env?.DEV);
+  // GitHub Pages serves static assets only; it cannot handle /api/discovery.
+  // Public scholarly requests may use provider APIs directly, with source-level
+  // failures reported rather than silently presenting fake or cached results.
+  const staticPagesHost = import.meta.env?.BASE_URL === '/eyloai/';
+  const shouldUseProxy = Boolean(proxyBaseUrl)
+    || (typeof window !== 'undefined' && !import.meta.env?.DEV && !staticPagesHost);
 
   if (shouldUseProxy) {
     try {

@@ -48,11 +48,19 @@ test('unauthenticated EYRA errors are explicitly private and uncached', async ()
 test('EYRA rejects a partial OpenAI generation even when it contains text', async () => {
   const previousFetch = globalThis.fetch;
   const previousKey = process.env.OPENAI_API_KEY;
+  const previousServerKey = process.env.SUPABASE_SECRET_KEY;
   process.env.OPENAI_API_KEY = 'sk-test-placeholder-only';
+  process.env.SUPABASE_SECRET_KEY = 'sb_secret_test_key';
   globalThis.fetch = async (url) => {
     const address = String(url);
     if (address.endsWith('/auth/v1/user')) {
       return new Response(JSON.stringify({ id: 'test-researcher' }), { status: 200 });
+    }
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) {
+      return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    }
+    if (address.endsWith('/rest/v1/rpc/release_eyra_usage')) {
+      return new Response('true', { status: 200 });
     }
     if (address === 'https://api.openai.com/v1/responses') {
       return new Response(JSON.stringify({
@@ -78,6 +86,8 @@ test('EYRA rejects a partial OpenAI generation even when it contains text', asyn
     globalThis.fetch = previousFetch;
     if (previousKey === undefined) delete process.env.OPENAI_API_KEY;
     else process.env.OPENAI_API_KEY = previousKey;
+    if (previousServerKey === undefined) delete process.env.SUPABASE_SECRET_KEY;
+    else process.env.SUPABASE_SECRET_KEY = previousServerKey;
   }
 });
 

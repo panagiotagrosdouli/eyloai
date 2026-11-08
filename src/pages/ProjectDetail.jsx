@@ -454,7 +454,7 @@ Rules:
           )) : (
             <div className="rounded-xl border border-dashed border-border p-6">
               <p className="text-sm font-medium">No researchers linked yet</p>
-              <Link to="/researchers" className="mt-3 inline-flex min-h-10 items-center text-sm font-medium text-primary hover:underline">Find researchers</Link>
+              <Link to={`/researchers?q=${encodeURIComponent(String(project?.goal || project?.title || '').slice(0, 180))}&project_id=${encodeURIComponent(id)}&project_title=${encodeURIComponent(project?.title || '')}`} className="mt-3 inline-flex min-h-10 items-center text-sm font-medium text-primary hover:underline">Find researchers for this project</Link>
             </div>
           )}
         </motion.section>
@@ -475,7 +475,7 @@ Rules:
             <div className="rounded-xl border border-dashed border-border p-6">
               <p className="text-sm font-medium">No funding linked yet</p>
               <p className="mt-1 text-sm text-muted-foreground">Verify eligibility and program terms at the official source.</p>
-              <Link to="/opportunities" className="mt-3 inline-flex min-h-10 items-center text-sm font-medium text-primary hover:underline">Find funding</Link>
+              <Link to={`/opportunities?q=${encodeURIComponent(String(project?.goal || project?.title || '').slice(0, 180))}&project_id=${encodeURIComponent(id)}&project_title=${encodeURIComponent(project?.title || '')}`} className="mt-3 inline-flex min-h-10 items-center text-sm font-medium text-primary hover:underline">Find funding for this project</Link>
             </div>
           )}
         </motion.section>

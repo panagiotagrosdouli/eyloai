@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 6710)
+Total output lines: 523
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
@@ -256,55 +259,7 @@ export default function Settings() {
                       className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${selected ? 'border-primary bg-primary/5' : 'border-border bg-card hover:border-primary/30'}`}>
                       <Icon size={20} className={selected ? 'text-primary' : 'text-muted-foreground'} />
                       <p className="text-xs font-semibold text-foreground">{t.label}</p>
-                      <p className="text-[10px] text-muted-foreground text-center">{t.desc}</p>
-                      {selected && <Check size={11} className="text-primary" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Accent Color</p>
-              <div className="flex gap-3 flex-wrap">
-                {ACCENT_COLORS.map(c => (
-                  <button key={c.id} onClick={() => savePrefs({ accent: c.id })}
-                    className={`flex flex-col items-center gap-1.5 transition-all`}>
-                    <div className={`w-9 h-9 rounded-xl ${c.class} ${prefs.accent === c.id ? 'ring-2 ring-offset-2 ring-offset-background ring-white/40 scale-110' : 'opacity-60 hover:opacity-100'} transition-all`} />
-                    <span className="text-[10px] text-muted-foreground">{c.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'ai':
-        return (
-          <div>
-            <SectionHeader title="AI Preferences" desc="Customize how EYRA thinks, responds, and prioritizes for you." />
-            <div className="space-y-3">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Response Style</p>
-              {[
-                { id: 'concise', label: 'Concise', desc: 'Short, direct answers with bullet points' },
-                { id: 'balanced', label: 'Balanced', desc: 'Detailed with clear structure (default)' },
-                { id: 'detailed', label: 'Detailed', desc: 'In-depth analysis with full reasoning' },
-              ].map(s => (
-                <button key={s.id} onClick={() => savePrefs({ ai_response_style: s.id })}
-                  className={`w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${prefs.ai_response_style === s.id ? 'border-primary bg-primary/5' : 'border-border bg-card hover:border-primary/30'}`}>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{s.label}</p>
-                    <p className="text-xs text-muted-foreground">{s.desc}</p>
-                  </div>
-                  {prefs.ai_response_style === s.id && <Check size={13} className="text-primary ml-auto" />}
-                </button>
-              ))}
-
-              <div className="mt-6 p-4 rounded-xl border border-border bg-card">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Personalization</p>
-                    <p className="text-xs text-muted-foreground">Use saved research context when personalization is enabled</p>
-                  </div>
+                      <p className="text-…710 tokens truncated…            </div>
                   <button
                     type="button"
                     role="switch"

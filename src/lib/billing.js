@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/api-url';
 import {
   getUsableSession,
   invalidateAuthentication,
@@ -28,7 +29,7 @@ async function sessionToken(forceRefresh = false) {
 
 async function billingRequest(options = {}) {
   let token = await sessionToken();
-  let response = await fetch('/api/billing', {
+  let response = await fetch(apiUrl('/api/billing'), {
     ...options,
     headers: {
       ...options.headers,
@@ -38,7 +39,7 @@ async function billingRequest(options = {}) {
 
   if (response.status === 401) {
     token = await sessionToken(true);
-    response = await fetch('/api/billing', {
+    response = await fetch(apiUrl('/api/billing'), {
       ...options,
       headers: {
         ...options.headers,
@@ -56,7 +57,7 @@ async function billingRequest(options = {}) {
 }
 
 async function billingIsConfigured() {
-  const response = await fetch('/api/capabilities', {
+  const response = await fetch(apiUrl('/api/capabilities'), {
     headers: { accept: 'application/json' },
   });
   if (!response.ok) throw new Error('Could not verify deployment capabilities.');

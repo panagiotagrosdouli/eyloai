@@ -6,6 +6,7 @@ const ENVIRONMENT_KEYS = [
   'SUPABASE_SECRET_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
   'CRON_SECRET',
+  'EYLO_ANALYTICS_ENABLED',
 ];
 
 const previousEnvironment = Object.fromEntries(
@@ -71,6 +72,10 @@ try {
     throw new Error('Monitoring incorrectly exposed a modern Supabase secret as a Bearer token.');
   }
 
+  // This mock explicitly exercises the post-acceptance path using disposable configuration.
+  process.env.EYLO_ANALYTICS_ENABLED = '1';
+  process.env.VITE_SUPABASE_URL = 'https://test-project.supabase.co';
+  process.env.SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_regression_test';
   let analyticsHeaders = {};
   globalThis.fetch = async (url, options = {}) => {
     const target = String(url);
@@ -81,7 +86,15 @@ try {
         institution_name: 'My workspace',
         members: 1,
         ai_actions_this_month: 0,
-        counts: {},
+        generated_at: '2026-11-06T00:00:00Z',
+        counts: {
+          projects: 0,
+          saved_papers: 0,
+          saved_researchers: 0,
+          saved_opportunities: 0,
+          meetings: 0,
+          watchlists: 0,
+        },
       });
     }
     throw new Error(`Unexpected analytics request: ${target}`);

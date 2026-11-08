@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { boundedOpenAlexAbstract, readMonitorProviderRecords } from "../_shared/monitor-provider-response.mjs";
 
 const OPENALEX_URL = "https://api.openalex.org/works";
 const GRANTS_URL = "https://api.grants.gov/v1/api/search2";
@@ -29,28 +30,19 @@ function sameString(left: string, right: string) {
   return difference === 0;
 }
 
-function abstractFromInverted(index: Record<string, number[]> | null) {
-  if (!index) return "";
-  const words: string[] = [];
-  Object.entries(index).forEach(([word, positions]) => {
-    positions.forEach((position) => { words[position] = word; });
-  });
-  return words.filter(Boolean).join(" ").slice(0, 500);
-}
-
 async function searchOpenAlex(query: string) {
   const params = new URLSearchParams({ search: query, per_page: "5", sort: "publication_date:desc" });
   const response = await fetch(`${OPENALEX_URL}?${params}`, { signal: AbortSignal.timeout(12_000) });
   if (!response.ok) throw new Error(`OpenAlex failed: ${response.status}`);
-  const payload = await response.json();
-  return (payload.results || []).map((work: JsonRecord) => {
+  const works = await readMonitorProviderRecords(response, "openalex") as JsonRecord[];
+  return works.map((work: JsonRecord) => {
     const primaryLocation = work.primary_location as JsonRecord | undefined;
     const source = primaryLocation?.source as JsonRecord | undefined;
     return {
       externalId: String(work.id || ""),
       type: "paper",
       title: String(work.title || "Untitled paper"),
-      description: abstractFromInverted(work.abstract_inverted_index as Record<string, number[]> | null),
+      description: boundedOpenAlexAbstract(work.abstract_inverted_index),
       source: String(source?.display_name || "OpenAlex"),
       sourceUrl: String(work.doi || work.id || ""),
       year: Number(work.publication_year || 0) || null,
@@ -81,8 +73,8 @@ async function searchGrants(query: string) {
     signal: AbortSignal.timeout(12_000),
   });
   if (!response.ok) throw new Error(`Grants.gov failed: ${response.status}`);
-  const payload = await response.json();
-  return (payload.data?.oppHits || []).map((hit: JsonRecord) => {
+  const hits = await readMonitorProviderRecords(response, "grants") as JsonRecord[];
+  return hits.map((hit: JsonRecord) => {
     const remaining = daysUntil(hit.closeDate);
     const highPriority = remaining !== null && remaining >= 0 && remaining <= 45;
     return {
@@ -140,6 +132,7 @@ Deno.serve(async (request: Request) => {
   let inserted = 0;
   let notifications = 0;
   let failed = 0;
+  const failedWatchlistIds: string[] = [];
 
   for (const row of watchlists || []) {
     const watchlist = (row.data || {}) as JsonRecord;
@@ -189,12 +182,36 @@ Deno.serve(async (request: Request) => {
 
       const { error: updateError } = await client
         .from("watchlists")
-        .update({ data: { ...watchlist, lastCheckedAt: new Date().toISOString(), lastResultCount: records.length } })
+        .update({ data: {
+          ...watchlist,
+          lastCheckedAt: new Date().toISOString(),
+          lastCheckStatus: "success",
+          lastResultCount: records.length,
+          consecutiveFailures: 0,
+        } })
         .eq("id", row.id);
       if (updateError) throw updateError;
     } catch (error) {
       failed += 1;
+      failedWatchlistIds.push(row.id);
       console.error("Watchlist check failed", { watchlistId: row.id, message: error instanceof Error ? error.message : "Unknown error" });
+      try {
+        const { error: updateError } = await client
+          .from("watchlists")
+          .update({ data: {
+            ...watchlist,
+            lastFailedAt: new Date().toISOString(),
+            lastCheckStatus: "failed",
+            consecutiveFailures: Number(watchlist.consecutiveFailures || 0) + 1,
+          } })
+          .eq("id", row.id);
+        if (updateError) throw updateError;
+      } catch (updateError) {
+        console.error("Could not persist watchlist failure status", {
+          watchlistId: row.id,
+          status: updateError instanceof Error && "code" in updateError ? updateError.code : null,
+        });
+      }
     }
   }
 
@@ -203,6 +220,8 @@ Deno.serve(async (request: Request) => {
     inserted,
     notifications,
     failed,
+    failed_watchlist_ids: failedWatchlistIds,
+    partial_failure: failed > 0,
     completed_at: new Date().toISOString(),
-  });
+  }, failed > 0 ? 503 : 200);
 });

@@ -24,6 +24,7 @@ const CATEGORIES = [
   { key: 'competition', label: 'Competitions' },
   { key: 'accelerator', label: 'Accelerators' },
   { key: 'scholarship', label: 'Scholarships' },
+  { key: 'call', label: 'Calls' },
 ];
 
 const QUICK_SEARCHES = [
@@ -142,21 +143,45 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
   };
 
   const saveOpportunity = async (opp) => {
+    const sourceId = opp.source_id || opp.id || opp.source_url || opp.url || opp.title;
+    const projectId = searchParams.get('project_id');
     try {
+      const project = projectId ? await base44.entities.Project.get(projectId) : null;
+      let existing = null;
+      try {
+        const matches = await base44.entities.SavedOpportunity.filter({ source_id: sourceId }, '-created_date', 1);
+        existing = Array.isArray(matches) ? matches.find(item => item.source_id === sourceId) || matches[0] : null;
+      } catch {
+        // Continue with a new library record if the duplicate lookup is unavailable.
+      }
+      if (existing) {
+        if (project && existing.project_id && existing.project_id !== project.id) {
+          toast({ title: 'Already linked to another project', description: 'The opportunity was left in its current project.' });
+          return;
+        }
+        if (project && !existing.project_id) {
+          await base44.entities.SavedOpportunity.update(existing.id, { project_id: project.id, project_title: project.title || '' });
+          toast({ title: `Added to ${project.title || 'project'}`, description: 'Opportunity saved to your Library.' });
+          return;
+        }
+        toast({ title: project ? 'Already in this project' : 'Opportunity already in Library' });
+        return;
+      }
       await base44.entities.SavedOpportunity.create({
         title: opp.title,
         type: opp.type,
         description: opp.description,
         source: opp.source || sourceMeta?.source,
-        source_id: opp.source_id || opp.id,
+        source_id: sourceId,
         url: opp.source_url || opp.url,
         agency: opp.agency,
         eligibility: opp.eligibility,
         deadline: opp.deadline,
         amount: opp.amount,
         status: opp.status,
+        ...(project ? { project_id: project.id, project_title: project.title || '' } : {}),
       });
-      toast({ title: 'Opportunity saved to library' });
+      toast({ title: project ? `Added to ${project.title || 'project'}` : 'Opportunity saved to library' });
     } catch (error) {
       toast({
         title: 'Could not save this opportunity',
@@ -178,6 +203,11 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
       <div className="mb-6">
         <h1 className="eylo-page-heading">Funding</h1>
       </div>
+      {searchParams.get('project_id') && (
+        <div className="mb-5 max-w-2xl rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs leading-5 text-foreground">
+          Searching for <strong>{searchParams.get('project_title') || 'your project'}</strong>. Saved opportunities are added to this project and your Library.
+        </div>
+      )}
 
       {/* Source contract */}
       <div className="flex items-start gap-2 p-3 rounded-xl border border-green-500/20 bg-green-500/5 mb-4 max-w-2xl">

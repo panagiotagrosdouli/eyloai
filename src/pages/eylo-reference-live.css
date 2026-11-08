@@ -28,3 +28,19 @@
  .eylo-scene-landscape{background:linear-gradient(180deg,rgba(240,249,255,.48),rgba(245,251,255,.87) 30%,rgba(242,249,255,.84) 60%,rgba(82,144,200,.18))!important}
 }
 @media(prefers-reduced-motion:reduce){.eylo-hero-emblem,.eylo-hero-intro{animation:none!important}}
+
+/* Research-first hero: search and value proposition remain visible above the fold. */
+.eylo-scene .eylo-hero-emblem{width:min(46vw,190px)!important;max-height:160px}
+.eylo-scene section:first-of-type{height:auto;min-height:calc(100svh - 76px);padding-top:20px;padding-bottom:44px}
+.eylo-scene h1{font-size:clamp(2.2rem,4.5vw,4.1rem);line-height:1.1;letter-spacing:-.04em;margin-top:16px}
+.eylo-scene h1+p{margin-top:20px}
+@media(min-width:1024px){
+  .eylo-scene{height:auto;min-height:100svh}
+  .eylo-scene section:first-of-type{min-height:calc(100svh - 76px);padding:28px 24px 44px}
+  .eylo-scene .eylo-hero-emblem{width:190px!important;max-height:160px}
+}
+@media(max-width:640px){
+  .eylo-scene section:first-of-type{padding-top:20px;padding-bottom:40px}
+  .eylo-scene .eylo-hero-emblem{width:140px!important;max-height:125px}
+  .eylo-scene h1{font-size:clamp(2rem,8vw,3rem)}
+}
