@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { normalizeRemotiveSnapshot } from '../src/lib/careers-api.js';
+import { filterCareerListings, normalizeRemotiveSnapshot, rankCareers } from '../src/lib/careers-api.js';
 
 test('browser Remotive snapshots keep only safe source-linked roles', () => {
   const snapshot = normalizeRemotiveSnapshot({
@@ -40,4 +40,42 @@ test('browser Remotive snapshots reject malformed or unusable data', () => {
     retrieved_at: '2026-11-07T00:00:00.000Z',
     items: [{ id: 'no-link', title: 'No trusted source', source_url: 'https://example.org/job' }],
   }), /no usable listings/);
+});
+
+test('career search excludes weak description-only hits and ranks exact role titles first', () => {
+  const listings = [
+    {
+      title: 'Strategic Account Executive Enterprise - DACH',
+      organization: 'Malt',
+      country: 'Munich',
+      description: 'A freelance marketplace connecting freelancers with companies.',
+    },
+    {
+      title: 'Freelance Writer',
+      organization: 'IAPWE',
+      country: 'Worldwide',
+      description: 'Create articles and blog posts.',
+    },
+    {
+      title: 'Freelance Copywriter',
+      organization: 'Coalition Technologies',
+      country: 'Worldwide',
+      description: 'Write research-backed copy for client websites.',
+    },
+  ];
+
+  const filtered = filterCareerListings(listings, 'Freelance Writer');
+  assert.deepEqual(filtered.map(item => item.title), ['Freelance Writer', 'Freelance Copywriter']);
+  const ranked = rankCareers(filtered, '', 'Freelance Writer');
+  assert.equal(ranked[0].title, 'Freelance Writer');
+  assert.equal(ranked[0].query_score, 100);
+});
+
+test('career results continue to sort by local CV overlap when a CV is available', () => {
+  const ranked = rankCareers([
+    { title: 'Research writer', organization: '', country: '', description: 'science statistics' },
+    { title: 'Sales manager', organization: '', country: '', description: 'pipeline accounts' },
+  ], 'science statistics', 'Research writer');
+  assert.equal(ranked[0].title, 'Research writer');
+  assert.equal(ranked[0].match_score, 100);
 });
