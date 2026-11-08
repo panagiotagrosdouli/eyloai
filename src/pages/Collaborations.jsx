@@ -128,7 +128,7 @@ export default function Collaborations() {
       </div>
 
       {notice && <p role="status" className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">{notice}</p>}
-      {error && <div role="alert" className="mb-5 rounded-xl border border-destructive/30 p-4 text-sm">{error} <button type="button" onClick={load} className="ml-2 font-semibold underline">Retry</button></div>}
+      {error && <div role="alert" className="mb-5 rounded-xl border border-destructive/30 p-4 text-sm">{error} <button type="button" onClick={() => load()} className="ml-2 font-semibold underline">Retry</button></div>}
       <div className="mb-7 grid gap-3 sm:grid-cols-[1fr_230px]">
         <label className="relative block">
           <span className="sr-only">Search collaborations by subject, skill or location</span>
