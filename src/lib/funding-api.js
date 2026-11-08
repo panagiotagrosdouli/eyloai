@@ -8,7 +8,7 @@ export class FundingRequestError extends Error {
   }
 }
 
-export async function searchFundingOpportunities(query, limit = 12) {
+export async function searchFundingOpportunities(query, limit = 12, options = {}) {
   const cleanQuery = String(query || '').trim();
   if (!cleanQuery) throw new FundingRequestError('Describe the funding you want to find.', 400);
 
@@ -17,7 +17,7 @@ export async function searchFundingOpportunities(query, limit = 12) {
     limit: String(Math.min(15, Math.max(1, Number(limit) || 12))),
   });
 
-  const response = await protectedApiFetch(`/api/opportunities?${params}`);
+  const response = await protectedApiFetch(`/api/opportunities?${params}`, options);
   const result = await response.json().catch(() => ({}));
 
   if (!response.ok) {
