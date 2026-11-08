@@ -1,3 +1,4 @@
+import { applyCors } from '../src/lib/api-cors.mjs';
 import { readBoundedScholarlyResponse, ScholarlyResponseTooLargeError } from '../src/lib/discovery-response-limit.mjs';
 
 const PROVIDERS = new Set([
@@ -129,6 +130,7 @@ function buildProviderUrl(provider, query, limit, sort, page = 1, country = '') 
 }
 
 export default async function handler(request, response) {
+  if (applyCors(request, response, ["GET"])) return;
   if (request.method !== 'GET') {
     response.setHeader('Allow', 'GET');
     return response.status(405).json({ error: 'Method not allowed.' });
