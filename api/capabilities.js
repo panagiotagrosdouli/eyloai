@@ -15,6 +15,7 @@ export default function handler(request, response) {
   }
   return response.status(200).json({
     ai: Boolean(process.env.OPENAI_API_KEY && supabaseServerConfigured()),
+    contact: Boolean(process.env.RESEND_API_KEY && process.env.CONTACT_TO_EMAIL && process.env.RESEND_FROM_EMAIL),
     billing: Boolean(
       process.env.STRIPE_SECRET_KEY
       && process.env.STRIPE_WEBHOOK_SECRET
