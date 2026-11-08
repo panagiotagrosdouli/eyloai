@@ -14,7 +14,7 @@ export default function handler(request, response) {
     return response.status(405).json({ error: 'Method not allowed.' });
   }
   return response.status(200).json({
-    ai: Boolean(process.env.OPENAI_API_KEY),
+    ai: Boolean(process.env.OPENAI_API_KEY && supabaseServerConfigured()),
     billing: Boolean(
       process.env.STRIPE_SECRET_KEY
       && process.env.STRIPE_WEBHOOK_SECRET
