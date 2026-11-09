@@ -20,6 +20,21 @@ const STOP_WORDS = new Set(('about after again against all also among another ar
   'this those through under until very what when where which while with within your yours researcher research position ' +
   'experience skills ability knowledge role work team candidate application university project').split(/\s+/));
 
+const SEARCH_TERM_VARIANTS = {
+  writer: ['writer', 'copywriter', 'contentwriter'],
+  copywriter: ['copywriter', 'writer', 'contentwriter'],
+  postdoctoral: ['postdoctoral', 'postdoc', 'post doctoral'],
+  postdoc: ['postdoc', 'postdoctoral', 'post doctoral'],
+};
+
+function termMatches(text, term) {
+  const normalized = ` ${String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
+  const variants = SEARCH_TERM_VARIANTS[term] || [term];
+  return variants.some(variant => normalized.includes(
+    ` ${variant.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `,
+  ));
+}
+
 export function cvSearchTerms(text, limit = 6) {
   const words = String(text || '').toLowerCase().match(/[a-z][a-z-]{3,}/g) || [];
   const counts = new Map();
@@ -40,7 +55,7 @@ export function rankCareers(items, cvText, query = '') {
   return items.map(item => {
     const searchable = [item.title, item.organization, item.country, item.description].join(' ').toLowerCase();
     const overlaps = words.filter(word => searchable.includes(word)).slice(0, 8);
-    const queryMatches = queryTerms.filter(term => searchable.includes(term));
+    const queryMatches = queryTerms.filter(term => termMatches(searchable, term));
     return {
       ...item,
       match_terms: overlaps,
@@ -144,13 +159,12 @@ export async function loadGeneralCareerListings(signal) {
 export function filterCareerListings(items, query) {
   const terms = [...new Set(String(query || '').toLowerCase().match(/[a-z0-9][a-z0-9-]{1,}/g) || [])];
   if (!terms.length) return [];
+  const requiredMatches = terms.length === 1 ? 1 : terms.length === 2 ? 2 : Math.ceil(terms.length * 0.6);
   return items.filter(item => {
     const metadata = [item.title, item.organization, item.country].join(' ').toLowerCase();
     const searchable = [metadata, item.description].join(' ').toLowerCase();
-    const metadataMatches = terms.filter(term => metadata.includes(term)).length;
-    const totalMatches = terms.filter(term => searchable.includes(term)).length;
-    // Prefer a role whose title/company/location matches. If metadata does not
-    // match, require every query term in the posting text to avoid weak hits.
-    return metadataMatches >= Math.ceil(terms.length / 2) || totalMatches === terms.length;
+    const metadataMatches = terms.filter(term => termMatches(metadata, term)).length;
+    const totalMatches = terms.filter(term => termMatches(searchable, term)).length;
+    return metadataMatches >= requiredMatches || totalMatches >= requiredMatches;
   });
 }

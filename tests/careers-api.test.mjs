@@ -71,6 +71,24 @@ test('career search excludes weak description-only hits and ranks exact role tit
   assert.equal(ranked[0].query_score, 100);
 });
 
+test('multi-term research job searches require both concepts and match AI as a word', () => {
+  const listings = [
+    { title: 'Postdoctoral researcher in AI', description: 'Develop machine learning methods.' },
+    { title: 'AI product manager', description: 'Lead product work at a technology company.' },
+    { title: 'Postdoctoral researcher in biology', description: 'Study biological systems.' },
+    { title: 'Paid communications assistant', description: 'Coordinate outreach and content.' },
+  ];
+
+  assert.deepEqual(
+    filterCareerListings(listings, 'postdoctoral AI').map(item => item.title),
+    ['Postdoctoral researcher in AI'],
+  );
+  assert.deepEqual(filterCareerListings(listings, 'AI').map(item => item.title), [
+    'Postdoctoral researcher in AI',
+    'AI product manager',
+  ]);
+});
+
 test('career results continue to sort by local CV overlap when a CV is available', () => {
   const ranked = rankCareers([
     { title: 'Research writer', organization: '', country: '', description: 'science statistics' },
