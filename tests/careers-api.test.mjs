@@ -75,6 +75,7 @@ test('multi-term research job searches require both concepts and match AI as a w
   const listings = [
     { title: 'Postdoctoral researcher in AI', description: 'Develop machine learning methods.' },
     { title: 'Postdoctoral fellow in human-agent systems', description: 'Research artificial intelligence for public health.' },
+    { title: 'Postdoctoral scholarship in human-agent collaboration', description: 'Artificial Intelligent Agents support older adults.' },
     { title: 'AI product manager', description: 'Lead product work at a technology company.' },
     { title: 'Postdoctoral researcher in biology', description: 'Study biological systems.' },
     { title: 'Paid communications assistant', description: 'Coordinate outreach and content.' },
@@ -82,11 +83,12 @@ test('multi-term research job searches require both concepts and match AI as a w
 
   assert.deepEqual(
     filterCareerListings(listings, 'postdoctoral AI').map(item => item.title),
-    ['Postdoctoral researcher in AI', 'Postdoctoral fellow in human-agent systems'],
+    ['Postdoctoral researcher in AI', 'Postdoctoral fellow in human-agent systems', 'Postdoctoral scholarship in human-agent collaboration'],
   );
   assert.deepEqual(filterCareerListings(listings, 'AI').map(item => item.title), [
     'Postdoctoral researcher in AI',
     'Postdoctoral fellow in human-agent systems',
+    'Postdoctoral scholarship in human-agent collaboration',
     'AI product manager',
   ]);
 });

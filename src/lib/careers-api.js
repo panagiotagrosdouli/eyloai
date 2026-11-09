@@ -21,7 +21,7 @@ const STOP_WORDS = new Set(('about after again against all also among another ar
   'experience skills ability knowledge role work team candidate application university project').split(/\s+/));
 
 const SEARCH_TERM_VARIANTS = {
-  ai: ['ai', 'artificial intelligence'],
+  ai: ['ai', 'artificial intelligence', 'artificial intelligent'],
   writer: ['writer', 'copywriter', 'contentwriter'],
   copywriter: ['copywriter', 'writer', 'contentwriter'],
   postdoctoral: ['postdoctoral', 'postdoc', 'post doctoral'],
