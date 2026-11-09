@@ -7,6 +7,7 @@ import MeetingDetail from '@/components/meetings/MeetingDetail';
 import { Plus, Calendar, Clock, Loader2, Search } from 'lucide-react';
 import moment from 'moment';
 import { useSearchParams } from 'react-router-dom';
+import { upcomingMeetingPlans } from '@/lib/meeting-plans.mjs';
 
 const TABS = ['Upcoming', 'Past', 'All'];
 
@@ -36,10 +37,11 @@ export default function Meetings() {
       base44.entities.Meeting.list('-date', 100),
       base44.entities.Project.list('-updated_date', 50),
     ]);
-    setMeetings(m.status === 'fulfilled' ? m.value : []);
-    setProjects(p.status === 'fulfilled' ? p.value : []);
+    // Transient provider failures must not erase records already loaded in this session.
+    if (m.status === 'fulfilled') setMeetings(m.value);
+    if (p.status === 'fulfilled') setProjects(p.value);
     if (m.status === 'rejected' || p.status === 'rejected') {
-      setLoadError('Some meeting data could not be loaded. Refresh to try again.');
+      setLoadError('Some meeting data could not be loaded. Retry to refresh your workspace.');
     }
     setLoading(false);
   };
@@ -77,6 +79,7 @@ export default function Meetings() {
   const today = moment().startOf('day');
   const filtered = meetings.filter(m => {
     const d = moment(m.date);
+    if (!d.isValid()) return false;
     const matchesTab = tab === 'Upcoming' ? d.isSameOrAfter(today) : tab === 'Past' ? d.isBefore(today) : true;
     const q = searchTerm.trim().toLowerCase();
     const matchesQuery = !q || [m.title, m.participants, m.project_title, m.agenda, m.notes]
@@ -84,7 +87,7 @@ export default function Meetings() {
     return matchesTab && matchesQuery;
   });
 
-  const upcoming = meetings.filter(m => moment(m.date).isSameOrAfter(today)).slice(0, 3);
+  const upcoming = upcomingMeetingPlans(meetings, today);
 
   if (selected) {
     return (
@@ -125,6 +128,7 @@ export default function Meetings() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="eylo-page-heading">Meetings</h1>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Plan research discussions, capture agendas and save notes. Saving a plan does not send an invitation or confirm attendance.</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
@@ -140,7 +144,7 @@ export default function Meetings() {
       </div>
 
       {/* Upcoming strip */}
-      {loadError && <div role="alert" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadError}</div>}
+      {loadError && <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-foreground"><span>{loadError}</span><button type="button" onClick={loadData} className="font-semibold text-primary underline">Retry loading</button></div>}
       {upcoming.length > 0 && (
         <div className="mb-6 p-4 rounded-2xl border border-primary/20 bg-primary/5">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">
