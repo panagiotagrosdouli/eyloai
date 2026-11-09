@@ -9,6 +9,7 @@ import ProjectTemplates from '@/components/projects/ProjectTemplates';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import moment from 'moment';
+import { getResearchIdeaForNewProject } from '@/lib/discovery/workspaceSignup';
 
 const STATUS_CONFIG = {
   planning: { label: 'Planning', color: 'bg-secondary text-muted-foreground' },
@@ -48,8 +49,14 @@ export default function Projects() {
     setSearchTerm(searchParams.get('q') || '');
     if (searchParams.get('new') !== '1') return;
     setShowNew(true);
+    const idea = getResearchIdeaForNewProject(searchParams);
+    if (idea) {
+      setNewTitle(current => current.trim() ? current : idea.slice(0, 80));
+      setNewGoal(current => current.trim() ? current : idea);
+    }
     const next = new URLSearchParams(searchParams);
     next.delete('new');
+    next.delete('idea');
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
 
