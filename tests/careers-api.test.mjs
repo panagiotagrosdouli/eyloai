@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { filterCareerListings, normalizeRemotiveSnapshot, rankCareers } from '../src/lib/careers-api.js';
+import { combineCareerSearchResults, filterCareerListings, normalizeRemotiveSnapshot, rankCareers } from '../src/lib/careers-api.js';
 
 test('browser Remotive snapshots keep only safe source-linked roles', () => {
   const snapshot = normalizeRemotiveSnapshot({
@@ -96,4 +96,18 @@ test('career results continue to sort by local CV overlap when a CV is available
   ], 'science statistics', 'Research writer');
   assert.equal(ranked[0].title, 'Research writer');
   assert.equal(ranked[0].match_score, 100);
+});
+
+
+test('all job sources use the same relevance filter before display', () => {
+  const results = combineCareerSearchResults(
+    [
+      { title: 'Postdoctoral researcher in molecular biology', description: 'Research role in a laboratory.' },
+      { title: 'Postdoctoral researcher in AI', description: 'Research role in artificial intelligence.' },
+    ],
+    [{ title: 'AI product manager', description: 'Product leadership role.' }],
+    'postdoctoral AI',
+  );
+
+  assert.deepEqual(results.map(item => item.title), ['Postdoctoral researcher in AI']);
 });

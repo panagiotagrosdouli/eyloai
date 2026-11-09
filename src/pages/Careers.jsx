@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Briefcase, ExternalLink, FileText, Loader2, MapPin, Search, ShieldCheck, Upload, X } from 'lucide-react';
 import { extractCvText } from '@/lib/cv-extraction';
-import { cvSearchTerms, filterCareerListings, loadGeneralCareerListings, rankCareers, searchCareers } from '@/lib/careers-api';
+import { combineCareerSearchResults, cvSearchTerms, loadGeneralCareerListings, rankCareers, searchCareers } from '@/lib/careers-api';
 
 const TOPICS = ['PhD climate research', 'postdoctoral AI', 'public health research'];
 
@@ -41,8 +41,7 @@ export default function Careers() {
     ]);
     const research = researchResult.status === 'fulfilled' ? researchResult.value : null;
     const general = generalResult.status === 'fulfilled' ? generalResult.value : null;
-    const matchedGeneral = general ? filterCareerListings(general.items, clean) : [];
-    const results = [...(research?.items || []), ...matchedGeneral];
+    const results = combineCareerSearchResults(research?.items, general?.items, clean);
     setItems(results);
     setSourceUrl(research?.source_url || '');
     setRetrievedAt([research?.retrieved_at, general?.retrieved_at].filter(Boolean).sort().at(-1) || '');
