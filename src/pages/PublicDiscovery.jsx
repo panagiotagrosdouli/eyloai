@@ -5,6 +5,7 @@ import {
   RefreshCw, Search, ShieldCheck, Users, Download, Bookmark, BookmarkCheck, Clock3, GraduationCap, Trash2,
 } from 'lucide-react';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchResearchPeopleByPublications, searchOpenAlexInstitutions } from '@/lib/eyra-api';
+import { buildResearchWorkspaceSignupHref } from '@/lib/discovery/workspaceSignup';
 import { countAvailablePaperIndexes, formatUnavailableSource, PAPER_INDEX_SOURCE_IDS } from '@/lib/discovery-source-status';
 import { publicationTypeLabel } from '@/lib/publication-type-label';
 import GuidedSearch, { normalizeDiscoveryRequest } from '@/components/discovery/GuidedSearch';
@@ -249,7 +250,7 @@ export default function PublicDiscovery() {
             <VoiceSearchButton onTranscript={text => setQuery(text)} />
             <button type="submit" className="rounded-lg bg-[#172A40] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#285274]">Refine</button>
           </form>
-          <Link to="/register" className="hidden rounded-xl bg-[#F0F5F9] px-4 py-2 text-sm font-semibold text-[#173C5D] sm:block">Save research</Link>
+          <Link to={buildResearchWorkspaceSignupHref(initialQuery)} className="hidden rounded-xl bg-[#F0F5F9] px-4 py-2 text-sm font-semibold text-[#173C5D] sm:block">Save research</Link>
         </div>
       </header>
 
@@ -402,7 +403,7 @@ export default function PublicDiscovery() {
             </section>
 
             <section className="rounded-[2rem] bg-[#172A40] p-8 text-white sm:p-12">
-              <div className="max-w-2xl"><BookOpen className="mb-5" size={26} /><h2 className="font-heading text-3xl font-bold">Keep the path, not just the links.</h2><p className="mt-3 text-sm leading-6 text-white/80">Create an EYLO workspace to save evidence, compare researchers, build milestones, and ask EYRA follow-up questions with the same context.</p><Link to={`/register?idea=${encodeURIComponent(initialQuery)}`} className="mt-7 inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950">Create free project <ArrowRight size={14} /></Link></div>
+              <div className="max-w-2xl"><BookOpen className="mb-5" size={26} /><h2 className="font-heading text-3xl font-bold">Keep the path, not just the links.</h2><p className="mt-3 text-sm leading-6 text-white/80">Create an EYLO workspace to save evidence, compare researchers, build milestones, and ask EYRA follow-up questions with the same context.</p><Link to={buildResearchWorkspaceSignupHref(initialQuery)} className="mt-7 inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950">Create free project <ArrowRight size={14} /></Link></div>
             </section>
           </div>
         )}
