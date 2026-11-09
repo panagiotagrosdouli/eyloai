@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { combineCareerSearchResults, filterCareerListings, normalizeRemotiveSnapshot, rankCareers } from '../src/lib/careers-api.js';
+import { broaderCareerSearchTerm, combineCareerSearchResults, filterCareerListings, normalizeRemotiveSnapshot, rankCareers } from '../src/lib/careers-api.js';
 
 test('browser Remotive snapshots keep only safe source-linked roles', () => {
   const snapshot = normalizeRemotiveSnapshot({
@@ -104,6 +104,12 @@ test('all job sources use the same relevance filter before display', () => {
   );
 
   assert.deepEqual(results.map(item => item.title), ['Postdoctoral researcher in AI']);
+});
+
+test('multi-term career searches can broaden the source query while retaining the full local query', () => {
+  assert.equal(broaderCareerSearchTerm('postdoctoral AI'), 'postdoctoral');
+  assert.equal(broaderCareerSearchTerm('public health research'), 'public');
+  assert.equal(broaderCareerSearchTerm('postdoctoral'), '');
 });
 
 test('career results continue to sort by local CV overlap when a CV is available', () => {
