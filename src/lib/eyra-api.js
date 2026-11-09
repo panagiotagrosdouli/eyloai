@@ -31,6 +31,12 @@ function emptyOrThrow(error, options = {}) {
   return [];
 }
 
+function isIndividualResearcherName(value) {
+  const name = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!name || name.split(' ').length > 7) return false;
+  return !/\b(?:network|committee|subcommittee|consortium|collaboration|association|society|foundation|task force|working group|initiative|programme|program|project|center|centre|institute|university|department|laboratory|research group)\b/i.test(name);
+}
+
 function proxyUrl(provider, query, limit, sort = 'relevance', page = 1, country = '', baseUrl = '') {
   const params = new URLSearchParams({
     provider,
@@ -137,7 +143,7 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
     const res = await fetchResearchSource('openalex_authors', query, limit, 'relevance', directUrl, { ...strictOptions, page, country });
     if (!res.ok) throw new Error(`OpenAlex author request failed: ${res.status}`);
     const data = await res.json();
-    const authors = (data.results || []).map(a => ({
+    const authors = (data.results || []).filter(a => isIndividualResearcherName(a.display_name)).map(a => ({
       id: a.id,
       name: a.display_name,
       // An absent OpenAlex affiliation is unknown, not proof of independence.
@@ -189,7 +195,7 @@ export async function searchResearchPeopleByPublications(query, limit = 25, stri
       for (const authorship of work.authorships || []) {
         const author = authorship.author || {};
         const id = String(author.id || '');
-        if (!/^https:\/\/openalex\.org\/A\d+$/.test(id) || !author.display_name) continue;
+        if (!/^https:\/\/openalex\.org\/A\d+$/.test(id) || !isIndividualResearcherName(author.display_name)) continue;
         const institution = authorship.institutions?.[0];
         const country = institution?.country_code || '';
         if (strictOptions.country && country !== strictOptions.country) continue;
