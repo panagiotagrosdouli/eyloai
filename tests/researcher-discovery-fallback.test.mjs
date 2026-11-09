@@ -45,3 +45,22 @@ test('discovers real paper authors when a multiword OpenAlex author search is em
   assert.equal(researchers[0].academic_role_verified, false);
   assert.equal(researchers[0].data_source, 'OpenAlex publication authorship');
 });
+
+test('excludes corporate and consortium author records from researcher profiles', async (t) => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async url => {
+    const parsed = new URL(String(url));
+    assert.equal(parsed.pathname, '/authors');
+    return new Response(JSON.stringify({ results: [
+      { id: 'https://openalex.org/A1', display_name: 'Nelly M. Cruz' },
+      { id: 'https://openalex.org/A2', display_name: 'Asia-Pacific Climate Change Adaptation Network' },
+      { id: 'https://openalex.org/A3', display_name: 'Connecticut Governor Steering Committee' },
+      { id: 'https://openalex.org/A4', display_name: 'Excellence in Agronomy for Sustainable Intensification and Climate Change Adaptation' },
+    ] }), { status: 200 });
+  };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  const researchers = await searchOpenAlexAuthors('climate change adaptation', 8);
+
+  assert.deepEqual(researchers.map(person => person.name), ['Nelly M. Cruz']);
+});
