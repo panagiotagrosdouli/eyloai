@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Briefcase, ExternalLink, FileText, Loader2, MapPin, Search, ShieldCheck, Upload, X } from 'lucide-react';
 import { extractCvText } from '@/lib/cv-extraction';
-import { combineCareerSearchResults, cvSearchTerms, loadGeneralCareerListings, rankCareers, searchCareers } from '@/lib/careers-api';
+import { broaderCareerSearchTerm, combineCareerSearchResults, cvSearchTerms, loadGeneralCareerListings, rankCareers, searchCareers } from '@/lib/careers-api';
 
 const TOPICS = ['PhD climate research', 'postdoctoral AI', 'public health research'];
 
@@ -35,29 +35,45 @@ export default function Careers() {
     setLoading(true);
     setError('');
     setSourceNotice('');
-    const [researchResult, generalResult] = await Promise.allSettled([
+    const [initialResearchResult, generalResult] = await Promise.allSettled([
       searchCareers(clean, page),
       loadGeneralCareerListings(),
     ]);
-    const research = researchResult.status === 'fulfilled' ? researchResult.value : null;
+    let research = initialResearchResult.status === 'fulfilled' ? initialResearchResult.value : null;
     const general = generalResult.status === 'fulfilled' ? generalResult.value : null;
-    const results = combineCareerSearchResults(research?.items, general?.items, clean);
+    let results = combineCareerSearchResults(research?.items, general?.items, clean);
+    let broadenedTerm = '';
+    if (!results.length && research) {
+      broadenedTerm = broaderCareerSearchTerm(clean);
+      if (broadenedTerm) {
+        try {
+          research = await searchCareers(broadenedTerm, page);
+          results = combineCareerSearchResults(research.items, general?.items, clean);
+        } catch {
+          // Preserve the initial result set and let the ordinary source/error state explain the fallback failure.
+          broadenedTerm = '';
+        }
+      }
+    }
     setItems(results);
     setSourceUrl(research?.source_url || '');
     setRetrievedAt([research?.retrieved_at, general?.retrieved_at].filter(Boolean).sort().at(-1) || '');
     setRemotiveSnapshotAt(general?.remotive_snapshot_retrieved_at || '');
-    if (researchResult.status === 'rejected' && generalResult.status === 'rejected') {
+    if (initialResearchResult.status === 'rejected' && generalResult.status === 'rejected') {
       setError('Career listings are temporarily unavailable. Please try again shortly.');
     } else if (!results.length) {
       setError('No current roles matched that search. Try a broader research topic.');
     } else {
       const unavailableSources = [];
-      if (researchResult.status === 'rejected') unavailableSources.push('EURAXESS');
+      const notices = [];
+      if (broadenedTerm) notices.push(`EURAXESS used a broader source search for “${broadenedTerm}”; all search terms were still matched locally.`);
+      if (initialResearchResult.status === 'rejected') unavailableSources.push('EURAXESS');
       if (generalResult.status === 'rejected') unavailableSources.push('general listings');
       else if (general?.failed_sources?.length) unavailableSources.push(...general.failed_sources);
       if (unavailableSources.length) {
-        setSourceNotice('Some sources are temporarily unavailable (' + unavailableSources.join(', ') + '). Showing available listings.');
+        notices.push('Some sources are temporarily unavailable (' + unavailableSources.join(', ') + '). Showing available listings.');
       }
+      setSourceNotice(notices.join(' '));
     }
     setLoading(false);
   };

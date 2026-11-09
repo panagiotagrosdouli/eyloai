@@ -170,6 +170,11 @@ export function filterCareerListings(items, query) {
   });
 }
 
+export function broaderCareerSearchTerm(query) {
+  const terms = [...new Set(String(query || '').toLowerCase().match(/[a-z0-9][a-z0-9-]{1,}/g) || [])];
+  return terms.length > 1 ? terms[0] : '';
+}
+
 export function combineCareerSearchResults(researchItems, generalItems, query) {
   return filterCareerListings([
     ...(Array.isArray(researchItems) ? researchItems : []),
