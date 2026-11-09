@@ -16,6 +16,8 @@ test('collaboration listings require authentication and keep writes owner-scoped
   assert.match(migration, /create policy "Update own collaboration postings" on public\.collaboration_posts for update to authenticated[\s\S]*?using \(owner_id = \(select auth\.uid\(\)\)\) with check \(owner_id = \(select auth\.uid\(\)\)\)/i);
   assert.match(migration, /create policy "Delete own collaboration postings" on public\.collaboration_posts for delete to authenticated[\s\S]*?using \(owner_id = \(select auth\.uid\(\)\)\)/i);
   assert.doesNotMatch(migration, /to anon\b|grant [^;]*\banon\b/i);
+  const page = readFileSync(new URL('../src/pages/Collaborations.jsx', import.meta.url), 'utf8');
+  assert.match(page, /Your contact email is visible to signed-in members/);
 });
 
 test('collaboration board is mounted inside protected workspace navigation', () => {
