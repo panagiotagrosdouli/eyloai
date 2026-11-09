@@ -36,10 +36,11 @@ export default function Meetings() {
       base44.entities.Meeting.list('-date', 100),
       base44.entities.Project.list('-updated_date', 50),
     ]);
-    setMeetings(m.status === 'fulfilled' ? m.value : []);
-    setProjects(p.status === 'fulfilled' ? p.value : []);
+    // A transient backend failure must not erase previously loaded records.
+    if (m.status === 'fulfilled') setMeetings(m.value);
+    if (p.status === 'fulfilled') setProjects(p.value);
     if (m.status === 'rejected' || p.status === 'rejected') {
-      setLoadError('Some meeting data could not be loaded. Refresh to try again.');
+      setLoadError('Some meeting data could not be loaded. Retry to refresh your workspace.');
     }
     setLoading(false);
   };
@@ -77,6 +78,7 @@ export default function Meetings() {
   const today = moment().startOf('day');
   const filtered = meetings.filter(m => {
     const d = moment(m.date);
+    if (!d.isValid()) return false;
     const matchesTab = tab === 'Upcoming' ? d.isSameOrAfter(today) : tab === 'Past' ? d.isBefore(today) : true;
     const q = searchTerm.trim().toLowerCase();
     const matchesQuery = !q || [m.title, m.participants, m.project_title, m.agenda, m.notes]
@@ -84,7 +86,8 @@ export default function Meetings() {
     return matchesTab && matchesQuery;
   });
 
-  const upcoming = meetings.filter(m => moment(m.date).isSameOrAfter(today)).slice(0, 3);
+  const upcoming = meetings.filter(m => moment(m.date).isValid() && moment(m.date).isSameOrAfter(today))
+    .sort((a, b) => moment(a.date).valueOf() - moment(b.date).valueOf()).slice(0, 3);
 
   if (selected) {
     return (
@@ -134,13 +137,14 @@ export default function Meetings() {
         </button>
       </div>
 
+      <p className="mb-5 max-w-2xl text-sm text-muted-foreground">Plan research discussions, capture agendas and save notes. Saving a plan does not send an invitation or confirm attendance.</p>
       <div className="relative mb-5 max-w-md">
         <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Search meetings..." aria-label="Search meetings" className="w-full h-10 pl-10 pr-4 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
       </div>
 
       {/* Upcoming strip */}
-      {loadError && <div role="alert" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadError}</div>}
+      {loadError && <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-foreground"><span>{loadError}</span><button type="button" onClick={loadData} className="font-semibold text-primary underline">Retry loading</button></div>}
       {upcoming.length > 0 && (
         <div className="mb-6 p-4 rounded-2xl border border-primary/20 bg-primary/5">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-3 flex items-center gap-1.5">
