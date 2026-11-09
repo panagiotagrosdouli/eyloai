@@ -38,3 +38,18 @@ Production policy should explicitly define retention and deletion behavior for:
 - scheduled monitoring records.
 
 Any public-facing privacy policy should be reviewed against the behavior of the deployed application rather than copied from this engineering document.
+
+
+## Partial research-workspace JSON export (draft)
+
+A proposed, authenticated Settings download reads the account's own
+research workspace rows directly through user-scoped Supabase queries.
+Rows are exported as a local JSON file, without uploading to an external
+export service. Each table is paginated and failures stop export rather
+than silently hiding missing collections. The download is unencrypted on
+the user's device, so the UI advises safe handling.
+
+This export is not an authoritative record of *all* personal data held by EYLO
+or its processors and does not replace the legal/privacy rights process.
+RLS checks in the correct production Supabase project and browser
+acceptance tests remain required before release.

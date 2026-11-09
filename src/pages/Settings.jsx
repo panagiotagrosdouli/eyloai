@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { loadPreferences, savePreferences } from '@/lib/preferences';
+import { collectWorkspaceExport, assertWorkspaceExportOwner } from '@/lib/workspace-export.mjs';
+import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 
 const SECTIONS = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -78,6 +80,7 @@ export default function Settings() {
   const [active, setActive] = useState('profile');
   const [prefs, setPrefs] = useState(loadPreferences);
   const [user, setUser] = useState(null);
+  const [exportingWorkspace, setExportingWorkspace] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -107,6 +110,70 @@ export default function Settings() {
     link.remove();
     URL.revokeObjectURL(url);
     toast({ title: 'Device preferences exported', description: 'Your workspace and account data are not included.' });
+  };
+
+  const exportCloudWorkspace = async () => {
+    if (exportingWorkspace) return;
+    setExportingWorkspace(true);
+    try {
+      // Verify the identity with Supabase Auth; never trust the Settings
+      // component's cached profile, a local-storage user ID or a form value.
+      const session = await getUsableSession({ required: true, validate: true });
+      const client = requireSupabase();
+      const userId = session.user.id;
+      const profileResponse = await client.from('profiles')
+        .select('user_id,data,created_date,updated_date')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (profileResponse.error) throw new Error('Could not load your workspace profile.');
+      if (profileResponse.data && profileResponse.data.user_id !== userId) {
+        throw new Error('Unexpected profile ownership. No file was created.');
+      }
+
+      const exportData = await collectWorkspaceExport({
+        userId,
+        email: session.user.email || '',
+        userMetadata: session.user.user_metadata || null,
+        profile: profileResponse.data || null,
+        fetchPage: async (table, { offset, limit, userId: owner }) =>
+          client.from(table)
+            .select('*')
+            .eq('user_id', owner)
+            .order('id', { ascending: true })
+            .range(offset, offset + limit - 1),
+      });
+      // A shared browser can switch accounts while this potentially long
+      // export is collecting pages. Revalidate the current server-confirmed
+      // account before any personal-data file is generated or downloaded.
+      const currentSession = await getUsableSession({ required: true, validate: true });
+      assertWorkspaceExportOwner(userId, currentSession?.user);
+
+      // Only construct/download the file after every table has been read.
+      // A failed or interrupted export never downloads a misleading partial file.
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      try {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `eylo-workspace-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+      toast({ title: 'Workspace downloaded', description: 'Your saved research records were exported to this device. Keep the JSON file private.' });
+    } catch (error) {
+      toast({
+        title: 'Workspace export could not be completed',
+        description: error?.code === 'WORKSPACE_EXPORT_SIZE_LIMIT'
+          ? 'The export exceeds the 50 MiB safety limit. Contact support for another way to access your data. No partial file was downloaded.'
+          : 'No partial file was downloaded. Check your connection and account access, then try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setExportingWorkspace(false);
+    }
   };
 
   const enableBrowserNotifications = async () => {
@@ -362,8 +429,24 @@ export default function Settings() {
                   <Download size={14} aria-hidden="true" /> Export device preferences
                 </button>
               </div>
+              <div className="rounded-xl border border-border bg-card p-4">
+                <h3 className="text-sm font-semibold text-foreground">Download saved research workspace</h3>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Export your profile and saved projects, papers, researchers, opportunities, meetings, ideas, history, watchlists, monitoring results and notifications as JSON.
+                  This is a partial workspace export, not a complete account-data export. Payment records, provider logs and backups are not included. Downloads are limited to 50 MiB and 50,000 records for device safety.
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  The file is stored unencrypted on this device. Keep it private and delete it when no longer needed.
+                </p>
+                <button type="button" disabled={exportingWorkspace} onClick={exportCloudWorkspace}
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-secondary disabled:opacity-50">
+                  <Download size={14} aria-hidden="true" />
+                  {exportingWorkspace ? 'Preparing your workspace…' : 'Download saved workspace'}
+                </button>
+              </div>
               <div className="rounded-xl border border-border bg-secondary/20 p-4 text-xs leading-6 text-muted-foreground">
-                This preference is stored on your current device. It is not an account-data deletion request and does not erase previously saved research records. EYLO currently does not provide a verified self-service account deletion or complete data export workflow in this Settings screen.
+                Device preferences are stored in this browser. Exporting a workspace does not delete any data.
+                EYLO does not yet provide verified self-service account deletion or a complete personal-data access and portability workflow.
               </div>
             </div>
           </div>
