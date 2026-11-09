@@ -99,7 +99,6 @@ export default function Landing() {
                   <div className="mt-6 space-y-0 overflow-hidden rounded-xl border border-[#DFEAF2]">
                     {previews.map(({title,meta,icon:Icon})=><div key={title} className="flex items-center gap-3 border-b border-[#E4ECF2] bg-white px-3 py-4 last:border-b-0"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#EFF5FA] text-[#39739B]"><Icon size={17}/></span><div className="min-w-0 flex-1"><p className="truncate text-[11px] font-semibold text-[#383838] sm:text-xs">{title}</p><p className="mt-1 truncate text-[9px] text-[#8A8A8A] sm:text-[10px]">{meta}</p></div><Bookmark size={15} className="shrink-0 text-[#A4A4A4]" aria-hidden="true"/></div>)}
                   </div>
-                  <p className="mt-3 text-[10px] text-[#718596]">Product illustration. Enter EYLO AI to use the live research experience.</p>
                 </div>
               </div>
             </div>
