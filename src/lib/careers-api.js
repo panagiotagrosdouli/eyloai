@@ -168,3 +168,11 @@ export function filterCareerListings(items, query) {
     return metadataMatches >= requiredMatches || totalMatches >= requiredMatches;
   });
 }
+
+
+export function combineCareerSearchResults(researchItems, generalItems, query) {
+  return filterCareerListings([
+    ...(Array.isArray(researchItems) ? researchItems : []),
+    ...(Array.isArray(generalItems) ? generalItems : []),
+  ], query);
+}
