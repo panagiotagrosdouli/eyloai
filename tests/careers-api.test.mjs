@@ -74,6 +74,7 @@ test('career search excludes weak description-only hits and ranks exact role tit
 test('multi-term research job searches require both concepts and match AI as a word', () => {
   const listings = [
     { title: 'Postdoctoral researcher in AI', description: 'Develop machine learning methods.' },
+    { title: 'Postdoctoral fellow in human-agent systems', description: 'Research artificial intelligence for public health.' },
     { title: 'AI product manager', description: 'Lead product work at a technology company.' },
     { title: 'Postdoctoral researcher in biology', description: 'Study biological systems.' },
     { title: 'Paid communications assistant', description: 'Coordinate outreach and content.' },
@@ -81,23 +82,14 @@ test('multi-term research job searches require both concepts and match AI as a w
 
   assert.deepEqual(
     filterCareerListings(listings, 'postdoctoral AI').map(item => item.title),
-    ['Postdoctoral researcher in AI'],
+    ['Postdoctoral researcher in AI', 'Postdoctoral fellow in human-agent systems'],
   );
   assert.deepEqual(filterCareerListings(listings, 'AI').map(item => item.title), [
     'Postdoctoral researcher in AI',
+    'Postdoctoral fellow in human-agent systems',
     'AI product manager',
   ]);
 });
-
-test('career results continue to sort by local CV overlap when a CV is available', () => {
-  const ranked = rankCareers([
-    { title: 'Research writer', organization: '', country: '', description: 'science statistics' },
-    { title: 'Sales manager', organization: '', country: '', description: 'pipeline accounts' },
-  ], 'science statistics', 'Research writer');
-  assert.equal(ranked[0].title, 'Research writer');
-  assert.equal(ranked[0].match_score, 100);
-});
-
 
 test('all job sources use the same relevance filter before display', () => {
   const results = combineCareerSearchResults(
@@ -110,4 +102,13 @@ test('all job sources use the same relevance filter before display', () => {
   );
 
   assert.deepEqual(results.map(item => item.title), ['Postdoctoral researcher in AI']);
+});
+
+test('career results continue to sort by local CV overlap when a CV is available', () => {
+  const ranked = rankCareers([
+    { title: 'Research writer', organization: '', country: '', description: 'science statistics' },
+    { title: 'Sales manager', organization: '', country: '', description: 'pipeline accounts' },
+  ], 'science statistics', 'Research writer');
+  assert.equal(ranked[0].title, 'Research writer');
+  assert.equal(ranked[0].match_score, 100);
 });

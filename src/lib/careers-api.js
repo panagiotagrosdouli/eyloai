@@ -21,6 +21,7 @@ const STOP_WORDS = new Set(('about after again against all also among another ar
   'experience skills ability knowledge role work team candidate application university project').split(/\s+/));
 
 const SEARCH_TERM_VARIANTS = {
+  ai: ['ai', 'artificial intelligence'],
   writer: ['writer', 'copywriter', 'contentwriter'],
   copywriter: ['copywriter', 'writer', 'contentwriter'],
   postdoctoral: ['postdoctoral', 'postdoc', 'post doctoral'],
@@ -168,7 +169,6 @@ export function filterCareerListings(items, query) {
     return metadataMatches >= requiredMatches || totalMatches >= requiredMatches;
   });
 }
-
 
 export function combineCareerSearchResults(researchItems, generalItems, query) {
   return filterCareerListings([
