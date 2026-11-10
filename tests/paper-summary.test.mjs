@@ -5,6 +5,7 @@ import {
   buildPaperQuestionPrompt,
   getPaperAbstract,
   PAPER_SUMMARY_MODES,
+  verifyPaperEvidenceQuote,
 } from '../src/lib/paper-summary.mjs';
 
 test('paper summaries use the accessible abstract and leave missing evidence explicit', () => {
@@ -74,4 +75,12 @@ test('paper question context includes user questions only and bounds prompt inpu
   assert.doesNotMatch(prompt, /Unverified prior answer/);
   assert.equal(buildPaperQuestionPrompt({ abstract: 'Study abstract.' }, ' ').length, 0);
   assert.equal(buildPaperQuestionPrompt({ abstract: 'Study abstract.' }, 'q'.repeat(3_000)).match(/Current user question:\n([\s\S]*?)\n\nAccessible abstract:/)[1].length, 2_000);
+});
+
+test('paper Q&A displays a quote only when a substantial excerpt exactly matches the abstract', () => {
+  const abstract = 'We randomly assigned 40 participants and observed a 12% reduction.';
+  assert.equal(verifyPaperEvidenceQuote(abstract, 'randomly assigned 40 participants'), 'randomly assigned 40 participants');
+  assert.equal(verifyPaperEvidenceQuote(abstract, 'the participants were randomly assigned'), '');
+  assert.equal(verifyPaperEvidenceQuote(abstract, '40 participants'), '');
+  assert.equal(verifyPaperEvidenceQuote(abstract, 'x'.repeat(281)), '');
 });

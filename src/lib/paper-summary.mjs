@@ -80,3 +80,10 @@ ${cleanQuestion}
 Accessible abstract:
 ${abstract}`;
 }
+
+export function verifyPaperEvidenceQuote(source, quote) {
+  const cleanSource = String(source || '');
+  const cleanQuote = String(quote || '').trim();
+  if (cleanQuote.length < 16 || cleanQuote.length > 280) return '';
+  return cleanSource.includes(cleanQuote) ? cleanQuote : '';
+}

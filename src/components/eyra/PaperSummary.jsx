@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BookOpen, Loader2, Bookmark, MessageCircle, Send, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useToast } from '@/components/ui/use-toast';
-import { buildPaperQuestionPrompt, buildPaperSummaryPrompt, getPaperAbstract, PAPER_SUMMARY_MODES } from '@/lib/paper-summary.mjs';
+import { buildPaperQuestionPrompt, buildPaperSummaryPrompt, getPaperAbstract, PAPER_SUMMARY_MODES, verifyPaperEvidenceQuote } from '@/lib/paper-summary.mjs';
 
 const schema = {
   type: 'object',
@@ -29,19 +29,26 @@ export default function PaperSummary({ paper, projectId = '' }) {
   const { toast } = useToast();
   const sourceText = getPaperAbstract(paper);
   const paperKey = paper.source_id || paper.id || paper.doi || paper.url || paper.title;
+  const activePaperKey = useRef(paperKey);
+  const activeRequest = useRef(0);
+  activePaperKey.current = paperKey;
 
   useEffect(() => {
+    activeRequest.current += 1;
     setConversation([]);
     setQuestion('');
+    setAsking(false);
   }, [paperKey]);
 
   const ask = async (value = question) => {
     const cleanQuestion = value.trim();
+    const requestPaperKey = paperKey;
     if (!cleanQuestion || asking) return;
     if (!sourceText) {
       toast({ title: 'Source text unavailable', description: 'EYRA needs an accessible abstract or full text to answer questions about this paper.', variant: 'destructive' });
       return;
     }
+    const requestId = ++activeRequest.current;
     setAsking(true);
     setQuestion('');
     const userMessage = { role: 'user', content: cleanQuestion };
@@ -51,16 +58,18 @@ export default function PaperSummary({ paper, projectId = '' }) {
         response_json_schema: answerSchema,
         prompt: buildPaperQuestionPrompt(paper, cleanQuestion, conversation),
       });
+      if (activePaperKey.current !== requestPaperKey || activeRequest.current !== requestId) return;
       setConversation(previous => [...previous, {
         role: 'assistant',
         content: result.answer || 'The supplied abstract does not provide enough information to answer.',
-        evidenceQuote: result.evidence_quote || '',
+        evidenceQuote: verifyPaperEvidenceQuote(sourceText, result.evidence_quote),
         uncertainty: result.uncertainty || 'This answer is limited to the supplied abstract.',
       }]);
     } catch (error) {
+      if (activePaperKey.current !== requestPaperKey || activeRequest.current !== requestId) return;
       setConversation(previous => [...previous, { role: 'error', content: error?.message || 'EYRA could not answer. Please retry.' }]);
     } finally {
-      setAsking(false);
+      if (activeRequest.current === requestId) setAsking(false);
     }
   };
 
