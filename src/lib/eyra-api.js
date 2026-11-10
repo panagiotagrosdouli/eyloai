@@ -119,6 +119,27 @@ export async function searchOpenAlexWorks(query, limit = 10, sort = 'relevance',
       title: w.title || 'Untitled',
       authors: (w.authorships || []).slice(0, 4).map(a => a.author?.display_name).filter(Boolean).join(', '),
       author_ids: (w.authorships || []).map(a => a.author?.id).filter(Boolean),
+      authorships: (w.authorships || []).slice(0, 50).flatMap(authorship => {
+        const authorId = String(authorship.author?.id || '');
+        if (!/^https:\/\/openalex\.org\/A\d+$/i.test(authorId)) return [];
+        return [{
+          author_id: authorId,
+          author_name: String(authorship.author?.display_name || '').slice(0, 180),
+          institutions: (authorship.institutions || []).slice(0, 3).flatMap(institution => {
+            const id = String(institution.id || '');
+            return /^https:\/\/openalex\.org\/I\d+$/i.test(id)
+              ? [{ id, name: String(institution.display_name || '').slice(0, 180) }]
+              : [];
+          }),
+        }];
+      }),
+      openalex_topics: (w.topics || []).slice(0, 8).flatMap(topic => {
+        const id = String(topic.id || '');
+        return /^https:\/\/openalex\.org\/T\d+$/i.test(id)
+          ? [{ id, name: String(topic.display_name || '').slice(0, 180) }]
+          : [];
+      }),
+      referenced_work_ids: (w.referenced_works || []).slice(0, 50).filter(id => /^https:\/\/openalex\.org\/W\d+$/i.test(String(id))),
       year: w.publication_year,
       summary: w.abstract_inverted_index
         ? reconstructAbstract(w.abstract_inverted_index).slice(0, 12_000)
@@ -161,6 +182,12 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
       // Current OpenAlex records provide publication-derived topics; x_concepts is legacy.
       research_areas: (a.topics?.length ? a.topics.map(t => t.display_name || t.subfield?.display_name).filter(Boolean) : (a.x_concepts || []).map(c => c.display_name)).slice(0, 5).join(', '),
       research_topics_source: a.topics?.length ? 'OpenAlex publication topics' : 'OpenAlex legacy concepts',
+      openalex_topics: (a.topics || []).slice(0, 8).flatMap(topic => {
+        const id = String(topic.id || '');
+        return /^https:\/\/openalex\.org\/T\d+$/i.test(id)
+          ? [{ id, name: String(topic.display_name || '').slice(0, 180) }]
+          : [];
+      }),
       orcid: String(a.ids?.orcid || '').replace(/^https?:\/\/orcid\.org\//i, ''),
       biography: [
         a.works_count ? `OpenAlex indexes ${a.works_count} works for this author.` : '',
