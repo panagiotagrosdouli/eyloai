@@ -1,5 +1,6 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 import { readBoundedScholarlyResponse, ScholarlyResponseTooLargeError } from '../src/lib/discovery-response-limit.mjs';
+import { normalizeDoi } from '../src/lib/citation-verification.mjs';
 
 const PROVIDERS = new Set([
   'openalex_works',
@@ -43,7 +44,7 @@ function providerHeaders(provider) {
   return apiKey ? { 'x-api-key': apiKey } : {};
 }
 
-function buildProviderUrl(provider, query, limit, sort, page = 1, country = '') {
+function buildProviderUrl(provider, query, limit, sort, page = 1, country = '', exactDoi = '') {
   const email = contactEmail();
 
   if (provider === 'openalex_works') {
@@ -100,6 +101,10 @@ function buildProviderUrl(provider, query, limit, sort, page = 1, country = '') 
   }
 
   if (provider === 'crossref') {
+    if (exactDoi) {
+      const path = encodeURIComponent(exactDoi);
+      return `https://api.crossref.org/works/${path}`;
+    }
     const params = new URLSearchParams({
       query,
       rows: String(limit),
@@ -138,6 +143,7 @@ export default async function handler(request, response) {
 
   const provider = String(request.query?.provider || '');
   const query = String(request.query?.q || '').trim();
+  const exactDoi = request.query?.doi === undefined ? '' : normalizeDoi(request.query.doi);
   const sort = String(request.query?.sort || 'relevance');
   const limit = boundedLimit(request.query?.limit, 10);
   const requestedPage = Number(request.query?.page ?? 1);
@@ -151,11 +157,14 @@ export default async function handler(request, response) {
   if (!PROVIDERS.has(provider)) {
     return response.status(400).json({ error: 'Unknown discovery provider.' });
   }
-  if (!query || query.length > MAX_QUERY_LENGTH) {
+  if (request.query?.doi !== undefined && (provider !== 'crossref' || !exactDoi)) {
+    return response.status(400).json({ error: 'Provide a valid DOI for Crossref verification.' });
+  }
+  if (!exactDoi && (!query || query.length > MAX_QUERY_LENGTH)) {
     return response.status(400).json({ error: 'Provide a valid research query.' });
   }
 
-  const url = buildProviderUrl(provider, query, limit, sort, page, provider === 'openalex_authors' ? country : '');
+  const url = buildProviderUrl(provider, query, limit, sort, page, provider === 'openalex_authors' ? country : '', exactDoi);
   if (!url) return response.status(400).json({ error: 'Provider configuration is invalid.' });
 
   const controller = new AbortController();

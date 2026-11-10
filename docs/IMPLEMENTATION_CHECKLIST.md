@@ -19,7 +19,7 @@ This is the working implementation register for the master EYLO platform brief. 
 - [ ] Ask This Paper — **Partial:** a temporary page-local conversation is grounded only in the accessible abstract or retrieved Europe PMC text, displays only substantial quotes that exactly match supplied text, discloses uncertainty, and supports retry/clear. Paper switches discard stale responses. Persistent user-scoped history and full-text passage citations are not implemented.
 - [ ] Compare Papers and Evidence Matrix — **In progress:** open PR #280 (“feat: add evidence matrix and grounded research questions”) is not merged into main; review and verify that branch before extending the feature.
 - [ ] Research Gap Finder — **Partial:** discovery analysis proposes cautiously worded gaps with source IDs; no dedicated user-selected evidence workflow, full scope/counterevidence record, or create-project action was verified.
-- [ ] Citation Verification — **Partial:** deterministic evidence review and citation export helpers exist; DOI metadata validation, retraction checks, and claim-level source verification are not a complete workflow.
+- [ ] Citation Verification — **Partial:** the Library now performs exact Crossref DOI lookups and compares saved DOI, normalized title, publication year, and first-author surname; mismatches and unavailable fields are shown separately. Retraction checks and claim-level source verification remain incomplete. Metadata matches do not establish scientific correctness.
 - [ ] Publish and independently review a human-judged retrieval benchmark. **Not run:** no genuine human relevance labels are present.
 
 ## Priority 2 — People, opportunities, and projects
@@ -50,7 +50,7 @@ This is the working implementation register for the master EYLO platform brief. 
 
 ## Priority 5 — Release readiness
 
-- [x] Run typecheck, lint, unit tests, and production build for the reviewed branch. `npm run check` completed successfully; 238 repository tests passed, along with imports, both TypeScript projects, ESLint, and Vite production build.
+- [x] Run typecheck, lint, unit tests, and production build for the reviewed branch. `npm run check` completed successfully; 246 repository tests passed, along with imports, both TypeScript projects, ESLint, and Vite production build.
 - [ ] Add/run browser coverage for registration → discovery → save → project → EYRA and critical failure paths.
 - [ ] Complete responsive, keyboard, screen-reader, contrast, and accessibility acceptance.
 - [ ] Complete live RLS tests with two disposable accounts against the confirmed intended project.
@@ -66,7 +66,8 @@ This is the working implementation register for the master EYLO platform brief. 
 - Current core workflow change: extended the existing EYRA paper summarizer with three detail modes, abstract-only uncertainty rules, and explicit save-to-Project behavior while preserving any existing project link; available from Discovery, Library, and Project evidence views.
 - Current paper Q&A change: added an abstract-grounded, temporary Ask This Paper conversation in the same Discovery, Library, and Project evidence views. Prior assistant answers are excluded from evidence context; displayed excerpts must match the abstract; stale answers are discarded on paper changes; page-level citations are not fabricated.
 - Current paper workflow integration: incorporated the latest `main` updates for Europe PMC full-text retrieval and auth state handling. Full-text summaries and Q&A retain source-type labels and use only retrieved text; quotes are checked against that text.
-- Verification: the security and paper workflow changes passed import checks, both TypeScript projects, ESLint, 238 unit tests, and the Vite build through `npm run check`. The build retains the existing >500 kB chunk warning. Production public smoke passed 8/8 (`/`, `/release.json`, `/robots.txt`, `/discover`, `/login`, `/register`, `/forgot-password`, `/api/capabilities`). Public capability response reports all five optional services disabled. This does not verify account persistence, live RLS, provider access, or AI behavior.
+- Current citation verification change: added fixed-host, exact DOI lookup through Crossref and a Library comparison of the DOI, normalized title, publication year, and first-author surname; mismatches and missing metadata remain explicit.
+- Verification: the security and paper workflow changes passed import checks, both TypeScript projects, ESLint, 246 unit tests, and the Vite build through `npm run check`. The build retains the existing >500 kB chunk warning. Production public smoke passed 8/8 (`/`, `/release.json`, `/robots.txt`, `/discover`, `/login`, `/register`, `/forgot-password`, `/api/capabilities`). Public capability response reports all five optional services disabled. This does not verify account persistence, live RLS, provider access, or AI behavior.
 - Deployment: unchanged. Exact deployment SHA and connected Vercel project remain unverified; no deployment or database changes were made.
 
 ## Continuation rule

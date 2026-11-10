@@ -175,6 +175,50 @@ test('Crossref proxy requests the work type needed to exclude non-paper records'
   }
 });
 
+test('Crossref proxy performs exact DOI lookups through its fixed provider host', async () => {
+  const originalFetch = globalThis.fetch;
+  let requestedUrl = '';
+  globalThis.fetch = async (url) => {
+    requestedUrl = String(url);
+    return new Response(JSON.stringify({ message: { DOI: '10.1234/example' } }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+
+  try {
+    const response = createResponse();
+    await handler({
+      method: 'GET',
+      query: { provider: 'crossref', doi: 'https://doi.org/10.1234%2FExample' },
+    }, response);
+
+    assert.equal(response.statusCode, 200);
+    assert.match(requestedUrl, /^https:\/\/api\.crossref\.org\/works\/10\.1234%2Fexample$/);
+    assert.equal(new URL(requestedUrl).hostname, 'api.crossref.org');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('exact DOI lookup rejects malformed identifiers and non-Crossref providers without fetching', async () => {
+  const originalFetch = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = async () => { called = true; throw new Error('must not be called'); };
+  try {
+    const invalid = createResponse();
+    await handler({ method: 'GET', query: { provider: 'crossref', doi: 'https://example.com/doi/10.1234/x' } }, invalid);
+    assert.equal(invalid.statusCode, 400);
+
+    const wrongProvider = createResponse();
+    await handler({ method: 'GET', query: { provider: 'openalex_works', doi: '10.1234/example' } }, wrongProvider);
+    assert.equal(wrongProvider.statusCode, 400);
+    assert.equal(called, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('discovery proxy rejects overlong research queries', async () => {
   const response = createResponse();
   await handler(
