@@ -95,14 +95,18 @@
 - [ ] Integrate Passport with People, Careers, Projects, Funding and researcher matching.
 - [ ] Test user ownership, export, deletion and privacy defaults.
 
-### 12. Meetings and collaboration — meeting plans partial; team collaboration not implemented
+### 12. Meetings and collaboration — native call implementation partial; team collaboration not implemented
 
 - [x] Preserve a personal meeting plan, agenda, notes, tentative calendar file and manually tracked proposal/response status. Creating a plan does not send an invitation or confirm attendance.
-- [x] Permit only HTTPS external meeting links, use cryptographic random IDs for generated Jitsi rooms, and make meeting cards keyboard-operable.
+- [x] Keep historical external meeting links as HTTPS links that open separately; remove public Jitsi room creation and embedding from new meeting flows.
+- [x] Add a LiveKit SFU browser room with camera, microphone, screen-share, participant tiles, device choice, in-call chat, full-screen, connection state and leave/end actions.
+- [x] Add server-authenticated LiveKit access tokens (10-minute TTL), host-only room lifecycle, pseudonymous participant identity, owner-created email-bound invitation tokens (7-day expiry), and membership checks.
+- [x] Add `meeting_participants` RLS migration and document LiveKit/Supabase configuration and self-hosting requirements.
 - [ ] Verify meeting and project ownership with two authorized accounts against the intended Supabase project.
 - [ ] Add team membership, invitations, participation requests, discussions and shared tasks with explicit role checks and consent.
-- [ ] Verify real-time audio/video, screen sharing and reconnect behavior from two independent sessions. Current Jitsi rooms use a third-party public service; possession of the room link may permit entry, and rooms are not private EYLO-hosted calls.
-- [ ] Verify meeting join authorization, privacy/recording consent and mobile/keyboard behavior in a production-matching preview.
+- [ ] Apply the new migration to staging and configure a LiveKit endpoint, API key and API secret; no media provider or credentials are configured by this code change.
+- [ ] Verify real-time audio/video, screen sharing, chat, reconnection and mobile behavior from two independent authenticated accounts. Local API tests are not proof of live media.
+- [ ] Verify cross-user RLS and host/member/unauthorized join behavior in a production-matching staging deployment.
 
 ## Shared integration and verification
 
@@ -122,5 +126,7 @@
 - **2026-11-10:** Meetings now reject non-HTTPS or credential-bearing links, create Jitsi rooms only with cryptographically random IDs, and use keyboard-operable meeting-card buttons. Jitsi is still a public third-party service, not an EYLO access-controlled room.
 - **2026-11-10:** Knowledge Graph now derives source-backed author, institution, topic, citation and project links from user-saved records. Citations require both OpenAlex IDs and both works in the user's Library; inferred shared-topic links have separate styling and caveats. Added filters, zoom/pan, related-node exploration and an accessible list.
 - **2026-11-10:** Added mocked-auth browser regressions for keyboard opening meeting cards, rejecting unsafe legacy meeting URLs, and navigating a saved-paper graph with source citation links. These fixtures do not test production account isolation or live Jitsi calls.
+- **2026-11-10:** Replaced new Jitsi room creation/embedding with a native LiveKit room, Supabase-authenticated server token endpoint, email-bound invitations, owner/member checks, RLS migration, and configuration documentation. Existing meeting URLs remain external links for compatibility. This code is not operational until staging infrastructure is configured.
+- **Validation:** `npm run check` passed after the native meeting implementation: local imports, frontend/API type checks, ESLint, 297 unit/API tests and Vite production build. Vite reports existing dependency annotation and large-chunk warnings. Live two-account media, microphone/camera, screen share and deployed authorization remain untested because no staging LiveKit endpoint or credentials are configured.
 - **Validation:** Local `npm run check` passed on this Knowledge Graph branch: imports, both TypeScript projects, ESLint, 265 tests and Vite production build. `node --check tests/e2e-auth.mjs` and `git diff --check` passed. Local Playwright launch of system Chromium was denied by host socket permissions; the expanded browser scenario awaits GitHub Actions. Vite emitted dependency annotation and large-chunk warnings.
 - **Live public smoke:** HTTP 200 for `/`, `/manifest.webmanifest`, `/robots.txt`, `/discover`, `/login`, `/register`, `/forgot-password`, and `/api/capabilities`. This checks HTTP availability only; authenticated workflows, deployed commit, database isolation and provider readiness were not verified.
