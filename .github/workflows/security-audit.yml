@@ -34,6 +34,8 @@ jobs:
           domain=eyloai.vercel.app
           echo 'Checking CA-verified TLS connection and response headers'
           curl --fail --silent --show-error --max-time 20 --head "https://${domain}/"
+          echo 'Inspecting TLS protocol, cipher and certificate validation'
+          openssl s_client -connect "${domain}:443" -servername "$domain" -verify_return_error -brief </dev/null 2>&1 | grep -Ei 'Protocol|Ciphersuite|Verification|Peer certificate|CONNECTION ESTABLISHED'
           echo 'Checking HTTP redirects only to HTTPS'
           http_headers="$(curl --silent --show-error --max-time 20 --head "http://${domain}/")"
           printf '%s\n' "$http_headers" | grep -Ei '^HTTP/|^location:'
