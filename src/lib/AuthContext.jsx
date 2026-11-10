@@ -144,8 +144,10 @@ export const AuthProvider = ({ children }) => {
   }, [loadAuthRuntime, state.session, state.status]);
 
   const signIn = async (email, password) => {
+    const operationVersion = authEventVersionRef.current;
     const runtime = await loadAuthRuntime();
     const result = await runtime.authModule.signIn(email, password);
+    if (!shouldApplyAuthResult(operationVersion, authEventVersionRef.current, mountedRef.current)) return result;
     if (result.ok && result.data?.session) {
       const session = result.data.session;
       setState({ status: 'authenticated', user: session.user, session, error: null });
@@ -154,8 +156,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signUp = async (email, password, metadata) => {
+    const operationVersion = authEventVersionRef.current;
     const runtime = await loadAuthRuntime();
     const result = await runtime.authModule.signUp(email, password, metadata);
+    if (!shouldApplyAuthResult(operationVersion, authEventVersionRef.current, mountedRef.current)) return result;
     if (result.ok && result.data?.session) {
       const session = result.data.session;
       setState({ status: 'authenticated', user: session.user, session, error: null });
@@ -213,9 +217,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signOut = async () => {
+    const operationVersion = authEventVersionRef.current;
     try {
       const runtime = await loadAuthRuntime();
       const result = await runtime.authModule.signOut();
+      if (!shouldApplyAuthResult(operationVersion, authEventVersionRef.current, mountedRef.current)) return result;
       if (result.ok) {
         setState({ status: 'anonymous', user: null, session: null, error: null });
       } else {
@@ -224,7 +230,9 @@ export const AuthProvider = ({ children }) => {
       return result;
     } catch (error) {
       const appError = createAppError(AppErrorCode.NETWORK, error);
-      setState((current) => ({ ...current, error: appError }));
+      if (shouldApplyAuthResult(operationVersion, authEventVersionRef.current, mountedRef.current)) {
+        setState((current) => ({ ...current, error: appError }));
+      }
       return { ok: false, error: appError };
     }
   };
