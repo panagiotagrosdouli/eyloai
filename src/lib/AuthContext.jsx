@@ -41,8 +41,11 @@ export const AuthProvider = ({ children }) => {
     // auth event is newer than that lookup, so never let a late initial
     // response overwrite a sign-in, refresh, or sign-out event.
     let authEventVersion = 0;
+    let sessionLookupTimeout;
     const setAnonymous = () => {
       if (!mounted) return;
+      authEventVersion += 1;
+      clearTimeout(sessionLookupTimeout);
       setState({ status: 'anonymous', user: null, session: null, error: null });
     };
 
@@ -51,6 +54,7 @@ export const AuthProvider = ({ children }) => {
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       authEventVersion += 1;
+      clearTimeout(sessionLookupTimeout);
 
       if (event === 'SIGNED_IN' && typeof window !== 'undefined') {
         try {
@@ -68,7 +72,14 @@ export const AuthProvider = ({ children }) => {
         : { status: 'anonymous', user: null, session: null, error: null });
     });
 
+    sessionLookupTimeout = setTimeout(() => {
+      if (!mounted || authEventVersion > 0) return;
+      authEventVersion += 1;
+      setState({ status: 'error', user: null, session: null, error: createAppError(AppErrorCode.NETWORK) });
+    }, 12_000);
+
     getSession().then((result) => {
+      clearTimeout(sessionLookupTimeout);
       if (!mounted || authEventVersion > 0) return;
 
       if (!result.ok) {
@@ -81,12 +92,14 @@ export const AuthProvider = ({ children }) => {
         ? { status: 'authenticated', user: session.user, session, error: null }
         : { status: 'anonymous', user: null, session: null, error: null });
     }).catch((error) => {
+      clearTimeout(sessionLookupTimeout);
       if (!mounted || authEventVersion > 0) return;
       setState({ status: 'error', user: null, session: null, error: mapSupabaseError(error) });
     });
 
     return () => {
       mounted = false;
+      clearTimeout(sessionLookupTimeout);
       window.removeEventListener(AUTH_REQUIRED_EVENT, setAnonymous);
       listener.subscription.unsubscribe();
     };

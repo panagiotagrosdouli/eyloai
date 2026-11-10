@@ -115,9 +115,10 @@ export async function searchOpenAlexWorks(query, limit = 10, sort = 'relevance',
     return (data.results || []).map(w => ({
       id: w.id,
       doi: w.doi ? w.doi.replace('https://doi.org/', '') : '',
-      pmcid: String(w.ids?.pmcid || w.ids?.pmc || '').replace(/^https?:\/\/[^/]+\//i, ''),
+      pmcid: String(w.pmcid || w.ids?.pmcid || w.ids?.pmc || '').match(/PMC\d+/i)?.[0]?.toUpperCase() || '',
       title: w.title || 'Untitled',
       authors: (w.authorships || []).slice(0, 4).map(a => a.author?.display_name).filter(Boolean).join(', '),
+      author_ids: (w.authorships || []).map(a => a.author?.id).filter(Boolean),
       year: w.publication_year,
       summary: w.abstract_inverted_index
         ? reconstructAbstract(w.abstract_inverted_index).slice(0, 12_000)
