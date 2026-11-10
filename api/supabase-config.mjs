@@ -4,7 +4,7 @@
  * credentials from being sent to an arbitrary host by a mistyped env value.
  */
 export function readSupabaseApiConfig(env = process.env) {
-  const url = String(env.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
+  const url = String(env.SUPABASE_URL || env.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
   const publicKey = String(
     env.SUPABASE_PUBLISHABLE_KEY
     || env.SUPABASE_ANON_KEY

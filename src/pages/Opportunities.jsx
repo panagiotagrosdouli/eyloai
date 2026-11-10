@@ -48,6 +48,7 @@ export default function Opportunities() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [sourceMeta, setSourceMeta] = useState(null);
   const [searchError, setSearchError] = useState('');
+  const [configurationBlocked, setConfigurationBlocked] = useState(false);
   const [rankingError, setRankingError] = useState('');
   const [deadlineFilter, setDeadlineFilter] = useState('all');
   const [fieldFilter, setFieldFilter] = useState('');
@@ -82,6 +83,7 @@ export default function Opportunities() {
     setHasSearched(true);
     setActiveCategory('all');
     setSearchError('');
+    setConfigurationBlocked(false);
     setRankingError('');
     setSourceMeta(null);
     setResults([]);
@@ -164,9 +166,12 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
       }
     } catch (error) {
       if (requestId === searchSequence.current) {
-        setSearchError(controller.signal.aborted
-          ? 'Funding search timed out or was cancelled. Please retry.'
-          : error instanceof Error ? error.message : 'Funding search failed.');
+        setConfigurationBlocked(error?.status === 503 && /authentication configuration|SUPABASE_NOT_CONFIGURED/i.test(String(error?.message || '')));
+        setSearchError(error?.status === 503 && /authentication configuration|SUPABASE_NOT_CONFIGURED/i.test(String(error?.message || ''))
+          ? 'Funding search is temporarily unavailable because the EYLO server has not been connected to its verified Supabase authentication project.'
+          : controller.signal.aborted
+            ? 'Funding search timed out or was cancelled. Please retry.'
+            : error instanceof Error ? error.message : 'Funding search failed.');
         setResults([]);
       }
     } finally {
@@ -300,8 +305,11 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
       )}
 
       {searchError && (
-        <div role="alert" className="mb-5 max-w-2xl rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
-          {searchError}
+        <div role="alert" className="mb-5 max-w-3xl rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-foreground">
+          <p className="font-semibold">{configurationBlocked ? 'Funding service needs configuration' : 'Funding search unavailable'}</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">{searchError}</p>
+          {configurationBlocked && <p className="mt-2 text-xs leading-5 text-muted-foreground">The workspace owner must configure the correct Supabase URL and publishable key in the Vercel project settings, then redeploy and verify real login. This cannot be fixed by changing your search terms. No insecure public-access fallback is enabled.</p>}
+          {!configurationBlocked && <button type="button" onClick={() => handleSearch(query)} className="mt-2 text-xs font-semibold text-primary underline">Try again</button>}
         </div>
       )}
 
