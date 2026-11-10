@@ -208,7 +208,86 @@ try {
   assert.equal(await dataLab.getByRole('link', { name: /Open external meeting room/ }).count(), 0,
     'unsafe legacy meeting URLs must not become external links');
 
-  console.log('Browser checks passed: auth, mobile registration, local CSV analysis/export/reset and keyboard meeting access.');
+  // Exercise the Ideas interface against an isolated PostgREST test double. This
+  // verifies UI wiring and error recovery; it does not claim live Supabase/RLS.
+  const savedIdeas = [];
+  let failIdeaRead = true;
+  let nextIdeaId = 0;
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/**', async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const table = url.pathname.split('/').at(-1);
+    const method = request.method();
+    const corsHeaders = {
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+      'access-control-allow-headers': 'apikey, authorization, content-type, x-client-info, prefer',
+    };
+    const respond = (status, data) => route.fulfill({
+      status,
+      contentType: 'application/json',
+      headers: corsHeaders,
+      body: JSON.stringify(data),
+    });
+
+    if (method === 'OPTIONS') {
+      await route.fulfill({ status: 204, headers: corsHeaders });
+      return;
+    }
+    if (table === 'ideas' && method === 'GET') {
+      if (failIdeaRead) {
+        failIdeaRead = false;
+        await respond(503, { message: 'Test workspace read outage' });
+        return;
+      }
+      await respond(200, savedIdeas);
+      return;
+    }
+    if (table === 'ideas' && method === 'POST') {
+      const row = { id: `idea-${++nextIdeaId}`, user_id: testUser.id, ...request.postDataJSON() };
+      savedIdeas.push(row);
+      await respond(201, row);
+      return;
+    }
+    if (table === 'ideas' && method === 'PATCH') {
+      const id = url.searchParams.get('id')?.replace(/^eq\./, '');
+      const row = savedIdeas.find(idea => idea.id === id);
+      if (!row) { await respond(404, { message: 'Idea not found' }); return; }
+      Object.assign(row, request.postDataJSON());
+      await respond(200, row);
+      return;
+    }
+    if (table === 'ideas' && method === 'DELETE') {
+      const id = url.searchParams.get('id')?.replace(/^eq\./, '');
+      const index = savedIdeas.findIndex(idea => idea.id === id);
+      const [removed] = index >= 0 ? savedIdeas.splice(index, 1) : [];
+      await respond(200, removed ? [{ id: removed.id }] : []);
+      return;
+    }
+
+    // Profile, watchlist and other reads return isolated empty test data.
+    await respond(method === 'POST' || method === 'PATCH' ? 201 : 200, method === 'GET' ? [] : {});
+  });
+  await dataLab.goto(`${baseUrl}/ideas`);
+  await dataLab.getByRole('heading', { name: 'Ideas' }).waitFor();
+  await dataLab.getByRole('alert').getByText('Ideas could not be loaded.').waitFor();
+  await dataLab.getByRole('button', { name: 'Try again' }).click();
+  await dataLab.getByText('Your Idea Vault is empty').waitFor();
+  await dataLab.getByRole('button', { name: 'New' }).click();
+  await dataLab.getByLabel('Idea title').fill('Climate adaptation evidence');
+  await dataLab.getByRole('button', { name: 'Save Idea' }).click();
+  await dataLab.getByText('Climate adaptation evidence').waitFor();
+  await dataLab.getByRole('button', { name: 'Edit Climate adaptation evidence' }).click();
+  await dataLab.getByLabel('Idea title').fill('Climate resilience evidence');
+  await dataLab.getByRole('button', { name: 'Update idea' }).click();
+  await dataLab.getByText('Climate resilience evidence').waitFor();
+  await dataLab.reload();
+  await dataLab.getByText('Climate resilience evidence').waitFor();
+  dataLab.on('dialog', dialog => dialog.accept());
+  await dataLab.getByRole('button', { name: 'Delete Climate resilience evidence' }).click();
+  await dataLab.getByText('Your Idea Vault is empty').waitFor();
+
+  console.log('Browser checks passed: auth, mobile registration, private CSV analysis, keyboard meeting access, and Idea Vault recovery/CRUD against an isolated test double.');
 } finally {
   if (browser) await browser.close();
   if (server.exitCode === null) {
