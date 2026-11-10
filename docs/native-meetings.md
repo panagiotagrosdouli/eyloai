@@ -39,6 +39,7 @@ Use a dedicated HTTPS staging or preview deployment with the native-meetings mig
 Install the project's Playwright Chromium binary if needed (`npx playwright install chromium`), then set these environment variables in a local shell or secret manager:
 
 - `EYLO_E2E_BASE_URL`: HTTPS staging origin. The script explicitly refuses `https://eyloai.vercel.app`.
+- `EYLO_E2E_ALLOWED_HOST`: exact approved preview hostname (for example `eylo-preview-xyz.vercel.app`), separate from the URL. The script refuses mismatched hosts, credentials in URLs and known live EYLO hostnames.
 - `EYLO_E2E_HOST_EMAIL` and `EYLO_E2E_HOST_PASSWORD`: verified staging host account.
 - `EYLO_E2E_GUEST_EMAIL` and `EYLO_E2E_GUEST_PASSWORD`: a different verified staging account.
 - `EYLO_E2E_CONFIRM_DATA_MUTATION=YES`: explicit acknowledgement that the test creates a staging meeting.
