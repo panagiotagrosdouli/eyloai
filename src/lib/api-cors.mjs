@@ -28,7 +28,8 @@ export function isAllowedBrowserOrigin(origin, requestHost = '') {
 export function applyCors(request, response, methods = ['GET']) {
   const origin = request.headers?.origin;
   const allowed = isAllowedBrowserOrigin(origin, request.headers?.host);
-  response.setHeader('Cache-Control', 'no-store');
+  // Real HTTP responses support setHeader; lightweight handler test doubles may not.
+  if (typeof response.setHeader === 'function') response.setHeader('Cache-Control', 'no-store');
   if (allowed) {
     response.setHeader('Access-Control-Allow-Origin', origin);
     response.setHeader('Vary', 'Origin');
