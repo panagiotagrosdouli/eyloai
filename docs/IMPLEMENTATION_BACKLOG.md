@@ -93,6 +93,15 @@
 - [ ] Integrate Passport with People, Careers, Projects, Funding and researcher matching.
 - [ ] Test user ownership, export, deletion and privacy defaults.
 
+### 12. Meetings and collaboration — meeting plans partial; team collaboration not implemented
+
+- [x] Preserve a personal meeting plan, agenda, notes, tentative calendar file and manually tracked proposal/response status. Creating a plan does not send an invitation or confirm attendance.
+- [x] Permit only HTTPS external meeting links, use cryptographic random IDs for generated Jitsi rooms, and make meeting cards keyboard-operable.
+- [ ] Verify meeting and project ownership with two authorized accounts against the intended Supabase project.
+- [ ] Add team membership, invitations, participation requests, discussions and shared tasks with explicit role checks and consent.
+- [ ] Verify real-time audio/video, screen sharing and reconnect behavior from two independent sessions. Current Jitsi rooms use a third-party public service; possession of the room link may permit entry, and rooms are not private EYLO-hosted calls.
+- [ ] Verify meeting join authorization, privacy/recording consent and mobile/keyboard behavior in a production-matching preview.
+
 ## Shared integration and verification
 
 - [ ] Connect all completed features through consistent project context, navigation and saved workspace records.
@@ -107,5 +116,7 @@
 - **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.
 - **2026-11-10:** Project Evidence adds a source-linked, editable matrix for linked papers; notes are stored on the project and exported as CSV with spreadsheet formula escaping. Missing notes are shown as unrecorded rather than inferred.
 - **2026-11-10:** Research Data Lab adds private, in-browser CSV preview, validation, missingness and numeric summaries, an accessible row chart, reproducible analysis steps, and formula-safe summary export. Dataset contents are not uploaded, persisted, or sent to AI.
-- **Validation:** `npm run check` passed: imports, both TypeScript projects, ESLint, 227 tests, and Vite production build. Vite emitted dependency annotation and large-chunk warnings. `git diff --check` passed.
+- **2026-11-10:** PR #300 routes signed-in users from public entry pages back into their protected workspace destinations and makes Careers accessible inside workspace navigation. PR #299 ignores stale authentication operation results and states accurately that email request acceptance is not delivery confirmation. Neither verifies live production email or session flows.
+- **2026-11-10:** Meetings now reject non-HTTPS or credential-bearing links, create Jitsi rooms only with cryptographically random IDs, and use keyboard-operable meeting-card buttons. Jitsi is still a public third-party service, not an EYLO access-controlled room.
+- **Validation:** Latest local `npm run check` before the meeting-link change passed: imports, both TypeScript projects, ESLint, 256 tests, and Vite production build. Vite emitted dependency annotation and large-chunk warnings. Meeting-link targeted tests and lint pass; rerun the full suite after integration.
 - **Live public smoke:** HTTP 200 for `/`, `/manifest.webmanifest`, `/robots.txt`, `/discover`, `/login`, `/register`, `/forgot-password`, and `/api/capabilities`. This checks HTTP availability only; authenticated workflows, deployed commit, database isolation and provider readiness were not verified.
