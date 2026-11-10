@@ -49,6 +49,14 @@ export default function CitationVerification({ paper }) {
         </table>
       </div>}
       {result.journal && <p className="mt-2 text-[10px]">Journal in Crossref: {result.journal}</p>}
+      {result.retractionStatus && <div className={`mt-2 rounded-md border p-2 text-[10px] ${result.updateNotices?.some(update => update.isRetraction) ? 'border-destructive/30 bg-destructive/5 text-destructive' : 'border-current/10 bg-background/50'}`}>
+        <p className="font-semibold">Crossref update notices: {result.retractionStatus}</p>
+        {!result.updateNotices?.some(update => update.isRetraction) && <p className="mt-0.5">An absent notice is inconclusive; it does not confirm that no correction or retraction exists.</p>}
+        {result.updateNotices?.map((update, index) => <div key={`${update.doi || update.type}-${index}`} className="mt-1">
+          <span>{update.label}{update.source ? ` · ${update.source}` : ''}{update.updated ? ` · ${update.updated}` : ''}</span>
+          {update.doi && <a href={`https://api.crossref.org/works/${encodeURIComponent(update.doi)}`} target="_blank" rel="noopener noreferrer" className="ml-2 underline">Open notice record</a>}
+        </div>)}
+      </div>}
       {result.sourceUrl && <a href={result.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-[10px] underline">Open Crossref DOI record</a>}
     </div>}
   </div>;

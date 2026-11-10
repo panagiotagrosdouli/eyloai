@@ -34,6 +34,41 @@ test('matching DOI, title, year and first author surname are verified against Cr
   assert.deepEqual(result.fields.map(item => item.status), ['match', 'match', 'match', 'match']);
   assert.equal(result.journal, 'Journal of Testing');
   assert.match(result.note, /does not establish scientific correctness/);
+  assert.equal(result.retractionStatus, 'No Crossref update notice listed');
+  assert.deepEqual(result.updateNotices, []);
+  assert.match(result.note, /absent notice does not confirm/);
+});
+
+test('Crossref retraction notices are surfaced with their source, related DOI, and date', () => {
+  const result = compareCitationMetadata(saved, {
+    ...crossref,
+    'update-to': [{
+      DOI: '10.9876/retraction-notice',
+      type: 'retraction',
+      label: 'Retraction',
+      source: 'retraction-watch',
+      updated: { 'date-parts': [[2025, 3, 1]] },
+    }],
+  });
+  assert.equal(result.status, 'Verified');
+  assert.equal(result.retractionStatus, 'Retraction notice found');
+  assert.deepEqual(result.updateNotices, [{
+    doi: '10.9876/retraction-notice',
+    type: 'retraction',
+    label: 'Retraction',
+    source: 'retraction-watch',
+    updated: 2025,
+    isRetraction: true,
+  }]);
+});
+
+test('other Crossref update notices are not mislabelled as retractions', () => {
+  const result = compareCitationMetadata(saved, {
+    ...crossref,
+    'update-to': [{ DOI: '10.9876/correction', type: 'correction', label: 'Correction', source: 'publisher' }],
+  });
+  assert.equal(result.retractionStatus, 'Other update notice listed');
+  assert.equal(result.updateNotices[0].isRetraction, false);
 });
 
 test('disagreements and missing fields remain visible as partial verification', () => {

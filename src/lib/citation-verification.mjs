@@ -33,6 +33,26 @@ function crossrefYear(record) {
   return Number.isInteger(year) && year >= 1000 && year <= 9999 ? year : null;
 }
 
+function crossrefUpdateNotices(record) {
+  const updates = Array.isArray(record?.['update-to']) ? record['update-to'] : [];
+  return updates
+    .filter(update => update && typeof update === 'object')
+    .map(update => {
+      const type = String(update.type || '').trim().toLowerCase();
+      const label = String(update.label || '').trim();
+      const doi = normalizeDoi(update.DOI);
+      return {
+        doi,
+        type,
+        label: label || type || 'Related update',
+        source: String(update.source || '').trim(),
+        updated: update.updated?.['date-parts']?.[0]?.[0] || null,
+        isRetraction: type === 'retraction' || /retract/i.test(label),
+      };
+    })
+    .filter(update => update.doi || update.type || update.label !== 'Related update');
+}
+
 function field(label, status, savedValue, sourceValue, detail = '') {
   return { label, status, savedValue, sourceValue, detail };
 }
@@ -75,13 +95,19 @@ export function compareCitationMetadata(saved, record) {
 
   const hasMismatch = fields.some(item => item.status === 'mismatch');
   const hasUnavailable = fields.some(item => item.status === 'unavailable');
+  const updateNotices = crossrefUpdateNotices(record);
+  const retractionStatus = updateNotices.some(update => update.isRetraction)
+    ? 'Retraction notice found'
+    : updateNotices.length ? 'Other update notice listed' : 'No Crossref update notice listed';
   return {
     status: hasMismatch || hasUnavailable ? 'Partially verified' : 'Verified',
-    note: 'Crossref metadata comparison only; a valid DOI or matching record does not establish scientific correctness or rule out retraction.',
+    note: 'Crossref metadata comparison only; matching metadata does not establish scientific correctness. Crossref update notices are useful signals, but an absent notice does not confirm that no correction or retraction exists.',
     fields,
     source: 'Crossref',
     sourceUrl: 'https://api.crossref.org/works/' + encodeURIComponent(sourceDoi),
     journal: record?.['container-title']?.[0] || '',
+    updateNotices,
+    retractionStatus,
   };
 }
 
