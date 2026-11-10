@@ -1,7 +1,7 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
+import { readSupabaseApiConfig } from './supabase-config.mjs';
 import crypto from 'node:crypto';
 
-const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 const STRIPE_API_VERSION = '2026-06-24.dahlia';
 const CHECKOUT_INTEGRATION_IDENTIFIER = 'eylo_checkout_tkqrmxva';
 
@@ -11,16 +11,6 @@ const PLANS = {
   founder: { rank: 2, monthly_ai_actions: null, project_limit: null },
   institution: { rank: 3, monthly_ai_actions: null, project_limit: null },
 };
-
-function supabaseUrl() {
-  return process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-}
-
-function supabasePublicKey() {
-  return process.env.SUPABASE_PUBLISHABLE_KEY
-    || process.env.SUPABASE_ANON_KEY
-    || process.env.VITE_SUPABASE_ANON_KEY;
-}
 
 function supabaseServerKey() {
   return process.env.SUPABASE_SECRET_KEY
@@ -36,10 +26,11 @@ function serverHeaders(key) {
 async function identity(authorization) {
   if (!authorization?.startsWith('Bearer ')) return null;
 
-  const publicKey = supabasePublicKey();
-  if (!publicKey) return null;
+  const config = readSupabaseApiConfig();
+  if (!config.hasPublicConfig) return null;
+  const { publicKey } = config;
 
-  const userResponse = await fetch(`${supabaseUrl()}/auth/v1/user`, {
+  const userResponse = await fetch(`${config.url}/auth/v1/user`, {
     headers: { authorization, apikey: publicKey },
   });
   if (!userResponse.ok) return null;
@@ -49,7 +40,7 @@ async function identity(authorization) {
   const serverKey = supabaseServerKey();
   if (serverKey) {
     const entitlementResponse = await fetch(
-      `${supabaseUrl()}/rest/v1/billing_entitlements?user_id=eq.${encodeURIComponent(user.id)}&select=*&limit=1`,
+      `${config.url}/rest/v1/billing_entitlements?user_id=eq.${encodeURIComponent(user.id)}&select=*&limit=1`,
       { headers: serverHeaders(serverKey) },
     );
     if (!entitlementResponse.ok) {
@@ -126,6 +117,13 @@ export default async function handler(request, response) {
   if (!['GET', 'POST'].includes(request.method)) {
     response.setHeader('Allow', 'GET, POST');
     return response.status(405).json({ error: 'Method not allowed.' });
+  }
+
+  if (!readSupabaseApiConfig().hasPublicConfig) {
+    return response.status(503).json({
+      error: 'Billing is awaiting verified authentication configuration.',
+      code: 'SUPABASE_NOT_CONFIGURED',
+    });
   }
 
   try {

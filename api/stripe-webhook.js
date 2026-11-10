@@ -1,6 +1,5 @@
 import crypto from 'node:crypto';
-
-const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
+import { readSupabaseApiConfig } from './supabase-config.mjs';
 const MAX_WEBHOOK_BODY_BYTES = 1024 * 1024; // Reject unusually large webhook requests before parsing.
 
 export const config = {
@@ -52,15 +51,6 @@ function verifySignature(payload, header, secret) {
   });
 }
 
-function supabaseUrl() {
-  return process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-}
-
-function supabaseServerKey() {
-  return process.env.SUPABASE_SECRET_KEY
-    || process.env.SUPABASE_SERVICE_ROLE_KEY;
-}
-
 function serverHeaders(key) {
   const headers = {
     apikey: key,
@@ -72,11 +62,12 @@ function serverHeaders(key) {
 }
 
 async function applyEntitlement(event, userId, entitlement, authoritative = true) {
-  const serviceKey = supabaseServerKey();
-  if (!serviceKey) throw new Error('A Supabase server key is missing.');
+  const config = readSupabaseApiConfig();
+  if (!config.hasServerConfig) throw new Error('An explicit Supabase project URL and server key are required.');
+  const serviceKey = config.serverKey;
 
   const rpcResponse = await fetch(
-    `${supabaseUrl()}/rest/v1/rpc/apply_billing_entitlement`,
+    `${config.url}/rest/v1/rpc/apply_billing_entitlement`,
     {
       method: 'POST',
       headers: serverHeaders(serviceKey),

@@ -3,7 +3,7 @@ import { after, test } from 'node:test';
 import handler from '../api/billing.js';
 
 const oldFetch = globalThis.fetch;
-const names = ['APP_URL','VERCEL_PROJECT_PRODUCTION_URL','VITE_SUPABASE_ANON_KEY','SUPABASE_SECRET_KEY','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','STRIPE_PRO_PRICE_ID','STRIPE_FOUNDER_PRICE_ID'];
+const names = ['APP_URL','VERCEL_PROJECT_PRODUCTION_URL','VITE_SUPABASE_URL','VITE_SUPABASE_ANON_KEY','SUPABASE_SECRET_KEY','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','STRIPE_PRO_PRICE_ID','STRIPE_FOUNDER_PRICE_ID'];
 const oldEnv = Object.fromEntries(names.map(k => [k, process.env[k]]));
 after(() => {
   globalThis.fetch = oldFetch;
@@ -28,6 +28,7 @@ test('billing never exposes private responses in caches', async () => {
 test('billing rejects attacker Host and constructs Stripe URLs from trusted origin', async () => {
   process.env.APP_URL='https://eyloai.example';
   process.env.VITE_SUPABASE_ANON_KEY='test-public-key';
+  process.env.VITE_SUPABASE_URL='https://eylo-test.supabase.co';
   process.env.SUPABASE_SECRET_KEY='test-secret-key';
   process.env.STRIPE_SECRET_KEY='test-stripe-key';
   process.env.STRIPE_WEBHOOK_SECRET='test-webhook';

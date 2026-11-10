@@ -68,8 +68,10 @@ test('monitoring reports the specific failed watchlist and excludes inactive one
   const previousFetch = globalThis.fetch;
   const oldSecret = process.env.CRON_SECRET;
   const oldKey = process.env.SUPABASE_SECRET_KEY;
+  const oldUrl = process.env.VITE_SUPABASE_URL;
   process.env.CRON_SECRET = 'test-cron-secret';
   process.env.SUPABASE_SECRET_KEY = 'sb_secret_test_placeholder';
+  process.env.VITE_SUPABASE_URL = 'https://monitor-test.supabase.co';
   globalThis.fetch = async (url) => {
     const address = String(url);
     if (address.includes('/rest/v1/watchlists?select=')) {
@@ -101,6 +103,8 @@ test('monitoring reports the specific failed watchlist and excludes inactive one
     else process.env.CRON_SECRET = oldSecret;
     if (oldKey === undefined) delete process.env.SUPABASE_SECRET_KEY;
     else process.env.SUPABASE_SECRET_KEY = oldKey;
+    if (oldUrl === undefined) delete process.env.VITE_SUPABASE_URL;
+    else process.env.VITE_SUPABASE_URL = oldUrl;
   }
 });
 
@@ -118,8 +122,10 @@ test('old disabled watchlists cannot starve 66 active watchlists over three boun
   const previousFetch = globalThis.fetch;
   const oldSecret = process.env.CRON_SECRET;
   const oldKey = process.env.SUPABASE_SECRET_KEY;
+  const oldUrl = process.env.VITE_SUPABASE_URL;
   process.env.CRON_SECRET = 'unit-cron-secret';
   process.env.SUPABASE_SECRET_KEY = 'sb_secret_scheduler_unit_test';
+  process.env.VITE_SUPABASE_URL = 'https://monitor-test.supabase.co';
   const database = [
     ...Array.from({ length: 40 }, (_, i) => ({
       id: 'disabled-' + i, user_id: 'test-account', updated_date: i + 1,
@@ -190,5 +196,7 @@ test('old disabled watchlists cannot starve 66 active watchlists over three boun
     else process.env.CRON_SECRET = oldSecret;
     if (oldKey === undefined) delete process.env.SUPABASE_SECRET_KEY;
     else process.env.SUPABASE_SECRET_KEY = oldKey;
+    if (oldUrl === undefined) delete process.env.VITE_SUPABASE_URL;
+    else process.env.VITE_SUPABASE_URL = oldUrl;
   }
 });

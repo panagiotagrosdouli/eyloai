@@ -1,4 +1,5 @@
 const ENVIRONMENT_KEYS = [
+  'VITE_SUPABASE_URL',
   'SUPABASE_PUBLISHABLE_KEY',
   'SUPABASE_ANON_KEY',
   'VITE_SUPABASE_ANON_KEY',
@@ -18,10 +19,12 @@ ENVIRONMENT_KEYS.forEach(key => delete process.env[key]);
 
 const originalFetch = globalThis.fetch;
 let suppliedApiKey = '';
+let authRequestUrl = '';
 
 globalThis.fetch = async (url, options = {}) => {
   const target = String(url);
   if (target.includes('/auth/v1/user')) {
+    authRequestUrl = target;
     suppliedApiKey = options.headers?.apikey || '';
     return {
       ok: true,
@@ -58,11 +61,21 @@ try {
     response,
   );
 
-  if (statusCode !== 503 || payload?.error !== 'EYRA AI is not configured.') {
-    throw new Error(
-      `Expected authentication to succeed before the intentionally missing AI configuration; received ${statusCode}: ${JSON.stringify(payload)}`,
-    );
+  if (statusCode !== 503 || payload?.code !== 'SUPABASE_NOT_CONFIGURED') {
+    throw new Error(`Missing Supabase project configuration did not fail closed: ${statusCode}: ${JSON.stringify(payload)}`);
   }
+
+  process.env.VITE_SUPABASE_URL = 'https://eylo-test.supabase.co';
+  process.env.SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_disposable_test';
+  await handler({
+    method: 'POST',
+    headers: { authorization: 'Bearer valid-test-session' },
+    body: { prompt: 'Verify authenticated EYRA routing.' },
+  }, response);
+  if (statusCode !== 503 || payload?.error !== 'EYRA AI is not configured.') {
+    throw new Error(`Explicit test project configuration did not reach the missing AI check: ${statusCode}: ${JSON.stringify(payload)}`);
+  }
+  if (!authRequestUrl.endsWith('.supabase.co/auth/v1/user')) throw new Error('EYRA did not use the explicitly configured test project.');
   if (!suppliedApiKey.startsWith('sb_publishable_')) {
     throw new Error('EYRA did not supply the browser-safe Supabase publishable key during token verification.');
   }

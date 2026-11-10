@@ -5,6 +5,7 @@ import monitor from '../api/monitor.js';
 const oldFetch = globalThis.fetch;
 const oldCronSecret = process.env.CRON_SECRET;
 const oldSupabaseKey = process.env.SUPABASE_SECRET_KEY;
+const oldSupabaseUrl = process.env.VITE_SUPABASE_URL;
 
 afterEach(() => {
   globalThis.fetch = oldFetch;
@@ -12,6 +13,8 @@ afterEach(() => {
   else process.env.CRON_SECRET = oldCronSecret;
   if (oldSupabaseKey === undefined) delete process.env.SUPABASE_SECRET_KEY;
   else process.env.SUPABASE_SECRET_KEY = oldSupabaseKey;
+  if (oldSupabaseUrl === undefined) delete process.env.VITE_SUPABASE_URL;
+  else process.env.VITE_SUPABASE_URL = oldSupabaseUrl;
 });
 
 function mockResponse() {
@@ -29,6 +32,7 @@ function sourceResponse(data, status = 200) {
 function mockDatabase(providerPayload, { type = 'topic' } = {}) {
   process.env.CRON_SECRET = 'monitor-test-cron';
   process.env.SUPABASE_SECRET_KEY = 'sb_secret_disposable_test_only';
+  process.env.VITE_SUPABASE_URL = 'https://monitor-test.supabase.co';
   const records = [{
     id: 'watchlist-1', user_id: 'test-user',
     data: { query: 'biomedical research', active: true, type },

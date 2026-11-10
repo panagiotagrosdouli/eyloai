@@ -1,19 +1,51 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 
 import handler from '../api/opportunities.js';
 
-test('Grants.gov auth uses the public client key when server env is absent', async () => {
-  const envText = readFileSync(new URL('../.env.production', import.meta.url), 'utf8');
-  const expectedKey = envText.match(/^VITE_SUPABASE_ANON_KEY=(.+)$/m)?.[1]?.trim();
-  assert.ok(expectedKey, 'public Supabase key is present in the production client configuration');
+function createResponse() {
+  return {
+    headers: {},
+    setHeader(name, value) { this.headers[name] = value; },
+    status(code) { this.statusCode = code; return this; },
+    json(value) { this.body = value; return this; },
+  };
+}
 
+test('Grants.gov refuses to authenticate against an implicit Supabase project', async (t) => {
   const previousFetch = globalThis.fetch;
   const previousKey = process.env.VITE_SUPABASE_ANON_KEY;
   const previousUrl = process.env.VITE_SUPABASE_URL;
   delete process.env.VITE_SUPABASE_ANON_KEY;
   delete process.env.VITE_SUPABASE_URL;
+  let called = false;
+  globalThis.fetch = async () => { called = true; throw new Error('Must not contact any upstream.'); };
+  t.after(() => {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.VITE_SUPABASE_ANON_KEY;
+    else process.env.VITE_SUPABASE_ANON_KEY = previousKey;
+    if (previousUrl === undefined) delete process.env.VITE_SUPABASE_URL;
+    else process.env.VITE_SUPABASE_URL = previousUrl;
+  });
+
+  const response = createResponse();
+  await handler({
+    method: 'GET',
+    headers: { authorization: 'Bearer test-session' },
+    query: { q: 'climate research' },
+  }, response);
+
+  assert.equal(response.statusCode, 503);
+  assert.equal(response.body.code, 'SUPABASE_NOT_CONFIGURED');
+  assert.equal(called, false);
+});
+
+test('Grants.gov auth uses the explicitly configured public Supabase project', async (t) => {
+  const previousFetch = globalThis.fetch;
+  const previousKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const previousUrl = process.env.VITE_SUPABASE_URL;
+  process.env.VITE_SUPABASE_ANON_KEY = 'sb_publishable_disposable_test';
+  process.env.VITE_SUPABASE_URL = 'https://eylo-test.supabase.co';
 
   let authRequest;
   globalThis.fetch = async (url, options = {}) => {
@@ -29,29 +61,24 @@ test('Grants.gov auth uses the public client key when server env is absent', asy
     }
     throw new Error('Unexpected upstream request in test.');
   };
-
-  const response = {
-    headers: {},
-    setHeader(name, value) { this.headers[name] = value; },
-    status(code) { this.statusCode = code; return this; },
-    json(value) { this.body = value; return this; },
-  };
-
-  try {
-    await handler(
-      { method: 'GET', headers: { authorization: 'Bearer test-session' }, query: { q: 'climate research' } },
-      response,
-    );
-    assert.equal(authRequest?.url, 'https://kbzjngpzxpniaumlupaa.supabase.co/auth/v1/user');
-    assert.equal(authRequest?.headers?.apikey === expectedKey, true, 'server auth key matches the public client key');
-    assert.equal(authRequest?.headers?.authorization, 'Bearer test-session');
-    assert.equal(response.statusCode, 200);
-    assert.equal(response.body.source, 'Grants.gov');
-  } finally {
+  t.after(() => {
     globalThis.fetch = previousFetch;
     if (previousKey === undefined) delete process.env.VITE_SUPABASE_ANON_KEY;
     else process.env.VITE_SUPABASE_ANON_KEY = previousKey;
     if (previousUrl === undefined) delete process.env.VITE_SUPABASE_URL;
     else process.env.VITE_SUPABASE_URL = previousUrl;
-  }
+  });
+
+  const response = createResponse();
+  await handler({
+    method: 'GET',
+    headers: { authorization: 'Bearer test-session' },
+    query: { q: 'climate research' },
+  }, response);
+
+  assert.equal(authRequest?.url, 'https://eylo-test.supabase.co/auth/v1/user');
+  assert.equal(authRequest?.headers?.apikey, 'sb_publishable_disposable_test');
+  assert.equal(authRequest?.headers?.authorization, 'Bearer test-session');
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.source, 'Grants.gov');
 });
