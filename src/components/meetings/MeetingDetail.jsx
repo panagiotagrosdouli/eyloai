@@ -12,9 +12,9 @@ import { isPublicJitsiRoomUrl } from '@/lib/jitsi-room.mjs';
 
 const TABS = ['Overview', 'EYRA Prep', 'Notes & Debrief'];
 
-export default function MeetingDetail({ meeting, projects, onBack, onSave, onDelete, onUpdate }) {
+export default function MeetingDetail({ meeting, projects, onBack, onSave, onDelete, onUpdate, autoJoin = false }) {
   const [tab, setTab] = useState('Overview');
-  const [inAppCall, setInAppCall] = useState(false);
+  const [inAppCall, setInAppCall] = useState(autoJoin);
   let meetingLink = '';
   try { meetingLink = normalizeMeetingLink(meeting.meeting_link); } catch { /* Invalid saved URLs stay inert. */ }
   const embeddedRoom = getEmbeddedJitsiRoom(meetingLink);
@@ -245,7 +245,10 @@ Be concise and actionable.`,
             <div><h2 className="text-sm font-semibold">{meeting.title}</h2>
               <p className="text-xs text-muted-foreground">Video is provided by Jitsi, a third-party service. Camera and microphone access require your permission. Anyone who obtains this room link may be able to join; EYLO does not enforce an invite list. Do not discuss confidential or personal research data in this call.</p>
             </div>
-            <button type="button" onClick={() => setInAppCall(false)} className="rounded-lg border border-border px-4 py-2 text-sm">Leave meeting</button>
+            <div className="flex flex-wrap items-center gap-2">
+              <a href={embeddedRoom} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-border px-4 py-2 text-sm">Open in Jitsi</a>
+              <button type="button" onClick={() => setInAppCall(false)} className="rounded-lg border border-border px-4 py-2 text-sm">Leave meeting</button>
+            </div>
           </div>
           <iframe src={embeddedRoom} title="Jitsi meeting inside EYLO" allow="camera; microphone; fullscreen; display-capture; autoplay" referrerPolicy="no-referrer" className="min-h-0 w-full flex-1 rounded-xl border border-border" />
         </section>
