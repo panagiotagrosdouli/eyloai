@@ -126,6 +126,11 @@ try {
   assert.equal(await mobile.getByRole('button', { name: 'Create private workspace' }).isVisible(), true);
 
   const dataLab = await browser.newPage();
+  const ideaReadResponses = [];
+  dataLab.on('response', response => {
+    if (response.url().includes('/rest/v1/ideas')) ideaReadResponses.push({ method: response.request().method(), status: response.status() });
+  });
+  dataLab.on('pageerror', error => console.log('Idea Vault browser error:', error.message));
   const testUser = {
     id: 'eylo-e2e-user',
     aud: 'authenticated',
@@ -235,6 +240,7 @@ try {
       return;
     }
     if (table === 'ideas' && method === 'GET') {
+      console.log('Idea Vault test-double read', JSON.stringify({ failIdeaRead, search: url.search }));
       if (failIdeaRead) {
         failIdeaRead = false;
         await respond(503, { message: 'Test workspace read outage' });
@@ -270,6 +276,11 @@ try {
   });
   await dataLab.goto(`${baseUrl}/ideas`);
   await dataLab.getByRole('heading', { name: 'Ideas' }).waitFor();
+  await dataLab.waitForTimeout(500);
+  const ideaAlertText = await dataLab.getByRole('alert').allTextContents();
+  if (!ideaAlertText.some(text => text.includes('Ideas could not be loaded.'))) {
+    console.log('Idea Vault recovery diagnostic:', JSON.stringify({ url: dataLab.url(), body: await dataLab.locator('body').innerText(), ideaReadResponses }));
+  }
   await dataLab.getByRole('alert').getByText('Ideas could not be loaded.').waitFor();
   await dataLab.getByRole('button', { name: 'Try again' }).click();
   await dataLab.getByText('Your Idea Vault is empty').waitFor();
