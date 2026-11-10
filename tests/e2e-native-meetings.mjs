@@ -1,14 +1,16 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { validateMeetingsStagingTarget } from '../src/lib/meetings-e2e-target.mjs';
 
 const required = ['EYLO_E2E_BASE_URL', 'EYLO_E2E_HOST_EMAIL', 'EYLO_E2E_HOST_PASSWORD', 'EYLO_E2E_GUEST_EMAIL', 'EYLO_E2E_GUEST_PASSWORD'];
 const missing = required.filter(name => !process.env[name]);
 if (missing.length) throw new Error(`Missing required staging settings: ${missing.join(', ')}`);
 
-const target = new URL(process.env.EYLO_E2E_BASE_URL);
-if (target.protocol !== 'https:' || target.hostname === 'eyloai.vercel.app') {
-  throw new Error('Use an HTTPS staging/preview origin. This test refuses the EYLO production hostname.');
-}
+// Require an exact operator-approved staging hostname, not just any HTTPS URL.
+const target = validateMeetingsStagingTarget(
+  process.env.EYLO_E2E_BASE_URL,
+  process.env.EYLO_E2E_ALLOWED_HOST,
+);
 if (process.env.EYLO_E2E_CONFIRM_DATA_MUTATION !== 'YES') {
   throw new Error('Set EYLO_E2E_CONFIRM_DATA_MUTATION=YES to allow creation of a test meeting in this staging workspace.');
 }
@@ -147,8 +149,9 @@ try {
     meetingEnded: true,
   }, null, 2));
 } catch (error) {
-  console.error('Native EYLO two-account browser test failed. No password/token values are logged.');
-  console.error(error);
+  // Browser exceptions may contain URLs with invitation tokens or form values.
+  // Do not serialize Playwright exceptions to logs for this credentialed test.
+  console.error('Native EYLO two-account browser test failed. Inspect the staging session locally; sensitive URLs and tokens are not logged.');
   process.exitCode = 1;
 } finally {
   if (hostRoom) {
