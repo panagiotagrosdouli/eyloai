@@ -7,6 +7,13 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { loadPreferences, savePreferences } from '@/lib/preferences';
+import { protectedApiFetch } from '@/lib/protected-api';
+
+const WORKSPACE_EXPORT_TABLES = [
+  'profiles', 'projects', 'ideas', 'meetings', 'saved_papers', 'saved_researchers',
+  'saved_opportunities', 'search_history', 'watchlists', 'monitoring_discoveries',
+  'notifications', 'eyra_usage_actions', 'billing_entitlements', 'institution_memberships',
+];
 
 const SECTIONS = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -78,6 +85,8 @@ export default function Settings() {
   const [active, setActive] = useState('profile');
   const [prefs, setPrefs] = useState(loadPreferences);
   const [user, setUser] = useState(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -107,6 +116,66 @@ export default function Settings() {
     link.remove();
     URL.revokeObjectURL(url);
     toast({ title: 'Device preferences exported', description: 'Your workspace and account data are not included.' });
+  };
+
+  const downloadWorkspaceData = async () => {
+    if (exporting) return;
+    setExporting(true);
+    setExportProgress('Preparing authenticated export…');
+    try {
+      const records = {};
+      for (const table of WORKSPACE_EXPORT_TABLES) {
+        const rows = [];
+        let offset = 0;
+        const seen = new Set();
+        do {
+          if (seen.has(offset)) throw new Error('Repeated export page detected.');
+          seen.add(offset);
+          setExportProgress('Retrieving ' + table + ' (' + rows.length + ' records)…');
+          const response = await protectedApiFetch(
+            '/api/privacy-export?table=' + encodeURIComponent(table) + '&offset=' + offset
+          );
+          if (!response.ok) {
+            const result = await response.json().catch(() => ({}));
+            throw new Error(result.error || 'Cannot retrieve ' + table + '.');
+          }
+          const page = await response.json();
+          if (page.table !== table || page.offset !== offset || !Array.isArray(page.rows)) {
+            throw new Error('Invalid export page for ' + table + '.');
+          }
+          rows.push(...page.rows);
+          if (page.next_offset == null) break;
+          if (!Number.isSafeInteger(page.next_offset) || page.next_offset <= offset) {
+            throw new Error('Invalid pagination cursor for ' + table + '.');
+          }
+          offset = page.next_offset;
+        } while (true);
+        records[table] = rows;
+      }
+      const payload = {
+        format: 'eylo-workspace-export',
+        version: 1,
+        exported_at: new Date().toISOString(),
+        coverage: 'Versioned first-party workspace tables only; provider-held logs, backups, Stripe records, storage objects and browser preferences are excluded.',
+        tables: records,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'eylo-workspace-' + new Date().toISOString().slice(0, 10) + '.json';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast({ title: 'Workspace export downloaded', description: 'All configured export collections were retrieved.' });
+      setExportProgress('Workspace export downloaded.');
+    } catch (error) {
+      setExportProgress('Export failed. No partial file was downloaded.');
+      toast({ title: 'Workspace export failed', description: error.message, variant: 'destructive' });
+    } finally {
+      setExporting(false);
+    }
   };
 
   const enableBrowserNotifications = async () => {
@@ -355,6 +424,20 @@ export default function Settings() {
                 </button>
               </div>
               <div className="rounded-xl border border-border bg-card p-4">
+                <h3 className="text-sm font-semibold text-foreground">Download My Data</h3>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Download user-owned workspace records as JSON. Includes project, research,
+                  monitoring, profile and entitlement tables. External provider records, logs,
+                  backups, uploaded files, Stripe invoices and browser-only preferences are not
+                  included. If any required collection cannot be retrieved, no download is produced.
+                </p>
+                <button type="button" onClick={downloadWorkspaceData} disabled={exporting}
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-secondary disabled:opacity-50">
+                  <Download size={14} aria-hidden="true" /> {exporting ? 'Exporting…' : 'Download My Data'}
+                </button>
+                <p role="status" aria-live="polite" className="mt-2 text-xs text-muted-foreground">{exportProgress}</p>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4">
                 <h3 className="text-sm font-semibold text-foreground">Download device preferences</h3>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">Export the settings saved in this browser as JSON. This does not export cloud projects, history, papers, billing records or your account.</p>
                 <button type="button" onClick={exportDevicePreferences}
@@ -363,7 +446,7 @@ export default function Settings() {
                 </button>
               </div>
               <div className="rounded-xl border border-border bg-secondary/20 p-4 text-xs leading-6 text-muted-foreground">
-                This preference is stored on your current device. It is not an account-data deletion request and does not erase previously saved research records. EYLO currently does not provide a verified self-service account deletion or complete data export workflow in this Settings screen.
+                This preference is stored on your current device. It is not an account-data deletion request and does not erase previously saved research records. EYLO does not yet provide verified self-service account deletion or a comprehensive export of external provider-held information.
               </div>
             </div>
           </div>
