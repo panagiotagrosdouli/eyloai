@@ -8,7 +8,7 @@ This is the working implementation register for the master EYLO platform brief. 
 - [ ] Verify the intended production Vercel project, deployed commit, and serverless configuration. **Partial:** public production smoke passed 8/8 on 2026-11-10, but `release.json` omits the Git SHA and Vercel project provenance remains unverified; public capability flags currently report AI, contact, billing, monitoring, and analytics disabled.
 - [ ] Verify production Supabase project identity, applied migrations, RLS, and cross-user access isolation. **Not run:** no verified intended project and disposable accounts.
 - [ ] Remove implicit Supabase project selection from all serverless handlers; add explicit configuration validation and regression tests. **Implemented on this branch; full check passed locally:** API fallbacks removed for EYRA, funding, billing, Stripe webhooks, and scheduled monitoring. Confirm every service remains operational only with the intended explicit environment.
-- [ ] Verify auth redirects, persistence, export/deletion, billing entitlements, and secret handling in the deployed environment. **Not run.**
+- [ ] Verify auth redirects, persistence, export/deletion, billing entitlements, and secret handling in the deployed environment. **Production flows not run:** current main has bounded session restoration and Supabase request timeouts, retryable protected-route failures, safe redirects, and stable network/rate-limit/email-delivery error states; issue #295's real confirmation, magic-link, and recovery email delivery remains blocked on access to the verified production Supabase project, provider logs, and authorized test mailboxes.
 - [ ] Add abuse controls for public scholarly retrieval using a verified shared limiter and provider-safe quotas. **Open:** no verified shared limiter is configured.
 - [ ] Complete recovery, monitoring, and production failure-state acceptance. **Not run.**
 
@@ -35,7 +35,7 @@ This is the working implementation register for the master EYLO platform brief. 
 
 ## Priority 3 — Advanced research workflows
 
-- [ ] Knowledge Graph — **Not implemented as an interactive, source-backed graph.**
+- [x] Knowledge Graph — **Implemented and hosted-CI verified on main:** protected interactive graph from saved publications, researchers, and projects; factual links have source provenance, inferred shared-topic links are labeled, and filters, navigation, zoom/pan, and an accessible relationship list are available. Legacy metadata completeness and live cross-user isolation remain unverified.
 - [ ] Literature Review Builder — **Not implemented as an editable, source-grounded drafting workflow.**
 - [ ] EYRA Peer Review Simulator — **Not implemented.**
 - [ ] Research Data Lab — **Partial:** current main supports bounded, browser-only CSV analysis and formula-safe summary export. Data stays session-only; mobile/browser and accessible chart acceptance remain open.
@@ -50,7 +50,7 @@ This is the working implementation register for the master EYLO platform brief. 
 
 ## Priority 5 — Release readiness
 
-- [x] Run typecheck, lint, unit tests, and production build for the reviewed branch. `npm run check` completed successfully; 286 repository tests passed, along with imports, both TypeScript projects, ESLint, and Vite production build.
+- [x] Run typecheck, lint, unit tests, and production build for the reviewed branch. `npm run check` completed successfully on `d832051`; 302 repository tests passed, along with imports, both TypeScript projects, ESLint, and Vite production build.
 - [ ] Add/run browser coverage for registration → discovery → save → project → EYRA and critical failure paths.
 - [ ] Complete responsive, keyboard, screen-reader, contrast, and accessibility acceptance.
 - [ ] Complete live RLS tests with two disposable accounts against the confirmed intended project.
@@ -59,7 +59,9 @@ This is the working implementation register for the master EYLO platform brief. 
 
 ## Current checkpoint — 2026-11-10
 
-- Branch: `codex/fail-closed-supabase`, merged with current `main` commit `6796941aaf1295bd4079e6524704f580b896ae83`; this includes newer auth/navigation work, Evidence Matrix, Research Data Lab, Research Gap candidate validation, and safer meeting links.
+- Branch: current local review is based on `main` commit `d83205120f94c9cf4ae06ef8359830eade96660a`; PR #307 (Knowledge Graph) and PR #306 (Ideas browser regression fix) are merged. Hosted Build, EYLO Quality Gate, and Product quality browser checks passed on the graph PR head `2ed92c6` before merge.
+- Current local verification: `npm run check` passed on `d832051`; imports, both TypeScript projects, ESLint, all 302 tests, and Vite production build passed. `node --check tests/e2e-auth.mjs` and `git diff --check` passed on the graph PR head.
+- Open draft PRs #292 and #294 target an older base and currently conflict with main. Their changes overlap auth/session work already in main; #294's export schema also remains unverified. They were reviewed but not merged.
 - Recent history reviewed: current main also adds owner-scoped paper-summary persistence and research workflow reliability tests; outstanding items remain in `docs/IMPLEMENTATION_BACKLOG.md`.
 - Initial finding: `api/eyra.js`, `api/opportunities.js`, `api/monitor.js`, `api/billing.js`, and `api/stripe-webhook.js` could silently fall back to the hard-coded project `kbzjngpzxpniaumlupaa.supabase.co`. The funding and EYRA handlers also contained a hard-coded public key.
 - Current change: added explicit server-side Supabase URL/key validation and removed the serverless project/key fallbacks. Regression tests confirm missing configuration makes no upstream request and configured requests use only the supplied project.
@@ -67,7 +69,7 @@ This is the working implementation register for the master EYLO platform brief. 
 - Current paper Q&A change: added an abstract-grounded, temporary Ask This Paper conversation in the same Discovery, Library, and Project evidence views. Prior assistant answers are excluded from evidence context; displayed excerpts must match the abstract; stale answers are discarded on paper changes; page-level citations are not fabricated.
 - Current paper workflow integration: incorporated the latest `main` updates for Europe PMC full-text retrieval and auth state handling. Full-text summaries and Q&A retain source-type labels and use only retrieved text; quotes are checked against that text.
 - Current citation verification change: added fixed-host, exact DOI lookup through Crossref and a Library comparison of the DOI, normalized title, publication year, and first-author surname; mismatches and missing metadata remain explicit. Crossref update notices are reported with source and DOI; an absent notice is not treated as evidence of no retraction. Paper views also include AI-assisted user-claim checks against the available abstract/full text; positive verdicts require a verbatim matching source excerpt and the interface states this does not establish scientific correctness.
-- Verification: the security, paper, citation, claim-check, and latest-main integration changes passed import checks, both TypeScript projects, ESLint, 286 unit tests, and the Vite build through `npm run check`. Existing date parsing, dynamic-import, and dependency warnings are non-fatal. The PR's Vercel check currently reports failure with a build-rate-limit URL; it is not represented as a successful preview. The prior public smoke passed 8/8 on 2026-11-10, before the latest main updates. Public capability response reported all five optional services disabled. This does not verify account persistence, live RLS, provider access, or AI behavior.
+- Verification: the security, paper, citation, claim-check, graph, and latest-main integration changes passed imports, both TypeScript projects, ESLint, 302 unit tests, and the Vite build through `npm run check`. Existing dependency and bundler warnings are non-fatal. Hosted Build, EYLO Quality Gate, and Product quality browser checks passed on the graph PR head. The prior public smoke passed 8/8 on 2026-11-10, before the latest main updates. Public capability response reported all five optional services disabled. This does not verify account persistence, live RLS, provider access, or AI behavior.
 - Deployment: unchanged. Exact deployment SHA and connected Vercel project remain unverified; no deployment or database changes were made.
 
 ## Continuation rule
