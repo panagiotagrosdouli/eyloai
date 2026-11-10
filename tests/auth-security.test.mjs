@@ -69,3 +69,14 @@ test('Supabase gateway fallback keeps the same bounded request timeout', async (
   assert.match(source, /return fetchWithTimeout\(directUrl, init\)/);
   assert.doesNotMatch(source, /return fetch\(directUrl, init\)/);
 });
+
+
+test('auth operations preserve network errors and never silently register from magic links', async () => {
+  const source = await readFile(new URL('../src/lib/supabase/auth.js', import.meta.url), 'utf8');
+  const catches = source.match(/return fail\(mapSupabaseError\(error\) \|\| createAppError\(AppErrorCode\.UNKNOWN\)\);/g) || [];
+  assert.equal(catches.length, 8, 'all auth operation catches must preserve provider/network errors');
+  assert.match(source, /shouldCreateUser:\s*false/);
+  assert.doesNotMatch(source, /shouldCreateUser:\s*true/);
+  assert.equal(mapSupabaseError(Object.assign(new Error('Failed to fetch'), { name: 'TypeError' })).code, AppErrorCode.NETWORK);
+  assert.equal(mapSupabaseError({ message: 'Error sending confirmation email', status: 400 }).code, AppErrorCode.EMAIL_SEND_FAILED);
+});
