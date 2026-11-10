@@ -22,12 +22,12 @@
 - [ ] Implement filter, expansion, keyboard-accessible exploration and project saving.
 - [ ] Add ownership, persistence, empty/error states and focused integration tests.
 
-### 2. Scientific Evidence Matrix — not implemented
+### 2. Scientific Evidence Matrix — partial
 
-- [ ] Select saved or retrieved publications and compare study design, methods, dataset, findings and limitations.
-- [ ] Preserve field-level provenance and distinguish missing information from negative findings.
-- [ ] Support editable comparisons, filters, project linking and export.
-- [ ] Test source fidelity and ensure model output cannot fill missing research details as fact.
+- [x] Select project-linked saved papers and compare source metadata with editable study-design, dataset, findings and limitations notes.
+- [x] Preserve source links and distinguish unrecorded information from negative findings; all comparison notes are explicitly researcher-authored.
+- [x] Persist the selection and notes on the owner-scoped project record; add title/author filtering and CSV export.
+- [ ] Test authenticated persistence and source fidelity in the intended Supabase project; no live account was available.
 
 ### 3. AI Research Gap Finder — partial
 
@@ -104,5 +104,6 @@
 ## Work recorded
 
 - **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.
+- **2026-11-10:** Project Evidence adds a source-linked, editable matrix for linked papers; notes are stored on the project and exported as CSV with spreadsheet formula escaping. Missing notes are shown as unrecorded rather than inferred.
 - **Validation:** `npm run check` passed: imports, both TypeScript projects, ESLint, 227 tests, and Vite production build. Vite emitted dependency annotation and large-chunk warnings. `git diff --check` passed.
 - **Live public smoke:** HTTP 200 for `/`, `/manifest.webmanifest`, `/robots.txt`, `/discover`, `/login`, `/register`, `/forgot-password`, and `/api/capabilities`. This checks HTTP availability only; authenticated workflows, deployed commit, database isolation and provider readiness were not verified.
