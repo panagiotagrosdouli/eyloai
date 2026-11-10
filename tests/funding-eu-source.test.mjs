@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import handler from '../api/opportunities.js';
+const previousUrl = process.env.VITE_SUPABASE_URL;
+const previousKey = process.env.VITE_SUPABASE_ANON_KEY;
+process.env.VITE_SUPABASE_URL = 'https://eylo-test.supabase.co';
+process.env.VITE_SUPABASE_ANON_KEY = 'sb_publishable_disposable_test';
 
 test('funding API merges verified EU calls with Grants.gov records', async () => {
   const previousFetch = globalThis.fetch;
@@ -28,5 +32,11 @@ test('funding API merges verified EU calls with Grants.gov records', async () =>
     assert.deepEqual(response.body.items[0].categories, ['climate research; adaptation']);
     assert.equal(response.body.items[0].status, 'Open');
     assert.match(response.body.items[0].source_url, /^https:\/\/ec\.europa\.eu\//);
-  } finally { globalThis.fetch = previousFetch; }
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousUrl === undefined) delete process.env.VITE_SUPABASE_URL;
+    else process.env.VITE_SUPABASE_URL = previousUrl;
+    if (previousKey === undefined) delete process.env.VITE_SUPABASE_ANON_KEY;
+    else process.env.VITE_SUPABASE_ANON_KEY = previousKey;
+  }
 });

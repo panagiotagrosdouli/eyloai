@@ -1,4 +1,4 @@
-export async function savePaperSummary({ entities, paper, sourceText, summary }) {
+export async function savePaperSummary({ entities, paper, sourceText, summary, projectId = '' }) {
   const sourceId = paper.source_id || paper.id || paper.doi || paper.url || paper.title;
   if (!sourceId) throw new Error('This paper has no stable identifier to save.');
 
@@ -17,6 +17,15 @@ export async function savePaperSummary({ entities, paper, sourceText, summary })
     eyra_summary: summary,
   };
 
-  if (existing) return entities.SavedPaper.update(existing.id, { eyra_summary: summary });
-  return entities.SavedPaper.create(savedRecord);
+  if (existing) {
+    const canAttachToProject = projectId && (!existing.project_id || existing.project_id === projectId);
+    return entities.SavedPaper.update(existing.id, {
+      eyra_summary: summary,
+      ...(canAttachToProject ? { project_id: projectId } : {}),
+    });
+  }
+  return entities.SavedPaper.create({
+    ...savedRecord,
+    ...(projectId ? { project_id: projectId } : {}),
+  });
 }
