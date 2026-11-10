@@ -36,7 +36,7 @@ function request(authorization = 'Bearer disposable-token', query = { table: 'pr
 
 test('anonymous requests do not read data', async () => {
   const result = responseRecorder();
-  await handler(request(undefined), result);
+  await handler(request(null), result);
   assert.notEqual(result.statusCode, 200);
 });
 
