@@ -455,7 +455,8 @@ body { min-width: 320px; background: hsl(var(--background)); letter-spacing: -0.
 
 
 /* Keep the authenticated Home surface aligned with EYLO's white public identity. */
-.eylo-home {
+.eylo-home,
+.eylo-home-layout {
   --background: 210 25% 98%;
   --foreground: 220 35% 12%;
   --card: 0 0% 100%;
