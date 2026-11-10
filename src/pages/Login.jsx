@@ -109,7 +109,7 @@ export default function Login() {
 
       {magicLinkSent && (
         <div role="status" className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-          Check your email. The secure link will return you to your EYLO workspace.
+          The request was accepted. Check your inbox and spam for a secure sign-in link. EYLO cannot confirm delivery; retry later if it does not arrive.
         </div>
       )}
 
