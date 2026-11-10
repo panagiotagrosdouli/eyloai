@@ -183,10 +183,13 @@ export const AuthProvider = ({ children }) => {
     // session request. Only explicitly refresh when a session is already live.
     if (state.status !== 'authenticated') return initializeAuth();
 
+    const refreshVersion = authEventVersionRef.current;
     setState((current) => ({ ...current, status: 'loading', error: null }));
     try {
       const runtime = await loadAuthRuntime();
       const result = await withTimeout(runtime.authModule.refreshSession(), SESSION_RESTORE_TIMEOUT_MS);
+      // Auth events from other tabs or a local sign-out must win over an older refresh.
+      if (!mountedRef.current || authEventVersionRef.current !== refreshVersion) return result;
       if (!result.ok) {
         setState({ status: 'error', user: null, session: null, error: result.error });
         return result;
@@ -199,7 +202,9 @@ export const AuthProvider = ({ children }) => {
       return result;
     } catch (error) {
       const appError = createAppError(AppErrorCode.NETWORK, error);
-      setState({ status: 'error', user: null, session: null, error: appError });
+      if (mountedRef.current && authEventVersionRef.current === refreshVersion) {
+        setState({ status: 'error', user: null, session: null, error: appError });
+      }
       return { ok: false, error: appError };
     }
   };
