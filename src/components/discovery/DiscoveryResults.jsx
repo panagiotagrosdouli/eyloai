@@ -114,6 +114,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         institution: r.institution,
         country: r.country,
         research_areas: r.research_areas,
+        selected_publications: r.selected_publications || [],
         biography: r.biography || '',
         orcid: r.orcid || '',
         profile_photo_url: r.profile_photo_url || '',
@@ -647,7 +648,22 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {results.researchers.map((r, i) => (
-                <ResearcherCard key={i} researcher={r} onSave={() => saveResearcher(r)} />
+                <ResearcherCard
+                  key={i}
+                  researcher={{
+                    ...r,
+                    selected_publications: (results.papers || [])
+                      .filter(paper => (paper.author_ids || []).includes(r.openalex_id || r.id))
+                      .slice(0, 3),
+                  }}
+                  onSave={() => saveResearcher({
+                    ...r,
+                    selected_publications: (results.papers || [])
+                      .filter(paper => (paper.author_ids || []).includes(r.openalex_id || r.id))
+                      .slice(0, 3)
+                      .map(({ title, year, doi, url }) => ({ title, year, doi, url })),
+                  })}
+                />
               ))}
             </div>
           )}
@@ -936,6 +952,7 @@ function ResearcherCard({ researcher, onSave }) {
           {researcher.research_areas && (
             <p className="text-xs text-muted-foreground/70 mt-1.5 line-clamp-2">{researcher.research_areas}</p>
           )}
+          {researcher.selected_publications?.length > 0 && <div className="mt-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Selected publications in this topic</p><ul className="mt-1 space-y-1">{researcher.selected_publications.map(paper => <li key={paper.id || paper.doi || paper.url} className="text-[11px] leading-4">{paper.url ? <a href={paper.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{paper.title}</a> : paper.title}{paper.year ? ` · ${paper.year}` : ''}</li>)}</ul></div>}
           <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
             <span><BookOpen size={11} className="inline mr-1" />{(researcher.works_count || 0).toLocaleString()} works</span>
             <span>{(researcher.citation_count || 0).toLocaleString()} citations</span>

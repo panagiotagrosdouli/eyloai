@@ -376,7 +376,7 @@ export default function PublicDiscovery() {
               </div>
             </section>
 
-            <PaperGroup savedIds={savedIds} onToggleSave={toggleSavedPaper} eyebrow="Your entry point" title="Start here" description="Three papers selected as an intelligible entry path for your level. Survey and overview records are preferred when available." papers={groups.start} />
+            <PaperGroup savedIds={savedIds} onToggleSave={toggleSavedPaper} eyebrow="Your entry point" title="Start here" description="Selected as an intelligible entry path for your level; survey and overview records are preferred when available." papers={groups.start} />
             <PaperGroup savedIds={savedIds} onToggleSave={toggleSavedPaper} eyebrow="Frontier scan" title="What is new now" description="Recent records are kept separate so you can see current directions without losing the field's foundations." papers={groups.latest} />
             <PaperGroup savedIds={savedIds} onToggleSave={toggleSavedPaper} eyebrow="Context that matters" title="Foundational & survey work" description="Highly cited or broad synthesis papers for terminology, historical context, and established methods." papers={groups.foundational} />
             <PaperGroup savedIds={savedIds} onToggleSave={toggleSavedPaper} eyebrow="Broaden the map" title="More relevant evidence" description="Additional deduplicated records from across the connected scholarly indexes." papers={groups.relevant} />
