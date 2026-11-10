@@ -26,6 +26,20 @@ The public root response included `Access-Control-Allow-Origin: *`. This is not 
 - Browser E2E for real user login, email confirmation, password recovery, session persistence and OAuth: **unverified**.
 - Supabase provider encryption at rest and actual dashboard auth configuration: **unverified**.
 
+## Production anonymous API access checks
+
+A GitHub-hosted read-only production probe against \`https://eyloai.vercel.app\` confirmed:
+
+| Request | Actual HTTP status |
+| --- | --- |
+| GET \`/api/billing\` with no token | 401 |
+| GET \`/api/opportunities\` with no token | 401 |
+| GET \`/api/monitor\` without cron authorization | 401 |
+| POST \`/api/eyra\` with no token and empty JSON | 401 |
+| OPTIONS \`/api/eyra\` from \`https://attacker.example\` | 403 |
+
+This verifies anonymous rejection on the tested routes. It does **not** verify RLS, credentialed responses, other private endpoints or all possible origin headers.
+
 ## Supabase project and RLS access blocker
 
 Repository `.env.production` identifies `https://kbzjngpzxpniaumlupaa.supabase.co` with a public publishable key. The connected Supabase account exposes only inactive, unrelated project `umzrggayitzfgrrofjnw`; it is NOT evidence that the production project has been changed or misconfigured. No SQL was run against the unrelated project. We cannot inspect the intended project's actual policies, storage, auth URL allowlist, or encryption settings from this connection.
