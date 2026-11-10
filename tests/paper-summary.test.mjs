@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import {
   buildPaperSummaryPrompt,
   buildPaperQuestionPrompt,
+  buildPaperClaimVerificationPrompt,
   getPaperAbstract,
   PAPER_SUMMARY_MODES,
   verifyPaperEvidenceQuote,
+  verifyPaperClaimResult,
 } from '../src/lib/paper-summary.mjs';
 
 test('paper summaries use the accessible abstract and leave missing evidence explicit', () => {
@@ -112,4 +114,45 @@ test('paper Q&A labels full-text evidence without fabricating passage numbers', 
   assert.match(prompt, /do not invent page, section, figure, or passage numbers/);
   assert.match(prompt, /Retrieved article body with findings here/);
   assert.match(prompt, /https:\/\/europepmc\.org\/articles\/PMC12345/);
+});
+
+test('claim checking prompt scopes the verdict to accessible source support and distinguishes abstract limits', () => {
+  const prompt = buildPaperClaimVerificationPrompt(
+    { title: 'A paper', doi: '10.1234/example' },
+    'The treatment caused a 12% reduction.',
+    'The study observed a 12% reduction after treatment.',
+    'abstract-based',
+    'https://doi.org/10.1234/example',
+  );
+  assert.match(prompt, /checks source-text support only, not whether the research itself is valid or correct/i);
+  assert.match(prompt, /Do not interpret absence from an abstract as evidence that the complete paper omits the information/);
+  assert.match(prompt, /partially_supported/);
+  assert.match(prompt, /The treatment caused a 12% reduction/);
+  assert.match(prompt, /The study observed a 12% reduction after treatment/);
+  assert.equal(buildPaperClaimVerificationPrompt({}, '   ', 'Some source text.'), '');
+  assert.equal(buildPaperClaimVerificationPrompt({}, 'Claim.', ''), '');
+});
+
+test('claim verdict requires an exact substantial quote for supported outcomes', () => {
+  const source = 'The study observed a 12% reduction after treatment.';
+  assert.deepEqual(verifyPaperClaimResult(source, {
+    verdict: 'supported',
+    explanation: 'The source reports the reduction.',
+    evidence_quote: 'The study observed a 12% reduction after treatment.',
+    uncertainty: 'Abstract only.',
+  }), {
+    verdict: 'supported',
+    explanation: 'The source reports the reduction.',
+    evidenceQuote: 'The study observed a 12% reduction after treatment.',
+    uncertainty: 'Abstract only.',
+  });
+  assert.equal(verifyPaperClaimResult(source, {
+    verdict: 'supported', explanation: 'Unsupported quote.', evidence_quote: 'The treatment caused a 12% reduction.',
+  }).verdict, 'not_assessable');
+  assert.equal(verifyPaperClaimResult(source, {
+    verdict: 'partially_supported', explanation: 'Quote too short.', evidence_quote: '12% reduction',
+  }).verdict, 'not_assessable');
+  assert.equal(verifyPaperClaimResult(source, {
+    verdict: 'invented_verdict', explanation: 'Unknown output.', evidence_quote: '',
+  }).verdict, 'not_assessable');
 });

@@ -1,14 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { BookOpen, Loader2, Bookmark, MessageCircle, Send, Trash2, FileText } from 'lucide-react';
+import { BookOpen, Loader2, Bookmark, MessageCircle, Send, Trash2, FileText, ShieldCheck } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { savePaperSummary } from '@/lib/paper-summary-persistence';
 import { useToast } from '@/components/ui/use-toast';
 import {
   buildPaperQuestionPrompt,
+  buildPaperClaimVerificationPrompt,
   buildPaperSummaryPrompt,
   getPaperAbstract,
   PAPER_SUMMARY_MODES,
   verifyPaperEvidenceQuote,
+  verifyPaperClaimResult,
 } from '@/lib/paper-summary.mjs';
 
 const summarySchema = {
@@ -21,6 +23,17 @@ const answerSchema = {
   additionalProperties: false,
   properties: {
     answer: { type: 'string' },
+    evidence_quote: { type: 'string' },
+    uncertainty: { type: 'string' },
+  },
+};
+const claimSchema = {
+  type: 'object',
+  required: ['verdict', 'explanation', 'evidence_quote', 'uncertainty'],
+  additionalProperties: false,
+  properties: {
+    verdict: { type: 'string', enum: ['supported', 'partially_supported', 'not_supported_by_supplied_text', 'not_assessable'] },
+    explanation: { type: 'string' },
     evidence_quote: { type: 'string' },
     uncertainty: { type: 'string' },
   },
@@ -57,8 +70,11 @@ export default function PaperSummary({ paper, projectId = '' }) {
   const [loading, setLoading] = useState(false);
   const [loadingFullText, setLoadingFullText] = useState(false);
   const [asking, setAsking] = useState(false);
+  const [checkingClaim, setCheckingClaim] = useState(false);
   const [saving, setSaving] = useState(false);
   const [question, setQuestion] = useState('');
+  const [claim, setClaim] = useState('');
+  const [claimResult, setClaimResult] = useState(null);
   const [conversation, setConversation] = useState([]);
   const [showQuestions, setShowQuestions] = useState(false);
   const { toast } = useToast();
@@ -66,16 +82,19 @@ export default function PaperSummary({ paper, projectId = '' }) {
   const paperKey = paper.source_id || paper.id || paper.doi || paper.url || paper.title;
   const activePaperKey = useRef(paperKey);
   const activeRequest = useRef(0);
+  const claimRequest = useRef(0);
   activePaperKey.current = paperKey;
 
   useEffect(() => {
     activeRequest.current += 1;
+    claimRequest.current += 1;
     setSummary(paper.eyra_summary || null);
     setMode('standard');
     setEvidence(initialEvidence(paper));
     setConversation([]);
     setQuestion('');
     setAsking(false);
+    setCheckingClaim(false);
     setLoading(false);
     setLoadingFullText(false);
     setSaving(false);
@@ -136,6 +155,8 @@ export default function PaperSummary({ paper, projectId = '' }) {
     const requestId = ++activeRequest.current;
     setAsking(true);
     setQuestion('');
+    setClaim('');
+    setClaimResult(null);
     setConversation(previous => [...previous, { role: 'user', content: cleanQuestion }]);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
@@ -162,6 +183,28 @@ export default function PaperSummary({ paper, projectId = '' }) {
     if (!previousQuestion) return;
     setConversation(previous => previous.filter(message => message.role !== 'error'));
     ask(previousQuestion);
+  };
+
+  const verifyClaim = async () => {
+    const cleanClaim = String(claim || '').trim();
+    if (!cleanClaim || checkingClaim || !sourceText) return;
+    const requestPaperKey = paperKey;
+    const requestId = ++claimRequest.current;
+    setCheckingClaim(true);
+    setClaimResult(null);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        response_json_schema: claimSchema,
+        prompt: buildPaperClaimVerificationPrompt(paper, cleanClaim, sourceText, evidence.evidence_type, evidence.url),
+      });
+      if (activePaperKey.current !== requestPaperKey || claimRequest.current !== requestId) return;
+      setClaimResult({ claim: cleanClaim, ...verifyPaperClaimResult(sourceText, result) });
+    } catch (error) {
+      if (activePaperKey.current !== requestPaperKey || claimRequest.current !== requestId) return;
+      setClaimResult({ error: error?.message || 'EYRA could not check this claim. Please retry.' });
+    } finally {
+      if (claimRequest.current === requestId) setCheckingClaim(false);
+    }
   };
 
   const save = async () => {
@@ -193,6 +236,7 @@ export default function PaperSummary({ paper, projectId = '' }) {
       </button>
       {paper.open_access && paper.pmcid && evidence.evidence_type !== 'full-text-based' && <button type="button" onClick={loadFullText} disabled={loadingFullText || loading} className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-60">{loadingFullText ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />}{loadingFullText ? 'Checking Europe PMC…' : 'Use accessible full text'}</button>}
       <button type="button" onClick={() => setShowQuestions(value => !value)} disabled={!sourceText} aria-expanded={showQuestions} className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:underline disabled:opacity-50"><MessageCircle size={12} />Ask this paper</button>
+      <button type="button" onClick={() => { setShowQuestions(true); setClaimResult(null); }} disabled={!sourceText} className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:underline disabled:opacity-50"><ShieldCheck size={12} />Check a claim</button>
       {summary && <button type="button" onClick={save} disabled={saving} className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-60">{saving ? <Loader2 size={12} className="animate-spin" /> : <Bookmark size={12} />}{saving ? 'Saving…' : projectId ? 'Save summary to Project' : 'Save summary to Library'}</button>}
     </div>
     {!sourceText && !summary && <p className="mt-2 text-[11px] text-muted-foreground">An accessible abstract or full text is not available for this record.</p>}
@@ -224,6 +268,22 @@ export default function PaperSummary({ paper, projectId = '' }) {
         <button type="submit" disabled={asking || !question.trim()} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-primary px-3 text-[11px] font-semibold text-primary-foreground disabled:opacity-50">{asking ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}Ask</button>
       </form>
       <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground"><span>Evidence: supplied {sourceLabel}</span><span>{question.length}/2,000</span></div>
+      <form onSubmit={event => { event.preventDefault(); verifyClaim(); }} className="mt-4 border-t border-border/60 pt-3">
+        <label className="text-xs font-semibold text-foreground" htmlFor={`${inputId}-claim`}>Check whether the source supports a claim</label>
+        <p className="mt-1 text-[10px] leading-4 text-muted-foreground">This checks only the supplied {sourceLabel}; it does not establish whether the research is scientifically correct.</p>
+        <div className="mt-2 flex items-end gap-2">
+          <textarea id={`${inputId}-claim`} value={claim} onChange={event => setClaim(event.target.value)} maxLength={2_000} rows={2} placeholder="Paste a claim to check against this source…" disabled={checkingClaim} className="min-h-12 flex-1 resize-y rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-60" />
+          <button type="submit" disabled={checkingClaim || !claim.trim()} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-primary px-3 text-[11px] font-semibold text-primary-foreground disabled:opacity-50">{checkingClaim ? <Loader2 size={13} className="animate-spin" /> : <ShieldCheck size={13} />}{checkingClaim ? 'Checking…' : 'Check claim'}</button>
+        </div>
+        {claimResult?.error && <div role="alert" className="mt-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-xs text-destructive">{claimResult.error}<button type="button" onClick={verifyClaim} className="ml-2 font-semibold underline">Retry</button></div>}
+        {claimResult && !claimResult.error && <div role="status" aria-live="polite" className="mt-3 rounded-lg border border-border bg-muted/30 p-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wide">Source support: {claimResult.verdict.replaceAll('_', ' ')}</p>
+          <p className="mt-1 text-xs leading-5">{claimResult.explanation || 'The available source text does not provide a clear explanation.'}</p>
+          {claimResult.evidenceQuote && <blockquote className="mt-2 border-l-2 border-primary/40 pl-2 text-[11px] italic leading-5">“{claimResult.evidenceQuote}” <span className="not-italic">— supplied {sourceLabel}</span></blockquote>}
+          <p className="mt-2 text-[10px] leading-4 text-muted-foreground">Limits: {claimResult.uncertainty}</p>
+          {(evidence.url || paper.url) && <a href={evidence.url || paper.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-[10px] text-primary underline">Open source used for this check</a>}
+        </div>}
+      </form>
     </div>}
   </section>;
 }
