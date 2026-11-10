@@ -8,8 +8,7 @@ import { Plus, Calendar, Clock, Loader2, Search, Video } from 'lucide-react';
 import moment from 'moment';
 import { useSearchParams } from 'react-router-dom';
 import { upcomingMeetingPlans } from '@/lib/meeting-plans.mjs';
-import { createJitsiRoomUrl } from '@/lib/jitsi-room.mjs';
-import { createInstantMeetingPlan } from '@/lib/instant-meeting.mjs';
+import { getUsableSession } from '@/lib/supabaseClient';
 
 const TABS = ['Upcoming', 'Past', 'All'];
 
@@ -21,6 +20,10 @@ export default function Meetings() {
   const [showForm, setShowForm] = useState(false);
   const [startingCall, setStartingCall] = useState(false);
   const [instantCall, setInstantCall] = useState(false);
+  const [invitedCall, setInvitedCall] = useState(false);
+  const [invitedMeeting, setInvitedMeeting] = useState(null);
+  const [inviteError, setInviteError] = useState('');
+  const [inviteLoading, setInviteLoading] = useState(false);
   const [selected, setSelected] = useState(null);
   const [tab, setTab] = useState('Upcoming');
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,7 +35,53 @@ export default function Meetings() {
   const personToDiscuss = searchParams.get('person')?.trim().slice(0, 160) || '';
   const phdDiscussion = searchParams.get('type') === 'phd_supervision';
   const discussionTopic = searchParams.get('topic')?.trim().slice(0, 180) || '';
+  const inviteToken = searchParams.get('invite') || '';
+  const inviteMeetingId = searchParams.get('meeting') || '';
   useEffect(() => { if (personToDiscuss) setShowForm(true); }, [personToDiscuss]);
+
+  useEffect(() => {
+    if (!inviteToken || !inviteMeetingId) return undefined;
+    let active = true;
+    (async () => {
+      setInviteLoading(true); setInviteError('');
+      try {
+        const session = await getUsableSession({ required: true, validate: true });
+        const response = await fetch('/api/meeting-room', {
+          method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ action: 'accept-invite', meetingId: inviteMeetingId, inviteToken }),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || 'Invitation could not be accepted.');
+        if (active) setSearchParams({ meeting: inviteMeetingId }, { replace: true });
+      } catch (error) { if (active) setInviteError(error instanceof Error ? error.message : 'Invitation could not be accepted.'); }
+      finally { if (active) setInviteLoading(false); }
+    })();
+    return () => { active = false; };
+  }, [inviteToken, inviteMeetingId, setSearchParams]);
+
+  useEffect(() => {
+    if (!inviteMeetingId || inviteToken) return undefined;
+    let active = true;
+    let pending = false;
+    const refresh = async () => {
+      if (pending) return;
+      pending = true;
+      try {
+        const session = await getUsableSession({ required: true, validate: true });
+        const response = await fetch('/api/meeting-room', {
+          method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ action: 'info', meetingId: inviteMeetingId }),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || 'This meeting is not available to your account.');
+        if (active) { setInvitedMeeting(result); setInviteError(''); }
+      } catch (error) { if (active) setInviteError(error instanceof Error ? error.message : 'Meeting could not be loaded.'); }
+      finally { pending = false; if (active) setInviteLoading(false); }
+    };
+    setInviteLoading(true); refresh();
+    const interval = window.setInterval(refresh, 8000);
+    return () => { active = false; window.clearInterval(interval); };
+  }, [inviteMeetingId, inviteToken]);
 
   const loadData = async () => {
     setLoading(true);
@@ -73,7 +122,19 @@ export default function Meetings() {
     if (startingCall) return;
     setStartingCall(true);
     try {
-      const plan = createInstantMeetingPlan(createJitsiRoomUrl(), new Date());
+      const now = new Date();
+      const plan = {
+        title: 'Instant EYLO meeting',
+        call_type: 'research_discussion',
+        date: now.toISOString().slice(0, 10),
+        time: now.toTimeString().slice(0, 5),
+        duration_minutes: 60,
+        status: 'in_progress',
+        native_video: true,
+        participants: '',
+        agenda: '',
+        notes: '',
+      };
       const saved = await base44.entities.Meeting.create(plan);
       if (!saved?.id) throw new Error('The meeting could not be confirmed as saved.');
       setInstantCall(true);
@@ -117,13 +178,31 @@ export default function Meetings() {
     return (
       <MeetingDetail
         meeting={selected}
-        autoJoin={instantCall}
+        autoJoin={instantCall || invitedCall}
+        autoAction={invitedCall ? 'join' : 'start'}
         projects={projects}
-        onBack={() => { setSelected(null); setInstantCall(false); }}
+        onBack={() => { setSelected(null); setInstantCall(false); setInvitedCall(false); }}
         onSave={handleSave}
         onDelete={handleDelete}
         onUpdate={loadData}
       />
+    );
+  }
+
+  if (inviteToken || inviteMeetingId) {
+    return (
+      <div className="eylo-page mx-auto max-w-2xl">
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <h1 className="eylo-page-heading">EYLO meeting invitation</h1>
+          {inviteLoading && <p className="mt-3 text-sm text-muted-foreground">Verifying your invitation…</p>}
+          {inviteError && <div role="alert" className="mt-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">{inviteError}</div>}
+          {invitedMeeting && <>
+            <h2 className="mt-5 text-lg font-semibold">{invitedMeeting.title}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{invitedMeeting.native_status === 'live' ? 'The host has started the secure EYLO room.' : 'Your invitation is accepted. Waiting for the host to start the room.'}</p>
+            {invitedMeeting.native_status === 'live' && <button type="button" onClick={() => { setInvitedCall(true); setSelected(invitedMeeting); }} className="mt-5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"><Video size={15} className="mr-2 inline"/>Join meeting</button>}
+          </>}
+        </div>
+      </div>
     );
   }
 
