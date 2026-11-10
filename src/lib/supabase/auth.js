@@ -76,7 +76,8 @@ export async function signInWithMagicLink(email, redirectTo) {
       email: email.trim().toLowerCase(),
       options: {
         emailRedirectTo: redirectTo,
-        shouldCreateUser: true,
+        // Magic-link login is not registration; reject automatic account creation.
+        shouldCreateUser: false,
       },
     });
     if (error) return fail(mapSupabaseError(error));
