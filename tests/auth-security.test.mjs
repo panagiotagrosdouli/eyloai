@@ -8,11 +8,15 @@ import { AppErrorCode, mapSupabaseError } from '../src/lib/supabase/errors.js';
 test('safe redirects accept known workspace and Labs destinations', () => {
   assert.equal(getSafeRedirect('/projects/abc?tab=evidence'), '/projects/abc?tab=evidence');
   assert.equal(getSafeRedirect('/projects?new=1'), '/projects?new=1');
+  assert.equal(getSafeRedirect('/home'), '/home');
   assert.equal(getSafeRedirect('/labs/scenario'), '/labs/scenario');
 });
 
 test('safe redirects reject external, protocol-relative and malformed destinations', () => {
   assert.equal(getSafeRedirect('https://example.com/phish'), '/home');
+  assert.equal(getSafeRedirect('/'), '/home');
+  assert.equal(getSafeRedirect('/?campaign=research'), '/home');
+  assert.equal(getSafeRedirect('/#about'), '/home');
   assert.equal(getSafeRedirect('//example.com/phish'), '/home');
   assert.equal(getSafeRedirect('/projects\\..\\evil'), '/home');
   assert.equal(getSafeRedirect('/not-a-real-eylo-route'), '/home');
