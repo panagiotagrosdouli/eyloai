@@ -45,6 +45,9 @@ export function getSafeRedirect(
   const decoded = decodeCandidate(candidate.trim());
   if (!decoded) return fallback;
   if (!decoded.startsWith('/') || decoded.startsWith('//')) return fallback;
+  // Authentication must enter the private workspace, not bounce back to the public landing.
+  // Keep genuine deep links (projects, library, research tools) intact.
+  if (decoded === '/' || decoded.startsWith('/?') || decoded.startsWith('/#')) return fallback;
   if (/^[\s]*javascript:/i.test(decoded)) return fallback;
   if (decoded.includes('\\')) return fallback;
 
