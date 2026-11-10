@@ -210,10 +210,20 @@ try {
 
   // Exercise the Ideas interface against an isolated PostgREST test double. This
   // verifies UI wiring and error recovery; it does not claim live Supabase/RLS.
+  const ideasPage = await browser.newPage();
+  await ideasPage.route('https://eylo-auth-test.supabase.co/auth/v1/token?grant_type=password', route => sendAuthJson(route, {
+    access_token: 'eylo-ideas-access-token',
+    token_type: 'bearer',
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    refresh_token: 'eylo-ideas-refresh-token',
+    user: testUser,
+  }));
+  await ideasPage.route('https://eylo-auth-test.supabase.co/auth/v1/user**', route => sendAuthJson(route, testUser));
   const savedIdeas = [];
   let failIdeaRead = true;
   let nextIdeaId = 0;
-  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/**', async (route) => {
+  await ideasPage.route('https://eylo-auth-test.supabase.co/rest/v1/**', async (route) => {
     const request = route.request();
     const url = new URL(request.url());
     const table = url.pathname.split('/').at(-1);
@@ -268,24 +278,31 @@ try {
     // Profile, watchlist and other reads return isolated empty test data.
     await respond(method === 'POST' || method === 'PATCH' ? 201 : 200, method === 'GET' ? [] : {});
   });
-  await dataLab.goto(`${baseUrl}/ideas`);
-  await dataLab.getByRole('heading', { name: 'Ideas' }).waitFor();
-  await dataLab.getByRole('alert').getByText('Ideas could not be loaded.').waitFor();
-  await dataLab.getByRole('button', { name: 'Try again' }).click();
-  await dataLab.getByText('Your Idea Vault is empty').waitFor();
-  await dataLab.getByRole('button', { name: 'New' }).click();
-  await dataLab.getByLabel('Idea title').fill('Climate adaptation evidence');
-  await dataLab.getByRole('button', { name: 'Save Idea' }).click();
-  await dataLab.getByText('Climate adaptation evidence').waitFor();
-  await dataLab.getByRole('button', { name: 'Edit Climate adaptation evidence' }).click();
-  await dataLab.getByLabel('Idea title').fill('Climate resilience evidence');
-  await dataLab.getByRole('button', { name: 'Update idea' }).click();
-  await dataLab.getByText('Climate resilience evidence').waitFor();
-  await dataLab.reload();
-  await dataLab.getByText('Climate resilience evidence').waitFor();
+  await ideasPage.goto(`${baseUrl}/login`);
+  await ideasPage.getByLabel('Email address').fill(testUser.email);
+  await ideasPage.getByLabel('Password').fill('Test-password-123');
+  await ideasPage.getByRole('button', { name: 'Continue with password' }).click();
+  await ideasPage.getByRole('heading', { name: 'Continue your research' }).waitFor({ state: 'detached' });
+  const initialIdeaRead = ideasPage.waitForResponse(response => response.url().includes('/rest/v1/ideas') && response.request().method() === 'GET');
+  await ideasPage.goto(`${baseUrl}/ideas`);
+  assert.equal((await initialIdeaRead).status(), 503, 'the first ideas read should exercise the visible recovery state');
+  await ideasPage.getByRole('heading', { name: 'Ideas' }).waitFor();
+  await ideasPage.getByRole('alert').getByText('Ideas could not be loaded.').waitFor();
+  await ideasPage.getByRole('button', { name: 'Try again' }).click();
+  await ideasPage.getByText('Your Idea Vault is empty').waitFor();
+  await ideasPage.getByRole('button', { name: 'New' }).click();
+  await ideasPage.getByLabel('Idea title').fill('Climate adaptation evidence');
+  await ideasPage.getByRole('button', { name: 'Save Idea' }).click();
+  await ideasPage.getByText('Climate adaptation evidence').waitFor();
+  await ideasPage.getByRole('button', { name: 'Edit Climate adaptation evidence' }).click();
+  await ideasPage.getByLabel('Idea title').fill('Climate resilience evidence');
+  await ideasPage.getByRole('button', { name: 'Update idea' }).click();
+  await ideasPage.getByText('Climate resilience evidence').waitFor();
+  await ideasPage.reload();
+  await ideasPage.getByText('Climate resilience evidence').waitFor();
   dataLab.on('dialog', dialog => dialog.accept());
-  await dataLab.getByRole('button', { name: 'Delete Climate resilience evidence' }).click();
-  await dataLab.getByText('Your Idea Vault is empty').waitFor();
+  await ideasPage.getByRole('button', { name: 'Delete Climate resilience evidence' }).click();
+  await ideasPage.getByText('Your Idea Vault is empty').waitFor();
 
   console.log('Browser checks passed: auth, mobile registration, private CSV analysis, keyboard meeting access, and Idea Vault recovery/CRUD against an isolated test double.');
 
