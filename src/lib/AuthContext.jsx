@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { appPath, stripAppBase } from '@/lib/auth/routePaths';
 import { environment } from '@/lib/config/env';
+import { shouldApplyAuthResult } from '@/lib/auth/authOperation';
 import { AppErrorCode, createAppError, mapSupabaseError } from '@/lib/supabase/errors';
 
 const AuthContext = createContext(null);
@@ -101,6 +102,7 @@ export const AuthProvider = ({ children }) => {
 
     setState((current) => ({ ...current, status: 'loading', error: null }));
     const initialization = (async () => {
+      const initializationVersion = authEventVersionRef.current;
       try {
         const runtime = await loadAuthRuntime();
         if (!runtime.clientModule.isSupabaseConfigured || !runtime.clientModule.supabase) {
@@ -127,7 +129,8 @@ export const AuthProvider = ({ children }) => {
         return result;
       } catch (error) {
         const appError = createAppError(AppErrorCode.NETWORK, error);
-        if (mountedRef.current) {
+        // A late bootstrap timeout cannot invalidate a newer sign-in/auth event.
+        if (shouldApplyAuthResult(initializationVersion, authEventVersionRef.current, mountedRef.current)) {
           setState({ status: 'error', user: null, session: null, error: appError });
         }
         return { ok: false, error: appError };
@@ -141,8 +144,10 @@ export const AuthProvider = ({ children }) => {
   }, [loadAuthRuntime, state.session, state.status]);
 
   const signIn = async (email, password) => {
+    const operationVersion = authEventVersionRef.current;
     const runtime = await loadAuthRuntime();
     const result = await runtime.authModule.signIn(email, password);
+    if (!shouldApplyAuthResult(operationVersion, authEventVersionRef.current, mountedRef.current)) return result;
     if (result.ok && result.data?.session) {
       const session = result.data.session;
       setState({ status: 'authenticated', user: session.user, session, error: null });
@@ -151,8 +156,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signUp = async (email, password, metadata) => {
+    const operationVersion = authEventVersionRef.current;
     const runtime = await loadAuthRuntime();
     const result = await runtime.authModule.signUp(email, password, metadata);
+    if (!shouldApplyAuthResult(operationVersion, authEventVersionRef.current, mountedRef.current)) return result;
     if (result.ok && result.data?.session) {
       const session = result.data.session;
       setState({ status: 'authenticated', user: session.user, session, error: null });
@@ -183,10 +190,13 @@ export const AuthProvider = ({ children }) => {
     // session request. Only explicitly refresh when a session is already live.
     if (state.status !== 'authenticated') return initializeAuth();
 
+    const refreshVersion = authEventVersionRef.current;
     setState((current) => ({ ...current, status: 'loading', error: null }));
     try {
       const runtime = await loadAuthRuntime();
       const result = await withTimeout(runtime.authModule.refreshSession(), SESSION_RESTORE_TIMEOUT_MS);
+      // Auth events from other tabs or a local sign-out must win over an older refresh.
+      if (!shouldApplyAuthResult(refreshVersion, authEventVersionRef.current, mountedRef.current)) return result;
       if (!result.ok) {
         setState({ status: 'error', user: null, session: null, error: result.error });
         return result;
@@ -199,15 +209,19 @@ export const AuthProvider = ({ children }) => {
       return result;
     } catch (error) {
       const appError = createAppError(AppErrorCode.NETWORK, error);
-      setState({ status: 'error', user: null, session: null, error: appError });
+      if (shouldApplyAuthResult(refreshVersion, authEventVersionRef.current, mountedRef.current)) {
+        setState({ status: 'error', user: null, session: null, error: appError });
+      }
       return { ok: false, error: appError };
     }
   };
 
   const signOut = async () => {
+    const operationVersion = authEventVersionRef.current;
     try {
       const runtime = await loadAuthRuntime();
       const result = await runtime.authModule.signOut();
+      if (!shouldApplyAuthResult(operationVersion, authEventVersionRef.current, mountedRef.current)) return result;
       if (result.ok) {
         setState({ status: 'anonymous', user: null, session: null, error: null });
       } else {
@@ -216,7 +230,9 @@ export const AuthProvider = ({ children }) => {
       return result;
     } catch (error) {
       const appError = createAppError(AppErrorCode.NETWORK, error);
-      setState((current) => ({ ...current, error: appError }));
+      if (shouldApplyAuthResult(operationVersion, authEventVersionRef.current, mountedRef.current)) {
+        setState((current) => ({ ...current, error: appError }));
+      }
       return { ok: false, error: appError };
     }
   };

@@ -58,11 +58,11 @@ export default function Register() {
       <AuthLayout
         icon={Mail}
         title="Confirm your email"
-        subtitle={`We sent a confirmation link to ${sentEmail}.`}
+        subtitle={`Check ${sentEmail} for an EYLO confirmation link.`}
         footer={<Link to={loginHref} className="font-medium text-[#25578d] hover:underline">Back to sign in</Link>}
       >
         <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800">
-          Open the link to verify your address. EYLO will then return you to the research page that sent you here.
+          The account service accepted your request, but it cannot confirm email delivery. Check your inbox and spam folder. If no link arrives, try again later or contact EYLO support.
         </div>
       </AuthLayout>
     );

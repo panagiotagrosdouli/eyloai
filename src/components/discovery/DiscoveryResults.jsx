@@ -92,6 +92,9 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         source: paper.source,
         source_index: paper.source_index || paper.source,
         cited_by_count: paper.cited_by_count,
+        authorships: paper.authorships || [],
+        openalex_topics: paper.openalex_topics || [],
+        referenced_work_ids: paper.referenced_work_ids || [],
         open_access: paper.open_access,
         url: paper.url,
       }, projectCreated);
@@ -114,6 +117,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         institution: r.institution,
         country: r.country,
         research_areas: r.research_areas,
+        selected_publications: r.selected_publications || [],
         biography: r.biography || '',
         orcid: r.orcid || '',
         profile_photo_url: r.profile_photo_url || '',
@@ -515,7 +519,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
               </div>
               <div className="space-y-3">
                 {(startHere.length ? startHere : results.papers.slice(0, 3)).map((p, i) => (
-                  <PaperCard key={i} paper={p} onSave={() => savePaper(p)} rank={i + 1} />
+                  <PaperCard key={i} paper={p} onSave={() => savePaper(p)} projectId={projectCreated?.id || ''} rank={i + 1} />
                 ))}
               </div>
             </div>
@@ -617,7 +621,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
                       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><GroupIcon size={14} /></span>
                       <div><h3 className="text-sm font-semibold">{group.title}</h3><p className="mt-0.5 text-[11px] text-muted-foreground">{group.desc}</p></div>
                     </div>
-                    <div className="space-y-3">{group.papers.map((paper, index) => <PaperCard key={paper._dedupeKey || paper.id || paper.title} paper={paper} onSave={() => savePaper(paper)} rank={index + 1} />)}</div>
+                    <div className="space-y-3">{group.papers.map((paper, index) => <PaperCard key={paper._dedupeKey || paper.id || paper.title} paper={paper} onSave={() => savePaper(paper)} projectId={projectCreated?.id || ''} rank={index + 1} />)}</div>
                   </section>
                 );
               })}
@@ -647,7 +651,22 @@ export default function DiscoveryResults({ results, onNewSearch }) {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {results.researchers.map((r, i) => (
-                <ResearcherCard key={i} researcher={r} onSave={() => saveResearcher(r)} />
+                <ResearcherCard
+                  key={i}
+                  researcher={{
+                    ...r,
+                    selected_publications: (results.papers || [])
+                      .filter(paper => (paper.author_ids || []).includes(r.openalex_id || r.id))
+                      .slice(0, 3),
+                  }}
+                  onSave={() => saveResearcher({
+                    ...r,
+                    selected_publications: (results.papers || [])
+                      .filter(paper => (paper.author_ids || []).includes(r.openalex_id || r.id))
+                      .slice(0, 3)
+                      .map(({ title, year, doi, url }) => ({ title, year, doi, url })),
+                  })}
+                />
               ))}
             </div>
           )}
@@ -866,7 +885,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
   );
 }
 
-function PaperCard({ paper, onSave, rank }) {
+function PaperCard({ paper, onSave, projectId, rank }) {
   const navigate = useNavigate();
   const getImpactLevel = (cited) => {
     if (cited > 500) return { label: 'Highly cited', color: 'text-primary bg-primary/10' };
@@ -901,7 +920,7 @@ function PaperCard({ paper, onSave, rank }) {
           <h4 className="font-semibold text-sm leading-snug mb-1.5 text-foreground">{paper.title}</h4>
           {paper.authors && <p className="text-xs text-muted-foreground mb-2">{paper.authors}</p>}
           {paper.summary && <p className="text-xs text-muted-foreground/80 leading-relaxed line-clamp-2">{paper.summary}</p>}
-          <PaperSummary paper={paper} />
+          <PaperSummary paper={paper} projectId={projectId} />
           <button type="button" onClick={() => navigate(`/search?q=${encodeURIComponent(paper.title || '')}`)} className="mt-2 text-[11px] font-medium text-muted-foreground hover:text-primary">Find similar papers</button>
         </div>
         <div className="flex flex-col gap-1 flex-shrink-0">
@@ -936,6 +955,7 @@ function ResearcherCard({ researcher, onSave }) {
           {researcher.research_areas && (
             <p className="text-xs text-muted-foreground/70 mt-1.5 line-clamp-2">{researcher.research_areas}</p>
           )}
+          {researcher.selected_publications?.length > 0 && <div className="mt-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Selected publications in this topic</p><ul className="mt-1 space-y-1">{researcher.selected_publications.map(paper => <li key={paper.id || paper.doi || paper.url} className="text-[11px] leading-4">{paper.url ? <a href={paper.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{paper.title}</a> : paper.title}{paper.year ? ` · ${paper.year}` : ''}</li>)}</ul></div>}
           <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
             <span><BookOpen size={11} className="inline mr-1" />{(researcher.works_count || 0).toLocaleString()} works</span>
             <span>{(researcher.citation_count || 0).toLocaleString()} citations</span>

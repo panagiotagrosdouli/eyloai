@@ -4,6 +4,10 @@ import handler from '../api/eyra.js';
 
 const previousFetch = globalThis.fetch;
 const previousOpenAIKey = process.env.OPENAI_API_KEY;
+const previousSupabaseUrl = process.env.VITE_SUPABASE_URL;
+const previousPublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+process.env.VITE_SUPABASE_URL = 'https://eylo-test.supabase.co';
+process.env.SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_disposable_test';
 const previousServerKeys = {
   SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -16,6 +20,10 @@ after(() => {
   globalThis.fetch = previousFetch;
   if (previousOpenAIKey === undefined) delete process.env.OPENAI_API_KEY;
   else process.env.OPENAI_API_KEY = previousOpenAIKey;
+  if (previousSupabaseUrl === undefined) delete process.env.VITE_SUPABASE_URL;
+  else process.env.VITE_SUPABASE_URL = previousSupabaseUrl;
+  if (previousPublishableKey === undefined) delete process.env.SUPABASE_PUBLISHABLE_KEY;
+  else process.env.SUPABASE_PUBLISHABLE_KEY = previousPublishableKey;
   for (const [key, value] of Object.entries(previousServerKeys)) {
     if (value === undefined) delete process.env[key];
     else process.env[key] = value;

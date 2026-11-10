@@ -8,11 +8,15 @@ import { AppErrorCode, mapSupabaseError } from '../src/lib/supabase/errors.js';
 test('safe redirects accept known workspace and Labs destinations', () => {
   assert.equal(getSafeRedirect('/projects/abc?tab=evidence'), '/projects/abc?tab=evidence');
   assert.equal(getSafeRedirect('/projects?new=1'), '/projects?new=1');
+  assert.equal(getSafeRedirect('/home'), '/home');
   assert.equal(getSafeRedirect('/labs/scenario'), '/labs/scenario');
 });
 
 test('safe redirects reject external, protocol-relative and malformed destinations', () => {
   assert.equal(getSafeRedirect('https://example.com/phish'), '/home');
+  assert.equal(getSafeRedirect('/'), '/home');
+  assert.equal(getSafeRedirect('/?campaign=research'), '/home');
+  assert.equal(getSafeRedirect('/#about'), '/home');
   assert.equal(getSafeRedirect('//example.com/phish'), '/home');
   assert.equal(getSafeRedirect('/projects\\..\\evil'), '/home');
   assert.equal(getSafeRedirect('/not-a-real-eylo-route'), '/home');
@@ -68,4 +72,31 @@ test('Supabase gateway fallback keeps the same bounded request timeout', async (
   const source = await readFile(new URL('../src/lib/supabaseClient.js', import.meta.url), 'utf8');
   assert.match(source, /return fetchWithTimeout\(directUrl, init\)/);
   assert.doesNotMatch(source, /return fetch\(directUrl, init\)/);
+});
+
+
+test('signed-in public entry routes redirect into the authenticated workspace', async () => {
+  const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8');
+  const layout = await readFile(new URL('../src/components/layout/AppLayout.jsx', import.meta.url), 'utf8');
+  assert.match(app, /status === 'authenticated'\) return <Navigate to=\{workspacePath\} replace \/>/);
+  assert.match(app, /<Route path="\/" element=\{<PublicEntry><Landing \/><\/PublicEntry>\} \/>/);
+  assert.match(app, /<Route path="\/discover" element=\{<PublicEntry workspacePath="\/search">/);
+  assert.match(app, /<Route path="\/find-researchers" element=\{<PublicEntry workspacePath="\/researchers">/);
+  assert.match(app, /<Route path="\/careers" element=\{<PublicEntry workspacePath="\/workspace\/careers">/);
+  assert.match(app, /<Route path="\/workspace\/careers" element=\{<PublicCareers \/>\} \/>/);
+  assert.match(layout, /label: 'Careers', path: '\/workspace\/careers'/);
+  assert.match(app, /<Route element=\{<ProtectedRoute \/>\}>/);
+});
+
+test('authentication distinguishes service configuration, network, and email delivery failures', () => {
+  const configuration = mapSupabaseError(Object.assign(new Error('Authentication service is not configured.'), {
+    code: 'SUPABASE_CONFIGURATION_ERROR',
+  }));
+  assert.equal(configuration.code, AppErrorCode.CONFIGURATION);
+
+  const network = mapSupabaseError(new TypeError('Failed to fetch'));
+  assert.equal(network.code, AppErrorCode.NETWORK);
+
+  const delivery = mapSupabaseError({ message: 'Error sending confirmation email', status: 400 });
+  assert.equal(delivery.code, AppErrorCode.EMAIL_SEND_FAILED);
 });

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import EyraResearchCompanion from '@/components/eyra/EyraResearchCompanion';
 import PaperSummary from '@/components/eyra/PaperSummary';
+import CitationVerification from '@/components/library/CitationVerification';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -213,9 +214,10 @@ export default function Library() {
                         <h4 className="font-semibold text-sm text-foreground">{p.title}</h4>
                         {p.authors && <p className="text-xs text-muted-foreground mt-1">{p.authors}</p>}
                         {p.doi && <p className="mt-1 text-xs text-muted-foreground">DOI: {p.doi}</p>}
+                        <CitationVerification paper={p} />
                         {p.summary && <p className="text-xs text-muted-foreground/70 mt-1.5 line-clamp-2">{p.summary}</p>}
                         <EyraResearchCompanion paper={p} />
-                        <PaperSummary paper={p} />
+                        <PaperSummary paper={p} projectId={p.project_id || ''} />
                         <ProjectLinkControl item={p} projects={projects} projectsLoaded={projectsLoaded} label="paper" onLink={(item, projectId) => linkToProject('SavedPaper', item, projectId, setPapers, 'paper')} />
                       </div>
                       <div className="flex gap-1 flex-shrink-0">

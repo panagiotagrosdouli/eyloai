@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Briefcase, ChevronRight, FolderOpen, Loader2, Plus, Search, Users, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Bookmark, Briefcase, ChevronRight, FolderOpen, Lightbulb, Loader2, Plus, Search, Users, Zap } from 'lucide-react';
 import { buildUserProfile } from '@/lib/second-brain';
 import GuidedSearch from '@/components/discovery/GuidedSearch';
 import { getLocalGreeting } from '@/lib/local-greeting';
+import { promiseWithTimeout } from '@/lib/promise-timeout';
 import { useCapabilities } from '@/lib/capabilities';
 import { useAuth } from '@/lib/AuthContext';
+
+const HOME_PROFILE_TIMEOUT_MS = 12_000;
 
 const START_POINTS = [
   { eyebrow: 'Evidence', title: 'Explore the literature', description: 'Search academic sources and open the original papers.', action: 'Search papers', href: '/discover', icon: BookOpen },
@@ -36,18 +39,25 @@ export default function EyraHome({ onSearch }) {
   const { data: capabilities, loading: capabilitiesLoading } = useCapabilities();
   const { user: authUser } = useAuth();
 
-  const loadProfile = () => {
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  useEffect(() => {
     let active = true;
-    // Returned cleanup prevents a stale request updating a navigated-away page.
-    const request = buildUserProfile();
-    request.then(next => { if (active) { setProfile(next); setProfileError(false); } })
+    setLoaded(false);
+    setProfileError(false);
+    promiseWithTimeout(buildUserProfile(), HOME_PROFILE_TIMEOUT_MS, 'Workspace data took too long to load.')
+      .then(next => { if (active) setProfile(next); })
       .catch(() => { if (active) setProfileError(true); })
       .finally(() => { if (active) setLoaded(true); });
     return () => { active = false; };
-  };
-  useEffect(() => loadProfile(), []);
+  }, [loadAttempt]);
+
+  const retryProfile = () => setLoadAttempt(attempt => attempt + 1);
 
   const projects = profile?.activeProjects || [];
+  const papers = profile?.papers || [];
+  const ideas = profile?.ideas || [];
+  const workspaceWarnings = profile?.workspaceWarnings || [];
+  const hasSourceWarning = source => workspaceWarnings.some(warning => warning.source === source);
   const displayName = profile?.user?.full_name || authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || '';
   const greeting = getLocalGreeting(displayName);
   const userType = profile?.user?.user_type;
@@ -59,9 +69,9 @@ export default function EyraHome({ onSearch }) {
   const recentSearches = (profile?.searches || []).filter(item => item.query).slice(0, 3);
 
   return (
-    <div className="min-h-[calc(100vh-4.5rem)] bg-background">
+    <div className="eylo-home min-h-[calc(100vh-4.5rem)] bg-background text-foreground">
       <main className="mx-auto w-full max-w-7xl px-5 pb-20 pt-6 sm:px-8 sm:pt-8">
-        <section className="overflow-hidden rounded-[2rem] border border-primary/15 bg-gradient-to-br from-primary/[0.08] via-card to-secondary/50 shadow-[0_28px_90px_-58px_rgba(73,49,118,0.4)]">
+        <section className="overflow-hidden rounded-3xl border border-border bg-card shadow-[0_14px_40px_-30px_rgba(23,42,64,0.24)]">
           <div className="relative grid gap-8 px-6 pb-7 pt-7 sm:px-9 sm:pt-9 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:px-12 lg:pb-9">
             <div className="relative z-10 max-w-2xl">
               <div className="mb-5 flex flex-wrap items-center gap-2">
@@ -110,6 +120,13 @@ export default function EyraHome({ onSearch }) {
           </div>
         </section>
 
+        {loaded && workspaceWarnings.length > 0 && (
+          <div role="status" className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#D8E5EF] bg-white px-4 py-3 text-sm text-[#334A60]">
+            <span>Some workspace data is temporarily unavailable. Retry to refresh the items that did not load.</span>
+            <button type="button" onClick={retryProfile} className="min-h-9 rounded-lg border border-[#C8D9E8] px-3 text-xs font-semibold text-[#315F88] hover:bg-[#F3F8FC]">Retry loading data</button>
+          </div>
+        )}
+
         <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]">
           <section aria-labelledby="continue-heading">
             <div className="mb-5 flex items-end justify-between gap-4 border-b border-border pb-4">
@@ -126,7 +143,7 @@ export default function EyraHome({ onSearch }) {
               <div className="rounded-2xl border border-border bg-card p-5">
                 <p className="text-sm font-medium text-foreground">Your workspace could not be loaded.</p>
                 <p className="mt-1 text-xs text-muted-foreground">The data service may be temporarily unavailable.</p>
-                <button type="button" onClick={() => { setLoaded(false); setProfileError(false); buildUserProfile().then(setProfile).catch(() => setProfileError(true)).finally(() => setLoaded(true)); }} className="mt-3 text-xs font-semibold text-primary hover:underline">Try again</button>
+                <button type="button" onClick={retryProfile} className="mt-3 text-xs font-semibold text-primary hover:underline">Try again</button>
               </div>
             ) : (
               <div className="space-y-7">
@@ -135,7 +152,9 @@ export default function EyraHome({ onSearch }) {
                     <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Active projects</h3>
                     <Link to="/projects" className="text-[11px] font-semibold text-muted-foreground hover:text-primary">View all</Link>
                   </div>
-                  {projects.length ? (
+                  {hasSourceWarning('projects') ? (
+                    <p className="rounded-2xl border border-border bg-card px-4 py-4 text-xs text-muted-foreground">Projects are temporarily unavailable.</p>
+                  ) : projects.length ? (
                     <div className="divide-y divide-border rounded-2xl border border-border/70 bg-card px-4">
                       {projects.slice(0, 3).map(project => <ProjectRow key={project.id} project={project} />)}
                     </div>
@@ -152,7 +171,9 @@ export default function EyraHome({ onSearch }) {
                     <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Recent searches</h3>
                     <Link to="/history" className="text-[11px] font-semibold text-muted-foreground hover:text-primary">Search history</Link>
                   </div>
-                  {recentSearches.length ? (
+                  {hasSourceWarning('searches') ? (
+                    <p className="rounded-2xl border border-border bg-card px-4 py-4 text-xs text-muted-foreground">Recent searches are temporarily unavailable.</p>
+                  ) : recentSearches.length ? (
                     <div className="divide-y divide-border rounded-2xl border border-border/70 bg-card px-4">
                       {recentSearches.map((search, index) => (
                         <Link key={search.id || search.query + index} to={'/home?q=' + encodeURIComponent(search.query)} className="group flex min-h-12 items-center gap-3 py-2 text-sm">
@@ -164,6 +185,56 @@ export default function EyraHome({ onSearch }) {
                     </div>
                   ) : (
                     <p className="rounded-2xl border border-border/70 bg-card px-4 py-4 text-xs text-muted-foreground">Your searches will appear here so you can return to them quickly.</p>
+                  )}
+                </div>
+
+                <div>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Saved papers</h3>
+                    <Link to="/library" className="text-[11px] font-semibold text-muted-foreground hover:text-primary">Open library</Link>
+                  </div>
+                  {hasSourceWarning('papers') ? (
+                    <p className="rounded-2xl border border-border bg-card px-4 py-4 text-xs text-muted-foreground">Saved papers are temporarily unavailable.</p>
+                  ) : papers.length ? (
+                    <div className="divide-y divide-border rounded-2xl border border-border/70 bg-card px-4">
+                      {papers.slice(0, 3).map((paper, index) => (
+                        <Link key={paper.id || paper.paper_id || paper.title + index} to="/library" className="flex min-h-12 items-center gap-3 py-2 text-sm">
+                          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-secondary text-primary"><Bookmark size={13} aria-hidden="true" /></span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate font-medium text-foreground">{paper.title || 'Untitled paper'}</span>
+                            <span className="mt-0.5 block truncate text-xs text-muted-foreground">{paper.authors || paper.year || 'Saved publication'}</span>
+                          </span>
+                          <ArrowRight size={14} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="rounded-2xl border border-border/70 bg-card px-4 py-4 text-xs text-muted-foreground">Saved publications will appear here when you add them to your library.</p>
+                  )}
+                </div>
+
+                <div>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Research ideas</h3>
+                    <Link to="/ideas" className="text-[11px] font-semibold text-muted-foreground hover:text-primary">Open ideas</Link>
+                  </div>
+                  {hasSourceWarning('ideas') ? (
+                    <p className="rounded-2xl border border-border bg-card px-4 py-4 text-xs text-muted-foreground">Research ideas are temporarily unavailable.</p>
+                  ) : ideas.length ? (
+                    <div className="divide-y divide-border rounded-2xl border border-border/70 bg-card px-4">
+                      {ideas.slice(0, 3).map((idea, index) => (
+                        <Link key={idea.id || idea.title + index} to="/ideas" className="flex min-h-12 items-center gap-3 py-2 text-sm">
+                          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-secondary text-primary"><Lightbulb size={13} aria-hidden="true" /></span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate font-medium text-foreground">{idea.title || 'Untitled idea'}</span>
+                            <span className="mt-0.5 block truncate text-xs text-muted-foreground">{idea.category || idea.status || 'Research idea'}</span>
+                          </span>
+                          <ArrowRight size={14} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="rounded-2xl border border-border/70 bg-card px-4 py-4 text-xs text-muted-foreground">Ideas you save will be ready here when you return.</p>
                   )}
                 </div>
               </div>
