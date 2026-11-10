@@ -80,11 +80,34 @@ try {
   assert.match(new URL(guarded.url()).searchParams.get('from') || '', /^\/projects\?tab=evidence$/);
 
   const recovery = await browser.newPage();
-  await recovery.route('https://eylo-auth-test.supabase.co/auth/v1/recover', (route) => route.abort('failed'));
+  let recoveryCalls = 0;
+  await recovery.route('**/auth/v1/recover**', async (route) => {
+    if (route.request().method() === 'OPTIONS') {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          'access-control-allow-origin': '*',
+          'access-control-allow-methods': 'POST, OPTIONS',
+          'access-control-allow-headers': 'apikey, authorization, content-type, x-client-info',
+        },
+      });
+      return;
+    }
+    recoveryCalls += 1;
+    await route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' },
+      body: JSON.stringify({ message: 'Authentication service unavailable' }),
+    });
+  });
   await recovery.goto(`${baseUrl}/forgot-password`);
   await recovery.getByLabel('Email address').fill('researcher@example.org');
   await recovery.getByRole('button', { name: 'Send password-reset link' }).click();
-  await recovery.getByRole('alert').getByText(/recovery email could not be sent/i).waitFor();
+  await recovery.waitForResponse((response) => response.url().includes('/auth/v1/recover') && response.status() === 503);
+  const recoveryError = recovery.getByRole('alert').filter({ hasText: /account service is temporarily unavailable/i });
+  await recoveryError.waitFor();
+  assert.equal(recoveryCalls, 1, 'one recovery request should produce one visible outage error');
 
   const callback = await browser.newPage();
   await callback.goto(`${baseUrl}/auth/callback?error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired`);
