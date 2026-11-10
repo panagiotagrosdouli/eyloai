@@ -286,7 +286,7 @@ try {
   await ideasPage.goto(`${baseUrl}/ideas`);
   assert.equal((await initialIdeaRead).status(), 503, 'the first ideas read should exercise the visible recovery state');
   await ideasPage.getByRole('heading', { name: 'Ideas' }).waitFor();
-  await ideasPage.getByRole('alert').getByText('Ideas could not be loaded.').waitFor();
+  await ideasPage.getByRole('alert').getByText('Ideas could not be loaded.', { exact: true }).waitFor();
   failIdeaRead = false;
   await ideasPage.getByRole('button', { name: 'Try again' }).click();
   await ideasPage.getByText('Your Idea Vault is empty').waitFor();
