@@ -37,6 +37,10 @@ export const AuthProvider = ({ children }) => {
     }
 
     let mounted = true;
+    // The first session lookup and auth subscription race during startup. An
+    // auth event is newer than that lookup, so never let a late initial
+    // response overwrite a sign-in, refresh, or sign-out event.
+    let authEventVersion = 0;
     const setAnonymous = () => {
       if (!mounted) return;
       setState({ status: 'anonymous', user: null, session: null, error: null });
@@ -44,22 +48,9 @@ export const AuthProvider = ({ children }) => {
 
     window.addEventListener(AUTH_REQUIRED_EVENT, setAnonymous);
 
-    getSession().then((result) => {
-      if (!mounted) return;
-
-      if (!result.ok) {
-        setState({ status: 'error', user: null, session: null, error: result.error });
-        return;
-      }
-
-      const session = result.data;
-      setState(session
-        ? { status: 'authenticated', user: session.user, session, error: null }
-        : { status: 'anonymous', user: null, session: null, error: null });
-    });
-
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
+      authEventVersion += 1;
 
       if (event === 'SIGNED_IN' && typeof window !== 'undefined') {
         try {
@@ -75,6 +66,23 @@ export const AuthProvider = ({ children }) => {
       setState(session
         ? { status: 'authenticated', user: session.user, session, error: null }
         : { status: 'anonymous', user: null, session: null, error: null });
+    });
+
+    getSession().then((result) => {
+      if (!mounted || authEventVersion > 0) return;
+
+      if (!result.ok) {
+        setState({ status: 'error', user: null, session: null, error: result.error });
+        return;
+      }
+
+      const session = result.data;
+      setState(session
+        ? { status: 'authenticated', user: session.user, session, error: null }
+        : { status: 'anonymous', user: null, session: null, error: null });
+    }).catch((error) => {
+      if (!mounted || authEventVersion > 0) return;
+      setState({ status: 'error', user: null, session: null, error: mapSupabaseError(error) });
     });
 
     return () => {
