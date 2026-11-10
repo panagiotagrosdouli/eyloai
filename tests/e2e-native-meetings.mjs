@@ -16,6 +16,9 @@ const baseUrl = target.origin;
 const timeout = Number(process.env.EYLO_E2E_TIMEOUT_MS || 45_000);
 const hostAccount = { email: process.env.EYLO_E2E_HOST_EMAIL, password: process.env.EYLO_E2E_HOST_PASSWORD };
 const guestAccount = { email: process.env.EYLO_E2E_GUEST_EMAIL, password: process.env.EYLO_E2E_GUEST_PASSWORD };
+if (hostAccount.email.trim().toLowerCase() === guestAccount.email.trim().toLowerCase()) {
+  throw new Error('Host and guest must be two different authenticated staging accounts.');
+}
 const headless = process.env.EYLO_E2E_HEADLESS === 'true';
 
 let browser;
