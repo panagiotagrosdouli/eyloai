@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { appPath, stripAppBase } from '@/lib/auth/routePaths';
 import { environment } from '@/lib/config/env';
+import { shouldApplyAuthResult } from '@/lib/auth/authOperation';
 import { AppErrorCode, createAppError, mapSupabaseError } from '@/lib/supabase/errors';
 
 const AuthContext = createContext(null);
@@ -189,7 +190,7 @@ export const AuthProvider = ({ children }) => {
       const runtime = await loadAuthRuntime();
       const result = await withTimeout(runtime.authModule.refreshSession(), SESSION_RESTORE_TIMEOUT_MS);
       // Auth events from other tabs or a local sign-out must win over an older refresh.
-      if (!mountedRef.current || authEventVersionRef.current !== refreshVersion) return result;
+      if (!shouldApplyAuthResult(refreshVersion, authEventVersionRef.current, mountedRef.current)) return result;
       if (!result.ok) {
         setState({ status: 'error', user: null, session: null, error: result.error });
         return result;
@@ -202,7 +203,7 @@ export const AuthProvider = ({ children }) => {
       return result;
     } catch (error) {
       const appError = createAppError(AppErrorCode.NETWORK, error);
-      if (mountedRef.current && authEventVersionRef.current === refreshVersion) {
+      if (shouldApplyAuthResult(refreshVersion, authEventVersionRef.current, mountedRef.current)) {
         setState({ status: 'error', user: null, session: null, error: appError });
       }
       return { ok: false, error: appError };
