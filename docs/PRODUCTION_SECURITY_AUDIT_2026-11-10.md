@@ -6,6 +6,8 @@ Repository baseline: `main` commit `b1709d02ad93542014b8458ff3d23d363d75ac32`. D
 
 A public HTTPS probe executed using GitHub Actions on a GitHub-hosted runner. The production response was `HTTP/2 200`; CA verification passed using curl's normal TLS validation. HTTP returned `308` redirect to `https://eyloai.vercel.app/`. Live HSTS was `max-age=63072000; includeSubDomains; preload`. No application-specified CSP, X-Frame-Options, X-Content-Type-Options or Referrer-Policy was observed in that response. The new headers in this PR require deployment and remeasurement before claiming they are live.
 
+A second CI probe used OpenSSL and reported **TLSv1.3**, cipher **TLS_AES_128_GCM_SHA256**, peer certificate **CN=*.vercel.app**, and **Verification: OK**. This validates the checked connection but not the complete range of protocol/cipher configurations or certificate renewal behavior.
+
 The public root response included `Access-Control-Allow-Origin: *`. This is not evidence that authenticated APIs allow cross-origin credentials; inspect API endpoint CORS separately. The server-side CORS allowlist is implemented in `src/lib/api-cors.mjs`, and no credentialed wildcard was found there.
 
 ## Confirmed source-code issues and corrections in PR #292
@@ -17,10 +19,10 @@ The public root response included `Access-Control-Allow-Origin: *`. This is not 
 
 ## Actual tests
 
-- GitHub Actions security audit: `npm audit --omit=dev --audit-level=high` reported **0 vulnerabilities** in the first completed run. Expanded full-tree audit is pending a subsequent run.
-- GitHub runner HTTPS probe: **passed** CA-valid HTTPS root and 308 HTTP-to-HTTPS redirect. Exact TLS protocol/cipher and certificate verification are added for the next run.
+- GitHub Actions security audit: `npm audit --omit=dev --audit-level=high` reported **0 vulnerabilities** in the first completed run. A later run of \`npm audit --audit-level=high\` covering development dependencies also reported **0 vulnerabilities**.
+- GitHub runner HTTPS probe: **passed** CA-valid HTTPS root and 308 HTTP-to-HTTPS redirect. An OpenSSL handshake reported TLSv1.3 / TLS_AES_128_GCM_SHA256 and certificate verification OK.
 - Production changes to TLS, headers, redirects, and CORS: **not deployed / not yet verified in production**.
-- First security PR CI run identified failures in eight monitoring tests caused by a response mock without `setHeader`. Corrected the no-store integration; subsequent CI must pass.
+- First security PR CI run identified failures in eight monitoring tests caused by a response mock without `setHeader`. Corrected the no-store integration; a subsequent EYLO Quality Gate and Build run passed, while the final-commit Product Quality result must be checked.
 - Browser E2E for real user login, email confirmation, password recovery, session persistence and OAuth: **unverified**.
 - Supabase provider encryption at rest and actual dashboard auth configuration: **unverified**.
 
