@@ -59,7 +59,7 @@ This is the working implementation register for the master EYLO platform brief. 
 
 ## Current checkpoint — 2026-11-10
 
-- Branch: `codex/fail-closed-supabase`, based on current `main` commit `d3d9f40a0b8f38cca736504a3a52b11d98e30c04`; the EU Funding & Tenders metadata parser is already part of `main`.
+- Branch: `codex/fail-closed-supabase`, merged with current `main` commit `44a07dbe9f9cac47ead20bdcc3686cb337e3f5b8`; this includes the EU Funding & Tenders parser and the latest auth/EYRA paper support.
 - Recent history reviewed: main contains new EU funding and EYRA research workflows; open PR #280 is an Evidence Matrix implementation and open PRs include collaboration, account-deletion intake, owner-scoped export, RLS acceptance checks, and EYRA evidence-evaluation work.
 - Initial finding: `api/eyra.js`, `api/opportunities.js`, `api/monitor.js`, `api/billing.js`, and `api/stripe-webhook.js` could silently fall back to the hard-coded project `kbzjngpzxpniaumlupaa.supabase.co`. The funding and EYRA handlers also contained a hard-coded public key.
 - Current change: added explicit server-side Supabase URL/key validation and removed the serverless project/key fallbacks. Regression tests confirm missing configuration makes no upstream request and configured requests use only the supplied project.
