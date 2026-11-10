@@ -246,7 +246,6 @@ try {
     }
     if (table === 'ideas' && method === 'GET') {
       if (failIdeaRead) {
-        failIdeaRead = false;
         await respond(503, { message: 'Test workspace read outage' });
         return;
       }
@@ -288,6 +287,7 @@ try {
   assert.equal((await initialIdeaRead).status(), 503, 'the first ideas read should exercise the visible recovery state');
   await ideasPage.getByRole('heading', { name: 'Ideas' }).waitFor();
   await ideasPage.getByRole('alert').getByText('Ideas could not be loaded.').waitFor();
+  failIdeaRead = false;
   await ideasPage.getByRole('button', { name: 'Try again' }).click();
   await ideasPage.getByText('Your Idea Vault is empty').waitFor();
   await ideasPage.getByRole('button', { name: 'New' }).click();
