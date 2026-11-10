@@ -68,6 +68,8 @@
     "html2canvas": "^1.4.1",
     "input-otp": "^1.4.2",
     "jspdf": "^4.2.1",
+    "livekit-client": "2.23.0",
+    "livekit-server-sdk": "2.19.2",
     "lodash": "^4.17.21",
     "lucide-react": "^1.62.0",
     "moment": "^2.30.1",
