@@ -212,8 +212,9 @@ try {
   // verifies UI wiring and error recovery; it does not claim live Supabase/RLS.
   const savedIdeas = [];
   let failIdeaRead = true;
+  let ideaReadCount = 0;
   let nextIdeaId = 0;
-  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/**', async (route) => {
+  await dataLab.route('**/rest/v1/**', async (route) => {
     const request = route.request();
     const url = new URL(request.url());
     const table = url.pathname.split('/').at(-1);
@@ -235,8 +236,8 @@ try {
       return;
     }
     if (table === 'ideas' && method === 'GET') {
+      ideaReadCount += 1;
       if (failIdeaRead) {
-        failIdeaRead = false;
         await respond(503, { message: 'Test workspace read outage' });
         return;
       }
@@ -268,9 +269,17 @@ try {
     // Profile, watchlist and other reads return isolated empty test data.
     await respond(method === 'POST' || method === 'PATCH' ? 201 : 200, method === 'GET' ? [] : {});
   });
+  const initialIdeaReadFailure = dataLab.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return url.pathname.endsWith('/rest/v1/ideas') && response.status() === 503;
+  }, { timeout: 10_000 });
   await dataLab.goto(`${baseUrl}/ideas`);
   await dataLab.getByRole('heading', { name: 'Ideas' }).waitFor();
-  await dataLab.getByRole('alert').getByText('Ideas could not be loaded.').waitFor();
+  await initialIdeaReadFailure;
+  await dataLab.getByRole('alert').getByText('Ideas could not be loaded.', { exact: true }).waitFor();
+  await dataLab.getByRole('alert').getByText('Test workspace read outage').waitFor();
+  assert.ok(ideaReadCount > 0, 'the Ideas request must reach the isolated PostgREST error mock');
+  failIdeaRead = false;
   await dataLab.getByRole('button', { name: 'Try again' }).click();
   await dataLab.getByText('Your Idea Vault is empty').waitFor();
   await dataLab.getByRole('button', { name: 'New' }).click();
