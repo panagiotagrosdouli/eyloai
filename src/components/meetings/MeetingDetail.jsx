@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchAllPapers } from '@/lib/eyra-api';
 import { ArrowLeft, Video, Sparkles, Edit2, Trash2, Users, Calendar, Clock, FileText, CheckSquare, CalendarPlus } from 'lucide-react';
@@ -7,18 +7,17 @@ import MeetingForm from './MeetingForm';
 import ReactMarkdown from 'react-markdown';
 import moment from 'moment';
 import { createMeetingCalendarDraft } from '@/lib/meeting-invitation';
-import { getEmbeddedJitsiRoom, normalizeMeetingLink } from '@/lib/meeting-links.mjs';
-import { isPublicJitsiRoomUrl } from '@/lib/jitsi-room.mjs';
+import { normalizeMeetingLink } from '@/lib/meeting-links.mjs';
 
 const TABS = ['Overview', 'EYRA Prep', 'Notes & Debrief'];
+const MeetingRoom = lazy(() => import('./MeetingRoom'));
 
-export default function MeetingDetail({ meeting, projects, onBack, onSave, onDelete, onUpdate, autoJoin = false }) {
+export default function MeetingDetail({ meeting, projects, onBack, onSave, onDelete, onUpdate, autoJoin = false, autoAction = 'start' }) {
   const [tab, setTab] = useState('Overview');
   const [inAppCall, setInAppCall] = useState(autoJoin);
+  const [roomAction, setRoomAction] = useState(autoJoin ? autoAction : 'join');
   let meetingLink = '';
   try { meetingLink = normalizeMeetingLink(meeting.meeting_link); } catch { /* Invalid saved URLs stay inert. */ }
-  const embeddedRoom = getEmbeddedJitsiRoom(meetingLink);
-  const publicJitsiRoom = isPublicJitsiRoomUrl(meetingLink);
   const [editing, setEditing] = useState(false);
   const [loadingPrep, setLoadingPrep] = useState(false);
   const [loadingDebrief, setLoadingDebrief] = useState(false);
@@ -239,20 +238,7 @@ Be concise and actionable.`,
         <ArrowLeft size={14} /> Back to Meetings
       </button>
 
-      {inAppCall && embeddedRoom && (
-        <section role="dialog" aria-modal="true" aria-label="EYLO meeting video call" className="fixed inset-0 z-[100] flex flex-col bg-background p-3 sm:p-6">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div><h2 className="text-sm font-semibold">{meeting.title}</h2>
-              <p className="text-xs text-muted-foreground">Video is provided by Jitsi, a third-party service. Camera and microphone access require your permission. Anyone who obtains this room link may be able to join; EYLO does not enforce an invite list. Do not discuss confidential or personal research data in this call.</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <a href={embeddedRoom} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-border px-4 py-2 text-sm">Open in Jitsi</a>
-              <button type="button" onClick={() => setInAppCall(false)} className="rounded-lg border border-border px-4 py-2 text-sm">Leave meeting</button>
-            </div>
-          </div>
-          <iframe src={embeddedRoom} title="Jitsi meeting inside EYLO" allow="camera; microphone; fullscreen; display-capture; autoplay" referrerPolicy="no-referrer" className="min-h-0 w-full flex-1 rounded-xl border border-border" />
-        </section>
-      )}
+      {inAppCall && <Suspense fallback={<div role="status" className="fixed inset-0 z-[100] flex items-center justify-center bg-background text-sm text-muted-foreground">Loading EYLO meeting…</div>}><MeetingRoom meeting={meeting} action={roomAction} onClose={() => setInAppCall(false)} onUpdate={onUpdate} /></Suspense>}
 
       {/* Header */}
       <div className="p-5 rounded-2xl border border-border bg-card mb-5">
@@ -296,12 +282,10 @@ Be concise and actionable.`,
                 <CalendarPlus size={12} /> Add to Calendar
               </a>
             )}
-            {embeddedRoom && (
-              <button type="button" onClick={() => setInAppCall(true)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg eyra-gradient text-white text-xs font-semibold hover:opacity-90 transition-opacity">
-                <Video size={12} /> Join inside EYLO
-              </button>
-            )}
+            <button type="button" onClick={() => { setRoomAction(meeting.native_status === 'live' ? 'join' : 'start'); setInAppCall(true); }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg eyra-gradient text-white text-xs font-semibold hover:opacity-90 transition-opacity">
+              <Video size={12} /> {meeting.native_status === 'live' ? 'Join EYLO meeting' : 'Start EYLO meeting'}
+            </button>
             {meetingLink && (
               <a href={meetingLink} target="_blank" rel="noopener noreferrer"
                 aria-label={`Open external meeting room for ${meeting.title} (opens in a new tab)`}
@@ -320,11 +304,7 @@ Be concise and actionable.`,
         </div>
       </div>
 
-      {publicJitsiRoom && (
-        <p role="note" className="mb-5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs leading-5 text-muted-foreground">
-          This call uses public Jitsi hosting. Anyone who obtains the room link may be able to join; EYLO does not enforce an invite list. Do not discuss confidential or personal research data in this room.
-        </p>
-      )}
+      {meetingLink && <p role="note" className="mb-5 rounded-lg border border-border bg-secondary/50 px-3 py-2 text-xs leading-5 text-muted-foreground">This meeting has a historical external link. It remains available below for compatibility; new calls start inside EYLO.</p>}
 
       {meeting.call_type === 'phd_supervision' && (
         <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-4">
