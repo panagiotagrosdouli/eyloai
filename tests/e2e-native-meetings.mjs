@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 
 const required = ['EYLO_E2E_BASE_URL', 'EYLO_E2E_HOST_EMAIL', 'EYLO_E2E_HOST_PASSWORD', 'EYLO_E2E_GUEST_EMAIL', 'EYLO_E2E_GUEST_PASSWORD'];
 const missing = required.filter(name => !process.env[name]);
-if (missing.length) throw new Error(\`Missing required staging settings: \${missing.join(', ')}\`);
+if (missing.length) throw new Error(`Missing required staging settings: ${missing.join(', ')}`);
 
 const target = new URL(process.env.EYLO_E2E_BASE_URL);
 if (target.protocol !== 'https:' || target.hostname === 'eyloai.vercel.app') {
@@ -36,7 +36,7 @@ async function login(page, account) {
 }
 
 async function roomConnected(page, count) {
-  await page.getByRole('dialog', { name: 'EYLO video meeting' }).getByText(new RegExp(\`Connected · \${count} participants?\`)).waitFor({ timeout });
+  await page.getByRole('dialog', { name: 'EYLO video meeting' }).getByText(new RegExp(`Connected · ${count} participants?`)).waitFor({ timeout });
 }
 
 async function liveMedia(page) {
@@ -93,7 +93,7 @@ try {
   assert.ok(hostMedia.audioElementsWithLiveAudio >= 1 && guestMedia.audioElementsWithLiveAudio >= 1,
     'each independent browser must receive the other participant audio track');
 
-  const marker = \`EYLO live-call check \${Date.now()}\`;
+  const marker = `EYLO live-call check ${Date.now()}`;
   await hostRoom.getByLabel('Meeting message').fill(marker);
   await hostRoom.getByRole('button', { name: 'Send message' }).click();
   await guest.getByRole('dialog', { name: 'EYLO video meeting' }).getByText(marker).waitFor();
