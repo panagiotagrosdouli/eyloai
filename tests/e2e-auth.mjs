@@ -125,7 +125,66 @@ try {
   await mobile.getByRole('button', { name: 'Create private workspace' }).scrollIntoViewIfNeeded();
   assert.equal(await mobile.getByRole('button', { name: 'Create private workspace' }).isVisible(), true);
 
-  console.log('Auth browser checks passed: desktop login, duplicate-submit guard, protected redirect, recovery network failure, expired callback and mobile registration.');
+  const dataLab = await browser.newPage();
+  const testUser = {
+    id: 'eylo-e2e-user',
+    aud: 'authenticated',
+    role: 'authenticated',
+    email: 'researcher@example.org',
+    app_metadata: { provider: 'email', providers: ['email'] },
+    user_metadata: {},
+    created_at: '2026-01-01T00:00:00.000Z',
+  };
+  const sendAuthJson = async (route, body) => {
+    if (route.request().method() === 'OPTIONS') {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          'access-control-allow-origin': '*',
+          'access-control-allow-methods': 'GET, POST, OPTIONS',
+          'access-control-allow-headers': 'apikey, authorization, content-type, x-client-info',
+        },
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' },
+      body: JSON.stringify(body),
+    });
+  };
+  await dataLab.route('https://eylo-auth-test.supabase.co/auth/v1/token?grant_type=password', (route) => sendAuthJson(route, {
+    access_token: 'eylo-e2e-access-token',
+    token_type: 'bearer',
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    refresh_token: 'eylo-e2e-refresh-token',
+    user: testUser,
+  }));
+  await dataLab.route('https://eylo-auth-test.supabase.co/auth/v1/user**', (route) => sendAuthJson(route, testUser));
+  await dataLab.goto(`${baseUrl}/login`);
+  await dataLab.getByLabel('Email address').fill(testUser.email);
+  await dataLab.getByLabel('Password').fill('Test-password-123');
+  await dataLab.getByRole('button', { name: 'Continue with password' }).click();
+  await dataLab.getByRole('heading', { name: 'Continue your research' }).waitFor({ state: 'detached' });
+  await dataLab.goto(`${baseUrl}/labs/data`);
+  await dataLab.getByRole('heading', { name: 'Research Data Lab' }).waitFor();
+  await dataLab.locator('input[type="file"]').setInputFiles({
+    name: 'study.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('sample,score\nA,1\nB,2\nC,\n'),
+  });
+  await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor();
+  await dataLab.getByRole('row', { name: /score numeric 3 1 2 1.5/ }).waitFor();
+  await dataLab.getByRole('img', { name: 'Bar chart of score by row number' }).waitFor();
+  const summaryDownload = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export summary CSV' }).click();
+  assert.equal((await summaryDownload).suggestedFilename(), 'research-data-summary.csv');
+  await dataLab.getByRole('button', { name: 'Clear data' }).click();
+  await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor({ state: 'detached' });
+
+  console.log('Browser checks passed: auth regressions, mobile registration and private CSV analysis/export/reset.');
 } finally {
   if (browser) await browser.close();
   if (server.exitCode === null) {

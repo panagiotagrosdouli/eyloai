@@ -71,12 +71,13 @@
 - [ ] Mark model-generated proposal text as draft and require human review.
 - [ ] Add project linking, export and tests for missing/expired funding metadata.
 
-### 9. Research Data Lab — not implemented
+### 9. Research Data Lab — implemented for local analysis; hosted persistence intentionally off
 
-- [ ] Build bounded, private CSV upload and validation with explicit size/row limits.
-- [ ] Add descriptive statistics, missingness checks and interactive plots with reproducible settings.
-- [ ] Provide downloadable outputs and clear warnings about assumptions and data handling.
-- [ ] Test malformed/oversized files, privacy boundaries and deterministic calculations.
+- [x] Add browser-only CSV parsing with 5 MB, 10,000 row, 50 column and per-cell limits; files are not uploaded or sent to AI.
+- [x] Add preview, missingness/distinct counts, numeric summaries, sample standard deviation, selectable row chart, and reproducible calculation notes.
+- [x] Export the summary as CSV with formula-safe text fields; clear local data on demand and on page exit.
+- [x] Cover quoted fields, malformed rows, bounds, missing data, statistics, chart selection and safe export with deterministic tests.
+- [ ] Add desktop/mobile browser E2E and review screen-reader chart rendering; data remains session-only until a user-controlled project-save design is specified.
 
 ### 10. Reproducibility Checker — not implemented
 
@@ -105,5 +106,6 @@
 
 - **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.
 - **2026-11-10:** Project Evidence adds a source-linked, editable matrix for linked papers; notes are stored on the project and exported as CSV with spreadsheet formula escaping. Missing notes are shown as unrecorded rather than inferred.
+- **2026-11-10:** Research Data Lab adds private, in-browser CSV preview, validation, missingness and numeric summaries, an accessible row chart, reproducible analysis steps, and formula-safe summary export. Dataset contents are not uploaded, persisted, or sent to AI.
 - **Validation:** `npm run check` passed: imports, both TypeScript projects, ESLint, 227 tests, and Vite production build. Vite emitted dependency annotation and large-chunk warnings. `git diff --check` passed.
 - **Live public smoke:** HTTP 200 for `/`, `/manifest.webmanifest`, `/robots.txt`, `/discover`, `/login`, `/register`, `/forgot-password`, and `/api/capabilities`. This checks HTTP availability only; authenticated workflows, deployed commit, database isolation and provider readiness were not verified.
