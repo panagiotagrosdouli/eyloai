@@ -105,6 +105,7 @@ export default function AppLayout() {
   const { data: capabilities, loading: capabilitiesLoading } = useCapabilities();
   const aiAvailable = !capabilitiesLoading && capabilities.ai;
 
+  const isWorkspaceHome = location.pathname === '/home';
   const isActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
   const toolsActive = ALL_TOOLS.some(item => isActive(item.path));
   const query = toolQuery.trim().toLowerCase();
@@ -159,7 +160,7 @@ export default function AppLayout() {
   }, [location.pathname]);
 
   return (
-    <div className="eylo-app-canvas min-h-screen bg-background">
+    <div className={`eylo-app-canvas min-h-screen bg-background ${isWorkspaceHome ? "eylo-home-layout" : ""}`}>
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center gap-2 px-4 sm:px-8">
           <Link to="/home" className="mr-3 flex shrink-0 items-center" aria-label="EYLO workspace home">
