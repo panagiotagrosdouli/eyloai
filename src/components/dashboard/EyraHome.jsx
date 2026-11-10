@@ -4,8 +4,11 @@ import { ArrowRight, BookOpen, Bookmark, Briefcase, ChevronRight, FolderOpen, Li
 import { buildUserProfile } from '@/lib/second-brain';
 import GuidedSearch from '@/components/discovery/GuidedSearch';
 import { getLocalGreeting } from '@/lib/local-greeting';
+import { promiseWithTimeout } from '@/lib/promise-timeout';
 import { useCapabilities } from '@/lib/capabilities';
 import { useAuth } from '@/lib/AuthContext';
+
+const HOME_PROFILE_TIMEOUT_MS = 12_000;
 
 const START_POINTS = [
   { eyebrow: 'Evidence', title: 'Explore the literature', description: 'Search academic sources and open the original papers.', action: 'Search papers', href: '/discover', icon: BookOpen },
@@ -41,7 +44,7 @@ export default function EyraHome({ onSearch }) {
     let active = true;
     setLoaded(false);
     setProfileError(false);
-    buildUserProfile()
+    promiseWithTimeout(buildUserProfile(), HOME_PROFILE_TIMEOUT_MS, 'Workspace data took too long to load.')
       .then(next => { if (active) setProfile(next); })
       .catch(() => { if (active) setProfileError(true); })
       .finally(() => { if (active) setLoaded(true); });
