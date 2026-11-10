@@ -1,4 +1,5 @@
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
+import { hasAuthenticatedSignIn } from '@/lib/auth/sessionContract';
 import { createAppError, AppErrorCode, mapSupabaseError } from './errors';
 
 const ok = (data) => ({ ok: true, data });
@@ -22,8 +23,8 @@ export async function signIn(email, password) {
     if (error) return fail(mapSupabaseError(error));
     // Supabase must return a usable session. Do not present a successful login
     // for a malformed/partial response, even when the request itself returned 200.
-    if (!data?.session?.access_token || !data?.user?.id) {
-      return fail(createAppError(AppErrorCode.INVALID_CREDENTIALS));
+    if (!hasAuthenticatedSignIn(data)) {
+      return fail(createAppError(AppErrorCode.SERVICE_UNAVAILABLE));
     }
     return ok(data);
   } catch (error) {
