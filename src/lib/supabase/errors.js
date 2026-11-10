@@ -47,6 +47,8 @@ export function mapSupabaseError(error) {
   const status = Number(error.status || 0);
   const providerCode = String(error.code || '').toLowerCase();
 
+  if (providerCode === 'supabase_configuration_error') return createAppError(AppErrorCode.CONFIGURATION, error);
+
   if ((providerCode === 'signup_disabled' || providerCode === 'email_provider_disabled') || message.includes('signups not allowed') || message.includes('signup is disabled')) return createAppError(AppErrorCode.SIGNUP_DISABLED, error);
   if (providerCode === 'email_address_invalid' || message.includes('email address is invalid') || message.includes('invalid email')) return createAppError(AppErrorCode.INVALID_EMAIL, error);
   if (providerCode === 'email_address_not_authorized' || providerCode === 'unexpected_failure' && message.includes('email') || message.includes('error sending confirmation email') || message.includes('error sending email')) return createAppError(AppErrorCode.EMAIL_SEND_FAILED, error);
