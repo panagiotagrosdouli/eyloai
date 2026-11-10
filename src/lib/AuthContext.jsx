@@ -54,6 +54,13 @@ export const AuthProvider = ({ children }) => {
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
+      // INITIAL_SESSION reads persisted browser storage, not verified account
+      // state. Keep protected routes closed until getSession validates it.
+      // Do not suppress the in-flight validation by counting this as a newer event.
+      if (event === 'INITIAL_SESSION') {
+        if (!session) setAnonymous();
+        return;
+      }
       authEventVersion += 1;
       authVersion.current += 1;
 
