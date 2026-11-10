@@ -1,16 +1,15 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
+import { readSupabaseApiConfig } from './supabase-config.mjs';
 import { monitorWatchlistsQuery } from '../src/lib/monitor-scheduling.mjs';
 import {
   readMonitorProviderRecords, boundedOpenAlexAbstract,
 } from '../supabase/functions/_shared/monitor-provider-response.mjs';
 
-const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 const OPENALEX_URL = 'https://api.openalex.org/works';
 const GRANTS_URL = 'https://api.grants.gov/v1/api/search2';
 
 function supabaseServerKey() {
-  return process.env.SUPABASE_SECRET_KEY
-    || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return readSupabaseApiConfig().serverKey;
 }
 
 function headers() {
@@ -24,7 +23,8 @@ function headers() {
 }
 
 async function supabase(path, options = {}) {
-  const url = process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  const { url } = readSupabaseApiConfig();
+  if (!url) throw new Error('Supabase project URL is not configured.');
   const response = await fetch(`${url}/rest/v1/${path}`, { ...options, headers: { ...headers(), ...(options.headers || {}) } });
   if (!response.ok) throw Object.assign(new Error(`Supabase ${path} failed: ${response.status}`), { status: response.status });
   if (response.status === 204) return null;
@@ -207,8 +207,8 @@ export default async function handler(request, response) {
   if (!process.env.CRON_SECRET || request.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     return response.status(401).json({ error: 'Cron authorization required.' });
   }
-  if (!supabaseServerKey()) {
-    return response.status(503).json({ error: 'Scheduled monitoring needs a Supabase server key.' });
+  if (!readSupabaseApiConfig().hasServerConfig) {
+    return response.status(503).json({ error: 'Scheduled monitoring needs an explicitly configured Supabase project and server key.' });
   }
 
   try {

@@ -44,6 +44,7 @@ function createApiResponse() {
 try {
   process.env.SUPABASE_SECRET_KEY = modernServerKey;
   process.env.CRON_SECRET = 'cron-regression-test';
+  process.env.VITE_SUPABASE_URL = 'https://monitor-test.supabase.co';
 
   const monitorServerHeaders = [];
   globalThis.fetch = async (url, options = {}) => {

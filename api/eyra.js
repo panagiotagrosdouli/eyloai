@@ -1,12 +1,8 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
+import { readSupabaseApiConfig } from './supabase-config.mjs';
 import crypto from 'node:crypto';
 import { FREE_MONTHLY_AI_ACTIONS } from '../src/lib/eyra-usage-policy.mjs';
 
-const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
-// Supabase publishable keys are browser-safe identifiers. This is the same
-// public fallback used by the web client; authorization still comes from the
-// user's bearer token and database access remains protected by RLS.
-const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_QOF_tW8ve4IFUsflluOhww_aRubMF0V';
 const MAX_PROMPT_LENGTH = 24_000;
 const MAX_SCHEMA_LENGTH = 32_000;
 const MAX_SCHEMA_DEPTH = 8;
@@ -113,17 +109,12 @@ async function authenticate(authorization) {
     return null;
   }
 
-  const publicKey = (
-    process.env.SUPABASE_PUBLISHABLE_KEY
-    || process.env.SUPABASE_ANON_KEY
-    || process.env.VITE_SUPABASE_ANON_KEY
-    || DEFAULT_SUPABASE_PUBLISHABLE_KEY
-  ).trim();
-  const supabaseUrl = (process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL).replace(/\/$/, '');
-  if (!publicKey) {
+  const config = readSupabaseApiConfig();
+  if (!config.hasPublicConfig) {
     console.error('EYRA auth rejected', { reason: 'missing_supabase_public_key' });
     return null;
   }
+  const { publicKey, url: supabaseUrl } = config;
 
   const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
     headers: { authorization: bearer, apikey: publicKey },
@@ -232,6 +223,18 @@ export default async function handler(request, response) {
   // EYRA responses can include private research and billing usage metadata.
   // Never allow a browser or intermediary to cache success or error responses.
   response.setHeader('Cache-Control', 'private, no-store');
+
+  const authorization = request.headers?.authorization;
+  if (typeof authorization !== 'string' || !/^Bearer \S+$/.test(authorization)) {
+    return response.status(401).json({ error: 'Authentication required.' });
+  }
+
+  if (!readSupabaseApiConfig().hasPublicConfig) {
+    return response.status(503).json({
+      error: 'EYRA authentication is awaiting verified database configuration.',
+      code: 'SUPABASE_NOT_CONFIGURED',
+    });
+  }
 
   let reservation = null;
 

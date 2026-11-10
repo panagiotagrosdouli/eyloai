@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { searchOpenAlexAuthors, searchOpenAlexInstitutions, searchOpenAlexWorks } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
+import { normalizeResearchGapCandidates } from '@/lib/research-gap-candidates.mjs';
 
 const EXAMPLES = [
   'AI for drug discovery',
@@ -21,7 +22,7 @@ const CATEGORY_CONFIG = {
   leading_institutions: { icon: Building2, label: 'Real Institutions', color: 'text-primary', bg: 'bg-primary/10 border-primary/20' },
   top_papers: { icon: FlaskConical, label: 'Top Papers', color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20' },
   major_funders: { icon: DollarSign, label: 'Funders & Grants', color: 'text-chart-3', bg: 'bg-chart-3/10 border-chart-3/20' },
-  research_gaps: { icon: Target, label: 'Research Gaps', color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20' },
+  research_gaps: { icon: Target, label: 'Candidate Questions', color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20' },
 };
 
 export default function ResearchBattlefield() {
@@ -68,7 +69,7 @@ export default function ResearchBattlefield() {
     ).join('\n');
 
     const paperContext = papers.map((p, i) =>
-      `[P${i + 1}] "${p.title}" by ${p.authors} (${p.year}) — ${p.cited_by_count} citations`
+      `[P${i + 1}] "${p.title}" by ${p.authors} (${p.year}) — abstract excerpt: ${p.summary || 'not available'} — source: ${p.url}`
     ).join('\n');
 
     const hasSufficientData = researchers.length > 0 || institutions.length > 0 || papers.length > 0;
@@ -77,7 +78,7 @@ export default function ResearchBattlefield() {
     if (hasSufficientData) {
       try {
         aiAnalysis = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are EYRA Research Battlefield Analyzer. Analyze ONLY the real data below — do NOT invent any names, institutions, or statistics.
+        prompt: `You are EYRA Research Landscape Analyzer. Analyze ONLY the retrieved records below — do NOT invent papers, names, institutions, statistics, findings, or citations.
 
 Field: "${searchQuery}"
 
@@ -87,20 +88,14 @@ ${researcherContext || 'None found'}
 REAL INSTITUTIONS (from OpenAlex):
 ${institutionContext || 'None found'}
 
-REAL TOP PAPERS (from OpenAlex):
+REAL PAPERS (from OpenAlex; abstracts may be missing or truncated):
 ${paperContext || 'None found'}
 
-Based ONLY on this real data:
+Treat the retrieved set as incomplete: absence from this search is NOT evidence that a topic is unstudied. Return a concise summary of patterns supported by these records.
 
-1. field_summary: 2 sentences about the field based on what the data shows
-2. competition_level: "Highly Competitive"|"Competitive"|"Emerging"|"Limited Data" (base on how many results were found)
-3. maturity: "Early Stage"|"Growing"|"Mature" (based on publication years in the data)
-4. opportunity_score: a 1-100 planning heuristic based only on the supplied result coverage, recency, and citation counts; it is not a probability or validated market metric
-5. trend_direction: "Rising"|"Stable"|"Declining" (based on recency of papers)
-6. research_gaps: array of 3-4 specific gaps visible from what the papers DO NOT cover (based on the real papers found). Each as a string.
-7. key_trends: array of 3-4 trends visible from the real paper titles and years
-8. strategic_entry_points: one paragraph on where opportunity exists based on the real data gaps
-9. eyra_verdict: one honest sentence summarizing the competitive landscape
+For research_gaps, suggest at most 3 tentative research questions only when retrieved abstracts support a concrete rationale. Each object must include question, rationale, context_paper_ids (one or more exact IDs such as P1 from these records), and counterevidence_paper_ids (exact IDs when a retrieved record complicates the question, otherwise an empty array). Never state that a gap is established. If the abstracts do not support a candidate, return an empty array.
+
+Also return: field_summary (2 sentences), competition_level ("Highly Competitive"|"Competitive"|"Emerging"|"Limited Data", a result-count heuristic), maturity ("Early Stage"|"Growing"|"Mature", a rough summary of retrieved publication years), opportunity_score (1-100 planning heuristic, not a probability or validated metric), trend_direction ("Rising"|"Stable"|"Declining", only a rough publication recency signal), key_trends (up to 3 observations tied to titles/years), strategic_entry_points (cautious next-step ideas, not claims of a gap), and eyra_verdict (one sentence that states evidence limits).
 
 Funding records are retrieved separately from an official source. Do not generate or recommend funding programs in this response.`,
         response_json_schema: {
@@ -111,7 +106,20 @@ Funding records are retrieved separately from an official source. Do not generat
             maturity: { type: 'string' },
             opportunity_score: { type: 'number' },
             trend_direction: { type: 'string' },
-            research_gaps: { type: 'array', items: { type: 'string' } },
+            research_gaps: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  question: { type: 'string' },
+                  rationale: { type: 'string' },
+                  context_paper_ids: { type: 'array', items: { type: 'string' } },
+                  counterevidence_paper_ids: { type: 'array', items: { type: 'string' } },
+                },
+                required: ['question', 'rationale', 'context_paper_ids', 'counterevidence_paper_ids'],
+                additionalProperties: false,
+              },
+            },
             key_trends: { type: 'array', items: { type: 'string' } },
             strategic_entry_points: { type: 'string' },
             eyra_verdict: { type: 'string' },
@@ -128,6 +136,7 @@ Funding records are retrieved separately from an official source. Do not generat
       institutions,
       papers,
       ...(aiAnalysis || {}),
+      research_gaps: normalizeResearchGapCandidates(aiAnalysis?.research_gaps, papers),
       major_funders: verifiedFunders,
       funding_error: fundingResult.error || '',
       has_data: hasSufficientData,
@@ -351,12 +360,34 @@ Funding records are retrieved separately from an official source. Do not generat
                 {activeCategory === 'research_gaps' && (
                   (report.research_gaps || []).length > 0 ? report.research_gaps.map((gap, i) => (
                     <div key={i} className="p-4 rounded-xl border border-green-500/20 bg-green-500/5">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-green-400 mb-2">Exploratory question · model inference</p>
                       <p className="text-sm text-foreground flex items-start gap-2">
                         <ChevronRight size={14} className="text-green-400 mt-0.5 flex-shrink-0" />
-                        {gap}
+                        {gap.question}
                       </p>
+                      {gap.rationale && <p className="mt-2 text-xs text-muted-foreground">Why it surfaced: {gap.rationale}</p>}
+                      <p className="mt-3 text-[10px] text-muted-foreground">Retrieved context (these papers do not prove a gap):</p>
+                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                        {gap.context.map(({ id, paper }) => paper.url && (
+                          <a key={id} href={paper.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline">
+                            {id}: {paper.title} <ExternalLink size={9} />
+                          </a>
+                        ))}
+                      </div>
+                      {gap.counterevidence.length > 0 && (
+                        <div className="mt-2 text-[10px] text-amber-300">
+                          <p>Counterevidence in retrieved set:</p>
+                          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                            {gap.counterevidence.map(({ id, paper }) => paper.url && (
+                              <a key={id} href={paper.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:underline">
+                                {id}: {paper.title} <ExternalLink size={9} />
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )) : <p className="text-sm text-muted-foreground text-center py-6">Research gaps identified from real paper analysis will appear here.</p>
+                  )) : <p className="text-sm text-muted-foreground text-center py-6">No cited candidate question could be formed from the retrieved abstracts. A broader search may find relevant work outside this result set.</p>
                 )}
               </div>
 

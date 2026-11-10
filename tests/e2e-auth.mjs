@@ -125,7 +125,234 @@ try {
   await mobile.getByRole('button', { name: 'Create private workspace' }).scrollIntoViewIfNeeded();
   assert.equal(await mobile.getByRole('button', { name: 'Create private workspace' }).isVisible(), true);
 
-  console.log('Auth browser checks passed: desktop login, duplicate-submit guard, protected redirect, recovery network failure, expired callback and mobile registration.');
+  const dataLab = await browser.newPage();
+  const testUser = {
+    id: 'eylo-e2e-user',
+    aud: 'authenticated',
+    role: 'authenticated',
+    email: 'researcher@example.org',
+    app_metadata: { provider: 'email', providers: ['email'] },
+    user_metadata: {},
+    created_at: '2026-01-01T00:00:00.000Z',
+  };
+  const sendAuthJson = async (route, body) => {
+    if (route.request().method() === 'OPTIONS') {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          'access-control-allow-origin': '*',
+          'access-control-allow-methods': 'GET, POST, OPTIONS',
+          'access-control-allow-headers': 'apikey, authorization, content-type, x-client-info',
+        },
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' },
+      body: JSON.stringify(body),
+    });
+  };
+  await dataLab.route('https://eylo-auth-test.supabase.co/auth/v1/token?grant_type=password', (route) => sendAuthJson(route, {
+    access_token: 'eylo-e2e-access-token',
+    token_type: 'bearer',
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    refresh_token: 'eylo-e2e-refresh-token',
+    user: testUser,
+  }));
+  await dataLab.route('https://eylo-auth-test.supabase.co/auth/v1/user**', (route) => sendAuthJson(route, testUser));
+  await dataLab.goto(`${baseUrl}/login`);
+  await dataLab.getByLabel('Email address').fill(testUser.email);
+  await dataLab.getByLabel('Password').fill('Test-password-123');
+  await dataLab.getByRole('button', { name: 'Continue with password' }).click();
+  await dataLab.getByRole('heading', { name: 'Continue your research' }).waitFor({ state: 'detached' });
+  await dataLab.goto(`${baseUrl}/labs/data`);
+  await dataLab.getByRole('heading', { name: 'Research Data Lab' }).waitFor();
+  await dataLab.locator('input[type="file"]').setInputFiles({
+    name: 'study.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('sample,score\nA,1\nB,2\nC,\n'),
+  });
+  await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor();
+  await dataLab.getByRole('row', { name: /score numeric 3 1 2 1.5/ }).waitFor();
+  await dataLab.getByRole('img', { name: 'Bar chart of score by row number' }).waitFor();
+  const summaryDownload = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export summary CSV' }).click();
+  assert.equal((await summaryDownload).suggestedFilename(), 'research-data-summary.csv');
+  await dataLab.getByRole('button', { name: 'Clear data' }).click();
+  await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor({ state: 'detached' });
+
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/meetings**', (route) => sendAuthJson(route, [{
+    id: 'meeting-e2e-1',
+    user_id: testUser.id,
+    data: {
+      title: 'E2E accessibility review',
+      date: '2099-01-10',
+      time: '10:00',
+      duration_minutes: 45,
+      call_type: 'research_discussion',
+      status: 'scheduled',
+      meeting_link: 'javascript:alert(1)',
+    },
+    created_at: '2026-11-10T00:00:00.000Z',
+  }]));
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/projects**', (route) => sendAuthJson(route, []));
+  await dataLab.goto(`${baseUrl}/meetings`);
+  const meetingCard = dataLab.getByRole('button', { name: 'Open meeting plan: E2E accessibility review' });
+  await meetingCard.waitFor();
+  await meetingCard.focus();
+  await dataLab.keyboard.press('Enter');
+  await dataLab.getByRole('heading', { name: 'E2E accessibility review' }).waitFor();
+  assert.equal(await dataLab.getByRole('link', { name: /Open external meeting room/ }).count(), 0,
+    'unsafe legacy meeting URLs must not become external links');
+
+  // Exercise the Ideas interface against an isolated PostgREST test double. This
+  // verifies UI wiring and error recovery; it does not claim live Supabase/RLS.
+  const savedIdeas = [];
+  let failIdeaRead = true;
+  let ideaReadCount = 0;
+  let nextIdeaId = 0;
+  await dataLab.route('**/rest/v1/**', async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const table = url.pathname.split('/').at(-1);
+    const method = request.method();
+    const corsHeaders = {
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+      'access-control-allow-headers': 'apikey, authorization, content-type, x-client-info, prefer',
+    };
+    const respond = (status, data) => route.fulfill({
+      status,
+      contentType: 'application/json',
+      headers: corsHeaders,
+      body: JSON.stringify(data),
+    });
+
+    if (method === 'OPTIONS') {
+      await route.fulfill({ status: 204, headers: corsHeaders });
+      return;
+    }
+    if (table === 'ideas' && method === 'GET') {
+      ideaReadCount += 1;
+      if (failIdeaRead) {
+        await respond(503, { message: 'Test workspace read outage' });
+        return;
+      }
+      await respond(200, savedIdeas);
+      return;
+    }
+    if (table === 'ideas' && method === 'POST') {
+      const row = { id: `idea-${++nextIdeaId}`, user_id: testUser.id, ...request.postDataJSON() };
+      savedIdeas.push(row);
+      await respond(201, row);
+      return;
+    }
+    if (table === 'ideas' && method === 'PATCH') {
+      const id = url.searchParams.get('id')?.replace(/^eq\./, '');
+      const row = savedIdeas.find(idea => idea.id === id);
+      if (!row) { await respond(404, { message: 'Idea not found' }); return; }
+      Object.assign(row, request.postDataJSON());
+      await respond(200, row);
+      return;
+    }
+    if (table === 'ideas' && method === 'DELETE') {
+      const id = url.searchParams.get('id')?.replace(/^eq\./, '');
+      const index = savedIdeas.findIndex(idea => idea.id === id);
+      const [removed] = index >= 0 ? savedIdeas.splice(index, 1) : [];
+      await respond(200, removed ? [{ id: removed.id }] : []);
+      return;
+    }
+
+    // Profile, watchlist and other reads return isolated empty test data.
+    await respond(method === 'POST' || method === 'PATCH' ? 201 : 200, method === 'GET' ? [] : {});
+  });
+  const initialIdeaReadFailure = dataLab.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return url.pathname.endsWith('/rest/v1/ideas') && response.status() === 503;
+  }, { timeout: 10_000 });
+  await dataLab.goto(`${baseUrl}/ideas`);
+  await dataLab.getByRole('heading', { name: 'Ideas' }).waitFor();
+  const initialIdeaFailureResponse = await initialIdeaReadFailure;
+  assert.deepEqual(await initialIdeaFailureResponse.json(), { message: 'Test workspace read outage' });
+  const ideaLoadAlert = dataLab.getByRole('alert');
+  await ideaLoadAlert.getByText('Ideas could not be loaded.', { exact: true }).waitFor();
+  const renderedIdeaError = (await ideaLoadAlert.locator('p').nth(1).textContent())?.trim();
+  assert.ok(renderedIdeaError, 'Ideas error state should explain why the list did not load');
+  console.log('Ideas error state detail: ' + renderedIdeaError);
+  assert.ok(ideaReadCount > 0, 'the Ideas request must reach the isolated PostgREST error mock');
+  failIdeaRead = false;
+  await dataLab.getByRole('button', { name: 'Try again' }).click();
+  await dataLab.getByText('Your Idea Vault is empty').waitFor();
+  await dataLab.getByRole('button', { name: 'New' }).click();
+  await dataLab.getByLabel('Idea title').fill('Climate adaptation evidence');
+  await dataLab.getByRole('button', { name: 'Save Idea' }).click();
+  await dataLab.getByText('Climate adaptation evidence').waitFor();
+  await dataLab.getByRole('button', { name: 'Edit Climate adaptation evidence' }).click();
+  await dataLab.getByLabel('Idea title').fill('Climate resilience evidence');
+  await dataLab.getByRole('button', { name: 'Update idea' }).click();
+  await dataLab.getByText('Climate resilience evidence').waitFor();
+  await dataLab.reload();
+  await dataLab.getByText('Climate resilience evidence').waitFor();
+  dataLab.on('dialog', dialog => dialog.accept());
+  await dataLab.getByRole('button', { name: 'Delete Climate resilience evidence' }).click();
+  await dataLab.getByText('Your Idea Vault is empty').waitFor();
+
+  console.log('Browser checks passed: auth, mobile registration, private CSV analysis, keyboard meeting access, and Idea Vault recovery/CRUD against an isolated test double.');
+  const works = [
+    {
+      id: 'graph-paper-1',
+      user_id: testUser.id,
+      created_at: '2026-11-10T00:00:00.000Z',
+      data: {
+        source_id: 'https://openalex.org/W100',
+        title: 'Graph paper one',
+        year: 2024,
+        source: 'OpenAlex',
+        url: 'https://doi.org/10.1234/graph-one',
+        project_id: 'graph-project-1',
+        authorships: [{ author_id: 'https://openalex.org/A100', author_name: 'Graph Researcher', institutions: [{ id: 'https://openalex.org/I100', name: 'Graph University' }] }],
+        openalex_topics: [{ id: 'https://openalex.org/T100', name: 'Graph methods' }],
+        referenced_work_ids: ['https://openalex.org/W200'],
+      },
+    },
+    {
+      id: 'graph-paper-2',
+      user_id: testUser.id,
+      created_at: '2026-11-10T00:00:00.000Z',
+      data: {
+        source_id: 'https://openalex.org/W200',
+        title: 'Graph paper two',
+        year: 2022,
+        source: 'OpenAlex',
+        url: 'https://doi.org/10.1234/graph-two',
+        project_id: 'graph-project-1',
+        authorships: [{ author_id: 'https://openalex.org/A100', author_name: 'Graph Researcher', institutions: [] }],
+        openalex_topics: [{ id: 'https://openalex.org/T100', name: 'Graph methods' }],
+        referenced_work_ids: [],
+      },
+    },
+  ];
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/saved_papers**', route => sendAuthJson(route, works));
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/saved_researchers**', route => sendAuthJson(route, [{
+    id: 'graph-researcher-1', user_id: testUser.id, created_at: '2026-11-10T00:00:00.000Z',
+    data: { openalex_id: 'https://openalex.org/A100', name: 'Graph Researcher', institution: 'Graph University', profile_url: 'https://openalex.org/A100' },
+  }]));
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/projects**', route => sendAuthJson(route, [{
+    id: 'graph-project-1', user_id: testUser.id, created_at: '2026-11-10T00:00:00.000Z', updated_at: '2026-11-10T00:00:00.000Z',
+    data: { title: 'Graph project', evidence_matrix: { annotations: { 'graph-paper-1': { study_design: 'Researcher note: cohort study' } } } },
+  }]));
+  await dataLab.goto(`${baseUrl}/knowledge-graph`);
+  await dataLab.getByRole('heading', { name: 'Knowledge Graph' }).waitFor();
+  const graphPaper = dataLab.getByRole('button', { name: 'Explore graph node: Graph paper one (Publications)' });
+  await graphPaper.focus();
+  await dataLab.keyboard.press('Enter');
+  await dataLab.getByRole('heading', { name: 'Graph paper one' }).waitFor();
+  await dataLab.getByRole('button', { name: /Graph paper one Cites Graph paper two/ }).waitFor();
+
+  console.log('Browser checks passed: auth, mobile registration, local CSV analysis, keyboard meeting access and source graph navigation.');
 } finally {
   if (browser) await browser.close();
   if (server.exitCode === null) {

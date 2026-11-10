@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
-  Activity, Award, BookOpen, Brain, Briefcase, ChevronDown, FileEdit, FolderOpen, History,
+  Activity, Award, BarChart3, BookOpen, Brain, Briefcase, ChevronDown, FileEdit, FolderOpen, GitBranch, History,
   Home, LayoutDashboard, LayoutGrid, Lightbulb, Menu, Mic, Presentation,
   Rocket, Search, Settings, Sparkles, Target, Trophy, User, Users,
   Video, X, Zap,
@@ -18,7 +18,7 @@ const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
   { label: 'Discover', path: '/search', icon: Search },
   { label: 'Connect', path: '/researchers', icon: Users },
-  { label: 'Careers', path: '/careers', icon: Briefcase },
+  { label: 'Careers', path: '/workspace/careers', icon: Briefcase },
   { label: 'Projects', path: '/projects', icon: FolderOpen },
 ];
 
@@ -35,7 +35,9 @@ const TOOL_GROUPS = [
     description: 'Research work that stays connected to projects',
     items: [
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
+      { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
+      { label: 'Research Data Lab', path: '/labs/data', icon: BarChart3, desc: 'Analyze CSV data privately in your browser', badge: 'Local only' },
       { label: 'For you', path: '/foryou', icon: Sparkles, desc: 'Updates from your saved research context', badge: 'Workspace' },
       { label: 'Idea workspace', path: '/ideas', icon: Lightbulb, desc: 'Capture and develop research ideas', badge: 'Workspace' },
       { label: 'Meetings', path: '/meetings', icon: Video, desc: 'Keep notes, decisions and actions', badge: 'Workspace' },
@@ -104,6 +106,7 @@ export default function AppLayout() {
   const { data: capabilities, loading: capabilitiesLoading } = useCapabilities();
   const aiAvailable = !capabilitiesLoading && capabilities.ai;
 
+  const isWorkspaceHome = location.pathname === '/home';
   const isActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
   const toolsActive = ALL_TOOLS.some(item => isActive(item.path));
   const query = toolQuery.trim().toLowerCase();
@@ -158,7 +161,7 @@ export default function AppLayout() {
   }, [location.pathname]);
 
   return (
-    <div className="eylo-app-canvas min-h-screen bg-background">
+    <div className={`eylo-app-canvas min-h-screen bg-background ${isWorkspaceHome ? "eylo-home-layout" : ""}`}>
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center gap-2 px-4 sm:px-8">
           <Link to="/home" className="mr-3 flex shrink-0 items-center" aria-label="EYLO workspace home">

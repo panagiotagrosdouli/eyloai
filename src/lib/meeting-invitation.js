@@ -1,5 +1,7 @@
 // RFC 5545 calendar invitation draft, generated locally. No attendee RSVP or
 // invitation delivery is implied by creating this file.
+import { normalizeMeetingLink } from './meeting-links.mjs';
+
 const escapeCalendar = value => String(value || '')
   .replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n')
   .replace(/,/g, '\\,').replace(/;/g, '\\;');
@@ -17,6 +19,7 @@ export function createMeetingCalendarDraft(meeting) {
     throw new Error('Invalid meeting date.');
   }
   const duration = Math.min(1440, Math.max(1, Number(meeting.duration_minutes) || 60));
+  const meetingLink = normalizeMeetingLink(meeting.meeting_link);
   const end = new Date(start.getTime() + duration * 60000);
   // Export absolute UTC timestamps: floating local times can shift the meeting
   // unexpectedly when an international recipient imports the .ics file.
@@ -30,7 +33,7 @@ export function createMeetingCalendarDraft(meeting) {
     `DTSTART:${utcStamp(start)}`, `DTEND:${utcStamp(end)}`,
     `SUMMARY:${escapeCalendar(meeting.title || 'EYLO proposed meeting')}`,
     `DESCRIPTION:${escapeCalendar([meeting.agenda, 'Proposed meeting only. Confirmation required.'].filter(Boolean).join('\\n'))}`,
-    `LOCATION:${escapeCalendar(meeting.meeting_link || '')}`,
+    `LOCATION:${escapeCalendar(meetingLink)}`,
     'STATUS:TENTATIVE', 'END:VEVENT', 'END:VCALENDAR', '',
   ].join('\r\n');
 }

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { promiseWithTimeout } from '@/lib/promise-timeout';
 import { Loader2, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -11,13 +12,20 @@ export default function EyraResearchCompanion({ paper, userInterests = '' }) {
   const [open, setOpen] = useState(false);
   const [insight, setInsight] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const requestInProgress = useRef(false);
 
   const generate = async () => {
     if (insight) { setOpen(!open); return; }
+    if (requestInProgress.current) return;
+    requestInProgress.current = true;
+    setError('');
     setLoading(true);
     setOpen(true);
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are EYRA Research Companion. Given this paper, provide a brief structured companion guide.
+    const controller = new AbortController();
+    try {
+      const result = await promiseWithTimeout(base44.integrations.Core.InvokeLLM({
+        prompt: `You are EYRA Research Companion. Given this paper, provide a brief structured companion guide.
 
 Paper: "${paper.title}"
 Authors: ${paper.authors || 'Unknown'}
@@ -36,16 +44,24 @@ Respond in markdown (max 180 words total):
 What type of researcher or lab expertise to look for next
 
 Keep it brief, specific, and actionable. Do not invent paper titles or researcher names.`,
-    });
-    setInsight(result);
-    setLoading(false);
+        signal: controller.signal,
+      }), 15_000, 'EYRA timed out. Check your connection and retry.', () => controller.abort());
+      if (typeof result !== 'string' || !result.trim()) throw new Error('EYRA returned an empty research companion guide. Please retry.');
+      setInsight(result);
+    } catch (cause) {
+      setError(cause?.message || 'EYRA could not prepare this guide. Check your connection and retry.');
+    } finally {
+      requestInProgress.current = false;
+      setLoading(false);
+    }
   };
 
   return (
     <div className="mt-3 border-t border-border/40 pt-3">
       <button
         onClick={generate}
-        className="flex items-center gap-1.5 text-[11px] font-medium text-primary hover:underline"
+        disabled={loading}
+        className="flex items-center gap-1.5 text-[11px] font-medium text-primary hover:underline disabled:cursor-wait disabled:opacity-60"
       >
         {loading ? <Loader2 size={10} className="animate-spin" /> : <BookOpen size={10} />}
         {loading ? 'EYRA thinking...' : 'EYRA Research Companion'}
@@ -58,6 +74,7 @@ Keep it brief, specific, and actionable. Do not invent paper titles or researche
           </div>
         </div>
       )}
+      {open && error && <p role="alert" className="mt-2 text-xs leading-5 text-destructive">{error} Click EYRA Research Companion to retry.</p>}
     </div>
   );
 }

@@ -38,6 +38,8 @@ Public evidence discovery is available before account creation. Saving work, pro
 - Supabase authentication and user-scoped saved data
 - Evidence, researcher and opportunity collections
 - Projects, milestones, ideas and research history
+- A local-only CSV Research Data Lab with previews, descriptive summaries, charts and export; dataset contents stay in the browser and are not saved to EYLO
+- A private Knowledge Graph derived from your saved papers, researchers and projects, with source-backed OpenAlex authorship, topic and citation links where those IDs are available
 - EYRA analysis through the OpenAI Responses API
 - Project-aware research, team, impact and planning workflows
 - Official US funding records from Grants.gov

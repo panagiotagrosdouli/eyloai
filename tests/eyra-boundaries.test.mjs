@@ -5,11 +5,19 @@ import handler from '../api/eyra.js';
 const originalFetch = globalThis.fetch;
 const requests = [];
 const originalApiKey = process.env.OPENAI_API_KEY;
+const previousSupabaseUrl = process.env.VITE_SUPABASE_URL;
+const previousSupabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+process.env.VITE_SUPABASE_URL = 'https://eylo-test.supabase.co';
+process.env.SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_disposable_test';
 
 after(() => {
   globalThis.fetch = originalFetch;
   if (originalApiKey === undefined) delete process.env.OPENAI_API_KEY;
   else process.env.OPENAI_API_KEY = originalApiKey;
+  if (previousSupabaseUrl === undefined) delete process.env.VITE_SUPABASE_URL;
+  else process.env.VITE_SUPABASE_URL = previousSupabaseUrl;
+  if (previousSupabaseKey === undefined) delete process.env.SUPABASE_PUBLISHABLE_KEY;
+  else process.env.SUPABASE_PUBLISHABLE_KEY = previousSupabaseKey;
 });
 
 function response() {
