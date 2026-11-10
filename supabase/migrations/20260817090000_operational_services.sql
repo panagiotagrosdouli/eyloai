@@ -162,10 +162,16 @@ begin
   else
     member_ids := array[requester]::uuid[];
     workspace_id := requester::text;
-    select coalesce(nullif(organization, ''), nullif(full_name, ''), 'My workspace')
+    -- Profiles use a user_id key and JSONB data, not separate id/name columns.
+    -- Fall back to a neutral label if the profile has not yet been completed.
+    select coalesce(
+        nullif(btrim(data ->> 'organization'), ''),
+        nullif(btrim(data ->> 'full_name'), ''),
+        'My workspace'
+      )
       into workspace_name
       from public.profiles
-     where id = requester
+     where user_id = requester
      limit 1;
     workspace_name := coalesce(workspace_name, 'My workspace');
   end if;
