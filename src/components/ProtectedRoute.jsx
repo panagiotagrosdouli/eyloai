@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 
 export default function ProtectedRoute() {
-  const { user, status, isLoadingAuth, refreshSession, authError } = useAuth();
+  const { user, status, isLoadingAuth, initializeAuth, refreshSession, authError } = useAuth();
   const location = useLocation();
+
+  useEffect(() => {
+    if (status === 'idle') void initializeAuth();
+  }, [initializeAuth, status]);
 
   if (isLoadingAuth) {
     return (

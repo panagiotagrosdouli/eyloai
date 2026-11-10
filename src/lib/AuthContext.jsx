@@ -1,27 +1,13 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { appPath, stripAppBase } from '@/lib/auth/routePaths';
-import {
-  AUTH_REQUIRED_EVENT,
-  isSupabaseConfigured,
-  supabase,
-} from '@/lib/supabaseClient';
-import {
-  getSession,
-  refreshSession as refreshAuthSession,
-  resetPassword as requestPasswordReset,
-  signIn as signInWithPassword,
-  signInWithMagicLink as startMagicLinkSignIn,
-  signInWithOAuth as startOAuthSignIn,
-  signOut as signOutSession,
-  signUp as registerWithPassword,
-  updatePassword as updateAccountPassword,
-} from '@/lib/supabase/auth';
+import { environment } from '@/lib/config/env';
 import { AppErrorCode, createAppError, mapSupabaseError } from '@/lib/supabase/errors';
 
 const AuthContext = createContext(null);
 
-const loadingState = { status: 'loading', user: null, session: null, error: null };
+const idleState = { status: 'idle', user: null, session: null, error: null };
 const SESSION_RESTORE_TIMEOUT_MS = 8000;
+const AUTH_RUNTIME_LOAD_TIMEOUT_MS = 8000;
 
 function withTimeout(promise, timeoutMs) {
   let timeoutId;
@@ -34,122 +20,204 @@ function withTimeout(promise, timeoutMs) {
 }
 
 export const AuthProvider = ({ children }) => {
-  const [state, setState] = useState(loadingState);
+  const [state, setState] = useState(idleState);
+  const runtimeRef = useRef(null);
+  const runtimePromiseRef = useRef(null);
+  const initializePromiseRef = useRef(null);
+  const authEventVersionRef = useRef(0);
+  const cleanupAuthRef = useRef(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) {
-      setState({
-        status: 'configuration-error',
-        user: null,
-        session: null,
-        error: createAppError(AppErrorCode.CONFIGURATION),
-      });
-      return undefined;
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      cleanupAuthRef.current?.();
+      cleanupAuthRef.current = null;
+    };
+  }, []);
+
+  const loadAuthRuntime = useCallback(async () => {
+    if (!runtimeRef.current) {
+      if (!runtimePromiseRef.current) {
+        runtimePromiseRef.current = withTimeout(Promise.all([
+          import('@/lib/supabaseClient'),
+          import('@/lib/supabase/auth'),
+        ]), AUTH_RUNTIME_LOAD_TIMEOUT_MS)
+          .then(([clientModule, authModule]) => {
+            runtimeRef.current = { clientModule, authModule };
+            return runtimeRef.current;
+          })
+          .catch((error) => {
+            runtimePromiseRef.current = null;
+            throw error;
+          });
+      }
+      await runtimePromiseRef.current;
     }
 
-    let mounted = true;
-    let authEventVersion = 0;
-    const setAnonymous = () => {
-      if (!mounted) return;
-      authEventVersion += 1;
-      setState({ status: 'anonymous', user: null, session: null, error: null });
-    };
+    const runtime = runtimeRef.current;
+    const client = runtime.clientModule.supabase;
+    if (client && !cleanupAuthRef.current) {
+      const setAnonymous = () => {
+        if (!mountedRef.current) return;
+        authEventVersionRef.current += 1;
+        setState({ status: 'anonymous', user: null, session: null, error: null });
+      };
 
-    window.addEventListener(AUTH_REQUIRED_EVENT, setAnonymous);
+      window.addEventListener(runtime.clientModule.AUTH_REQUIRED_EVENT, setAnonymous);
+      const { data: listener } = client.auth.onAuthStateChange((event, session) => {
+        if (!mountedRef.current || event === 'INITIAL_SESSION') return;
+        authEventVersionRef.current += 1;
 
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!mounted) return;
-      // INITIAL_SESSION may contain locally persisted data. Keep protected
-      // routes gated until getUsableSession confirms it with Supabase.
-      if (event === 'INITIAL_SESSION') return;
-      authEventVersion += 1;
-
-      if (event === 'SIGNED_IN' && typeof window !== 'undefined') {
-        try {
-          // Remove an old failed EYRA response so it is not shown again after
-          // the user has renewed the secure session.
-          window.sessionStorage.removeItem('eyra_command_conversation');
-          window.sessionStorage.removeItem('eyra_command_conversation_v2');
-        } catch {
-          // Storage may be unavailable in privacy-restricted browsers.
+        if (event === 'SIGNED_IN') {
+          try {
+            window.sessionStorage.removeItem('eyra_command_conversation');
+            window.sessionStorage.removeItem('eyra_command_conversation_v2');
+          } catch {
+            // Storage may be unavailable in privacy-restricted browsers.
+          }
         }
+
+        setState(session
+          ? { status: 'authenticated', user: session.user, session, error: null }
+          : { status: 'anonymous', user: null, session: null, error: null });
+      });
+
+      cleanupAuthRef.current = () => {
+        window.removeEventListener(runtime.clientModule.AUTH_REQUIRED_EVENT, setAnonymous);
+        listener.subscription.unsubscribe();
+      };
+    }
+
+    return runtime;
+  }, []);
+
+  const initializeAuth = useCallback(async () => {
+    if (state.status === 'authenticated' || state.status === 'anonymous') {
+      return { ok: true, data: state.session };
+    }
+    if (initializePromiseRef.current) return initializePromiseRef.current;
+
+    setState((current) => ({ ...current, status: 'loading', error: null }));
+    const initialization = (async () => {
+      try {
+        const runtime = await loadAuthRuntime();
+        if (!runtime.clientModule.isSupabaseConfigured || !runtime.clientModule.supabase) {
+          const error = createAppError(AppErrorCode.CONFIGURATION);
+          if (mountedRef.current) {
+            setState({ status: 'configuration-error', user: null, session: null, error });
+          }
+          return { ok: false, error };
+        }
+
+        const startupVersion = authEventVersionRef.current;
+        const result = await withTimeout(runtime.authModule.getSession(), SESSION_RESTORE_TIMEOUT_MS);
+        if (!mountedRef.current || authEventVersionRef.current !== startupVersion) return result;
+
+        if (!result.ok) {
+          setState({ status: 'error', user: null, session: null, error: result.error });
+          return result;
+        }
+
+        const session = result.data;
+        setState(session
+          ? { status: 'authenticated', user: session.user, session, error: null }
+          : { status: 'anonymous', user: null, session: null, error: null });
+        return result;
+      } catch (error) {
+        const appError = createAppError(AppErrorCode.NETWORK, error);
+        if (mountedRef.current) {
+          setState({ status: 'error', user: null, session: null, error: appError });
+        }
+        return { ok: false, error: appError };
+      } finally {
+        initializePromiseRef.current = null;
       }
+    })();
 
-      setState(session
-        ? { status: 'authenticated', user: session.user, session, error: null }
-        : { status: 'anonymous', user: null, session: null, error: null });
-    });
+    initializePromiseRef.current = initialization;
+    return initialization;
+  }, [loadAuthRuntime, state.session, state.status]);
 
-    const startupVersion = authEventVersion;
-    withTimeout(getSession(), SESSION_RESTORE_TIMEOUT_MS).then((result) => {
-      if (!mounted || authEventVersion !== startupVersion) return;
+  const signIn = async (email, password) => {
+    const runtime = await loadAuthRuntime();
+    const result = await runtime.authModule.signIn(email, password);
+    if (result.ok && result.data?.session) {
+      const session = result.data.session;
+      setState({ status: 'authenticated', user: session.user, session, error: null });
+    }
+    return result;
+  };
 
+  const signUp = async (email, password, metadata) => {
+    const runtime = await loadAuthRuntime();
+    const result = await runtime.authModule.signUp(email, password, metadata);
+    if (result.ok && result.data?.session) {
+      const session = result.data.session;
+      setState({ status: 'authenticated', user: session.user, session, error: null });
+    }
+    return result;
+  };
+
+  const signInWithProvider = async (provider, redirectTo) => {
+    const runtime = await loadAuthRuntime();
+    return runtime.authModule.signInWithOAuth(provider, redirectTo);
+  };
+  const signInWithGoogle = async (redirectTo) => signInWithProvider('google', redirectTo);
+  const signInWithMagicLink = async (email, redirectTo) => {
+    const runtime = await loadAuthRuntime();
+    return runtime.authModule.signInWithMagicLink(email, redirectTo);
+  };
+  const resetPassword = async (email, redirectTo) => {
+    const runtime = await loadAuthRuntime();
+    return runtime.authModule.resetPassword(email, redirectTo);
+  };
+  const updatePassword = async (password) => {
+    const runtime = await loadAuthRuntime();
+    return runtime.authModule.updatePassword(password);
+  };
+
+  const refreshSession = async () => {
+    const initialized = await initializeAuth();
+    if (!initialized.ok || !initialized.data) return initialized;
+
+    setState((current) => ({ ...current, status: 'loading', error: null }));
+    try {
+      const runtime = await loadAuthRuntime();
+      const result = await withTimeout(runtime.authModule.refreshSession(), SESSION_RESTORE_TIMEOUT_MS);
       if (!result.ok) {
         setState({ status: 'error', user: null, session: null, error: result.error });
-        return;
+        return result;
       }
 
       const session = result.data;
       setState(session
         ? { status: 'authenticated', user: session.user, session, error: null }
         : { status: 'anonymous', user: null, session: null, error: null });
-    }).catch((error) => {
-      if (!mounted || authEventVersion !== startupVersion) return;
-      setState({
-        status: 'error',
-        user: null,
-        session: null,
-        error: createAppError(AppErrorCode.NETWORK, error),
-      });
-    });
-
-    return () => {
-      mounted = false;
-      window.removeEventListener(AUTH_REQUIRED_EVENT, setAnonymous);
-      listener.subscription.unsubscribe();
-    };
-  }, []);
-
-  const refreshSession = async () => {
-    setState((current) => ({ ...current, status: 'loading', error: null }));
-    let result;
-    try {
-      result = await withTimeout(
-        state.session ? refreshAuthSession() : getSession(),
-        SESSION_RESTORE_TIMEOUT_MS,
-      );
-    } catch (error) {
-      result = { ok: false, error: createAppError(AppErrorCode.NETWORK, error) };
-    }
-
-    if (!result.ok) {
-      setState({ status: 'error', user: null, session: null, error: result.error });
       return result;
+    } catch (error) {
+      const appError = createAppError(AppErrorCode.NETWORK, error);
+      setState({ status: 'error', user: null, session: null, error: appError });
+      return { ok: false, error: appError };
     }
-
-    const session = result.data;
-    setState(session
-      ? { status: 'authenticated', user: session.user, session, error: null }
-      : { status: 'anonymous', user: null, session: null, error: null });
-    return result;
   };
 
-  const signIn = async (email, password) => signInWithPassword(email, password);
-  const signUp = async (email, password, metadata) => registerWithPassword(email, password, metadata);
-  const signInWithProvider = async (provider, redirectTo) => startOAuthSignIn(provider, redirectTo);
-  const signInWithGoogle = async (redirectTo) => signInWithProvider('google', redirectTo);
-  const signInWithMagicLink = async (email, redirectTo) => startMagicLinkSignIn(email, redirectTo);
-  const resetPassword = async (email, redirectTo) => requestPasswordReset(email, redirectTo);
-  const updatePassword = async (password) => updateAccountPassword(password);
-
   const signOut = async () => {
-    const result = await signOutSession();
-    if (result.ok) {
-      setState({ status: 'anonymous', user: null, session: null, error: null });
-    } else {
-      setState((current) => ({ ...current, status: 'error', error: result.error }));
+    try {
+      const runtime = await loadAuthRuntime();
+      const result = await runtime.authModule.signOut();
+      if (result.ok) {
+        setState({ status: 'anonymous', user: null, session: null, error: null });
+      } else {
+        setState((current) => ({ ...current, error: result.error }));
+      }
+      return result;
+    } catch (error) {
+      const appError = createAppError(AppErrorCode.NETWORK, error);
+      setState((current) => ({ ...current, error: appError }));
+      return { ok: false, error: appError };
     }
-    return result;
   };
 
   const value = useMemo(() => ({
@@ -157,6 +225,7 @@ export const AuthProvider = ({ children }) => {
     session: state.session,
     status: state.status,
     error: state.error,
+    initializeAuth,
     signIn,
     signUp,
     signInWithGoogle,
@@ -169,12 +238,12 @@ export const AuthProvider = ({ children }) => {
 
     // Temporary compatibility aliases for remaining legacy consumers.
     isAuthenticated: state.status === 'authenticated',
-    isLoadingAuth: state.status === 'loading',
+    isLoadingAuth: state.status === 'idle' || state.status === 'loading',
     isLoadingPublicSettings: false,
     authError: state.error
       ? { type: state.status === 'configuration-error' ? 'configuration_error' : 'auth_error', message: state.error.message }
       : null,
-    authChecked: state.status !== 'loading',
+    authChecked: state.status !== 'idle' && state.status !== 'loading',
     logout: async (shouldRedirect = true) => {
       const result = await signOut();
       if (result.ok && shouldRedirect) window.location.assign(appPath('/login', import.meta.env.BASE_URL || '/'));
@@ -192,9 +261,9 @@ export const AuthProvider = ({ children }) => {
         : loginUrl;
       window.location.assign(target);
     },
-    isSupabaseConfigured,
+    isSupabaseConfigured: environment.ok,
     mapSupabaseError,
-  }), [state]);
+  }), [state, initializeAuth]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

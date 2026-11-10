@@ -4,12 +4,9 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
 import { AuthProvider } from '@/lib/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import PlanGate from '@/components/billing/PlanGate';
-import CapabilityGate from '@/components/system/CapabilityGate';
 import { redactAnalyticsEvent } from '@/lib/product-analytics';
 
 // Every route surface is loaded on demand so visitors download only the journey they open.
@@ -24,6 +21,9 @@ const CompanyPage = lazy(() => import('@/pages/CompanyPage'));
 const PublicDiscovery = lazy(() => import('@/pages/PublicDiscovery'));
 const PublicResearchers = lazy(() => import('@/pages/PublicResearchers'));
 const AppLayout = lazy(() => import('@/components/layout/AppLayout'));
+const PlanGate = lazy(() => import('@/components/billing/PlanGate'));
+const CapabilityGate = lazy(() => import('@/components/system/CapabilityGate'));
+const PageNotFound = lazy(() => import('./lib/PageNotFound'));
 const Home = lazy(() => import('@/pages/Home'));
 const Library = lazy(() => import('@/pages/Library'));
 const ResearchGaps = lazy(() => import('@/pages/ResearchGaps'));

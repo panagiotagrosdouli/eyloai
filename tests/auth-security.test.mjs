@@ -34,20 +34,27 @@ test('auth errors map sensitive provider messages to stable product errors', () 
 
 test('expired session restoration keeps public sign-in routes available', async () => {
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8');
+  const context = await readFile(new URL('../src/lib/AuthContext.jsx', import.meta.url), 'utf8');
   const auth = await readFile(new URL('../src/lib/supabase/auth.js', import.meta.url), 'utf8');
   assert.match(app, /const AuthenticatedApp = \(\) => \{\s+return \(/);
   assert.doesNotMatch(app, /if \(isLoadingAuth\)[\s\S]*?<Routes>/);
   assert.match(app, /<Route path="\/login" element={<Login \/>} \/>/);
+  assert.doesNotMatch(context, /from ['"]@\/lib\/supabase(?:Client|\/auth)['"]/);
+  assert.match(context, /import\(['"]@\/lib\/supabase\/auth['"]\)/);
+  assert.match(context, /withTimeout\(Promise\.all\(/);
   assert.match(auth, /getUsableSession\(\{ required: false, validate: true \}\)/);
+  assert.match(app, /const PageNotFound = lazy\(\(\) => import\('\.\/lib\/PageNotFound'\)\)/);
+  assert.match(app, /const PlanGate = lazy\(\(\) => import\('@\/components\/billing\/PlanGate'\)\)/);
 });
 
 test('protected routes expose a retry when session restoration fails', async () => {
   const route = await readFile(new URL('../src/components/ProtectedRoute.jsx', import.meta.url), 'utf8');
   const context = await readFile(new URL('../src/lib/AuthContext.jsx', import.meta.url), 'utf8');
+  assert.match(route, /if \(status === 'idle'\) void initializeAuth\(\)/);
   assert.match(route, /status === 'error' \|\| status === 'configuration-error'/);
   assert.match(route, /onClick=\{refreshSession\}/);
   assert.match(route, /Sign in/);
-  assert.match(context, /withTimeout\(\s*state\.session \? refreshAuthSession\(\) : getSession\(\)/);
+  assert.match(context, /withTimeout\(runtime\.authModule\.refreshSession\(\), SESSION_RESTORE_TIMEOUT_MS\)/);
 });
 
 test('provider rate-limit codes map to an actionable retry message', () => {

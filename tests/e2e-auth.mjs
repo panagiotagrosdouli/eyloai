@@ -40,9 +40,14 @@ try {
   });
 
   const desktop = await browser.newPage({ viewport: { width: 1365, height: 900 } });
+  let authRequestsBeforeLogin = 0;
+  desktop.on('request', (request) => {
+    if (request.url().includes('/auth/v1/')) authRequestsBeforeLogin += 1;
+  });
   await desktop.goto(`${baseUrl}/login`);
   await desktop.getByRole('heading', { name: 'Continue your research' }).waitFor();
   assert.equal(await desktop.getByLabel('Email address').isVisible(), true);
+  assert.equal(authRequestsBeforeLogin, 0, 'opening public login should not make authentication API requests');
 
   let loginCalls = 0;
   await desktop.route('https://eylo-auth-test.supabase.co/auth/v1/token?grant_type=password', async (route) => {
