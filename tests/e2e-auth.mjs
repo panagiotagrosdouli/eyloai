@@ -352,6 +352,82 @@ try {
   await dataLab.getByRole('heading', { name: 'Graph paper one' }).waitFor();
   await dataLab.getByRole('button', { name: /Graph paper one Cites Graph paper two/ }).waitFor();
 
+  const teamResearcherWrites = [];
+  await dataLab.route('**/api/capabilities', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ ai: true, billing: false, contact: false, scheduled_monitoring: false, institution_analytics: false }),
+  }));
+  await dataLab.route('**/api/eyra', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ data: {
+      project_summary: 'A project-specific planning summary.',
+      team_health_score: 60,
+      current_gaps: [],
+      dream_team: [],
+      hiring_sequence: [],
+      consortium_partners: [],
+      eyra_team_insight: 'Planning suggestion based on this project context.',
+      first_hire_advice: 'Review the project needs before outreach.',
+    } }),
+  }));
+  await dataLab.route('https://api.openalex.org/authors**', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    headers: { 'access-control-allow-origin': '*' },
+    body: JSON.stringify({ results: [{
+      id: 'https://openalex.org/A200',
+      display_name: 'Dr Example Researcher',
+      last_known_institutions: [{ display_name: 'Climate Institute', country_code: 'GB' }],
+      works_count: 5,
+      cited_by_count: 20,
+      topics: [{ id: 'https://openalex.org/T200', display_name: 'Climate adaptation' }],
+      ids: {},
+    }] }),
+  }));
+  await dataLab.route('https://api.openalex.org/institutions**', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    headers: { 'access-control-allow-origin': '*' },
+    body: JSON.stringify({ results: [] }),
+  }));
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/saved_researchers**', async route => {
+    const request = route.request();
+    const headers = {
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+      'access-control-allow-headers': 'apikey, authorization, content-type, x-client-info, prefer',
+    };
+    const respond = (status, body) => route.fulfill({
+      status,
+      contentType: 'application/json',
+      headers,
+      body: JSON.stringify(body),
+    });
+    if (request.method() === 'OPTIONS') { await route.fulfill({ status: 204, headers }); return; }
+    if (request.method() === 'GET') { await respond(200, []); return; }
+    if (request.method() === 'POST') {
+      const body = request.postDataJSON();
+      teamResearcherWrites.push(body);
+      await respond(201, { id: 'saved-team-researcher-1', user_id: testUser.id, data: body.data || {} });
+      return;
+    }
+    await respond(200, []);
+  });
+  await dataLab.goto(`${baseUrl}/labs/team`);
+  await dataLab.getByRole('heading', { name: 'Team Planner' }).waitFor();
+  await dataLab.getByRole('button', { name: 'Build Team' }).click();
+  await dataLab.getByText('Verified OpenAlex Matches').waitFor();
+  await dataLab.getByRole('button', { name: 'Add to project' }).click();
+  await dataLab.getByRole('button', { name: 'Added to project' }).waitFor();
+  assert.equal(teamResearcherWrites.length, 1, 'candidate save should create one user-scoped researcher record');
+  assert.equal(teamResearcherWrites[0].user_id, testUser.id);
+  assert.equal(teamResearcherWrites[0].data.openalex_id, 'https://openalex.org/A200');
+  assert.equal(teamResearcherWrites[0].data.project_id, 'graph-project-1');
+  assert.equal(await dataLab.getByRole('button', { name: 'Added to project' }).isDisabled(), true,
+    'a successful save should prevent an accidental duplicate click');
+
   console.log('Browser checks passed: auth, mobile registration, local CSV analysis, keyboard meeting access and source graph navigation.');
 } finally {
   if (browser) await browser.close();
