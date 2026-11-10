@@ -124,7 +124,7 @@ export default function EyraHome({ onSearch }) {
           </div>
         )}
 
-        <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]"
+        <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]">
           <section aria-labelledby="continue-heading">
             <div className="mb-5 flex items-end justify-between gap-4 border-b border-border pb-4">
               <div>
