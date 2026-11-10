@@ -102,6 +102,7 @@ export const AuthProvider = ({ children }) => {
 
     setState((current) => ({ ...current, status: 'loading', error: null }));
     const initialization = (async () => {
+      const initializationVersion = authEventVersionRef.current;
       try {
         const runtime = await loadAuthRuntime();
         if (!runtime.clientModule.isSupabaseConfigured || !runtime.clientModule.supabase) {
@@ -128,7 +129,8 @@ export const AuthProvider = ({ children }) => {
         return result;
       } catch (error) {
         const appError = createAppError(AppErrorCode.NETWORK, error);
-        if (mountedRef.current) {
+        // A late bootstrap timeout cannot invalidate a newer sign-in/auth event.
+        if (shouldApplyAuthResult(initializationVersion, authEventVersionRef.current, mountedRef.current)) {
           setState({ status: 'error', user: null, session: null, error: appError });
         }
         return { ok: false, error: appError };
