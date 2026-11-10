@@ -48,14 +48,38 @@ jobs:
         run: |
           set -euo pipefail
           origin=https://eyloai.vercel.app
-          for path in /api/billing /api/opportunities /api/monitor; do
-            code="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' "${origin}${path}")"
-            echo "${path}: anonymous HTTP ${code}"
-            test "$code" = 401
-          done
-          code="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' --request POST --header 'Content-Type: application/json' --data '{}' "${origin}/api/eyra")"
-          echo "/api/eyra: anonymous HTTP ${code}"
-          test "$code" = 401
+          assert_private_endpoint_unavailable() {
+            local path="$1"
+            shift
+            local body_file
+            body_file="$(mktemp)"
+            local code
+            code="$(curl --silent --show-error --max-time 15 --output "$body_file" --write-out '%{http_code}' "$@")"
+            case "$code" in
+              401)
+                echo "${path}: anonymous HTTP 401"
+                ;;
+              503)
+                if grep -Eq '"code"[[:space:]]*:[[:space:]]*"SUPABASE_NOT_CONFIGURED"' "$body_file"; then
+                  echo "${path}: anonymous HTTP 503; service fails closed while Supabase is unconfigured"
+                else
+                  rm -f "$body_file"
+                  echo "${path}: unexpected anonymous HTTP 503 response" >&2
+                  exit 1
+                fi
+                ;;
+              *)
+                rm -f "$body_file"
+                echo "${path}: unexpected anonymous HTTP ${code}" >&2
+                exit 1
+                ;;
+            esac
+            rm -f "$body_file"
+          }
+          assert_private_endpoint_unavailable /api/billing "${origin}/api/billing"
+          assert_private_endpoint_unavailable /api/opportunities "${origin}/api/opportunities"
+          assert_private_endpoint_unavailable /api/monitor "${origin}/api/monitor"
+          assert_private_endpoint_unavailable /api/eyra --request POST --header 'Content-Type: application/json' --data '{}' "${origin}/api/eyra"
           cors_code="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' --request OPTIONS --header 'Origin: https://attacker.example' --header 'Access-Control-Request-Method: POST' "${origin}/api/eyra")"
           echo "Untrusted EYRA preflight: HTTP ${cors_code}"
           test "$cors_code" = 403
