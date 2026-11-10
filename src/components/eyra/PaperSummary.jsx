@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { BookOpen, Loader2, Bookmark, MessageCircle, Send, Trash2, FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { savePaperSummary } from '@/lib/paper-summary-persistence';
 import { useToast } from '@/components/ui/use-toast';
 import {
   buildPaperQuestionPrompt,
@@ -16,6 +17,8 @@ const summarySchema = {
 };
 const answerSchema = {
   type: 'object',
+  required: ['answer', 'evidence_quote', 'uncertainty'],
+  additionalProperties: false,
   properties: {
     answer: { type: 'string' },
     evidence_quote: { type: 'string' },
@@ -137,7 +140,7 @@ export default function PaperSummary({ paper, projectId = '' }) {
     try {
       const result = await base44.integrations.Core.InvokeLLM({
         response_json_schema: answerSchema,
-        prompt: buildPaperQuestionPrompt(paper, cleanQuestion, conversation, sourceText, evidence.evidence_type),
+        prompt: buildPaperQuestionPrompt(paper, cleanQuestion, conversation, sourceText, evidence.evidence_type, evidence.url),
       });
       if (activePaperKey.current !== requestPaperKey || activeRequest.current !== requestId) return;
       setConversation(previous => [...previous, {
@@ -165,35 +168,8 @@ export default function PaperSummary({ paper, projectId = '' }) {
     if (!summary || saving) return;
     setSaving(true);
     try {
-      const sourceId = paper.source_id || paper.id || paper.doi || paper.url || paper.title;
-      const matches = await base44.entities.SavedPaper.filter({ source_id: sourceId }, '-created_date', 1);
-      const existing = Array.isArray(matches) ? matches.find((record) => record.source_id === sourceId) : null;
-      if (existing) {
-        const canAttachToProject = projectId && (!existing.project_id || existing.project_id === projectId);
-        await base44.entities.SavedPaper.update(existing.id, {
-          eyra_summary: summary,
-          ...(canAttachToProject ? { project_id: projectId } : {}),
-        });
-        toast({
-          title: canAttachToProject ? 'Summary saved to project' : 'Summary saved to Library',
-          description: projectId && existing.project_id && existing.project_id !== projectId
-            ? 'The paper’s existing project link was preserved.'
-            : undefined,
-        });
-      } else {
-        await base44.entities.SavedPaper.create({
-          source_id: sourceId,
-          title: paper.title,
-          authors: paper.authors || '',
-          doi: paper.doi || '',
-          year: paper.year || null,
-          url: paper.url || '',
-          summary: getPaperAbstract(paper),
-          eyra_summary: summary,
-          ...(projectId ? { project_id: projectId } : {}),
-        });
-        toast({ title: projectId ? 'Summary saved to project' : 'Summary saved to Library' });
-      }
+      await savePaperSummary({ entities: base44.entities, paper, sourceText: getPaperAbstract(paper), summary, projectId });
+      toast({ title: projectId ? 'Summary saved to project' : 'Summary saved to Library' });
     } catch (error) {
       toast({ title: 'Could not save summary', description: error?.message || 'Please retry.', variant: 'destructive' });
     } finally {
@@ -229,7 +205,7 @@ export default function PaperSummary({ paper, projectId = '' }) {
     </div>}
     {showQuestions && <div className="mt-3 rounded-xl border border-border/70 bg-background p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <div><h5 className="text-xs font-semibold text-foreground">Ask EYRA about this paper</h5><p className="mt-1 text-[10px] text-muted-foreground">Answers use the accessible {sourceLabel} and are limited by what it reports. This conversation is temporary and stays on this page.</p></div>
+        <div><h5 className="text-xs font-semibold text-foreground">Ask EYRA about this paper</h5><p className="mt-1 text-[10px] text-muted-foreground">Answers use the accessible {sourceLabel} and are limited by what it reports. This conversation is temporary and stays on this page.</p>{(evidence.url || paper.url) && <a href={evidence.url || paper.url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-[10px] text-primary underline">Open source used for answers</a>}</div>
         {conversation.length > 0 && <button type="button" onClick={() => setConversation([])} className="inline-flex min-h-8 items-center gap-1 rounded-md px-2 text-[10px] text-muted-foreground hover:bg-muted" aria-label="Clear paper conversation"><Trash2 size={12} />Clear</button>}
       </div>
       {conversation.length > 0 && <div className="mb-3 max-h-80 space-y-3 overflow-y-auto" aria-live="polite">

@@ -1,0 +1,123 @@
+# EYLO integrated implementation backlog
+
+**Source:** repository review of the current `main` checkout on 2026-11-10. This is an implementation register, not a release-readiness claim. “Partial” means related routes or services exist; it does not certify end-to-end behavior, persistence or production configuration.
+
+## Release blockers
+
+- [ ] Verify the intended Vercel project/domain mapping and deployed commit. The 2026-11-07 audit reported 404s; a fresh 2026-11-10 smoke check returned HTTP 200 for all eight public routes/endpoints, but the connected Vercel account currently lists zero projects, so deployment provenance and project settings remain unverified.
+- [ ] Restore production AI, contact, billing and scheduled-monitoring configuration only after their individual backend/security acceptance checks. `/api/capabilities` currently reports `ai`, `contact`, `billing`, `scheduled_monitoring` and `institution_analytics` as disabled.
+- [ ] Verify that production Vercel environment variables point to the intended Supabase project; review live RLS and prove cross-user read/update/delete isolation with disposable accounts.
+- [ ] Complete authenticated browser coverage for sign-in, discovery, saving, project context, EYRA and funding on desktop and mobile.
+- [ ] Run a human-judged discovery evaluation. Existing heuristic coverage is not a scientific relevance benchmark.
+- [ ] Verify billing lifecycle, entitlements and signed webhooks in Stripe test mode before enabling paid plans.
+- [ ] Resolve retention, privacy-policy, legal-terms and account-deletion requirements with the service owner; repository notes say account deletion is not yet verified.
+- [ ] Add a shared discovery rate limiter and test provider timeouts, 429s and response-size failures.
+
+## Feature checklist
+
+### 1. Research Knowledge Graph — not implemented as a connected graph
+
+- [ ] Model sourced nodes for publications, researchers, institutions, topics and methods.
+- [ ] Add only traceable edges (citation, authorship, affiliation, topic) with provider record IDs and source links.
+- [ ] Implement filter, expansion, keyboard-accessible exploration and project saving.
+- [ ] Add ownership, persistence, empty/error states and focused integration tests.
+
+### 2. Scientific Evidence Matrix — partial
+
+- [x] Select project-linked saved papers and compare source metadata with editable study-design, dataset, findings and limitations notes.
+- [x] Preserve source links and distinguish unrecorded information from negative findings; all comparison notes are explicitly researcher-authored.
+- [x] Persist the selection and notes on the owner-scoped project record; add title/author filtering and CSV export.
+- [ ] Test authenticated persistence and source fidelity in the intended Supabase project; no live account was available.
+
+### 3. AI Research Gap Finder — partial
+
+- [x] Reframe landscape-generated “gaps” as tentative, source-linked research questions; validate every model-supplied paper ID against retrieved OpenAlex records.
+- [ ] Add a broader, reproducible literature-review protocol and retrieval-coverage display.
+- [ ] Persist reviewed candidates to a project with evidence and counterevidence.
+- [ ] Evaluate false-positive and false-negative gap suggestions against human-reviewed cases.
+
+### 4. Smart Researcher Matching — partial
+
+- [ ] Inspect current People, Researcher and Dream Team flows for exact matching inputs and persistence.
+- [ ] Add explainable expertise overlap/complementarity derived from scholarly metadata.
+- [ ] Integrate saved matches with Projects and Research Passport.
+- [ ] Add privacy-aware, consent-based collaboration requests and two-account access tests.
+
+### 5. AI Research Project Planner — partial
+
+- [ ] Extend Projects beyond milestones/ideas into tasks, dependencies, deliverables and progress.
+- [ ] Generate a reviewable draft plan from project context; require user acceptance before saving.
+- [ ] Link accepted plan items to EYRA, evidence, grants and monitoring.
+- [ ] Test ownership, persistence, editing, deletion and failure recovery.
+
+### 6. EYRA Peer Review Simulator — not implemented
+
+- [ ] Add private manuscript upload with file validation, bounded processing and deletion controls.
+- [ ] Assess reporting completeness, methods, citation integrity and reproducibility with evidence locations.
+- [ ] Separate major concerns, minor concerns, strengths and actionable recommendations.
+- [ ] Label model inference, preserve uncertainty, and state that this does not replace expert review.
+- [ ] Test file security, authorization, citation checks and provider failure handling.
+
+### 7. Research Radar — partial
+
+- [ ] Verify topic/author/paper/funding watchlists, deduplication, notification history and delivery claims.
+- [ ] Add a verified scheduler path and observable run history; keep scheduled updates unavailable when unconfigured.
+- [ ] Test ownership, source outages, duplicate events, retries and notification delivery outcomes.
+
+### 8. Grant Proposal Assistant — partial
+
+- [ ] Retain official funding links and verify all shown dates/eligibility/budget fields against source records.
+- [ ] Draft objectives, work packages, impact, timeline and structure from a selected project and call.
+- [ ] Mark model-generated proposal text as draft and require human review.
+- [ ] Add project linking, export and tests for missing/expired funding metadata.
+
+### 9. Research Data Lab — implemented for local analysis; hosted persistence intentionally off
+
+- [x] Add browser-only CSV parsing with 5 MB, 10,000 row, 50 column and per-cell limits; files are not uploaded or sent to AI.
+- [x] Add preview, missingness/distinct counts, numeric summaries, sample standard deviation, selectable row chart, and reproducible calculation notes.
+- [x] Export the summary as CSV with formula-safe text fields; clear local data on demand and on page exit.
+- [x] Cover quoted fields, malformed rows, bounds, missing data, statistics, chart selection and safe export with deterministic tests.
+- [ ] Add desktop/mobile browser E2E and review screen-reader chart rendering; data remains session-only until a user-controlled project-save design is specified.
+
+### 10. Reproducibility Checker — not implemented
+
+- [ ] Review supplied manuscript/materials for methods, data/code availability, statistics and experimental conditions.
+- [ ] Return evidence-located findings and missing-information indicators.
+- [ ] Distinguish reporting completeness from proof that results reproduce.
+- [ ] Test citations, extraction errors, unsupported claims and document privacy.
+
+### 11. EYLO Research Passport — partial
+
+- [ ] Audit Profile for editable interests, publications, skills, background, projects, collaborations and career/funding interests.
+- [ ] Add explicit public/private controls and distinguish verified metadata from self-reported fields.
+- [ ] Integrate Passport with People, Careers, Projects, Funding and researcher matching.
+- [ ] Test user ownership, export, deletion and privacy defaults.
+
+### 12. Meetings and collaboration — meeting plans partial; team collaboration not implemented
+
+- [x] Preserve a personal meeting plan, agenda, notes, tentative calendar file and manually tracked proposal/response status. Creating a plan does not send an invitation or confirm attendance.
+- [x] Permit only HTTPS external meeting links, use cryptographic random IDs for generated Jitsi rooms, and make meeting cards keyboard-operable.
+- [ ] Verify meeting and project ownership with two authorized accounts against the intended Supabase project.
+- [ ] Add team membership, invitations, participation requests, discussions and shared tasks with explicit role checks and consent.
+- [ ] Verify real-time audio/video, screen sharing and reconnect behavior from two independent sessions. Current Jitsi rooms use a third-party public service; possession of the room link may permit entry, and rooms are not private EYLO-hosted calls.
+- [ ] Verify meeting join authorization, privacy/recording consent and mobile/keyboard behavior in a production-matching preview.
+
+## Shared integration and verification
+
+- [ ] Connect all completed features through consistent project context, navigation and saved workspace records.
+- [ ] Keep EYRA source-dependent claims linked to retrieved evidence; separate facts, extracted information, inference and uncertainty.
+- [ ] Add complete unit, API, authorization and browser end-to-end coverage for the core research workflow.
+- [ ] Verify loading, empty, error, mobile, keyboard and reduced-motion states.
+- [ ] Run `npm run check` after each focused change and record actual results below.
+- [ ] Verify the intended live deployment and service configuration before any production-readiness claim.
+
+## Work recorded
+
+- **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.
+- **2026-11-10:** Project Evidence adds a source-linked, editable matrix for linked papers; notes are stored on the project and exported as CSV with spreadsheet formula escaping. Missing notes are shown as unrecorded rather than inferred.
+- **2026-11-10:** Research Data Lab adds private, in-browser CSV preview, validation, missingness and numeric summaries, an accessible row chart, reproducible analysis steps, and formula-safe summary export. Dataset contents are not uploaded, persisted, or sent to AI.
+- **2026-11-10:** PR #300 routes signed-in users from public entry pages back into their protected workspace destinations and makes Careers accessible inside workspace navigation. PR #299 ignores stale authentication operation results and states accurately that email request acceptance is not delivery confirmation. Neither verifies live production email or session flows.
+- **2026-11-10:** Meetings now reject non-HTTPS or credential-bearing links, create Jitsi rooms only with cryptographically random IDs, and use keyboard-operable meeting-card buttons. Jitsi is still a public third-party service, not an EYLO access-controlled room.
+- **2026-11-10:** Added a mocked-auth browser regression for keyboard opening a meeting plan and suppressing an unsafe legacy link. It does not test a real Jitsi call, camera, microphone, screen sharing or cross-user access.
+- **Validation:** Local `npm run check` passed after the meeting-link changes: imports, both TypeScript projects, ESLint, 259 tests, and Vite production build. Targeted meeting tests and lint pass. Local Playwright launch of system Chromium was denied by host socket permissions; the updated browser test awaits GitHub Actions. Vite emitted dependency annotation and large-chunk warnings.
+- **Live public smoke:** HTTP 200 for `/`, `/manifest.webmanifest`, `/robots.txt`, `/discover`, `/login`, `/register`, `/forgot-password`, and `/api/capabilities`. This checks HTTP availability only; authenticated workflows, deployed commit, database isolation and provider readiness were not verified.

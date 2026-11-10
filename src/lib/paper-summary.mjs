@@ -34,17 +34,21 @@ Scientific grounding rules:
 - Questions must be framed as questions for further study, not as established research gaps.
 - Do not imply the supplied text contains material that was not retrieved. If evidence type is abstract, state that the summary does not represent the complete article.
 
+<paper-metadata>
 Title: ${paper?.title || 'Not provided'}
 Authors: ${paper?.authors || 'Not provided'}
 Year: ${paper?.year || 'Not provided'}
 DOI: ${paper?.doi || 'Not provided'}
-Source URL: ${paper?.url || 'Not provided'}
+Source URL: ${evidence.url || paper?.url || 'Not provided'}
 Evidence type: ${evidenceType}
+</paper-metadata>
+<source-paper-text>
 Source text:
-${sourceText}`;
+${sourceText}
+</source-paper-text>`;
 }
 
-export function buildPaperQuestionPrompt(paper, question, previousQuestions = [], sourceText = getPaperAbstract(paper), evidenceType = 'abstract') {
+export function buildPaperQuestionPrompt(paper, question, previousQuestions = [], sourceText = getPaperAbstract(paper), evidenceType = 'abstract', sourceUrl = '') {
   const source = String(sourceText || '').trim().slice(0, 24_000);
   const cleanQuestion = String(question || '').trim().slice(0, 2_000);
   if (!source || !cleanQuestion) return '';
@@ -66,12 +70,13 @@ Scientific grounding rules:
 - Keep evidence_quote verbatim from the supplied source and use an empty string if no short supporting passage exists.
 - Separate what the source reports from cautious interpretation in the uncertainty field.
 
-Paper metadata:
+<paper-metadata>
 Title: ${paper?.title || 'Not provided'}
 Authors: ${paper?.authors || 'Not provided'}
 Year: ${paper?.year || 'Not provided'}
 DOI: ${paper?.doi || 'Not provided'}
-Source URL: ${paper?.url || 'Not provided'}
+Source URL: ${sourceUrl || paper?.url || 'Not provided'}
+</paper-metadata>
 
 Earlier user questions for conversational context only (not evidence):
 ${context.length ? context.map((item, index) => `${index + 1}. ${item}`).join('\n') : 'None'}
@@ -79,8 +84,10 @@ ${context.length ? context.map((item, index) => `${index + 1}. ${item}`).join('\
 Current user question:
 ${cleanQuestion}
 
+<source-paper-text>
 Accessible source text:
-${source}`;
+${source}
+</source-paper-text>`;
 }
 
 export function verifyPaperEvidenceQuote(source, quote) {

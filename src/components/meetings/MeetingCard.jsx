@@ -1,6 +1,7 @@
 import React from 'react';
 import { Video, Calendar, Users, Sparkles } from 'lucide-react';
 import moment from 'moment';
+import { normalizeMeetingLink } from '@/lib/meeting-links.mjs';
 
 const TYPE_LABELS = {
   project_meeting: 'Project Meeting',
@@ -39,67 +40,51 @@ const STATUS_COLORS = {
 
 export default function MeetingCard({ meeting, onClick }) {
   const isPast = moment(meeting.date).isBefore(moment().startOf('day'));
+  let meetingLink = '';
+  try { meetingLink = normalizeMeetingLink(meeting.meeting_link); } catch { /* Invalid saved URLs stay inert. */ }
 
   return (
-    <div
-      onClick={onClick}
-      className={`p-4 rounded-xl border bg-card cursor-pointer hover:border-primary/30 transition-all group card-glow ${isPast ? 'opacity-70' : 'border-border'}`}
-    >
+    <article className={`p-4 rounded-xl border bg-card transition-all group card-glow hover:border-primary/30 focus-within:border-primary/40 ${isPast ? 'opacity-70' : 'border-border'}`} aria-label={`${meeting.title} meeting plan`}>
       <div className="flex items-start gap-3">
-        {/* Date block */}
-        <div className="flex-shrink-0 w-12 text-center p-2 rounded-lg bg-secondary border border-border/60">
-          <p className="text-[10px] text-muted-foreground uppercase">{moment(meeting.date).format('MMM')}</p>
-          <p className="text-lg font-bold font-heading leading-none">{moment(meeting.date).format('D')}</p>
-        </div>
+        <button type="button" onClick={onClick} aria-label={`Open meeting plan: ${meeting.title}`} className="flex min-w-0 flex-1 items-start gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+          <span className="flex-shrink-0 w-12 text-center p-2 rounded-lg bg-secondary border border-border/60" aria-hidden="true">
+            <span className="block text-[10px] text-muted-foreground uppercase">{moment(meeting.date).format('MMM')}</span>
+            <span className="block text-lg font-bold font-heading leading-none">{moment(meeting.date).format('D')}</span>
+          </span>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${TYPE_COLORS[meeting.call_type] || TYPE_COLORS.project_meeting}`}>
-              {TYPE_LABELS[meeting.call_type] || 'Meeting'}
+          <span className="flex-1 min-w-0">
+            <span className="flex items-center gap-2 flex-wrap mb-1">
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${TYPE_COLORS[meeting.call_type] || TYPE_COLORS.project_meeting}`}>
+                {TYPE_LABELS[meeting.call_type] || 'Meeting'}
+              </span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[meeting.status] || STATUS_COLORS.scheduled}`}>
+                {STATUS_LABELS[meeting.status] || 'Planned'}
+              </span>
+              {meeting.eyra_prep && <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold"><Sparkles size={9} aria-hidden="true" /> EYRA Ready</span>}
             </span>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[meeting.status] || STATUS_COLORS.scheduled}`}>
-              {STATUS_LABELS[meeting.status] || 'Planned'}
+
+            <span className="block font-semibold text-sm">{meeting.title}</span>
+
+            <span className="flex items-center gap-3 mt-1 flex-wrap">
+              {meeting.time && <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1"><Calendar size={9} aria-hidden="true" /> {meeting.time}{meeting.duration_minutes ? ` · ${meeting.duration_minutes}m` : ''}</span>}
+              {meeting.participants && <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1"><Users size={9} aria-hidden="true" /> {meeting.participants.split(',').length} participant{meeting.participants.split(',').length > 1 ? 's' : ''}</span>}
+              {meeting.project_title && <span className="text-[10px] text-primary">{meeting.project_title}</span>}
             </span>
-            {meeting.eyra_prep && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold flex items-center gap-1">
-                <Sparkles size={9} /> EYRA Ready
-              </span>
-            )}
-          </div>
+          </span>
+        </button>
 
-          <h3 className="font-semibold text-sm">{meeting.title}</h3>
-
-          <div className="flex items-center gap-3 mt-1 flex-wrap">
-            {meeting.time && (
-              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                <Calendar size={9} /> {meeting.time}{meeting.duration_minutes ? ` · ${meeting.duration_minutes}m` : ''}
-              </span>
-            )}
-            {meeting.participants && (
-              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                <Users size={9} /> {meeting.participants.split(',').length} participant{meeting.participants.split(',').length > 1 ? 's' : ''}
-              </span>
-            )}
-            {meeting.project_title && (
-              <span className="text-[10px] text-primary">{meeting.project_title}</span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {meeting.meeting_link && (
+        {meetingLink && (
             <a
-              href={meeting.meeting_link}
+              href={meetingLink}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={e => e.stopPropagation()}
+              aria-label={`Open external meeting room for ${meeting.title} (opens in a new tab)`}
               className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
             >
-              <Video size={13} />
+              <Video size={13} aria-hidden="true" />
             </a>
           )}
-        </div>
       </div>
-    </div>
+    </article>
   );
 }

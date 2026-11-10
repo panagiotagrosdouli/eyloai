@@ -95,7 +95,7 @@ test('Account and recovery links preserve GitHub Pages routing base', () => {
     const source = read(path);
     assert.match(source, /import\.meta\.env\.BASE_URL/);
   }
-  assert.match(read('src/pages/Register.jsx'), /window\.location\.assign/);
+  assert.match(read('src/pages/Register.jsx'), /navigate\(destination, \{ replace: true \}\)/);
 });
 
 test('Public professor finder is accessible without authentication and does not fabricate bookings', () => {

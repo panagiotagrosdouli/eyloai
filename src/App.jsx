@@ -1,32 +1,29 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { environment } from '@/lib/config/env';
-import PlanGate from '@/components/billing/PlanGate';
-import CapabilityGate from '@/components/system/CapabilityGate';
 import { redactAnalyticsEvent } from '@/lib/product-analytics';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+import AuthCallback from '@/pages/AuthCallback';
 
-import ConfigurationError from '@/pages/ConfigurationError';
-
-// Every route surface is loaded on demand so visitors download only the journey they open.
-const Login = lazy(() => import('@/pages/Login'));
-const Register = lazy(() => import('@/pages/Register'));
-const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
-const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
-const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
+// Auth routes are eager so login and recovery render without waiting for a route chunk. Workspace surfaces remain lazy.
 const Landing = lazy(() => import('@/pages/Landing'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const CompanyPage = lazy(() => import('@/pages/CompanyPage'));
 const PublicDiscovery = lazy(() => import('@/pages/PublicDiscovery'));
 const PublicResearchers = lazy(() => import('@/pages/PublicResearchers'));
 const AppLayout = lazy(() => import('@/components/layout/AppLayout'));
+const PlanGate = lazy(() => import('@/components/billing/PlanGate'));
+const CapabilityGate = lazy(() => import('@/components/system/CapabilityGate'));
+const PageNotFound = lazy(() => import('./lib/PageNotFound'));
 const Home = lazy(() => import('@/pages/Home'));
 const Library = lazy(() => import('@/pages/Library'));
 const ResearchGaps = lazy(() => import('@/pages/ResearchGaps'));
@@ -55,6 +52,7 @@ const VoiceAssistant = lazy(() => import('@/pages/VoiceAssistant'));
 const PitchDeckBuilder = lazy(() => import('@/pages/PitchDeckBuilder'));
 const GrantBuilder = lazy(() => import('@/pages/GrantBuilder'));
 const InstitutionAdmin = lazy(() => import('@/pages/InstitutionAdmin'));
+const ResearchDataLab = lazy(() => import('@/pages/ResearchDataLab'));
 
 const AiTool = ({ minimum, children }) => (
   <CapabilityGate capability="ai">
@@ -71,45 +69,18 @@ const PageLoader = () => (
   </div>
 );
 
+// Public pages remain available to visitors; authenticated visitors stay in EYLO's
+// workspace instead of being sent back to the public marketing experience.
+const PublicEntry = ({ children, workspacePath = '/home' }) => {
+  const { status, initializeAuth } = useAuth();
+  useEffect(() => {
+    if (status === 'idle') void initializeAuth();
+  }, [initializeAuth, status]);
+  if (status === 'authenticated') return <Navigate to={workspacePath} replace />;
+  return children;
+};
+
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, authError, refreshSession } = useAuth();
-
-  if (!environment.ok) {
-    return <ConfigurationError />;
-  }
-
-  if (isLoadingAuth) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background" role="status" aria-live="polite">
-        <div className="text-center">
-          <div className="mb-4 text-lg font-semibold tracking-tight">EYLO AI</div>
-          <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-border border-t-foreground" />
-          <span className="sr-only">Loading authentication</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (authError) {
-    return (
-      <main className="min-h-screen bg-background px-6 py-16 text-foreground">
-        <div className="mx-auto max-w-lg rounded-2xl border bg-card p-8 shadow-sm">
-          <h1 className="text-2xl font-semibold">Authentication unavailable</h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            EYLO AI could not verify your session. Check your connection and retry. Your local session has not been cleared.
-          </p>
-          <button
-            type="button"
-            onClick={() => refreshSession()}
-            className="mt-5 min-h-11 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            Try again
-          </button>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <Suspense fallback={<PageLoader />}>
     <Routes>
@@ -122,9 +93,11 @@ const AuthenticatedApp = () => {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/home" element={<Home />} />
+          <Route path="/workspace/careers" element={<PublicCareers />} />
           <Route path="/search" element={<Home searchOnly />} />
           <Route path="/library" element={<Library />} />
           <Route path="/research-gaps" element={<ResearchGaps />} />
+          <Route path="/labs/data" element={<ResearchDataLab />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/researchers" element={<Researchers />} />
@@ -172,13 +145,13 @@ function App() {
           <ScrollToTop />
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              <Route path="/" element={<Landing />} />
+              <Route path="/" element={<PublicEntry><Landing /></PublicEntry>} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/company" element={<CompanyPage />} />
               <Route path="/company/:section" element={<CompanyPage />} />
-              <Route path="/discover" element={<PublicDiscovery />} />
-              <Route path="/find-researchers" element={<PublicResearchers />} />
-              <Route path="/careers" element={<PublicCareers />} />
+              <Route path="/discover" element={<PublicEntry workspacePath="/search"><PublicDiscovery /></PublicEntry>} />
+              <Route path="/find-researchers" element={<PublicEntry workspacePath="/researchers"><PublicResearchers /></PublicEntry>} />
+              <Route path="/careers" element={<PublicEntry workspacePath="/workspace/careers"><PublicCareers /></PublicEntry>} />
               {/* Authentication pages stay reachable even if session bootstrap fails. */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />

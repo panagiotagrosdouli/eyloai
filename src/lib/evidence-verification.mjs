@@ -50,7 +50,7 @@ export function selectExcerptSupportedClaims(analysis = {}, reviews, papers = []
     const reference = '[P' + sourceNumber + ']';
     if (!original.evidence.includes(reference)) continue;
     const quote = String(review.quote || '').trim();
-    const abstractText = normalized(paper.summary.slice(0, 240));
+    const abstractText = normalized(paper.summary);
     const normalizedQuote = normalized(quote);
     if (normalizedQuote.length < MIN_QUOTE_LENGTH || !abstractText.includes(normalizedQuote)) continue;
 

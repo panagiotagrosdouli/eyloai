@@ -1,11 +1,17 @@
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
+import { hasAuthenticatedSignIn } from '@/lib/auth/sessionContract';
 import { createAppError, AppErrorCode, mapSupabaseError } from './errors';
 
 const ok = (data) => ({ ok: true, data });
 const fail = (error) => ({ ok: false, error });
+const serviceException = (error) => error?.code === 'SUPABASE_CONFIGURATION_ERROR'
+  ? createAppError(AppErrorCode.CONFIGURATION, error)
+  : mapSupabaseError(error);
 
 export async function getSession() {
   try {
+    // Confirm the stored token once before protected routes trust its user. The
+    // auth pages render independently, so this check no longer delays login UI.
     return ok(await getUsableSession({ required: false, validate: true }));
   } catch (error) {
     return fail(mapSupabaseError(error));
@@ -20,9 +26,10 @@ export async function signIn(email, password) {
       password,
     });
     if (error) return fail(mapSupabaseError(error));
+    if (!hasAuthenticatedSignIn(data)) return fail(createAppError(AppErrorCode.SERVICE_UNAVAILABLE));
     return ok(data);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(mapSupabaseError(error));
   }
 }
 
@@ -41,7 +48,7 @@ export async function signUp(email, password, options = {}) {
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(serviceException(error));
   }
 }
 
@@ -58,7 +65,7 @@ export async function signInWithOAuth(provider, redirectTo) {
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(serviceException(error));
   }
 }
 
@@ -69,13 +76,14 @@ export async function signInWithMagicLink(email, redirectTo) {
       email: email.trim().toLowerCase(),
       options: {
         emailRedirectTo: redirectTo,
-        shouldCreateUser: true,
+        // Magic-link login is not registration; reject automatic account creation.
+        shouldCreateUser: false,
       },
     });
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(serviceException(error));
   }
 }
 
@@ -86,7 +94,7 @@ export async function signOut() {
     if (error) return fail(mapSupabaseError(error));
     return ok(null);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(serviceException(error));
   }
 }
 
@@ -98,7 +106,7 @@ export async function refreshSession() {
       validate: true,
     }));
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(serviceException(error));
   }
 }
 
@@ -112,7 +120,7 @@ export async function resetPassword(email, redirectTo) {
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(serviceException(error));
   }
 }
 
@@ -123,6 +131,6 @@ export async function updatePassword(password) {
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(serviceException(error));
   }
 }

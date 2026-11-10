@@ -17,8 +17,8 @@ This is the working implementation register for the master EYLO platform brief. 
 - [ ] Research Discovery — **Partial:** live scholarly indexes, deduplication, ranking, provider-status handling, source links, and saving exist; advanced filter coverage and independent relevance validation remain incomplete.
 - [ ] EYRA Paper Summaries — **Partial:** authenticated discovery, Library, and Project evidence papers offer short/standard/detailed summaries from abstracts, with Europe PMC full-text retrieval for verified eligible PMCIDs and an explicit save action. Other full-text sources and persistent full-text storage are not implemented.
 - [ ] Ask This Paper — **Partial:** a temporary page-local conversation is grounded only in the accessible abstract or retrieved Europe PMC text, displays only substantial quotes that exactly match supplied text, discloses uncertainty, and supports retry/clear. Paper switches discard stale responses. Persistent user-scoped history and full-text passage citations are not implemented.
-- [ ] Compare Papers and Evidence Matrix — **In progress:** open PR #280 (“feat: add evidence matrix and grounded research questions”) is not merged into main; review and verify that branch before extending the feature.
-- [ ] Research Gap Finder — **Partial:** discovery analysis proposes cautiously worded gaps with source IDs; no dedicated user-selected evidence workflow, full scope/counterevidence record, or create-project action was verified.
+- [ ] Compare Papers and Evidence Matrix — **Partial:** current main includes a project-linked, editable source-metadata matrix with researcher-authored notes and CSV export. Authenticated persistence and source fidelity are not verified against production accounts.
+- [ ] Research Gap Finder — **Partial:** current main validates source IDs and frames landscape suggestions as candidate questions. Reproducible search coverage, persisted reviewed candidates, and human-judged gap quality remain open.
 - [ ] Citation Verification — **Partial:** the Library now performs exact Crossref DOI lookups and compares saved DOI, normalized title, publication year, and first-author surname; mismatches and unavailable fields are shown separately. Retraction checks and claim-level source verification remain incomplete. Metadata matches do not establish scientific correctness.
 - [ ] Publish and independently review a human-judged retrieval benchmark. **Not run:** no genuine human relevance labels are present.
 
@@ -38,7 +38,7 @@ This is the working implementation register for the master EYLO platform brief. 
 - [ ] Knowledge Graph — **Not implemented as an interactive, source-backed graph.**
 - [ ] Literature Review Builder — **Not implemented as an editable, source-grounded drafting workflow.**
 - [ ] EYRA Peer Review Simulator — **Not implemented.**
-- [ ] Research Data Lab — **Not implemented.**
+- [ ] Research Data Lab — **Partial:** current main supports bounded, browser-only CSV analysis and formula-safe summary export. Data stays session-only; mobile/browser and accessible chart acceptance remain open.
 - [ ] Reproducibility and Research Integrity — **Not implemented as a structured assistant; existing trust guidance is not a substitute.**
 
 ## Priority 4 — Ongoing research activity and EYRA integration
@@ -50,7 +50,7 @@ This is the working implementation register for the master EYLO platform brief. 
 
 ## Priority 5 — Release readiness
 
-- [x] Run typecheck, lint, unit tests, and production build for the reviewed branch. `npm run check` completed successfully; 246 repository tests passed, along with imports, both TypeScript projects, ESLint, and Vite production build.
+- [x] Run typecheck, lint, unit tests, and production build for the reviewed branch. `npm run check` completed successfully; 282 repository tests passed, along with imports, both TypeScript projects, ESLint, and Vite production build.
 - [ ] Add/run browser coverage for registration → discovery → save → project → EYRA and critical failure paths.
 - [ ] Complete responsive, keyboard, screen-reader, contrast, and accessibility acceptance.
 - [ ] Complete live RLS tests with two disposable accounts against the confirmed intended project.
@@ -59,15 +59,15 @@ This is the working implementation register for the master EYLO platform brief. 
 
 ## Current checkpoint — 2026-11-10
 
-- Branch: `codex/fail-closed-supabase`, merged with current `main` commit `44a07dbe9f9cac47ead20bdcc3686cb337e3f5b8`; this includes the EU Funding & Tenders parser and the latest auth/EYRA paper support.
-- Recent history reviewed: main contains new EU funding and EYRA research workflows; open PR #280 is an Evidence Matrix implementation and open PRs include collaboration, account-deletion intake, owner-scoped export, RLS acceptance checks, and EYRA evidence-evaluation work.
+- Branch: `codex/fail-closed-supabase`, merged with current `main` commit `6796941aaf1295bd4079e6524704f580b896ae83`; this includes newer auth/navigation work, Evidence Matrix, Research Data Lab, Research Gap candidate validation, and safer meeting links.
+- Recent history reviewed: current main also adds owner-scoped paper-summary persistence and research workflow reliability tests; outstanding items remain in `docs/IMPLEMENTATION_BACKLOG.md`.
 - Initial finding: `api/eyra.js`, `api/opportunities.js`, `api/monitor.js`, `api/billing.js`, and `api/stripe-webhook.js` could silently fall back to the hard-coded project `kbzjngpzxpniaumlupaa.supabase.co`. The funding and EYRA handlers also contained a hard-coded public key.
 - Current change: added explicit server-side Supabase URL/key validation and removed the serverless project/key fallbacks. Regression tests confirm missing configuration makes no upstream request and configured requests use only the supplied project.
 - Current core workflow change: extended the existing EYRA paper summarizer with three detail modes, abstract-only uncertainty rules, and explicit save-to-Project behavior while preserving any existing project link; available from Discovery, Library, and Project evidence views.
 - Current paper Q&A change: added an abstract-grounded, temporary Ask This Paper conversation in the same Discovery, Library, and Project evidence views. Prior assistant answers are excluded from evidence context; displayed excerpts must match the abstract; stale answers are discarded on paper changes; page-level citations are not fabricated.
 - Current paper workflow integration: incorporated the latest `main` updates for Europe PMC full-text retrieval and auth state handling. Full-text summaries and Q&A retain source-type labels and use only retrieved text; quotes are checked against that text.
 - Current citation verification change: added fixed-host, exact DOI lookup through Crossref and a Library comparison of the DOI, normalized title, publication year, and first-author surname; mismatches and missing metadata remain explicit.
-- Verification: the security and paper workflow changes passed import checks, both TypeScript projects, ESLint, 246 unit tests, and the Vite build through `npm run check`. The build retains the existing >500 kB chunk warning. Production public smoke passed 8/8 (`/`, `/release.json`, `/robots.txt`, `/discover`, `/login`, `/register`, `/forgot-password`, `/api/capabilities`). Public capability response reports all five optional services disabled. This does not verify account persistence, live RLS, provider access, or AI behavior.
+- Verification: the security, paper, citation, and latest-main integration changes passed import checks, both TypeScript projects, ESLint, 282 unit tests, and the Vite build through `npm run check`. Existing date parsing, dynamic-import, and dependency warnings are non-fatal. The prior public smoke passed 8/8 on 2026-11-10, before the latest main updates. Public capability response reported all five optional services disabled. This does not verify account persistence, live RLS, provider access, or AI behavior.
 - Deployment: unchanged. Exact deployment SHA and connected Vercel project remain unverified; no deployment or database changes were made.
 
 ## Continuation rule

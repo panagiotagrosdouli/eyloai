@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { getSafeRedirect } from "@/lib/auth/safeRedirect";
 import { registrationSchema } from "@/lib/validation/auth";
 
 export default function Register() {
+  const navigate = useNavigate();
   const { signUp } = useAuth();
   const [searchParams] = useSearchParams();
   const [formError, setFormError] = useState("");
@@ -43,7 +44,7 @@ export default function Register() {
       // Email confirmation is not always enabled. Only promise a confirmation
       // message when the provider did not issue a valid session.
       if (result.data?.session) {
-        window.location.assign(`${import.meta.env.BASE_URL}${destination.replace(/^[/]/, "")}`);
+        navigate(destination, { replace: true });
         return;
       }
       setSentEmail(email);
@@ -57,11 +58,11 @@ export default function Register() {
       <AuthLayout
         icon={Mail}
         title="Confirm your email"
-        subtitle={`We sent a confirmation link to ${sentEmail}.`}
+        subtitle={`Check ${sentEmail} for an EYLO confirmation link.`}
         footer={<Link to={loginHref} className="font-medium text-[#25578d] hover:underline">Back to sign in</Link>}
       >
         <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800">
-          Open the link to verify your address. EYLO will then return you to the research page that sent you here.
+          The account service accepted your request, but it cannot confirm email delivery. Check your inbox and spam folder. If no link arrives, try again later or contact EYLO support.
         </div>
       </AuthLayout>
     );

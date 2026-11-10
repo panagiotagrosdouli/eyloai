@@ -70,3 +70,13 @@ test('rejects a quote that is trivially short', () => {
   }], papers);
   assert.equal(output.key_findings.length, 0);
 });
+
+test('accepts a literal supported excerpt beyond the first 240 abstract characters', () => {
+  const tail = 'The intervention improved retention across the full study cohort.';
+  const longAbstract = 'Background information about the research context. '.repeat(7) + tail;
+  const output = selectExcerptSupportedClaims(analysis, [{
+    claim_id: 'F0', verdict: 'supported', source_id: 'P1', quote: tail,
+  }], [{ summary: longAbstract, url: 'https://example.org/full-abstract' }]);
+  assert.equal(output.key_findings.length, 1);
+  assert.equal(output.key_findings[0].source_excerpt, tail);
+});

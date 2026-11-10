@@ -44,6 +44,12 @@ jobs:
       - name: Protect authenticated EYRA routing
         run: npm run test:eyra-auth
 
+      - name: Install browser for authentication regression tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser authentication regressions
+        run: npm run test:e2e:auth
+
       - name: Test local-time greeting states
         run: npm run test:greeting
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
-  Activity, Award, BookOpen, Brain, Briefcase, ChevronDown, FileEdit, FolderOpen, History,
+  Activity, Award, BarChart3, BookOpen, Brain, Briefcase, ChevronDown, FileEdit, FolderOpen, History,
   Home, LayoutDashboard, LayoutGrid, Lightbulb, Menu, Mic, Presentation,
   Rocket, Search, Settings, Sparkles, Target, Trophy, User, Users,
   Video, X, Zap,
@@ -18,7 +18,7 @@ const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
   { label: 'Discover', path: '/search', icon: Search },
   { label: 'Connect', path: '/researchers', icon: Users },
-  { label: 'Careers', path: '/careers', icon: Briefcase },
+  { label: 'Careers', path: '/workspace/careers', icon: Briefcase },
   { label: 'Projects', path: '/projects', icon: FolderOpen },
 ];
 
@@ -36,6 +36,7 @@ const TOOL_GROUPS = [
     items: [
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
+      { label: 'Research Data Lab', path: '/labs/data', icon: BarChart3, desc: 'Analyze CSV data privately in your browser', badge: 'Local only' },
       { label: 'For you', path: '/foryou', icon: Sparkles, desc: 'Updates from your saved research context', badge: 'Workspace' },
       { label: 'Idea workspace', path: '/ideas', icon: Lightbulb, desc: 'Capture and develop research ideas', badge: 'Workspace' },
       { label: 'Meetings', path: '/meetings', icon: Video, desc: 'Keep notes, decisions and actions', badge: 'Workspace' },

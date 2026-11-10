@@ -30,12 +30,16 @@ export default function ForgotPassword() {
     setFormError("");
     const resetUrl = new URL(`${import.meta.env.BASE_URL}reset-password`, window.location.origin);
     resetUrl.searchParams.set("from", destination);
-    const result = await resetPassword(email, resetUrl.toString());
-    if (!result.ok) {
-      setFormError(result.error.message);
-      return;
+    try {
+      const result = await resetPassword(email, resetUrl.toString());
+      if (!result.ok) {
+        setFormError(result.error?.message || "The recovery email could not be sent. Please retry.");
+        return;
+      }
+      setSent(true);
+    } catch {
+      setFormError("The recovery email could not be sent. Check your connection and retry.");
     }
-    setSent(true);
   };
 
   return (
@@ -51,7 +55,7 @@ export default function ForgotPassword() {
     >
       {sent ? (
         <div role="status" className="rounded-xl border border-emerald-300/15 bg-emerald-300/[0.05] p-4 text-sm leading-6 text-emerald-100">
-          If an account exists with that email, a password-reset link will arrive shortly. This message is intentionally the same for every address.
+          Your request was accepted. If an account exists, check your inbox and spam for a recovery link. EYLO cannot confirm delivery; retry later if it does not arrive. This message is the same for every address.
         </div>
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>

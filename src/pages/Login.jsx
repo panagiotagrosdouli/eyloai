@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const submissionInProgress = useRef(false);
 
   const destination = getSafeRedirect(searchParams.get("from"));
   const registerHref = destination === "/home"
@@ -28,6 +29,8 @@ export default function Login() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submissionInProgress.current) return;
+    submissionInProgress.current = true;
     setError("");
     setMagicLinkSent(false);
     setLoading(true);
@@ -42,6 +45,7 @@ export default function Login() {
     } catch {
       setError("Sign in could not be completed. Check your connection and retry.");
     } finally {
+      submissionInProgress.current = false;
       setLoading(false);
     }
   };
@@ -53,6 +57,7 @@ export default function Login() {
   };
 
   const handleMagicLink = async () => {
+    if (submissionInProgress.current) return;
     setError("");
     setMagicLinkSent(false);
     if (!email.trim()) {
@@ -60,6 +65,7 @@ export default function Login() {
       return;
     }
 
+    submissionInProgress.current = true;
     setLoading(true);
     try {
       const result = await signInWithMagicLink(email, callbackUrl());
@@ -71,6 +77,7 @@ export default function Login() {
     } catch {
       setError("The sign-in link could not be sent. Please retry.");
     } finally {
+      submissionInProgress.current = false;
       setLoading(false);
     }
   };
@@ -102,7 +109,7 @@ export default function Login() {
 
       {magicLinkSent && (
         <div role="status" className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-          Check your email. The secure link will return you to your EYLO workspace.
+          The request was accepted. Check your inbox and spam for a secure sign-in link. EYLO cannot confirm delivery; retry later if it does not arrive.
         </div>
       )}
 
