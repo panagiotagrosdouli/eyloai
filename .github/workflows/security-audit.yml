@@ -1,0 +1,29 @@
+name: Production Dependency Security Audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/security-audit.yml'
+      - 'vercel.json'
+      - 'src/lib/supabaseClient.js'
+      - 'src/lib/api-cors.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Check production dependency vulnerabilities
+        run: npm audit --omit=dev --audit-level=high
