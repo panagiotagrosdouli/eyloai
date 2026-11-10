@@ -73,3 +73,17 @@ test('Supabase gateway fallback keeps the same bounded request timeout', async (
   assert.match(source, /return fetchWithTimeout\(directUrl, init\)/);
   assert.doesNotMatch(source, /return fetch\(directUrl, init\)/);
 });
+
+
+test('signed-in public entry routes redirect into the authenticated workspace', async () => {
+  const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8');
+  const layout = await readFile(new URL('../src/components/layout/AppLayout.jsx', import.meta.url), 'utf8');
+  assert.match(app, /status === 'authenticated'\) return <Navigate to=\{workspacePath\} replace \/>/);
+  assert.match(app, /<Route path="\/" element=\{<PublicEntry><Landing \/><\/PublicEntry>\} \/>/);
+  assert.match(app, /<Route path="\/discover" element=\{<PublicEntry workspacePath="\/search">/);
+  assert.match(app, /<Route path="\/find-researchers" element=\{<PublicEntry workspacePath="\/researchers">/);
+  assert.match(app, /<Route path="\/careers" element=\{<PublicEntry workspacePath="\/workspace\/careers">/);
+  assert.match(app, /<Route path="\/workspace\/careers" element=\{<PublicCareers \/>\} \/>/);
+  assert.match(layout, /label: 'Careers', path: '\/workspace\/careers'/);
+  assert.match(app, /<Route element=\{<ProtectedRoute \/>\}>/);
+});
