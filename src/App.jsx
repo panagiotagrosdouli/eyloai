@@ -53,6 +53,7 @@ const PitchDeckBuilder = lazy(() => import('@/pages/PitchDeckBuilder'));
 const GrantBuilder = lazy(() => import('@/pages/GrantBuilder'));
 const InstitutionAdmin = lazy(() => import('@/pages/InstitutionAdmin'));
 const ResearchDataLab = lazy(() => import('@/pages/ResearchDataLab'));
+const ResearchKnowledgeGraph = lazy(() => import('@/pages/ResearchKnowledgeGraph'));
 
 const AiTool = ({ minimum, children }) => (
   <CapabilityGate capability="ai">
@@ -98,6 +99,7 @@ const AuthenticatedApp = () => {
           <Route path="/library" element={<Library />} />
           <Route path="/research-gaps" element={<ResearchGaps />} />
           <Route path="/labs/data" element={<ResearchDataLab />} />
+          <Route path="/knowledge-graph" element={<ResearchKnowledgeGraph />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/researchers" element={<Researchers />} />

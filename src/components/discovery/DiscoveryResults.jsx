@@ -92,6 +92,9 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         source: paper.source,
         source_index: paper.source_index || paper.source,
         cited_by_count: paper.cited_by_count,
+        authorships: paper.authorships || [],
+        openalex_topics: paper.openalex_topics || [],
+        referenced_work_ids: paper.referenced_work_ids || [],
         open_access: paper.open_access,
         url: paper.url,
       }, projectCreated);
