@@ -47,17 +47,17 @@ const TOOL_GROUPS = [
   },
   {
     section: 'Research tools',
-    description: 'Planning and analysis tools',
+    description: 'Source-backed research, planning and creation tools',
     items: [
       { label: 'Open challenges', path: '/challenges', icon: Trophy, desc: 'Research and innovation challenges', badge: 'Live sources' },
       { label: 'Executive briefing', path: '/briefing', icon: Brain, desc: 'A sourced view of priorities and risks', badge: 'Assisted' },
       { label: 'Opportunity review', path: '/radar', icon: Zap, desc: 'Review funding against your project context', badge: 'Assisted' },
-      { label: 'Research landscape', path: '/labs/research-landscape', icon: Activity, desc: 'Compare approaches and evidence gaps', badge: 'Experimental' },
-      { label: 'Impact review', path: '/labs/impact', icon: Target, desc: 'Test impact assumptions and pathways', badge: 'Experimental' },
-      { label: 'Scenario planner', path: '/labs/scenario', icon: Rocket, desc: 'Compare plausible project directions', badge: 'Experimental' },
-      { label: 'Team planner', path: '/labs/team', icon: Users, desc: 'Explore roles and expertise fit', badge: 'Experimental' },
+      { label: 'Research landscape', path: '/labs/research-landscape', icon: Activity, desc: 'Compare approaches and evidence gaps' },
+      { label: 'Impact review', path: '/labs/impact', icon: Target, desc: 'Test impact assumptions and pathways' },
+      { label: 'Scenario planner', path: '/labs/scenario', icon: Rocket, desc: 'Compare plausible project directions' },
+      { label: 'Team planner', path: '/labs/team', icon: Users, desc: 'Explore roles and expertise fit' },
 
-      { label: 'Voice workspace', path: '/labs/voice', icon: Mic, desc: 'Dictate a sourced research question', badge: 'Experimental' },
+      { label: 'Voice workspace', path: '/labs/voice', icon: Mic, desc: 'Dictate a sourced research question' },
       { label: 'Grant workspace', path: '/grant-builder', icon: FileEdit, desc: 'Draft and track an application', badge: 'Assisted' },
       { label: 'Pitch deck', path: '/pitchdeck', icon: Presentation, desc: 'Build a sourced presentation', badge: 'Assisted' },
     ],
