@@ -117,7 +117,14 @@ async function fetchGrantDetail(hit) {
 }
 
 function euText(value) {
-  if (typeof value === 'string' || typeof value === 'number') return plainText(String(value));
+  if (typeof value === 'string') {
+    const clean = plainText(value);
+    if (clean.startsWith('[')) {
+      try { return euText(JSON.parse(clean)); } catch { /* Keep the source string when it is not JSON. */ }
+    }
+    return clean;
+  }
+  if (typeof value === 'number') return plainText(String(value));
   if (Array.isArray(value)) return value.map(euText).filter(Boolean).join('; ');
   return '';
 }
@@ -125,7 +132,7 @@ function euText(value) {
 function euCall(item) {
   // SEDIA has changed field casing between portal releases. Keep source facts
   // and links verbatim where possible; unknown fields remain explicitly empty.
-  const data = item?.content || item?.metadata || item || {};
+  const data = item?.metadata || (item?.content && typeof item.content === 'object' ? item.content : {}) || {};
   const read = (...keys) => {
     for (const key of keys) {
       const value = data[key] ?? item?.[key];
@@ -135,23 +142,28 @@ function euCall(item) {
     return '';
   };
   const identifier = read('identifier', 'callIdentifier', 'topicIdentifier', 'reference');
-  const sourceUrl = read('url', 'webLink', 'callUrl') || (identifier
+  const providerUrl = read('webLink', 'callUrl');
+  const sourceUrl = (identifier
     ? `https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/${encodeURIComponent(identifier)}`
-    : 'https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/calls-for-proposals');
+    : providerUrl || 'https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/calls-for-proposals');
+  const rawStatus = read('status');
+  const status = ({ '31094501': 'Open', '31094502': 'Closed', '31094503': 'Forthcoming' })[rawStatus] || rawStatus || 'Unknown';
+  const title = read('title', 'callTitle', 'topicTitle') || euText(item?.content) || 'Untitled EU funding opportunity';
+  const programme = read('programmeName', 'programme') || (/^HORIZON/i.test(identifier) ? 'Horizon Europe' : 'European Commission');
   return {
     id: `eu:${identifier || read('id') || sourceUrl}`,
     source_id: identifier || read('id'),
-    title: read('title', 'callTitle', 'topicTitle') || 'Untitled EU funding opportunity',
+    title,
     type: 'call',
-    description: read('description', 'objective', 'scope'),
-    eligibility: read('eligibility', 'eligibleApplicants', 'conditions'),
-    amount: read('budget', 'topicBudget', 'maxGrantAmount'),
+    description: read('description', 'objective', 'scope', 'summary') || euText(item?.summary),
+    eligibility: read('eligibility', 'eligibleApplicants', 'eligibleBeneficiaries', 'conditions'),
+    amount: read('budget', 'topicBudget', 'maxGrantAmount', 'callBudget'),
     deadline: read('deadlineDate', 'deadline', 'submissionDeadline'),
     deadline_days: daysUntil(read('deadlineDate', 'deadline', 'submissionDeadline')),
-    status: read('status') || 'Unknown',
-    agency: read('programmeName', 'programme', 'frameworkProgramme') || 'European Union',
-    country: read('country', 'geographicalZone'),
-    categories: [read('keywords', 'subject')].filter(Boolean),
+    status,
+    agency: programme,
+    country: read('country', 'geographicalZone', 'countries'),
+    categories: [read('keywords', 'subject', 'programmeDivision')].filter(Boolean),
     source: 'EU Funding & Tenders Portal',
     source_url: sourceUrl,
     retrieved_at: new Date().toISOString(),
