@@ -16,6 +16,7 @@ import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import { parseProjectTasks, toggleProjectTask } from '@/lib/project-tasks';
+import { exportEvidenceMatrixCsv, getEvidenceMatrixRows, NOTE_FIELDS } from '@/lib/evidence-matrix.mjs';
 
 const TABS = [
   { key: 'overview', label: 'Overview', icon: Target },
@@ -43,6 +44,9 @@ export default function ProjectDetail() {
   const [activeTab, setActiveTab] = useState('overview');
   const [editing, setEditing] = useState(/** @type {any} */ ({}));
   const [savedPapers, setSavedPapers] = useState([]);
+  const [matrixPaperIds, setMatrixPaperIds] = useState([]);
+  const [matrixNotes, setMatrixNotes] = useState({});
+  const [matrixFilter, setMatrixFilter] = useState('');
   const [savedResearchers, setSavedResearchers] = useState([]);
   const [savedOpportunities, setSavedOpportunities] = useState([]);
   const [meetings, setMeetings] = useState([]);
@@ -77,6 +81,12 @@ export default function ProjectDetail() {
     const mtgs = meetingsResult.status === 'fulfilled' ? meetingsResult.value : [];
     setProject(data);
     setSavedPapers(papers.filter(item => item.project_id === id));
+    const linkedPapers = papers.filter(item => item.project_id === id);
+    const savedMatrix = data.evidence_matrix && typeof data.evidence_matrix === 'object' ? data.evidence_matrix : {};
+    setMatrixPaperIds(Array.isArray(savedMatrix.selected_paper_ids)
+      ? savedMatrix.selected_paper_ids.map(String).filter(paperId => linkedPapers.some(item => String(item.id) === paperId))
+      : linkedPapers.map(item => String(item.id)));
+    setMatrixNotes(savedMatrix.annotations && typeof savedMatrix.annotations === 'object' ? savedMatrix.annotations : {});
     setSavedResearchers(researchers.filter(item => item.project_id === id));
     setSavedOpportunities(opportunities.filter(item => item.project_id === id));
     setMeetings(mtgs);
@@ -120,6 +130,32 @@ export default function ProjectDetail() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const saveEvidenceMatrix = async () => {
+    setSaving(true);
+    try {
+      const evidence_matrix = { selected_paper_ids: matrixPaperIds, annotations: matrixNotes };
+      const saved = await base44.entities.Project.update(id, { evidence_matrix });
+      setProject(prev => ({ ...prev, ...saved }));
+      toast({ title: 'Evidence matrix saved' });
+    } catch (error) {
+      toast({ title: 'Could not save evidence matrix', description: error?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const downloadEvidenceMatrix = () => {
+    const csv = exportEvidenceMatrixCsv(getEvidenceMatrixRows(savedPapers, matrixPaperIds, matrixNotes));
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `evidence-matrix-${String(project.title || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'project'}.csv`;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
   };
 
   const runEyraAnalysis = async () => {
@@ -258,6 +294,8 @@ Rules:
 
   const statusColor = STATUS_COLORS[editing.status] || STATUS_COLORS.planning;
   const upcomingMeetings = meetings.filter(m => moment(m.date).isSameOrAfter(moment(), 'day'));
+  const matrixRows = getEvidenceMatrixRows(savedPapers, matrixPaperIds, matrixNotes);
+  const filteredMatrixPapers = savedPapers.filter(paper => `${paper.title || ''} ${paper.authors || ''}`.toLowerCase().includes(matrixFilter.trim().toLowerCase()));
   const taskItems = parseProjectTasks(editing.tasks);
   const completedTaskCount = taskItems.filter(task => task.completed).length;
   const nextAction = taskItems.find(task => !task.completed)?.text;
@@ -423,6 +461,74 @@ Rules:
       {activeTab === 'evidence' && (
         <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4" aria-labelledby="project-evidence-title">
           <div><h2 id="project-evidence-title" className="text-xl font-semibold">Evidence</h2><p className="mt-1 text-sm text-muted-foreground">Saved papers linked to this project.</p></div>
+          {savedPapers.length > 0 && (
+            <section className="rounded-xl border border-border bg-card p-4 sm:p-5" aria-labelledby="evidence-matrix-title">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h3 id="evidence-matrix-title" className="text-lg font-semibold">Evidence Matrix</h3>
+                  <p className="mt-1 max-w-3xl text-sm text-muted-foreground">Select linked papers and record your comparison notes. EYLO does not infer missing methods, datasets, findings, or limitations.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={saveEvidenceMatrix} disabled={saving} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground disabled:opacity-60"><Save size={14} />{saving ? 'Saving…' : 'Save matrix'}</button>
+                  <button type="button" onClick={downloadEvidenceMatrix} disabled={!matrixRows.length} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary disabled:opacity-50"><FileText size={14} />Export CSV</button>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.9fr)]">
+                <div>
+                  <label htmlFor="evidence-matrix-filter" className="mb-1 block text-xs font-medium text-muted-foreground">Filter linked papers</label>
+                  <input id="evidence-matrix-filter" value={matrixFilter} onChange={event => setMatrixFilter(event.target.value)} placeholder="Search title or authors" className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40" />
+                </div>
+                <div>
+                  <span className="mb-1 block text-xs font-medium text-muted-foreground">Papers to compare</span>
+                  <div className="max-h-36 space-y-1 overflow-y-auto rounded-lg border border-border p-2">
+                    {filteredMatrixPapers.map(paper => {
+                      const paperId = String(paper.id);
+                      return (
+                        <label key={paperId} className="flex cursor-pointer items-start gap-2 rounded px-2 py-1.5 text-sm hover:bg-secondary/60">
+                          <input type="checkbox" checked={matrixPaperIds.includes(paperId)} onChange={event => setMatrixPaperIds(previous => event.target.checked ? [...new Set([...previous, paperId])] : previous.filter(value => value !== paperId))} className="mt-1 accent-primary" />
+                          <span className="line-clamp-2">{paper.title || 'Untitled record'}</span>
+                        </label>
+                      );
+                    })}
+                    {!filteredMatrixPapers.length && <p className="px-2 py-2 text-xs text-muted-foreground">No linked papers match this filter.</p>}
+                  </div>
+                </div>
+              </div>
+
+              {matrixRows.length ? (
+                <div className="mt-4 overflow-x-auto rounded-lg border border-border">
+                  <table className="min-w-[980px] w-full border-collapse text-left text-xs">
+                    <caption className="sr-only">Researcher-authored evidence comparison notes for selected project papers</caption>
+                    <thead className="bg-secondary/60 text-muted-foreground">
+                      <tr>
+                        <th scope="col" className="p-3">Source paper</th>
+                        <th scope="col" className="p-3">Year</th>
+                        {NOTE_FIELDS.map(([, label]) => <th key={label} scope="col" className="min-w-48 p-3">{label} · your note</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {matrixRows.map(({ paper, notes }) => (
+                        <tr key={paper.id} className="border-t border-border align-top">
+                          <th scope="row" className="min-w-56 p-3 font-medium text-foreground">
+                            {paper.url ? <a href={paper.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-start gap-1 text-primary hover:underline">{paper.title || 'Untitled record'} <ExternalLink size={12} className="mt-0.5 shrink-0" /></a> : paper.title || 'Untitled record'}
+                            {paper.authors && <span className="mt-1 block font-normal text-muted-foreground">{paper.authors}</span>}
+                            {!paper.url && <span className="mt-1 block font-normal text-amber-300">Source URL not saved</span>}
+                          </th>
+                          <td className="p-3 text-muted-foreground">{paper.year || 'Not recorded'}</td>
+                          {NOTE_FIELDS.map(([field, label]) => (
+                            <td key={field} className="p-2">
+                              <textarea aria-label={`${label} note for ${paper.title || 'untitled paper'}`} maxLength={2000} rows={4} value={notes[field]} onChange={event => setMatrixNotes(previous => ({ ...previous, [paper.id]: { ...(previous[paper.id] || {}), [field]: event.target.value } }))} placeholder="Not recorded — add a note after reviewing the source" className="min-h-24 w-full resize-y rounded-md border border-border bg-background p-2 text-xs leading-5 focus:outline-none focus:ring-2 focus:ring-primary/40" />
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">Select one or more linked papers to build the matrix.</p>}
+            </section>
+          )}
           {savedPapers.length ? savedPapers.map(paper => (
             <article key={paper.id} className="rounded-xl border border-border bg-card p-4 sm:p-5">
               <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">{paper.source && <span>{paper.source}</span>}{paper.year && <span>{paper.year}</span>}</div>
