@@ -43,3 +43,19 @@ jobs:
           printf '%s\n' "$http_headers" | grep -Ei '^HTTP/|^location:'
           printf '%s\n' "$http_headers" | grep -Eiq '^HTTP/[0-9.]+ (301|302|307|308)'
           printf '%s\n' "$http_headers" | grep -Eiq '^location: https://eyloai\.vercel\.app(/|[[:space:]]|$)'
+      - name: Read-only production anonymous API and CORS checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          origin=https://eyloai.vercel.app
+          for path in /api/billing /api/opportunities /api/monitor; do
+            code="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' "${origin}${path}")"
+            echo "${path}: anonymous HTTP ${code}"
+            test "$code" = 401
+          done
+          code="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' --request POST --header 'Content-Type: application/json' --data '{}' "${origin}/api/eyra")"
+          echo "/api/eyra: anonymous HTTP ${code}"
+          test "$code" = 401
+          cors_code="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' --request OPTIONS --header 'Origin: https://attacker.example' --header 'Access-Control-Request-Method: POST' "${origin}/api/eyra")"
+          echo "Untrusted EYRA preflight: HTTP ${cors_code}"
+          test "$cors_code" = 403
