@@ -87,3 +87,16 @@ test('signed-in public entry routes redirect into the authenticated workspace', 
   assert.match(layout, /label: 'Careers', path: '\/workspace\/careers'/);
   assert.match(app, /<Route element=\{<ProtectedRoute \/>\}>/);
 });
+
+test('authentication distinguishes service configuration, network, and email delivery failures', () => {
+  const configuration = mapSupabaseError(Object.assign(new Error('Authentication service is not configured.'), {
+    code: 'SUPABASE_CONFIGURATION_ERROR',
+  }));
+  assert.equal(configuration.code, AppErrorCode.CONFIGURATION);
+
+  const network = mapSupabaseError(new TypeError('Failed to fetch'));
+  assert.equal(network.code, AppErrorCode.NETWORK);
+
+  const delivery = mapSupabaseError({ message: 'Error sending confirmation email', status: 400 });
+  assert.equal(delivery.code, AppErrorCode.EMAIL_SEND_FAILED);
+});
