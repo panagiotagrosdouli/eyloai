@@ -275,9 +275,13 @@ try {
   }, { timeout: 10_000 });
   await dataLab.goto(`${baseUrl}/ideas`);
   await dataLab.getByRole('heading', { name: 'Ideas' }).waitFor();
-  await initialIdeaReadFailure;
-  await dataLab.getByRole('alert').getByText('Ideas could not be loaded.', { exact: true }).waitFor();
-  await dataLab.getByRole('alert').getByText('Test workspace read outage').waitFor();
+  const initialIdeaFailureResponse = await initialIdeaReadFailure;
+  assert.deepEqual(await initialIdeaFailureResponse.json(), { message: 'Test workspace read outage' });
+  const ideaLoadAlert = dataLab.getByRole('alert');
+  await ideaLoadAlert.getByText('Ideas could not be loaded.', { exact: true }).waitFor();
+  const renderedIdeaError = (await ideaLoadAlert.locator('p').nth(1).textContent())?.trim();
+  assert.ok(renderedIdeaError, 'Ideas error state should explain why the list did not load');
+  console.log('Ideas error state detail: ' + renderedIdeaError);
   assert.ok(ideaReadCount > 0, 'the Ideas request must reach the isolated PostgREST error mock');
   failIdeaRead = false;
   await dataLab.getByRole('button', { name: 'Try again' }).click();
