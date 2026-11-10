@@ -115,6 +115,7 @@ export async function searchOpenAlexWorks(query, limit = 10, sort = 'relevance',
     return (data.results || []).map(w => ({
       id: w.id,
       doi: w.doi ? w.doi.replace('https://doi.org/', '') : '',
+      pmcid: String(w.ids?.pmcid || w.ids?.pmc || '').replace(/^https?:\/\/[^/]+\//i, ''),
       title: w.title || 'Untitled',
       authors: (w.authorships || []).slice(0, 4).map(a => a.author?.display_name).filter(Boolean).join(', '),
       year: w.publication_year,
