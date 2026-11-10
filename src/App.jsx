@@ -29,6 +29,7 @@ const PublicResearchers = lazy(() => import('@/pages/PublicResearchers'));
 const AppLayout = lazy(() => import('@/components/layout/AppLayout'));
 const Home = lazy(() => import('@/pages/Home'));
 const Library = lazy(() => import('@/pages/Library'));
+const ResearchGaps = lazy(() => import('@/pages/ResearchGaps'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
 const Researchers = lazy(() => import('@/pages/Researchers'));
@@ -123,6 +124,7 @@ const AuthenticatedApp = () => {
           <Route path="/home" element={<Home />} />
           <Route path="/search" element={<Home searchOnly />} />
           <Route path="/library" element={<Library />} />
+          <Route path="/research-gaps" element={<ResearchGaps />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/researchers" element={<Researchers />} />
