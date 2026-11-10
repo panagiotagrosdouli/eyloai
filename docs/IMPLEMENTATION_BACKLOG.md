@@ -15,12 +15,14 @@
 
 ## Feature checklist
 
-### 1. Research Knowledge Graph — not implemented as a connected graph
+### 1. Research Knowledge Graph — source-backed saved-collection graph implemented; coverage is partial
 
-- [ ] Model sourced nodes for publications, researchers, institutions, topics and methods.
-- [ ] Add only traceable edges (citation, authorship, affiliation, topic) with provider record IDs and source links.
-- [ ] Implement filter, expansion, keyboard-accessible exploration and project saving.
-- [ ] Add ownership, persistence, empty/error states and focused integration tests.
+- [x] Build sourced nodes for saved publications, exact-ID authors/researchers, institutions, OpenAlex topics, projects and researcher-authored study-design notes.
+- [x] Add only traceable edges for publication authorship, work affiliations, indexed topics, citations between papers in the saved collection and saved project links; use stable OpenAlex IDs and source URLs.
+- [x] Mark shared-topic paper similarity as inference; provide filters, keyboard node navigation, zoom/pan, related-record inspection and an accessible relationship list.
+- [ ] Expand source metadata coverage for legacy saved papers without authorship/topic/reference IDs; no names are merged without matching OpenAlex IDs.
+- [x] Reuse the user's existing saved-library and project records for persistence; provide loading, empty, partial-load, error and retry states with graph-model tests.
+- [ ] Verify two-user isolation and source completeness against the intended Supabase project.
 
 ### 2. Scientific Evidence Matrix — partial
 
@@ -118,6 +120,7 @@
 - **2026-11-10:** Research Data Lab adds private, in-browser CSV preview, validation, missingness and numeric summaries, an accessible row chart, reproducible analysis steps, and formula-safe summary export. Dataset contents are not uploaded, persisted, or sent to AI.
 - **2026-11-10:** PR #300 routes signed-in users from public entry pages back into their protected workspace destinations and makes Careers accessible inside workspace navigation. PR #299 ignores stale authentication operation results and states accurately that email request acceptance is not delivery confirmation. Neither verifies live production email or session flows.
 - **2026-11-10:** Meetings now reject non-HTTPS or credential-bearing links, create Jitsi rooms only with cryptographically random IDs, and use keyboard-operable meeting-card buttons. Jitsi is still a public third-party service, not an EYLO access-controlled room.
-- **2026-11-10:** Added a mocked-auth browser regression for keyboard opening a meeting plan and suppressing an unsafe legacy link. It does not test a real Jitsi call, camera, microphone, screen sharing or cross-user access.
-- **Validation:** Local `npm run check` passed after the meeting-link changes: imports, both TypeScript projects, ESLint, 259 tests, and Vite production build. Targeted meeting tests and lint pass. Local Playwright launch of system Chromium was denied by host socket permissions; the updated browser test awaits GitHub Actions. Vite emitted dependency annotation and large-chunk warnings.
+- **2026-11-10:** Knowledge Graph now derives source-backed author, institution, topic, citation and project links from user-saved records. Citations require both OpenAlex IDs and both works in the user's Library; inferred shared-topic links have separate styling and caveats. Added filters, zoom/pan, related-node exploration and an accessible list.
+- **2026-11-10:** Added mocked-auth browser regressions for keyboard opening meeting cards, rejecting unsafe legacy meeting URLs, and navigating a saved-paper graph with source citation links. These fixtures do not test production account isolation or live Jitsi calls.
+- **Validation:** Local `npm run check` passed on this Knowledge Graph branch: imports, both TypeScript projects, ESLint, 265 tests and Vite production build. `node --check tests/e2e-auth.mjs` and `git diff --check` passed. Local Playwright launch of system Chromium was denied by host socket permissions; the expanded browser scenario awaits GitHub Actions. Vite emitted dependency annotation and large-chunk warnings.
 - **Live public smoke:** HTTP 200 for `/`, `/manifest.webmanifest`, `/robots.txt`, `/discover`, `/login`, `/register`, `/forgot-password`, and `/api/capabilities`. This checks HTTP availability only; authenticated workflows, deployed commit, database isolation and provider readiness were not verified.

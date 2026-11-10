@@ -288,6 +288,59 @@ try {
   await dataLab.getByText('Your Idea Vault is empty').waitFor();
 
   console.log('Browser checks passed: auth, mobile registration, private CSV analysis, keyboard meeting access, and Idea Vault recovery/CRUD against an isolated test double.');
+
+  const works = [
+    {
+      id: 'graph-paper-1',
+      user_id: testUser.id,
+      created_at: '2026-11-10T00:00:00.000Z',
+      data: {
+        source_id: 'https://openalex.org/W100',
+        title: 'Graph paper one',
+        year: 2024,
+        source: 'OpenAlex',
+        url: 'https://doi.org/10.1234/graph-one',
+        project_id: 'graph-project-1',
+        authorships: [{ author_id: 'https://openalex.org/A100', author_name: 'Graph Researcher', institutions: [{ id: 'https://openalex.org/I100', name: 'Graph University' }] }],
+        openalex_topics: [{ id: 'https://openalex.org/T100', name: 'Graph methods' }],
+        referenced_work_ids: ['https://openalex.org/W200'],
+      },
+    },
+    {
+      id: 'graph-paper-2',
+      user_id: testUser.id,
+      created_at: '2026-11-10T00:00:00.000Z',
+      data: {
+        source_id: 'https://openalex.org/W200',
+        title: 'Graph paper two',
+        year: 2022,
+        source: 'OpenAlex',
+        url: 'https://doi.org/10.1234/graph-two',
+        project_id: 'graph-project-1',
+        authorships: [{ author_id: 'https://openalex.org/A100', author_name: 'Graph Researcher', institutions: [] }],
+        openalex_topics: [{ id: 'https://openalex.org/T100', name: 'Graph methods' }],
+        referenced_work_ids: [],
+      },
+    },
+  ];
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/saved_papers**', route => sendAuthJson(route, works));
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/saved_researchers**', route => sendAuthJson(route, [{
+    id: 'graph-researcher-1', user_id: testUser.id, created_at: '2026-11-10T00:00:00.000Z',
+    data: { openalex_id: 'https://openalex.org/A100', name: 'Graph Researcher', institution: 'Graph University', profile_url: 'https://openalex.org/A100' },
+  }]));
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/projects**', route => sendAuthJson(route, [{
+    id: 'graph-project-1', user_id: testUser.id, created_at: '2026-11-10T00:00:00.000Z', updated_at: '2026-11-10T00:00:00.000Z',
+    data: { title: 'Graph project', evidence_matrix: { annotations: { 'graph-paper-1': { study_design: 'Researcher note: cohort study' } } } },
+  }]));
+  await dataLab.goto(`${baseUrl}/knowledge-graph`);
+  await dataLab.getByRole('heading', { name: 'Knowledge Graph' }).waitFor();
+  const graphPaper = dataLab.getByRole('button', { name: 'Explore graph node: Graph paper one (Publications)' });
+  await graphPaper.focus();
+  await dataLab.keyboard.press('Enter');
+  await dataLab.getByRole('heading', { name: 'Graph paper one' }).waitFor();
+  await dataLab.getByRole('button', { name: /Graph paper one Cites Graph paper two/ }).waitFor();
+
+  console.log('Browser checks passed: auth, mobile registration, local CSV analysis, keyboard meeting access and source graph navigation.');
 } finally {
   if (browser) await browser.close();
   if (server.exitCode === null) {
