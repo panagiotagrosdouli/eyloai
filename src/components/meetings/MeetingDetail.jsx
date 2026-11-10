@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import moment from 'moment';
 import { createMeetingCalendarDraft } from '@/lib/meeting-invitation';
 import { getEmbeddedJitsiRoom, normalizeMeetingLink } from '@/lib/meeting-links.mjs';
+import { isPublicJitsiRoomUrl } from '@/lib/jitsi-room.mjs';
 
 const TABS = ['Overview', 'EYRA Prep', 'Notes & Debrief'];
 
@@ -17,6 +18,7 @@ export default function MeetingDetail({ meeting, projects, onBack, onSave, onDel
   let meetingLink = '';
   try { meetingLink = normalizeMeetingLink(meeting.meeting_link); } catch { /* Invalid saved URLs stay inert. */ }
   const embeddedRoom = getEmbeddedJitsiRoom(meetingLink);
+  const publicJitsiRoom = isPublicJitsiRoomUrl(meetingLink);
   const [editing, setEditing] = useState(false);
   const [loadingPrep, setLoadingPrep] = useState(false);
   const [loadingDebrief, setLoadingDebrief] = useState(false);
@@ -241,7 +243,7 @@ Be concise and actionable.`,
         <section role="dialog" aria-modal="true" aria-label="EYLO meeting video call" className="fixed inset-0 z-[100] flex flex-col bg-background p-3 sm:p-6">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div><h2 className="text-sm font-semibold">{meeting.title}</h2>
-              <p className="text-xs text-muted-foreground">Video powered by Jitsi, a third-party service. Camera and microphone access require your permission. This is not a private EYLO-hosted video server.</p>
+              <p className="text-xs text-muted-foreground">Video is provided by Jitsi, a third-party service. Camera and microphone access require your permission. Anyone who obtains this room link may be able to join; EYLO does not enforce an invite list. Do not discuss confidential or personal research data in this call.</p>
             </div>
             <button type="button" onClick={() => setInAppCall(false)} className="rounded-lg border border-border px-4 py-2 text-sm">Leave meeting</button>
           </div>
@@ -314,6 +316,12 @@ Be concise and actionable.`,
           </div>
         </div>
       </div>
+
+      {publicJitsiRoom && (
+        <p role="note" className="mb-5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs leading-5 text-muted-foreground">
+          This call uses public Jitsi hosting. Anyone who obtains the room link may be able to join; EYLO does not enforce an invite list. Do not discuss confidential or personal research data in this room.
+        </p>
+      )}
 
       {meeting.call_type === 'phd_supervision' && (
         <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-4">

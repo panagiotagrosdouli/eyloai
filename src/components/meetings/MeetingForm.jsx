@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Link2 } from 'lucide-react';
-import { createJitsiMeetingLink, normalizeMeetingLink } from '@/lib/meeting-links.mjs';
+import { normalizeMeetingLink } from '@/lib/meeting-links.mjs';
+import { createJitsiRoomUrl, isPublicJitsiRoomUrl } from '@/lib/jitsi-room.mjs';
 
 const CALL_TYPES = [
   { value: 'project_meeting', label: 'Project Meeting' },
@@ -41,6 +42,7 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [roomError, setRoomError] = useState('');
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
@@ -53,9 +55,10 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
   const createVideoRoom = () => {
     setError('');
     try {
-      set('meeting_link', createJitsiMeetingLink());
-    } catch (roomError) {
-      setError(roomError?.message || 'Secure room creation is unavailable in this browser.');
+      set('meeting_link', createJitsiRoomUrl());
+      setRoomError('');
+    } catch (roomCreationError) {
+      setRoomError(roomCreationError instanceof Error ? roomCreationError.message : 'A secure room could not be created.');
     }
   };
 
@@ -193,6 +196,12 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
           </button>
         </div>
         <p className="mt-1 text-[10px] leading-5 text-muted-foreground">Creates a Jitsi room using a cryptographically random ID. Jitsi is a third-party service; anyone with the room link may be able to join, so share it only with intended participants. Or paste an HTTPS Zoom, Meet, or Teams link.</p>
+        {roomError && <p role="alert" className="mt-2 text-xs text-destructive">{roomError}</p>}
+        {isPublicJitsiRoomUrl(form.meeting_link) && (
+          <p role="note" className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs leading-5 text-muted-foreground">
+            This call uses public Jitsi hosting. Anyone who obtains the room link may be able to join; EYLO does not enforce an invite list. Do not discuss confidential or personal research data in this room.
+          </p>
+        )}
       </div>
 
       {/* Agenda */}
