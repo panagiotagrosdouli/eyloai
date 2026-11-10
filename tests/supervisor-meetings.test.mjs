@@ -24,16 +24,17 @@ test('researcher search exposes profile matching with source limitations', () =>
   assert.match(source, /does not verify academic rank, PhD supervision availability/);
 });
 
-test('EYLO supports explicit opt-in in-app video and a separate external fallback', () => {
+test('EYLO uses native video for new calls and retains external links only as a fallback', () => {
   const source = readFileSync(new URL('../src/components/meetings/MeetingDetail.jsx', import.meta.url), 'utf8');
-  const room = readFileSync(new URL('../src/lib/jitsi-room.mjs', import.meta.url), 'utf8');
-  assert.match(source, /Join inside EYLO/);
+  const room = readFileSync(new URL('../src/components/meetings/MeetingRoom.jsx', import.meta.url), 'utf8');
+  assert.match(source, /Start EYLO meeting/);
   assert.match(source, /Open call externally/);
-  assert.match(source, /getEmbeddedJitsiRoom\(meetingLink\)/);
-  assert.match(source, /isPublicJitsiRoomUrl\(meetingLink\)/);
-  assert.match(room, /hostname === 'meet\.jit\.si'/);
-  assert.match(source, /inAppCall && embeddedRoom/);
-  assert.match(source, /third-party service/);
+  assert.doesNotMatch(source, /<iframe/);
+  assert.doesNotMatch(source, /getEmbeddedJitsiRoom/);
+  assert.match(room, /new Room\(/);
+  assert.match(room, /setMicrophoneEnabled/);
+  assert.match(room, /setCameraEnabled/);
+  assert.match(room, /setScreenShareEnabled/);
 });
 
 test('CV matching uses uploaded local text without claiming verified supervision', () => {
