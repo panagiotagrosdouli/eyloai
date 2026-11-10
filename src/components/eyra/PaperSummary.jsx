@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
-import { BookOpen, Loader2, Bookmark } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { BookOpen, Loader2, Bookmark, MessageCircle, Send, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useToast } from '@/components/ui/use-toast';
-import { buildPaperSummaryPrompt, getPaperAbstract, PAPER_SUMMARY_MODES } from '@/lib/paper-summary.mjs';
+import { buildPaperQuestionPrompt, buildPaperSummaryPrompt, getPaperAbstract, PAPER_SUMMARY_MODES } from '@/lib/paper-summary.mjs';
 
 const schema = {
   type: 'object',
   properties: Object.fromEntries(['objective', 'methodology', 'dataset', 'findings', 'conclusions', 'limitations', 'implications', 'questions'].map((key) => [key, { type: 'string' }])),
+};
+const answerSchema = {
+  type: 'object',
+  properties: {
+    answer: { type: 'string' },
+    evidence_quote: { type: 'string' },
+    uncertainty: { type: 'string' },
+  },
 };
 
 export default function PaperSummary({ paper, projectId = '' }) {
@@ -14,8 +22,55 @@ export default function PaperSummary({ paper, projectId = '' }) {
   const [mode, setMode] = useState('standard');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [asking, setAsking] = useState(false);
+  const [question, setQuestion] = useState('');
+  const [conversation, setConversation] = useState([]);
+  const [showQuestions, setShowQuestions] = useState(false);
   const { toast } = useToast();
   const sourceText = getPaperAbstract(paper);
+  const paperKey = paper.source_id || paper.id || paper.doi || paper.url || paper.title;
+
+  useEffect(() => {
+    setConversation([]);
+    setQuestion('');
+  }, [paperKey]);
+
+  const ask = async (value = question) => {
+    const cleanQuestion = value.trim();
+    if (!cleanQuestion || asking) return;
+    if (!sourceText) {
+      toast({ title: 'Source text unavailable', description: 'EYRA needs an accessible abstract or full text to answer questions about this paper.', variant: 'destructive' });
+      return;
+    }
+    setAsking(true);
+    setQuestion('');
+    const userMessage = { role: 'user', content: cleanQuestion };
+    setConversation(previous => [...previous, userMessage]);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        response_json_schema: answerSchema,
+        prompt: buildPaperQuestionPrompt(paper, cleanQuestion, conversation),
+      });
+      setConversation(previous => [...previous, {
+        role: 'assistant',
+        content: result.answer || 'The supplied abstract does not provide enough information to answer.',
+        evidenceQuote: result.evidence_quote || '',
+        uncertainty: result.uncertainty || 'This answer is limited to the supplied abstract.',
+      }]);
+    } catch (error) {
+      setConversation(previous => [...previous, { role: 'error', content: error?.message || 'EYRA could not answer. Please retry.' }]);
+    } finally {
+      setAsking(false);
+    }
+  };
+
+  const retryLastQuestion = () => {
+    const previousQuestion = [...conversation].reverse().find(message => message.role === 'user')?.content;
+    if (previousQuestion) {
+      setConversation(previous => previous.filter(message => message.role !== 'error'));
+      ask(previousQuestion);
+    }
+  };
 
   const generate = async () => {
     if (!sourceText) {
@@ -93,6 +148,9 @@ export default function PaperSummary({ paper, projectId = '' }) {
       <button type="button" onClick={generate} disabled={loading} className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:underline disabled:opacity-60">
         {loading ? <Loader2 size={12} className="animate-spin" /> : <BookOpen size={12} />}{summary ? 'Regenerate with EYRA' : 'Summarize with EYRA'}
       </button>
+      <button type="button" onClick={() => setShowQuestions(value => !value)} disabled={!sourceText} aria-expanded={showQuestions} className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:underline disabled:opacity-50">
+        <MessageCircle size={12} />Ask this paper
+      </button>
       {summary && <button type="button" onClick={save} disabled={saving} className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-60">{saving ? <Loader2 size={12} className="animate-spin" /> : <Bookmark size={12} />}{saving ? 'Saving…' : projectId ? 'Save summary to Project' : 'Save summary to Library'}</button>}
     </div>
     {!sourceText && !summary && <p className="mt-2 text-[11px] text-muted-foreground">An accessible abstract or full text is not available for this record.</p>}
@@ -102,6 +160,28 @@ export default function PaperSummary({ paper, projectId = '' }) {
         ['Research objective', summary.objective], ['Methodology', summary.methodology], ['Dataset or participants', summary.dataset], ['Principal findings', summary.findings], ['Conclusions', summary.conclusions], ['Limitations', summary.limitations], ['Practical implications', summary.implications], ['Remaining research questions', summary.questions],
       ].map(([label, value]) => <div key={label}><h5 className="text-[11px] font-semibold text-foreground">{label}</h5><p className="mt-0.5 text-xs leading-5 text-muted-foreground">{value || 'Not reported in the abstract.'}</p></div>)}</div>
       {summary.source_url && <a href={summary.source_url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-[11px] text-primary underline">Open source paper</a>}
+    </div>}
+    {showQuestions && <div className="mt-3 rounded-xl border border-border/70 bg-background p-4">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div><h5 className="text-xs font-semibold text-foreground">Ask EYRA about this paper</h5><p className="mt-1 text-[10px] text-muted-foreground">Answers use the accessible abstract and are limited by what it reports. This conversation is temporary and stays on this page.</p></div>
+        {conversation.length > 0 && <button type="button" onClick={() => setConversation([])} className="inline-flex min-h-8 items-center gap-1 rounded-md px-2 text-[10px] text-muted-foreground hover:bg-muted" aria-label="Clear paper conversation"><Trash2 size={12} />Clear</button>}
+      </div>
+      {conversation.length > 0 && <div className="mb-3 max-h-80 space-y-3 overflow-y-auto" aria-live="polite">
+        {conversation.map((message, index) => <article key={index} className={message.role === 'user' ? 'ml-6 rounded-lg bg-muted p-3' : 'mr-3 rounded-lg border border-primary/10 bg-primary/5 p-3'}>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{message.role === 'user' ? 'You' : message.role === 'error' ? 'EYRA error' : 'EYRA · abstract-based'}</p>
+          <p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-foreground">{message.content}</p>
+          {message.evidenceQuote && <blockquote className="mt-2 border-l-2 border-primary/40 pl-2 text-[11px] italic leading-5 text-muted-foreground">“{message.evidenceQuote}” <span className="not-italic">— supplied abstract</span></blockquote>}
+          {message.uncertainty && <p className="mt-2 text-[10px] leading-4 text-muted-foreground">Limits: {message.uncertainty}</p>}
+          {message.role === 'error' && <button type="button" onClick={retryLastQuestion} className="mt-2 min-h-8 text-[11px] font-semibold text-primary underline">Retry question</button>}
+        </article>)}
+        {asking && <div className="flex items-center gap-2 text-[11px] text-muted-foreground"><Loader2 size={12} className="animate-spin" />EYRA is checking the abstract…</div>}
+      </div>}
+      <form onSubmit={event => { event.preventDefault(); ask(); }} className="flex items-end gap-2">
+        <label className="sr-only" htmlFor={`paper-question-${String(paperKey).replace(/[^a-zA-Z0-9_-]/g, '')}`}>Question about this paper</label>
+        <textarea id={`paper-question-${String(paperKey).replace(/[^a-zA-Z0-9_-]/g, '')}`} value={question} onChange={event => setQuestion(event.target.value)} maxLength={2_000} rows={2} placeholder="Ask about the methods, findings, limitations…" disabled={asking} className="min-h-12 flex-1 resize-y rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-60" />
+        <button type="submit" disabled={asking || !question.trim()} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-primary px-3 text-[11px] font-semibold text-primary-foreground disabled:opacity-50">{asking ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}Ask</button>
+      </form>
+      <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground"><span>Evidence: supplied abstract</span><span>{question.length}/2,000</span></div>
     </div>}
   </section>;
 }

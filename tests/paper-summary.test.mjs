@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   buildPaperSummaryPrompt,
+  buildPaperQuestionPrompt,
   getPaperAbstract,
   PAPER_SUMMARY_MODES,
 } from '../src/lib/paper-summary.mjs';
@@ -44,4 +45,33 @@ test('unknown summary mode uses standard guidance', () => {
     buildPaperSummaryPrompt({ summary: 'Abstract text.' }, 'fastest').includes(PAPER_SUMMARY_MODES.standard.instruction),
     true,
   );
+});
+
+test('paper questions are grounded in the abstract and never invent passage citations', () => {
+  const prompt = buildPaperQuestionPrompt({
+    title: 'A source-backed study',
+    doi: '10.1234/example',
+    abstract: 'We randomly assigned 40 participants and observed a 12% reduction.',
+  }, 'What was the sample size?');
+
+  assert.match(prompt, /Current user question:\nWhat was the sample size\?/);
+  assert.match(prompt, /sample sizes, outcomes, statistics, citations/);
+  assert.match(prompt, /do not invent page, section, figure, or passage numbers/);
+  assert.match(prompt, /We randomly assigned 40 participants/);
+});
+
+test('paper question context includes user questions only and bounds prompt inputs', () => {
+  const prompt = buildPaperQuestionPrompt(
+    { abstract: 'Study abstract.' },
+    '  What were the limitations?  ',
+    [
+      { role: 'user', content: 'What is the question?' },
+      { role: 'assistant', content: 'Unverified prior answer must be excluded.' },
+    ],
+  );
+
+  assert.match(prompt, /What is the question\?/);
+  assert.doesNotMatch(prompt, /Unverified prior answer/);
+  assert.equal(buildPaperQuestionPrompt({ abstract: 'Study abstract.' }, ' ').length, 0);
+  assert.equal(buildPaperQuestionPrompt({ abstract: 'Study abstract.' }, 'q'.repeat(3_000)).match(/Current user question:\n([\s\S]*?)\n\nAccessible abstract:/)[1].length, 2_000);
 });
