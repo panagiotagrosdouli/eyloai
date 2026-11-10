@@ -924,7 +924,10 @@ function ResearcherCard({ researcher, onSave }) {
     <div className="p-5 rounded-xl border border-border bg-card hover:border-primary/25 transition-colors card-glow">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-secondary text-xs font-semibold text-foreground" aria-hidden="true">{String(researcher.name || '?').trim().split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase()).join('')}</div>
+          <div className="relative mb-3 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-border bg-secondary text-xs font-semibold text-foreground" aria-label={researcher.profile_photo_verified && researcher.profile_photo_url ? `${researcher.name} profile photograph` : `${researcher.name} initials avatar`}>
+            {String(researcher.name || '?').trim().split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase()).join('')}
+            {researcher.profile_photo_verified && /^https:\/\//i.test(researcher.profile_photo_url || '') && <img src={researcher.profile_photo_url} alt={`${researcher.name} profile`} loading="lazy" referrerPolicy="no-referrer" onError={event => { event.currentTarget.style.display = 'none'; }} className="absolute inset-0 h-full w-full object-cover" />}
+          </div>
           <h4 className="font-semibold text-sm text-foreground">{researcher.name}</h4>
           <p className="text-xs text-muted-foreground mt-0.5">{researcher.institution}</p>
           {researcher.biography && <p className="mt-2 text-xs leading-5 text-muted-foreground">{researcher.biography}</p>}
