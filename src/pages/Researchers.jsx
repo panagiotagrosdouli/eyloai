@@ -156,8 +156,14 @@ Do not invent people, affiliations, academic ranks, availability, open positions
       if (outcomes.every(outcome => outcome.status === 'rejected')) {
         throw new Error('OpenAlex discovery queries failed');
       }
+      // Keep publication-attributed researchers visible alongside direct author
+      // matches. Both paths return source-indexed OpenAlex author identifiers.
+      const directAuthors = outcomes.flatMap((outcome, index) =>
+        index % 2 === 0 && outcome.status === 'fulfilled' ? outcome.value : []);
+      const publicationAuthors = outcomes.flatMap((outcome, index) =>
+        index % 2 === 1 && outcome.status === 'fulfilled' ? outcome.value : []);
       const seen = new Set();
-      const data = outcomes.flatMap(outcome => outcome.status === 'fulfilled' ? outcome.value : [])
+      const data = [...directAuthors, ...publicationAuthors]
         .filter(person => {
           const id = String(person.id || person.openalex_id || '');
           if (!/^https:\/\/openalex\.org\/A\d+$/i.test(id) || seen.has(id)) return false;
