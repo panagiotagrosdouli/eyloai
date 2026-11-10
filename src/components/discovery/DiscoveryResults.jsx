@@ -10,6 +10,7 @@ import {
 import { base44 } from '@/api/base44Client';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { useToast } from '@/components/ui/use-toast';
+import PaperSummary from '@/components/eyra/PaperSummary';
 import { Link, useNavigate } from 'react-router-dom';
 
 const TABS = [
@@ -113,6 +114,9 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         institution: r.institution,
         country: r.country,
         research_areas: r.research_areas,
+        biography: r.biography || '',
+        orcid: r.orcid || '',
+        profile_photo_url: r.profile_photo_url || '',
         works_count: r.works_count,
         citation_count: r.citation_count,
         profile_url: r.profile_url,
@@ -863,6 +867,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
 }
 
 function PaperCard({ paper, onSave, rank }) {
+  const navigate = useNavigate();
   const getImpactLevel = (cited) => {
     if (cited > 500) return { label: 'Highly cited', color: 'text-primary bg-primary/10' };
     if (cited > 100) return { label: 'Well cited', color: 'text-green-400 bg-green-500/10' };
@@ -896,6 +901,8 @@ function PaperCard({ paper, onSave, rank }) {
           <h4 className="font-semibold text-sm leading-snug mb-1.5 text-foreground">{paper.title}</h4>
           {paper.authors && <p className="text-xs text-muted-foreground mb-2">{paper.authors}</p>}
           {paper.summary && <p className="text-xs text-muted-foreground/80 leading-relaxed line-clamp-2">{paper.summary}</p>}
+          <PaperSummary paper={paper} />
+          <button type="button" onClick={() => navigate(`/search?q=${encodeURIComponent(paper.title || '')}`)} className="mt-2 text-[11px] font-medium text-muted-foreground hover:text-primary">Find similar papers</button>
         </div>
         <div className="flex flex-col gap-1 flex-shrink-0">
           <button onClick={onSave} className="p-2 rounded-lg hover:bg-secondary transition-colors" title="Save to library">
@@ -917,8 +924,11 @@ function ResearcherCard({ researcher, onSave }) {
     <div className="p-5 rounded-xl border border-border bg-card hover:border-primary/25 transition-colors card-glow">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-secondary text-xs font-semibold text-foreground" aria-hidden="true">{String(researcher.name || '?').trim().split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase()).join('')}</div>
           <h4 className="font-semibold text-sm text-foreground">{researcher.name}</h4>
           <p className="text-xs text-muted-foreground mt-0.5">{researcher.institution}</p>
+          {researcher.biography && <p className="mt-2 text-xs leading-5 text-muted-foreground">{researcher.biography}</p>}
+          {researcher.orcid && <a href={`https://orcid.org/${encodeURIComponent(researcher.orcid)}`} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-[10px] text-primary underline">ORCID {researcher.orcid}</a>}
           {researcher.country && <p className="text-[10px] text-muted-foreground/70">{researcher.country}</p>}
           {researcher.research_areas && (
             <p className="text-xs text-muted-foreground/70 mt-1.5 line-clamp-2">{researcher.research_areas}</p>

@@ -45,6 +45,9 @@ export default function Opportunities() {
   const [sourceMeta, setSourceMeta] = useState(null);
   const [searchError, setSearchError] = useState('');
   const [rankingError, setRankingError] = useState('');
+  const [deadlineFilter, setDeadlineFilter] = useState('all');
+  const [fieldFilter, setFieldFilter] = useState('');
+  const [countryFilter, setCountryFilter] = useState('');
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
 
@@ -174,9 +177,13 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
         source: opp.source || sourceMeta?.source,
         source_id: sourceId,
         url: opp.source_url || opp.url,
+        source_url: opp.source_url || opp.url,
         agency: opp.agency,
         eligibility: opp.eligibility,
+        country: opp.country || '',
+        categories: opp.categories || [],
         deadline: opp.deadline,
+        deadline_days: opp.deadline_days,
         amount: opp.amount,
         status: opp.status,
         ...(project ? { project_id: project.id, project_title: project.title || '' } : {}),
@@ -191,9 +198,15 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
     }
   };
 
-  const filteredResults = activeCategory === 'all'
-    ? results
-    : results.filter(r => r.type === activeCategory);
+  const filteredResults = results.filter((record) => {
+    const categoryMatch = activeCategory === 'all' || record.type === activeCategory;
+    const expired = record.deadline_days !== null && record.deadline_days < 0;
+    const deadlineMatch = deadlineFilter === 'all' || (deadlineFilter === 'expired' ? expired : !expired);
+    const terms = [record.title, record.description, ...(record.categories || [])].join(' ').toLowerCase();
+    const fieldMatch = !fieldFilter.trim() || terms.includes(fieldFilter.trim().toLowerCase());
+    const countryMatch = !countryFilter.trim() || String(record.country || record.eligibility || '').toLowerCase().includes(countryFilter.trim().toLowerCase());
+    return categoryMatch && deadlineMatch && fieldMatch && countryMatch;
+  });
 
   const difficultyColor = { Low: 'text-green-400', Medium: 'text-amber-400', High: 'text-red-400' };
 
@@ -271,9 +284,18 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
             {results.length} verified records
           </span>
           <span>Source: {sourceMeta.source}</span>
+          {sourceMeta.partial_results && <span className="text-amber-300">One official provider was unavailable; results may be incomplete.</span>}
           <span>Retrieved {new Date(sourceMeta.retrieved_at).toLocaleString()}</span>
         </div>
       )}
+
+      {hasSearched && !loading && results.length > 0 && <div className="mb-4 grid gap-2 sm:grid-cols-3">
+        <select value={deadlineFilter} onChange={(event) => setDeadlineFilter(event.target.value)} aria-label="Filter calls by deadline" className="rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-foreground">
+          <option value="all">All deadlines</option><option value="active">Not expired / deadline unknown</option><option value="expired">Expired</option>
+        </select>
+        <input value={fieldFilter} onChange={(event) => setFieldFilter(event.target.value)} placeholder="Filter by research field" aria-label="Filter by research field" className="rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-foreground" />
+        <input value={countryFilter} onChange={(event) => setCountryFilter(event.target.value)} placeholder="Filter by country or eligibility" aria-label="Filter by country" className="rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-foreground" />
+      </div>}
 
       {loading && (
         <div className="flex flex-col items-center justify-center py-20">
@@ -327,6 +349,8 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
                             {opp.difficulty} difficulty
                           </span>
                         )}
+                        {opp.deadline_days !== null && opp.deadline_days < 0 && <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">Expired</span>}
+                        {opp.country && <span className="text-[10px] text-muted-foreground">{opp.country}</span>}
                       </div>
                       <h4 className="font-semibold text-sm text-foreground mb-1">{opp.title}</h4>
                       <p className="text-xs text-muted-foreground leading-relaxed mb-2">{opp.description || 'Open the official record for the full announcement.'}</p>
@@ -341,6 +365,8 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
                         {opp.deadline && (
                           <span><span className="font-medium text-foreground">Deadline:</span> {opp.deadline}</span>
                         )}
+                        {opp.categories?.length > 0 && <span><span className="font-medium text-foreground">Field:</span> {opp.categories.join(', ')}</span>}
+                        {opp.agency && <span><span className="font-medium text-foreground">Organization:</span> {opp.agency}</span>}
                       </div>
                     </div>
                     <div className="flex flex-col gap-1 flex-shrink-0">

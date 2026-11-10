@@ -119,7 +119,7 @@ export async function searchOpenAlexWorks(query, limit = 10, sort = 'relevance',
       authors: (w.authorships || []).slice(0, 4).map(a => a.author?.display_name).filter(Boolean).join(', '),
       year: w.publication_year,
       summary: w.abstract_inverted_index
-        ? reconstructAbstract(w.abstract_inverted_index).slice(0, 400)
+        ? reconstructAbstract(w.abstract_inverted_index).slice(0, 12_000)
         : '',
       url: w.doi ? `https://doi.org/${w.doi.replace('https://doi.org/', '')}` : w.id,
       source: w.primary_location?.source?.display_name || 'OpenAlex',
@@ -159,6 +159,12 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
       // Current OpenAlex records provide publication-derived topics; x_concepts is legacy.
       research_areas: (a.topics?.length ? a.topics.map(t => t.display_name || t.subfield?.display_name).filter(Boolean) : (a.x_concepts || []).map(c => c.display_name)).slice(0, 5).join(', '),
       research_topics_source: a.topics?.length ? 'OpenAlex publication topics' : 'OpenAlex legacy concepts',
+      orcid: String(a.ids?.orcid || '').replace(/^https?:\/\/orcid\.org\//i, ''),
+      biography: [
+        a.works_count ? `OpenAlex indexes ${a.works_count} works for this author.` : '',
+        a.last_known_institutions?.[0]?.display_name ? `Indexed affiliation: ${a.last_known_institutions[0].display_name}.` : '',
+        a.topics?.length ? `Topics derived from indexed publications include ${a.topics.slice(0, 3).map(topic => topic.display_name).filter(Boolean).join(', ')}.` : '',
+      ].filter(Boolean).join(' '),
       works_count: a.works_count || 0,
       citation_count: a.cited_by_count || 0,
       profile_url: `https://openalex.org/authors/${a.id?.split('/').pop()}`,
@@ -208,6 +214,8 @@ export async function searchResearchPeopleByPublications(query, limit = 25, stri
           profile_photo_url: null, photo_status: 'unavailable',
           data_source: 'OpenAlex publication authorship',
           country, research_areas: topic,
+          orcid: String(author.orcid || '').replace(/^https?:\/\/orcid\.org\//i, ''),
+          biography: 'This person is listed as an author on scholarly records matching the search. The matched query is not a verified specialty or biography.',
           research_topics_source: 'Matched publication search query (not a verified author specialty)',
           works_count: null, citation_count: null,
           profile_url: `https://openalex.org/authors/${id.split('/').pop()}`,

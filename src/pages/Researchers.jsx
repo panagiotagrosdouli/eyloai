@@ -238,6 +238,9 @@ Kind regards,
         works_count: r.works_count,
         citation_count: r.citation_count,
         profile_url: r.profile_url,
+        orcid: r.orcid || '',
+        biography: r.biography || '',
+        profile_photo_url: r.profile_photo_url || '',
         ...(project ? { project_id: project.id, project_title: project.title || '' } : {}),
       });
       toast({ title: project ? `Added to ${project.title || 'project'}` : 'Researcher saved to library' });
@@ -377,6 +380,8 @@ Kind regards,
                     <h4 className="font-semibold text-sm text-foreground">{r.name}</h4>
                     {match && <p className="mt-1 text-[11px] text-primary">{match.overlaps.length ? `Profile topic overlap: ${match.overlaps.join(', ')}` : 'No verified topic keyword overlap'}{match.countryMatch ? ' · Same country code' : ''}</p>}
                     <p className="text-xs text-muted-foreground mt-0.5">{r.institution}</p>
+                    {r.biography && <p className="mt-2 text-xs leading-5 text-muted-foreground">{r.biography}</p>}
+                    {r.orcid && <a href={`https://orcid.org/${encodeURIComponent(r.orcid)}`} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-[11px] text-primary underline">ORCID {r.orcid}</a>}
                     {r.country && <p className="text-[10px] text-muted-foreground/60 mt-0.5">{r.country}</p>}
                     {r.research_areas && (
                       <p className="text-xs text-muted-foreground/70 mt-2 line-clamp-2"><span className="font-medium">{r.research_topics_source || "OpenAlex research topics"}:</span> {r.research_areas}</p>

@@ -5,6 +5,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import EyraResearchCompanion from '@/components/eyra/EyraResearchCompanion';
+import PaperSummary from '@/components/eyra/PaperSummary';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -214,6 +215,7 @@ export default function Library() {
                         {p.doi && <p className="mt-1 text-xs text-muted-foreground">DOI: {p.doi}</p>}
                         {p.summary && <p className="text-xs text-muted-foreground/70 mt-1.5 line-clamp-2">{p.summary}</p>}
                         <EyraResearchCompanion paper={p} />
+                        <PaperSummary paper={p} />
                         <ProjectLinkControl item={p} projects={projects} projectsLoaded={projectsLoaded} label="paper" onLink={(item, projectId) => linkToProject('SavedPaper', item, projectId, setPapers, 'paper')} />
                       </div>
                       <div className="flex gap-1 flex-shrink-0">

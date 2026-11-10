@@ -2,6 +2,7 @@ import { applyCors } from '../src/lib/api-cors.mjs';
 const DEFAULT_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
 const GRANTS_SEARCH_URL = 'https://api.grants.gov/v1/api/search2';
 const GRANTS_DETAIL_URL = 'https://api.grants.gov/v1/api/fetchOpportunity';
+const EU_SEARCH_URL = 'https://api.tech.ec.europa.eu/search-api/prod/rest/search?apiKey=SEDIA&text=';
 const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_QOF_tW8ve4IFUsflluOhww_aRubMF0V';
 const MAX_QUERY_LENGTH = 240;
 const MAX_RESULTS = 15;
@@ -115,6 +116,61 @@ async function fetchGrantDetail(hit) {
   }
 }
 
+function euText(value) {
+  if (typeof value === 'string' || typeof value === 'number') return plainText(String(value));
+  if (Array.isArray(value)) return value.map(euText).filter(Boolean).join('; ');
+  return '';
+}
+
+function euCall(item) {
+  // SEDIA has changed field casing between portal releases. Keep source facts
+  // and links verbatim where possible; unknown fields remain explicitly empty.
+  const data = item?.content || item?.metadata || item || {};
+  const read = (...keys) => {
+    for (const key of keys) {
+      const value = data[key] ?? item?.[key];
+      const text = euText(value);
+      if (text) return text;
+    }
+    return '';
+  };
+  const identifier = read('identifier', 'callIdentifier', 'topicIdentifier', 'reference');
+  const sourceUrl = read('url', 'webLink', 'callUrl') || (identifier
+    ? `https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/${encodeURIComponent(identifier)}`
+    : 'https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/calls-for-proposals');
+  return {
+    id: `eu:${identifier || read('id') || sourceUrl}`,
+    source_id: identifier || read('id'),
+    title: read('title', 'callTitle', 'topicTitle') || 'Untitled EU funding opportunity',
+    type: 'call',
+    description: read('description', 'objective', 'scope'),
+    eligibility: read('eligibility', 'eligibleApplicants', 'conditions'),
+    amount: read('budget', 'topicBudget', 'maxGrantAmount'),
+    deadline: read('deadlineDate', 'deadline', 'submissionDeadline'),
+    deadline_days: daysUntil(read('deadlineDate', 'deadline', 'submissionDeadline')),
+    status: read('status') || 'Unknown',
+    agency: read('programmeName', 'programme', 'frameworkProgramme') || 'European Union',
+    country: read('country', 'geographicalZone'),
+    categories: [read('keywords', 'subject')].filter(Boolean),
+    source: 'EU Funding & Tenders Portal',
+    source_url: sourceUrl,
+    retrieved_at: new Date().toISOString(),
+  };
+}
+
+async function searchEuCalls(query, limit) {
+  const form = new FormData();
+  form.append('query', new Blob([JSON.stringify({
+    bool: { must: [{ terms: { type: ['1'] } }, { terms: { status: ['31094501'] } }] },
+  })], { type: 'application/json' }), 'query.json');
+  const url = `${EU_SEARCH_URL}${encodeURIComponent(query)}&pageSize=${limit}&pageNumber=1&sortBy=relevance`;
+  const result = await fetch(url, { method: 'POST', body: form, signal: AbortSignal.timeout(12_000) });
+  if (!result.ok) throw new Error(`EU Portal request failed: ${result.status}`);
+  const payload = await result.json();
+  const raw = payload?.results || payload?.data?.results || payload?.items || [];
+  return raw.map(euCall).filter((call) => call.title !== 'Untitled EU funding opportunity' || call.source_id).slice(0, limit);
+}
+
 export default async function handler(request, response) {
   if (applyCors(request, response, ["GET"])) return;
   if (request.method !== 'GET') {
@@ -133,7 +189,8 @@ export default async function handler(request, response) {
     const requestedLimit = Number(request.query?.limit || 12);
     const limit = Math.min(MAX_RESULTS, Math.max(1, Number.isFinite(requestedLimit) ? requestedLimit : 12));
 
-    const searchResponse = await fetch(GRANTS_SEARCH_URL, {
+    const providers = await Promise.allSettled([
+      fetch(GRANTS_SEARCH_URL, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -142,27 +199,27 @@ export default async function handler(request, response) {
         oppStatuses: 'forecasted|posted',
       }),
       signal: AbortSignal.timeout(12_000),
-    });
-
-    if (!searchResponse.ok) {
-      return response.status(502).json({ error: 'The official funding source is temporarily unavailable.' });
-    }
-
-    const searchPayload = await searchResponse.json();
-    if (searchPayload?.errorcode !== 0) {
-      return response.status(502).json({ error: 'The official funding source rejected the search.' });
-    }
-
-    const hits = searchPayload?.data?.oppHits || [];
-    const items = await Promise.all(hits.slice(0, limit).map(fetchGrantDetail));
+      }).then(async (r) => {
+        if (!r.ok) throw new Error(`Grants.gov request failed: ${r.status}`);
+        const payload = await r.json();
+        if (payload?.errorcode !== 0) throw new Error('Grants.gov rejected the search');
+        return Promise.all((payload?.data?.oppHits || []).slice(0, limit).map(fetchGrantDetail));
+      }),
+      searchEuCalls(query, limit),
+    ]);
+    const items = providers.flatMap((result) => result.status === 'fulfilled' ? result.value : []);
+    const sources = providers.flatMap((result, index) => result.status === 'fulfilled' ? [index === 0 ? 'Grants.gov' : 'EU Funding & Tenders Portal'] : []);
+    if (!sources.length) return response.status(502).json({ error: 'Official funding sources are temporarily unavailable.' });
+    const failures = providers.filter((result) => result.status === 'rejected').length;
 
     response.setHeader('Cache-Control', 'private, max-age=300');
     return response.status(200).json({
       query,
-      source: 'Grants.gov',
+      source: sources.join(' + '),
       source_url: 'https://www.grants.gov/search-grants',
       retrieved_at: new Date().toISOString(),
-      hit_count: Number(searchPayload?.data?.hitCount || items.length),
+      hit_count: items.length,
+      partial_results: failures > 0,
       items,
     });
   } catch (error) {
