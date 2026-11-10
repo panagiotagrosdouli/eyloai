@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
+import { saveResearcherCandidate as persistResearcherCandidate } from '@/lib/researcher-shortlist.mjs';
 import { motion } from 'framer-motion';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Sparkles, Loader2, Users, Brain, Code, Briefcase,
   Star, ChevronRight, Target, Lightbulb,
@@ -30,6 +32,9 @@ export default function DreamTeam() {
   const [projects, setProjects] = useState([]);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [buildError, setBuildError] = useState('');
+  const [savingResearcherId, setSavingResearcherId] = useState('');
+  const [savedResearcherProjects, setSavedResearcherProjects] = useState({});
+  const { toast } = useToast();
 
   useEffect(() => {
     base44.entities.Project.list('-updated_date', 10).then(projs => {
@@ -150,6 +155,48 @@ Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequ
     }
   };
 
+  const saveResearcher = async (researcher) => {
+    const openalexId = researcher.openalex_id || researcher.id;
+    if (!openalexId || savingResearcherId) return;
+    setSavingResearcherId(openalexId);
+    try {
+      const project = selectedProjectId
+        ? projects.find(item => item.id === selectedProjectId)
+        : null;
+      if (selectedProjectId && !project) {
+        throw new Error('The selected project is unavailable. Refresh your projects and try again.');
+      }
+      const result = await persistResearcherCandidate({
+        entities: base44.entities,
+        researcher,
+        project,
+      });
+      setSavedResearcherProjects(current => ({ ...current, [openalexId]: result.projectId || '' }));
+      const messages = {
+        saved: {
+          title: project ? `Added to ${project.title || 'project'}` : 'Researcher saved to Library',
+          description: 'This saves the public profile record; it does not contact the researcher.',
+        },
+        linked: { title: `Added to ${project?.title || 'project'}`, description: 'Researcher saved in your Library.' },
+        already_saved: { title: 'Researcher already in your Library' },
+        already_in_project: { title: 'Already in this project' },
+        already_linked: {
+          title: 'Already linked to another project',
+          description: 'The researcher remains in the Library and was not moved from the existing project.',
+        },
+      };
+      toast(messages[result.status]);
+    } catch (error) {
+      toast({
+        title: 'Could not save researcher',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingResearcherId('');
+    }
+  };
+
   const priorityColor = {
     Critical: 'text-red-400 bg-red-500/10 border-red-500/20',
     High: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
@@ -259,8 +306,13 @@ Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequ
               <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-green-400">Verified OpenAlex Matches</p>
               <p className="mb-4 text-xs text-muted-foreground">Review relevance yourself before outreach. These are retrieved profiles, not AI-generated people.</p>
               <div className="grid gap-3 sm:grid-cols-2">
-                {team.candidate_researchers?.slice(0, 6).map((researcher) => (
-                  <a key={researcher.id} href={researcher.profile_url} target="_blank" rel="noopener noreferrer"
+                {team.candidate_researchers?.slice(0, 6).map((researcher) => {
+                  const researcherId = researcher.openalex_id || researcher.id;
+                  const hasSavedResearcher = Object.prototype.hasOwnProperty.call(savedResearcherProjects, researcherId);
+                  const savedProjectId = savedResearcherProjects[researcherId];
+                  const alreadySavedHere = hasSavedResearcher
+                    && (!selectedProjectId || savedProjectId === selectedProjectId || Boolean(savedProjectId));
+                  return <article key={researcherId}
                     className="rounded-xl border border-border bg-card p-3 hover:border-primary/30">
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -268,10 +320,24 @@ Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequ
                         <p className="mt-0.5 text-[10px] text-muted-foreground">{researcher.institution}</p>
                         <p className="mt-1 text-[10px] text-muted-foreground">{researcher.works_count} works · {researcher.citation_count} citations</p>
                       </div>
-                      <ExternalLink size={11} className="text-primary" />
+                      <a href={researcher.profile_url} target="_blank" rel="noopener noreferrer"
+                        aria-label={`Open verified OpenAlex profile for ${researcher.name}`}
+                        className="inline-flex min-h-8 items-center gap-1 rounded-md px-2 text-[10px] font-semibold text-primary hover:bg-secondary">
+                        Open profile <ExternalLink size={11} aria-hidden="true" />
+                      </a>
                     </div>
-                  </a>
-                ))}
+                    <button type="button"
+                      onClick={() => saveResearcher(researcher)}
+                      disabled={Boolean(savingResearcherId) || alreadySavedHere}
+                      className="mt-3 min-h-9 rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:border-primary/40 disabled:cursor-default disabled:opacity-60">
+                      {savingResearcherId === researcherId
+                        ? 'Saving…'
+                        : alreadySavedHere
+                          ? selectedProjectId ? savedProjectId === selectedProjectId ? 'Added to project' : 'Linked to another project' : 'Saved to Library'
+                          : selectedProjectId ? 'Add to project' : 'Save to Library'}
+                    </button>
+                  </article>;
+                })}
               </div>
             </div>
           )}
