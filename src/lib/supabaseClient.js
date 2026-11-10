@@ -27,24 +27,47 @@ const supabaseUrl = allowGateway
   ? `${window.location.origin}/supabase`
   : environment.values.VITE_SUPABASE_URL;
 
+const SUPABASE_REQUEST_TIMEOUT_MS = 15_000;
+
+async function fetchWithTimeout(input, init = {}) {
+  const controller = new AbortController();
+  const requestSignal = init.signal
+    || (typeof Request !== 'undefined' && input instanceof Request ? input.signal : undefined);
+  const abortFromRequest = () => controller.abort(requestSignal?.reason);
+  if (requestSignal?.aborted) {
+    abortFromRequest();
+  } else {
+    requestSignal?.addEventListener('abort', abortFromRequest, { once: true });
+  }
+  const timeoutId = setTimeout(() => controller.abort(), SUPABASE_REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+    requestSignal?.removeEventListener('abort', abortFromRequest);
+  }
+}
+
 const gatewayFetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input.url;
   if (!allowGateway || !url.startsWith(`${window.location.origin}/supabase/`)) {
-    return fetch(input, init);
+    return fetchWithTimeout(input, init);
   }
   const directUrl = url.replace(
     `${window.location.origin}/supabase/`,
     `${environment.values.VITE_SUPABASE_URL}/`,
   );
   try {
-    const response = await fetch(input, init);
+    const response = await fetchWithTimeout(input, init);
     const type = response.headers.get('content-type') || '';
     if ([404, 502, 503, 504].includes(response.status) && !type.includes('application/json')) {
       return fetch(directUrl, init);
     }
     return response;
-  } catch {
-    return fetch(directUrl, init);
+  } catch (error) {
+    if (error?.name === 'AbortError') throw error;
+    return fetchWithTimeout(directUrl, init);
   }
 };
 
@@ -88,7 +111,9 @@ function notifyAuthenticationRequired() {
 }
 
 async function authenticationFailure(client, required, cause) {
-  if (!required) return null;
+  // No session is an expected anonymous state. A supplied cause means the
+  // server rejected an existing credential, which must be cleared locally.
+  if (!required && !cause) return null;
 
   try {
     await client.auth.signOut({ scope: 'local' });
@@ -97,7 +122,20 @@ async function authenticationFailure(client, required, cause) {
   }
 
   notifyAuthenticationRequired();
+  if (!required) return null;
   throw new AuthenticationRequiredError(undefined, cause);
+}
+
+function isTransientAuthError(error) {
+  const status = Number(error?.status || 0);
+  const message = String(error?.message || '').toLowerCase();
+  const code = String(error?.code || '').toLowerCase();
+  return status === 429
+    || status >= 500
+    || !status
+    || code === 'over_request_rate_limit'
+    || message.includes('fetch')
+    || message.includes('network');
 }
 
 /**
@@ -127,12 +165,7 @@ export async function getUsableSession({
   if (result.error) {
     // A server outage or fetch error must never erase the user's local session.
     // Only a confirmed missing/invalid session should trigger sign-out.
-    const status = Number(result.error.status || 0);
-    const msg = String(result.error.message || '').toLowerCase();
-    if (!status || status >= 500 || msg.includes('fetch') || msg.includes('network')) {
-      throw result.error;
-    }
-    if (!required) throw result.error;
+    if (isTransientAuthError(result.error)) throw result.error;
     return authenticationFailure(client, required, result.error);
   }
   if (!session?.access_token) {
@@ -142,8 +175,10 @@ export async function getUsableSession({
   if (validate) {
     const verified = await client.auth.getUser(session.access_token);
     if (verified.error || !verified.data?.user) {
+      if (verified.error && isTransientAuthError(verified.error)) throw verified.error;
       if (!forceRefresh) {
-        return getUsableSession({ forceRefresh: true, required, validate: true });
+        const refreshed = await getUsableSession({ forceRefresh: true, required, validate: true });
+        if (refreshed) return refreshed;
       }
       return authenticationFailure(client, required, verified.error);
     }

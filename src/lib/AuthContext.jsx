@@ -21,6 +21,17 @@ import { AppErrorCode, createAppError, mapSupabaseError } from '@/lib/supabase/e
 const AuthContext = createContext(null);
 
 const loadingState = { status: 'loading', user: null, session: null, error: null };
+const SESSION_RESTORE_TIMEOUT_MS = 8000;
+
+function withTimeout(promise, timeoutMs) {
+  let timeoutId;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timeoutId = window.setTimeout(() => reject(new Error('Authentication startup timed out.')), timeoutMs);
+    }),
+  ]).finally(() => window.clearTimeout(timeoutId));
+}
 
 export const AuthProvider = ({ children }) => {
   const [state, setState] = useState(loadingState);
@@ -37,12 +48,10 @@ export const AuthProvider = ({ children }) => {
     }
 
     let mounted = true;
-    // The first session lookup and auth subscription race during startup. An
-    // auth event is newer than that lookup, so never let a late initial
-    // response overwrite a sign-in, refresh, or sign-out event.
     let authEventVersion = 0;
     const setAnonymous = () => {
       if (!mounted) return;
+      authEventVersion += 1;
       setState({ status: 'anonymous', user: null, session: null, error: null });
     };
 
@@ -50,6 +59,9 @@ export const AuthProvider = ({ children }) => {
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
+      // INITIAL_SESSION may contain locally persisted data. Keep protected
+      // routes gated until getUsableSession confirms it with Supabase.
+      if (event === 'INITIAL_SESSION') return;
       authEventVersion += 1;
 
       if (event === 'SIGNED_IN' && typeof window !== 'undefined') {
@@ -68,8 +80,9 @@ export const AuthProvider = ({ children }) => {
         : { status: 'anonymous', user: null, session: null, error: null });
     });
 
-    getSession().then((result) => {
-      if (!mounted || authEventVersion > 0) return;
+    const startupVersion = authEventVersion;
+    withTimeout(getSession(), SESSION_RESTORE_TIMEOUT_MS).then((result) => {
+      if (!mounted || authEventVersion !== startupVersion) return;
 
       if (!result.ok) {
         setState({ status: 'error', user: null, session: null, error: result.error });
@@ -81,8 +94,13 @@ export const AuthProvider = ({ children }) => {
         ? { status: 'authenticated', user: session.user, session, error: null }
         : { status: 'anonymous', user: null, session: null, error: null });
     }).catch((error) => {
-      if (!mounted || authEventVersion > 0) return;
-      setState({ status: 'error', user: null, session: null, error: mapSupabaseError(error) });
+      if (!mounted || authEventVersion !== startupVersion) return;
+      setState({
+        status: 'error',
+        user: null,
+        session: null,
+        error: createAppError(AppErrorCode.NETWORK, error),
+      });
     });
 
     return () => {
@@ -94,7 +112,15 @@ export const AuthProvider = ({ children }) => {
 
   const refreshSession = async () => {
     setState((current) => ({ ...current, status: 'loading', error: null }));
-    const result = await refreshAuthSession();
+    let result;
+    try {
+      result = await withTimeout(
+        state.session ? refreshAuthSession() : getSession(),
+        SESSION_RESTORE_TIMEOUT_MS,
+      );
+    } catch (error) {
+      result = { ok: false, error: createAppError(AppErrorCode.NETWORK, error) };
+    }
 
     if (!result.ok) {
       setState({ status: 'error', user: null, session: null, error: result.error });

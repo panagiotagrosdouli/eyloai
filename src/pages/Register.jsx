@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { getSafeRedirect } from "@/lib/auth/safeRedirect";
 import { registrationSchema } from "@/lib/validation/auth";
 
 export default function Register() {
+  const navigate = useNavigate();
   const { signUp } = useAuth();
   const [searchParams] = useSearchParams();
   const [formError, setFormError] = useState("");
@@ -43,7 +44,7 @@ export default function Register() {
       // Email confirmation is not always enabled. Only promise a confirmation
       // message when the provider did not issue a valid session.
       if (result.data?.session) {
-        window.location.assign(`${import.meta.env.BASE_URL}${destination.replace(/^[/]/, "")}`);
+        navigate(destination, { replace: true });
         return;
       }
       setSentEmail(email);

@@ -6,6 +6,8 @@ const fail = (error) => ({ ok: false, error });
 
 export async function getSession() {
   try {
+    // Confirm the stored token once before protected routes trust its user. The
+    // auth pages render independently, so this check no longer delays login UI.
     return ok(await getUsableSession({ required: false, validate: true }));
   } catch (error) {
     return fail(mapSupabaseError(error));

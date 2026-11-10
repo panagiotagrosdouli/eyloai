@@ -5,15 +5,12 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { AuthProvider } from '@/lib/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { environment } from '@/lib/config/env';
 import PlanGate from '@/components/billing/PlanGate';
 import CapabilityGate from '@/components/system/CapabilityGate';
 import { redactAnalyticsEvent } from '@/lib/product-analytics';
-
-import ConfigurationError from '@/pages/ConfigurationError';
 
 // Every route surface is loaded on demand so visitors download only the journey they open.
 const Login = lazy(() => import('@/pages/Login'));
@@ -72,44 +69,6 @@ const PageLoader = () => (
 );
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, authError, refreshSession } = useAuth();
-
-  if (!environment.ok) {
-    return <ConfigurationError />;
-  }
-
-  if (isLoadingAuth) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background" role="status" aria-live="polite">
-        <div className="text-center">
-          <div className="mb-4 text-lg font-semibold tracking-tight">EYLO AI</div>
-          <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-border border-t-foreground" />
-          <span className="sr-only">Loading authentication</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (authError) {
-    return (
-      <main className="min-h-screen bg-background px-6 py-16 text-foreground">
-        <div className="mx-auto max-w-lg rounded-2xl border bg-card p-8 shadow-sm">
-          <h1 className="text-2xl font-semibold">Authentication unavailable</h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            EYLO AI could not verify your session. Check your connection and retry. Your local session has not been cleared.
-          </p>
-          <button
-            type="button"
-            onClick={() => refreshSession()}
-            className="mt-5 min-h-11 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            Try again
-          </button>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <Suspense fallback={<PageLoader />}>
     <Routes>
