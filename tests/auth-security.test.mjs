@@ -54,6 +54,7 @@ test('protected routes expose a retry when session restoration fails', async () 
   assert.match(route, /status === 'error' \|\| status === 'configuration-error'/);
   assert.match(route, /onClick=\{refreshSession\}/);
   assert.match(route, /Sign in/);
+  assert.match(context, /if \(state\.status !== 'authenticated'\) return initializeAuth\(\)/);
   assert.match(context, /withTimeout\(runtime\.authModule\.refreshSession\(\), SESSION_RESTORE_TIMEOUT_MS\)/);
 });
 

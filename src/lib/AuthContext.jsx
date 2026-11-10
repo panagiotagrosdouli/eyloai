@@ -179,8 +179,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const refreshSession = async () => {
-    const initialized = await initializeAuth();
-    if (!initialized.ok || !initialized.data) return initialized;
+    // A retry from the failed bootstrap screen should make one validated
+    // session request. Only explicitly refresh when a session is already live.
+    if (state.status !== 'authenticated') return initializeAuth();
 
     setState((current) => ({ ...current, status: 'loading', error: null }));
     try {
