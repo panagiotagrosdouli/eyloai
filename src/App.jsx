@@ -1,10 +1,10 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
-import { AuthProvider } from '@/lib/AuthContext';
+import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { redactAnalyticsEvent } from '@/lib/product-analytics';
@@ -69,6 +69,17 @@ const PageLoader = () => (
   </div>
 );
 
+// Public pages remain available to visitors; authenticated visitors stay in EYLO's
+// workspace instead of being sent back to the public marketing experience.
+const PublicEntry = ({ children, workspacePath = '/home' }) => {
+  const { status, initializeAuth } = useAuth();
+  useEffect(() => {
+    if (status === 'idle') void initializeAuth();
+  }, [initializeAuth, status]);
+  if (status === 'authenticated') return <Navigate to={workspacePath} replace />;
+  return children;
+};
+
 const AuthenticatedApp = () => {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -82,6 +93,7 @@ const AuthenticatedApp = () => {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/home" element={<Home />} />
+          <Route path="/workspace/careers" element={<PublicCareers />} />
           <Route path="/search" element={<Home searchOnly />} />
           <Route path="/library" element={<Library />} />
           <Route path="/research-gaps" element={<ResearchGaps />} />
@@ -133,13 +145,13 @@ function App() {
           <ScrollToTop />
           <Suspense fallback={<PageLoader />}>
             <Routes>
-              <Route path="/" element={<Landing />} />
+              <Route path="/" element={<PublicEntry><Landing /></PublicEntry>} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/company" element={<CompanyPage />} />
               <Route path="/company/:section" element={<CompanyPage />} />
-              <Route path="/discover" element={<PublicDiscovery />} />
-              <Route path="/find-researchers" element={<PublicResearchers />} />
-              <Route path="/careers" element={<PublicCareers />} />
+              <Route path="/discover" element={<PublicEntry workspacePath="/search"><PublicDiscovery /></PublicEntry>} />
+              <Route path="/find-researchers" element={<PublicEntry workspacePath="/researchers"><PublicResearchers /></PublicEntry>} />
+              <Route path="/careers" element={<PublicEntry workspacePath="/workspace/careers"><PublicCareers /></PublicEntry>} />
               {/* Authentication pages stay reachable even if session bootstrap fails. */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />

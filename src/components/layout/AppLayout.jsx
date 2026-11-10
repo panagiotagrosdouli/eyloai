@@ -18,7 +18,7 @@ const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
   { label: 'Discover', path: '/search', icon: Search },
   { label: 'Connect', path: '/researchers', icon: Users },
-  { label: 'Careers', path: '/careers', icon: Briefcase },
+  { label: 'Careers', path: '/workspace/careers', icon: Briefcase },
   { label: 'Projects', path: '/projects', icon: FolderOpen },
 ];
 
