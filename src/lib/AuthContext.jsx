@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { appPath, stripAppBase } from '@/lib/auth/routePaths';
 import { environment } from '@/lib/config/env';
+import { shouldApplyAuthResult } from '@/lib/auth/authOperation';
 import { AppErrorCode, createAppError, mapSupabaseError } from '@/lib/supabase/errors';
 
 const AuthContext = createContext(null);
@@ -101,6 +102,7 @@ export const AuthProvider = ({ children }) => {
 
     setState((current) => ({ ...current, status: 'loading', error: null }));
     const initialization = (async () => {
+      const initializationVersion = authEventVersionRef.current;
       try {
         const runtime = await loadAuthRuntime();
         if (!runtime.clientModule.isSupabaseConfigured || !runtime.clientModule.supabase) {
@@ -127,7 +129,8 @@ export const AuthProvider = ({ children }) => {
         return result;
       } catch (error) {
         const appError = createAppError(AppErrorCode.NETWORK, error);
-        if (mountedRef.current) {
+        // A late bootstrap timeout cannot invalidate a newer sign-in/auth event.
+        if (shouldApplyAuthResult(initializationVersion, authEventVersionRef.current, mountedRef.current)) {
           setState({ status: 'error', user: null, session: null, error: appError });
         }
         return { ok: false, error: appError };
@@ -183,10 +186,13 @@ export const AuthProvider = ({ children }) => {
     // session request. Only explicitly refresh when a session is already live.
     if (state.status !== 'authenticated') return initializeAuth();
 
+    const refreshVersion = authEventVersionRef.current;
     setState((current) => ({ ...current, status: 'loading', error: null }));
     try {
       const runtime = await loadAuthRuntime();
       const result = await withTimeout(runtime.authModule.refreshSession(), SESSION_RESTORE_TIMEOUT_MS);
+      // Auth events from other tabs or a local sign-out must win over an older refresh.
+      if (!shouldApplyAuthResult(refreshVersion, authEventVersionRef.current, mountedRef.current)) return result;
       if (!result.ok) {
         setState({ status: 'error', user: null, session: null, error: result.error });
         return result;
@@ -199,7 +205,9 @@ export const AuthProvider = ({ children }) => {
       return result;
     } catch (error) {
       const appError = createAppError(AppErrorCode.NETWORK, error);
-      setState({ status: 'error', user: null, session: null, error: appError });
+      if (shouldApplyAuthResult(refreshVersion, authEventVersionRef.current, mountedRef.current)) {
+        setState({ status: 'error', user: null, session: null, error: appError });
+      }
       return { ok: false, error: appError };
     }
   };

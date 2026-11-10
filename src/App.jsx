@@ -8,13 +8,13 @@ import { AuthProvider } from '@/lib/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { redactAnalyticsEvent } from '@/lib/product-analytics';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+import AuthCallback from '@/pages/AuthCallback';
 
-// Every route surface is loaded on demand so visitors download only the journey they open.
-const Login = lazy(() => import('@/pages/Login'));
-const Register = lazy(() => import('@/pages/Register'));
-const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
-const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
-const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
+// Auth routes are eager so login and recovery render without waiting for a route chunk. Workspace surfaces remain lazy.
 const Landing = lazy(() => import('@/pages/Landing'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const CompanyPage = lazy(() => import('@/pages/CompanyPage'));
