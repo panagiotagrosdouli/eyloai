@@ -62,7 +62,7 @@ const gatewayFetch = async (input, init) => {
     const response = await fetchWithTimeout(input, init);
     const type = response.headers.get('content-type') || '';
     if ([404, 502, 503, 504].includes(response.status) && !type.includes('application/json')) {
-      return fetch(directUrl, init);
+      return fetchWithTimeout(directUrl, init);
     }
     return response;
   } catch (error) {
@@ -180,7 +180,11 @@ export async function getUsableSession({
         const refreshed = await getUsableSession({ forceRefresh: true, required, validate: true });
         if (refreshed) return refreshed;
       }
-      return authenticationFailure(client, required, verified.error);
+      return authenticationFailure(
+        client,
+        required,
+        verified.error || new Error('Supabase did not return a verified user.'),
+      );
     }
     session = { ...session, user: verified.data.user };
   }

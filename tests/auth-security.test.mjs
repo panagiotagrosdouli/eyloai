@@ -55,3 +55,9 @@ test('provider rate-limit codes map to an actionable retry message', () => {
   assert.equal(limited.code, AppErrorCode.RATE_LIMITED);
   assert.match(limited.message, /wait and try again/i);
 });
+
+test('Supabase gateway fallback keeps the same bounded request timeout', async () => {
+  const source = await readFile(new URL('../src/lib/supabaseClient.js', import.meta.url), 'utf8');
+  assert.match(source, /return fetchWithTimeout\(directUrl, init\)/);
+  assert.doesNotMatch(source, /return fetch\(directUrl, init\)/);
+});
