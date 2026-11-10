@@ -82,3 +82,21 @@ test('Grants.gov auth uses the explicitly configured public Supabase project', a
   assert.equal(response.statusCode, 200);
   assert.equal(response.body.source, 'Grants.gov');
 });
+
+
+test('server-only Supabase URL and publishable key support protected funding API configuration', async () => {
+  const { readSupabaseApiConfig } = await import('../api/supabase-config.mjs');
+  const config = readSupabaseApiConfig({
+    SUPABASE_URL: 'https://eylo-test.supabase.co',
+    SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_value',
+  });
+  assert.equal(config.hasPublicConfig, true);
+  assert.equal(config.url, 'https://eylo-test.supabase.co');
+  assert.equal(config.publicKey, 'sb_publishable_test_value');
+});
+
+test('funding API configuration refuses arbitrary URL hosts', async () => {
+  const { readSupabaseApiConfig } = await import('../api/supabase-config.mjs');
+  const config = readSupabaseApiConfig({ SUPABASE_URL: 'https://attacker.example', SUPABASE_PUBLISHABLE_KEY: 'test' });
+  assert.equal(config.hasPublicConfig, false);
+});
