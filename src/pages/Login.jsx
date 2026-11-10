@@ -7,6 +7,7 @@ import { LogIn, Mail, Lock, Loader2, ShieldCheck, WandSparkles } from "lucide-re
 import AuthLayout from "@/components/AuthLayout";
 import { getSafeRedirect } from "@/lib/auth/safeRedirect";
 import { useAuth } from "@/lib/AuthContext";
+import { hasAuthenticatedSignIn } from '@/lib/auth/sessionContract';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ export default function Login() {
         setError(result.error?.message || "Unable to sign in. Please retry.");
         return;
       }
-      if (!result.data?.session?.access_token || !result.data?.user?.id) {
+      if (!hasAuthenticatedSignIn(result.data)) {
         setError('We could not verify your session. Please retry.');
         return;
       }
