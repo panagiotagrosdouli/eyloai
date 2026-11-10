@@ -119,7 +119,7 @@ export default function EyraHome({ onSearch }) {
 
         {loaded && workspaceWarnings.length > 0 && (
           <div role="status" className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#D8E5EF] bg-white px-4 py-3 text-sm text-[#334A60]">
-            <span>Some workspace data could not be loaded. Available projects, papers and ideas are still shown below.</span>
+            <span>Some workspace data is temporarily unavailable. Retry to refresh the items that did not load.</span>
             <button type="button" onClick={retryProfile} className="min-h-9 rounded-lg border border-[#C8D9E8] px-3 text-xs font-semibold text-[#315F88] hover:bg-[#F3F8FC]">Retry loading data</button>
           </div>
         )}
@@ -149,7 +149,9 @@ export default function EyraHome({ onSearch }) {
                     <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Active projects</h3>
                     <Link to="/projects" className="text-[11px] font-semibold text-muted-foreground hover:text-primary">View all</Link>
                   </div>
-                  {projects.length ? (
+                  {hasSourceWarning('projects') ? (
+                    <p className="rounded-2xl border border-border bg-card px-4 py-4 text-xs text-muted-foreground">Projects are temporarily unavailable.</p>
+                  ) : projects.length ? (
                     <div className="divide-y divide-border rounded-2xl border border-border/70 bg-card px-4">
                       {projects.slice(0, 3).map(project => <ProjectRow key={project.id} project={project} />)}
                     </div>
@@ -166,7 +168,9 @@ export default function EyraHome({ onSearch }) {
                     <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Recent searches</h3>
                     <Link to="/history" className="text-[11px] font-semibold text-muted-foreground hover:text-primary">Search history</Link>
                   </div>
-                  {recentSearches.length ? (
+                  {hasSourceWarning('searches') ? (
+                    <p className="rounded-2xl border border-border bg-card px-4 py-4 text-xs text-muted-foreground">Recent searches are temporarily unavailable.</p>
+                  ) : recentSearches.length ? (
                     <div className="divide-y divide-border rounded-2xl border border-border/70 bg-card px-4">
                       {recentSearches.map((search, index) => (
                         <Link key={search.id || search.query + index} to={'/home?q=' + encodeURIComponent(search.query)} className="group flex min-h-12 items-center gap-3 py-2 text-sm">
