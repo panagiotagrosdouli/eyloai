@@ -79,4 +79,5 @@ test('auth operations preserve network errors and never silently register from m
   assert.doesNotMatch(source, /shouldCreateUser:\s*true/);
   assert.equal(mapSupabaseError(Object.assign(new Error('Failed to fetch'), { name: 'TypeError' })).code, AppErrorCode.NETWORK);
   assert.equal(mapSupabaseError({ message: 'Error sending confirmation email', status: 400 }).code, AppErrorCode.EMAIL_SEND_FAILED);
+  assert.equal(mapSupabaseError({ code: 'SUPABASE_CONFIGURATION_ERROR', message: 'Authentication service is not configured.' }).code, AppErrorCode.CONFIGURATION);
 });
