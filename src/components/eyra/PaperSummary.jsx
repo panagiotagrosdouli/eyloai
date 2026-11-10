@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BookOpen, Loader2, Bookmark, MessageCircleQuestion, FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { savePaperSummary } from '@/lib/paper-summary-persistence';
 import { useToast } from '@/components/ui/use-toast';
 
 const schema = {
@@ -87,11 +88,7 @@ export default function PaperSummary({ paper }) {
     if (!summary || saving) return;
     setSaving(true);
     try {
-      const sourceId = paper.source_id || paper.id || paper.doi || paper.url || paper.title;
-      const matches = await base44.entities.SavedPaper.filter({ source_id: sourceId }, '-created_date', 1).catch(() => []);
-      const existing = matches.find((record) => record.source_id === sourceId);
-      if (existing) await base44.entities.SavedPaper.update(existing.id, { eyra_summary: summary });
-      else await base44.entities.SavedPaper.create({ source_id: sourceId, title: paper.title, authors: paper.authors || '', doi: paper.doi || '', year: paper.year || null, url: paper.url || '', summary: sourceText, eyra_summary: summary });
+      await savePaperSummary({ entities: base44.entities, paper, sourceText, summary });
       toast({ title: 'Summary saved to Library' });
     } catch (error) { toast({ title: 'Could not save summary', description: error?.message || 'Please retry.', variant: 'destructive' }); }
     finally { setSaving(false); }

@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { searchFundingOpportunities } from '@/lib/funding-api';
+import { promiseWithTimeout } from '@/lib/promise-timeout';
 import {
   Bookmark, Award, Loader2, DollarSign, Trophy,
   Rocket, GraduationCap, Sparkles,
@@ -36,6 +37,9 @@ const QUICK_SEARCHES = [
   'Deep tech acceleration',
 ];
 
+const FUNDING_SEARCH_TIMEOUT_MS = 20_000;
+const EYRA_RANKING_TIMEOUT_MS = 15_000;
+
 export default function Opportunities() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -48,6 +52,8 @@ export default function Opportunities() {
   const [deadlineFilter, setDeadlineFilter] = useState('all');
   const [fieldFilter, setFieldFilter] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
+  const searchSequence = useRef(0);
+  const searchController = useRef(null);
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
 
@@ -56,9 +62,21 @@ export default function Opportunities() {
     if (term) handleSearch(term);
   }, [searchParams]);
 
+  useEffect(() => () => {
+    searchSequence.current += 1;
+    searchController.current?.abort();
+  }, []);
+
   const handleSearch = async (searchQuery) => {
     const q = searchQuery || query;
     if (!q.trim()) return;
+    searchController.current?.abort();
+    const requestId = ++searchSequence.current;
+    const controller = new AbortController();
+    searchController.current = controller;
+    const sourceTimeout = setTimeout(() => {
+      controller.abort(new DOMException('Funding source request timed out.', 'TimeoutError'));
+    }, FUNDING_SEARCH_TIMEOUT_MS);
     setQuery(q);
     setLoading(true);
     setHasSearched(true);
@@ -70,7 +88,8 @@ export default function Opportunities() {
 
     try {
       // Retrieval first: these fields come directly from the official source.
-      const sourceResult = await searchFundingOpportunities(q, 12);
+      const sourceResult = await searchFundingOpportunities(q, 12, { signal: controller.signal });
+      if (requestId !== searchSequence.current) return;
       setSourceMeta(sourceResult);
 
       const verified = sourceResult.items.map((item) => ({
@@ -86,7 +105,7 @@ export default function Opportunities() {
 
       try {
         // AI may rank and explain verified records, but cannot create or rewrite them.
-        const ranking = await base44.integrations.Core.InvokeLLM({
+        const ranking = await promiseWithTimeout(base44.integrations.Core.InvokeLLM({
           prompt: `You are EYRA Funding Intelligence. Rank ONLY the verified funding records below for this user query.
 
 USER QUERY: "${q}"
@@ -125,7 +144,9 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
               },
             },
           },
-        });
+        }), EYRA_RANKING_TIMEOUT_MS, 'EYRA ranking timed out.');
+
+        if (requestId !== searchSequence.current) return;
 
         const byId = new Map((ranking.ranked || []).map((item) => [item.id, item]));
         const ranked = verified
@@ -133,15 +154,25 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
           .sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1));
         setResults(ranked);
       } catch (error) {
-        setRankingError(
-          `Verified opportunities loaded, but EYRA ranking is unavailable: ${error instanceof Error ? error.message : 'unknown error'}`,
-        );
+        if (requestId === searchSequence.current) {
+          setRankingError(
+            `Verified opportunities loaded, but EYRA ranking is unavailable: ${error instanceof Error ? error.message : 'unknown error'}`,
+          );
+        }
       }
     } catch (error) {
-      setSearchError(error instanceof Error ? error.message : 'Funding search failed.');
-      setResults([]);
+      if (requestId === searchSequence.current) {
+        setSearchError(controller.signal.aborted
+          ? 'Funding search timed out or was cancelled. Please retry.'
+          : error instanceof Error ? error.message : 'Funding search failed.');
+        setResults([]);
+      }
     } finally {
-      setLoading(false);
+      clearTimeout(sourceTimeout);
+      if (requestId === searchSequence.current) {
+        if (searchController.current === controller) searchController.current = null;
+        setLoading(false);
+      }
     }
   };
 

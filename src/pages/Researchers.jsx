@@ -38,10 +38,16 @@ export default function Researchers() {
   const [copyStatus, setCopyStatus] = useState('');
   const [evidence, setEvidence] = useState({});
   const searchSequence = useRef(0);
+  const searchController = useRef(null);
   const lastFetchAt = useRef(0);
   const loadingRef = useRef(false);
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+
+  useEffect(() => () => {
+    searchSequence.current += 1;
+    searchController.current?.abort();
+  }, []);
 
   const loadCvFile = async (file) => {
     setCvError('');
@@ -95,7 +101,10 @@ export default function Researchers() {
   const handleSearch = async (searchQuery, nextPage = 1) => {
     const q = String(searchQuery || query).trim();
     if (!q) return;
+    searchController.current?.abort();
     const requestId = ++searchSequence.current;
+    const controller = new AbortController();
+    searchController.current = controller;
     loadingRef.current = true;
     setQuery(q);
     setLoading(true);
@@ -108,8 +117,8 @@ export default function Researchers() {
       // A field is not an author name: query publication authors independently,
       // so sparse or failed author-name search does not hide relevant researchers.
       const [authorOutcome, publicationOutcome] = await Promise.allSettled([
-        searchOpenAlexAuthors(normalizedTopic || q, 25, { throwOnError: true, page: nextPage, country: countryFilter }),
-        searchResearchPeopleByPublications(q, 25, { page: nextPage, country: countryFilter }),
+        searchOpenAlexAuthors(normalizedTopic || q, 25, { throwOnError: true, page: nextPage, country: countryFilter, signal: controller.signal }),
+        searchResearchPeopleByPublications(q, 25, { page: nextPage, country: countryFilter, signal: controller.signal }),
       ]);
       if (authorOutcome.status === 'rejected' && publicationOutcome.status === 'rejected') {
         throw new Error('Both researcher providers failed');
@@ -130,12 +139,13 @@ export default function Researchers() {
         setLastRefreshed(new Date(fetchedAt));
       }
     } catch {
-      if (requestId === searchSequence.current) {
+      if (requestId === searchSequence.current && !controller.signal.aborted) {
         setSearchError('OpenAlex is unavailable right now. Please retry your search.');
         if (nextPage === 1) setResults([]);
       }
     } finally {
       if (requestId === searchSequence.current) {
+        if (searchController.current === controller) searchController.current = null;
         loadingRef.current = false;
         setLoading(false);
       }
