@@ -38,6 +38,10 @@ export default function Login() {
         setError(result.error?.message || "Unable to sign in. Please retry.");
         return;
       }
+      if (!result.data?.session?.access_token || !result.data?.user?.id) {
+        setError('We could not verify your session. Please retry.');
+        return;
+      }
       navigate(destination, { replace: true });
     } catch {
       setError("Sign in could not be completed. Check your connection and retry.");
