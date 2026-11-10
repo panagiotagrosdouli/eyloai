@@ -30,6 +30,7 @@ export default function ResearchBattlefield() {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeCategory, setActiveCategory] = useState('top_researchers');
+  const [sourceWarning, setSourceWarning] = useState('');
 
   const analyze = async (q) => {
     const searchQuery = q || query;
@@ -38,17 +39,25 @@ export default function ResearchBattlefield() {
     setLoading(true);
     setReport(null);
 
-    // Step 1: Fetch REAL data from OpenAlex
-    const [researchers, institutions, papers, fundingResult] = await Promise.all([
-      searchOpenAlexAuthors(searchQuery, 10),
-      searchOpenAlexInstitutions(searchQuery, 6),
-      searchOpenAlexWorks(searchQuery, 8),
-      searchFundingOpportunities(searchQuery, 6).catch((error) => ({
-        items: [],
-        error: error instanceof Error ? error.message : 'Funding source unavailable',
-      })),
+    setSourceWarning('');
+    // Retrieve each scholarly source independently. A provider failure is not evidence
+    // that a research field has zero publications or researchers.
+    const outcomes = await Promise.allSettled([
+      searchOpenAlexAuthors(searchQuery, 10, { throwOnError: true }),
+      searchOpenAlexInstitutions(searchQuery, 6, { throwOnError: true }),
+      searchOpenAlexWorks(searchQuery, 8, 'relevance', { throwOnError: true }),
+      searchFundingOpportunities(searchQuery, 6),
     ]);
-
+    const [researchers, institutions, papers] = outcomes.slice(0, 3)
+      .map(outcome => outcome.status === 'fulfilled' ? outcome.value : []);
+    const fundingResult = outcomes[3].status === 'fulfilled'
+      ? outcomes[3].value
+      : { items: [], error: outcomes[3].reason?.message || 'Funding service unavailable.' };
+    const failedSources = outcomes.slice(0, 3).flatMap((outcome, index) =>
+      outcome.status === 'rejected' ? [['Researchers', 'Institutions', 'Papers'][index]] : []);
+    if (failedSources.length) {
+      setSourceWarning(`Partial research coverage: ${failedSources.join(', ')} could not be retrieved. Missing results must not be interpreted as absence of research.`);
+    }
     const verifiedFunders = (fundingResult.items || []).map((item) => ({
       name: item.title,
       type: item.agency || 'Official funding opportunity',
@@ -190,6 +199,8 @@ Funding records are retrieved separately from an official source. Do not generat
         )}
       </div>
 
+      {sourceWarning && <div role="status" className="mb-5 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-foreground"><AlertCircle size={15} className="mr-2 inline text-amber-600"/>{sourceWarning}</div>}
+
       {/* Loading */}
       {loading && (
         <div className="flex flex-col items-center justify-center py-20">
@@ -214,7 +225,7 @@ Funding records are retrieved separately from an official source. Do not generat
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-primary/15 bg-primary/5">
             <AlertCircle size={12} className="text-primary flex-shrink-0" />
             <p className="text-[11px] text-muted-foreground">
-              Research data: <span className="text-primary font-medium">OpenAlex</span> — {report.researchers.length} researchers, {report.institutions.length} institutions, {report.papers.length} papers. Funding: <span className="text-primary font-medium">Grants.gov</span> — {report.major_funders.length} official records. Landscape labels are AI planning heuristics, not validated forecasts.
+              Research data: <span className="text-primary font-medium">OpenAlex</span> — {report.researchers.length} researchers, {report.institutions.length} institutions, {report.papers.length} papers. Funding: <span className="text-primary font-medium">official retrieved sources</span> — {report.major_funders.length} official records. Landscape labels are AI planning heuristics, not validated forecasts.
             </p>
           </div>
 
@@ -226,7 +237,7 @@ Funding records are retrieved separately from an official source. Do not generat
 
           {!report.has_data && (
             <div className="p-5 rounded-xl border border-border bg-card text-center">
-              <p className="text-sm text-muted-foreground">No data found in OpenAlex for this query. Try a broader or different search term.</p>
+              <p className="text-sm text-muted-foreground">No matching scholarly records were returned from the available sources. Broaden your search or retry if a provider was unavailable.</p>
             </div>
           )}
 
