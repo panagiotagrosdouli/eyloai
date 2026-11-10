@@ -452,3 +452,26 @@ body { min-width: 320px; background: hsl(var(--background)); letter-spacing: -0.
   --ring: 202 80% 56%;
   color-scheme: light;
 }
+
+
+/* Keep the authenticated Home surface aligned with EYLO's white public identity. */
+.eylo-home,
+.eylo-home-layout {
+  --background: 210 25% 98%;
+  --foreground: 220 35% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 35% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 35% 12%;
+  --primary: 213 58% 30%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 22% 96%;
+  --secondary-foreground: 220 25% 28%;
+  --muted: 210 22% 96%;
+  --muted-foreground: 215 14% 50%;
+  --accent: 205 58% 42%;
+  --accent-foreground: 0 0% 100%;
+  --border: 214 22% 90%;
+  --input: 214 22% 90%;
+  --ring: 213 58% 30%;
+}
