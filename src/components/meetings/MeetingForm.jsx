@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Link2 } from 'lucide-react';
+import { createJitsiMeetingLink, normalizeMeetingLink } from '@/lib/meeting-links.mjs';
 
 const CALL_TYPES = [
   { value: 'project_meeting', label: 'Project Meeting' },
@@ -50,9 +51,12 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
   };
 
   const createVideoRoom = () => {
-    const randomPart = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const roomName = `eylo-${randomPart}`.replace(/[^a-zA-Z0-9-]/g, '');
-    set('meeting_link', `https://meet.jit.si/${roomName}`);
+    setError('');
+    try {
+      set('meeting_link', createJitsiMeetingLink());
+    } catch (roomError) {
+      setError(roomError?.message || 'Secure room creation is unavailable in this browser.');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -63,7 +67,12 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
       if (form.call_type === 'phd_supervision' && form.invitation_status === 'accepted' && !String(form.confirmation_reference || '').trim()) {
         throw new Error('Record how the recipient confirmed the meeting before marking it accepted.');
       }
-      await onSave({ ...form, title: form.title.trim(), duration_minutes: Math.max(1, Number(form.duration_minutes) || 60) });
+      await onSave({
+        ...form,
+        title: form.title.trim(),
+        meeting_link: normalizeMeetingLink(form.meeting_link),
+        duration_minutes: Math.min(1440, Math.max(1, Number(form.duration_minutes) || 60)),
+      });
     } catch (saveError) {
       setError(saveError?.message || 'The meeting could not be saved. Please try again.');
     } finally {
@@ -183,7 +192,7 @@ export default function MeetingForm({ projects = [], onSave, onCancel, initial =
             <Link2 size={12} /> Create room
           </button>
         </div>
-        <p className="mt-1 text-[10px] text-muted-foreground">Creates a unique Jitsi video room, or paste an existing Zoom, Meet, or Teams link.</p>
+        <p className="mt-1 text-[10px] leading-5 text-muted-foreground">Creates a Jitsi room using a cryptographically random ID. Jitsi is a third-party service; anyone with the room link may be able to join, so share it only with intended participants. Or paste an HTTPS Zoom, Meet, or Teams link.</p>
       </div>
 
       {/* Agenda */}

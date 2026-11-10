@@ -184,7 +184,31 @@ try {
   await dataLab.getByRole('button', { name: 'Clear data' }).click();
   await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor({ state: 'detached' });
 
-  console.log('Browser checks passed: auth regressions, mobile registration and private CSV analysis/export/reset.');
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/meetings**', (route) => sendAuthJson(route, [{
+    id: 'meeting-e2e-1',
+    user_id: testUser.id,
+    data: {
+      title: 'E2E accessibility review',
+      date: '2099-01-10',
+      time: '10:00',
+      duration_minutes: 45,
+      call_type: 'research_discussion',
+      status: 'scheduled',
+      meeting_link: 'javascript:alert(1)',
+    },
+    created_at: '2026-11-10T00:00:00.000Z',
+  }]));
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/projects**', (route) => sendAuthJson(route, []));
+  await dataLab.goto(`${baseUrl}/meetings`);
+  const meetingCard = dataLab.getByRole('button', { name: 'Open meeting plan: E2E accessibility review' });
+  await meetingCard.waitFor();
+  await meetingCard.focus();
+  await dataLab.keyboard.press('Enter');
+  await dataLab.getByRole('heading', { name: 'E2E accessibility review' }).waitFor();
+  assert.equal(await dataLab.getByRole('link', { name: /Open external meeting room/ }).count(), 0,
+    'unsafe legacy meeting URLs must not become external links');
+
+  console.log('Browser checks passed: auth, mobile registration, local CSV analysis/export/reset and keyboard meeting access.');
 } finally {
   if (browser) await browser.close();
   if (server.exitCode === null) {

@@ -7,18 +7,16 @@ import MeetingForm from './MeetingForm';
 import ReactMarkdown from 'react-markdown';
 import moment from 'moment';
 import { createMeetingCalendarDraft } from '@/lib/meeting-invitation';
+import { getEmbeddedJitsiRoom, normalizeMeetingLink } from '@/lib/meeting-links.mjs';
 
 const TABS = ['Overview', 'EYRA Prep', 'Notes & Debrief'];
 
 export default function MeetingDetail({ meeting, projects, onBack, onSave, onDelete, onUpdate }) {
   const [tab, setTab] = useState('Overview');
   const [inAppCall, setInAppCall] = useState(false);
-  const embeddedRoom = (() => {
-    try {
-      const url = new URL(meeting.meeting_link || '');
-      return url.protocol === 'https:' && url.hostname === 'meet.jit.si' && /^\/[a-zA-Z0-9-]+$/.test(url.pathname) ? url.href : '';
-    } catch { return ''; }
-  })();
+  let meetingLink = '';
+  try { meetingLink = normalizeMeetingLink(meeting.meeting_link); } catch { /* Invalid saved URLs stay inert. */ }
+  const embeddedRoom = getEmbeddedJitsiRoom(meetingLink);
   const [editing, setEditing] = useState(false);
   const [loadingPrep, setLoadingPrep] = useState(false);
   const [loadingDebrief, setLoadingDebrief] = useState(false);
@@ -154,8 +152,8 @@ Be concise and actionable.`,
       action: 'TEMPLATE',
       text: meeting.title || 'EYLO meeting',
       dates: `${start}/${end}`,
-      details: [meeting.agenda, meeting.meeting_link].filter(Boolean).join('\n\n'),
-      location: meeting.meeting_link || '',
+      details: [meeting.agenda, meetingLink].filter(Boolean).join('\n\n'),
+      location: meetingLink,
     });
     return `https://calendar.google.com/calendar/render?${params}`;
   })();
@@ -195,7 +193,7 @@ Be concise and actionable.`,
       `Proposed date: ${meeting.date} at ${meeting.time} (please confirm your time zone)`,
       `Duration: ${meeting.duration_minutes || 60} minutes`,
       meeting.agenda ? `Agenda: ${meeting.agenda}` : '',
-      meeting.meeting_link ? `Proposed call link: ${meeting.meeting_link}` : '',
+      meetingLink ? `Proposed call link: ${meetingLink}` : '',
       '',
       'Please reply to confirm or suggest another time. This is a request, not a confirmed booking.',
       '',
@@ -299,10 +297,11 @@ Be concise and actionable.`,
                 <Video size={12} /> Join inside EYLO
               </button>
             )}
-            {meeting.meeting_link && (
-              <a href={meeting.meeting_link} target="_blank" rel="noopener noreferrer"
+            {meetingLink && (
+              <a href={meetingLink} target="_blank" rel="noopener noreferrer"
+                aria-label={`Open external meeting room for ${meeting.title} (opens in a new tab)`}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs font-semibold hover:bg-secondary">
-                <Video size={12} /> Open call externally
+                <Video size={12} aria-hidden="true" /> Open call externally
               </a>
             )}
             <button onClick={() => setEditing(true)} className="p-2 rounded-lg hover:bg-secondary transition-colors">

@@ -28,7 +28,7 @@ test('EYLO supports explicit opt-in in-app video and a separate external fallbac
   const source = readFileSync(new URL('../src/components/meetings/MeetingDetail.jsx', import.meta.url), 'utf8');
   assert.match(source, /Join inside EYLO/);
   assert.match(source, /Open call externally/);
-  assert.match(source, /hostname === 'meet\.jit\.si'/);
+  assert.match(source, /getEmbeddedJitsiRoom\(meetingLink\)/);
   assert.match(source, /inAppCall && embeddedRoom/);
   assert.match(source, /third-party service/);
 });
