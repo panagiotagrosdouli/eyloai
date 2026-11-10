@@ -103,7 +103,7 @@ try {
   await hostRoom.getByRole('button', { name: 'Unmute microphone' }).click();
   await hostRoom.getByRole('button', { name: 'Mute microphone' }).waitFor();
   await hostRoom.getByRole('button', { name: 'Turn camera off' }).click();
-  await hostRoom.getByText('Camera off').waitFor();
+  await hostRoom.getByText('Camera off').first().waitFor();
   await hostRoom.getByRole('button', { name: 'Turn camera on' }).click();
   await hostRoom.getByRole('button', { name: 'Turn camera off' }).waitFor();
 
@@ -111,6 +111,8 @@ try {
     console.log('Select a screen/window in the browser sharing prompt within 60 seconds.');
     await hostRoom.getByRole('button', { name: 'Share screen' }).click();
     await hostRoom.getByRole('button', { name: 'Stop screen sharing' }).waitFor({ timeout: 60_000 });
+    await guest.waitForFunction(() => [...document.querySelectorAll('video')].filter(element =>
+      element.srcObject?.getVideoTracks().some(track => track.readyState === 'live')).length >= 3, undefined, { timeout });
     await hostRoom.getByRole('button', { name: 'Stop screen sharing' }).click();
     await hostRoom.getByRole('button', { name: 'Share screen' }).waitFor();
   }
