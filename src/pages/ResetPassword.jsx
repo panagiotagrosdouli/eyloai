@@ -86,6 +86,12 @@ export default function ResetPassword() {
           {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Updating password…</> : "Update password"}
         </Button>
       </form>
+      <p className="mt-5 text-center text-sm text-slate-400">
+        Recovery link expired?{" "}
+        <Link to={`/forgot-password${destination === "/home" ? "" : `?from=${encodeURIComponent(destination)}`}`} className="font-medium text-cyan-300 hover:underline">
+          Request a new one
+        </Link>
+      </p>
     </AuthLayout>
   );
 }

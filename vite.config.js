@@ -21,5 +21,14 @@ export default defineConfig({
         'https://panagiotagrosdouli.github.io/eyloai/',
       ),
     }] : []),
-  ]
+  ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('/node_modules/@supabase/')) return 'supabase-vendor';
+        },
+      },
+    },
+  },
 });

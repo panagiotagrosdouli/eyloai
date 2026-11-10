@@ -30,12 +30,16 @@ export default function ForgotPassword() {
     setFormError("");
     const resetUrl = new URL(`${import.meta.env.BASE_URL}reset-password`, window.location.origin);
     resetUrl.searchParams.set("from", destination);
-    const result = await resetPassword(email, resetUrl.toString());
-    if (!result.ok) {
-      setFormError(result.error.message);
-      return;
+    try {
+      const result = await resetPassword(email, resetUrl.toString());
+      if (!result.ok) {
+        setFormError(result.error?.message || "The recovery email could not be sent. Please retry.");
+        return;
+      }
+      setSent(true);
+    } catch {
+      setFormError("The recovery email could not be sent. Check your connection and retry.");
     }
-    setSent(true);
   };
 
   return (
