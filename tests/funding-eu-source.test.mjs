@@ -10,10 +10,10 @@ test('funding API merges verified EU calls with Grants.gov records', async () =>
     if (target === 'https://api.grants.gov/v1/api/search2') return { ok: true, json: async () => ({ errorcode: 0, data: { hitCount: 0, oppHits: [] } }) };
     if (target.includes('api.tech.ec.europa.eu/search-api/prod/rest/search')) return {
       ok: true,
-      json: async () => ({ results: [{ content: {
-        identifier: 'HORIZON-TEST-2026', title: 'Verified research call', programmeName: 'Horizon Europe',
-        status: 'Open', deadlineDate: '2099-12-31', eligibility: 'Research organisations', url: 'https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/HORIZON-TEST-2026',
-      } }] }),
+      json: async () => ({ results: [{
+        content: 'Verified research call', summary: 'Official short scope from the portal',
+        metadata: { identifier: ['HORIZON-TEST-2026'], title: ['Verified research call'], status: ['31094501'], deadlineDate: ['2099-12-31'], eligibleApplicants: ['Research organisations'], keywords: ['["climate research","adaptation"]'] },
+      }] }),
     };
     throw new Error(`Unexpected upstream request: ${target}`);
   };
@@ -25,6 +25,8 @@ test('funding API merges verified EU calls with Grants.gov records', async () =>
     assert.equal(response.body.items[0].title, 'Verified research call');
     assert.equal(response.body.items[0].agency, 'Horizon Europe');
     assert.equal(response.body.items[0].eligibility, 'Research organisations');
+    assert.deepEqual(response.body.items[0].categories, ['climate research; adaptation']);
+    assert.equal(response.body.items[0].status, 'Open');
     assert.match(response.body.items[0].source_url, /^https:\/\/ec\.europa\.eu\//);
   } finally { globalThis.fetch = previousFetch; }
 });
