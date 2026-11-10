@@ -12,6 +12,7 @@ import ReactMarkdown from 'react-markdown';
 import moment from 'moment';
 import StartupBuilder from '@/components/projects/StartupBuilder';
 import EyraProjectTwin from '@/components/eyra/EyraProjectTwin';
+import PaperSummary from '@/components/eyra/PaperSummary';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
@@ -429,6 +430,7 @@ Rules:
               <h3 className="mt-2 text-base font-semibold">{paper.title}</h3>
               {paper.authors && <p className="mt-1 text-sm text-muted-foreground">{paper.authors}</p>}
               {paper.summary && <p className="mt-2 text-sm leading-6 text-muted-foreground">{paper.summary}</p>}
+              <PaperSummary paper={paper} projectId={id} />
               {paper.url && <a href={paper.url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-10 items-center gap-2 text-sm text-primary hover:underline">Open source <ExternalLink size={14} aria-hidden="true" /></a>}
             </article>
           )) : (

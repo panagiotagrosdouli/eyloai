@@ -515,7 +515,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
               </div>
               <div className="space-y-3">
                 {(startHere.length ? startHere : results.papers.slice(0, 3)).map((p, i) => (
-                  <PaperCard key={i} paper={p} onSave={() => savePaper(p)} rank={i + 1} />
+                  <PaperCard key={i} paper={p} onSave={() => savePaper(p)} projectId={projectCreated?.id || ''} rank={i + 1} />
                 ))}
               </div>
             </div>
@@ -617,7 +617,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
                       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><GroupIcon size={14} /></span>
                       <div><h3 className="text-sm font-semibold">{group.title}</h3><p className="mt-0.5 text-[11px] text-muted-foreground">{group.desc}</p></div>
                     </div>
-                    <div className="space-y-3">{group.papers.map((paper, index) => <PaperCard key={paper._dedupeKey || paper.id || paper.title} paper={paper} onSave={() => savePaper(paper)} rank={index + 1} />)}</div>
+                    <div className="space-y-3">{group.papers.map((paper, index) => <PaperCard key={paper._dedupeKey || paper.id || paper.title} paper={paper} onSave={() => savePaper(paper)} projectId={projectCreated?.id || ''} rank={index + 1} />)}</div>
                   </section>
                 );
               })}
@@ -866,7 +866,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
   );
 }
 
-function PaperCard({ paper, onSave, rank }) {
+function PaperCard({ paper, onSave, projectId, rank }) {
   const navigate = useNavigate();
   const getImpactLevel = (cited) => {
     if (cited > 500) return { label: 'Highly cited', color: 'text-primary bg-primary/10' };
@@ -901,7 +901,7 @@ function PaperCard({ paper, onSave, rank }) {
           <h4 className="font-semibold text-sm leading-snug mb-1.5 text-foreground">{paper.title}</h4>
           {paper.authors && <p className="text-xs text-muted-foreground mb-2">{paper.authors}</p>}
           {paper.summary && <p className="text-xs text-muted-foreground/80 leading-relaxed line-clamp-2">{paper.summary}</p>}
-          <PaperSummary paper={paper} />
+          <PaperSummary paper={paper} projectId={projectId} />
           <button type="button" onClick={() => navigate(`/search?q=${encodeURIComponent(paper.title || '')}`)} className="mt-2 text-[11px] font-medium text-muted-foreground hover:text-primary">Find similar papers</button>
         </div>
         <div className="flex flex-col gap-1 flex-shrink-0">

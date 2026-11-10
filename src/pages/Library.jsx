@@ -215,7 +215,7 @@ export default function Library() {
                         {p.doi && <p className="mt-1 text-xs text-muted-foreground">DOI: {p.doi}</p>}
                         {p.summary && <p className="text-xs text-muted-foreground/70 mt-1.5 line-clamp-2">{p.summary}</p>}
                         <EyraResearchCompanion paper={p} />
-                        <PaperSummary paper={p} />
+                        <PaperSummary paper={p} projectId={p.project_id || ''} />
                         <ProjectLinkControl item={p} projects={projects} projectsLoaded={projectsLoaded} label="paper" onLink={(item, projectId) => linkToProject('SavedPaper', item, projectId, setPapers, 'paper')} />
                       </div>
                       <div className="flex gap-1 flex-shrink-0">

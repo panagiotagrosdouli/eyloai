@@ -15,7 +15,7 @@ This is the working implementation register for the master EYLO platform brief. 
 ## Priority 1 — Core scientific intelligence
 
 - [ ] Research Discovery — **Partial:** live scholarly indexes, deduplication, ranking, provider-status handling, source links, and saving exist; advanced filter coverage and independent relevance validation remain incomplete.
-- [ ] EYRA Paper Summaries — **Not implemented as a paper-scoped workflow:** retrieved abstracts are displayed, but no short/standard/detailed grounded summary action exists on each paper.
+- [ ] EYRA Paper Summaries — **Partial:** authenticated discovery, Library, and Project evidence papers now offer short/standard/detailed abstract-based summaries and an explicit save action. Full-text ingestion is not implemented; summaries state that they are abstract-based.
 - [ ] Ask This Paper — **Not implemented as paper-scoped conversation:** EYRA can analyze project/discovery context, but no persistent per-paper conversation flow was verified.
 - [ ] Compare Papers and Evidence Matrix — **In progress:** open PR #280 (“feat: add evidence matrix and grounded research questions”) is not merged into main; review and verify that branch before extending the feature.
 - [ ] Research Gap Finder — **Partial:** discovery analysis proposes cautiously worded gaps with source IDs; no dedicated user-selected evidence workflow, full scope/counterevidence record, or create-project action was verified.
@@ -59,11 +59,12 @@ This is the working implementation register for the master EYLO platform brief. 
 
 ## Current checkpoint — 2026-11-10
 
-- Branch: `codex/fail-closed-supabase`, based on current `main` commit `80fbc5a126b99039cb84ec387c719480a55b14b3`.
+- Branch: `codex/fail-closed-supabase`, based on current `main` commit `80fbc5a126b99039cb84ec387c719480a55b14b3` plus the user-authored EU metadata commit `d3d9f40a0b8f38cca736504a3a52b11d98e30c04` already present on the remote feature branch.
 - Recent history reviewed: main contains new EU funding and EYRA research workflows; open PR #280 is an Evidence Matrix implementation and open PRs include collaboration, account-deletion intake, owner-scoped export, RLS acceptance checks, and EYRA evidence-evaluation work.
 - Initial finding: `api/eyra.js`, `api/opportunities.js`, `api/monitor.js`, `api/billing.js`, and `api/stripe-webhook.js` could silently fall back to the hard-coded project `kbzjngpzxpniaumlupaa.supabase.co`. The funding and EYRA handlers also contained a hard-coded public key.
 - Current change: added explicit server-side Supabase URL/key validation and removed the serverless project/key fallbacks. Regression tests are being updated to prove missing configuration makes no upstream request and configured requests use only the supplied project.
-- Verification: `npm run check` passed locally; focused no-fallback tests passed; production public smoke passed 8/8 (`/`, `/release.json`, `/robots.txt`, `/discover`, `/login`, `/register`, `/forgot-password`, `/api/capabilities`). Public capability response reports all five optional services disabled. This does not verify account persistence, live RLS, provider access, or AI behavior.
+- Current core workflow change: extended the existing EYRA paper summarizer with three detail modes, abstract-only uncertainty rules, and explicit save-to-Project behavior while preserving any existing project link; available from Discovery, Library, and Project evidence views.
+- Verification: the security and paper-summary changes passed import checks, both TypeScript projects, ESLint, 233 unit tests, and the Vite build through `npm run check`. Production public smoke passed 8/8 (`/`, `/release.json`, `/robots.txt`, `/discover`, `/login`, `/register`, `/forgot-password`, `/api/capabilities`). Public capability response reports all five optional services disabled. This does not verify account persistence, live RLS, provider access, or AI behavior.
 - Deployment: unchanged. Exact deployment SHA and connected Vercel project remain unverified; no deployment or database changes were made.
 
 ## Continuation rule
