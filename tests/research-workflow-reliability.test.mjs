@@ -27,3 +27,12 @@ test('promise timeout returns early and clears its timer when the source is fast
     /source timed out/,
   );
 });
+
+test('promise timeout aborts its pending source when the deadline expires', async () => {
+  const controller = new AbortController();
+  await assert.rejects(
+    promiseWithTimeout(new Promise(() => {}), 5, 'source timed out', () => controller.abort()),
+    /source timed out/,
+  );
+  assert.equal(controller.signal.aborted, true);
+});

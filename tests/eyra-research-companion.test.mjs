@@ -9,4 +9,7 @@ test('research companion always clears loading and offers a visible retry after 
   assert.match(source, /finally \{[\s\S]*requestInProgress\.current = false;[\s\S]*setLoading\(false\)/);
   assert.match(source, /role="alert"[\s\S]*Click EYRA Research Companion to retry/);
   assert.match(source, /disabled=\{loading\}/);
+  assert.match(source, /promiseWithTimeout\(base44\.integrations\.Core\.InvokeLLM/);
+  assert.match(source, /signal: controller\.signal/);
+  assert.match(source, /15_000[\s\S]*controller\.abort\(\)/);
 });

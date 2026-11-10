@@ -89,6 +89,7 @@ export default function Opportunities() {
     try {
       // Retrieval first: these fields come directly from the official source.
       const sourceResult = await searchFundingOpportunities(q, 12, { signal: controller.signal });
+      clearTimeout(sourceTimeout);
       if (requestId !== searchSequence.current) return;
       setSourceMeta(sourceResult);
 
@@ -144,7 +145,8 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
               },
             },
           },
-        }), EYRA_RANKING_TIMEOUT_MS, 'EYRA ranking timed out.');
+          signal: controller.signal,
+        }), EYRA_RANKING_TIMEOUT_MS, 'EYRA ranking timed out.', () => controller.abort());
 
         if (requestId !== searchSequence.current) return;
 

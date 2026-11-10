@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { promiseWithTimeout } from '@/lib/promise-timeout';
 import { Loader2, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -21,8 +22,9 @@ export default function EyraResearchCompanion({ paper, userInterests = '' }) {
     setError('');
     setLoading(true);
     setOpen(true);
+    const controller = new AbortController();
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await promiseWithTimeout(base44.integrations.Core.InvokeLLM({
         prompt: `You are EYRA Research Companion. Given this paper, provide a brief structured companion guide.
 
 Paper: "${paper.title}"
@@ -42,7 +44,8 @@ Respond in markdown (max 180 words total):
 What type of researcher or lab expertise to look for next
 
 Keep it brief, specific, and actionable. Do not invent paper titles or researcher names.`,
-      });
+        signal: controller.signal,
+      }), 15_000, 'EYRA timed out. Check your connection and retry.', () => controller.abort());
       if (typeof result !== 'string' || !result.trim()) throw new Error('EYRA returned an empty research companion guide. Please retry.');
       setInsight(result);
     } catch (cause) {
