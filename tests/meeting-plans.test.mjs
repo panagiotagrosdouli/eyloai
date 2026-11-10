@@ -23,3 +23,21 @@ test('upcoming meeting plans exclude invalid and past dates and sort the next th
 test('upcoming meeting plans tolerate missing collections', () => {
   assert.deepEqual(upcomingMeetingPlans(null, moment('2026-11-09')), []);
 });
+
+import { createInstantMeetingPlan } from '../src/lib/instant-meeting.mjs';
+import { createJitsiRoomUrl } from '../src/lib/jitsi-room.mjs';
+
+test('instant video room creates an honest meeting plan in local time', () => {
+  const url = createJitsiRoomUrl({ randomUUID: () => '11111111-1111-4111-8111-111111111111' });
+  const meeting = createInstantMeetingPlan(url, new Date(2026, 10, 10, 16, 25));
+  assert.equal(meeting.meeting_link, url);
+  assert.equal(meeting.date, '2026-11-10');
+  assert.equal(meeting.time, '16:25');
+  assert.equal(meeting.invitation_status, 'not_sent');
+  assert.equal(meeting.status, 'in_progress');
+});
+
+test('instant video room rejects invalid links and dates', () => {
+  assert.throws(() => createInstantMeetingPlan('https://example.com/test'), /valid Jitsi/);
+  assert.throws(() => createInstantMeetingPlan('https://meet.jit.si/eylo-valid', new Date(NaN)), /valid local date/);
+});
