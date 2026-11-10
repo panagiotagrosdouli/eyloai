@@ -27,6 +27,8 @@ jobs:
           cache: npm
       - name: Check production dependency vulnerabilities
         run: npm audit --omit=dev --audit-level=high
+      - name: Check full dependency tree including development tooling
+        run: npm audit --audit-level=high
       - name: Read-only production TLS and redirect probe
         shell: bash
         run: |
