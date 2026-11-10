@@ -24,7 +24,7 @@ export async function signIn(email, password) {
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(mapSupabaseError(error) || createAppError(AppErrorCode.UNKNOWN));
   }
 }
 
@@ -43,7 +43,7 @@ export async function signUp(email, password, options = {}) {
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(mapSupabaseError(error) || createAppError(AppErrorCode.UNKNOWN));
   }
 }
 
@@ -60,7 +60,7 @@ export async function signInWithOAuth(provider, redirectTo) {
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(mapSupabaseError(error) || createAppError(AppErrorCode.UNKNOWN));
   }
 }
 
@@ -71,13 +71,14 @@ export async function signInWithMagicLink(email, redirectTo) {
       email: email.trim().toLowerCase(),
       options: {
         emailRedirectTo: redirectTo,
-        shouldCreateUser: true,
+        // Login must never silently register an account; registration has its own confirmation flow.
+        shouldCreateUser: false,
       },
     });
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(mapSupabaseError(error) || createAppError(AppErrorCode.UNKNOWN));
   }
 }
 
@@ -88,7 +89,7 @@ export async function signOut() {
     if (error) return fail(mapSupabaseError(error));
     return ok(null);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(mapSupabaseError(error) || createAppError(AppErrorCode.UNKNOWN));
   }
 }
 
@@ -100,7 +101,7 @@ export async function refreshSession() {
       validate: true,
     }));
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(mapSupabaseError(error) || createAppError(AppErrorCode.UNKNOWN));
   }
 }
 
@@ -114,7 +115,7 @@ export async function resetPassword(email, redirectTo) {
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(mapSupabaseError(error) || createAppError(AppErrorCode.UNKNOWN));
   }
 }
 
@@ -125,6 +126,6 @@ export async function updatePassword(password) {
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
-    return fail(createAppError(AppErrorCode.CONFIGURATION, error));
+    return fail(mapSupabaseError(error) || createAppError(AppErrorCode.UNKNOWN));
   }
 }
