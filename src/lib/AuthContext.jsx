@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { appPath, stripAppBase } from '@/lib/auth/routePaths';
 import {
   AUTH_REQUIRED_EVENT,
@@ -24,6 +24,8 @@ const loadingState = { status: 'loading', user: null, session: null, error: null
 
 export const AuthProvider = ({ children }) => {
   const [state, setState] = useState(loadingState);
+  // Every auth event invalidates older manual refresh results as well as bootstrap results.
+  const authVersion = useRef(0);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
@@ -43,6 +45,8 @@ export const AuthProvider = ({ children }) => {
     let authEventVersion = 0;
     const setAnonymous = () => {
       if (!mounted) return;
+      authVersion.current += 1;
+      authEventVersion += 1;
       setState({ status: 'anonymous', user: null, session: null, error: null });
     };
 
@@ -51,6 +55,7 @@ export const AuthProvider = ({ children }) => {
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       authEventVersion += 1;
+      authVersion.current += 1;
 
       if (event === 'SIGNED_IN' && typeof window !== 'undefined') {
         try {
@@ -93,8 +98,13 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const refreshSession = async () => {
+    const startedAtVersion = authVersion.current;
     setState((current) => ({ ...current, status: 'loading', error: null }));
     const result = await refreshAuthSession();
+
+    // SIGNED_IN, SIGNED_OUT and TOKEN_REFRESHED events are authoritative. A late
+    // manual refresh must not overwrite a newer event (especially sign-out).
+    if (authVersion.current !== startedAtVersion) return result;
 
     if (!result.ok) {
       setState({ status: 'error', user: null, session: null, error: result.error });
