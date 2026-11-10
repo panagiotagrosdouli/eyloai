@@ -27,3 +27,15 @@ jobs:
           cache: npm
       - name: Check production dependency vulnerabilities
         run: npm audit --omit=dev --audit-level=high
+      - name: Read-only production TLS and redirect probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          domain=eyloai.vercel.app
+          echo 'Checking CA-verified TLS connection and response headers'
+          curl --fail --silent --show-error --max-time 20 --head "https://${domain}/"
+          echo 'Checking HTTP redirects only to HTTPS'
+          http_headers="$(curl --silent --show-error --max-time 20 --head "http://${domain}/")"
+          printf '%s\n' "$http_headers" | grep -Ei '^HTTP/|^location:'
+          printf '%s\n' "$http_headers" | grep -Eiq '^HTTP/[0-9.]+ (301|302|307|308)'
+          printf '%s\n' "$http_headers" | grep -Eiq '^location: https://eyloai\.vercel\.app(/|[[:space:]]|$)'
