@@ -1,6 +1,7 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 import { readBoundedScholarlyResponse, ScholarlyResponseTooLargeError } from '../src/lib/discovery-response-limit.mjs';
 import { normalizeDoi } from '../src/lib/citation-verification.mjs';
+import { fetchWithScholarlyBackoff } from '../src/lib/scholarly-provider-backoff.mjs';
 
 const PROVIDERS = new Set([
   'openalex_works',
@@ -171,7 +172,7 @@ export default async function handler(request, response) {
   const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
 
   try {
-    const upstream = await fetch(url, {
+    const upstream = await fetchWithScholarlyBackoff(url, {
       signal: controller.signal,
       headers: {
         accept: provider === 'arxiv' ? 'application/atom+xml, application/xml;q=0.9, */*;q=0.8' : 'application/json, */*;q=0.8',
