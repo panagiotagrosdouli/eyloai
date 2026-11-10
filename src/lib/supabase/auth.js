@@ -20,6 +20,11 @@ export async function signIn(email, password) {
       password,
     });
     if (error) return fail(mapSupabaseError(error));
+    // Supabase must return a usable session. Do not present a successful login
+    // for a malformed/partial response, even when the request itself returned 200.
+    if (!data?.session?.access_token || !data?.user?.id) {
+      return fail(createAppError(AppErrorCode.INVALID_CREDENTIALS));
+    }
     return ok(data);
   } catch (error) {
     return fail(createAppError(AppErrorCode.CONFIGURATION, error));
