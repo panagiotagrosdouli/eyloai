@@ -4,10 +4,12 @@ import { useToast } from '@/components/ui/use-toast';
 import MeetingCard from '@/components/meetings/MeetingCard';
 import MeetingForm from '@/components/meetings/MeetingForm';
 import MeetingDetail from '@/components/meetings/MeetingDetail';
-import { Plus, Calendar, Clock, Loader2, Search } from 'lucide-react';
+import { Plus, Calendar, Clock, Loader2, Search, Video } from 'lucide-react';
 import moment from 'moment';
 import { useSearchParams } from 'react-router-dom';
 import { upcomingMeetingPlans } from '@/lib/meeting-plans.mjs';
+import { createJitsiRoomUrl } from '@/lib/jitsi-room.mjs';
+import { createInstantMeetingPlan } from '@/lib/instant-meeting.mjs';
 
 const TABS = ['Upcoming', 'Past', 'All'];
 
@@ -17,6 +19,8 @@ export default function Meetings() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [startingCall, setStartingCall] = useState(false);
+  const [instantCall, setInstantCall] = useState(false);
   const [selected, setSelected] = useState(null);
   const [tab, setTab] = useState('Upcoming');
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,6 +69,26 @@ export default function Meetings() {
     }
   };
 
+  const startInstantCall = async () => {
+    if (startingCall) return;
+    setStartingCall(true);
+    try {
+      const plan = createInstantMeetingPlan(createJitsiRoomUrl(), new Date());
+      const saved = await base44.entities.Meeting.create(plan);
+      if (!saved?.id) throw new Error('The meeting could not be confirmed as saved.');
+      setInstantCall(true);
+      setSelected(saved);
+    } catch (error) {
+      toast({
+        title: 'Video meeting could not be started',
+        description: error instanceof Error ? error.message : 'Please retry.',
+        variant: 'destructive',
+      });
+    } finally {
+      setStartingCall(false);
+    }
+  };
+
   const handleDelete = async (id) => {
     try {
       await base44.entities.Meeting.delete(id);
@@ -93,8 +117,9 @@ export default function Meetings() {
     return (
       <MeetingDetail
         meeting={selected}
+        autoJoin={instantCall}
         projects={projects}
-        onBack={() => setSelected(null)}
+        onBack={() => { setSelected(null); setInstantCall(false); }}
         onSave={handleSave}
         onDelete={handleDelete}
         onUpdate={loadData}
@@ -130,12 +155,16 @@ export default function Meetings() {
           <h1 className="eylo-page-heading">Meetings</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Plan research discussions, capture agendas and save notes. Saving a plan does not send an invitation or confirm attendance.</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          <Plus size={15} /> New
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={startInstantCall} disabled={startingCall}
+            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+            <Video size={15} /> {startingCall ? 'Opening room…' : 'Start video meeting'}
+          </button>
+          <button type="button" onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold hover:bg-secondary">
+            <Plus size={15} /> Schedule meeting
+          </button>
+        </div>
       </div>
 
       <div className="relative mb-5 max-w-md">
