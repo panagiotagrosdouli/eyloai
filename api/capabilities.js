@@ -1,11 +1,12 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 import { analyticsEnabled } from '../src/lib/analytics-readiness.mjs';
+import { readSupabaseApiConfig } from './supabase-config.mjs';
 
 function supabaseServerConfigured() {
-  return Boolean(
-    process.env.SUPABASE_SECRET_KEY
-    || process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
+  const config = readSupabaseApiConfig();
+  // All protected services require the same validated project origin and
+  // public credential that their authentication handlers use.
+  return config.hasPublicConfig && config.hasServerConfig;
 }
 
 export default function handler(request, response) {
