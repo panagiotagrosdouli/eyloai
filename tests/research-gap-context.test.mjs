@@ -21,3 +21,17 @@ test('evidence context excludes duplicate and missing paper IDs', () => {
     getResearchEvidenceContextKey('project-a', ['paper-1']),
   );
 });
+
+
+test('Research Gap Finder cancels superseded model requests and keeps independent result contexts', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(new URL('../src/pages/ResearchGaps.jsx', import.meta.url), 'utf8');
+  assert.match(source, /activeAnalysisRef\.current\?\.abort\(\)/);
+  assert.match(source, /signal: controller\.signal/);
+  assert.match(source, /controller\.signal\.throwIfAborted\(\)/);
+  assert.match(source, /if \(!controller\.signal\.aborted\) setError/);
+  assert.match(source, /if \(activeAnalysisRef\.current === controller\)/);
+  assert.match(source, /hasCurrentComparison && comparison/);
+  assert.match(source, /hasCurrentGaps && gaps\.map/);
+  assert.doesNotMatch(source, /hasCurrentAnalysis/);
+});
