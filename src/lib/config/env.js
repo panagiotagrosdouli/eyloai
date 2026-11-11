@@ -1,3 +1,6 @@
+// EYLO production must never silently authenticate against another tenant.
+const EYLO_PRODUCTION_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
+
 const REQUIRED_ENVIRONMENT_VARIABLES = [
   'VITE_SUPABASE_URL',
   'VITE_SUPABASE_ANON_KEY',
@@ -20,7 +23,11 @@ function readEnvironment(source = /** @type {SupabaseEnvironmentSource} */ (impo
 function isValidSupabaseUrl(value) {
   try {
     const url = new URL(value);
-    return url.protocol === 'https:' && url.hostname.endsWith('.supabase.co');
+    return url.protocol === 'https:'
+      && /^[a-z0-9-]+\.supabase\.co$/i.test(url.hostname)
+      && !url.username && !url.password && !url.port
+      && (url.pathname === '/' || url.pathname === '')
+      && !url.search && !url.hash;
   } catch {
     return false;
   }
@@ -36,6 +43,10 @@ export function validateEnvironment(source = /** @type {SupabaseEnvironmentSourc
     invalid.push('VITE_SUPABASE_URL');
   }
 
+  if (source.PROD === true && values.VITE_SUPABASE_URL.replace(/\/$/, '') !== EYLO_PRODUCTION_SUPABASE_URL) {
+    if (!invalid.includes('VITE_SUPABASE_URL')) invalid.push('VITE_SUPABASE_URL');
+  }
+
   return {
     ok: missing.length === 0 && invalid.length === 0,
     missing,
@@ -45,4 +56,4 @@ export function validateEnvironment(source = /** @type {SupabaseEnvironmentSourc
 }
 
 export const environment = validateEnvironment();
-export { REQUIRED_ENVIRONMENT_VARIABLES };
+export { REQUIRED_ENVIRONMENT_VARIABLES, EYLO_PRODUCTION_SUPABASE_URL };
