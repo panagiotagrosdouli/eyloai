@@ -402,6 +402,17 @@ try {
   assert.equal(await dataLab.getByLabel('Link paper to a project').inputValue(), 'library-project-1');
   console.log('Library recovery and persisted project link passed against isolated PostgREST fixtures.');
 
+  // Verify sign-out actually invalidates the session and protects private routes.
+  await dataLab.route('**/auth/v1/logout**', route => route.fulfill({
+    status: 204,
+    headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' },
+  }));
+  await dataLab.getByRole('button', { name: 'Sign out of EYLO' }).click();
+  await dataLab.getByRole('heading', { name: 'Continue your research' }).waitFor();
+  await dataLab.goto(`${baseUrl}/projects`);
+  await dataLab.getByRole('heading', { name: 'Continue your research' }).waitFor();
+  assert.equal(new URL(dataLab.url()).pathname, '/login', 'private routes must remain protected after sign-out');
+
   console.log('Browser checks passed: auth, mobile registration, local CSV analysis, keyboard meeting access and source graph navigation.');
 } finally {
   if (browser) await browser.close();

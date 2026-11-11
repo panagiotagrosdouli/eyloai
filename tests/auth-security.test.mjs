@@ -10,6 +10,11 @@ test('safe redirects accept known workspace and Labs destinations', () => {
   assert.equal(getSafeRedirect('/projects?new=1'), '/projects?new=1');
   assert.equal(getSafeRedirect('/home'), '/home');
   assert.equal(getSafeRedirect('/labs/scenario'), '/labs/scenario');
+  for (const path of [
+    '/home?tab=projects', '/workspace/careers', '/search?q=climate',
+    '/research-gaps', '/knowledge-graph', '/grant-builder',
+    '/pitchdeck', '/institution',
+  ]) assert.equal(getSafeRedirect(path), path);
 });
 
 test('safe redirects reject external, protocol-relative and malformed destinations', () => {
