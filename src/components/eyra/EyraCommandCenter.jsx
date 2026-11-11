@@ -345,6 +345,7 @@ export default function EyraCommandCenter({ open, onClose }) {
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
   const dialogRef = useRef(null);
+  const activeRequestRef = useRef(null);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -465,9 +466,19 @@ export default function EyraCommandCenter({ open, onClose }) {
 
   const stopListening = () => { recognitionRef.current?.stop(); setListening(false); };
 
+  const stopGeneration = () => {
+    if (!activeRequestRef.current) return;
+    activeRequestRef.current.abort();
+    activeRequestRef.current = null;
+    setLoading(false);
+    setActionError('Generation stopped. No new EYRA response was saved.');
+  };
+
   const sendMessage = async (text) => {
     const content = (text || input).trim();
-    if (!content || loading) return;
+    if (!content || loading || activeRequestRef.current) return;
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
     setInput('');
     setActionError('');
 
@@ -489,6 +500,7 @@ export default function EyraCommandCenter({ open, onClose }) {
         activeMode,
         preferences.data_personalization ? workspaceContext : '',
       );
+      controller.signal.throwIfAborted();
       setLoadingStage('reasoning');
       const language = LANGUAGE_NAMES[preferences.language] || 'the language used by the user';
       const style = STYLE_INSTRUCTIONS[preferences.ai_response_style] || STYLE_INSTRUCTIONS.balanced;
@@ -523,7 +535,9 @@ RECENT CONVERSATION:
 ${history}
 
 Answer the user's latest request. Cite every externally verifiable claim with the supplied identifier. If no record supports a named claim, omit it or label it as an unverified hypothesis. Explain why each recommendation follows from evidence or workspace context. Never claim that a person is available, that a user is eligible, or that a grant is open unless the supplied record states it.`,
+        signal: controller.signal,
       });
+      controller.signal.throwIfAborted();
 
       const answer = typeof response === 'string' ? response.trim() : String(response || '').trim();
       if (!answer) throw new Error('EYRA returned an empty response.');
@@ -538,6 +552,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
       setMessages(previous => [...previous, eyraMsg]);
       speak(eyraMsg.content);
     } catch (error) {
+      if (controller.signal.aborted) return;
       const fallbackContent = buildVerifiedEvidenceFallback(evidence, error);
       setMessages(previous => [...previous, {
         role: 'eyra',
@@ -548,7 +563,10 @@ Answer the user's latest request. Cite every externally verifiable claim with th
         retrievalQuery: evidence.query,
       }]);
     } finally {
-      setLoading(false);
+      if (activeRequestRef.current === controller) {
+        activeRequestRef.current = null;
+        setLoading(false);
+      }
     }
   };
 
@@ -730,6 +748,12 @@ Answer the user's latest request. Cite every externally verifiable claim with th
                   className={`p-1.5 rounded-lg transition-all ${listening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-secondary text-muted-foreground'}`}>
                   {listening ? <MicOff size={14} /> : <Mic size={14} />}
                 </button>
+                {loading && (
+                  <button type="button" aria-label="Stop EYRA generation" onClick={stopGeneration}
+                    className="rounded-lg border border-border px-2 py-1.5 text-xs font-semibold text-foreground hover:bg-secondary">
+                    Stop
+                  </button>
+                )}
                 <button type="button" aria-label="Send message" onClick={() => sendMessage()} disabled={!input.trim() || loading}
                   className="rounded-lg bg-primary p-1.5 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40">
                   {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
