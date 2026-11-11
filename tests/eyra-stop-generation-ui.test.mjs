@@ -17,3 +17,12 @@ test('late retrieval or model output cannot create an answer after user cancelle
   assert.match(source, /if \(activeRequestRef\.current === controller\)/);
   assert.match(source, /Generation stopped\. No new EYRA response was saved/);
 });
+
+
+test('Stop signal is passed to scholarly, people and funding retrieval', () => {
+  assert.match(source, /searchAllPapersWithStatus\(query, \{ limit: 16, signal \}\)/);
+  assert.match(source, /searchOpenAlexAuthors\(query, 6, \{ signal, throwOnError: true \}\)/);
+  assert.match(source, /searchOpenAlexInstitutions\(query, 4, \{ signal, throwOnError: true \}\)/);
+  assert.match(source, /searchFundingOpportunities\(query, 10, \{ signal \}\)/);
+  assert.match(source, /signal\?\.throwIfAborted\(\)/);
+});
