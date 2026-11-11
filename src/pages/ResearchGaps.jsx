@@ -49,6 +49,7 @@ export default function ResearchGaps() {
     setGaps([]);
     setGapsContextKey('');
     setComparison(null);
+    setSavedCandidateKeys({});
   };
   const toggle = (paperId) => {
     invalidateAnalysis();
