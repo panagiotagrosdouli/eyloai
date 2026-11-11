@@ -472,7 +472,7 @@ try {
   const exportedReview = JSON.parse(await readFile(await reviewDownload.path(), 'utf8'));
   assert.equal(exportedReview.project_id, 'graph-project-1');
   assert.equal(exportedReview.counts.excluded, 1);
-  assert.equal(exportedReview.protocol.screening[0].paper_id, 'graph-paper-1');
+  assert.equal(exportedReview.protocol.screening[0].paper_id, 'library-paper-1');
   assert.match(exportedReview.reporting_note, /Not a PRISMA-compliant/);
 
   // Verify sign-out actually invalidates the session and protects private routes.
