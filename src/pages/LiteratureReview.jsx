@@ -162,7 +162,7 @@ export default function LiteratureReview() {
     const checked = prepare();
     if (!checked) return;
     const snapshot = reviewProtocolSnapshot(selectedProject, checked, papers, new Date().toISOString());
-    const blob = new Blob(['\\uFEFF', screeningLogCsv(snapshot)], { type: 'text/csv;charset=utf-8' });
+    const blob = new Blob(['\uFEFF', screeningLogCsv(snapshot)], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     try {
       const link = document.createElement('a');
