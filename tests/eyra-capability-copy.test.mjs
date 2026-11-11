@@ -7,4 +7,5 @@ test('service-status UI distinguishes configured EYRA from a tested live model',
   assert.match(source, /EYRA configured/);
   assert.match(source, /actual AI calls and research sources are verified separately/);
   assert.doesNotMatch(source, /EYRA live/);
+  assert.doesNotMatch(source, /ready: 'Live'/);
 });
