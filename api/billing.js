@@ -205,7 +205,11 @@ export default async function handler(request, response) {
     });
     return response.status(200).json({ url: session.url });
   } catch (error) {
-    console.error('Billing endpoint error', { message: error instanceof Error ? error.message : 'Unknown error' });
+    // Upstream billing errors may contain customer details or provider data.
+    // Log only a bounded error class; the client already receives a generic error.
+    const errorClass = ['TimeoutError', 'AbortError', 'TypeError'].includes(error?.name)
+      ? error.name : 'Error';
+    console.error('Billing endpoint error', { error_class: errorClass });
     return response.status(500).json({ error: 'Billing is temporarily unavailable. Please try again later.' });
   }
 }
