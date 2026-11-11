@@ -19,6 +19,7 @@ import PaperSummary from '@/components/eyra/PaperSummary';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
+import { validateProjectEyraReport } from '@/lib/project-eyra-provenance.mjs';
 import { parseProjectTasks, toggleProjectTask } from '@/lib/project-tasks';
 import { buildProjectPlanDraft, acceptProjectPlanDraft } from '@/lib/project-plan-draft.mjs';
 import { exportEvidenceMatrixCsv, getEvidenceMatrixRows, NOTE_FIELDS } from '@/lib/evidence-matrix.mjs';
@@ -300,6 +301,7 @@ Rules:
 - Do not present a heuristic score as a measured probability.`,
       });
 
+      validateProjectEyraReport(result, { papers, researchers, opportunities, hasLiveEvidence });
       await base44.entities.Project.update(id, { eyra_analysis: result });
       setProject(prev => ({ ...prev, eyra_analysis: result }));
       setActiveTab('intelligence');
