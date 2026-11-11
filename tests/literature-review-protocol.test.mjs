@@ -8,6 +8,7 @@ import {
   isSafeLiteratureSourceUrl,
   hasUnsavedReviewChanges,
   reviewProtocolDraftKey,
+  screeningLogCsv,
 } from '../src/lib/literature-review-protocol.mjs';
 
 const full = {
@@ -117,4 +118,28 @@ test('screening reorder does not imply unsaved changes; changed decisions do', (
     ...full,
     screening: full.screening.map(item => item.paper_id === 'paper-b' ? { ...item, reason: 'Different reason' } : item),
   }), true);
+});
+
+test('CSV screening log exports only verified snapshot rows with Excel-safe formula escaping', () => {
+  const snapshot = reviewProtocolSnapshot(
+    { id: 'owned-project', title: 'Evidence review' },
+    { ...full, screening: [{ paper_id: 'paper-a', decision: 'exclude', reason: '=HYPERLINK("https://evil.example")' }] },
+    [{ id: 'paper-a', title: '+SUM(1,1)', doi: '10.1234/real', url: 'https://doi.org/10.1234/real', year: 2026 }],
+    '2026-11-11T10:00:00Z',
+  );
+  const csv = screeningLogCsv(snapshot);
+  assert.match(csv, /^paper_id,title,doi,url,year,decision,reason\\r\\n/);
+  assert.ok(csv.includes(String.raw`"'+SUM(1,1)"`));
+  assert.ok(csv.includes(String.raw`"'=HYPERLINK(""https://evil.example"")"`));
+  assert.equal(csv.split('\\r\\n').length, 3);
+  assert.equal(csv.includes('not-in-library'), false);
+});
+
+test('CSV also neutralizes leading whitespace or tab before spreadsheet formulas', () => {
+  const csv = screeningLogCsv({ protocol: { screening: [{
+    paper_id: 'paper-a', title: '\\t=1+1', doi: '10.1234/test', url: '', year: 2026,
+    decision: 'include', reason: '  +1+1',
+  }] } });
+  assert.ok(csv.includes(`"'\\t=1+1"`));
+  assert.ok(csv.includes(`"'  +1+1"`));
 });
