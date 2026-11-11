@@ -6,6 +6,7 @@ import {
   screeningCounts,
   reviewProtocolSnapshot,
   isSafeLiteratureSourceUrl,
+  hasUnsavedReviewChanges,
 } from '../src/lib/literature-review-protocol.mjs';
 
 const full = {
@@ -96,4 +97,17 @@ test('external source links reject executable schemes, embedded credentials and 
     assert.equal(isSafeLiteratureSourceUrl(url), false, url);
   }
   assert.equal(isSafeLiteratureSourceUrl('https://doi.org/10.1234/example'), true);
+});
+
+
+test('unsaved edits detect changed questions and screening decisions but ignore server timestamps', () => {
+  assert.equal(hasUnsavedReviewChanges(full, { ...full, updated_at: '2026-11-11T12:00:00Z' }), false);
+  assert.equal(hasUnsavedReviewChanges({ ...full, question: 'Changed hypothesis' }, full), true);
+  assert.equal(hasUnsavedReviewChanges({
+    ...full, screening: [{ ...full.screening[0], decision: 'exclude', reason: 'Other design' }, full.screening[1]],
+  }, full), true);
+  assert.equal(hasUnsavedReviewChanges({
+    ...full, screening: [...full.screening].reverse(),
+  }, full), false, 'screening ordering is not a scientific change');
+  assert.equal(hasUnsavedReviewChanges(emptyReviewProtocol(), null), false);
 });
