@@ -6,7 +6,7 @@ const SERVICE_ROWS = [
   {
     key: 'ai',
     label: 'EYRA synthesis',
-    ready: 'Live',
+    ready: 'Configured',
     waiting: 'Unavailable',
   },
   {
@@ -50,7 +50,7 @@ export default function ServiceStatus({ compact = false, className = '' }) {
   }, []);
 
   const aiReady = !loading && !error && data.ai;
-  const statusLabel = loading ? 'Checking' : error ? 'Status unknown' : aiReady ? 'EYRA live' : 'AI unavailable';
+  const statusLabel = loading ? 'Checking' : error ? 'Status unknown' : aiReady ? 'EYRA configured' : 'AI unavailable';
 
   return (
     <div ref={rootRef} className={`relative ${className}`}>
@@ -70,7 +70,7 @@ export default function ServiceStatus({ compact = false, className = '' }) {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-foreground">Service availability</p>
-              <p className="mt-1 text-[11px] leading-5 text-muted-foreground">Checked against this deployment. Research sources are checked separately on every query.</p>
+              <p className="mt-1 text-[11px] leading-5 text-muted-foreground">Configuration checked against this deployment; actual AI calls and research sources are verified separately.</p>
             </div>
             <button type="button" onClick={refresh} disabled={loading} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Refresh service status">
               <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
