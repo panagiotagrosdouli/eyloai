@@ -402,6 +402,79 @@ try {
   assert.equal(await dataLab.getByLabel('Link paper to a project').inputValue(), 'library-project-1');
   console.log('Library recovery and persisted project link passed against isolated PostgREST fixtures.');
 
+  // Project-linked Literature Review protocol: save, reload and JSON export
+  // against the same isolated PostgREST fixtures; no production data changes.
+  const reviewProject = {
+    id: 'graph-project-1',
+    user_id: testUser.id,
+    created_at: '2026-11-10T00:00:00.000Z',
+    updated_at: '2026-11-10T00:00:00.000Z',
+    data: { title: 'Graph project' },
+  };
+  let protocolSaves = 0;
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/projects**', async route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (request.method() === 'OPTIONS') {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          'access-control-allow-origin': '*',
+          'access-control-allow-methods': 'GET, POST, PATCH, OPTIONS',
+          'access-control-allow-headers': 'apikey, authorization, content-type, x-client-info, prefer',
+        },
+      });
+      return;
+    }
+    if (request.method() === 'PATCH') {
+      const patch = request.postDataJSON();
+      assert.equal(url.searchParams.get('id'), 'eq.graph-project-1');
+      assert.equal(patch.data.review_protocol.question, 'How do graph-based evidence tools support source tracing?');
+      reviewProject.data = { ...reviewProject.data, ...patch.data };
+      protocolSaves++;
+      await sendAuthJson(route, reviewProject);
+      return;
+    }
+    if (request.method() === 'GET') {
+      const one = url.searchParams.has('id') || /vnd\.pgrst\.object/i.test(request.headers().accept || '');
+      await sendAuthJson(route, one ? reviewProject : [reviewProject]);
+      return;
+    }
+    throw new Error('Unexpected literature protocol project request: ' + request.method());
+  });
+  await dataLab.goto(baseUrl + '/literature-review?project_id=graph-project-1');
+  await dataLab.getByRole('heading', { name: 'Literature Review Protocol' }).waitFor();
+  await dataLab.getByLabel('Research question').fill('How do graph-based evidence tools support source tracing?');
+  await dataLab.getByLabel('Exact search strings').fill('("graph" AND "citation") AND "research evidence"');
+  await dataLab.getByLabel('Sources searched').fill('OpenAlex and Crossref');
+  await dataLab.getByLabel('Inclusion criteria').fill('Studies reporting source tracing');
+  await dataLab.getByLabel('Exclusion criteria').fill('No source tracing evaluation');
+  await dataLab.getByRole('button', { name: 'Add to screening log' }).first().click();
+  await dataLab.getByLabel('Decision').selectOption('exclude');
+  await dataLab.getByLabel('Reason / screening note').fill('Does not report a method evaluation');
+  await dataLab.getByRole('button', { name: 'Save protocol to project' }).click();
+  try {
+    await dataLab.getByText('Protocol saved privately in this research project.').waitFor({ timeout: 8000 });
+  } catch (error) {
+    const alerts = await dataLab.locator('[role="alert"]').allTextContents();
+    throw new Error('Review protocol save failed: ' + JSON.stringify(alerts), { cause: error });
+  }
+  assert.equal(protocolSaves, 1);
+  await dataLab.reload();
+  await dataLab.getByLabel('Research question').waitFor();
+  assert.equal(await dataLab.getByLabel('Research question').inputValue(),
+    'How do graph-based evidence tools support source tracing?');
+  const reviewDownloadPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export reproducible JSON' }).click();
+  const reviewDownload = await reviewDownloadPromise;
+  assert.equal(reviewDownload.suggestedFilename(), 'eylo-review-protocol.json');
+  const { readFile } = await import('node:fs/promises');
+  const exportedReview = JSON.parse(await readFile(await reviewDownload.path(), 'utf8'));
+  assert.equal(exportedReview.project_id, 'graph-project-1');
+  assert.equal(exportedReview.counts.excluded, 1);
+  assert.equal(exportedReview.protocol.screening[0].paper_id, 'graph-paper-1');
+  assert.match(exportedReview.reporting_note, /Not a PRISMA-compliant/);
+
   // Verify sign-out actually invalidates the session and protects private routes.
   await dataLab.route('**/auth/v1/logout**', route => route.fulfill({
     status: 204,
