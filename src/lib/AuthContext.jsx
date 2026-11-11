@@ -3,6 +3,7 @@ import { appPath, stripAppBase } from '@/lib/auth/routePaths';
 import { environment } from '@/lib/config/env';
 import { shouldApplyAuthResult } from '@/lib/auth/authOperation';
 import { shouldClearPrivateCache } from '@/lib/auth/privateSessionBoundary';
+import { bindRadarBrowserCache, clearRadarBrowserCache } from '@/lib/auth/privateRadarCache.mjs';
 import { queryClientInstance } from '@/lib/query-client';
 import { AppErrorCode, createAppError, mapSupabaseError } from '@/lib/supabase/errors';
 
@@ -11,10 +12,23 @@ const AuthContext = createContext(null);
 function clearPrivateSessionData() {
   queryClientInstance.clear();
   try {
+    clearRadarBrowserCache(window.localStorage);
+  } catch {
+    // Restricted browser storage should not block signing out.
+  }
+  try {
     window.sessionStorage.removeItem('eyra_command_conversation');
     window.sessionStorage.removeItem('eyra_command_conversation_v2');
   } catch {
     // Some browsers restrict storage access.
+  }
+}
+
+function setPrivateRadarCacheOwner(userId) {
+  try {
+    bindRadarBrowserCache(window.localStorage, userId);
+  } catch {
+    // Browsers may disable localStorage; Supabase remains the source of truth.
   }
 }
 
@@ -91,6 +105,7 @@ export const AuthProvider = ({ children }) => {
           clearPrivateSessionData();
         }
         activeUserIdRef.current = nextUserId;
+        setPrivateRadarCacheOwner(nextUserId);
 
         setState(session
           ? { status: 'authenticated', user: session.user, session, error: null }
@@ -140,6 +155,7 @@ export const AuthProvider = ({ children }) => {
           clearPrivateSessionData();
         }
         activeUserIdRef.current = nextUserId;
+        setPrivateRadarCacheOwner(nextUserId);
         setState(session
           ? { status: 'authenticated', user: session.user, session, error: null }
           : { status: 'anonymous', user: null, session: null, error: null });
@@ -167,6 +183,7 @@ export const AuthProvider = ({ children }) => {
     if (!shouldApplyAuthResult(operationVersion, authEventVersionRef.current, mountedRef.current)) return result;
     if (result.ok && result.data?.session) {
       const session = result.data.session;
+      setPrivateRadarCacheOwner(session.user.id);
       setState({ status: 'authenticated', user: session.user, session, error: null });
     }
     return result;
@@ -179,6 +196,7 @@ export const AuthProvider = ({ children }) => {
     if (!shouldApplyAuthResult(operationVersion, authEventVersionRef.current, mountedRef.current)) return result;
     if (result.ok && result.data?.session) {
       const session = result.data.session;
+      setPrivateRadarCacheOwner(session.user.id);
       setState({ status: 'authenticated', user: session.user, session, error: null });
     }
     return result;
@@ -220,6 +238,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       const session = result.data;
+      setPrivateRadarCacheOwner(session?.user?.id ?? null);
       setState(session
         ? { status: 'authenticated', user: session.user, session, error: null }
         : { status: 'anonymous', user: null, session: null, error: null });
