@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mergeWorkspaceProfile } from '../src/lib/profile-merge.mjs';
+import { mergeWorkspaceProfile, assertCanonicalProfileWrite } from '../src/lib/profile-merge.mjs';
 
 test('a saved workspace profile wins over outdated authentication metadata', () => {
   assert.deepEqual(
@@ -21,4 +21,20 @@ test('legacy users can still obtain profile values from auth metadata', () => {
 
 test('an explicitly cleared persisted name is not restored from stale auth metadata', () => {
   assert.equal(mergeWorkspaceProfile({ full_name: 'Old' }, { full_name: '' }).full_name, '');
+});
+
+test('an authentication metadata success cannot mask an unpersisted canonical profile', () => {
+  assert.throws(() => assertCanonicalProfileWrite({ error: { code: '42501' }, data: null }),
+    error => error.code === 'PROFILE_WRITE_FAILED');
+  assert.throws(() => assertCanonicalProfileWrite({ data: null, error: null }),
+    error => error.code === 'PROFILE_WRITE_UNCONFIRMED');
+});
+
+test('confirmed profile row permits compatibility auth metadata fallback', () => {
+  const saved = assertCanonicalProfileWrite({ error: null, data: { data: {
+    full_name: 'Verified researcher', research_interests: 'Biology',
+  } } });
+  assert.equal(saved.full_name, 'Verified researcher');
+  assert.throws(() => assertCanonicalProfileWrite({ data: { data: [] } }),
+    error => error.code === 'PROFILE_WRITE_UNCONFIRMED');
 });
