@@ -2,6 +2,14 @@ const FALLBACK_PATH = '/home';
 
 const ALLOWED_PREFIXES = [
   '/',
+  '/home',
+  '/workspace/careers',
+  '/search',
+  '/research-gaps',
+  '/knowledge-graph',
+  '/grant-builder',
+  '/pitchdeck',
+  '/institution',
   '/library',
   '/projects',
   '/researchers',
