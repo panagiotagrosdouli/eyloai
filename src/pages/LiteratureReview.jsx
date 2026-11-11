@@ -277,7 +277,7 @@ export default function LiteratureReview() {
               className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-5 text-sm font-medium disabled:opacity-50">
               <Download size={16} aria-hidden="true" />Export reproducible JSON
             </button>
-            <button type="button" disabled={saving} onClick={() => setAttempt(value => value + 1)}
+            <button type="button" disabled={saving} onClick={() => { if (confirmDiscard()) setAttempt(value => value + 1); }}
               className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-4 text-sm">
               <RefreshCw size={15} aria-hidden="true" />Reload saved records
             </button>
