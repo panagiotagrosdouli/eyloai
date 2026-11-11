@@ -6,7 +6,7 @@ import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitu
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import { getPreferenceLocale, loadPreferences, subscribePreferences } from '@/lib/preferences';
 import { getLocalGreeting } from '@/lib/local-greeting';
-import { checkEyraCitationIds } from '@/lib/eyra-citation-ids.mjs';
+import { checkEyraCitationIds, isSafeEyraSourceUrl } from '@/lib/eyra-citation-ids.mjs';
 import {
   X, Mic, MicOff, Send, Sparkles, Loader2,
   Volume2, VolumeX, Target, FileText, Users,
@@ -131,7 +131,7 @@ async function retrieveEvidence(content, mode, workspaceContext) {
     ...researchers.map((item, index) => ({ id: `R${index + 1}`, type: 'Researcher', title: item.name, url: item.profile_url, meta: [item.institution, `${item.works_count || 0} works`].filter(Boolean).join(' · ') })),
     ...institutions.map((item, index) => ({ id: `I${index + 1}`, type: 'Institution', title: item.name, url: item.url, meta: [item.country, `${item.works_count || 0} works`].filter(Boolean).join(' · ') })),
     ...funding.map((item, index) => ({ id: `F${index + 1}`, type: 'Funding', title: item.title, url: item.source_url, meta: [item.agency, item.deadline].filter(Boolean).join(' · ') })),
-  ].filter(item => item.url);
+  ].filter(item => isSafeEyraSourceUrl(item.url));
 
   const blocks = [
     ...papers.map((item, index) => `[P${index + 1}] PAPER | ${item.title} | ${item.authors || 'authors unavailable'} | ${item.year || 'year unavailable'} | ${item.source || 'source unavailable'} | citations ${item.cited_by_count || 0} | ${item.summary || 'abstract unavailable'} | URL ${item.url}`),
