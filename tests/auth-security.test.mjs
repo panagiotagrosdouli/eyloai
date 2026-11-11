@@ -74,10 +74,11 @@ test('provider rate-limit codes map to an actionable retry message', () => {
   assert.match(limited.message, /wait and try again/i);
 });
 
-test('Supabase gateway fallback keeps the same bounded request timeout', async () => {
+test('Supabase never silently routes browser credentials through a hard-coded tenant proxy', async () => {
   const source = await readFile(new URL('../src/lib/supabaseClient.js', import.meta.url), 'utf8');
-  assert.match(source, /return fetchWithTimeout\(directUrl, init\)/);
-  assert.doesNotMatch(source, /return fetch\(directUrl, init\)/);
+  assert.match(source, /const supabaseUrl = environment\.values\.VITE_SUPABASE_URL/);
+  assert.match(source, /global: \{ fetch: fetchWithTimeout \}/);
+  assert.doesNotMatch(source, /gatewayProjectUrl|gatewayFetch|allowGateway/);
 });
 
 
