@@ -6,6 +6,8 @@ import {
   Target, RefreshCw, Award, ExternalLink
 } from 'lucide-react';
 import ProjectMeetings from '@/components/meetings/ProjectMeetings';
+import GapCandidateReviewItem from '@/components/projects/GapCandidateReviewItem';
+import { reviewSavedGapCandidate, removeSavedGapCandidate } from '@/lib/gap-candidate-review.mjs';
 import ReproducibilityReview from '@/components/projects/ReproducibilityReview';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
@@ -45,6 +47,7 @@ export default function ProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingGapReview, setSavingGapReview] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [editing, setEditing] = useState(/** @type {any} */ ({}));
   const [savedPapers, setSavedPapers] = useState([]);
@@ -137,6 +140,41 @@ export default function ProjectDetail() {
       toast({ title: 'Could not update task', description: error?.message || 'Please try again.', variant: 'destructive' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveGapReview = async (index, candidate, status, note) => {
+    if (savingGapReview) return;
+    setSavingGapReview(true);
+    try {
+      const saved = await reviewSavedGapCandidate({
+        entities: base44.entities, projectId: id, index,
+        expected: { question: candidate.question, recorded_at: candidate.recorded_at },
+        status, note, reviewedAt: new Date().toISOString(),
+      });
+      setProject(saved);
+      toast({ title: 'Human review saved', description: 'The recorded decision is not a verified research gap.' });
+    } catch (error) {
+      toast({ title: 'Could not save candidate review', description: error?.message || 'Retry after reloading the project.', variant: 'destructive' });
+    } finally {
+      setSavingGapReview(false);
+    }
+  };
+
+  const removeGapCandidate = async (index, candidate) => {
+    if (savingGapReview) return;
+    setSavingGapReview(true);
+    try {
+      const saved = await removeSavedGapCandidate({
+        entities: base44.entities, projectId: id, index,
+        expected: { question: candidate.question, recorded_at: candidate.recorded_at },
+      });
+      setProject(saved);
+      toast({ title: 'Candidate removed from project' });
+    } catch (error) {
+      toast({ title: 'Could not remove candidate', description: error?.message || 'Retry after reloading the project.', variant: 'destructive' });
+    } finally {
+      setSavingGapReview(false);
     }
   };
 
@@ -484,27 +522,9 @@ Rules:
               </p>
               <div className="mt-4 space-y-3">
                 {project.gap_candidates.map((candidate, index) => (
-                  <article key={index} className="rounded-lg border border-border p-4">
-                    <h4 className="text-sm font-semibold">{candidate.question || 'Untitled candidate'}</h4>
-                    <p className="mt-1 text-xs text-muted-foreground">{candidate.uncertainty || 'Scientific uncertainty not documented.'}</p>
-                    <p className="mt-2 text-xs font-medium">Supporting saved papers</p>
-                    <ul className="mt-1 list-inside list-disc text-xs text-muted-foreground">
-                      {(candidate.supporting_papers || []).map(paper => (
-                        <li key={paper.paper_id}>{paper.title || paper.paper_id}{paper.doi ? ` · DOI ${paper.doi}` : ''}</li>
-                      ))}
-                    </ul>
-                    {(candidate.counterevidence_papers || []).length > 0 && (
-                      <>
-                        <p className="mt-2 text-xs font-medium">Counterevidence saved papers</p>
-                        <ul className="mt-1 list-inside list-disc text-xs text-muted-foreground">
-                          {candidate.counterevidence_papers.map(paper => (
-                            <li key={paper.paper_id}>{paper.title || paper.paper_id}{paper.doi ? ` · DOI ${paper.doi}` : ''}</li>
-                          ))}
-                        </ul>
-                      </>
-                    )}
-                    <p className="mt-2 text-[11px] text-muted-foreground">Status: candidate awaiting researcher review</p>
-                  </article>
+                  <GapCandidateReviewItem key={String(candidate.recorded_at || '') + ':' + String(candidate.question || '')}
+                    candidate={candidate} index={index} saving={savingGapReview}
+                    onReview={saveGapReview} onRemove={removeGapCandidate} />
                 ))}
               </div>
             </section>
