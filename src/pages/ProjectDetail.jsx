@@ -6,6 +6,7 @@ import {
   Target, RefreshCw, Award, ExternalLink
 } from 'lucide-react';
 import ProjectMeetings from '@/components/meetings/ProjectMeetings';
+import ReproducibilityReview from '@/components/projects/ReproducibilityReview';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import ReactMarkdown from 'react-markdown';
@@ -22,6 +23,7 @@ import { exportEvidenceMatrixCsv, getEvidenceMatrixRows, NOTE_FIELDS } from '@/l
 const TABS = [
   { key: 'overview', label: 'Overview', icon: Target },
   { key: 'evidence', label: 'Evidence', icon: FileText },
+  { key: 'reproducibility', label: 'Reproducibility', icon: FileText },
   { key: 'people', label: 'People', icon: Users },
   { key: 'funding', label: 'Funding', icon: Award },
   { key: 'timeline', label: 'Timeline', icon: Clock },
@@ -456,6 +458,12 @@ Rules:
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
+        </motion.div>
+      )}
+
+      {activeTab === 'reproducibility' && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <ReproducibilityReview project={project} onSaved={saved => setProject(current => ({ ...current, ...saved }))} />
         </motion.div>
       )}
 
