@@ -667,12 +667,20 @@ export default async function handler(request, response) {
         data = JSON.parse(text);
       } catch {
         console.error('EYRA structured response was not valid JSON', { responseId: result.id });
+        if (actionResults.length) return response.status(502).json({
+          error: 'A project or Library action ran, but EYRA returned invalid final JSON.',
+          code: 'TOOL_FOLLOWUP_INVALID', actions: actionResults,
+        });
         await releaseUsage(reservation);
         reservation = null;
         return response.status(502).json({ error: 'EYRA returned an invalid structured response.', code: 'EYRA_SCHEMA_MISMATCH' });
       }
       if (!matchesEyraResponseSchema(data, responseSchema)) {
         console.error('EYRA structured response failed the requested schema', { responseId: result.id });
+        if (actionResults.length) return response.status(502).json({
+          error: 'A project or Library action ran, but EYRA returned an inconsistent final response.',
+          code: 'TOOL_FOLLOWUP_INVALID', actions: actionResults,
+        });
         await releaseUsage(reservation);
         reservation = null;
         return response.status(502).json({
