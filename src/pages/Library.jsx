@@ -49,7 +49,11 @@ export default function Library() {
   const { toast } = useToast();
 
   useEffect(() => { loadAll(); }, []);
-  useEffect(() => { setSearchTerm(searchParams.get('q') || ''); }, [searchParams]);
+  useEffect(() => {
+    setSearchTerm(searchParams.get('q') || '');
+    const requestedTab = searchParams.get('tab');
+    if (TABS.some(candidate => candidate.key === requestedTab)) setTab(requestedTab);
+  }, [searchParams]);
 
   const loadAll = async () => {
     setLoading(true);
