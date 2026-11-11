@@ -424,6 +424,21 @@ try {
   assert.equal(exportedReview.counts.excluded, 1);
   assert.equal(exportedReview.protocol.screening[0].paper_id, 'graph-paper-1');
   assert.match(exportedReview.reporting_note, /Not a PRISMA-compliant/);
+  // Preserve a researcher's unsaved methodological decisions. Reloading
+  // should require explicit consent, and dismissing the prompt must not
+  // discard a draft or mutate the saved project.
+  const questionField = dataLab.getByLabel('Research question');
+  await questionField.fill('Unsaved alternative research question');
+  await dataLab.getByText('Unsaved protocol changes — save before leaving this page.').waitFor();
+  dataLab.once('dialog', dialog => dialog.dismiss());
+  await dataLab.getByRole('button', { name: 'Reload saved records' }).click();
+  assert.equal(await questionField.inputValue(), 'Unsaved alternative research question');
+  dataLab.once('dialog', dialog => dialog.accept());
+  await dataLab.getByRole('button', { name: 'Reload saved records' }).click();
+  await dataLab.getByText('Unsaved protocol changes — save before leaving this page.').waitFor({ state: 'detached' });
+  assert.equal(await dataLab.getByLabel('Research question').inputValue(),
+    'How do graph-based evidence tools support source tracing?');
+
   console.log('Browser checks passed: literature review save, reload, source screening and reproducible JSON export against authorized test doubles.');
 
   // Sign-out is a real Supabase operation, not a cosmetic redirect.
