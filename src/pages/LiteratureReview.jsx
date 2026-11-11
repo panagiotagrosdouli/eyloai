@@ -8,6 +8,7 @@ import {
   reviewProtocolSnapshot,
   screeningCounts,
   REVIEW_TYPES,
+  isSafeLiteratureSourceUrl,
 } from '@/lib/literature-review-protocol.mjs';
 
 const FIELD_LABELS = [
@@ -218,7 +219,7 @@ export default function LiteratureReview() {
                   <div key={paper.id} className="rounded-lg border border-border p-3">
                     <p className="text-sm font-medium">{paper.title || 'Untitled saved publication'}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{[paper.authors, paper.year, paper.doi].filter(Boolean).join(' · ')}</p>
-                    {paper.url && <a href={paper.url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-xs text-primary underline">View recorded source</a>}
+                    {isSafeLiteratureSourceUrl(paper.url) && <a href={paper.url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-xs text-primary underline">View recorded source</a>}
                     {!record ? (
                       <button type="button" onClick={() => updateScreening(String(paper.id), {})} className="mt-2 block min-h-10 rounded-lg border border-border px-3 text-xs font-semibold">
                         Add to screening log
