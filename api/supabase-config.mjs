@@ -3,6 +3,8 @@
  * Requiring the official HTTPS host suffix prevents bearer tokens and service
  * credentials from being sent to an arbitrary host by a mistyped env value.
  */
+const EYLO_PRODUCTION_SUPABASE_URL = 'https://kbzjngpzxpniaumlupaa.supabase.co';
+
 export function readSupabaseApiConfig(env = process.env) {
   const url = String(env.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
   const publicKey = String(
@@ -27,7 +29,8 @@ export function readSupabaseApiConfig(env = process.env) {
       && !parsed.port
       && parsed.pathname === '/'
       && !parsed.search
-      && !parsed.hash;
+      && !parsed.hash
+      && (env.VERCEL_ENV !== 'production' || url === EYLO_PRODUCTION_SUPABASE_URL);
   } catch {
     // Missing and invalid configuration both fail closed.
   }
