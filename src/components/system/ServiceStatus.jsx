@@ -31,8 +31,35 @@ const SERVICE_ROWS = [
 
 export default function ServiceStatus({ compact = false, className = '' }) {
   const [open, setOpen] = useState(false);
+  const [deployment, setDeployment] = useState(null);
+  const [deploymentError, setDeploymentError] = useState('');
+  const [deploymentLoading, setDeploymentLoading] = useState(false);
+  const [deploymentAttempt, setDeploymentAttempt] = useState(0);
   const { data, loading, error, refresh } = useCapabilities();
   const rootRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const controller = new AbortController();
+    setDeploymentLoading(true);
+    setDeploymentError('');
+    fetch('/api/deployment-status', { method: 'GET', cache: 'no-store', signal: controller.signal })
+      .then(async response => {
+        if (!response.ok) throw new Error('Deployment identity could not be retrieved.');
+        const data = await response.json();
+        if (!data || typeof data !== 'object' || typeof data.provenance_verified !== 'boolean') {
+          throw new Error('Deployment identity response is invalid.');
+        }
+        if (data.deployment_sha !== null && !/^[a-f0-9]{40}$/i.test(data.deployment_sha)) {
+          throw new Error('Deployment commit identifier is invalid.');
+        }
+        return data;
+      })
+      .then(data => { if (!controller.signal.aborted) setDeployment(data); })
+      .catch(() => { if (!controller.signal.aborted) setDeploymentError('Deployed revision could not be verified.'); })
+      .finally(() => { if (!controller.signal.aborted) setDeploymentLoading(false); });
+    return () => controller.abort();
+  }, [open, deploymentAttempt]);
 
   useEffect(() => {
     const close = event => {
@@ -72,7 +99,7 @@ export default function ServiceStatus({ compact = false, className = '' }) {
               <p className="text-sm font-semibold text-foreground">Service availability</p>
               <p className="mt-1 text-[11px] leading-5 text-muted-foreground">Configuration checked against this deployment; actual AI calls and research sources are verified separately.</p>
             </div>
-            <button type="button" onClick={refresh} disabled={loading} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Refresh service status">
+            <button type="button" onClick={() => { refresh(); setDeploymentAttempt(value => value + 1); }} disabled={loading || deploymentLoading} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Refresh service status">
               <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
             </button>
           </div>
@@ -98,6 +125,25 @@ export default function ServiceStatus({ compact = false, className = '' }) {
               })}
             </div>
           )}
+          <div className="mt-4 border-t border-border/70 pt-3 text-[11px] leading-5 text-muted-foreground" aria-label="Deployment revision">
+            <p className="font-semibold text-foreground">Deployed revision</p>
+            {deploymentLoading ? (
+              <p role="status">Checking deployed Git revision…</p>
+            ) : deploymentError ? (
+              <p role="status">{deploymentError}</p>
+            ) : deployment?.provenance_verified && deployment.deployment_sha ? (
+              <p>
+                {deployment.environment === 'production' ? 'Production' : deployment.environment || 'Unknown environment'} ·
+                {' '}<a href={`https://github.com/panagiotagrosdouli/eyloai/commit/${deployment.deployment_sha}`}
+                  target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                  {deployment.deployment_sha.slice(0, 10)}
+                </a>
+                {' '}— Git identity only; not proof that services work.
+              </p>
+            ) : (
+              <p role="status">Not verified. This deployment did not report a Git revision.</p>
+            )}
+          </div>
         </div>
       )}
     </div>
