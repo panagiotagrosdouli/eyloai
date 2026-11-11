@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { checkEyraCitationIds } from '../src/lib/eyra-citation-ids.mjs';
+import { checkEyraCitationIds, isSafeEyraSourceUrl } from '../src/lib/eyra-citation-ids.mjs';
 
 const sources = [
   { id: 'P1', title: 'Publication 1', url: 'https://openalex.org/W100' },
@@ -27,4 +27,13 @@ test('no reference is never silently assigned to every retrieved source', () => 
   const result = checkEyraCitationIds('General methodological guidance, no indexed citations.', sources);
   assert.equal(result.valid, true);
   assert.deepEqual(result.citedSources, []);
+});
+
+test('external citations reject unsafe link schemes and embedded credentials', () => {
+  for (const value of ['javascript:alert(1)', 'data:text/html,evil', 'file:///etc/passwd',
+    'https://user:secret@publisher.example/paper', 'not a URL', '//publisher.example/paper']) {
+    assert.equal(isSafeEyraSourceUrl(value), false, value);
+  }
+  assert.equal(isSafeEyraSourceUrl('https://doi.org/10.1000/example'), true);
+  assert.equal(isSafeEyraSourceUrl('https://openalex.org/W100'), true);
 });
