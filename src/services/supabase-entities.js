@@ -1,5 +1,5 @@
 import { getBillingStatus } from '@/lib/billing';
-import { mergeWorkspaceProfile } from '@/lib/profile-merge.mjs';
+import { mergeWorkspaceProfile, assertCanonicalProfileWrite } from '@/lib/profile-merge.mjs';
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 import { recordActivation, trackEyraFollowthrough } from '@/lib/product-analytics';
 import { applyEntityFilters, rowToEntity, splitPayload } from './entity-serialization';
@@ -193,25 +193,17 @@ export const supabaseProfile = {
     const next = pickProfileFields({ ...current, ...patch });
     const profileRow = { user_id: user.id, data: next };
 
-    const [profileWrite, authWrite] = await Promise.all([
-      client
-        .from('profiles')
-        .upsert(profileRow, { onConflict: 'user_id' })
-        .select('data')
-        .maybeSingle(),
-      client.auth.updateUser({ data: next }),
-    ]);
-
-    if (profileWrite.error && authWrite.error) {
-      throw profileWriteError(profileWrite.error || authWrite.error);
-    }
-    if (profileWrite.error) {
-      console.warn('Profile table write failed; profile persisted in authenticated metadata', {
-        code: profileWrite.error.code,
-      });
-    }
+    // The saved profiles row is the canonical workspace source. Confirm it
+    // before attempting the secondary authentication-metadata compatibility update.
+    const profileWrite = await client
+      .from('profiles')
+      .upsert(profileRow, { onConflict: 'user_id' })
+      .select('data')
+      .maybeSingle();
+    const savedProfile = assertCanonicalProfileWrite(profileWrite);
+    const authWrite = await client.auth.updateUser({ data: next });
     if (authWrite.error) {
-      console.warn('Auth metadata write failed; profile persisted in the profile table', {
+      console.warn('Auth metadata update failed; canonical workspace profile saved', {
         code: authWrite.error.code,
       });
     }
@@ -221,7 +213,7 @@ export const supabaseProfile = {
       email: user.email,
       ...mergeWorkspaceProfile(
         { ...next, ...pickProfileFields(authWrite.data?.user?.user_metadata || {}) },
-        pickProfileFields(profileWrite.data?.data || {}),
+        pickProfileFields(savedProfile),
       ),
     };
   },
