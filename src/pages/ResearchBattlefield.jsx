@@ -30,6 +30,7 @@ export default function ResearchBattlefield() {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState('');
+  const [sourceWarning, setSourceWarning] = useState('');
   const [activeCategory, setActiveCategory] = useState('top_researchers');
 
   const analyze = async (q) => {
@@ -39,17 +40,26 @@ export default function ResearchBattlefield() {
     setLoading(true);
     setReport(null);
     setAnalysisError('');
+    setSourceWarning('');
     try {
-    // Step 1: Fetch REAL data from OpenAlex
-    const [researchers, institutions, papers, fundingResult] = await Promise.all([
+    // Providers fail independently: absence of a response is not evidence of zero research.
+    const results = await Promise.allSettled([
       searchOpenAlexAuthors(searchQuery, 10),
       searchOpenAlexInstitutions(searchQuery, 6),
       searchOpenAlexWorks(searchQuery, 8),
-      searchFundingOpportunities(searchQuery, 6).catch((error) => ({
-        items: [],
-        error: error instanceof Error ? error.message : 'Funding source unavailable',
-      })),
+      searchFundingOpportunities(searchQuery, 6),
     ]);
+    const [researchers, institutions, papers] = results.slice(0, 3).map(result =>
+      result.status === 'fulfilled' && Array.isArray(result.value) ? result.value : []);
+    const fundingResult = results[3].status === 'fulfilled' && results[3].value && Array.isArray(results[3].value.items)
+      ? results[3].value
+      : { items: [], error: 'Funding source temporarily unavailable.' };
+    const failedSources = results.slice(0, 3).flatMap((result, index) =>
+      result.status === 'rejected' || !Array.isArray(result.value)
+        ? [['Researchers', 'Institutions', 'Papers'][index]] : []);
+    if (results[3].status === 'rejected' || fundingResult.error) failedSources.push('Funding');
+    if (failedSources.length) setSourceWarning(`Partial source data: ${failedSources.join(', ')} unavailable. Empty counts are not proof of no research.`);
+    if (failedSources.length === 4) throw new Error('All research and funding sources failed. Try again later.');
 
     const verifiedFunders = (fundingResult.items || []).map((item) => ({
       name: item.title,
@@ -230,6 +240,12 @@ Funding records are retrieved separately from an official source. Do not generat
               Research data: <span className="text-primary font-medium">OpenAlex</span> — {report.researchers.length} researchers, {report.institutions.length} institutions, {report.papers.length} papers. Funding: <span className="text-primary font-medium">Grants.gov</span> — {report.major_funders.length} official records. Landscape labels are AI planning heuristics, not validated forecasts.
             </p>
           </div>
+
+          {sourceWarning && (
+            <div role="status" className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 text-xs text-amber-300">
+              {sourceWarning}
+            </div>
+          )}
 
           {report.ai_error && (
             <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 text-xs text-amber-300">
