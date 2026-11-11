@@ -118,3 +118,14 @@ export function reviewProtocolSnapshot(project, protocol, savedPapers, exportedA
     reporting_note: 'Researcher-authored protocol and screening log. Not a PRISMA-compliant systematic review or evidence-synthesis certification.',
   };
 }
+
+/** Do not make untrusted saved-paper URLs into executable browser links. */
+export function isSafeLiteratureSourceUrl(input) {
+  try {
+    const url = new URL(String(input || ''));
+    return (url.protocol === 'https:' || url.protocol === 'http:')
+      && !!url.hostname && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
