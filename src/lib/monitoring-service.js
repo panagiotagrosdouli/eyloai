@@ -2,6 +2,8 @@ import { searchAllPapers, searchOpenAlexAuthors, searchOpenAlexInstitutions } fr
 import { supabaseEntities } from '@/services/supabase-entities';
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import { loadPreferences } from '@/lib/preferences';
+import { getUsableSession } from '@/lib/supabaseClient';
+import { RADAR_OWNER_KEY, isRadarCacheOwner } from '@/lib/auth/privateRadarCache.mjs';
 
 const KEYS = { watchlists: 'eylo_watchlists_v1', discoveries: 'eylo_monitoring_discoveries_v1', notifications: 'eylo_notifications_v1' };
 const EVENT = 'eylo:monitoring-updated';
@@ -21,11 +23,16 @@ function notify() { window.dispatchEvent(new CustomEvent(EVENT)); }
 
 async function hydrateFromSupabase() {
   try {
+    const initialSession = await getUsableSession({ required: true, validate: true });
+    const ownerId = initialSession.user.id;
     const [watchlists, discoveries, notifications] = await Promise.all([
       repositories.watchlists.list('-updated_date', 100),
       repositories.discoveries.list('-created_date', 300),
       repositories.notifications.list('-created_date', 100),
     ]);
+    // An earlier account may have signed out during the asynchronous reads.
+    const currentSession = await getUsableSession({ required: true, validate: true });
+    if (currentSession.user.id !== ownerId || !isRadarCacheOwner(localStorage, ownerId)) return;
     localStorage.setItem(KEYS.watchlists, JSON.stringify(watchlists));
     localStorage.setItem(KEYS.discoveries, JSON.stringify(discoveries));
     localStorage.setItem(KEYS.notifications, JSON.stringify(notifications));
@@ -43,7 +50,9 @@ function hydrate() {
 }
 
 function persistCreate(bucket, temporaryId, payload) {
+  const ownerId = localStorage.getItem(RADAR_OWNER_KEY);
   repositories[bucket].create(payload).then(created => {
+    if (!isRadarCacheOwner(localStorage, ownerId)) return;
     const current = read(KEYS[bucket]);
     write(KEYS[bucket], current.map(item => item.id === temporaryId ? created : item));
   }).catch(() => {});
@@ -131,6 +140,8 @@ function pushBrowserNotifications(items) {
 }
 
 export async function runWatchlist(watchlist) {
+  const ownerId = localStorage.getItem(RADAR_OWNER_KEY);
+  if (!ownerId) throw new Error('Sign in before checking a private research watchlist.');
   let candidates;
   let failedSources = 0;
 
@@ -151,6 +162,9 @@ export async function runWatchlist(watchlist) {
       ...researchers.map(x => normalize(x, 'researcher', watchlist)),
       ...institutions.map(x => normalize(x, 'institution', watchlist)),
     ];
+  }
+  if (!isRadarCacheOwner(localStorage, ownerId)) {
+    throw new Error('Watchlist check was canceled because the signed-in account changed.');
   }
   const existing = read(KEYS.discoveries);
   const known = new Set(existing.map(item => `${item.source}|${item.externalId}`));
