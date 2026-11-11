@@ -40,6 +40,7 @@ export default function Projects() {
   const [searchTerm, setSearchTerm] = useState('');
   const [working, setWorking] = useState(false);
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
 
@@ -62,12 +63,13 @@ export default function Projects() {
 
   const loadProjects = async () => {
     setLoading(true);
+    setLoadError('');
     setError('');
     try {
       const data = await base44.entities.Project.list('-updated_date', 1000);
       setProjects(data);
-    } catch (loadError) {
-      setError(loadError?.message || 'Projects could not be loaded.');
+    } catch (failure) {
+      setLoadError(failure?.message || 'Projects could not be loaded.');
     } finally {
       setLoading(false);
     }
@@ -165,10 +167,10 @@ export default function Projects() {
         <input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Search projects..." aria-label="Search projects" className="w-full h-10 pl-10 pr-4 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
       </div>
 
-      {error && (
+      {(error || loadError) && (
         <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-200">
-          <span>{error}</span>
-          {!showNew && <button type="button" onClick={loadProjects} disabled={loading}
+          <span>{loadError || error}</span>
+          {loadError && <button type="button" onClick={loadProjects} disabled={loading}
             className="min-h-9 rounded-lg border border-red-500/30 px-3 font-semibold transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50">
             {loading ? 'Retrying…' : 'Retry loading'}
           </button>}
@@ -284,7 +286,7 @@ export default function Projects() {
             <div key={i} className="h-36 rounded-xl bg-secondary/30 animate-pulse" />
           ))}
         </div>
-      ) : error && projects.length === 0 ? (
+      ) : loadError && projects.length === 0 ? (
         <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground" role="status">Projects could not be loaded. Use Retry loading above to try again.</div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
