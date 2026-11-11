@@ -50,3 +50,12 @@ This ledger distinguishes source-reviewed, code-committed, CI-verified and **liv
 ## Release gate
 
 Do not mark any major module VERIFIED COMPLETE without exercised user actions, backend operation, persistence (if applicable), unauthorized access denial, failure cases, desktop/mobile and accessibility checks, source fidelity and reproducible test evidence. This candidate remains **NO-GO for production** until the explicit external blockers and release-owner approval are resolved.
+
+
+## P1 addendum — literature review protocol
+
+- PR #332 implements one real Project-linked protocol and screening workflow; no additional Supabase table or migration was created.
+- Local field/authorization validation plus reproducible JSON snapshot tests; 310 unit/API tests and browser save/reload/export passed on PR #332 head `28ed431dc05064c5b677fbc10446d3a55f164338`.
+- Source registry IDs: EYLO-REV-001 through EYLO-REV-004.
+- The code has been copied into the integrated PR #331 branch; **the integrated current head requires its own CI check**.
+- Production remains NO-GO until the intended Supabase project and real two-user authorization are verified; source metadata collection does not establish PRISMA compliance.
