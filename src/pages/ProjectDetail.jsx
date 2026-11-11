@@ -461,7 +461,7 @@ Rules:
 
       {activeTab === 'evidence' && (
         <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4" aria-labelledby="project-evidence-title">
-          <div><h2 id="project-evidence-title" className="text-xl font-semibold">Evidence</h2><p className="mt-1 text-sm text-muted-foreground">Saved papers linked to this project.</p></div>
+          <div><h2 id="project-evidence-title" className="text-xl font-semibold">Evidence</h2><p className="mt-1 text-sm text-muted-foreground">Saved papers linked to this project.</p><Link to={"/literature-review?project_id=" + encodeURIComponent(id)} className="mt-3 inline-flex min-h-10 items-center rounded-lg border border-border px-3 text-sm font-medium text-primary hover:bg-secondary">Open literature review protocol</Link></div>
           {savedPapers.length > 0 && (
             <section className="rounded-xl border border-border bg-card p-4 sm:p-5" aria-labelledby="evidence-matrix-title">
               <div className="flex flex-wrap items-start justify-between gap-3">
