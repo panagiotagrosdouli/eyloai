@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { RADAR_CACHE_KEYS, RADAR_OWNER_KEY, bindRadarBrowserCache, clearRadarBrowserCache } from '../src/lib/auth/privateRadarCache.mjs';
+import { RADAR_CACHE_KEYS, RADAR_OWNER_KEY, bindRadarBrowserCache, clearRadarBrowserCache, isRadarCacheOwner } from '../src/lib/auth/privateRadarCache.mjs';
 
 function fakeStorage() {
   const values = new Map();
@@ -37,4 +37,15 @@ test('legacy unowned cache and logout cannot leak watchlists to next user', () =
   clearRadarBrowserCache(storage);
   assert.equal(storage.getItem(RADAR_CACHE_KEYS[2]), null);
   assert.equal(storage.getItem(RADAR_OWNER_KEY), null);
+});
+
+test('late responses cannot write after the owner was replaced', () => {
+  const storage = fakeStorage();
+  bindRadarBrowserCache(storage, 'researcher-a');
+  assert.equal(isRadarCacheOwner(storage, 'researcher-a'), true);
+  bindRadarBrowserCache(storage, 'researcher-b');
+  assert.equal(isRadarCacheOwner(storage, 'researcher-a'), false);
+  assert.equal(isRadarCacheOwner(storage, 'researcher-b'), true);
+  clearRadarBrowserCache(storage);
+  assert.equal(isRadarCacheOwner(storage, 'researcher-b'), false);
 });
