@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { BookOpen, Download, RefreshCw, Save } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { auditReviewMethods } from '@/lib/literature-review-methods-audit.mjs';
 import {
   emptyReviewProtocol,
   validateReviewProtocol,
@@ -159,6 +160,7 @@ export default function LiteratureReview() {
 
   const screening = Array.isArray(protocol.screening) ? protocol.screening : [];
   const counts = screeningCounts({ screening });
+  const methodsAudit = auditReviewMethods(protocol, { libraryRowsShown: papers.length, listLimit: 100 });
 
   return (
     <main className="eylo-page">
@@ -218,6 +220,27 @@ export default function LiteratureReview() {
                 <span className="mt-1 block text-xs font-normal text-muted-foreground">{help}</span>
               </label>
             ))}
+          </section>
+
+          <section className="mb-6 rounded-xl border border-border bg-card p-5" aria-labelledby="review-methods-audit">
+            <h2 id="review-methods-audit" className="text-base font-semibold">Methods documentation checklist</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {methodsAudit.recorded} of {methodsAudit.requiredDocumentation} documentation fields recorded.
+              This inventory is not a review-quality score, complete search certification, or PRISMA compliance claim.
+            </p>
+            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+              {methodsAudit.entries.map(item => (
+                <li key={item.id} className="flex gap-2 text-xs text-foreground">
+                  <span aria-hidden="true">{item.recorded ? '✓' : '○'}</span>
+                  {item.label}: {item.recorded ? 'Recorded' : 'Missing'}
+                </li>
+              ))}
+            </ul>
+            {methodsAudit.warnings.length > 0 && (
+              <ul role="status" className="mt-3 space-y-1 text-xs text-amber-600 dark:text-amber-400">
+                {methodsAudit.warnings.map(warning => <li key={warning}>{warning}</li>)}
+              </ul>
+            )}
           </section>
 
           <section className="mb-6 rounded-xl border border-border bg-card p-5">
