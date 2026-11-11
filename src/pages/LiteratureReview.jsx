@@ -62,8 +62,6 @@ export default function LiteratureReview() {
     setProtocol(saved && typeof saved === 'object' && !Array.isArray(saved)
       ? { ...base, ...saved, screening: Array.isArray(saved.screening) ? saved.screening : [] }
       : base);
-    setError('');
-    setMessage('');
   }, [selectedProject?.id, selectedProject?.review_protocol]);
 
   const updateField = (field, value) => {
@@ -172,7 +170,7 @@ export default function LiteratureReview() {
           <label className="mb-5 block text-sm font-medium">
             Research project
             <select disabled={saving} aria-label="Select literature review project" value={projectId}
-              onChange={event => setProjectId(event.target.value)}
+              onChange={event => { setProjectId(event.target.value); setError(''); setMessage(''); }}
               className="mt-2 block min-h-11 w-full max-w-xl rounded-lg border border-border bg-card px-3">
               {projects.map(project => <option key={project.id} value={project.id}>{project.title}</option>)}
             </select>
