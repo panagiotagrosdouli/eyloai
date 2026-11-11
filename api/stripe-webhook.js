@@ -21,7 +21,7 @@ async function rawBody(request) {
 }
 
 function verifySignature(payload, header, secret) {
-  if (!header || !secret) return false;
+  if (typeof header !== 'string' || !header || !secret) return false;
 
   let timestamp = '';
   const signatures = [];
@@ -122,8 +122,15 @@ export default async function handler(request, response) {
       return response.status(400).json({ error: 'Invalid Stripe signature.' });
     }
 
-    const event = JSON.parse(payload);
-    if (!event.id || !event.type) {
+    let event;
+    try {
+      event = JSON.parse(payload);
+    } catch {
+      return response.status(400).json({ error: 'Invalid Stripe event JSON.' });
+    }
+    if (!event || typeof event !== 'object' || Array.isArray(event)
+      || typeof event.id !== 'string' || !event.id
+      || typeof event.type !== 'string' || !event.type) {
       return response.status(400).json({ error: 'Invalid Stripe event.' });
     }
 
@@ -158,7 +165,11 @@ export default async function handler(request, response) {
     return response.status(200).json({ received: true });
   } catch (error) {
     if (error?.statusCode === 413) return response.status(413).json({ error: 'Webhook payload too large.' });
-    console.error('Stripe webhook error', { message: error instanceof Error ? error.message : 'Unknown error' });
+    // Never log provider or database exception messages: they can carry
+    // customer details, authorization material or webhook payload fragments.
+    const errorClass = ['TypeError', 'TimeoutError', 'AbortError'].includes(error?.name)
+      ? error.name : 'Error';
+    console.error('Stripe webhook error', { error_class: errorClass });
     return response.status(500).json({ error: 'Webhook processing failed.' });
   }
 }
