@@ -123,7 +123,7 @@ test('institution analytics stays disabled unless explicitly enabled after verif
 });
 
 
-test('EYRA capability rejects invalid and mismatched production Supabase hosts', () => {
+test('EYRA capability rejects invalid Supabase hosts', () => {
   clearKeys();
   process.env.OPENAI_API_KEY = 'test-only';
   process.env.SUPABASE_SECRET_KEY = 'server-test-only';
@@ -132,10 +132,4 @@ test('EYRA capability rejects invalid and mismatched production Supabase hosts',
   const unsafe = response();
   handler({ method: 'GET' }, unsafe);
   assert.equal(unsafe.body.ai, false);
-  process.env.VERCEL_ENV = 'production';
-  process.env.VITE_SUPABASE_URL = 'https://other-project.supabase.co';
-  const different = response();
-  handler({ method: 'GET' }, different);
-  // Production tenant identity enforcement is supplied by PR #323 separately.
-  assert.equal(different.body.ai, true, 'tenant pinning is an independent release gate');
 });
