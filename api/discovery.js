@@ -181,6 +181,16 @@ export default async function handler(request, response) {
     });
 
     const body = await readBoundedScholarlyResponse(upstream);
+    // Upstream outages and bot challenges sometimes return HTTP 200 with HTML.
+    // Never present those pages as valid scientific retrieval or cache them.
+    if (upstream.ok && /^\s*(?:<!doctype\s+html|<html\b)/i.test(body.toString('utf8', 0, 512))) {
+      response.setHeader('Cache-Control', 'no-store');
+      response.setHeader('X-Content-Type-Options', 'nosniff');
+      return response.status(502).json({
+        error: 'Scholarly source returned an invalid response.',
+        code: 'INVALID_SOURCE_RESPONSE',
+      });
+    }
     response.status(upstream.status);
     // A compromised provider must never turn this same-origin endpoint into
     // an HTML/JavaScript page. Return only the expected scholarly media type.
