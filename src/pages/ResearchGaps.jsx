@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Loader2, Search, FolderKanban, ExternalLink, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { getResearchEvidenceContextKey } from '@/lib/research-gap-context.mjs';
+import { saveResearchGapCandidate } from '@/lib/research-gap-candidate-save.mjs';
 
 const gapSchema = { type: 'object', properties: { gaps: { type: 'array', items: { type: 'object', properties: {
   question: { type: 'string' }, explanation: { type: 'string' }, supporting_papers: { type: 'array', items: { type: 'string' } }, counterevidence_papers: { type: 'array', items: { type: 'string' } }, counterevidence: { type: 'string' }, limitations: { type: 'string' }, uncertainty: { type: 'string' }, proposed_question: { type: 'string' }, methodology: { type: 'string' },
@@ -24,6 +25,8 @@ export default function ResearchGaps() {
   const [gapsContextKey, setGapsContextKey] = useState('');
   const [gaps, setGaps] = useState([]);
   const [error, setError] = useState('');
+  const [savingCandidate, setSavingCandidate] = useState(false);
+  const [savedCandidateKeys, setSavedCandidateKeys] = useState({});
   const { toast } = useToast();
 
   const load = async () => {
@@ -90,6 +93,40 @@ export default function ResearchGaps() {
     finally { setComparing(false); }
   };
 
+  const saveCandidate = async (gap, index) => {
+    if (savingCandidate) return;
+    if (!projectId) {
+      setError('Select an existing project to save a candidate for later human review.');
+      return;
+    }
+    if (gapsContextKey !== currentEvidenceContextKey) {
+      setError('Your evidence selection changed. Regenerate the analysis before saving.');
+      return;
+    }
+    setSavingCandidate(true);
+    try {
+      const selectedPapers = sourcePapers.filter(paper => selected.includes(paper.id));
+      const result = await saveResearchGapCandidate({
+        entities: base44.entities,
+        projectId, gap, selectedPapers,
+        recordedAt: new Date().toISOString(),
+      });
+      setSavedCandidateKeys(previous => ({ ...previous, [projectId + ':' + index]: true }));
+      toast({
+        title: result.status === 'saved' ? 'Research question saved to project' : 'Candidate already saved',
+        description: 'This is a question for human review, not a verified research gap.',
+      });
+    } catch (failure) {
+      toast({
+        title: 'Could not save research candidate',
+        description: failure?.message || 'Please retry.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingCandidate(false);
+    }
+  };
+
   const createProject = async (gap) => {
     try {
       const linkedPapers = sourcePapers.filter((paper) => selected.includes(paper.id));
@@ -130,7 +167,13 @@ export default function ResearchGaps() {
         ['Supporting papers', gap.supporting_papers.length ? paperLinks(gap.supporting_papers) : 'No specific support identified'],
         ['Counterevidence papers', gap.counterevidence_papers.length ? paperLinks(gap.counterevidence_papers) : gap.counterevidence],
         ['Counterevidence explanation', gap.counterevidence], ['Search limitations', gap.limitations], ['Scientific uncertainty', gap.uncertainty], ['Proposed research question', gap.proposed_question], ['Suggested methodology', gap.methodology],
-      ].map(([label, value]) => <div key={label}><h3 className="text-xs font-semibold text-foreground">{label}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{value || 'Not specified.'}</p></div>)}</div><button type="button" onClick={() => createProject(gap)} className="mt-4 min-h-10 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground">Create Research Project from Gap</button></article>;
+      ].map(([label, value]) => <div key={label}><h3 className="text-xs font-semibold text-foreground">{label}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{value || 'Not specified.'}</p></div>)}</div><div className="mt-4 flex flex-wrap gap-2">
+        <button type="button" onClick={() => createProject(gap)} className="min-h-10 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground">Create Research Project from Gap</button>
+        <button type="button" disabled={!projectId || savingCandidate || savedCandidateKeys[projectId + ':' + index]} onClick={() => saveCandidate(gap, index)}
+          className="min-h-10 rounded-lg border border-border px-4 text-xs font-semibold text-foreground disabled:opacity-50">
+          {savedCandidateKeys[projectId + ':' + index] ? 'Saved for human review' : savingCandidate ? 'Saving…' : 'Save candidate to selected project'}
+        </button>
+      </div></article>;
     })}
   </main>;
 }
