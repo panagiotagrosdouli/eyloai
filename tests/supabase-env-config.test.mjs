@@ -36,3 +36,31 @@ test('invalid Supabase URLs are rejected', () => {
   assert.equal(result.ok, false);
   assert.deepEqual(result.invalid, ['VITE_SUPABASE_URL']);
 });
+
+test('production frontend refuses any other Supabase tenant', () => {
+  const approved = validateEnvironment({
+    PROD: true,
+    VITE_SUPABASE_URL: 'https://kbzjngpzxpniaumlupaa.supabase.co',
+    VITE_SUPABASE_ANON_KEY: 'sb_publishable_test',
+  });
+  assert.equal(approved.ok, true);
+
+  const wrong = validateEnvironment({
+    PROD: true,
+    VITE_SUPABASE_URL: 'https://other-tenant.supabase.co',
+    VITE_SUPABASE_ANON_KEY: 'sb_publishable_test',
+  });
+  assert.equal(wrong.ok, false);
+  assert.deepEqual(wrong.invalid, ['VITE_SUPABASE_URL']);
+});
+
+test('frontend rejects Supabase URLs with credentials, paths or query strings', () => {
+  for (const url of [
+    'https://user:pass@kbzjngpzxpniaumlupaa.supabase.co',
+    'https://kbzjngpzxpniaumlupaa.supabase.co/custom',
+    'https://kbzjngpzxpniaumlupaa.supabase.co/?token=private',
+    'https://kbzjngpzxpniaumlupaa.supabase.co:444',
+  ]) {
+    assert.equal(validateEnvironment({ VITE_SUPABASE_URL: url, VITE_SUPABASE_ANON_KEY: 'test' }).ok, false, url);
+  }
+});
