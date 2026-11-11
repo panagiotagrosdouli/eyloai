@@ -13,7 +13,7 @@ export function emptyReviewProtocol() {
     version: REVIEW_PROTOCOL_VERSION,
     question: '',
     review_type: 'scoping',
-    search_databases: 'OpenAlex, Crossref, Europe PMC, arXiv',
+    search_databases: '',
     search_strings: '',
     search_date: '',
     inclusion_criteria: '',
@@ -45,6 +45,7 @@ export function validateReviewProtocol(input = {}, authorizedPaperIds = []) {
   };
   if (!result.question) errors.push('Enter a research question.');
   if (!result.search_strings) errors.push('Record at least one reproducible search string.');
+  if (!result.search_databases) errors.push('Record the databases or sources actually searched.');
   if (!result.inclusion_criteria || !result.exclusion_criteria) {
     errors.push('Record both inclusion and exclusion criteria.');
   }
