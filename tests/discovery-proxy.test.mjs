@@ -375,9 +375,26 @@ test('proxy does not reflect upstream HTML media types into its own origin', asy
   try {
     const res = createResponse();
     await handler({ method: 'GET', query: { provider: 'openalex_works', q: 'test' } }, res);
-    assert.equal(res.statusCode, 200);
-    assert.equal(res.headers['content-type'], 'application/json; charset=utf-8');
+    assert.equal(res.statusCode, 502);
+    assert.equal(res.payload.code, 'INVALID_SOURCE_RESPONSE');
+    assert.equal(res.headers['cache-control'], 'no-store');
     assert.equal(res.headers['x-content-type-options'], 'nosniff');
+  } finally {
+    globalThis.fetch = before;
+  }
+});
+
+test('HTML challenges disguised as JSON are not cached as scholarly results', async () => {
+  const before = globalThis.fetch;
+  globalThis.fetch = async () => new Response('<!doctype html><html><body>Challenge</body></html>', {
+    status: 200, headers: { 'content-type': 'application/json' },
+  });
+  try {
+    const res = createResponse();
+    await handler({ method: 'GET', query: { provider: 'openalex_works', q: 'research integrity' } }, res);
+    assert.equal(res.statusCode, 502);
+    assert.equal(res.payload.code, 'INVALID_SOURCE_RESPONSE');
+    assert.equal(res.headers['cache-control'], 'no-store');
   } finally {
     globalThis.fetch = before;
   }
