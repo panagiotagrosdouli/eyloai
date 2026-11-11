@@ -53,3 +53,47 @@ test('Stripe webhook accepts valid signed small events without database updates'
     else process.env.STRIPE_WEBHOOK_SECRET = previous;
   }
 });
+
+test('a correctly signed but malformed JSON event fails with 400, not a retryable 500', async () => {
+  const previous = process.env.STRIPE_WEBHOOK_SECRET;
+  const secret = 'disposable-signature-test-secret';
+  process.env.STRIPE_WEBHOOK_SECRET = secret;
+  try {
+    const payload = '{not valid json';
+    const timestamp = Math.floor(Date.now() / 1000);
+    const signature = crypto.createHmac('sha256', secret).update(`${timestamp}.${payload}`).digest('hex');
+    const res = response();
+    await handler(request(Buffer.from(payload), `t=${timestamp},v1=${signature}`), res);
+    assert.equal(res.code, 400);
+    assert.deepEqual(res.payload, { error: 'Invalid Stripe event JSON.' });
+  } finally {
+    if (previous === undefined) delete process.env.STRIPE_WEBHOOK_SECRET;
+    else process.env.STRIPE_WEBHOOK_SECRET = previous;
+  }
+});
+
+test('malformed Stripe signature header types fail authentication cleanly', async () => {
+  const res = response();
+  await handler(request(Buffer.from('{}'), ['t=1', 'v1=invalid']), res);
+  assert.equal(res.code, 400);
+  assert.deepEqual(res.payload, { error: 'Invalid Stripe signature.' });
+});
+
+test('signed array or null events are rejected before entitlement processing', async () => {
+  const previous = process.env.STRIPE_WEBHOOK_SECRET;
+  const secret = 'disposable-signature-test-secret';
+  process.env.STRIPE_WEBHOOK_SECRET = secret;
+  try {
+    for (const payload of ['[]', 'null']) {
+      const timestamp = Math.floor(Date.now() / 1000);
+      const signature = crypto.createHmac('sha256', secret).update(`${timestamp}.${payload}`).digest('hex');
+      const res = response();
+      await handler(request(Buffer.from(payload), `t=${timestamp},v1=${signature}`), res);
+      assert.equal(res.code, 400);
+      assert.deepEqual(res.payload, { error: 'Invalid Stripe event.' });
+    }
+  } finally {
+    if (previous === undefined) delete process.env.STRIPE_WEBHOOK_SECRET;
+    else process.env.STRIPE_WEBHOOK_SECRET = previous;
+  }
+});
