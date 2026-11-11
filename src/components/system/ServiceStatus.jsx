@@ -12,19 +12,19 @@ const SERVICE_ROWS = [
   {
     key: 'billing',
     label: 'Payments',
-    ready: 'Live',
+    ready: 'Configured',
     waiting: 'Early access',
   },
   {
     key: 'scheduled_monitoring',
     label: 'Automatic watchlists',
-    ready: 'Live',
+    ready: 'Configured',
     waiting: 'Manual checks',
   },
   {
     key: 'institution_analytics',
     label: 'Institution analytics',
-    ready: 'Live',
+    ready: 'Configured',
     waiting: 'Needs setup',
   },
 ];
