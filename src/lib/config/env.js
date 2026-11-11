@@ -10,6 +10,7 @@ const REQUIRED_ENVIRONMENT_VARIABLES = [
  * @typedef {Object} SupabaseEnvironmentSource
  * @property {string} [VITE_SUPABASE_URL]
  * @property {string} [VITE_SUPABASE_ANON_KEY]
+ * @property {boolean} [PROD]
  */
 
 /** @param {SupabaseEnvironmentSource} [source] */
