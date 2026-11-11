@@ -397,6 +397,7 @@ try {
   await dataLab.getByRole('heading', { name: 'Literature Review Protocol' }).waitFor();
   await dataLab.getByLabel('Research question').fill('How do graph-based evidence tools support source tracing?');
   await dataLab.getByLabel('Exact search strings').fill('("graph" AND "citation") AND "research evidence"');
+  await dataLab.getByLabel('Sources searched').fill('OpenAlex and Crossref');
   await dataLab.getByLabel('Inclusion criteria').fill('Studies reporting source tracing');
   await dataLab.getByLabel('Exclusion criteria').fill('No source tracing evaluation');
   await dataLab.getByRole('button', { name: 'Add to screening log' }).first().click();
