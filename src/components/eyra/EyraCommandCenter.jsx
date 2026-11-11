@@ -133,7 +133,7 @@ async function retrieveEvidence(content, mode, workspaceContext) {
   ].filter(item => item.url);
 
   const blocks = [
-    ...papers.map((item, index) => `[P${index + 1}] PAPER | ${item.title} | ${item.authors || 'authors unavailable'} | ${item.year || 'year unavailable'} | ${item.source || 'source unavailable'} | citations ${item.cited_by_count || 0} | ${item.summary || 'abstract unavailable'} | URL ${item.url}`),
+    ...papers.map((item, index) => `[P${index + 1}] PAPER | ${item.title} | DOI ${item.doi || 'unavailable'} | source ID ${item.id || 'unavailable'} | ${item.authors || 'authors unavailable'} | ${item.year || 'year unavailable'} | ${item.source || 'source unavailable'} | citations ${item.cited_by_count || 0} | ${item.summary || 'abstract unavailable'} | URL ${item.url}`),
     ...researchers.map((item, index) => `[R${index + 1}] RESEARCHER | ${item.name} | ${item.institution || 'institution unavailable'} | ${item.research_areas || 'areas unavailable'} | ${item.works_count || 0} works | ${item.citation_count || 0} citations | URL ${item.profile_url}`),
     ...institutions.map((item, index) => `[I${index + 1}] INSTITUTION | ${item.name} | ${item.type || 'type unavailable'} | ${item.country || 'country unavailable'} | ${item.works_count || 0} works | URL ${item.url}`),
     ...funding.map((item, index) => `[F${index + 1}] FUNDING | ${item.title} | ${item.agency || 'agency unavailable'} | deadline ${item.deadline || 'not supplied'} | amount ${item.amount || 'not supplied'} | eligibility ${item.eligibility || 'open official record'} | ${item.description || ''} | URL ${item.source_url}`),
@@ -499,6 +499,8 @@ export default function EyraCommandCenter({ open, onClose }) {
           : 'No external retrieval was necessary for this planning request. Do not introduce external factual claims.';
 
       const response = await base44.integrations.Core.InvokeLLM({
+        enable_project_tools: true,
+        tool_intent: content,
         prompt: `${BASE_SYSTEM}
 
 ANALYSIS MODE:
@@ -525,7 +527,25 @@ ${history}
 Answer the user's latest request. Cite every externally verifiable claim with the supplied identifier. If no record supports a named claim, omit it or label it as an unverified hypothesis. Explain why each recommendation follows from evidence or workspace context. Never claim that a person is available, that a user is eligible, or that a grant is open unless the supplied record states it.`,
       });
 
-      const answer = typeof response === 'string' ? response.trim() : String(response || '').trim();
+      const baseAnswer = typeof response === 'string' ? response.trim() : String(response?.text || '').trim();
+      const actionStatus = Array.isArray(response?.actions) ? response.actions.map(action => {
+        if (action.status === 'succeeded' && action.tool === 'project.create') {
+          const project = action.result || {};
+          return `- Created and verified **${project.title || 'project'}** ([open project](/projects/${encodeURIComponent(project.id || '')})); ID: \`${project.id || 'not returned'}\`.`;
+        }
+        if (action.status === 'succeeded' && action.tool === 'project.list') {
+          return `- Retrieved ${Array.isArray(action.result) ? action.result.length : 0} project record(s) from your workspace.`;
+        }
+        if (action.status === 'succeeded' && action.tool === 'library.save_paper') {
+          const paper = action.result || {};
+          return `- ${paper.already_saved ? 'Already in Library' : 'Saved and verified'}: **${paper.title || 'paper'}** ([open Library](/library)); DOI: [${paper.doi || 'verified DOI'}](https://doi.org/${encodeURIComponent(paper.doi || '')}); record ID: \`${paper.id || 'not returned'}\`.`;
+        }
+        if (action.status === 'succeeded' && action.tool === 'library.list_papers') {
+          return `- Retrieved ${Array.isArray(action.result) ? action.result.length : 0} saved paper record(s) from your Library.`;
+        }
+        return `- **${action.tool || 'Project action'} failed:** ${action.error || 'The operation was not confirmed.'}`;
+      }).join('\n') : '';
+      const answer = [baseAnswer, actionStatus ? `### Action status\n${actionStatus}` : ''].filter(Boolean).join('\n\n');
       if (!answer) throw new Error('EYRA returned an empty response.');
       const eyraMsg = {
         role: 'eyra',
@@ -539,9 +559,20 @@ Answer the user's latest request. Cite every externally verifiable claim with th
       speak(eyraMsg.content);
     } catch (error) {
       const fallbackContent = buildVerifiedEvidenceFallback(evidence, error);
+      const verifiedAction = Array.isArray(error?.actions) ? error.actions.map(action => {
+        if (action.status === 'succeeded' && action.tool === 'project.create') {
+          const project = action.result || {};
+          return `- Created and verified **${project.title || 'project'}** ([open project](/projects/${encodeURIComponent(project.id || '')})); ID: \`${project.id || 'not returned'}\`.`;
+        }
+        if (action.status === 'succeeded' && action.tool === 'library.save_paper') {
+          const paper = action.result || {};
+          return `- ${paper.already_saved ? 'Already in Library' : 'Saved and verified'}: **${paper.title || 'paper'}** ([open Library](/library)); DOI: [${paper.doi || 'verified DOI'}](https://doi.org/${encodeURIComponent(paper.doi || '')}); record ID: \`${paper.id || 'not returned'}\`.`;
+        }
+        return `- **${action.tool || 'Project action'} ${action.status || 'failed'}:** ${action.error || 'Check the workspace before retrying.'}`;
+      }).join('\n') : '';
       setMessages(previous => [...previous, {
         role: 'eyra',
-        content: fallbackContent,
+        content: [fallbackContent, verifiedAction ? `### Action status\n${verifiedAction}` : ''].filter(Boolean).join('\n\n'),
         timestamp: Date.now(),
         mode: activeMode,
         sources: evidence.sources || [],
