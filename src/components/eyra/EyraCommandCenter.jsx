@@ -6,6 +6,7 @@ import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitu
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import { getPreferenceLocale, loadPreferences, subscribePreferences } from '@/lib/preferences';
 import { getLocalGreeting } from '@/lib/local-greeting';
+import { checkEyraCitationIds } from '@/lib/eyra-citation-ids.mjs';
 import {
   X, Mic, MicOff, Send, Sparkles, Loader2,
   Volume2, VolumeX, Target, FileText, Users,
@@ -527,12 +528,16 @@ Answer the user's latest request. Cite every externally verifiable claim with th
 
       const answer = typeof response === 'string' ? response.trim() : String(response || '').trim();
       if (!answer) throw new Error('EYRA returned an empty response.');
+      // A plausible-looking [P99] citation must not be displayed as scientific
+      // provenance unless that exact source was retrieved for this request.
+      const citations = checkEyraCitationIds(answer, evidence.sources);
+      if (!citations.valid) throw new Error('EYRA cited a source outside the verified retrieval set.');
       const eyraMsg = {
         role: 'eyra',
         content: answer,
         timestamp: Date.now(),
         mode: activeMode,
-        sources: evidence.sources,
+        sources: citations.citedSources,
         retrievalQuery: evidence.query,
       };
       setMessages(previous => [...previous, eyraMsg]);
