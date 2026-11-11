@@ -9,6 +9,7 @@ import {
   screeningCounts,
   REVIEW_TYPES,
   isSafeLiteratureSourceUrl,
+  hasUnsavedReviewChanges,
 } from '@/lib/literature-review-protocol.mjs';
 
 const FIELD_LABELS = [
@@ -56,6 +57,21 @@ export default function LiteratureReview() {
   }, [attempt, preferredProjectId]);
 
   const selectedProject = projects.find(project => project.id === projectId);
+  const savedProtocol = selectedProject?.review_protocol || emptyReviewProtocol();
+  const hasUnsavedChanges = Boolean(selectedProject && hasUnsavedReviewChanges(protocol, savedProtocol));
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return undefined;
+    const warnOnUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warnOnUnload);
+    return () => window.removeEventListener('beforeunload', warnOnUnload);
+  }, [hasUnsavedChanges]);
+
+  const confirmDiscard = () => !hasUnsavedChanges
+    || window.confirm('Your review protocol has unsaved changes. Discard these changes?');
   useEffect(() => {
     const saved = selectedProject?.review_protocol;
     const base = emptyReviewProtocol();
@@ -157,7 +173,8 @@ export default function LiteratureReview() {
       </header>
 
       {loading && <p role="status" className="py-8 text-sm text-muted-foreground">Loading your private research workspaces…</p>}
-      {error && <p role="alert" className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm">{error} {loading ? null : <button type="button" onClick={() => setAttempt(value => value + 1)} className="ml-2 underline">Retry load</button>}</p>}
+      {error && <p role="alert" className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm">{error} {loading ? null : <button type="button" onClick={() => { if (confirmDiscard()) setAttempt(value => value + 1); }} className="ml-2 underline">Retry load</button>}</p>}
+      {hasUnsavedChanges && !loading && <p role="status" className="mb-3 text-xs font-medium text-amber-600 dark:text-amber-400">Unsaved protocol changes — save before leaving this page.</p>}
       {message && <p role="status" className="mb-4 rounded-xl border border-border bg-secondary/40 p-3 text-sm">{message}</p>}
 
       {!loading && !projects.length ? (
@@ -170,7 +187,7 @@ export default function LiteratureReview() {
           <label className="mb-5 block text-sm font-medium">
             Research project
             <select disabled={saving} aria-label="Select literature review project" value={projectId}
-              onChange={event => { setProjectId(event.target.value); setError(''); setMessage(''); }}
+              onChange={event => { if (!confirmDiscard()) return; setProjectId(event.target.value); setError(''); setMessage(''); }}
               className="mt-2 block min-h-11 w-full max-w-xl rounded-lg border border-border bg-card px-3">
               {projects.map(project => <option key={project.id} value={project.id}>{project.title}</option>)}
             </select>
@@ -212,7 +229,7 @@ export default function LiteratureReview() {
                   These are workspace counts, not a completed PRISMA flow.
                 </p>
               </div>
-              <Link to="/library" className="text-sm text-primary underline">Open Library</Link>
+              <Link to="/library" onClick={event => { if (!confirmDiscard()) event.preventDefault(); }} className="text-sm text-primary underline">Open Library</Link>
             </div>
             {!papers.length && <p className="mt-4 text-sm text-muted-foreground">Save scholarly publications to your Library before screening.</p>}
             <div className="mt-4 max-h-[34rem] space-y-3 overflow-y-auto">
