@@ -404,9 +404,13 @@ export default async function handler(request, response) {
   } catch (error) {
     await releaseUsage(reservation);
     const timedOut = error?.name === 'TimeoutError';
+    // Network/provider exceptions may include private research prompts or
+    // authorization material in their message. Log only a bounded error class.
+    const safeErrorClass = ['TimeoutError', 'AbortError', 'TypeError'].includes(error?.name)
+      ? error.name : 'Error';
     console.error('EYRA function error', {
       type: timedOut ? 'upstream_timeout' : 'unhandled_error',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      error_class: safeErrorClass,
     });
     if (timedOut) {
       return response.status(504).json({
