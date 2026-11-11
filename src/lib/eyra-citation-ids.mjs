@@ -14,3 +14,15 @@ export function checkEyraCitationIds(answer, sources = []) {
     citedSources: (sources || []).filter(source => citedIds.includes(source.id)),
   };
 }
+
+/** External source navigation never uses javascript:, data:, file: or URL credentials. */
+export function isSafeEyraSourceUrl(input) {
+  try {
+    const url = new URL(String(input || ''));
+    return (url.protocol === 'https:' || url.protocol === 'http:')
+      && !url.username && !url.password
+      && Boolean(url.hostname);
+  } catch {
+    return false;
+  }
+}
