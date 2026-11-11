@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import {
@@ -8,6 +8,8 @@ import {
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { buildUserProfile } from '@/lib/second-brain';
+import { Link } from 'react-router-dom';
+import { applyVerifiedChallengeRanking, savedChallengeKey } from '@/lib/challenge-records.mjs';
 
 const TYPE_CONFIG = {
   competition: { color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', label: 'Competition' },
@@ -28,13 +30,32 @@ export default function Challenges() {
   const [sourceMeta, setSourceMeta] = useState(null);
   const [searchError, setSearchError] = useState('');
   const [rankingError, setRankingError] = useState('');
+  const [savedKeys, setSavedKeys] = useState(() => new Set());
+  const [savingKeys, setSavingKeys] = useState(() => new Set());
+  const pendingSaves = useRef(new Set());
   const { toast } = useToast();
 
   useEffect(() => { loadProfile(); }, []);
+  useEffect(() => {
+    let active = true;
+    base44.entities.SavedOpportunity.list('-created_date')
+      .then(records => {
+        if (active) setSavedKeys(current => new Set([...current, ...records.map(savedChallengeKey).filter(Boolean)]));
+      })
+      .catch(() => {
+        // The manual save action stays available when saved-state loading fails.
+      });
+    return () => { active = false; };
+  }, []);
 
   const loadProfile = async () => {
-    const p = await buildUserProfile();
-    setProfile(p);
+    try {
+      const p = await buildUserProfile();
+      setProfile(p);
+    } catch {
+      // Manual search remains usable if user-profile enrichment fails.
+      setProfile(null);
+    }
   };
 
   const findChallenges = async (query) => {
@@ -110,8 +131,7 @@ Return one result for every supplied id. Do not add programs or change factual f
               },
             },
           });
-          const byId = new Map((ranking.ranked || []).map((item) => [item.id, item]));
-          setChallenges(verified.map((item) => ({ ...item, ...(byId.get(item.id) || {}) })));
+          setChallenges(applyVerifiedChallengeRanking(verified, ranking.ranked));
         } catch (error) {
           setRankingError(
             `Verified calls loaded, but EYRA analysis is unavailable: ${error instanceof Error ? error.message : 'unknown error'}`,
@@ -130,18 +150,43 @@ Return one result for every supplied id. Do not add programs or change factual f
   };
 
   const saveOpportunity = async (c) => {
-    await base44.entities.SavedOpportunity.create({
-      title: c.title,
-      type: c.type || 'competition',
-      description: c.description,
-      deadline: c.deadline,
-      url: c.url_hint || '',
-      source: c.source || c.organizer,
-      amount: c.amount,
-      agency: c.organizer,
-      source_id: c.source_id,
-    });
-    toast({ title: 'Saved to your library' });
+    const key = savedChallengeKey(c) || String(c.id || c.title);
+    if (pendingSaves.current.has(key)) return;
+    if (savedKeys.has(key)) {
+      toast({ title: 'Already saved to your library' });
+      return;
+    }
+    pendingSaves.current.add(key);
+    setSavingKeys(current => new Set([...current, key]));
+    try {
+      await base44.entities.SavedOpportunity.create({
+        title: c.title,
+        type: c.type || 'competition',
+        description: c.description,
+        deadline: c.deadline,
+        url: c.url_hint || '',
+        source: c.source || c.organizer,
+        amount: c.amount,
+        agency: c.organizer,
+        source_id: c.source_id,
+        eligibility: c.eligibility,
+      });
+      setSavedKeys(current => new Set([...current, key]));
+      toast({ title: 'Saved to your library' });
+    } catch (error) {
+      toast({
+        title: 'Could not save opportunity',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      pendingSaves.current.delete(key);
+      setSavingKeys(current => {
+        const next = new Set(current);
+        next.delete(key);
+        return next;
+      });
+    }
   };
 
   return (
@@ -151,6 +196,9 @@ Return one result for every supplied id. Do not add programs or change factual f
         <div>
           <h1 className="font-heading font-bold text-2xl">Challenges</h1>
         </div>
+        <Link to="/library?tab=opportunities" className="inline-flex min-h-10 items-center rounded-lg border border-border px-3 text-xs font-medium text-primary hover:bg-secondary">
+          View saved calls in Library
+        </Link>
       </div>
 
       {searchError && (
@@ -301,8 +349,10 @@ Return one result for every supplied id. Do not add programs or change factual f
                       </a>
                     )}
                     <button onClick={() => saveOpportunity(c)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground hover:border-border/80 transition-colors">
-                      <Bookmark size={11} /> Save
+                      disabled={savingKeys.has(savedChallengeKey(c) || String(c.id || c.title)) || savedKeys.has(savedChallengeKey(c) || String(c.id || c.title))}
+                      aria-label={savedKeys.has(savedChallengeKey(c) || String(c.id || c.title)) ? `Already saved: ${c.title}` : `Save ${c.title} to library`}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground hover:border-border/80 transition-colors disabled:opacity-55">
+                      <Bookmark size={11} /> {savedKeys.has(savedChallengeKey(c) || String(c.id || c.title)) ? 'Saved' : savingKeys.has(savedChallengeKey(c) || String(c.id || c.title)) ? 'Saving...' : 'Save'}
                     </button>
                   </div>
                 </div>
