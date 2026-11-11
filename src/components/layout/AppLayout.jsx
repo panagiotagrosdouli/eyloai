@@ -37,6 +37,7 @@ const TOOL_GROUPS = [
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
+      { label: 'Literature review protocol', path: '/literature-review', icon: BookOpen, desc: 'Document search methods and screen saved publications' },
       { label: 'Research Data Lab', path: '/labs/data', icon: BarChart3, desc: 'Analyze CSV data privately in your browser', badge: 'Local only' },
       { label: 'For you', path: '/foryou', icon: Sparkles, desc: 'Updates from your saved research context', badge: 'Workspace' },
       { label: 'Idea workspace', path: '/ideas', icon: Lightbulb, desc: 'Capture and develop research ideas', badge: 'Workspace' },
