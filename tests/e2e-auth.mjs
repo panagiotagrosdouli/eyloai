@@ -376,7 +376,6 @@ try {
       return;
     }
     if (request.method() === 'GET' && libraryReadOutage) {
-      libraryReadOutage = false;
       await route.fulfill({ status: 503, contentType: 'application/json', headers,
         body: JSON.stringify({ message: 'Temporary saved-paper outage' }) });
       return;
@@ -392,6 +391,7 @@ try {
   await dataLab.route('**/rest/v1/projects**', route => sendAuthJson(route, [libraryProject]));
   await dataLab.goto(`${baseUrl}/library`);
   await dataLab.getByRole('button', { name: 'Retry loading' }).waitFor();
+  libraryReadOutage = false;
   await dataLab.getByRole('button', { name: 'Retry loading' }).click();
   await dataLab.getByText('Library persistence test paper').waitFor();
   await dataLab.getByLabel('Link paper to a project').selectOption('library-project-1');
