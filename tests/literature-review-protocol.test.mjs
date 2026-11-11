@@ -6,6 +6,8 @@ import {
   screeningCounts,
   reviewProtocolSnapshot,
   isSafeLiteratureSourceUrl,
+  hasUnsavedReviewChanges,
+  reviewProtocolDraftKey,
 } from '../src/lib/literature-review-protocol.mjs';
 
 const full = {
@@ -96,4 +98,23 @@ test('external source links reject executable schemes, embedded credentials and 
     assert.equal(isSafeLiteratureSourceUrl(url), false, url);
   }
   assert.equal(isSafeLiteratureSourceUrl('https://doi.org/10.1234/example'), true);
+});
+
+test('dirty-state check preserves incomplete user edits and ignores server save timestamps', () => {
+  const saved = { ...emptyReviewProtocol(), question: 'Initial question', updated_at: '2026-11-11T00:00:00Z' };
+  const edited = { ...saved, question: 'Updated, currently incomplete question' };
+  assert.equal(hasUnsavedReviewChanges(edited, saved), true);
+  assert.equal(hasUnsavedReviewChanges({ ...saved, updated_at: '2099-01-01T00:00:00Z' }, saved), false);
+  assert.equal(hasUnsavedReviewChanges(saved, saved), false);
+});
+
+test('screening reorder does not imply unsaved changes; changed decisions do', () => {
+  const a = { ...full, screening: [...full.screening] };
+  const reordered = { ...full, screening: [...full.screening].reverse() };
+  assert.equal(reviewProtocolDraftKey(a), reviewProtocolDraftKey(reordered));
+  assert.equal(hasUnsavedReviewChanges(a, reordered), false);
+  assert.equal(hasUnsavedReviewChanges(a, {
+    ...full,
+    screening: full.screening.map(item => item.paper_id === 'paper-b' ? { ...item, reason: 'Different reason' } : item),
+  }), true);
 });
