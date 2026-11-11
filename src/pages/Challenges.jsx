@@ -8,6 +8,7 @@ import {
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { buildUserProfile } from '@/lib/second-brain';
+import { Link } from 'react-router-dom';
 import { applyVerifiedChallengeRanking, savedChallengeKey } from '@/lib/challenge-records.mjs';
 
 const TYPE_CONFIG = {
@@ -195,6 +196,9 @@ Return one result for every supplied id. Do not add programs or change factual f
         <div>
           <h1 className="font-heading font-bold text-2xl">Challenges</h1>
         </div>
+        <Link to="/library?tab=opportunities" className="inline-flex min-h-10 items-center rounded-lg border border-border px-3 text-xs font-medium text-primary hover:bg-secondary">
+          View saved calls in Library
+        </Link>
       </div>
 
       {searchError && (
