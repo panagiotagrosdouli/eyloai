@@ -352,6 +352,56 @@ try {
   await dataLab.getByRole('heading', { name: 'Graph paper one' }).waitFor();
   await dataLab.getByRole('button', { name: /Graph paper one Cites Graph paper two/ }).waitFor();
 
+  // Verify a Library outage is recoverable and paper/project links survive a
+  // page reload. These are isolated PostgREST fixtures, not live-RLS evidence.
+  const libraryPaper = {
+    id: 'library-paper-1', user_id: testUser.id, created_at: '2026-11-10T00:00:00.000Z',
+    data: { title: 'Library persistence test paper', source: 'OpenAlex', year: 2025 },
+  };
+  const libraryProject = {
+    id: 'library-project-1', user_id: testUser.id, created_at: '2026-11-10T00:00:00.000Z',
+    data: { title: 'Library linked project', goal: 'Evaluate saved evidence', status: 'active' },
+  };
+  let libraryReadOutage = true;
+  let linkedPaperWrites = 0;
+  await dataLab.route('**/rest/v1/saved_papers**', async route => {
+    const request = route.request();
+    const headers = {
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'GET, PATCH, OPTIONS',
+      'access-control-allow-headers': 'apikey, authorization, content-type, x-client-info, prefer',
+    };
+    if (request.method() === 'OPTIONS') {
+      await route.fulfill({ status: 204, headers });
+      return;
+    }
+    if (request.method() === 'GET' && libraryReadOutage) {
+      await route.fulfill({ status: 503, contentType: 'application/json', headers,
+        body: JSON.stringify({ message: 'Temporary saved-paper outage' }) });
+      return;
+    }
+    if (request.method() === 'PATCH') {
+      linkedPaperWrites += 1;
+      Object.assign(libraryPaper.data, request.postDataJSON()?.data || {});
+    }
+    const single = (request.headers()['accept'] || '').includes('application/vnd.pgrst.object+json');
+    await route.fulfill({ status: 200, contentType: 'application/json', headers,
+      body: JSON.stringify(single ? libraryPaper : [libraryPaper]) });
+  });
+  await dataLab.route('**/rest/v1/projects**', route => sendAuthJson(route, [libraryProject]));
+  await dataLab.goto(`${baseUrl}/library`);
+  await dataLab.getByRole('button', { name: 'Retry loading' }).waitFor();
+  libraryReadOutage = false;
+  await dataLab.getByRole('button', { name: 'Retry loading' }).click();
+  await dataLab.getByText('Library persistence test paper').waitFor();
+  await dataLab.getByLabel('Link paper to a project').selectOption('library-project-1');
+  await dataLab.getByRole('link', { name: 'Open project' }).waitFor();
+  assert.equal(linkedPaperWrites, 1, 'project linking should write the saved paper once');
+  await dataLab.reload();
+  await dataLab.getByText('Library persistence test paper').waitFor();
+  assert.equal(await dataLab.getByLabel('Link paper to a project').inputValue(), 'library-project-1');
+  console.log('Library recovery and persisted project link passed against isolated PostgREST fixtures.');
+
   console.log('Browser checks passed: auth, mobile registration, local CSV analysis, keyboard meeting access and source graph navigation.');
 } finally {
   if (browser) await browser.close();

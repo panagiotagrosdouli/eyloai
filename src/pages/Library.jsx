@@ -45,6 +45,7 @@ export default function Library() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [loadNotice, setLoadNotice] = useState('');
+  const [failedCollections, setFailedCollections] = useState([]);
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
@@ -54,11 +55,12 @@ export default function Library() {
   const loadAll = async () => {
     setLoading(true);
     setLoadNotice('');
+    setFailedCollections([]);
     const requests = [
-      base44.entities.SavedPaper.list('-created_date'),
-      base44.entities.SavedResearcher.list('-created_date'),
-      base44.entities.SavedOpportunity.list('-created_date'),
-      base44.entities.Project.list('-updated_date'),
+      base44.entities.SavedPaper.list('-created_date', 1000),
+      base44.entities.SavedResearcher.list('-created_date', 1000),
+      base44.entities.SavedOpportunity.list('-created_date', 1000),
+      base44.entities.Project.list('-updated_date', 1000),
     ];
     const results = await Promise.allSettled(requests);
     setPapers(results[0].status === 'fulfilled' ? results[0].value : []);
@@ -66,7 +68,10 @@ export default function Library() {
     setOpportunities(results[2].status === 'fulfilled' ? results[2].value : []);
     setProjects(results[3].status === 'fulfilled' ? results[3].value : []);
     setProjectsLoaded(results[3].status === 'fulfilled');
-    const failures = results.slice(0, 3).filter(result => result.status === 'rejected').length;
+    const collectionNames = ['papers', 'researchers', 'opportunities'];
+    const failed = collectionNames.filter((_, index) => results[index].status === 'rejected');
+    setFailedCollections(failed);
+    const failures = failed.length;
     const projectFailure = results[3].status === 'rejected';
     if (failures || projectFailure) {
       const messages = [];
@@ -126,6 +131,7 @@ export default function Library() {
   };
 
   const counts = { papers: papers.length, researchers: researchers.length, opportunities: opportunities.length };
+  const failedCollectionMessage = 'This collection could not be loaded. Use Retry loading above instead of assuming it is empty.';
   return (
     <div className="eylo-page">
       {/* Header */}
@@ -134,6 +140,12 @@ export default function Library() {
         <h1 className="eylo-page-heading">Library</h1>
         <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">Your saved scientific literature, researchers and opportunities — organized for future reference.</p>
       </div>
+
+      {(papers.length >= 1000 || researchers.length >= 1000 || opportunities.length >= 1000 || projects.length >= 1000) && !loading && (
+        <p role="status" className="mb-4 text-xs text-muted-foreground">
+          Showing up to 1,000 recent records per collection. Older records are not loaded; full pagination is not yet available.
+        </p>
+      )}
 
       {loadNotice && (
         <div role="status" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">
@@ -148,9 +160,9 @@ export default function Library() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         {[
-          { label: 'Saved Papers', value: papers.length, icon: FileText, color: 'text-primary bg-primary/10' },
-          { label: 'Researchers', value: researchers.length, icon: Users, color: 'text-accent bg-accent/10' },
-          { label: 'Opportunities', value: opportunities.length, icon: Award, color: 'text-chart-3 bg-chart-3/10' },
+          { key: 'papers', label: 'Saved Papers', value: papers.length, icon: FileText, color: 'text-primary bg-primary/10' },
+          { key: 'researchers', label: 'Researchers', value: researchers.length, icon: Users, color: 'text-accent bg-accent/10' },
+          { key: 'opportunities', label: 'Opportunities', value: opportunities.length, icon: Award, color: 'text-chart-3 bg-chart-3/10' },
         ].map(s => {
           const Icon = s.icon;
           return (
@@ -158,7 +170,7 @@ export default function Library() {
               <div className={`w-8 h-8 rounded-lg ${s.color} flex items-center justify-center mx-auto mb-2`}>
                 <Icon size={14} />
               </div>
-              <div className="font-bold text-xl font-heading">{s.value}</div>
+              <div className="font-bold text-xl font-heading">{failedCollections.includes(s.key) ? '—' : s.value}</div>
               <div className="text-xs text-muted-foreground">{s.label}</div>
             </div>
           );
@@ -193,7 +205,7 @@ export default function Library() {
             >
               <Icon size={13} />
               {t.label}
-              <span className="text-xs opacity-50">{counts[t.key]}</span>
+              <span className="text-xs opacity-50">{failedCollections.includes(t.key) ? '—' : counts[t.key]}</span>
             </button>
           );
         })}
@@ -208,7 +220,9 @@ export default function Library() {
           {/* Papers */}
           {tab === 'papers' && (
             <div className="space-y-3">
-              {filter(papers, ['title', 'authors', 'source']).length === 0
+              {failedCollections.includes('papers')
+                ? <p role="alert" className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">{failedCollectionMessage}</p>
+                : filter(papers, ['title', 'authors', 'source']).length === 0
                 ? <EmptyState icon={FileText} label="No saved papers" sub="Save papers from discovery results" />
                 : filter(papers, ['title', 'authors', 'source']).map(p => (
                   <div key={p.id} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all group">
@@ -244,7 +258,9 @@ export default function Library() {
           {/* Researchers */}
           {tab === 'researchers' && (
             <div className="grid gap-3 sm:grid-cols-2">
-              {filter(researchers, ['name', 'institution', 'research_areas']).length === 0
+              {failedCollections.includes('researchers')
+                ? <p role="alert" className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">{failedCollectionMessage}</p>
+                : filter(researchers, ['name', 'institution', 'research_areas']).length === 0
                 ? <EmptyState icon={Users} label="No saved researchers" sub="Save researchers from discovery results" />
                 : filter(researchers, ['name', 'institution', 'research_areas']).map(r => (
                   <div key={r.id} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all group">
@@ -275,7 +291,9 @@ export default function Library() {
           {/* Opportunities */}
           {tab === 'opportunities' && (
             <div className="space-y-3">
-              {filter(opportunities, ['title', 'description', 'type']).length === 0
+              {failedCollections.includes('opportunities')
+                ? <p role="alert" className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">{failedCollectionMessage}</p>
+                : filter(opportunities, ['title', 'description', 'type']).length === 0
                 ? <EmptyState icon={Award} label="No saved opportunities" sub="Save opportunities from discovery results" />
                 : filter(opportunities, ['title', 'description', 'type']).map(o => (
                   <div key={o.id} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all group">
