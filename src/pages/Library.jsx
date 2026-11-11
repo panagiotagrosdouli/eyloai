@@ -135,7 +135,12 @@ export default function Library() {
         <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">Your saved scientific literature, researchers and opportunities — organized for future reference.</p>
       </div>
 
-      {loadNotice && <div role="status" className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">{loadNotice}</div>}
+      {loadNotice && (
+        <div role="status" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">
+          <span>{loadNotice}</span>
+          <button type="button" onClick={loadAll} disabled={loading} className="rounded-lg border border-amber-400/30 px-3 py-2 font-medium hover:bg-amber-400/10 disabled:opacity-50">Retry loading</button>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
