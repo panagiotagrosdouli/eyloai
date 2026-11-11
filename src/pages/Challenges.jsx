@@ -39,7 +39,7 @@ export default function Challenges() {
     let active = true;
     base44.entities.SavedOpportunity.list('-created_date')
       .then(records => {
-        if (active) setSavedKeys(new Set(records.map(savedChallengeKey).filter(Boolean)));
+        if (active) setSavedKeys(current => new Set([...current, ...records.map(savedChallengeKey).filter(Boolean)]));
       })
       .catch(() => {
         // The manual save action stays available when saved-state loading fails.
