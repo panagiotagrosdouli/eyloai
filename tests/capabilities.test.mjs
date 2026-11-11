@@ -7,6 +7,7 @@ const keys = [
   'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET',
   'STRIPE_PRO_PRICE_ID', 'STRIPE_FOUNDER_PRICE_ID',
   'SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY',
+  'VITE_SUPABASE_URL', 'SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY', 'SUPABASE_PUBLISHABLE_KEY',
   'EYLO_ANALYTICS_ENABLED',
 ];
 const snapshot = Object.fromEntries(keys.map(key => [key, process.env[key]]));
@@ -66,6 +67,12 @@ test('billing requires every secret, price and server-side Supabase credential',
   handler({ method: 'GET' }, absent);
   assert.equal(absent.body.billing, false);
   process.env.SUPABASE_SECRET_KEY = 'test-only';
+  const missingProject = response();
+  handler({ method: 'GET' }, missingProject);
+  assert.equal(missingProject.body.billing, false);
+
+  process.env.VITE_SUPABASE_URL = 'https://eylo-capability-test.supabase.co';
+  process.env.SUPABASE_PUBLISHABLE_KEY = 'test-public-only';
   const enabled = response();
   handler({ method: 'GET' }, enabled);
   assert.equal(enabled.body.billing, true);
@@ -83,9 +90,20 @@ test('AI availability requires both the model key and server-side quota controls
   assert.equal(unmetered.body.ai, false);
 
   process.env.SUPABASE_SECRET_KEY = 'server-test-only';
+  const incomplete = response();
+  handler({ method: 'GET' }, incomplete);
+  assert.equal(incomplete.body.ai, false);
+
+  process.env.VITE_SUPABASE_URL = 'https://eylo-capability-test.supabase.co';
+  process.env.SUPABASE_PUBLISHABLE_KEY = 'test-public-only';
   const ready = response();
   handler({ method: 'GET' }, ready);
   assert.equal(ready.body.ai, true);
+
+  process.env.VITE_SUPABASE_URL = 'https://example.invalid';
+  const invalidOrigin = response();
+  handler({ method: 'GET' }, invalidOrigin);
+  assert.equal(invalidOrigin.body.ai, false, 'untrusted Supabase origins must not enable AI');
   assert.equal(ready.body.billing, false);
   assert.equal(JSON.stringify(ready.body).includes('test-only'), false);
 });
