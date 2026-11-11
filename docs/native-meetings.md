@@ -29,3 +29,12 @@ LiveKit may be a managed provider or self-hosted. Self-hosting requires a persis
 ## Verification boundary
 
 Repository checks validate the API's fail-closed configuration and unauthenticated rejection paths. They do not establish real two-user media connectivity. A real call requires the migration, configured LiveKit endpoint and credentials, two separately authenticated staging accounts, and browser permission to use microphones/cameras. The owner should complete the two-user audio/video, reconnection, screen share and mobile test before enabling native calls in production.
+
+
+## Authorized two-account staging acceptance
+
+Run `npm run test:e2e:meetings` only after an owner has verified the staging deployment, LiveKit configuration, applied migrations and two disposable authenticated accounts.
+
+The script `tests/e2e-native-meetings.mjs` requires `EYLO_E2E_BASE_URL` (an HTTPS staging URL), `EYLO_E2E_ALLOWED_HOST` (the exact staging hostname), two distinct staging credentials through protected environment variables, and `EYLO_E2E_CONFIRM_DATA_MUTATION=YES`. It refuses the EYLO production hostname and refuses to silently create staging meetings without explicit approval. No credentials should be put into the repository or shared in chat.
+
+The acceptance checks real two-account meeting behavior with separate browser contexts; it does not stub native meeting APIs, live media or external provider calls. Browser permissions for camera and microphone and an actual screen-share selection may require an authorized human test operator. Passing unit tests alone is **not** evidence that production video calls work.
