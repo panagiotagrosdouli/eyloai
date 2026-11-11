@@ -399,10 +399,19 @@ export default function EyraCommandCenter({ open, onClose }) {
   useEffect(() => subscribePreferences(setPreferences), []);
 
   useEffect(() => {
-    if (!open || contextStatus !== 'idle') return;
+    if (!open) return undefined;
+    if (!preferences.data_personalization) {
+      // Personalization off must prevent private workspace reads, not merely
+      // omit previously loaded profile data from the outgoing model prompt.
+      setWorkspaceContext('');
+      setContextStatus('disabled');
+      return undefined;
+    }
+    let current = true;
     setContextStatus('loading');
     buildUserProfile()
       .then((profile) => {
+        if (!current) return;
         const nextName = profile.user?.full_name || '';
         setUserName(nextName);
         setWorkspaceContext(profile.contextString.slice(0, 12_000));
@@ -414,10 +423,13 @@ export default function EyraCommandCenter({ open, onClose }) {
         ));
       })
       .catch(() => {
+        if (!current) return;
         setWorkspaceContext('');
         setContextStatus('unavailable');
       });
-  }, [open, contextStatus]);
+    // Never let a late profile request repopulate memory after opt-out/close.
+    return () => { current = false; };
+  }, [open, preferences.data_personalization]);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
