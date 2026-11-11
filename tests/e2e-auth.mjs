@@ -430,6 +430,9 @@ try {
   const questionField = dataLab.getByLabel('Research question');
   await questionField.fill('Unsaved alternative research question');
   await dataLab.getByText('Unsaved protocol changes — save before leaving this page.').waitFor();
+  // Replace the earlier Idea Vault delete-dialog auto-accept listener before
+  // exercising the explicit cancel/confirm navigation choices.
+  dataLab.removeAllListeners('dialog');
   dataLab.once('dialog', dialog => dialog.dismiss());
   await dataLab.getByRole('button', { name: 'Reload saved records' }).click();
   assert.equal(await questionField.inputValue(), 'Unsaved alternative research question');
