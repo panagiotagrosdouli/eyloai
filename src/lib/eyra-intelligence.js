@@ -11,10 +11,11 @@ import {
 import { trackEyraActionCompleted } from '@/lib/product-analytics';
 
 export class EyraRequestError extends Error {
-  constructor(message, status) {
+  constructor(message, status, details = {}) {
     super(message);
     this.name = 'EyraRequestError';
     this.status = status;
+    this.actions = Array.isArray(details.actions) ? details.actions : [];
   }
 }
 
@@ -27,7 +28,7 @@ async function getAccessToken(forceRefresh = false) {
   return session.access_token;
 }
 
-function postAnalysis(accessToken, prompt, responseSchema, signal) {
+function postAnalysis(accessToken, prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '') {
   return fetch('/api/eyra', {
     method: 'POST',
     headers: {
@@ -38,24 +39,26 @@ function postAnalysis(accessToken, prompt, responseSchema, signal) {
     body: JSON.stringify({
       prompt,
       ...(responseSchema ? { response_json_schema: responseSchema } : {}),
+      ...(enableProjectTools ? { enable_project_tools: true } : {}),
+      ...(enableProjectTools && toolIntent ? { tool_intent: toolIntent } : {}),
     }),
   });
 }
 
-async function requestOpenAiAnalysis(prompt, responseSchema, signal) {
+async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '') {
   const cleanPrompt = String(prompt || '').trim();
   if (!cleanPrompt) throw new EyraRequestError('Tell EYRA what you want to analyse.', 400);
 
   let accessToken = await getAccessToken();
   signal?.throwIfAborted();
-  let response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal);
+  let response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent);
 
   // A cached browser session can outlive its access token. Refresh once and
   // replay exactly the same request before requiring a new sign-in.
   if (response.status === 401) {
     accessToken = await getAccessToken(true);
     signal?.throwIfAborted();
-    response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal);
+    response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent);
   }
 
   if (response.status === 401) {
@@ -68,6 +71,7 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal) {
     throw new EyraRequestError(
       result.error || 'EYRA could not complete this analysis. Please try again.',
       response.status,
+      result,
     );
   }
 
@@ -84,15 +88,18 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal) {
   }
 
   if (!result.text) throw new EyraRequestError('EYRA returned an empty response.', 502);
+  if (enableProjectTools) {
+    return { text: result.text, actions: Array.isArray(result.actions) ? result.actions : [] };
+  }
   return result.text;
 }
 
 /**
- * @param {{prompt?: string, response_json_schema?: Record<string, any>, signal?: AbortSignal}} [options]
+ * @param {{prompt?: string, response_json_schema?: Record<string, any>, signal?: AbortSignal, enable_project_tools?: boolean, tool_intent?: string}} [options]
  * @returns {Promise<any>}
  */
-export async function invokeEyra({ prompt = '', response_json_schema: responseSchema, signal } = {}) {
-  const result = await requestOpenAiAnalysis(prompt, responseSchema, signal);
+export async function invokeEyra({ prompt = '', response_json_schema: responseSchema, signal, enable_project_tools: enableProjectTools = false, tool_intent: toolIntent = '' } = {}) {
+  const result = await requestOpenAiAnalysis(prompt, responseSchema, signal, enableProjectTools, toolIntent);
   trackEyraActionCompleted();
   return result;
 }
