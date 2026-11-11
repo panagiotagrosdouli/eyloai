@@ -470,3 +470,17 @@ For **every** row, the columns map to required inventory attributes: (1) ID; (2)
 - `api/discovery.js`: detect a provider returning HTML as a nominal HTTP 200 and fail closed with an uncached 502 `INVALID_SOURCE_RESPONSE`, rather than caching a false success.
 - `tests/discovery-proxy.test.mjs`: add regression coverage for HTML provider challenge pages.
 - **Pending:** execute CI and verify provider behavior against actual upstream sources; these commits alone are not verification.
+
+
+## Added verified source surfaces — 2026-11-11 Literature Review Protocol
+
+The following **stable feature IDs** supplement the initial filesystem registry. They are not a claim that all nested user actions have been inventoried.
+
+| ID | Domain / user behavior | Implementation | API and persistence | Permission boundary | Verification | Known gap / priority / acceptance | Evidence and dependencies |
+|---|---|---|---|---|---|---|---|
+| EYLO-REV-001 | Research methods: choose a project and edit a review question, scope, dates, databases, search strings, inclusion/exclusion criteria and methodological notes | `src/pages/LiteratureReview.jsx`, `src/lib/literature-review-protocol.mjs` | `Project.list`, `Project.update` using `review_protocol` in existing Supabase JSONB data | Authenticated owner's project; backend RLS required | WORKING in Playwright test double; BLOCKED live | P1: verify actual 2-user persistence and field fidelity, not formal PRISMA compliance | PR #332; `tests/literature-review-protocol.test.mjs`, `tests/e2e-auth.mjs`, Project Evidence |
+| EYLO-REV-002 | Research Library: choose saved records, assign include/exclude/undecided, record reasons and counts | `LiteratureReview.jsx`, `validateReviewProtocol`, `screeningCounts` | `SavedPaper.list` for actual saved IDs; screening stored in Project record | Whitelist IDs from authorized SavedPaper result; actual RLS still requires live verification | WORKING in mocked UI and deterministic tests; BLOCKED live | P1: test cross-owner screening rejection and screening decision preservation, full-text screening is not implemented | PR #332; `tests/literature-review-protocol.test.mjs` |
+| EYLO-REV-003 | Reproducible export of author-entered protocol with source-linked screening snapshots | `reviewProtocolSnapshot`, JSON download in `LiteratureReview.jsx` | Browser-generated JSON, intentionally no upload or auto-sharing | Only selected user's saved metadata; unsafe external hrefs rejected | WORKING in browser test double; NOT TESTED with live data | P1: human review of exported methodology and source completeness; do not claim PRISMA | PR #332; `tests/e2e-auth.mjs` |
+| EYLO-REV-004 | Project Evidence → Literature Review navigation, private route, safe auth deep link | `src/pages/ProjectDetail.jsx`, `src/App.jsx`, `src/components/layout/AppLayout.jsx`, `src/lib/auth/safeRedirect.ts` | Existing project and route | ProtectedRoute; only pre-existing project IDs accepted by the project list | WORKING in mocked browser routing; BLOCKED live | P1: verify keyboard/mobile navigation and sign-in return behavior | PR #332, project detail and route tests |
+
+These are **protocol preparation and title/abstract screening**, not an automated systematic review, completed PRISMA flow, scientifically validated evidence extraction, or universal access to full text.
