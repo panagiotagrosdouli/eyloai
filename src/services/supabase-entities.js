@@ -1,4 +1,5 @@
 import { getBillingStatus } from '@/lib/billing';
+import { mergeWorkspaceProfile } from '@/lib/profile-merge.mjs';
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 import { recordActivation, trackEyraFollowthrough } from '@/lib/product-analytics';
 import { applyEntityFilters, rowToEntity, splitPayload } from './entity-serialization';
@@ -181,9 +182,7 @@ export const supabaseProfile = {
     return {
       id: user.id,
       email: user.email,
-      full_name: storedProfile.full_name || authProfile.full_name || user.user_metadata?.name || '',
-      ...storedProfile,
-      ...authProfile,
+      ...mergeWorkspaceProfile(authProfile, storedProfile, user.user_metadata?.name || ''),
     };
   },
 
@@ -220,9 +219,10 @@ export const supabaseProfile = {
     return {
       id: user.id,
       email: user.email,
-      ...next,
-      ...pickProfileFields(profileWrite.data?.data || {}),
-      ...pickProfileFields(authWrite.data?.user?.user_metadata || {}),
+      ...mergeWorkspaceProfile(
+        { ...next, ...pickProfileFields(authWrite.data?.user?.user_metadata || {}) },
+        pickProfileFields(profileWrite.data?.data || {}),
+      ),
     };
   },
 };
