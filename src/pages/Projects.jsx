@@ -64,7 +64,7 @@ export default function Projects() {
     setLoading(true);
     setError('');
     try {
-      const data = await base44.entities.Project.list('-updated_date');
+      const data = await base44.entities.Project.list('-updated_date', 1000);
       setProjects(data);
     } catch (loadError) {
       setError(loadError?.message || 'Projects could not be loaded.');
@@ -153,6 +153,12 @@ export default function Projects() {
           <Plus size={14} /> New
         </button>
       </div>
+
+      {!loading && projects.length >= 1000 && (
+        <p role="status" className="mb-4 text-xs text-muted-foreground">
+          Showing the 1,000 most recently updated projects. Older projects need pagination, which is not available yet.
+        </p>
+      )}
 
       <div className="relative mb-5 max-w-md">
         <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
