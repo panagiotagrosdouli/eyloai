@@ -19,12 +19,17 @@ export function isAllowedBrowserOrigin(origin, requestHost = '') {
   const parsed = parseOrigin(origin);
   if (!parsed) return false;
   if (PUBLIC_ORIGINS.has(parsed.origin)) return true;
-  return Boolean(requestHost && parsed.host.toLowerCase() === String(requestHost).toLowerCase());
+  // Preview origins are allowed only when they match the actual request host
+  // exactly and use HTTPS; never trust a caller-supplied HTTP origin.
+  return parsed.protocol === 'https:'
+    && Boolean(requestHost && parsed.host.toLowerCase() === String(requestHost).toLowerCase());
 }
 
 export function applyCors(request, response, methods = ['GET']) {
   const origin = request.headers?.origin;
   const allowed = isAllowedBrowserOrigin(origin, request.headers?.host);
+  // Real HTTP responses support setHeader; lightweight handler test doubles may not.
+  if (typeof response.setHeader === 'function') response.setHeader('Cache-Control', 'no-store');
   if (allowed) {
     response.setHeader('Access-Control-Allow-Origin', origin);
     response.setHeader('Vary', 'Origin');
