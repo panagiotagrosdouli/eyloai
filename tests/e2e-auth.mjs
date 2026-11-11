@@ -404,7 +404,12 @@ try {
   await dataLab.getByLabel('Decision').selectOption('exclude');
   await dataLab.getByLabel('Reason / screening note').fill('Does not report a method evaluation');
   await dataLab.getByRole('button', { name: 'Save protocol to project' }).click();
-  await dataLab.getByText('Protocol saved privately in this research project.').waitFor();
+  try {
+    await dataLab.getByText('Protocol saved privately in this research project.').waitFor({ timeout: 8000 });
+  } catch (error) {
+    const alerts = await dataLab.locator('[role="alert"]').allTextContents();
+    throw new Error('Review protocol save failed: ' + JSON.stringify(alerts), { cause: error });
+  }
   assert.equal(protocolSaves, 1);
   await dataLab.reload();
   await dataLab.getByLabel('Research question').waitFor();
