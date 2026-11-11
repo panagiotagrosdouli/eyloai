@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { BookOpen, Download, RefreshCw, Save } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import {
@@ -21,6 +21,8 @@ const FIELD_LABELS = [
 ];
 
 export default function LiteratureReview() {
+  const [searchParams] = useSearchParams();
+  const preferredProjectId = searchParams.get('project_id') || '';
   const [projects, setProjects] = useState([]);
   const [papers, setPapers] = useState([]);
   const [projectId, setProjectId] = useState('');
@@ -42,13 +44,16 @@ export default function LiteratureReview() {
       if (!active) return;
       setProjects(projectRows);
       setPapers(paperRows);
-      setProjectId(current => current && projectRows.some(project => project.id === current)
-        ? current : (projectRows[0]?.id || ''));
+      setProjectId(current => {
+        if (current && projectRows.some(project => project.id === current)) return current;
+        if (preferredProjectId && projectRows.some(project => project.id === preferredProjectId)) return preferredProjectId;
+        return projectRows[0]?.id || '';
+      });
     }).catch(() => {
       if (active) setError('Could not load your private projects and saved papers. Check your connection and retry.');
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [attempt]);
+  }, [attempt, preferredProjectId]);
 
   const selectedProject = projects.find(project => project.id === projectId);
   useEffect(() => {
