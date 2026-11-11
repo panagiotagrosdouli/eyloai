@@ -42,16 +42,30 @@ test('production frontend refuses any other Supabase tenant', () => {
     PROD: true,
     VITE_SUPABASE_URL: 'https://kbzjngpzxpniaumlupaa.supabase.co',
     VITE_SUPABASE_ANON_KEY: 'sb_publishable_test',
-  });
+  }, 'eyloai.vercel.app');
   assert.equal(approved.ok, true);
 
   const wrong = validateEnvironment({
     PROD: true,
     VITE_SUPABASE_URL: 'https://other-tenant.supabase.co',
     VITE_SUPABASE_ANON_KEY: 'sb_publishable_test',
-  });
+  }, 'eyloai.vercel.app');
   assert.equal(wrong.ok, false);
   assert.deepEqual(wrong.invalid, ['VITE_SUPABASE_URL']);
+
+  const githubPages = validateEnvironment({
+    PROD: true,
+    VITE_SUPABASE_URL: 'https://other-tenant.supabase.co',
+    VITE_SUPABASE_ANON_KEY: 'sb_publishable_test',
+  }, 'panagiotagrosdouli.github.io');
+  assert.equal(githubPages.ok, false);
+
+  const isolatedPreview = validateEnvironment({
+    PROD: true,
+    VITE_SUPABASE_URL: 'https://disposable-preview.supabase.co',
+    VITE_SUPABASE_ANON_KEY: 'sb_publishable_test',
+  }, 'eyloai-git-feature.vercel.app');
+  assert.equal(isolatedPreview.ok, true);
 });
 
 test('frontend rejects Supabase URLs with credentials, paths or query strings', () => {
