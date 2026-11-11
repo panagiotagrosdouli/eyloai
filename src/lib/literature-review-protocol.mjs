@@ -166,7 +166,7 @@ export function screeningLogCsv(snapshot) {
   const fields = ['paper_id', 'title', 'doi', 'url', 'year', 'decision', 'reason'];
   const escapeCell = value => {
     let content = String(value ?? '');
-    if (/^[\s\uFEFF]*[=+@-\t\r]/u.test(content)) content = "'" + content;
+    if (/^[\s\uFEFF]*[=+@\t\r-]/u.test(content)) content = "'" + content;
     return '"' + content.replaceAll('"', '""') + '"';
   };
   const rows = Array.isArray(snapshot?.protocol?.screening) ? snapshot.protocol.screening : [];
