@@ -17,6 +17,7 @@ import PaperSummary from '@/components/eyra/PaperSummary';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
+import { checkEyraCitationIds } from '@/lib/eyra-citation-ids.mjs';
 import { parseProjectTasks, toggleProjectTask } from '@/lib/project-tasks';
 import { buildProjectPlanDraft, acceptProjectPlanDraft } from '@/lib/project-plan-draft.mjs';
 import { exportEvidenceMatrixCsv, getEvidenceMatrixRows, NOTE_FIELDS } from '@/lib/evidence-matrix.mjs';
@@ -262,6 +263,24 @@ Rules:
 - Do not present a heuristic score as a measured probability.`,
       });
 
+      // Verify that every generated [P#], [R#], or [F#] reference actually
+      // identifies a record retrieved for this exact analysis request.
+      // This validates identifier provenance, NOT scientific claim support.
+      const sourceIds = [
+        ...papers.slice(0, 10).map((_, index) => ({ id: `P${index + 1}` })),
+        ...researchers.slice(0, 8).map((_, index) => ({ id: `R${index + 1}` })),
+        ...opportunities.slice(0, 8).map((_, index) => ({ id: `F${index + 1}` })),
+      ];
+      if (typeof result !== 'string' || !result.trim()) {
+        throw new Error('EYRA did not return a valid evidence report; no analysis was saved.');
+      }
+      const citationCheck = checkEyraCitationIds(result, sourceIds);
+      if (!citationCheck.valid) {
+        throw new Error('EYRA cited an unverified source ID. No analysis was saved; regenerate before relying on the report.');
+      }
+      if (hasLiveEvidence && citationCheck.citedIds.length === 0) {
+        throw new Error('EYRA omitted source IDs from a report with retrieved evidence. No sourced analysis was saved.');
+      }
       await base44.entities.Project.update(id, { eyra_analysis: result });
       setProject(prev => ({ ...prev, eyra_analysis: result }));
       setActiveTab('intelligence');
