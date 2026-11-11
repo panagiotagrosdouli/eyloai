@@ -3,6 +3,7 @@ const FALLBACK_PATH = '/home';
 const ALLOWED_PREFIXES = [
   '/',
   '/library',
+  '/literature-review',
   '/projects',
   '/researchers',
   '/careers',
