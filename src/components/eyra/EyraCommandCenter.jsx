@@ -564,9 +564,15 @@ Answer the user's latest request. Cite every externally verifiable claim with th
       controller.signal.throwIfAborted();
 
       const baseAnswer = typeof response === 'string' ? response.trim() : String(response?.text || '').trim();
-      if (!baseAnswer) throw new Error('EYRA returned an empty response.');
+      if (!baseAnswer) throw Object.assign(
+        new Error('EYRA returned an empty response.'),
+        { actions: response?.actions || [] },
+      );
       const citations = checkEyraCitationIds(baseAnswer, evidence.sources);
-      if (!citations.valid) throw new Error('EYRA cited a source outside the verified retrieval set.');
+      if (!citations.valid) throw Object.assign(
+        new Error('EYRA cited a source outside the verified retrieval set.'),
+        { actions: response?.actions || [] },
+      );
       const toolActions = formatEyraToolActions(response?.actions);
       const answer = [baseAnswer, toolActions ? `### Confirmed workspace actions\n${toolActions}` : ''].filter(Boolean).join('\n\n');
       const eyraMsg = {
