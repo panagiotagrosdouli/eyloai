@@ -19,3 +19,8 @@ test('saved candidate appears in Project Evidence with supporting and contrary s
   assert.match(project, /candidate awaiting researcher review/);
   assert.match(project, /not established gaps/);
 });
+
+test('gap source cards do not link unsafe URLs as executable browser hrefs', () => {
+  assert.match(gapFinder, /isSafeLiteratureSourceUrl\(sourcePaper\.url\)/);
+  assert.match(gapFinder, /isSafeLiteratureSourceUrl\(paper\.url\)/);
+});
