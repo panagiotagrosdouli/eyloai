@@ -29,6 +29,7 @@ export default function ResearchBattlefield() {
   const [query, setQuery] = useState('');
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState('');
   const [activeCategory, setActiveCategory] = useState('top_researchers');
 
   const analyze = async (q) => {
@@ -37,7 +38,8 @@ export default function ResearchBattlefield() {
     setQuery(searchQuery);
     setLoading(true);
     setReport(null);
-
+    setAnalysisError('');
+    try {
     // Step 1: Fetch REAL data from OpenAlex
     const [researchers, institutions, papers, fundingResult] = await Promise.all([
       searchOpenAlexAuthors(searchQuery, 10),
@@ -141,7 +143,11 @@ Funding records are retrieved separately from an official source. Do not generat
       funding_error: fundingResult.error || '',
       has_data: hasSufficientData,
     });
-    setLoading(false);
+    } catch (error) {
+      setAnalysisError(error instanceof Error ? error.message : 'Research source retrieval failed. Please retry.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const competitionColor = {
@@ -189,6 +195,13 @@ Funding records are retrieved separately from an official source. Do not generat
           </div>
         )}
       </div>
+
+      {analysisError && !loading && (
+        <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300">
+          <span>Research landscape could not load: {analysisError}</span>
+          <button type="button" onClick={() => analyze(query)} className="rounded-lg border border-red-500/30 px-3 py-2 font-medium hover:bg-red-500/10">Retry analysis</button>
+        </div>
+      )}
 
       {/* Loading */}
       {loading && (
