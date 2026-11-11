@@ -130,3 +130,31 @@ export function isSafeLiteratureSourceUrl(input) {
     return false;
   }
 }
+
+
+/**
+ * Compares editable protocol fields, not server timestamps. A user can leave
+ * validation-incomplete drafts unsaved, so this must not call the validator.
+ * This is local unsaved-change protection, not a server conflict detector.
+ */
+export function reviewProtocolDraftKey(input = {}) {
+  const defaults = emptyReviewProtocol();
+  const keys = [
+    'question', 'review_type', 'search_databases', 'search_strings', 'search_date',
+    'inclusion_criteria', 'exclusion_criteria', 'methods_notes',
+  ];
+  return JSON.stringify({
+    ...Object.fromEntries(keys.map(key => [key, input?.[key] ?? defaults[key]])),
+    screening: (Array.isArray(input?.screening) ? input.screening : [])
+      .map(item => ({
+        paper_id: String(item?.paper_id ?? ''),
+        decision: item?.decision ?? 'undecided',
+        reason: item?.reason ?? '',
+      }))
+      .sort((a, b) => a.paper_id.localeCompare(b.paper_id)),
+  });
+}
+
+export function hasUnsavedReviewChanges(current, saved) {
+  return reviewProtocolDraftKey(current) !== reviewProtocolDraftKey(saved);
+}
