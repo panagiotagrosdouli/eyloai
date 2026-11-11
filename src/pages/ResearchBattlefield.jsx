@@ -51,7 +51,7 @@ export default function ResearchBattlefield() {
     ]);
     const [researchers, institutions, papers] = results.slice(0, 3).map(result =>
       result.status === 'fulfilled' && Array.isArray(result.value) ? result.value : []);
-    const fundingResult = results[3].status === 'fulfilled'
+    const fundingResult = results[3].status === 'fulfilled' && results[3].value && Array.isArray(results[3].value.items)
       ? results[3].value
       : { items: [], error: 'Funding source temporarily unavailable.' };
     const failedSources = results.slice(0, 3).flatMap((result, index) =>
