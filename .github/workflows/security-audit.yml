@@ -1,0 +1,85 @@
+name: Production Dependency Security Audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/security-audit.yml'
+      - 'vercel.json'
+      - 'src/lib/supabaseClient.js'
+      - 'src/lib/api-cors.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Check production dependency vulnerabilities
+        run: npm audit --omit=dev --audit-level=high
+      - name: Check full dependency tree including development tooling
+        run: npm audit --audit-level=high
+      - name: Read-only production TLS and redirect probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          domain=eyloai.vercel.app
+          echo 'Checking CA-verified TLS connection and response headers'
+          curl --fail --silent --show-error --max-time 20 --head "https://${domain}/"
+          echo 'Inspecting TLS protocol, cipher and certificate validation'
+          openssl s_client -connect "${domain}:443" -servername "$domain" -verify_return_error -brief </dev/null 2>&1 | grep -Ei 'Protocol|Ciphersuite|Verification|Peer certificate|CONNECTION ESTABLISHED'
+          echo 'Checking HTTP redirects only to HTTPS'
+          http_headers="$(curl --silent --show-error --max-time 20 --head "http://${domain}/")"
+          printf '%s\n' "$http_headers" | grep -Ei '^HTTP/|^location:'
+          printf '%s\n' "$http_headers" | grep -Eiq '^HTTP/[0-9.]+ (301|302|307|308)'
+          printf '%s\n' "$http_headers" | grep -Eiq '^location: https://eyloai\.vercel\.app(/|[[:space:]]|$)'
+      - name: Read-only production anonymous API and CORS checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          origin=https://eyloai.vercel.app
+          assert_private_endpoint_unavailable() {
+            local path="$1"
+            shift
+            local body_file
+            body_file="$(mktemp)"
+            local code
+            code="$(curl --silent --show-error --max-time 15 --output "$body_file" --write-out '%{http_code}' "$@")"
+            case "$code" in
+              401)
+                echo "${path}: anonymous HTTP 401"
+                ;;
+              503)
+                if grep -Eq '"code"[[:space:]]*:[[:space:]]*"SUPABASE_NOT_CONFIGURED"' "$body_file"; then
+                  echo "${path}: anonymous HTTP 503; service fails closed while Supabase is unconfigured"
+                else
+                  rm -f "$body_file"
+                  echo "${path}: unexpected anonymous HTTP 503 response" >&2
+                  exit 1
+                fi
+                ;;
+              *)
+                rm -f "$body_file"
+                echo "${path}: unexpected anonymous HTTP ${code}" >&2
+                exit 1
+                ;;
+            esac
+            rm -f "$body_file"
+          }
+          assert_private_endpoint_unavailable /api/billing "${origin}/api/billing"
+          assert_private_endpoint_unavailable /api/opportunities "${origin}/api/opportunities"
+          assert_private_endpoint_unavailable /api/monitor "${origin}/api/monitor"
+          assert_private_endpoint_unavailable /api/eyra --request POST --header 'Content-Type: application/json' --data '{}' "${origin}/api/eyra"
+          cors_code="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' --request OPTIONS --header 'Origin: https://attacker.example' --header 'Access-Control-Request-Method: POST' "${origin}/api/eyra")"
+          echo "Untrusted EYRA preflight: HTTP ${cors_code}"
+          test "$cors_code" = 403
