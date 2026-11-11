@@ -2,9 +2,21 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { appPath, stripAppBase } from '@/lib/auth/routePaths';
 import { environment } from '@/lib/config/env';
 import { shouldApplyAuthResult } from '@/lib/auth/authOperation';
+import { shouldClearPrivateCache } from '@/lib/auth/privateSessionBoundary';
+import { queryClientInstance } from '@/lib/query-client';
 import { AppErrorCode, createAppError, mapSupabaseError } from '@/lib/supabase/errors';
 
 const AuthContext = createContext(null);
+
+function clearPrivateSessionData() {
+  queryClientInstance.clear();
+  try {
+    window.sessionStorage.removeItem('eyra_command_conversation');
+    window.sessionStorage.removeItem('eyra_command_conversation_v2');
+  } catch {
+    // Storage can be unavailable in privacy-restricted browsers.
+  }
+}
 
 const idleState = { status: 'idle', user: null, session: null, error: null };
 const SESSION_RESTORE_TIMEOUT_MS = 8000;
@@ -26,6 +38,7 @@ export const AuthProvider = ({ children }) => {
   const runtimePromiseRef = useRef(null);
   const initializePromiseRef = useRef(null);
   const authEventVersionRef = useRef(0);
+  const activeUserIdRef = useRef(null);
   const cleanupAuthRef = useRef(null);
   const mountedRef = useRef(true);
 
@@ -63,6 +76,8 @@ export const AuthProvider = ({ children }) => {
       const setAnonymous = () => {
         if (!mountedRef.current) return;
         authEventVersionRef.current += 1;
+        activeUserIdRef.current = null;
+        clearPrivateSessionData();
         setState({ status: 'anonymous', user: null, session: null, error: null });
       };
 
@@ -70,15 +85,11 @@ export const AuthProvider = ({ children }) => {
       const { data: listener } = client.auth.onAuthStateChange((event, session) => {
         if (!mountedRef.current || event === 'INITIAL_SESSION') return;
         authEventVersionRef.current += 1;
-
-        if (event === 'SIGNED_IN') {
-          try {
-            window.sessionStorage.removeItem('eyra_command_conversation');
-            window.sessionStorage.removeItem('eyra_command_conversation_v2');
-          } catch {
-            // Storage may be unavailable in privacy-restricted browsers.
-          }
+        const nextUserId = session?.user?.id ?? null;
+        if (shouldClearPrivateCache(activeUserIdRef.current, nextUserId, event)) {
+          clearPrivateSessionData();
         }
+        activeUserIdRef.current = nextUserId;
 
         setState(session
           ? { status: 'authenticated', user: session.user, session, error: null }
@@ -123,6 +134,11 @@ export const AuthProvider = ({ children }) => {
         }
 
         const session = result.data;
+        const nextUserId = session?.user?.id ?? null;
+        if (shouldClearPrivateCache(activeUserIdRef.current, nextUserId, 'SESSION_RESTORED')) {
+          clearPrivateSessionData();
+        }
+        activeUserIdRef.current = nextUserId;
         setState(session
           ? { status: 'authenticated', user: session.user, session, error: null }
           : { status: 'anonymous', user: null, session: null, error: null });
@@ -223,6 +239,8 @@ export const AuthProvider = ({ children }) => {
       const result = await runtime.authModule.signOut();
       if (!shouldApplyAuthResult(operationVersion, authEventVersionRef.current, mountedRef.current)) return result;
       if (result.ok) {
+        activeUserIdRef.current = null;
+        clearPrivateSessionData();
         setState({ status: 'anonymous', user: null, session: null, error: null });
       } else {
         setState((current) => ({ ...current, error: result.error }));

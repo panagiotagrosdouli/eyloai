@@ -375,8 +375,10 @@ test('proxy does not reflect upstream HTML media types into its own origin', asy
   try {
     const res = createResponse();
     await handler({ method: 'GET', query: { provider: 'openalex_works', q: 'test' } }, res);
-    assert.equal(res.statusCode, 200);
-    assert.equal(res.headers['content-type'], 'application/json; charset=utf-8');
+    assert.equal(res.statusCode, 502);
+    assert.equal(res.payload.code, 'INVALID_SOURCE_RESPONSE');
+    assert.equal(res.headers['cache-control'], 'no-store');
+    assert.equal(res.headers['x-content-type-options'], 'nosniff');
     assert.equal(res.headers['x-content-type-options'], 'nosniff');
   } finally {
     globalThis.fetch = before;
@@ -396,6 +398,23 @@ test('arXiv proxy still returns Atom XML content type with nosniff protection', 
     assert.equal(res.headers['content-type'], 'application/atom+xml; charset=utf-8');
     assert.equal(res.headers['x-content-type-options'], 'nosniff');
     assert.match(res.payload.toString(), /<feed>/);
+  } finally {
+    globalThis.fetch = before;
+  }
+});
+
+test('discovery does not cache a successful upstream HTML challenge disguised as JSON', async () => {
+  const before = globalThis.fetch;
+  globalThis.fetch = async () => new Response('<!DOCTYPE html><html><body>Bot challenge</body></html>', {
+    status: 200,
+    headers: { 'content-type': 'application/json' },
+  });
+  try {
+    const res = createResponse();
+    await handler({ method: 'GET', query: { provider: 'crossref', q: 'climate adaptation' } }, res);
+    assert.equal(res.statusCode, 502);
+    assert.equal(res.payload.code, 'INVALID_SOURCE_RESPONSE');
+    assert.equal(res.headers['cache-control'], 'no-store');
   } finally {
     globalThis.fetch = before;
   }

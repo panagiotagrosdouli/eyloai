@@ -1,4 +1,5 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
+import { fetchWithScholarlyBackoff } from '../src/lib/scholarly-provider-backoff.mjs';
 import { readBoundedScholarlyResponse, ScholarlyResponseTooLargeError } from '../src/lib/discovery-response-limit.mjs';
 import { normalizeDoi } from '../src/lib/citation-verification.mjs';
 
@@ -171,7 +172,7 @@ export default async function handler(request, response) {
   const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
 
   try {
-    const upstream = await fetch(url, {
+    const upstream = await fetchWithScholarlyBackoff(url, {
       signal: controller.signal,
       headers: {
         accept: provider === 'arxiv' ? 'application/atom+xml, application/xml;q=0.9, */*;q=0.8' : 'application/json, */*;q=0.8',
@@ -181,6 +182,19 @@ export default async function handler(request, response) {
     });
 
     const body = await readBoundedScholarlyResponse(upstream);
+    // Upstream outages and bot challenges sometimes return HTTP 200 with HTML.
+    // Never present those pages as valid scientific retrieval or cache them.
+    const providerContentType = upstream.headers.get('content-type') || '';
+    const htmlContent = /text\/html/i.test(providerContentType)
+      || /^\s*(?:<!doctype\s+html|<html\b|<head\b|<body\b|<script\b)/i.test(body.toString('utf8', 0, 512));
+    if (upstream.ok && htmlContent) {
+      response.setHeader('Cache-Control', 'no-store');
+      response.setHeader('X-Content-Type-Options', 'nosniff');
+      return response.status(502).json({
+        error: 'Scholarly source returned an invalid response.',
+        code: 'INVALID_SOURCE_RESPONSE',
+      });
+    }
     response.status(upstream.status);
     // A compromised provider must never turn this same-origin endpoint into
     // an HTML/JavaScript page. Return only the expected scholarly media type.

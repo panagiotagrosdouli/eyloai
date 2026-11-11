@@ -44,3 +44,24 @@ test('serverless Supabase configuration accepts an explicit project and separate
   assert.equal(config.hasPublicConfig, true);
   assert.equal(config.hasServerConfig, true);
 });
+
+test('production serverless functions reject a different configured Supabase project', () => {
+  const normal = readSupabaseApiConfig({
+    VERCEL_ENV: 'production',
+    VITE_SUPABASE_URL: 'https://kbzjngpzxpniaumlupaa.supabase.co',
+    VITE_SUPABASE_ANON_KEY: 'sb_publishable_test',
+    SUPABASE_SECRET_KEY: 'sb_secret_test',
+  });
+  assert.equal(normal.hasPublicConfig, true);
+  assert.equal(normal.hasServerConfig, true);
+
+  const wrong = readSupabaseApiConfig({
+    VERCEL_ENV: 'production',
+    VITE_SUPABASE_URL: 'https://wrong-tenant.supabase.co',
+    VITE_SUPABASE_ANON_KEY: 'sb_publishable_test',
+    SUPABASE_SECRET_KEY: 'sb_secret_test',
+  });
+  assert.equal(wrong.url, '');
+  assert.equal(wrong.hasPublicConfig, false);
+  assert.equal(wrong.hasServerConfig, false);
+});

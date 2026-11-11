@@ -13,19 +13,9 @@ export class AuthenticationRequiredError extends Error {
   }
 }
 
-// Use the configured Supabase project directly for authentication and data.
-// The historical /supabase Vercel rewrite is hard-coded to one project and may
-// silently send credentials to the wrong tenant if environment settings change.
-// A matching-project gateway may still be used by explicitly configuring it.
-const gatewayProjectUrl = 'https://kbzjngpzxpniaumlupaa.supabase.co';
-const allowGateway = import.meta.env.PROD
-  && typeof window !== 'undefined'
-  && environment.values.VITE_SUPABASE_URL === gatewayProjectUrl
-  && import.meta.env.VITE_SUPABASE_USE_PROXY === 'true';
-
-const supabaseUrl = allowGateway
-  ? `${window.location.origin}/supabase`
-  : environment.values.VITE_SUPABASE_URL;
+// Supabase authentication must connect only to the explicitly configured project.
+// No production rewrite, proxy fallback or implicit tenant selection is permitted.
+const supabaseUrl = environment.values.VITE_SUPABASE_URL;
 
 const SUPABASE_REQUEST_TIMEOUT_MS = 15_000;
 
@@ -49,34 +39,12 @@ async function fetchWithTimeout(input, init = {}) {
   }
 }
 
-const gatewayFetch = async (input, init) => {
-  const url = typeof input === 'string' ? input : input.url;
-  if (!allowGateway || !url.startsWith(`${window.location.origin}/supabase/`)) {
-    return fetchWithTimeout(input, init);
-  }
-  const directUrl = url.replace(
-    `${window.location.origin}/supabase/`,
-    `${environment.values.VITE_SUPABASE_URL}/`,
-  );
-  try {
-    const response = await fetchWithTimeout(input, init);
-    const type = response.headers.get('content-type') || '';
-    if ([404, 502, 503, 504].includes(response.status) && !type.includes('application/json')) {
-      return fetchWithTimeout(directUrl, init);
-    }
-    return response;
-  } catch (error) {
-    if (error?.name === 'AbortError') throw error;
-    return fetchWithTimeout(directUrl, init);
-  }
-};
-
 export const supabase = isSupabaseConfigured
   ? createClient(
       supabaseUrl,
       environment.values.VITE_SUPABASE_ANON_KEY,
       {
-        global: { fetch: gatewayFetch },
+        global: { fetch: fetchWithTimeout },
         auth: {
           persistSession: true,
           autoRefreshToken: true,

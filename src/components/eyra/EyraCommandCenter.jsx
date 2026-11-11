@@ -6,12 +6,13 @@ import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitu
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import { getPreferenceLocale, loadPreferences, subscribePreferences } from '@/lib/preferences';
 import { getLocalGreeting } from '@/lib/local-greeting';
+import { checkEyraCitationIds, isSafeEyraSourceUrl } from '@/lib/eyra-citation-ids.mjs';
 import {
   X, Mic, MicOff, Send, Sparkles, Loader2,
   Volume2, VolumeX, Target, FileText, Users,
   Award, Map, AlertTriangle, Brain,
   Rocket, BarChart3, BookOpen, Trash2, BookmarkPlus,
-  Check, Copy, Database, ExternalLink, ShieldCheck
+  Check, Copy, Database, ExternalLink, ShieldCheck, Pencil
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
@@ -94,27 +95,29 @@ function compactQuery(content, workspaceContext) {
   return (cleaned.length >= 18 ? cleaned : `${cleaned} ${contextAnchor}`).trim().slice(0, 280) || content.slice(0, 280);
 }
 
-async function retrieveEvidence(content, mode, workspaceContext) {
+async function retrieveEvidence(content, mode, workspaceContext, signal) {
+  signal?.throwIfAborted();
   const intent = shouldRetrieve(content, mode);
   const query = compactQuery(content, workspaceContext);
   const tasks = [];
 
   if (intent.papers) {
-    tasks.push(searchAllPapersWithStatus(query, { limit: 16 }).then(result => ({
+    tasks.push(searchAllPapersWithStatus(query, { limit: 16, signal }).then(result => ({
       kind: 'papers',
       items: result.papers || [],
       status: result.source_status || [],
     })));
   }
   if (intent.people) {
-    tasks.push(searchOpenAlexAuthors(query, 6).then(items => ({ kind: 'researchers', items })));
-    tasks.push(searchOpenAlexInstitutions(query, 4).then(items => ({ kind: 'institutions', items })));
+    tasks.push(searchOpenAlexAuthors(query, 6, { signal, throwOnError: true }).then(items => ({ kind: 'researchers', items })));
+    tasks.push(searchOpenAlexInstitutions(query, 4, { signal, throwOnError: true }).then(items => ({ kind: 'institutions', items })));
   }
-  if (intent.funding) tasks.push(searchFundingOpportunities(query, 10).then(result => ({ kind: 'funding', items: result.items || [] })));
+  if (intent.funding) tasks.push(searchFundingOpportunities(query, 10, { signal }).then(result => ({ kind: 'funding', items: result.items || [] })));
 
   if (!tasks.length) return { query, blocks: [], sources: [], attempted: false };
 
   const settled = await Promise.allSettled(tasks);
+  signal?.throwIfAborted();
   /** @type {Record<string, {kind: string, items: any[], status?: any[]}>} */
   const groups = Object.fromEntries(
     settled.filter(result => result.status === 'fulfilled').map(result => [result.value.kind, result.value]),
@@ -130,7 +133,7 @@ async function retrieveEvidence(content, mode, workspaceContext) {
     ...researchers.map((item, index) => ({ id: `R${index + 1}`, type: 'Researcher', title: item.name, url: item.profile_url, meta: [item.institution, `${item.works_count || 0} works`].filter(Boolean).join(' · ') })),
     ...institutions.map((item, index) => ({ id: `I${index + 1}`, type: 'Institution', title: item.name, url: item.url, meta: [item.country, `${item.works_count || 0} works`].filter(Boolean).join(' · ') })),
     ...funding.map((item, index) => ({ id: `F${index + 1}`, type: 'Funding', title: item.title, url: item.source_url, meta: [item.agency, item.deadline].filter(Boolean).join(' · ') })),
-  ].filter(item => item.url);
+  ].filter(item => isSafeEyraSourceUrl(item.url));
 
   const blocks = [
     ...papers.map((item, index) => `[P${index + 1}] PAPER | ${item.title} | ${item.authors || 'authors unavailable'} | ${item.year || 'year unavailable'} | ${item.source || 'source unavailable'} | citations ${item.cited_by_count || 0} | ${item.summary || 'abstract unavailable'} | URL ${item.url}`),
@@ -234,7 +237,7 @@ function TypingIndicator({ stage }) {
   );
 }
 
-function Message({ msg, onSave, onCopy, saved, copied, saving }) {
+function Message({ msg, onSave, onCopy, onEdit, saved, copied, saving }) {
   const isEyra = msg.role === 'eyra';
   return (
     <motion.div
@@ -296,6 +299,12 @@ function Message({ msg, onSave, onCopy, saved, copied, saving }) {
           <p className="mr-auto text-[9px] text-muted-foreground">
             {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </p>
+          {!isEyra && (
+            <button type="button" onClick={() => onEdit(msg)} aria-label="Edit and resend EYRA question"
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[9px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+              <Pencil size={10} aria-hidden="true" /> Edit & resend
+            </button>
+          )}
           {isEyra && (
             <>
               <button
@@ -345,6 +354,7 @@ export default function EyraCommandCenter({ open, onClose }) {
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
   const dialogRef = useRef(null);
+  const activeRequestRef = useRef(null);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -389,10 +399,19 @@ export default function EyraCommandCenter({ open, onClose }) {
   useEffect(() => subscribePreferences(setPreferences), []);
 
   useEffect(() => {
-    if (!open || contextStatus !== 'idle') return;
+    if (!open) return undefined;
+    if (!preferences.data_personalization) {
+      // Personalization off must prevent private workspace reads, not merely
+      // omit previously loaded profile data from the outgoing model prompt.
+      setWorkspaceContext('');
+      setContextStatus('disabled');
+      return undefined;
+    }
+    let current = true;
     setContextStatus('loading');
     buildUserProfile()
       .then((profile) => {
+        if (!current) return;
         const nextName = profile.user?.full_name || '';
         setUserName(nextName);
         setWorkspaceContext(profile.contextString.slice(0, 12_000));
@@ -404,10 +423,13 @@ export default function EyraCommandCenter({ open, onClose }) {
         ));
       })
       .catch(() => {
+        if (!current) return;
         setWorkspaceContext('');
         setContextStatus('unavailable');
       });
-  }, [open, contextStatus]);
+    // Never let a late profile request repopulate memory after opt-out/close.
+    return () => { current = false; };
+  }, [open, preferences.data_personalization]);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -465,9 +487,19 @@ export default function EyraCommandCenter({ open, onClose }) {
 
   const stopListening = () => { recognitionRef.current?.stop(); setListening(false); };
 
+  const stopGeneration = () => {
+    if (!activeRequestRef.current) return;
+    activeRequestRef.current.abort();
+    activeRequestRef.current = null;
+    setLoading(false);
+    setActionError('Generation stopped. No new EYRA response was saved.');
+  };
+
   const sendMessage = async (text) => {
     const content = (text || input).trim();
-    if (!content || loading) return;
+    if (!content || loading || activeRequestRef.current) return;
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
     setInput('');
     setActionError('');
 
@@ -488,7 +520,9 @@ export default function EyraCommandCenter({ open, onClose }) {
         content,
         activeMode,
         preferences.data_personalization ? workspaceContext : '',
+        controller.signal,
       );
+      controller.signal.throwIfAborted();
       setLoadingStage('reasoning');
       const language = LANGUAGE_NAMES[preferences.language] || 'the language used by the user';
       const style = STYLE_INSTRUCTIONS[preferences.ai_response_style] || STYLE_INSTRUCTIONS.balanced;
@@ -523,21 +557,26 @@ RECENT CONVERSATION:
 ${history}
 
 Answer the user's latest request. Cite every externally verifiable claim with the supplied identifier. If no record supports a named claim, omit it or label it as an unverified hypothesis. Explain why each recommendation follows from evidence or workspace context. Never claim that a person is available, that a user is eligible, or that a grant is open unless the supplied record states it.`,
+        signal: controller.signal,
       });
+      controller.signal.throwIfAborted();
 
       const answer = typeof response === 'string' ? response.trim() : String(response || '').trim();
       if (!answer) throw new Error('EYRA returned an empty response.');
+      const citations = checkEyraCitationIds(answer, evidence.sources);
+      if (!citations.valid) throw new Error('EYRA cited a source outside the verified retrieval set.');
       const eyraMsg = {
         role: 'eyra',
         content: answer,
         timestamp: Date.now(),
         mode: activeMode,
-        sources: evidence.sources,
+        sources: citations.citedSources,
         retrievalQuery: evidence.query,
       };
       setMessages(previous => [...previous, eyraMsg]);
       speak(eyraMsg.content);
     } catch (error) {
+      if (controller.signal.aborted) return;
       const fallbackContent = buildVerifiedEvidenceFallback(evidence, error);
       setMessages(previous => [...previous, {
         role: 'eyra',
@@ -548,7 +587,10 @@ Answer the user's latest request. Cite every externally verifiable claim with th
         retrievalQuery: evidence.query,
       }]);
     } finally {
-      setLoading(false);
+      if (activeRequestRef.current === controller) {
+        activeRequestRef.current = null;
+        setLoading(false);
+      }
     }
   };
 
@@ -583,6 +625,13 @@ Answer the user's latest request. Cite every externally verifiable claim with th
     } catch {
       setActionError('Copy was blocked by the browser. Select the response text and copy it manually.');
     }
+  };
+
+  const editMessage = (message) => {
+    if (loading || !message?.content || message.role !== 'user') return;
+    // Editing is local. Nothing is resent or charged until Send is pressed.
+    setInput(message.content);
+    inputRef.current?.focus();
   };
 
   const clearConversation = () => {
@@ -696,6 +745,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
                 msg={msg}
                 onSave={saveInsight}
                 onCopy={copyInsight}
+                onEdit={editMessage}
                 saved={savedMessageIds.has(msg.timestamp)}
                 saving={savingMessageId === msg.timestamp}
                 copied={copiedMessageId === msg.timestamp}
@@ -730,6 +780,12 @@ Answer the user's latest request. Cite every externally verifiable claim with th
                   className={`p-1.5 rounded-lg transition-all ${listening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-secondary text-muted-foreground'}`}>
                   {listening ? <MicOff size={14} /> : <Mic size={14} />}
                 </button>
+                {loading && (
+                  <button type="button" aria-label="Stop EYRA generation" onClick={stopGeneration}
+                    className="rounded-lg border border-border px-2 py-1.5 text-xs font-semibold text-foreground hover:bg-secondary">
+                    Stop
+                  </button>
+                )}
                 <button type="button" aria-label="Send message" onClick={() => sendMessage()} disabled={!input.trim() || loading}
                   className="rounded-lg bg-primary p-1.5 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40">
                   {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}

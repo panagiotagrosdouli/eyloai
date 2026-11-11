@@ -10,6 +10,12 @@ test('safe redirects accept known workspace and Labs destinations', () => {
   assert.equal(getSafeRedirect('/projects?new=1'), '/projects?new=1');
   assert.equal(getSafeRedirect('/home'), '/home');
   assert.equal(getSafeRedirect('/labs/scenario'), '/labs/scenario');
+  for (const target of [
+    '/home?tab=projects', '/workspace/careers', '/search?q=climate',
+    '/research-gaps', '/knowledge-graph', '/voice', '/pitchdeck',
+    '/grant-builder', '/institution',
+  ]) assert.equal(getSafeRedirect(target), target);
+
 });
 
 test('safe redirects reject external, protocol-relative and malformed destinations', () => {
@@ -68,10 +74,11 @@ test('provider rate-limit codes map to an actionable retry message', () => {
   assert.match(limited.message, /wait and try again/i);
 });
 
-test('Supabase gateway fallback keeps the same bounded request timeout', async () => {
+test('Supabase never silently routes browser credentials through a hard-coded tenant proxy', async () => {
   const source = await readFile(new URL('../src/lib/supabaseClient.js', import.meta.url), 'utf8');
-  assert.match(source, /return fetchWithTimeout\(directUrl, init\)/);
-  assert.doesNotMatch(source, /return fetch\(directUrl, init\)/);
+  assert.match(source, /const supabaseUrl = environment\.values\.VITE_SUPABASE_URL/);
+  assert.match(source, /global: \{ fetch: fetchWithTimeout \}/);
+  assert.doesNotMatch(source, /gatewayProjectUrl|gatewayFetch|allowGateway/);
 });
 
 
