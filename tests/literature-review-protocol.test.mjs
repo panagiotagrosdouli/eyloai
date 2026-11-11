@@ -12,6 +12,7 @@ const full = {
   ...emptyReviewProtocol(),
   question: 'Do interventions alter a prespecified patient-reported outcome?',
   search_strings: '("intervention") AND ("outcome")',
+  search_databases: 'Europe PMC, Crossref',
   inclusion_criteria: 'Human intervention studies with reported outcomes',
   exclusion_criteria: 'Non-intervention reports',
   search_date: '2026-11-11',
