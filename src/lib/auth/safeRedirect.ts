@@ -8,6 +8,7 @@ const ALLOWED_PREFIXES = [
   '/research-gaps',
   '/knowledge-graph',
   '/library',
+  '/literature-review',
   '/projects',
   '/researchers',
   '/careers',
