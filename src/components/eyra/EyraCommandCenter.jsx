@@ -134,7 +134,7 @@ async function retrieveEvidence(content, mode, workspaceContext) {
   ].filter(item => isSafeEyraSourceUrl(item.url));
 
   const blocks = [
-    ...papers.map((item, index) => `[P${index + 1}] PAPER | ${item.title} | ${item.authors || 'authors unavailable'} | ${item.year || 'year unavailable'} | ${item.source || 'source unavailable'} | citations ${item.cited_by_count || 0} | ${item.summary || 'abstract unavailable'} | URL ${item.url}`),
+    ...papers.map((item, index) => `[P${index + 1}] PAPER | ${item.title} | DOI ${item.doi || 'unavailable'} | source ID ${item.id || 'unavailable'} | ${item.authors || 'authors unavailable'} | ${item.year || 'year unavailable'} | ${item.source || 'source unavailable'} | citations ${item.cited_by_count || 0} | ${item.summary || 'abstract unavailable'} | URL ${item.url}`),
     ...researchers.map((item, index) => `[R${index + 1}] RESEARCHER | ${item.name} | ${item.institution || 'institution unavailable'} | ${item.research_areas || 'areas unavailable'} | ${item.works_count || 0} works | ${item.citation_count || 0} citations | URL ${item.profile_url}`),
     ...institutions.map((item, index) => `[I${index + 1}] INSTITUTION | ${item.name} | ${item.type || 'type unavailable'} | ${item.country || 'country unavailable'} | ${item.works_count || 0} works | URL ${item.url}`),
     ...funding.map((item, index) => `[F${index + 1}] FUNDING | ${item.title} | ${item.agency || 'agency unavailable'} | deadline ${item.deadline || 'not supplied'} | amount ${item.amount || 'not supplied'} | eligibility ${item.eligibility || 'open official record'} | ${item.description || ''} | URL ${item.source_url}`),
@@ -326,6 +326,27 @@ function Message({ msg, onSave, onCopy, saved, copied, saving }) {
   );
 }
 
+function formatEyraToolActions(actions) {
+  if (!Array.isArray(actions) || !actions.length) return '';
+  return actions.map(action => {
+    if (action.status === 'succeeded' && action.tool === 'project.create') {
+      const p = action.result || {};
+      return `- Created and verified project **${p.title || 'Untitled'}** (ID: \`${p.id || 'unavailable'}\`).`;
+    }
+    if (action.status === 'succeeded' && action.tool === 'library.save_paper') {
+      const p = action.result || {};
+      return `- ${p.already_saved ? 'Already saved' : 'Saved and verified'}: **${p.title || 'Paper'}** (DOI: ${p.doi || 'unavailable'}, record ID: \`${p.id || 'unavailable'}\`).`;
+    }
+    if (action.status === 'succeeded' && action.tool === 'project.list') {
+      return `- Retrieved ${Array.isArray(action.result) ? action.result.length : 0} projects in your workspace.`;
+    }
+    if (action.status === 'succeeded' && action.tool === 'library.list_papers') {
+      return `- Retrieved ${Array.isArray(action.result) ? action.result.length : 0} saved papers in your Library.`;
+    }
+    return `- ${action.tool || 'Workspace action'} ${action.status || 'failed'}: ${action.error || 'Please check the workspace before retrying.'}`;
+  }).join('\n');
+}
+
 export default function EyraCommandCenter({ open, onClose }) {
   const [messages, setMessages] = useState(loadConversation);
   const [input, setInput] = useState('');
@@ -512,6 +533,8 @@ export default function EyraCommandCenter({ open, onClose }) {
           : 'No external retrieval was necessary for this planning request. Do not introduce external factual claims.';
 
       const response = await base44.integrations.Core.InvokeLLM({
+        enable_project_tools: true,
+        tool_intent: content,
         prompt: `${BASE_SYSTEM}
 
 ANALYSIS MODE:
@@ -540,10 +563,12 @@ Answer the user's latest request. Cite every externally verifiable claim with th
       });
       controller.signal.throwIfAborted();
 
-      const answer = typeof response === 'string' ? response.trim() : String(response || '').trim();
-      if (!answer) throw new Error('EYRA returned an empty response.');
-      const citations = checkEyraCitationIds(answer, evidence.sources);
+      const baseAnswer = typeof response === 'string' ? response.trim() : String(response?.text || '').trim();
+      if (!baseAnswer) throw new Error('EYRA returned an empty response.');
+      const citations = checkEyraCitationIds(baseAnswer, evidence.sources);
       if (!citations.valid) throw new Error('EYRA cited a source outside the verified retrieval set.');
+      const toolActions = formatEyraToolActions(response?.actions);
+      const answer = [baseAnswer, toolActions ? `### Confirmed workspace actions\n${toolActions}` : ''].filter(Boolean).join('\n\n');
       const eyraMsg = {
         role: 'eyra',
         content: answer,
@@ -557,9 +582,10 @@ Answer the user's latest request. Cite every externally verifiable claim with th
     } catch (error) {
       if (controller.signal.aborted) return;
       const fallbackContent = buildVerifiedEvidenceFallback(evidence, error);
+      const toolActions = formatEyraToolActions(error?.actions);
       setMessages(previous => [...previous, {
         role: 'eyra',
-        content: fallbackContent,
+        content: [fallbackContent, toolActions ? `### Workspace action status\n${toolActions}` : ''].filter(Boolean).join('\n\n'),
         timestamp: Date.now(),
         mode: activeMode,
         sources: evidence.sources || [],
