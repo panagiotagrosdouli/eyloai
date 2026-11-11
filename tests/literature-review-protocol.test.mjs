@@ -140,6 +140,6 @@ test('CSV also neutralizes leading whitespace or tab before spreadsheet formulas
     paper_id: 'paper-a', title: '\t=1+1', doi: '10.1234/test', url: '', year: 2026,
     decision: 'include', reason: '  +1+1',
   }] } });
-  assert.ok(csv.includes(`"'\\t=1+1"`));
+  assert.ok(csv.includes(`"'\t=1+1"`));
   assert.ok(csv.includes(`"'  +1+1"`));
 });
