@@ -137,7 +137,7 @@ export default function Library() {
 
       {(papers.length >= 1000 || researchers.length >= 1000 || opportunities.length >= 1000 || projects.length >= 1000) && !loading && (
         <p role="status" className="mb-4 text-xs text-muted-foreground">
-          Showing up to 1,000 recent records per collection. Older entries may require a narrower search or further pagination.
+          Showing up to 1,000 recent records per collection. Older records are not loaded; full pagination is not yet available.
         </p>
       )}
 
