@@ -6,6 +6,7 @@ import {
   emptyReviewProtocol,
   validateReviewProtocol,
   reviewProtocolSnapshot,
+  screeningLogCsv,
   screeningCounts,
   REVIEW_TYPES,
   isSafeLiteratureSourceUrl,
@@ -157,6 +158,25 @@ export default function LiteratureReview() {
     setMessage('A snapshot of the current editor was exported. Save separately to persist it in EYLO.');
   };
 
+  const exportScreeningCsv = () => {
+    const checked = prepare();
+    if (!checked) return;
+    const snapshot = reviewProtocolSnapshot(selectedProject, checked, papers, new Date().toISOString());
+    const blob = new Blob(['\uFEFF', screeningLogCsv(snapshot)], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    try {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'eylo-screening-decisions.csv';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+    setMessage('Human-reviewed screening log exported. Save separately to persist your decisions in EYLO.');
+  };
+
   const screening = Array.isArray(protocol.screening) ? protocol.screening : [];
   const counts = screeningCounts({ screening });
 
@@ -276,6 +296,10 @@ export default function LiteratureReview() {
             <button type="button" disabled={saving || !selectedProject} onClick={exportJson}
               className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-5 text-sm font-medium disabled:opacity-50">
               <Download size={16} aria-hidden="true" />Export reproducible JSON
+            </button>
+            <button type="button" disabled={saving || !selectedProject} onClick={exportScreeningCsv}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-5 text-sm font-medium disabled:opacity-50">
+              <Download size={16} aria-hidden="true" />Export screening CSV
             </button>
             <button type="button" disabled={saving} onClick={() => { if (confirmDiscard()) setAttempt(value => value + 1); }}
               className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-4 text-sm">

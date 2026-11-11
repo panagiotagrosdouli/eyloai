@@ -156,3 +156,19 @@ export function reviewProtocolDraftKey(input = {}) {
 export function hasUnsavedReviewChanges(current, saved) {
   return reviewProtocolDraftKey(current) !== reviewProtocolDraftKey(saved);
 }
+
+/**
+ * Portable human-reviewed screening log. Never infer full-text eligibility
+ * or study findings from records; only exported decisions are researcher authored.
+ * Prefix spreadsheet formulas so a CSV opened in Excel/Sheets cannot execute them.
+ */
+export function screeningLogCsv(snapshot) {
+  const fields = ['paper_id', 'title', 'doi', 'url', 'year', 'decision', 'reason'];
+  const escapeCell = value => {
+    let content = String(value ?? '');
+    if (/^[\s\uFEFF]*[=+@\t\r-]/u.test(content)) content = "'" + content;
+    return '"' + content.replaceAll('"', '""') + '"';
+  };
+  const rows = Array.isArray(snapshot?.protocol?.screening) ? snapshot.protocol.screening : [];
+  return [fields.join(','), ...rows.map(row => fields.map(key => escapeCell(row?.[key])).join(','))].join('\r\n') + '\r\n';
+}
