@@ -462,6 +462,40 @@ Rules:
       {activeTab === 'evidence' && (
         <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4" aria-labelledby="project-evidence-title">
           <div><h2 id="project-evidence-title" className="text-xl font-semibold">Evidence</h2><p className="mt-1 text-sm text-muted-foreground">Saved papers linked to this project.</p><Link to={"/literature-review?project_id=" + encodeURIComponent(id)} className="mt-3 inline-flex min-h-10 items-center rounded-lg border border-border px-3 text-sm font-medium text-primary hover:bg-secondary">Open literature review protocol</Link></div>
+          {Array.isArray(project.gap_candidates) && project.gap_candidates.length > 0 && (
+            <section className="rounded-xl border border-border bg-card p-4 sm:p-5" aria-labelledby="project-gap-candidates-title">
+              <h3 id="project-gap-candidates-title" className="text-lg font-semibold">Saved candidate research questions</h3>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Human-selected AI suggestions based on a limited group of saved publications.
+                These are not established gaps, systematic-review findings, or peer-reviewed conclusions.
+              </p>
+              <div className="mt-4 space-y-3">
+                {project.gap_candidates.map((candidate, index) => (
+                  <article key={index} className="rounded-lg border border-border p-4">
+                    <h4 className="text-sm font-semibold">{candidate.question || 'Untitled candidate'}</h4>
+                    <p className="mt-1 text-xs text-muted-foreground">{candidate.uncertainty || 'Scientific uncertainty not documented.'}</p>
+                    <p className="mt-2 text-xs font-medium">Supporting saved papers</p>
+                    <ul className="mt-1 list-inside list-disc text-xs text-muted-foreground">
+                      {(candidate.supporting_papers || []).map(paper => (
+                        <li key={paper.paper_id}>{paper.title || paper.paper_id}{paper.doi ? ` · DOI ${paper.doi}` : ''}</li>
+                      ))}
+                    </ul>
+                    {(candidate.counterevidence_papers || []).length > 0 && (
+                      <>
+                        <p className="mt-2 text-xs font-medium">Counterevidence saved papers</p>
+                        <ul className="mt-1 list-inside list-disc text-xs text-muted-foreground">
+                          {candidate.counterevidence_papers.map(paper => (
+                            <li key={paper.paper_id}>{paper.title || paper.paper_id}{paper.doi ? ` · DOI ${paper.doi}` : ''}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                    <p className="mt-2 text-[11px] text-muted-foreground">Status: candidate awaiting researcher review</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
           {savedPapers.length > 0 && (
             <section className="rounded-xl border border-border bg-card p-4 sm:p-5" aria-labelledby="evidence-matrix-title">
               <div className="flex flex-wrap items-start justify-between gap-3">

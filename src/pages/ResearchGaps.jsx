@@ -4,6 +4,8 @@ import { base44 } from '@/api/base44Client';
 import { Loader2, Search, FolderKanban, ExternalLink, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { getResearchEvidenceContextKey } from '@/lib/research-gap-context.mjs';
+import { saveResearchGapCandidate } from '@/lib/research-gap-candidate-save.mjs';
+import { isSafeLiteratureSourceUrl } from '@/lib/literature-review-protocol.mjs';
 
 const gapSchema = { type: 'object', properties: { gaps: { type: 'array', items: { type: 'object', properties: {
   question: { type: 'string' }, explanation: { type: 'string' }, supporting_papers: { type: 'array', items: { type: 'string' } }, counterevidence_papers: { type: 'array', items: { type: 'string' } }, counterevidence: { type: 'string' }, limitations: { type: 'string' }, uncertainty: { type: 'string' }, proposed_question: { type: 'string' }, methodology: { type: 'string' },
@@ -24,6 +26,8 @@ export default function ResearchGaps() {
   const [gapsContextKey, setGapsContextKey] = useState('');
   const [gaps, setGaps] = useState([]);
   const [error, setError] = useState('');
+  const [savingCandidate, setSavingCandidate] = useState(false);
+  const [savedCandidateKeys, setSavedCandidateKeys] = useState({});
   const { toast } = useToast();
 
   const load = async () => {
@@ -46,6 +50,7 @@ export default function ResearchGaps() {
     setGaps([]);
     setGapsContextKey('');
     setComparison(null);
+    setSavedCandidateKeys({});
   };
   const toggle = (paperId) => {
     invalidateAnalysis();
@@ -90,6 +95,40 @@ export default function ResearchGaps() {
     finally { setComparing(false); }
   };
 
+  const saveCandidate = async (gap, index) => {
+    if (savingCandidate) return;
+    if (!projectId) {
+      setError('Select an existing project to save a candidate for later human review.');
+      return;
+    }
+    if (gapsContextKey !== currentEvidenceContextKey) {
+      setError('Your evidence selection changed. Regenerate the analysis before saving.');
+      return;
+    }
+    setSavingCandidate(true);
+    try {
+      const selectedPapers = sourcePapers.filter(paper => selected.includes(paper.id));
+      const result = await saveResearchGapCandidate({
+        entities: base44.entities,
+        projectId, gap, selectedPapers,
+        recordedAt: new Date().toISOString(),
+      });
+      setSavedCandidateKeys(previous => ({ ...previous, [projectId + ':' + index]: true }));
+      toast({
+        title: result.status === 'saved' ? 'Research question saved to project' : 'Candidate already saved',
+        description: 'This is a question for human review, not a verified research gap.',
+      });
+    } catch (failure) {
+      toast({
+        title: 'Could not save research candidate',
+        description: failure?.message || 'Please retry.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingCandidate(false);
+    }
+  };
+
   const createProject = async (gap) => {
     try {
       const linkedPapers = sourcePapers.filter((paper) => selected.includes(paper.id));
@@ -115,14 +154,14 @@ export default function ResearchGaps() {
       <div className="grid gap-2 sm:grid-cols-2"><button type="button" disabled={comparing || selected.length < 2} onClick={comparePapers} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-primary/30 px-4 text-sm font-semibold text-primary disabled:opacity-50">{comparing ? <Loader2 size={15} className="animate-spin"/> : <Search size={15}/>}Compare papers</button><button type="button" disabled={analyzing || selected.length < 2} onClick={analyze} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">{analyzing ? <Loader2 size={15} className="animate-spin"/> : <Sparkles size={15}/>}Find research gaps</button></div>
     </div>
     {error && <p role="alert" className="mb-4 rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-foreground">{error} <button className="ml-2 underline" onClick={load}>Retry</button></p>}
-    {loading ? <div className="py-16 text-center text-sm text-muted-foreground">Loading your research library…</div> : sourcePapers.length === 0 ? <div className="rounded-2xl border border-dashed border-border p-8 text-center"><p className="text-sm text-muted-foreground">No saved papers are linked to this view yet.</p><Link to="/library" className="mt-3 inline-block text-sm text-primary underline">Open your Library</Link></div> : <section className="mb-8 space-y-2">{sourcePapers.map((paper) => <label key={paper.id} className="flex cursor-pointer gap-3 rounded-xl border border-border bg-card p-4"><input type="checkbox" checked={selected.includes(paper.id)} onChange={() => toggle(paper.id)} className="mt-1"/><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{paper.title}</span><span className="mt-1 block text-xs text-muted-foreground">{[paper.authors, paper.year, paper.doi].filter(Boolean).join(' · ')}</span>{paper.summary && <span className="mt-2 block line-clamp-2 text-xs leading-5 text-muted-foreground">{paper.summary}</span>}</span>{paper.url && <a href={paper.url} target="_blank" rel="noopener noreferrer" aria-label="Open paper source" className="text-primary" onClick={(event) => event.stopPropagation()}><ExternalLink size={15}/></a>}</label>)}</section>}
+    {loading ? <div className="py-16 text-center text-sm text-muted-foreground">Loading your research library…</div> : sourcePapers.length === 0 ? <div className="rounded-2xl border border-dashed border-border p-8 text-center"><p className="text-sm text-muted-foreground">No saved papers are linked to this view yet.</p><Link to="/library" className="mt-3 inline-block text-sm text-primary underline">Open your Library</Link></div> : <section className="mb-8 space-y-2">{sourcePapers.map((paper) => <label key={paper.id} className="flex cursor-pointer gap-3 rounded-xl border border-border bg-card p-4"><input type="checkbox" checked={selected.includes(paper.id)} onChange={() => toggle(paper.id)} className="mt-1"/><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{paper.title}</span><span className="mt-1 block text-xs text-muted-foreground">{[paper.authors, paper.year, paper.doi].filter(Boolean).join(' · ')}</span>{paper.summary && <span className="mt-2 block line-clamp-2 text-xs leading-5 text-muted-foreground">{paper.summary}</span>}</span>{isSafeLiteratureSourceUrl(paper.url) && <a href={paper.url} target="_blank" rel="noopener noreferrer" aria-label="Open paper source" className="text-primary" onClick={(event) => event.stopPropagation()}><ExternalLink size={15}/></a>}</label>)}</section>}
     {analyzing && <p className="mb-4 flex items-center gap-2 text-sm text-muted-foreground"><Sparkles size={15} className="text-primary"/>EYRA is comparing the supplied evidence and limitations…</p>}
     {comparing && <p role="status" className="mb-4 text-sm text-muted-foreground">EYRA is comparing objectives, methods, findings and reported limitations…</p>}
     {hasCurrentAnalysis && comparison && comparison.contextKey === currentEvidenceContextKey && <article className="mb-5 rounded-2xl border border-primary/20 bg-card p-5"><p className="text-[10px] font-semibold uppercase tracking-wide text-primary">Paper comparison · abstract and metadata based</p><ol className="mt-2 list-inside list-decimal text-xs text-muted-foreground">{comparison.papers.map((paper) => <li key={paper.id}>{paper.title}{paper.url && <> · <a href={paper.url} target="_blank" rel="noopener noreferrer" className="text-primary underline">source</a></>}</li>)}</ol><div className="mt-4 grid gap-3 sm:grid-cols-2">{[['Research objectives', comparison.report.research_objectives], ['Methods and samples', comparison.report.methods_and_samples], ['Findings', comparison.report.findings], ['Disagreements', comparison.report.disagreements], ['Reported limitations', comparison.report.limitations], ['Synthesis', comparison.report.synthesis]].map(([label, value]) => <div key={label}><h3 className="text-xs font-semibold">{label}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{value}</p></div>)}</div></article>}
     {hasCurrentAnalysis && gaps.map((gap, index) => {
       const paperLinks = (ids) => ids.map((id) => {
         const sourcePaper = gap.evidence_papers?.[Number(id.slice(1)) - 1];
-        return sourcePaper?.url
+        return sourcePaper?.url && isSafeLiteratureSourceUrl(sourcePaper.url)
           ? <a key={id} href={sourcePaper.url} target="_blank" rel="noopener noreferrer" className="mr-2 inline-block text-primary underline">{id} · {sourcePaper.title} <ExternalLink size={10} className="inline" /></a>
           : <span key={id} className="mr-2 inline-block">{id}{sourcePaper?.title ? ` · ${sourcePaper.title}` : ''}</span>;
       });
@@ -130,7 +169,13 @@ export default function ResearchGaps() {
         ['Supporting papers', gap.supporting_papers.length ? paperLinks(gap.supporting_papers) : 'No specific support identified'],
         ['Counterevidence papers', gap.counterevidence_papers.length ? paperLinks(gap.counterevidence_papers) : gap.counterevidence],
         ['Counterevidence explanation', gap.counterevidence], ['Search limitations', gap.limitations], ['Scientific uncertainty', gap.uncertainty], ['Proposed research question', gap.proposed_question], ['Suggested methodology', gap.methodology],
-      ].map(([label, value]) => <div key={label}><h3 className="text-xs font-semibold text-foreground">{label}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{value || 'Not specified.'}</p></div>)}</div><button type="button" onClick={() => createProject(gap)} className="mt-4 min-h-10 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground">Create Research Project from Gap</button></article>;
+      ].map(([label, value]) => <div key={label}><h3 className="text-xs font-semibold text-foreground">{label}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{value || 'Not specified.'}</p></div>)}</div><div className="mt-4 flex flex-wrap gap-2">
+        <button type="button" onClick={() => createProject(gap)} className="min-h-10 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground">Create Research Project from Gap</button>
+        <button type="button" disabled={!projectId || savingCandidate || savedCandidateKeys[projectId + ':' + index]} onClick={() => saveCandidate(gap, index)}
+          className="min-h-10 rounded-lg border border-border px-4 text-xs font-semibold text-foreground disabled:opacity-50">
+          {savedCandidateKeys[projectId + ':' + index] ? 'Saved for human review' : savingCandidate ? 'Saving…' : 'Save candidate to selected project'}
+        </button>
+      </div></article>;
     })}
   </main>;
 }
