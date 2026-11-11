@@ -2,6 +2,7 @@ import { applyCors } from '../src/lib/api-cors.mjs';
 import { readSupabaseApiConfig } from './supabase-config.mjs';
 import crypto from 'node:crypto';
 import { FREE_MONTHLY_AI_ACTIONS } from '../src/lib/eyra-usage-policy.mjs';
+import { matchesEyraResponseSchema } from '../src/lib/eyra-structured-contract.mjs';
 
 const MAX_PROMPT_LENGTH = 24_000;
 const MAX_SCHEMA_LENGTH = 32_000;
@@ -375,7 +376,16 @@ export default async function handler(request, response) {
         console.error('EYRA structured response was not valid JSON', { responseId: result.id });
         await releaseUsage(reservation);
         reservation = null;
-        return response.status(502).json({ error: 'EYRA returned an invalid structured response.' });
+        return response.status(502).json({ error: 'EYRA returned an invalid structured response.', code: 'EYRA_SCHEMA_MISMATCH' });
+      }
+      if (!matchesEyraResponseSchema(data, responseSchema)) {
+        console.error('EYRA structured response failed the requested schema', { responseId: result.id });
+        await releaseUsage(reservation);
+        reservation = null;
+        return response.status(502).json({
+          error: 'EYRA returned an incomplete or inconsistent structured analysis.',
+          code: 'EYRA_SCHEMA_MISMATCH',
+        });
       }
     }
 
