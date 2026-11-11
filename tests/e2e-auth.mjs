@@ -352,7 +352,21 @@ try {
   await dataLab.getByRole('heading', { name: 'Graph paper one' }).waitFor();
   await dataLab.getByRole('button', { name: /Graph paper one Cites Graph paper two/ }).waitFor();
 
-  console.log('Browser checks passed: auth, mobile registration, local CSV analysis, keyboard meeting access and source graph navigation.');
+  // Sign-out is a real Supabase operation, not a cosmetic redirect.
+  // A local auth test double lets us verify logout navigation and route guards.
+  await dataLab.route('**/auth/v1/logout**', async route => {
+    await route.fulfill({
+      status: 204,
+      headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' },
+    });
+  });
+  await dataLab.getByRole('button', { name: 'Sign out of EYLO' }).click();
+  await dataLab.getByRole('heading', { name: 'Continue your research' }).waitFor();
+  await dataLab.goto(`${baseUrl}/projects`);
+  await dataLab.getByRole('heading', { name: 'Continue your research' }).waitFor();
+  assert.equal(new URL(dataLab.url()).pathname, '/login', 'sign-out must keep protected routes closed');
+
+  console.log('Browser checks passed: auth, mobile registration, private data tools, and verified sign-out guard with isolated test doubles.');
 } finally {
   if (browser) await browser.close();
   if (server.exitCode === null) {

@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Activity, Award, BarChart3, BookOpen, Brain, Briefcase, ChevronDown, FileEdit, FolderOpen, GitBranch, History,
-  Home, LayoutDashboard, LayoutGrid, Lightbulb, Menu, Mic, Presentation,
+  Home, LayoutDashboard, LayoutGrid, Lightbulb, LogOut, Menu, Mic, Presentation,
   Rocket, Search, Settings, Sparkles, Target, Trophy, User, Users,
   Video, X, Zap,
 } from 'lucide-react';
@@ -13,6 +13,8 @@ import NotificationsBell from '@/components/monitoring/NotificationsBell';
 import ServiceStatus from '@/components/system/ServiceStatus';
 import { useCapabilities } from '@/lib/capabilities';
 import { trackActivatedReturn } from '@/lib/product-analytics';
+import { useAuth } from '@/lib/AuthContext';
+import { queryClientInstance } from '@/lib/query-client';
 
 const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
@@ -97,6 +99,10 @@ function ToolLink({ item, active }) {
 
 export default function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState('');
   const [eyraOpen, setEyraOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
@@ -105,6 +111,26 @@ export default function AppLayout() {
   const toolsRef = useRef(null);
   const { data: capabilities, loading: capabilitiesLoading } = useCapabilities();
   const aiAvailable = !capabilitiesLoading && capabilities.ai;
+
+  const handleSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    setSignOutError('');
+    try {
+      const result = await signOut();
+      if (!result.ok) {
+        setSignOutError(result.error?.message || 'Could not sign out. Please retry.');
+        return;
+      }
+      // Private query results must never be shown in a subsequent user session.
+      queryClientInstance.clear();
+      navigate('/login', { replace: true });
+    } catch {
+      setSignOutError('Could not sign out. Check your connection and retry.');
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   const isWorkspaceHome = location.pathname === '/home';
   const isActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
@@ -215,6 +241,11 @@ export default function AppLayout() {
               className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-45">
               <Sparkles size={14} />Ask EYRA
             </button>
+            <button type="button" onClick={handleSignOut} disabled={signingOut}
+              className="hidden min-h-10 items-center gap-2 rounded-xl border border-border px-3 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-50 lg:inline-flex"
+              aria-label="Sign out of EYLO">
+              <LogOut size={14} aria-hidden="true" />{signingOut ? 'Signing out…' : 'Sign out'}
+            </button>
           </div>
 
           <button type="button" onClick={() => setMobileOpen(value => !value)} aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileOpen}
@@ -241,11 +272,16 @@ export default function AppLayout() {
                     <div className="grid gap-1 sm:grid-cols-2">{group.items.map(item => <ToolLink key={item.path} item={item} active={isActive(item.path)} />)}</div>
                   </section>
                 ))}
+                <button type="button" onClick={handleSignOut} disabled={signingOut}
+                  className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-medium text-foreground disabled:opacity-50">
+                  <LogOut size={16} aria-hidden="true" />{signingOut ? 'Signing out…' : 'Sign out'}
+                </button>
               </div>
             </div>
           </div>
         )}
       </header>
+      {signOutError && <p role="alert" className="border-b border-destructive/30 bg-destructive/10 px-4 py-3 text-center text-sm text-destructive">{signOutError}</p>}
 
       <main className="relative z-10 min-h-[calc(100vh-4.5rem)] pb-24 lg:pb-0"><Outlet /></main>
       <GlobalCommandCenter open={commandOpen} onClose={() => setCommandOpen(false)} />
