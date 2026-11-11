@@ -183,7 +183,10 @@ export default async function handler(request, response) {
     const body = await readBoundedScholarlyResponse(upstream);
     // Upstream outages and bot challenges sometimes return HTTP 200 with HTML.
     // Never present those pages as valid scientific retrieval or cache them.
-    if (upstream.ok && /^\s*(?:<!doctype\s+html|<html\b)/i.test(body.toString('utf8', 0, 512))) {
+    const providerContentType = upstream.headers.get('content-type') || '';
+    const htmlContent = /text\/html/i.test(providerContentType)
+      || /^\s*(?:<!doctype\s+html|<html\b|<head\b|<body\b|<script\b)/i.test(body.toString('utf8', 0, 512));
+    if (upstream.ok && htmlContent) {
       response.setHeader('Cache-Control', 'no-store');
       response.setHeader('X-Content-Type-Options', 'nosniff');
       return response.status(502).json({
