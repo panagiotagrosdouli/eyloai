@@ -22,3 +22,7 @@ export function bindRadarBrowserCache(storage, userId) {
   }
   storage.setItem(RADAR_OWNER_KEY, userId);
 }
+
+export function isRadarCacheOwner(storage, expectedUserId) {
+  return Boolean(expectedUserId && storage.getItem(RADAR_OWNER_KEY) === expectedUserId);
+}
