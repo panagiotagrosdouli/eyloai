@@ -55,10 +55,10 @@ export default function Library() {
     setLoading(true);
     setLoadNotice('');
     const requests = [
-      base44.entities.SavedPaper.list('-created_date'),
-      base44.entities.SavedResearcher.list('-created_date'),
-      base44.entities.SavedOpportunity.list('-created_date'),
-      base44.entities.Project.list('-updated_date'),
+      base44.entities.SavedPaper.list('-created_date', 1000),
+      base44.entities.SavedResearcher.list('-created_date', 1000),
+      base44.entities.SavedOpportunity.list('-created_date', 1000),
+      base44.entities.Project.list('-updated_date', 1000),
     ];
     const results = await Promise.allSettled(requests);
     setPapers(results[0].status === 'fulfilled' ? results[0].value : []);
@@ -134,6 +134,12 @@ export default function Library() {
         <h1 className="eylo-page-heading">Library</h1>
         <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">Your saved scientific literature, researchers and opportunities — organized for future reference.</p>
       </div>
+
+      {(papers.length >= 1000 || researchers.length >= 1000 || opportunities.length >= 1000 || projects.length >= 1000) && !loading && (
+        <p role="status" className="mb-4 text-xs text-muted-foreground">
+          Showing up to 1,000 recent records per collection. Older entries may require a narrower search or further pagination.
+        </p>
+      )}
 
       {loadNotice && (
         <div role="status" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">
