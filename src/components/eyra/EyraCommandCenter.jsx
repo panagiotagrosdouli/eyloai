@@ -12,7 +12,7 @@ import {
   Volume2, VolumeX, Target, FileText, Users,
   Award, Map, AlertTriangle, Brain,
   Rocket, BarChart3, BookOpen, Trash2, BookmarkPlus,
-  Check, Copy, Database, ExternalLink, ShieldCheck
+  Check, Copy, Database, ExternalLink, ShieldCheck, Pencil
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
@@ -237,7 +237,7 @@ function TypingIndicator({ stage }) {
   );
 }
 
-function Message({ msg, onSave, onCopy, saved, copied, saving }) {
+function Message({ msg, onSave, onCopy, onEdit, saved, copied, saving }) {
   const isEyra = msg.role === 'eyra';
   return (
     <motion.div
@@ -299,6 +299,12 @@ function Message({ msg, onSave, onCopy, saved, copied, saving }) {
           <p className="mr-auto text-[9px] text-muted-foreground">
             {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </p>
+          {!isEyra && (
+            <button type="button" onClick={() => onEdit(msg)} aria-label="Edit and resend EYRA question"
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[9px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+              <Pencil size={10} aria-hidden="true" /> Edit & resend
+            </button>
+          )}
           {isEyra && (
             <>
               <button
@@ -609,6 +615,13 @@ Answer the user's latest request. Cite every externally verifiable claim with th
     }
   };
 
+  const editMessage = (message) => {
+    if (loading || !message?.content || message.role !== 'user') return;
+    // Editing is local. Nothing is resent or charged until Send is pressed.
+    setInput(message.content);
+    inputRef.current?.focus();
+  };
+
   const clearConversation = () => {
     window.speechSynthesis?.cancel();
     setMessages([{ ...createWelcomeMessage(userName), mode: activeMode }]);
@@ -720,6 +733,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
                 msg={msg}
                 onSave={saveInsight}
                 onCopy={copyInsight}
+                onEdit={editMessage}
                 saved={savedMessageIds.has(msg.timestamp)}
                 saving={savingMessageId === msg.timestamp}
                 copied={copiedMessageId === msg.timestamp}
