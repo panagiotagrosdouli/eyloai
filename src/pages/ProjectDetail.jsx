@@ -18,6 +18,7 @@ import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import { parseProjectTasks, toggleProjectTask } from '@/lib/project-tasks';
+import { buildProjectPlanDraft, acceptProjectPlanDraft } from '@/lib/project-plan-draft.mjs';
 import { exportEvidenceMatrixCsv, getEvidenceMatrixRows, NOTE_FIELDS } from '@/lib/evidence-matrix.mjs';
 
 const TABS = [
@@ -54,6 +55,8 @@ export default function ProjectDetail() {
   const [savedOpportunities, setSavedOpportunities] = useState([]);
   const [meetings, setMeetings] = useState([]);
   const [loadError, setLoadError] = useState('');
+  const [plannerDraft, setPlannerDraft] = useState('');
+  const [plannerNotice, setPlannerNotice] = useState('');
   const { toast } = useToast();
 
   useEffect(() => { loadAll(); }, [id]);
@@ -61,6 +64,8 @@ export default function ProjectDetail() {
   const loadAll = async () => {
     setLoading(true);
     setLoadError('');
+    setPlannerDraft('');
+    setPlannerNotice('');
     const [projectResult, papersResult, researchersResult, opportunitiesResult, meetingsResult] = await Promise.allSettled([
       base44.entities.Project.get(id),
       // Query the links in Postgres, rather than fetching an arbitrary top 100
@@ -634,6 +639,40 @@ Rules:
       {/* Project tasks, notes, and meetings form one timeline. */}
       {activeTab === 'timeline' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+          <section className="rounded-xl border border-border bg-card p-4 sm:p-5" aria-labelledby="project-planner-title">
+            <h2 id="project-planner-title" className="text-base font-semibold">Research Project Planner</h2>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              Create a generic, editable task template from your own project milestones.
+              This is not an AI-generated research plan or an estimated timeline. Nothing is added automatically.
+            </p>
+            <button type="button" className="mt-3 min-h-10 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary"
+              onClick={() => {
+                setPlannerDraft(buildProjectPlanDraft(editing.milestones, editing.tasks));
+                setPlannerNotice('Review the draft, then accept it into your task editor. Save the project separately to persist any changes.');
+              }}>
+              Generate editable plan draft
+            </button>
+            {plannerDraft && (
+              <div className="mt-4 space-y-2">
+                <label htmlFor="project-plan-draft" className="block text-xs font-semibold">Draft tasks — edit before accepting</label>
+                <textarea id="project-plan-draft" value={plannerDraft} onChange={event => setPlannerDraft(event.target.value)}
+                  rows={8} className="w-full rounded-lg border border-border bg-background p-3 text-sm" />
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" disabled={saving} onClick={() => {
+                    const accepted = acceptProjectPlanDraft(editing.tasks, plannerDraft);
+                    setEditing(previous => ({ ...previous, tasks: accepted }));
+                    setPlannerDraft('');
+                    setPlannerNotice('Accepted tasks are in the editor below, but are not saved yet. Click Save.');
+                  }} className="min-h-10 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50">
+                    Accept into task editor
+                  </button>
+                  <button type="button" onClick={() => { setPlannerDraft(''); setPlannerNotice('Draft discarded.'); }}
+                    className="min-h-10 rounded-lg border border-border px-3 text-xs font-semibold">Discard draft</button>
+                </div>
+              </div>
+            )}
+            {plannerNotice && <p role="status" className="mt-2 text-xs text-muted-foreground">{plannerNotice}</p>}
+          </section>
           <div className="space-y-5">
           <div>
             <label className="block text-sm font-semibold text-foreground mb-2">Next actions</label>
