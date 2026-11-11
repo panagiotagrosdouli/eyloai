@@ -26,3 +26,11 @@ test('Stop signal is passed to scholarly, people and funding retrieval', () => {
   assert.match(source, /searchFundingOpportunities\(query, 10, \{ signal \}\)/);
   assert.match(source, /signal\?\.throwIfAborted\(\)/);
 });
+
+
+test('previous user questions can be edited without silently calling the paid AI endpoint', () => {
+  assert.match(source, /aria-label="Edit and resend EYRA question"/);
+  assert.match(source, /onClick=\{\(\) => onEdit\(msg\)\}/);
+  assert.match(source, /setInput\(message\.content\)/);
+  assert.match(source, /if \(loading \|\| !message\?\.content \|\| message\.role !== 'user'\) return/);
+});
