@@ -31,3 +31,12 @@ This session retrieved code through the GitHub connector. The workspace could no
 3. Verify core question → search → save → project → EYRA flow with permitted test users in an identified staging environment.
 4. Verify cross-user access before enabling production storage, AI action privileges, billing or monitoring.
 5. Update this report with test command, artifact URL, environment, test accounts (non-identifying), and dated evidence for each feature ID.
+
+
+## 2026-11-11 — Literature Review Protocol (PR #332)
+
+- **Implementation:** private `/literature-review` route, Project-scoped `review_protocol` using existing authenticated `Project.update`, saved-paper screening, exclusions with reasons, JSON export and Project Evidence link.
+- **Unit/API evidence:** PR #332 head `28ed431dc05064c5b677fbc10446d3a55f164338`; Product Quality reports **310 tests passed, 0 failed**.
+- **Browser evidence:** the same head's Playwright auth suite logs `Browser checks passed: literature review save, reload, source screening and reproducible JSON export against authorized test doubles.` Previous browser failure was fixed by preserving success state after project update.
+- **Workflow evidence:** that head passed Build, EYLO Quality Gate and Product Quality (3/3); the integrated release candidate must pass independently.
+- **Classification:** WORKING in controlled test doubles and deterministic validation, **NOT VERIFIED COMPLETE in production**. Real two-account Supabase RLS, live project persistence, independent peer review, full-text data extraction, complete screening history and PRISMA audit are still unverified.
