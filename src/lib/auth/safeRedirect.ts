@@ -11,6 +11,7 @@ const ALLOWED_PREFIXES = [
   '/pitchdeck',
   '/institution',
   '/library',
+  '/literature-review',
   '/projects',
   '/researchers',
   '/careers',
