@@ -119,6 +119,8 @@
 
 ## Work recorded
 
+- **2026-11-12:** Funding ranking now accepts only validated model score, explanation, and difficulty fields for known official-source IDs. Malformed, unknown, invalid, duplicate, or partial rankings preserve source facts and leave missing scores unranked. AI suitability and difficulty are identified as estimates. Regression tests cover attempted factual-field overrides, malformed output, duplicate IDs, partial rankings, invalid scores, and bounded plain-text explanations. Updated-branch `npm run check` passed locally; browser E2E is not run because the sandbox cannot launch Chromium. The original PR's Vercel status failed at the account build-rate-limit URL.
+
 - **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.
 - **2026-11-10:** Project Evidence adds a source-linked, editable matrix for linked papers; notes are stored on the project and exported as CSV with spreadsheet formula escaping. Missing notes are shown as unrecorded rather than inferred.
 - **2026-11-10:** Research Data Lab adds private, in-browser CSV preview, validation, missingness and numeric summaries, an accessible row chart, reproducible analysis steps, and formula-safe summary export. Dataset contents are not uploaded, persisted, or sent to AI.

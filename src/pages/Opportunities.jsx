@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { searchFundingOpportunities } from '@/lib/funding-api';
+import { applyFundingRanking, searchFundingOpportunities } from '@/lib/funding-api';
 import { promiseWithTimeout } from '@/lib/promise-timeout';
 import {
   Bookmark, Award, Loader2, DollarSign, Trophy,
@@ -131,7 +131,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
             properties: {
               ranked: {
                 type: 'array',
-                minItems: verified.length,
+                minItems: 0,
                 maxItems: verified.length,
                 items: {
                   type: 'object',
@@ -150,11 +150,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
 
         if (requestId !== searchSequence.current) return;
 
-        const byId = new Map((ranking.ranked || []).map((item) => [item.id, item]));
-        const ranked = verified
-          .map((item) => ({ ...item, ...(byId.get(item.id) || {}) }))
-          .sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1));
-        setResults(ranked);
+        setResults(applyFundingRanking(verified, ranking));
       } catch (error) {
         if (requestId === searchSequence.current) {
           setRankingError(
@@ -375,11 +371,12 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
                           <Icon size={9} /> {config.label}
                         </span>
                         {Number.isFinite(opp.match_score) && (
-                          <span className="text-[10px] font-semibold text-primary">{Math.round(opp.match_score)}/100 relevance</span>
+                          <span className="text-[10px] font-semibold text-primary">AI relevance estimate: {Math.round(opp.match_score)}/100</span>
                         )}
+                        {!Number.isFinite(opp.match_score) && <span className="text-[10px] text-muted-foreground">Relevance unranked</span>}
                         {opp.difficulty && (
                           <span className={`text-[10px] font-medium ${difficultyColor[opp.difficulty] || 'text-muted-foreground'}`}>
-                            {opp.difficulty} difficulty
+                            {opp.difficulty === 'Unranked' ? 'Difficulty unranked' : `AI difficulty estimate: ${opp.difficulty}`}
                           </span>
                         )}
                         {opp.deadline_days !== null && opp.deadline_days < 0 && <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">Expired</span>}
@@ -387,7 +384,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
                       </div>
                       <h4 className="font-semibold text-sm text-foreground mb-1">{opp.title}</h4>
                       <p className="text-xs text-muted-foreground leading-relaxed mb-2">{opp.description || 'Open the official record for the full announcement.'}</p>
-                      {opp.match_reason && <p className="text-[11px] text-primary/90 mb-3"><span className="font-semibold">EYRA fit:</span> {opp.match_reason}</p>}
+                      {opp.match_reason && <p className="text-[11px] text-primary/90 mb-3"><span className="font-semibold">Estimated relevance rationale:</span> {opp.match_reason}</p>}
                       <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
                         {opp.eligibility && (
                           <span><span className="font-medium text-foreground">Eligible:</span> {opp.eligibility}</span>
