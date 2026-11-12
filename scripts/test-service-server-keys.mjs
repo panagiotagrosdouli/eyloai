@@ -84,6 +84,28 @@ try {
     throw new Error(`Monitoring accepted an unauthorized caller: ${JSON.stringify(unauthorizedResponse.payload)}`);
   }
 
+  const invalidSecretResponse = createApiResponse();
+  await monitorHandler(
+    { method: 'GET', headers: { authorization: 'Bearer incorrect-cron-regression-test' } },
+    invalidSecretResponse,
+  );
+  if (invalidSecretResponse.statusCode !== 401
+      || invalidSecretResponse.payload?.error !== 'Cron authorization required.') {
+    throw new Error(`Monitoring accepted an invalid cron secret: ${JSON.stringify(invalidSecretResponse.payload)}`);
+  }
+
+  delete process.env.SUPABASE_SECRET_KEY;
+  const missingDatabaseResponse = createApiResponse();
+  await monitorHandler(
+    { method: 'GET', headers: { authorization: `Bearer ${process.env.CRON_SECRET}` } },
+    missingDatabaseResponse,
+  );
+  if (missingDatabaseResponse.statusCode !== 503
+      || !/explicitly configured Supabase project and server key/i.test(missingDatabaseResponse.payload?.error || '')) {
+    throw new Error(`Monitoring proceeded without Supabase server credentials: ${JSON.stringify(missingDatabaseResponse.payload)}`);
+  }
+  process.env.SUPABASE_SECRET_KEY = modernServerKey;
+
   const monitorResponse = createApiResponse();
   await monitorHandler(
     { method: 'GET', headers: { authorization: `Bearer ${process.env.CRON_SECRET}` } },
