@@ -236,6 +236,78 @@ export function compareResearchNumericColumns(dataset, firstColumn, secondColumn
   };
 }
 
+/** Describe one numeric variable within observed categories; no group test is performed. */
+export function summarizeResearchNumericByCategory(dataset, numericColumn, categoryColumn) {
+  const headers = Array.isArray(dataset?.headers) ? dataset.headers : [];
+  const rows = Array.isArray(dataset?.rows) ? dataset.rows : [];
+  const numericIndex = headers.indexOf(numericColumn);
+  const categoryIndex = headers.indexOf(categoryColumn);
+  const types = summarizeResearchData(dataset).map((summary) => summary.type);
+  if (numericIndex < 0 || categoryIndex < 0 || numericIndex === categoryIndex
+    || types[numericIndex] !== 'numeric' || types[categoryIndex] !== 'text') {
+    return { available: false, reason: 'Choose one numeric variable and one categorical variable.' };
+  }
+
+  const groups = new Map();
+  let complete = 0;
+  for (const row of rows) {
+    const value = numericValue(row?.[numericIndex]);
+    const category = String(row?.[categoryIndex] ?? '').trim();
+    if (value === null || !category) continue;
+    complete += 1;
+    if (!groups.has(category)) groups.set(category, []);
+    groups.get(category).push(value);
+  }
+
+  const allGroups = [...groups.entries()]
+    .map(([category, values]) => {
+      const scale = Math.max(...values.map(Math.abs)) || 1;
+      let meanScaled = 0;
+      let squaredDeviations = 0;
+      values.forEach((value, index) => {
+        const scaled = value / scale;
+        const delta = scaled - meanScaled;
+        meanScaled += delta / (index + 1);
+        squaredDeviations += delta * (scaled - meanScaled);
+      });
+      const sorted = [...values].sort((a, b) => a - b);
+      const middle = Math.floor(sorted.length / 2);
+      const median = sorted.length % 2
+        ? sorted[middle]
+        : (sorted[middle - 1] / 2) + (sorted[middle] / 2);
+      const mean = meanScaled * scale;
+      const sampleStandardDeviation = values.length > 1
+        ? Math.sqrt(squaredDeviations / (values.length - 1)) * scale
+        : null;
+      return {
+        category,
+        count: values.length,
+        mean: Number.isFinite(mean) ? mean : null,
+        median,
+        min: sorted[0],
+        max: sorted[sorted.length - 1],
+        sampleStandardDeviation: Number.isFinite(sampleStandardDeviation) ? sampleStandardDeviation : null,
+      };
+    })
+    .sort((left, right) => right.count - left.count || left.category.localeCompare(right.category));
+
+  const limit = 50;
+  const displayedGroups = allGroups.slice(0, limit);
+  return {
+    available: displayedGroups.length > 0,
+    kind: 'numeric-by-category',
+    numericColumn,
+    categoryColumn,
+    pairs: complete,
+    incomplete: rows.length - complete,
+    totalGroups: allGroups.length,
+    omittedGroups: Math.max(0, allGroups.length - displayedGroups.length),
+    omittedObservations: allGroups.slice(limit).reduce((sum, group) => sum + group.count, 0),
+    groups: displayedGroups,
+    reason: displayedGroups.length ? undefined : 'No complete numeric-category observations are available.',
+  };
+}
+
 /** Export comparison metadata and aggregates only; never export source rows. */
 export function exportResearchDataComparisonCsv(comparison) {
   const rows = [['Statistic', 'Value']];
@@ -247,6 +319,19 @@ export function exportResearchDataComparisonCsv(comparison) {
       ['Complete pairs used', comparison.pairs],
       ['Rows skipped', comparison.incomplete],
       ['Scope', 'Descriptive pairwise linear association; no causal or statistical significance claim'],
+    );
+  } else if (comparison?.available && comparison.kind === 'numeric-by-category') {
+    rows.push(
+      ['Numeric variable', comparison.numericColumn],
+      ['Categorical variable', comparison.categoryColumn],
+      ['Complete observations used', comparison.pairs],
+      ['Rows skipped', comparison.incomplete],
+      ['Categories in file', comparison.totalGroups],
+      ['Categories included in table', comparison.groups.length],
+      ['Scope', 'Descriptive group summaries only; no statistical test or causal claim'],
+      [],
+      ['Category', 'Count', 'Mean', 'Median', 'Sample SD', 'Minimum', 'Maximum'],
+      ...comparison.groups.map((group) => [group.category, group.count, group.mean, group.median, group.sampleStandardDeviation, group.min, group.max]),
     );
   }
   return rows.map((row) => row.map(csvCell).join(',')).join('\r\n');
