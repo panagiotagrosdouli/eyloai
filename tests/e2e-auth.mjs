@@ -725,7 +725,16 @@ try {
   await filesPage.getByText('Open linked project').waitFor();
   await filesPage.getByRole('button', { name: 'Upload new version' }).click();
   await filesPage.locator('input[type="file"]').setInputFiles({ name: 'protocol.txt', mimeType: 'text/plain', buffer: Buffer.from('version two') });
-  await filesPage.getByText('Version 2 · latest').waitFor();
+  try {
+    await filesPage.getByText('Version 2 · latest').waitFor({ timeout: 8000 });
+  } catch (cause) {
+    console.log('EYLO FILE VERSION DIAGNOSTIC', JSON.stringify({
+      fileRows, versionRows, storedPaths: [...storedObjects.keys()],
+      alerts: await filesPage.getByRole('alert').allInnerTexts(),
+      body: (await filesPage.locator('body').innerText()).slice(-1800),
+    }));
+    throw cause;
+  }
   assert.equal(versionRows.length, 2, 'each upload is stored as a separate immutable version');
   assert.equal(storedObjects.size, 2, 'the earlier object remains available after a replacement upload');
   const savedFileId = fileRows[0].id;
