@@ -58,6 +58,7 @@ export default function Notes() {
   const saveNoteRef = useRef(null);
   const savingRef = useRef(false);
   const selectionEpochRef = useRef(0);
+  const focusedNoteRef = useRef(false);
   const [notes, setNotes] = useState([]);
   const [projects, setProjects] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -104,6 +105,7 @@ export default function Notes() {
   useEffect(() => {
     selectionEpochRef.current += 1;
     ownerRef.current = user?.id || null;
+    focusedNoteRef.current = false;
     setNotes([]);
     setProjects([]);
     setSelected(null);
@@ -158,6 +160,15 @@ export default function Notes() {
     setVersions([]);
     if (note) await loadVersions(note.id);
   };
+  const chooseNoteRef = useRef(chooseNote);
+  chooseNoteRef.current = chooseNote;
+
+  useEffect(() => {
+    const focusId = new URLSearchParams(window.location.search).get('focus');
+    if (!focusId || focusedNoteRef.current) return;
+    const match = notes.find(note => String(note.id) === focusId);
+    if (match) { focusedNoteRef.current = true; void chooseNoteRef.current(match); }
+  }, [notes]);
 
   const createDraft = () => {
     if (dirty && !window.confirm('Discard unsaved changes?')) return;
@@ -417,3 +428,4 @@ export default function Notes() {
     </div>
   );
 }
+
