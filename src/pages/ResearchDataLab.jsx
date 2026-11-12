@@ -3,6 +3,7 @@ import { BarChart3, Download, FileSpreadsheet, LockKeyhole, RotateCcw, Upload } 
 import {
   DATA_LAB_LIMITS,
   compareResearchNumericColumns,
+  exportResearchDataComparisonCsv,
   exportResearchDataSummaryCsv,
   getResearchDataChartRows,
   parseResearchCsv,
@@ -125,6 +126,11 @@ export default function ResearchDataLab() {
 
   const handleExport = () => {
     downloadCsv(exportResearchDataSummaryCsv(summaries), 'research-data-summary.csv');
+  };
+
+  const exportComparison = () => {
+    if (!comparison?.available) return;
+    downloadCsv(exportResearchDataComparisonCsv(comparison), 'research-variable-comparison.csv');
   };
 
   const exportQualityReport = () => {
@@ -346,6 +352,12 @@ export default function ResearchDataLab() {
                   <p className="mt-1 text-2xl font-semibold tabular-nums">{numberFormat.format(comparison.incomplete)}</p>
                 </div>
                 <p className="text-xs leading-5 text-muted-foreground sm:col-span-3">Pearson r summarizes linear co-variation in these complete pairs. It does not establish causation, statistical significance, or representativeness beyond this file.</p>
+                <div className="sm:col-span-3">
+                  <button type="button" onClick={exportComparison} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary">
+                    <Download size={15} aria-hidden="true" /> Export comparison CSV
+                  </button>
+                  <p className="mt-2 text-xs text-muted-foreground">The export contains variable names and aggregate results, not source rows.</p>
+                </div>
               </div>
             ) : (
               <p role="status" className="mt-4 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">{comparison?.reason || 'Choose two numeric columns.'}</p>
