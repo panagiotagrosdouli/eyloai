@@ -6,7 +6,7 @@ create table if not exists public.notes (
   created_date timestamptz not null default timezone('utc', now()),
   updated_date timestamptz not null default timezone('utc', now()),
   constraint notes_data_object check (jsonb_typeof(data) = 'object'),
-  constraint notes_title_length check (char_length(coalesce(data ->> 'title', '')) between 1 and 200),
+  constraint notes_title_length check (char_length(trim(coalesce(data ->> 'title', ''))) between 1 and 200),
   constraint notes_content_length check (char_length(coalesce(data ->> 'content', '')) <= 100000),
   constraint notes_tags_array check (not (data ? 'tags') or jsonb_typeof(data -> 'tags') is not distinct from 'array')
 );
