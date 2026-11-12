@@ -3,9 +3,12 @@ import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Loader2, Search, FolderKanban, ExternalLink, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { searchAllPapersWithStatus } from '@/lib/eyra-api';
 import { getResearchEvidenceContextKey } from '@/lib/research-gap-context.mjs';
 import { saveResearchGapCandidate } from '@/lib/research-gap-candidate-save.mjs';
 import { isSafeLiteratureSourceUrl } from '@/lib/literature-review-protocol.mjs';
+import { buildResearchGapCoverage } from '@/lib/research-gap-coverage.mjs';
+import { saveDiscoveredGapPaper } from '@/lib/research-gap-literature-save.mjs';
 
 const gapSchema = { type: 'object', properties: { gaps: { type: 'array', items: { type: 'object', properties: {
   question: { type: 'string' }, explanation: { type: 'string' }, supporting_papers: { type: 'array', items: { type: 'string' } }, counterevidence_papers: { type: 'array', items: { type: 'string' } }, counterevidence: { type: 'string' }, limitations: { type: 'string' }, uncertainty: { type: 'string' }, proposed_question: { type: 'string' }, methodology: { type: 'string' },
@@ -28,6 +31,12 @@ export default function ResearchGaps() {
   const [error, setError] = useState('');
   const [savingCandidate, setSavingCandidate] = useState(false);
   const [savedCandidateKeys, setSavedCandidateKeys] = useState({});
+  const [literatureQuery, setLiteratureQuery] = useState('');
+  const [literatureResults, setLiteratureResults] = useState([]);
+  const [literatureCoverage, setLiteratureCoverage] = useState(null);
+  const [literatureRetrievedAt, setLiteratureRetrievedAt] = useState('');
+  const [searchingLiterature, setSearchingLiterature] = useState(false);
+  const [literatureError, setLiteratureError] = useState('');
   const { toast } = useToast();
 
   const load = async () => {
@@ -52,6 +61,47 @@ export default function ResearchGaps() {
     setComparison(null);
     setSavedCandidateKeys({});
   };
+  const searchLiterature = async (event) => {
+    event?.preventDefault();
+    const query = literatureQuery.trim();
+    if (!query || searchingLiterature) return;
+    setSearchingLiterature(true);
+    setLiteratureError('');
+    setLiteratureResults([]);
+    setLiteratureCoverage(null);
+    try {
+      const result = await searchAllPapersWithStatus(query, { limit: 20, recency: 'balanced' });
+      const retrievedAt = new Date().toISOString();
+      setLiteratureResults(Array.isArray(result.papers) ? result.papers : []);
+      setLiteratureCoverage(buildResearchGapCoverage(result));
+      setLiteratureRetrievedAt(retrievedAt);
+    } catch (failure) {
+      setLiteratureError(failure?.message || 'Scholarly literature search failed.');
+    } finally {
+      setSearchingLiterature(false);
+    }
+  };
+
+  const saveDiscoveredPaper = async (paper) => {
+    try {
+      const project = projects.find((item) => item.id === projectId) || null;
+      const saved = await saveDiscoveredGapPaper({ entities: base44.entities, paper, project });
+      setPapers((current) => [saved, ...current.filter((item) => item.id !== saved.id)]);
+      setSelected((current) => current.includes(saved.id) ? current : [...current, saved.id]);
+      invalidateAnalysis();
+      toast({
+        title: project ? 'Saved to Library and selected for this project' : 'Saved to Library and selected',
+        description: 'The analysis will use this record only after it is saved in your workspace.',
+      });
+    } catch (failure) {
+      toast({
+        title: 'Could not save scholarly record',
+        description: failure?.message || 'Please retry.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const toggle = (paperId) => {
     invalidateAnalysis();
     setError('');
@@ -153,6 +203,63 @@ export default function ResearchGaps() {
       <label className="flex items-center gap-2 rounded-xl border border-border bg-card px-3"><FolderKanban size={15} className="text-primary"/><select value={projectId} onChange={(event) => { setProjectId(event.target.value); setSelected([]); setError(''); invalidateAnalysis(); }} aria-label="Choose a project" className="min-h-11 flex-1 bg-transparent text-sm"><option value="">All saved papers</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.title}</option>)}</select></label>
       <div className="grid gap-2 sm:grid-cols-2"><button type="button" disabled={comparing || selected.length < 2} onClick={comparePapers} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-primary/30 px-4 text-sm font-semibold text-primary disabled:opacity-50">{comparing ? <Loader2 size={15} className="animate-spin"/> : <Search size={15}/>}Compare papers</button><button type="button" disabled={analyzing || selected.length < 2} onClick={analyze} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">{analyzing ? <Loader2 size={15} className="animate-spin"/> : <Sparkles size={15}/>}Find research gaps</button></div>
     </div>
+    <section className="mb-6 rounded-2xl border border-border bg-card p-4 sm:p-5" aria-labelledby="gap-live-search-heading">
+      <div className="mb-3">
+        <h2 id="gap-live-search-heading" className="text-sm font-semibold">Search scholarly literature</h2>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">Search live records from OpenAlex, arXiv, Europe PMC, Crossref, and Semantic Scholar. Save records to your Library before using them in an analysis.</p>
+      </div>
+      <form onSubmit={searchLiterature} className="flex flex-col gap-2 sm:flex-row">
+        <input value={literatureQuery} onChange={(event) => setLiteratureQuery(event.target.value)} aria-label="Search scholarly literature" placeholder="Enter a research topic or question" className="min-h-11 min-w-0 flex-1 rounded-xl border border-border bg-background px-3 text-sm" />
+        <button type="submit" disabled={!literatureQuery.trim() || searchingLiterature} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+          {searchingLiterature ? <Loader2 size={15} className="animate-spin"/> : <Search size={15}/>}
+          {searchingLiterature ? 'Searching scholarly indexes…' : 'Search literature'}
+        </button>
+      </form>
+      {literatureError && <p role="alert" className="mt-3 text-xs text-destructive">{literatureError}</p>}
+      {literatureCoverage && (
+        <div className="mt-4 rounded-xl border border-border/70 bg-background/60 p-3">
+          <p className="text-xs font-semibold text-foreground">Retrieval coverage · {literatureCoverage.record_count} records</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {literatureCoverage.available_source_count} of {literatureCoverage.sources.length} sources responded; results are limited to this search and are not a systematic review.
+            {literatureRetrievedAt ? ` Retrieved ${new Date(literatureRetrievedAt).toLocaleString()}.` : ''}
+          </p>
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {literatureCoverage.sources.map((source) => (
+              <li key={source.id} className={`rounded-full border px-2 py-1 text-[10px] ${source.status === 'available' ? 'border-green-500/20 text-green-300' : 'border-amber-500/20 text-amber-300'}`}>
+                {source.label}: {source.status === 'available' ? `${source.count} records` : 'unavailable'}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {literatureResults.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {literatureResults.map((paper) => {
+            const alreadySaved = papers.some((saved) => saved.source_id === (paper.id || paper.doi || paper.url || paper.title));
+            return (
+              <article key={paper._dedupeKey || paper.id || paper.url || paper.title} className="flex flex-col gap-3 rounded-xl border border-border/70 bg-background/50 p-3 sm:flex-row sm:items-start">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold">{paper.title}</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">{[paper.source_index || paper.source, paper.authors, paper.year, paper.doi].filter(Boolean).join(' · ')}</p>
+                  {paper.summary && <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">{paper.summary}</p>}
+                  {isSafeLiteratureSourceUrl(paper.url) && <a href={paper.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-[10px] text-primary underline">Open scholarly source <ExternalLink size={10}/></a>}
+                </div>
+                <button type="button" onClick={() => saveDiscoveredPaper(paper)} disabled={alreadySaved} className="min-h-9 shrink-0 rounded-lg border border-border px-3 text-[10px] font-semibold text-foreground disabled:opacity-50">
+                  {alreadySaved ? 'Already in Library' : projectId ? 'Save to Library and project' : 'Save to Library'}
+                </button>
+              </article>
+            );
+          })}
+        </div>
+      )}
+      {literatureCoverage && literatureCoverage.record_count === 0 && (
+        <p role="status" className="mt-3 text-xs text-muted-foreground">
+          {literatureCoverage.available_source_count === 0
+            ? 'All scholarly sources were unavailable. This search does not establish that no literature exists.'
+            : 'No records matched this query in the sources that responded. Try another query or review unavailable sources.'}
+        </p>
+      )}
+    </section>
     {error && <p role="alert" className="mb-4 rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-foreground">{error} <button className="ml-2 underline" onClick={load}>Retry</button></p>}
     {loading ? <div className="py-16 text-center text-sm text-muted-foreground">Loading your research library…</div> : sourcePapers.length === 0 ? <div className="rounded-2xl border border-dashed border-border p-8 text-center"><p className="text-sm text-muted-foreground">No saved papers are linked to this view yet.</p><Link to="/library" className="mt-3 inline-block text-sm text-primary underline">Open your Library</Link></div> : <section className="mb-8 space-y-2">{sourcePapers.map((paper) => <label key={paper.id} className="flex cursor-pointer gap-3 rounded-xl border border-border bg-card p-4"><input type="checkbox" checked={selected.includes(paper.id)} onChange={() => toggle(paper.id)} className="mt-1"/><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{paper.title}</span><span className="mt-1 block text-xs text-muted-foreground">{[paper.authors, paper.year, paper.doi].filter(Boolean).join(' · ')}</span>{paper.summary && <span className="mt-2 block line-clamp-2 text-xs leading-5 text-muted-foreground">{paper.summary}</span>}</span>{isSafeLiteratureSourceUrl(paper.url) && <a href={paper.url} target="_blank" rel="noopener noreferrer" aria-label="Open paper source" className="text-primary" onClick={(event) => event.stopPropagation()}><ExternalLink size={15}/></a>}</label>)}</section>}
     {analyzing && <p className="mb-4 flex items-center gap-2 text-sm text-muted-foreground"><Sparkles size={15} className="text-primary"/>EYRA is comparing the supplied evidence and limitations…</p>}
