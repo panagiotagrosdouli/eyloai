@@ -1,13 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { isOverdueLifeTask, nextLifeTaskDate, normalizeLifeTask, sortLifeTasks } from '../src/lib/life-domain.mjs';
+import {
+  isOverdueLifeTask, lifeGoalProgress, nextLifeTaskDate, normalizeLifeGoal, normalizeLifeTask, sortLifeTasks,
+} from '../src/lib/life-domain.mjs';
 
 const migration = readFileSync(new URL('../supabase/migrations/20261112161818_eylo_life_tasks.sql', import.meta.url), 'utf8');
 const repository = readFileSync(new URL('../src/services/supabase-entities.js', import.meta.url), 'utf8');
 const page = readFileSync(new URL('../src/pages/Life.jsx', import.meta.url), 'utf8');
 const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
 const layout = readFileSync(new URL('../src/components/layout/AppLayout.jsx', import.meta.url), 'utf8');
+const goalMigration = readFileSync(new URL('../supabase/migrations/20261112163010_eylo_life_goals_milestones.sql', import.meta.url), 'utf8');
+const goalsPage = readFileSync(new URL('../src/pages/LifeGoals.jsx', import.meta.url), 'utf8');
 
 test('Life task normalization validates fields and preserves allowed states', () => {
   assert.deepEqual(normalizeLifeTask({
@@ -40,6 +44,22 @@ test('recurring tasks calculate daily, weekly and month-end dates without overfl
   assert.equal(nextLifeTaskDate('2028-01-31', 'monthly'), '2028-02-29');
 });
 
+test('goal milestones are validated and progress reflects completed milestones only', () => {
+  const goal = normalizeLifeGoal({
+    title: 'Complete pilot', status: 'active', target_date: '2027-03-15', milestones: [
+      { id: '0f034b46-27ef-4c43-9873-678ed7264e45', title: 'Finish protocol', complete: true },
+      { id: '4b1a5ff4-718d-43d2-9015-2b3e6b39a55d', title: 'Recruit participants', complete: false, due_date: '2027-02-01' },
+    ],
+  });
+  assert.equal(lifeGoalProgress(goal), 50);
+  assert.equal(lifeGoalProgress({ milestones: [] }), 0);
+  assert.throws(() => normalizeLifeGoal({ title: ' ', milestones: [] }), error => error.code === 'LIFE_GOAL_VALIDATION');
+  assert.throws(() => normalizeLifeGoal({ title: 'Goal', milestones: [{ id: 'bad', title: 'Step' }] }), error => error.code === 'LIFE_GOAL_VALIDATION');
+  assert.throws(() => normalizeLifeGoal({ title: 'Goal', milestones: [
+    { id: '0f034b46-27ef-4c43-9873-678ed7264e45', title: 'Step', complete: 'yes' },
+  ] }), error => error.code === 'LIFE_GOAL_VALIDATION');
+});
+
 test('Life task data is private, owner validated and linked only to owned projects', () => {
   assert.match(migration, /alter table public\.life_tasks enable row level security/i);
   assert.match(migration, /\(select auth\.uid\(\)\) is distinct from new\.user_id/i);
@@ -49,6 +69,19 @@ test('Life task data is private, owner validated and linked only to owned projec
   assert.match(migration, /life_tasks_recurrence_instance_idx/i);
   assert.match(migration, /recurring tasks require a due date/i);
   assert.match(repository, /LifeTask: \{ table: 'life_tasks' \}/);
+});
+
+test('goal and milestone persistence is owner scoped and validates bounded milestone data', () => {
+  assert.match(goalMigration, /alter table public\.life_goals enable row level security/i);
+  assert.match(goalMigration, /\(select auth\.uid\(\)\) is distinct from new\.user_id/i);
+  assert.match(goalMigration, /jsonb_array_length\(new\.data -> 'milestones'\) > 50/i);
+  assert.match(goalMigration, /p\.id = project_text::uuid and p\.user_id = new\.user_id/i);
+  assert.match(repository, /LifeGoal: \{ table: 'life_goals' \}/);
+  assert.match(goalsPage, /base44\.entities\.LifeGoal\.create/);
+  assert.match(goalsPage, /base44\.entities\.LifeGoal\.updateIfUnchanged/);
+  assert.match(goalsPage, /base44\.entities\.LifeGoal\.delete/);
+  assert.match(goalsPage, /Progress is calculated from completed milestones/);
+  assert.match(goalsPage, /ownerRef\.current = user\?\.id \|\| null/);
 });
 
 test('Life workspace supports real saved CRUD, status updates and protected navigation', () => {
@@ -61,5 +94,7 @@ test('Life workspace supports real saved CRUD, status updates and protected navi
   assert.match(page, /Project link/);
   assert.match(page, /ownerRef\.current = user\?\.id \|\| null/);
   assert.match(app, /path="\/life" element=\{<Life \/>\}/);
+  assert.match(app, /path="\/life\/goals" element=\{<LifeGoals \/>\}/);
   assert.match(layout, /path: '\/life'/);
+  assert.match(layout, /path: '\/life\/goals'/);
 });
