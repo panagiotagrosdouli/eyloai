@@ -786,6 +786,104 @@ try {
   await filesPage.getByRole('button', { name: 'Export Markdown' }).click();
   assert.equal((await markdownExport).suggestedFilename(), 'Untitled research note.md');
   console.log('EYLO Files browser workflow passed against isolated PostgREST and Storage fixtures.');
+  // Exercise structured workplan creation, dependency/progress UI, optimistic
+  // persistence and reload against a provider-shaped PostgREST fixture.
+  const workplanId = 'workplan-e2e-1';
+  let workplanData = { title: 'Workplan E2E project', goal: 'Verify project task persistence', status: 'active', plan_items: [] };
+  let workplanVersion = '2026-11-12T00:00:00.000Z';
+  const workplanRow = () => ({
+    id: workplanId, user_id: testUser.id, created_at: '2026-11-11T00:00:00.000Z', updated_at: workplanVersion,
+    data: workplanData,
+  });
+  let workplanWrites = 0;
+  const workplanPostgrestFixture = async route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const table = url.pathname.split('/').at(-1);
+    if (table !== 'projects') {
+      await route.fallback();
+      return;
+    }
+    if (request.method() === 'OPTIONS') {
+      await route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' } });
+      return;
+    }
+    const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'content-type': 'application/json' };
+    if (request.method() === 'GET') {
+      if (url.searchParams.get('id') === `eq.${workplanId}`) {
+        await route.fulfill({ status: 200, headers, body: JSON.stringify(workplanRow()) });
+      } else {
+        await route.fulfill({ status: 200, headers, body: JSON.stringify([workplanRow()]) });
+      }
+      return;
+    }
+    if (request.method() === 'PATCH') {
+      assert.equal(url.searchParams.get('id'), `eq.${workplanId}`);
+      assert.equal(url.searchParams.get('user_id'), `eq.${testUser.id}`, 'every update must remain owner-scoped');
+      const expectedVersion = url.searchParams.get('updated_date')?.replace(/^eq\./, '');
+      assert.ok(expectedVersion, 'every workplan update must carry its loaded version');
+      if (expectedVersion !== workplanVersion) {
+        await route.fulfill({ status: 200, headers, body: '[]' });
+        return;
+      }
+      const body = request.postDataJSON();
+      workplanData = { ...workplanData, ...(body.data || {}) };
+      workplanVersion = new Date(Date.parse(workplanVersion) + 1000).toISOString();
+      workplanWrites += 1;
+      await route.fulfill({ status: 200, headers, body: JSON.stringify(workplanRow()) });
+      return;
+    }
+    throw new Error(`Unexpected workplan request: ${request.method()} ${request.url()}`);
+  };
+  await dataLab.route('**/rest/v1/**', workplanPostgrestFixture);
+  await dataLab.goto(`${baseUrl}/projects/${workplanId}`);
+  const workplanProjectTitle = dataLab.getByPlaceholder('Project title');
+  await workplanProjectTitle.waitFor();
+  assert.equal(await workplanProjectTitle.inputValue(), 'Workplan E2E project');
+  await dataLab.getByRole('button', { name: 'Timeline' }).click();
+  await dataLab.locator('#workplan-new-title').fill('Approve protocol');
+  await dataLab.getByLabel('Deliverable (optional)').fill('Approved protocol document');
+  await dataLab.getByLabel('Target date (optional)').fill('2026-12-01');
+  await dataLab.getByRole('button', { name: 'Add task' }).click();
+  await dataLab.locator('#workplan-new-title').fill('Collect data');
+  await dataLab.getByLabel('Deliverable (optional)').fill('De-identified dataset');
+  await dataLab.getByLabel('Depends on (optional)').selectOption({ label: 'Approve protocol' });
+  await dataLab.getByRole('button', { name: 'Add task' }).click();
+  await dataLab.getByLabel('Status', { exact: true }).first().selectOption('done');
+  await dataLab.getByText('50%', { exact: true }).waitFor();
+  await dataLab.getByRole('button', { name: 'Save workplan' }).click();
+  await dataLab.getByText('Workplan saved').waitFor();
+  assert.equal(workplanWrites, 1);
+  assert.equal(workplanData.plan_items.length, 2);
+  assert.deepEqual(workplanData.plan_items[1].depends_on, [workplanData.plan_items[0].id]);
+  await dataLab.reload();
+  await dataLab.getByRole('button', { name: 'Timeline' }).click();
+  await dataLab.getByLabel('Task', { exact: true }).nth(2).waitFor();
+  assert.equal(await dataLab.getByLabel('Deliverable', { exact: true }).nth(1).inputValue(), 'De-identified dataset');
+  assert.equal(await dataLab.getByLabel('Target date', { exact: true }).first().inputValue(), '2026-12-01');
+  assert.equal(workplanWrites, 1, 'reopening the project reads the saved plan without creating a duplicate write');
+
+  // Two separately authenticated browser sessions load one version. Session A
+  // commits; session B's stale compare-and-set must conflict and keep its draft.
+  const peerStorage = await dataLab.evaluate(() => Object.fromEntries(Object.entries(localStorage)));
+  const peerSession = await browser.newPage();
+  await peerSession.addInitScript(storage => { for (const [key, value] of Object.entries(storage)) localStorage.setItem(key, value); }, peerStorage);
+  await peerSession.route('**/auth/v1/user**', route => sendAuthJson(route, testUser));
+  await peerSession.route('**/rest/v1/**', workplanPostgrestFixture);
+  await peerSession.goto(`${baseUrl}/projects/${workplanId}`);
+  await peerSession.getByPlaceholder('Project title').waitFor();
+  await peerSession.getByRole('button', { name: 'Timeline' }).click();
+  await dataLab.getByLabel('Deliverable', { exact: true }).nth(1).fill('Session A committed deliverable');
+  await peerSession.getByLabel('Deliverable', { exact: true }).nth(1).fill('Session B recoverable draft');
+  await dataLab.getByRole('button', { name: 'Save workplan' }).click();
+  await dataLab.getByText('Workplan saved').waitFor();
+  await peerSession.getByRole('button', { name: 'Save workplan' }).click();
+  await peerSession.getByRole('alert').getByText('This project changed in another session.', { exact: false }).waitFor();
+  assert.equal(await peerSession.getByLabel('Deliverable', { exact: true }).nth(1).inputValue(), 'Session B recoverable draft');
+  assert.equal(workplanData.plan_items[1].deliverable, 'Session A committed deliverable');
+  assert.equal(workplanWrites, 2, 'the stale session must not produce a second server write');
+  await peerSession.close();
+  console.log('Structured project workplan persistence and reload passed against isolated PostgREST fixtures.');
 
   // Verify sign-out actually invalidates the session and protects private routes.
   await dataLab.route('**/auth/v1/logout**', route => route.fulfill({
