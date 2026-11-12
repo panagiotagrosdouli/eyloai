@@ -704,7 +704,7 @@ try {
   assert.equal(persistedGapPapers.length, 1, 'the authenticated persistence path stores the paper before it becomes analysis evidence');
   await dataLab.getByRole('button', { name: 'Already in Library' }).waitFor();
   await dataLab.reload();
-  await dataLab.getByRole('heading', { name: 'Climate adaptation evidence in coastal cities' }).waitFor();
+  await dataLab.getByText('Climate adaptation evidence in coastal cities', { exact: true }).waitFor();
   assert.equal(await dataLab.getByRole('button', { name: 'Find research gaps' }).isDisabled(), true,
     'one saved paper is still below the two-paper analysis requirement');
   console.log('Research Gap Finder browser flow passed with provider-shaped fixtures and isolated authenticated persistence; live providers and production RLS were not exercised.');
