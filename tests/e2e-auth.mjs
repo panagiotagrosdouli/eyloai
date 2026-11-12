@@ -710,6 +710,7 @@ try {
   console.log('Research Gap Finder browser flow passed with provider-shaped fixtures and isolated authenticated persistence; live providers and production RLS were not exercised.');
 
   // Verify sign-out actually invalidates the session and protects private routes.
+  await dataLab.setViewportSize({ width: 1365, height: 900 });
   await dataLab.route('**/auth/v1/logout**', route => route.fulfill({
     status: 204,
     headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' },
