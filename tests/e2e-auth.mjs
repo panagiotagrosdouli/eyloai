@@ -238,6 +238,20 @@ try {
   assert.match(comparisonCsv, /Pearson correlation \(r\)/);
   assert.match(comparisonCsv, /Complete pairs used/);
   assert.equal(comparisonCsv.includes(canary), false, 'comparison export must not include private source values');
+  await dataLab.locator('input[type="file"]').setInputFiles({
+    name: 'grouped-study.csv', mimeType: 'text/csv',
+    buffer: Buffer.from('group,score\ncontrol,1\ncontrol,3\ntreatment,5\ntreatment,7\n,9\n'),
+  });
+  await dataLab.getByText('Observed categories').waitFor();
+  await dataLab.getByRole('row', { name: /control 2 2 2 1\.4142 1 3/ }).waitFor();
+  await dataLab.getByRole('row', { name: /treatment 2 6 6 1\.4142 5 7/ }).waitFor();
+  const groupedExportPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export comparison CSV' }).click();
+  const groupedExport = await groupedExportPromise;
+  const groupedCsv = await readDataLabDownload(await groupedExport.path(), 'utf8');
+  assert.match(groupedCsv, /"Category","Count","Mean","Median","Sample SD","Minimum","Maximum"/);
+  assert.match(groupedCsv, /"control","2","2","2"/);
+  assert.equal(groupedCsv.includes('"control","1"'), false, 'grouped export must omit raw source rows');
   await dataLab.getByRole('button', { name: 'Clear data' }).click();
 
   await dataLab.locator('input[type="file"]').setInputFiles({
