@@ -8,6 +8,7 @@ import {
   summarizeResearchData,
 } from '@/lib/research-data.mjs';
 import { auditResearchDataQuality } from '@/lib/research-data-quality.mjs';
+import { sha256ResearchFile, buildResearchDataProvenance } from '@/lib/research-data-provenance.mjs';
 
 const numberFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 4 });
 
@@ -30,6 +31,9 @@ export default function ResearchDataLab() {
   const inputRef = useRef(null);
   const [dataset, setDataset] = useState(null);
   const [filename, setFilename] = useState('');
+  const [fileDigest, setFileDigest] = useState(null);
+  const [fileBytes, setFileBytes] = useState(0);
+  const [digestError, setDigestError] = useState('');
   const [chartColumn, setChartColumn] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -57,12 +61,22 @@ export default function ResearchDataLab() {
     setLoading(true);
     setDataset(null);
     setFilename('');
+    setFileDigest(null);
+    setFileBytes(0);
+    setDigestError('');
     try {
       if (!file.name.toLowerCase().endsWith('.csv')) throw new Error('Choose a .csv file.');
       if (file.size > DATA_LAB_LIMITS.bytes) throw new Error('The CSV exceeds the 5 MB limit.');
-      const result = parseResearchCsv(await file.text());
+      const rawBytes = await file.arrayBuffer();
+      const result = parseResearchCsv(new TextDecoder('utf-8').decode(rawBytes));
       setDataset(result);
       setFilename(file.name);
+      setFileBytes(rawBytes.byteLength);
+      try {
+        setFileDigest(await sha256ResearchFile(rawBytes));
+      } catch {
+        setDigestError('File fingerprint unavailable in this browser. Data analysis remains local.');
+      }
       setChartColumn(result.headers.find((header) => summarizeResearchData(result).find((item) => item.column === header && item.type === 'numeric')) || '');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'The CSV could not be read. Check its format and try again.');
@@ -75,6 +89,9 @@ export default function ResearchDataLab() {
   const clearData = () => {
     setDataset(null);
     setFilename('');
+    setFileDigest(null);
+    setFileBytes(0);
+    setDigestError('');
     setChartColumn('');
     setError('');
     if (inputRef.current) inputRef.current.value = '';
@@ -92,6 +109,11 @@ export default function ResearchDataLab() {
       generated_at: new Date().toISOString(),
       file_name: filename,
       audit: quality,
+      provenance: fileDigest && dataset
+        ? buildResearchDataProvenance({
+          fileName: filename, byteLength: fileBytes, sha256: fileDigest,
+          rowCount: dataset.rows.length, columnCount: dataset.headers.length,
+        }) : null,
     }, null, 2)], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     try {
@@ -146,6 +168,18 @@ export default function ResearchDataLab() {
         <p className="mt-3 text-xs text-muted-foreground">Limits: 5 MB, {numberFormat.format(DATA_LAB_LIMITS.rows)} rows, {DATA_LAB_LIMITS.columns} columns. No formulas are executed.</p>
         {error && <p role="alert" className="mt-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
         {dataset && <p role="status" className="mt-4 inline-flex items-center gap-2 text-sm text-foreground"><FileSpreadsheet size={16} className="text-primary" aria-hidden="true" />{filename} · {numberFormat.format(dataset.rows.length)} rows · {dataset.headers.length} columns</p>}
+        {dataset && (
+          <div className="mt-3 rounded-lg border border-border p-3 text-xs">
+            <p className="font-semibold">Local file identity (SHA-256)</p>
+            {fileDigest ? <code className="mt-1 block break-all font-mono">{fileDigest}</code>
+              : <p role="status" className="mt-1 text-muted-foreground">{digestError || 'Calculating fingerprint…'}</p>}
+            <p className="mt-2 text-muted-foreground">
+              Fingerprint of the original CSV bytes, not the parsed rows. Use it to compare later file versions.
+              It is not a scientific validation or a digital signature. Private, predictable datasets may be identifiable from their hash.
+              The optional fingerprint is included in the aggregate JSON report.
+            </p>
+          </div>
+        )}
       </section>
 
       {dataset && (
