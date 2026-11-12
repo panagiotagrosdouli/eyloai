@@ -587,7 +587,9 @@ try {
     throw new Error(`Unexpected workplan request: ${request.method()} ${request.url()}`);
   });
   await dataLab.goto(`${baseUrl}/projects/${workplanId}`);
-  await dataLab.getByRole('heading', { name: 'Workplan E2E project' }).waitFor();
+  const workplanProjectTitle = dataLab.getByPlaceholder('Project title');
+  await workplanProjectTitle.waitFor();
+  assert.equal(await workplanProjectTitle.inputValue(), 'Workplan E2E project');
   await dataLab.getByRole('button', { name: 'Timeline' }).click();
   await dataLab.locator('#workplan-new-title').fill('Approve protocol');
   await dataLab.getByLabel('Deliverable (optional)').fill('Approved protocol document');
