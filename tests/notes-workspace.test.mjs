@@ -68,5 +68,8 @@ test('Notes page exposes saved CRUD, project links, full-text search, history an
   assert.match(page, /Export Markdown/);
   assert.match(page, /Link to a project/);
   assert.match(page, /ownerRef\.current = user\?\.id \|\| null/);
+  assert.match(page, /window\.sessionStorage\.setItem/);
+  assert.match(page, /saveNoteRef\.current\?\.\(null, true\)/);
+  assert.match(page, /Recovered this note’s unsynced browser-tab draft/);
   assert.match(app, /path="\/notes" element=\{<Notes \/>\}/);
 });
