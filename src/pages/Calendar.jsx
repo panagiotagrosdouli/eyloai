@@ -26,6 +26,7 @@ function defaultEditor() {
 export default function Calendar() {
   const { user } = useAuth();
   const owner = useRef(user?.id || null);
+  const focusedEventRef = useRef(false);
   const [events, setEvents] = useState([]);
   const [projects, setProjects] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -54,6 +55,7 @@ export default function Calendar() {
 
   useEffect(() => {
     owner.current = user?.id || null;
+    focusedEventRef.current = false;
     setEvents([]); setProjects([]); setSelected(null); setEditor(defaultEditor()); setBaseline(defaultEditor());
     setError(''); setNotice('');
     if (user?.id) void load(user.id); else setLoading(false);
@@ -72,6 +74,13 @@ export default function Calendar() {
     if (dirty && !window.confirm('Discard unsaved event changes?')) return;
     const value = copy(event); setSelected(event); setEditor(value); setBaseline(value); setError(''); setNotice('');
   };
+  const chooseRef = useRef(choose);
+  chooseRef.current = choose;
+  useEffect(() => {
+    const focusId = new URLSearchParams(window.location.search).get('focus');
+    const match = focusId && !focusedEventRef.current ? events.find(event => String(event.id) === focusId) : null;
+    if (match) { focusedEventRef.current = true; chooseRef.current(match); }
+  }, [events]);
   const save = async e => {
     e.preventDefault(); const userId = owner.current; if (!userId) return;
     setSaving(true); setError(''); setNotice('');
@@ -130,3 +139,4 @@ export default function Calendar() {
     </div>
   </div>;
 }
+
