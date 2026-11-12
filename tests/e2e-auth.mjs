@@ -229,6 +229,7 @@ try {
   assert.match(comparisonText, /Pearson correlation, r\s+1/);
   assert.match(comparisonText, /Complete pairs used\s+3/);
   assert.match(comparisonText, /Rows skipped for blanks or non-numeric cells\s+1/);
+  await dataLab.getByRole('img', { name: 'Scatter plot of hours against score using a sample of 3 complete rows' }).waitFor();
   const comparisonDownloadPromise = dataLab.waitForEvent('download');
   await dataLab.getByRole('button', { name: 'Export comparison CSV' }).click();
   const comparisonDownload = await comparisonDownloadPromise;
