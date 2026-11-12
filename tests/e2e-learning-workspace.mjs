@@ -46,6 +46,7 @@ try {
     if (method === 'GET') {
       const id = url.searchParams.get('id')?.replace('eq.', '');
       const matching = records.filter((item) => item.user_id === user.id && (!id || item.id === id));
+      if (wantsObject) console.log('E2E single read', id, matching[0]?.kind, matching[0]?.data?.title);
       return response(wantsObject ? (matching[0] || null) : matching);
     }
     if (method === 'POST') {
@@ -129,6 +130,7 @@ try {
   assert.equal(await page.getByLabel('Title').inputValue(), 'My unsaved rewrite', 'a concurrent edit must preserve the local draft');
   await page.getByRole('alert').getByRole('button', { name: 'Load latest version' }).click();
   await page.getByText('Latest note loaded', { exact: true }).waitFor({ timeout: 5_000 }).catch(async () => { throw new Error(`Latest note reload did not complete: ${await page.getByRole('alert').innerText()}`); });
+  console.log('E2E loaded note field', await page.getByLabel('Title').inputValue());
   await page.waitForFunction(() => document.querySelector('input[aria-label="Title"]')?.value === 'Remote session title');
   assert.equal(await page.getByLabel('Title').inputValue(), 'Remote session title');
 
