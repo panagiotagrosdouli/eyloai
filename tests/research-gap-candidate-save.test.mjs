@@ -33,10 +33,11 @@ test('rejects fake source IDs and unsupported hypotheses rather than inventing p
 
 test('persists candidate to existing user-owned project and deduplicates repeated saves', async () => {
   const writes = [];
-  const project = { id: 'owner-project', title: 'Project one', gap_candidates: [] };
+  const project = { id: 'owner-project', title: 'Project one', updated_date: '2026-11-12T06:00:00Z', gap_candidates: [] };
   const entities = { Project: {
     async get(id) { assert.equal(id, 'owner-project'); return project; },
-    async update(id, patch) {
+    async updateIfUnchanged(id, patch, version) {
+      assert.equal(version, project.updated_date);
       assert.equal(id, 'owner-project');
       writes.push(patch);
       project.gap_candidates = patch.gap_candidates;
