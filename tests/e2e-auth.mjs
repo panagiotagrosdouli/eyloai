@@ -555,7 +555,7 @@ try {
     data: workplanData,
   });
   let workplanWrites = 0;
-  await dataLab.route('**/rest/v1/**', async route => {
+  const workplanPostgrestFixture = async route => {
     const request = route.request();
     const url = new URL(request.url());
     const table = url.pathname.split('/').at(-1);
@@ -577,6 +577,14 @@ try {
       return;
     }
     if (request.method() === 'PATCH') {
+      assert.equal(url.searchParams.get('id'), `eq.${workplanId}`);
+      assert.equal(url.searchParams.get('user_id'), `eq.${testUser.id}`, 'every update must remain owner-scoped');
+      const expectedVersion = url.searchParams.get('updated_date')?.replace(/^eq\./, '');
+      assert.ok(expectedVersion, 'every workplan update must carry its loaded version');
+      if (expectedVersion !== workplanVersion) {
+        await route.fulfill({ status: 200, headers, body: '[]' });
+        return;
+      }
       const body = request.postDataJSON();
       workplanData = { ...workplanData, ...(body.data || {}) };
       workplanVersion = new Date(Date.parse(workplanVersion) + 1000).toISOString();
@@ -585,7 +593,8 @@ try {
       return;
     }
     throw new Error(`Unexpected workplan request: ${request.method()} ${request.url()}`);
-  });
+  };
+  await dataLab.route('**/rest/v1/**', workplanPostgrestFixture);
   await dataLab.goto(`${baseUrl}/projects/${workplanId}`);
   const workplanProjectTitle = dataLab.getByPlaceholder('Project title');
   await workplanProjectTitle.waitFor();
@@ -612,6 +621,27 @@ try {
   assert.equal(await dataLab.getByLabel('Deliverable', { exact: true }).nth(1).inputValue(), 'De-identified dataset');
   assert.equal(await dataLab.getByLabel('Target date', { exact: true }).first().inputValue(), '2026-12-01');
   assert.equal(workplanWrites, 1, 'reopening the project reads the saved plan without creating a duplicate write');
+
+  // Two separately authenticated browser sessions load one version. Session A
+  // commits; session B's stale compare-and-set must conflict and keep its draft.
+  const peerStorage = await dataLab.evaluate(() => Object.fromEntries(Object.entries(localStorage)));
+  const peerSession = await browser.newPage();
+  await peerSession.addInitScript(storage => { for (const [key, value] of Object.entries(storage)) localStorage.setItem(key, value); }, peerStorage);
+  await peerSession.route('**/auth/v1/user**', route => sendAuthJson(route, testUser));
+  await peerSession.route('**/rest/v1/**', workplanPostgrestFixture);
+  await peerSession.goto(`${baseUrl}/projects/${workplanId}`);
+  await peerSession.getByPlaceholder('Project title').waitFor();
+  await peerSession.getByRole('button', { name: 'Timeline' }).click();
+  await dataLab.getByLabel('Deliverable', { exact: true }).nth(1).fill('Session A committed deliverable');
+  await peerSession.getByLabel('Deliverable', { exact: true }).nth(1).fill('Session B recoverable draft');
+  await dataLab.getByRole('button', { name: 'Save workplan' }).click();
+  await dataLab.getByText('Workplan saved').waitFor();
+  await peerSession.getByRole('button', { name: 'Save workplan' }).click();
+  await peerSession.getByRole('alert').getByText('This project changed in another session.', { exact: false }).waitFor();
+  assert.equal(await peerSession.getByLabel('Deliverable', { exact: true }).nth(1).inputValue(), 'Session B recoverable draft');
+  assert.equal(workplanData.plan_items[1].deliverable, 'Session A committed deliverable');
+  assert.equal(workplanWrites, 2, 'the stale session must not produce a second server write');
+  await peerSession.close();
   console.log('Structured project workplan persistence and reload passed against isolated PostgREST fixtures.');
 
   // Verify sign-out actually invalidates the session and protects private routes.
