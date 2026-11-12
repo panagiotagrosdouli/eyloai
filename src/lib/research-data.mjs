@@ -148,14 +148,15 @@ export function compareResearchNumericColumns(dataset, firstColumn, secondColumn
 
   const pairs = [];
   let incomplete = 0;
-  for (const row of rows) {
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+    const row = rows[rowIndex];
     const first = numericValue(row?.[firstIndex]);
     const second = numericValue(row?.[secondIndex]);
     if (first === null || second === null) {
       incomplete += 1;
       continue;
     }
-    pairs.push([first, second]);
+    pairs.push({ first, second, row: rowIndex + 1 });
   }
 
   if (pairs.length < 3) {
@@ -169,14 +170,18 @@ export function compareResearchNumericColumns(dataset, firstColumn, secondColumn
 
   // Pearson r is unchanged by scaling each variable independently. Scaling
   // first keeps the online covariance calculation finite for large CSV values.
-  const firstScale = Math.max(...pairs.map(([value]) => Math.abs(value))) || 1;
-  const secondScale = Math.max(...pairs.map(([, value]) => Math.abs(value))) || 1;
+  const firstMin = Math.min(...pairs.map(({ first }) => first));
+  const firstMax = Math.max(...pairs.map(({ first }) => first));
+  const secondMin = Math.min(...pairs.map(({ second }) => second));
+  const secondMax = Math.max(...pairs.map(({ second }) => second));
+  const firstScale = Math.max(Math.abs(firstMin), Math.abs(firstMax)) || 1;
+  const secondScale = Math.max(Math.abs(secondMin), Math.abs(secondMax)) || 1;
   let firstMean = 0;
   let secondMean = 0;
   let firstSquares = 0;
   let secondSquares = 0;
   let coMoment = 0;
-  pairs.forEach(([first, second], index) => {
+  pairs.forEach(({ first, second }, index) => {
     const count = index + 1;
     const scaledFirst = first / firstScale;
     const scaledSecond = second / secondScale;
@@ -200,6 +205,21 @@ export function compareResearchNumericColumns(dataset, firstColumn, secondColumn
   }
 
   const pearsonR = Math.max(-1, Math.min(1, coMoment / denominator));
+  const plotLimit = 500;
+  const plotCount = Math.min(pairs.length, plotLimit);
+  const firstLow = firstMin / firstScale;
+  const firstRange = firstMax / firstScale - firstLow || 1;
+  const secondLow = secondMin / secondScale;
+  const secondRange = secondMax / secondScale - secondLow || 1;
+  const scatterSample = Array.from({ length: plotCount }, (_, index) => {
+    const sampleIndex = plotCount === 1 ? 0 : Math.round(index * (pairs.length - 1) / (plotCount - 1));
+    const point = pairs[sampleIndex];
+    return {
+      ...point,
+      xPosition: Math.max(0, Math.min(1, ((point.first / firstScale) - firstLow) / firstRange)),
+      yPosition: Math.max(0, Math.min(1, ((point.second / secondScale) - secondLow) / secondRange)),
+    };
+  });
   return {
     available: Number.isFinite(pearsonR),
     kind: 'pearson-correlation',
@@ -207,6 +227,11 @@ export function compareResearchNumericColumns(dataset, firstColumn, secondColumn
     secondColumn,
     pairs: pairs.length,
     incomplete,
+    firstMin,
+    firstMax,
+    secondMin,
+    secondMax,
+    scatterSample,
     pearsonR: Number.isFinite(pearsonR) ? pearsonR : null,
   };
 }
