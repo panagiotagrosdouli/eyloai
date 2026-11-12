@@ -1,6 +1,8 @@
 export const LIFE_TASK_STATUSES = Object.freeze(['todo', 'in_progress', 'done']);
 export const LIFE_TASK_PRIORITIES = Object.freeze(['low', 'normal', 'high', 'urgent']);
 export const LIFE_TASK_RECURRENCES = Object.freeze(['none', 'daily', 'weekly', 'monthly']);
+export const LIFE_AREAS = Object.freeze(['personal', 'research', 'study', 'work']);
+export const LIFE_TASK_KINDS = Object.freeze(['task', 'study', 'syllabus', 'exam']);
 
 function text(value, max, name, required = false, code = 'LIFE_TASK_VALIDATION') {
   const result = String(value ?? '').trim();
@@ -19,6 +21,8 @@ export function normalizeLifeTask(input = {}) {
   const status = LIFE_TASK_STATUSES.includes(input.status) ? input.status : 'todo';
   const priority = LIFE_TASK_PRIORITIES.includes(input.priority) ? input.priority : 'normal';
   const recurrence = LIFE_TASK_RECURRENCES.includes(input.recurrence) ? input.recurrence : 'none';
+  const area = LIFE_AREAS.includes(input.area) ? input.area : 'personal';
+  const kind = LIFE_TASK_KINDS.includes(input.kind) ? input.kind : 'task';
   const dueDate = text(input.due_date, 10, 'Due date');
   if (dueDate && (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)
     || Number.isNaN(Date.parse(`${dueDate}T00:00:00Z`))
@@ -35,6 +39,10 @@ export function normalizeLifeTask(input = {}) {
     status,
     priority,
     recurrence,
+    area,
+    kind,
+    course: text(input.course, 160, 'Course'),
+    syllabus_item: text(input.syllabus_item, 200, 'Syllabus item'),
     due_date: dueDate || null,
     project_id: projectId || null,
   };
@@ -63,6 +71,7 @@ export function normalizeLifeGoal(input = {}) {
   const title = text(input.title, 160, 'Goal title', true, 'LIFE_GOAL_VALIDATION');
   const description = text(input.description, 5000, 'Goal description', false, 'LIFE_GOAL_VALIDATION');
   const status = ['active', 'paused', 'completed'].includes(input.status) ? input.status : 'active';
+  const area = LIFE_AREAS.includes(input.area) ? input.area : 'personal';
   const targetDate = text(input.target_date, 10, 'Target date');
   if (targetDate && (!/^\d{4}-\d{2}-\d{2}$/.test(targetDate)
     || Number.isNaN(Date.parse(`${targetDate}T00:00:00Z`))
@@ -97,6 +106,7 @@ export function normalizeLifeGoal(input = {}) {
     title,
     description,
     status,
+    area,
     target_date: targetDate || null,
     project_id: projectId || null,
     milestones,
