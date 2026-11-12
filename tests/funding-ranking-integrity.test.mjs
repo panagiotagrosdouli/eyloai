@@ -42,7 +42,7 @@ test('unknown IDs, invalid scores and invalid difficulty cannot become trusted r
   const result = applyFundingRanking(records, {
     ranked: [
       { id: 'other', match_score: 100, title: 'Injected record' },
-      { id: 'grant-1', match_score: 101, match_reason: 'x'.repeat(700), difficulty: 'Guaranteed' },
+      { id: 'grant-1', match_score: '99', match_reason: 'x'.repeat(700), difficulty: 'Guaranteed' },
     ],
   });
 
