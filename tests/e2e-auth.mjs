@@ -702,7 +702,11 @@ try {
       const path = decodeURIComponent(url.pathname.split('/object/').at(-1).replace(/^authenticated\//, '').replace(/^eylo-files\//, ''));
       const bytes = storedObjects.get(path);
       if (!bytes) return route.fulfill({ status: 404, body: 'Not found' });
-      return route.fulfill({ status: 200, body: bytes, headers: { 'content-type': 'text/plain' } });
+      return route.fulfill({ status: 200, body: bytes, headers: {
+        'access-control-allow-origin': '*',
+        'access-control-allow-headers': '*',
+        'content-type': 'text/plain',
+      } });
     }
     if (request.method() === 'DELETE' && url.pathname.endsWith('/object/eylo-files')) {
       for (const path of request.postDataJSON().prefixes) storedObjects.delete(path);
@@ -743,12 +747,7 @@ try {
   assert.equal(new URL(filesPage.url()).searchParams.get('focus'), savedFileId);
   await filesPage.getByRole('heading', { name: 'EYLO Files' }).waitFor();
   const focusedFileCard = filesPage.locator(`#eylo-file-${savedFileId}`);
-  try {
-    await focusedFileCard.waitFor({ timeout: 8000 });
-  } catch (cause) {
-    console.log('EYLO FILE FOCUS DIAGNOSTIC', JSON.stringify({ fileRows, url: filesPage.url(), body: (await filesPage.locator('body').innerText()).slice(-1800) }));
-    throw cause;
-  }
+  await focusedFileCard.waitFor({ timeout: 8000 });
   assert.match(await focusedFileCard.getAttribute('class'), /border-primary/, 'search deep link focuses the exact private file');
   await filesPage.reload();
   await filesPage.getByText('Methods protocol').waitFor();
