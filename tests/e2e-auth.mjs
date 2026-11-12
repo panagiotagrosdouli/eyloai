@@ -475,6 +475,73 @@ try {
   assert.equal(exportedReview.protocol.screening[0].paper_id, 'library-paper-1');
   assert.match(exportedReview.reporting_note, /Not a PRISMA-compliant/);
 
+  // Research Gap Finder live-search and save workflow using scholarly-provider
+  // shaped responses plus an isolated authenticated PostgREST persistence fixture.
+  const providerCors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };
+  await dataLab.route('https://api.openalex.org/works**', route => route.fulfill({
+    status: 200, contentType: 'application/json', headers: providerCors,
+    body: JSON.stringify({ results: [{
+      id: 'https://openalex.org/W987654321', doi: 'https://doi.org/10.1234/climate.2026',
+      title: 'Climate adaptation evidence in coastal cities', publication_year: 2026,
+      authorships: [{ author: { display_name: 'A. Researcher', id: 'https://openalex.org/A123' } }],
+      abstract_inverted_index: { Climate: [0], adaptation: [1], evidence: [2], coastal: [3], cities: [4] },
+      primary_location: { source: { display_name: 'Climate Science Journal' } },
+      cited_by_count: 12, open_access: { is_oa: true }, type: 'article', relevance_score: 0.98,
+    }] }),
+  }));
+  await dataLab.route('https://export.arxiv.org/api/query**', route => route.fulfill({
+    status: 200, contentType: 'application/atom+xml', headers: providerCors,
+    body: '<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"></feed>',
+  }));
+  await dataLab.route('https://www.ebi.ac.uk/europepmc/webservices/rest/search**', route => route.fulfill({
+    status: 200, contentType: 'application/json', headers: providerCors, body: JSON.stringify({ resultList: { result: [] } }),
+  }));
+  await dataLab.route('https://api.crossref.org/works**', route => route.fulfill({
+    status: 200, contentType: 'application/json', headers: providerCors, body: JSON.stringify({ message: { items: [] } }),
+  }));
+  await dataLab.route('https://api.semanticscholar.org/graph/v1/paper/search**', route => route.fulfill({
+    status: 503, contentType: 'application/json', headers: providerCors, body: JSON.stringify({ message: 'test provider outage' }),
+  }));
+  const persistedGapPapers = [];
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/saved_papers**', async route => {
+    const request = route.request();
+    if (request.method() === 'OPTIONS') {
+      await route.fulfill({ status: 204, headers: { ...providerCors, 'access-control-allow-methods': 'GET, POST, PATCH, OPTIONS', 'access-control-allow-headers': 'apikey, authorization, content-type, x-client-info, prefer' } });
+      return;
+    }
+    if (request.method() === 'GET') {
+      await route.fulfill({ status: 200, contentType: 'application/json', headers: providerCors, body: JSON.stringify(persistedGapPapers) });
+      return;
+    }
+    if (request.method() === 'POST') {
+      const payload = request.postDataJSON();
+      const row = { id: 'saved-gap-paper-1', user_id: testUser.id, data: payload.data, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      persistedGapPapers.push(row);
+      const single = /vnd\.pgrst\.object\+json/i.test(request.headers().accept || '');
+      await route.fulfill({ status: 201, contentType: 'application/json', headers: providerCors, body: JSON.stringify(single ? row : [row]) });
+      return;
+    }
+    throw new Error(`Unexpected saved-paper method: ${request.method()}`);
+  });
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/projects**', route => sendAuthJson(route, []));
+  await dataLab.goto(`${baseUrl}/research-gaps`);
+  await dataLab.getByRole('heading', { name: 'Research Gap Finder' }).waitFor();
+  await dataLab.getByLabel('Search scholarly literature').fill('climate adaptation');
+  await dataLab.getByRole('button', { name: 'Search literature' }).click();
+  await dataLab.getByText('Climate adaptation evidence in coastal cities').waitFor();
+  await dataLab.getByText(/4 of 5 sources responded/).waitFor();
+  assert.equal(await dataLab.getByRole('button', { name: 'Find research gaps' }).isDisabled(), true,
+    'retrieved but unsaved literature cannot enter analysis');
+  await dataLab.getByRole('button', { name: 'Save to Library' }).click();
+  await dataLab.getByText('Saved to Library and selected').waitFor();
+  assert.equal(persistedGapPapers.length, 1, 'the authenticated persistence path stores the paper before it becomes analysis evidence');
+  await dataLab.getByRole('button', { name: 'Already in Library' }).waitFor();
+  await dataLab.reload();
+  await dataLab.getByRole('heading', { name: 'Climate adaptation evidence in coastal cities' }).waitFor();
+  assert.equal(await dataLab.getByRole('button', { name: 'Find research gaps' }).isDisabled(), true,
+    'one saved paper is still below the two-paper analysis requirement');
+  console.log('Research Gap Finder browser flow passed with provider-shaped fixtures and isolated authenticated persistence; live providers and production RLS were not exercised.');
+
   // Verify sign-out actually invalidates the session and protects private routes.
   await dataLab.route('**/auth/v1/logout**', route => route.fulfill({
     status: 204,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Loader2, Search, FolderKanban, ExternalLink, Sparkles } from 'lucide-react';
@@ -8,7 +8,8 @@ import { getResearchEvidenceContextKey } from '@/lib/research-gap-context.mjs';
 import { saveResearchGapCandidate } from '@/lib/research-gap-candidate-save.mjs';
 import { isSafeLiteratureSourceUrl } from '@/lib/literature-review-protocol.mjs';
 import { buildResearchGapCoverage } from '@/lib/research-gap-coverage.mjs';
-import { saveDiscoveredGapPaper } from '@/lib/research-gap-literature-save.mjs';
+import { researchPaperIdentity, saveDiscoveredGapPaper } from '@/lib/research-gap-literature-save.mjs';
+import { normalizeDoi } from '@/lib/citation-verification.mjs';
 
 const gapSchema = { type: 'object', properties: { gaps: { type: 'array', items: { type: 'object', properties: {
   question: { type: 'string' }, explanation: { type: 'string' }, supporting_papers: { type: 'array', items: { type: 'string' } }, counterevidence_papers: { type: 'array', items: { type: 'string' } }, counterevidence: { type: 'string' }, limitations: { type: 'string' }, uncertainty: { type: 'string' }, proposed_question: { type: 'string' }, methodology: { type: 'string' },
@@ -37,6 +38,7 @@ export default function ResearchGaps() {
   const [literatureRetrievedAt, setLiteratureRetrievedAt] = useState('');
   const [searchingLiterature, setSearchingLiterature] = useState(false);
   const [literatureError, setLiteratureError] = useState('');
+  const literatureRequest = useRef({ sequence: 0, controller: null });
   const { toast } = useToast();
 
   const load = async () => {
@@ -50,6 +52,10 @@ export default function ResearchGaps() {
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
+  useEffect(() => () => {
+    literatureRequest.current.sequence += 1;
+    literatureRequest.current.controller?.abort();
+  }, []);
 
   const sourcePapers = projectId ? papers.filter((paper) => paper.project_id === projectId) : papers;
   const currentEvidenceContextKey = getResearchEvidenceContextKey(projectId, selected);
@@ -64,22 +70,62 @@ export default function ResearchGaps() {
   const searchLiterature = async (event) => {
     event?.preventDefault();
     const query = literatureQuery.trim();
-    if (!query || searchingLiterature) return;
+    if (!query) return;
+    literatureRequest.current.controller?.abort();
+    const sequence = ++literatureRequest.current.sequence;
+    const requestContextProjectId = projectId;
+    const controller = new AbortController();
+    literatureRequest.current.controller = controller;
     setSearchingLiterature(true);
     setLiteratureError('');
     setLiteratureResults([]);
     setLiteratureCoverage(null);
     try {
-      const result = await searchAllPapersWithStatus(query, { limit: 20, recency: 'balanced' });
+      const result = await searchAllPapersWithStatus(query, { limit: 20, recency: 'balanced', signal: controller.signal });
+      if (sequence !== literatureRequest.current.sequence || requestContextProjectId !== projectId) return;
       const retrievedAt = new Date().toISOString();
       setLiteratureResults(Array.isArray(result.papers) ? result.papers : []);
       setLiteratureCoverage(buildResearchGapCoverage(result));
       setLiteratureRetrievedAt(retrievedAt);
     } catch (failure) {
-      setLiteratureError(failure?.message || 'Scholarly literature search failed.');
+      if (sequence === literatureRequest.current.sequence) {
+        setLiteratureError(controller.signal.aborted ? 'Search was cancelled. Update the query or retry.' : failure?.message || 'Scholarly literature search failed.');
+      }
     } finally {
-      setSearchingLiterature(false);
+      if (sequence === literatureRequest.current.sequence) {
+        literatureRequest.current.controller = null;
+        setSearchingLiterature(false);
+      }
     }
+  };
+
+  const changeLiteratureQuery = (value) => {
+    if (value !== literatureQuery) {
+      literatureRequest.current.controller?.abort();
+      literatureRequest.current.sequence += 1;
+      literatureRequest.current.controller = null;
+      setSearchingLiterature(false);
+      setLiteratureResults([]);
+      setLiteratureCoverage(null);
+      setLiteratureRetrievedAt('');
+      setLiteratureError('');
+    }
+    setLiteratureQuery(value);
+  };
+
+  const changeProject = (value) => {
+    literatureRequest.current.controller?.abort();
+    literatureRequest.current.sequence += 1;
+    literatureRequest.current.controller = null;
+    setSearchingLiterature(false);
+    setLiteratureResults([]);
+    setLiteratureCoverage(null);
+    setLiteratureRetrievedAt('');
+    setLiteratureError('');
+    setProjectId(value);
+    setSelected([]);
+    setError('');
+    invalidateAnalysis();
   };
 
   const saveDiscoveredPaper = async (paper) => {
@@ -200,7 +246,7 @@ export default function ResearchGaps() {
   return <main className="eylo-page">
     <header className="mb-6"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">EYRA evidence synthesis</p><h1 className="mt-2 eylo-page-heading">Research Gap Finder</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Compare selected saved papers or focus on a project. Candidate gaps are hypotheses from this evidence sample, not proof that the wider literature has no answer.</p></header>
     <div className="mb-5 grid gap-3 sm:grid-cols-[1fr_auto]">
-      <label className="flex items-center gap-2 rounded-xl border border-border bg-card px-3"><FolderKanban size={15} className="text-primary"/><select value={projectId} onChange={(event) => { setProjectId(event.target.value); setSelected([]); setError(''); invalidateAnalysis(); }} aria-label="Choose a project" className="min-h-11 flex-1 bg-transparent text-sm"><option value="">All saved papers</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.title}</option>)}</select></label>
+      <label className="flex items-center gap-2 rounded-xl border border-border bg-card px-3"><FolderKanban size={15} className="text-primary"/><select value={projectId} onChange={(event) => changeProject(event.target.value)} aria-label="Choose a project" className="min-h-11 flex-1 bg-transparent text-sm"><option value="">All saved papers</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.title}</option>)}</select></label>
       <div className="grid gap-2 sm:grid-cols-2"><button type="button" disabled={comparing || selected.length < 2} onClick={comparePapers} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-primary/30 px-4 text-sm font-semibold text-primary disabled:opacity-50">{comparing ? <Loader2 size={15} className="animate-spin"/> : <Search size={15}/>}Compare papers</button><button type="button" disabled={analyzing || selected.length < 2} onClick={analyze} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">{analyzing ? <Loader2 size={15} className="animate-spin"/> : <Sparkles size={15}/>}Find research gaps</button></div>
     </div>
     <section className="mb-6 rounded-2xl border border-border bg-card p-4 sm:p-5" aria-labelledby="gap-live-search-heading">
@@ -209,7 +255,7 @@ export default function ResearchGaps() {
         <p className="mt-1 text-xs leading-5 text-muted-foreground">Search live records from OpenAlex, arXiv, Europe PMC, Crossref, and Semantic Scholar. Save records to your Library before using them in an analysis.</p>
       </div>
       <form onSubmit={searchLiterature} className="flex flex-col gap-2 sm:flex-row">
-        <input value={literatureQuery} onChange={(event) => setLiteratureQuery(event.target.value)} aria-label="Search scholarly literature" placeholder="Enter a research topic or question" className="min-h-11 min-w-0 flex-1 rounded-xl border border-border bg-background px-3 text-sm" />
+        <input value={literatureQuery} onChange={(event) => changeLiteratureQuery(event.target.value)} aria-label="Search scholarly literature" placeholder="Enter a research topic or question" className="min-h-11 min-w-0 flex-1 rounded-xl border border-border bg-background px-3 text-sm" />
         <button type="submit" disabled={!literatureQuery.trim() || searchingLiterature} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">
           {searchingLiterature ? <Loader2 size={15} className="animate-spin"/> : <Search size={15}/>}
           {searchingLiterature ? 'Searching scholarly indexes…' : 'Search literature'}
@@ -235,7 +281,9 @@ export default function ResearchGaps() {
       {literatureResults.length > 0 && (
         <div className="mt-4 space-y-2">
           {literatureResults.map((paper) => {
-            const alreadySaved = papers.some((saved) => saved.source_id === (paper.id || paper.doi || paper.url || paper.title));
+            const identity = researchPaperIdentity(paper);
+            const alreadySaved = papers.some((saved) => saved.source_id === identity.sourceId
+              || (identity.doi && normalizeDoi(saved.doi) === identity.doi));
             return (
               <article key={paper._dedupeKey || paper.id || paper.url || paper.title} className="flex flex-col gap-3 rounded-xl border border-border/70 bg-background/50 p-3 sm:flex-row sm:items-start">
                 <div className="min-w-0 flex-1">

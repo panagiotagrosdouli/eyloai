@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { buildResearchGapCoverage } from '../src/lib/research-gap-coverage.mjs';
-import { saveDiscoveredGapPaper } from '../src/lib/research-gap-literature-save.mjs';
+import { researchPaperIdentity, saveDiscoveredGapPaper } from '../src/lib/research-gap-literature-save.mjs';
 
 test('retrieval coverage preserves available and unavailable source status', () => {
   const coverage = buildResearchGapCoverage({
@@ -37,6 +37,35 @@ test('live source records are saved with source metadata and selected project as
   assert.equal(saved.source_id, 'W1');
   assert.equal(saved.project_id, 'project-1');
   assert.equal(created.source_index, 'OpenAlex');
+});
+
+test('DOI identity is normalized across provider IDs and duplicate records are reused', async () => {
+  assert.deepEqual(researchPaperIdentity({ id: 'openalex:W1', doi: 'https://doi.org/10.1234/ABC.1' }), {
+    doi: '10.1234/abc.1', sourceId: 'doi:10.1234/abc.1',
+  });
+  const existing = { id: 'saved-1', source_id: 'doi:10.1234/abc.1', doi: '10.1234/abc.1', title: 'Evidence study' };
+  let created = 0;
+  const saved = await saveDiscoveredGapPaper({
+    entities: { SavedPaper: {
+      filter: async () => [existing],
+      create: async () => { created += 1; throw new Error('must not create duplicate'); },
+    } },
+    paper: { id: 'crossref:W999', DOI: 'doi:10.1234/ABC.1', title: 'Evidence study' },
+  });
+  assert.equal(saved.id, 'saved-1');
+  assert.equal(created, 0);
+});
+
+test('unsafe source URLs are not persisted as clickable scholarly links', async () => {
+  let created;
+  await saveDiscoveredGapPaper({
+    entities: { SavedPaper: {
+      filter: async () => [],
+      create: async (record) => { created = record; return record; },
+    } },
+    paper: { id: 'W1', title: 'Evidence study', url: 'javascript:alert(1)' },
+  });
+  assert.equal(created.url, '');
 });
 
 test('an existing project link is not reassigned when saving live literature', async () => {
