@@ -25,6 +25,7 @@
     "test:e2e:meetings": "node tests/e2e-native-meetings.mjs",
     "test:e2e:calendar": "node tests/e2e-calendar.mjs",
     "test:e2e:time-tracker": "node tests/e2e-time-tracker.mjs",
+    "test:e2e:flashcards": "node tests/e2e-flashcards.mjs",
     "test:e2e:project-concurrency": "node tests/e2e-supabase-project-concurrency.mjs"
   },
   "dependencies": {
