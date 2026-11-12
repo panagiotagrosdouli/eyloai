@@ -567,11 +567,10 @@ try {
       const body = request.postDataJSON();
       const row = { id: `foryou-saved-${savedForYouPapers.length + 1}`, user_id: testUser.id, created_at: new Date().toISOString(), data: body.data || body };
       savedForYouPapers.push(row);
-      await sendAuthJson(route, [row]);
+      await sendAuthJson(route, row);
       return;
     }
-    const matchingId = url.searchParams.get('source_id')?.replace(/^eq\./, '');
-    await sendAuthJson(route, matchingId ? savedForYouPapers.filter(row => row.data.source_id === decodeURIComponent(matchingId)) : savedForYouPapers);
+    await sendAuthJson(route, savedForYouPapers);
   });
   const providerCors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };
   await dataLab.route('https://api.openalex.org/works**', async route => {
