@@ -33,6 +33,9 @@
 
 ### 3. AI Research Gap Finder — partial
 
+- [x] Search live OpenAlex, arXiv, Europe PMC, Crossref and Semantic Scholar records from the Gap Finder; show per-source availability, result counts and retrieval time; save source records into the user Library and optionally the selected project before analysis.
+
+
 - [x] Reframe landscape-generated “gaps” as tentative, source-linked research questions; validate every model-supplied paper ID against retrieved OpenAlex records.
 - [ ] Add a broader, reproducible literature-review protocol and retrieval-coverage display.
 - [ ] Persist reviewed candidates to a project with evidence and counterevidence.
@@ -118,6 +121,8 @@
 - [ ] Verify the intended live deployment and service configuration before any production-readiness claim.
 
 ## Work recorded
+
+- **2026-11-12:** Research Gap Finder now offers live scholarly search across the connected indexes, shows per-source coverage/result counts and retrieval time, distinguishes no-match results from total provider outage, and lets users save records into their Library or selected project before analysis. Added deterministic coverage, save/association, and UI integration tests. Hosted checks are pending.
 
 - **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.
 - **2026-11-10:** Project Evidence adds a source-linked, editable matrix for linked papers; notes are stored on the project and exported as CSV with spreadsheet formula escaping. Missing notes are shown as unrecorded rather than inferred.
