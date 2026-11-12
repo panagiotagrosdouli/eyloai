@@ -28,6 +28,7 @@ const Home = lazy(() => import('@/pages/Home'));
 const Library = lazy(() => import('@/pages/Library'));
 const Notes = lazy(() => import('@/pages/Notes'));
 const Life = lazy(() => import('@/pages/Life'));
+const LifeGoals = lazy(() => import('@/pages/LifeGoals'));
 const ResearchGaps = lazy(() => import('@/pages/ResearchGaps'));
 const LiteratureReview = lazy(() => import('@/pages/LiteratureReview'));
 const Projects = lazy(() => import('@/pages/Projects'));
@@ -102,6 +103,7 @@ const AuthenticatedApp = () => {
           <Route path="/library" element={<Library />} />
           <Route path="/notes" element={<Notes />} />
           <Route path="/life" element={<Life />} />
+          <Route path="/life/goals" element={<LifeGoals />} />
           <Route path="/research-gaps" element={<ResearchGaps />} />
           <Route path="/literature-review" element={<LiteratureReview />} />
           <Route path="/labs/data" element={<ResearchDataLab />} />
