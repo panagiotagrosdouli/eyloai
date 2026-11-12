@@ -3,20 +3,17 @@ import { Link } from 'react-router-dom';
 import {
   Activity, ArrowRight, BookOpen, CalendarDays, Check, ChevronRight,
   CirclePlus, Clock3, FolderOpen, GraduationCap, Layers3,
-  NotebookPen, Search, Sparkles, Target,
+  NotebookPen, Search, Target,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import GuidedSearch from '@/components/discovery/GuidedSearch';
-import { getLocalGreeting } from '@/lib/local-greeting';
 import { useAuth } from '@/lib/AuthContext';
-import { useCapabilities } from '@/lib/capabilities';
 
 const SOURCES = [
   ['projects', () => base44.entities.Project.list('-updated_date', 4)],
   ['notes', () => base44.entities.Note.list('-updated_date', 4)],
   ['tasks', () => base44.entities.LifeTask.filter({ due_date: localDate() }, '-updated_date', 100)],
   ['goals', () => base44.entities.LifeGoal.filter({ area: 'study' }, '-updated_date', 4)],
-  ['events', () => base44.entities.CalendarEvent.list('-updated_date', 8)],
+  ['events', () => base44.entities.CalendarEvent.list('-updated_date', 1000)],
   ['decks', () => base44.entities.FlashcardDeck.list('-updated_date', 4)],
   ['papers', () => base44.entities.SavedPaper.list('-updated_date', 4)],
   ['activity', () => base44.entities.ActivityEvent.list('-created_date', 6)],
@@ -88,9 +85,8 @@ function EmptyAction({ children, href }) {
   </div>;
 }
 
-export default function PersonalizedDashboard({ onSearch }) {
+export default function PersonalizedDashboard() {
   const { user } = useAuth();
-  const { data: capabilities, loading: capabilitiesLoading } = useCapabilities();
   const [attempt, setAttempt] = useState(0);
   const [data, setData] = useState({});
   const [failed, setFailed] = useState([]);
@@ -127,19 +123,16 @@ export default function PersonalizedDashboard({ onSearch }) {
     return () => { active = false; };
   }, [user?.id, attempt, today]);
 
-  const greeting = getLocalGreeting(user?.user_metadata?.full_name || user?.user_metadata?.name || '');
   const tasks = (data.tasks || []).filter(task => !isComplete(task)).sort((a, b) => String(a.due_date || '').localeCompare(String(b.due_date || '')));
   const events = (data.events || []).filter(event => event.start_at && new Date(event.start_at).getTime() >= Date.now()).sort((a, b) => new Date(a.start_at) - new Date(b.start_at)).slice(0, 4);
-  const eyraReady = !capabilitiesLoading && Boolean(capabilities?.ai);
   const hasFailures = failed.length > 0;
 
   return (
-    <main className="eylo-page max-w-7xl">
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <section className="eylo-page mx-auto max-w-7xl pt-0" aria-labelledby="personal-workspace-title">
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="eylo-eyebrow">EYLO workspace</p>
-          <h1 className="eylo-page-heading">{greeting.greeting}{greeting.name ? ', ' + greeting.name : ''}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Return to your research and the work you have saved.</p>
+          <p className="eylo-eyebrow">Your saved work</p>
+          <h2 id="personal-workspace-title" className="mt-1 text-xl font-semibold text-foreground">Workspace overview</h2>
         </div>
         <details className="relative">
           <summary className="inline-flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
@@ -154,28 +147,10 @@ export default function PersonalizedDashboard({ onSearch }) {
           </nav>
         </details>
       </header>
-
-      <section className="mb-6 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="eyra-search-title">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="eylo-eyebrow">Research</p>
-            <h2 id="eyra-search-title" className="mt-1 text-lg font-semibold text-foreground">What are you exploring?</h2>
-          </div>
-          <button type="button" disabled={!eyraReady} onClick={() => window.dispatchEvent(new Event('eylo:open-eyra'))} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50">
-            <Sparkles size={14} aria-hidden="true" /> Ask EYRA
-          </button>
-        </div>
-        <GuidedSearch onSearch={onSearch} />
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Link to="/workspace/search" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:border-primary/40">
-            <Search size={14} aria-hidden="true" /> Search my workspace
-          </Link>
-          <Link to="/activity" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:border-primary/40">
-            <Activity size={14} aria-hidden="true" /> Activity history
-          </Link>
-        </div>
-      </section>
-
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Link to="/workspace/search" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:border-primary/40"><Search size={14} aria-hidden="true" /> Search my workspace</Link>
+        <Link to="/activity" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:border-primary/40"><Activity size={14} aria-hidden="true" /> Activity history</Link>
+      </div>
       {hasFailures && <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/30 px-4 py-3 text-sm text-destructive">
         <span>Some workspace records could not be loaded. Available sections are shown; retry to refresh.</span>
         <button type="button" onClick={() => setAttempt(value => value + 1)} className="min-h-9 rounded-lg border border-destructive/30 px-3 text-xs font-semibold">Retry</button>
@@ -217,8 +192,7 @@ export default function PersonalizedDashboard({ onSearch }) {
 
       <section className="mt-6 rounded-2xl border border-border bg-card p-4 sm:p-5" aria-labelledby="products-heading">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <div><p className="eylo-eyebrow">Available in your workspace</p><h2 id="products-heading" className="mt-1 text-lg font-semibold">EYLO products</h2></div>
-          <Link to="/workspace/search" className="inline-flex min-h-9 items-center gap-1 text-xs font-medium text-primary">Explore <ArrowRight size={13} aria-hidden="true" /></Link>
+          <div><p className="eylo-eyebrow">Workspace tools</p><h2 id="products-heading" className="mt-1 text-lg font-semibold">EYLO products</h2></div>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {[
