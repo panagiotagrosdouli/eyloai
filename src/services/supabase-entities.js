@@ -207,6 +207,13 @@ function entityRepository({ table }) {
       }
       return { id: entityId };
     },
+    async clear() {
+      if (table !== 'activity_events') throw new Error('Bulk clear is only available for activity history.');
+      const user = await currentUser();
+      const { error } = await requireSupabase().from(table).delete().eq('user_id', user.id);
+      if (error) throw error;
+      return { cleared: true };
+    },
   };
 }
 
@@ -274,3 +281,4 @@ export const supabaseProfile = {
     };
   },
 };
+
