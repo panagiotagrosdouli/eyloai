@@ -52,6 +52,11 @@ export function validateWorkplan(items) {
     return true;
   };
   if (normalized.some(item => !visit(item.id))) return { valid: false, message: 'Dependencies cannot form a cycle.' };
+  for (const item of normalized) {
+    if (['in_progress', 'done'].includes(item.status) && !item.depends_on.every(id => byId.get(id)?.status === 'done')) {
+      return { valid: false, message: 'Tasks in progress or completed must have all prerequisites completed.' };
+    }
+  }
   return { valid: true, items: normalized };
 }
 
