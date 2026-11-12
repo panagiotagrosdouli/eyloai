@@ -188,6 +188,9 @@ try {
   await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor();
   await dataLab.getByRole('row', { name: /score numeric — — —/ }).waitFor();
   assert.match(await dataLab.locator('[role="note"]').first().innerText(), /aggregate-only export is not guaranteed to be anonymous/i);
+  const disclosureNote = await dataLab.locator('[role="note"]').first().innerText();
+  assert.match(disclosureNote, /does not mask source rows in the local preview or individual points in the sampled chart/i);
+  assert.match(disclosureNote, /capped at 500 and may omit rare patterns or outliers/i);
   await dataLab.getByLabel('Minimum disclosure cell size').selectOption('1');
   await dataLab.getByRole('row', { name: /score numeric 3 1 2 1.5/ }).waitFor();
   await dataLab.getByRole('img', { name: 'Bar chart of score by row number' }).waitFor();
