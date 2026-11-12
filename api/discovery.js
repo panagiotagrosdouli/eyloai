@@ -2,6 +2,7 @@ import { applyCors } from '../src/lib/api-cors.mjs';
 import { fetchWithScholarlyBackoff } from '../src/lib/scholarly-provider-backoff.mjs';
 import { readBoundedScholarlyResponse, ScholarlyResponseTooLargeError } from '../src/lib/discovery-response-limit.mjs';
 import { normalizeDoi } from '../src/lib/citation-verification.mjs';
+import { consumeDiscoveryQuota } from './discovery-rate-limit.mjs';
 
 const PROVIDERS = new Set([
   'openalex_works',
@@ -167,6 +168,31 @@ export default async function handler(request, response) {
 
   const url = buildProviderUrl(provider, query, limit, sort, page, provider === 'openalex_authors' ? country : '', exactDoi);
   if (!url) return response.status(400).json({ error: 'Provider configuration is invalid.' });
+
+  // Vercel is the production public proxy. Its trusted client IP is hashed and
+  // counted by an atomic Supabase RPC shared across serverless instances.
+  // Missing limiter configuration fails closed so a bad deployment cannot
+  // silently proxy unlimited traffic to scholarly providers.
+  if (process.env.VERCEL === '1') {
+    const quota = await consumeDiscoveryQuota(request);
+    response.setHeader('Cache-Control', 'no-store');
+    if (quota.status !== 'available') {
+      return response.status(503).json({
+        error: 'Scholarly search is temporarily unavailable because its shared request limit is not configured.',
+        code: 'DISCOVERY_RATE_LIMIT_UNAVAILABLE',
+      });
+    }
+    response.setHeader('X-RateLimit-Limit', String(quota.limit));
+    response.setHeader('X-RateLimit-Remaining', String(quota.remaining));
+    response.setHeader('X-RateLimit-Reset', String(Math.ceil(Date.now() / 1000) + quota.retryAfterSeconds));
+    if (!quota.allowed) {
+      response.setHeader('Retry-After', String(Math.max(1, quota.retryAfterSeconds)));
+      return response.status(429).json({
+        error: 'Too many scholarly searches from this network. Please wait before retrying.',
+        code: 'DISCOVERY_RATE_LIMITED',
+      });
+    }
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
