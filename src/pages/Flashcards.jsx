@@ -17,6 +17,7 @@ function todayLocal() {
 export default function Flashcards() {
   const { user } = useAuth();
   const ownerRef = useRef(user?.id || null);
+  const focusedDeckRef = useRef(false);
   const [decks, setDecks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -50,6 +51,7 @@ export default function Flashcards() {
 
   useEffect(() => {
     ownerRef.current = user?.id || null;
+    focusedDeckRef.current = false;
     setDecks([]);
     setProjects([]);
     setSelected(null);
@@ -93,6 +95,13 @@ export default function Flashcards() {
     setError('');
     setNotice('');
   };
+  const chooseDeckRef = useRef(chooseDeck);
+  chooseDeckRef.current = chooseDeck;
+  useEffect(() => {
+    const focusId = new URLSearchParams(window.location.search).get('focus');
+    const match = focusId && !focusedDeckRef.current ? decks.find(deck => String(deck.id) === focusId) : null;
+    if (match) { focusedDeckRef.current = true; chooseDeckRef.current(match); }
+  }, [decks]);
 
   const saveDeck = async event => {
     event.preventDefault();
@@ -236,3 +245,4 @@ export default function Flashcards() {
     </div>
   );
 }
+
