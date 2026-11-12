@@ -2,7 +2,7 @@ create table if not exists public.learning_records (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   kind text not null check (kind in (
-    'note', 'goal', 'habit', 'life_task', 'subject', 'study_session',
+    'note', 'goal', 'habit', 'life_task', 'subject', 'study_goal', 'study_session',
     'deck', 'flashcard', 'quiz', 'quiz_attempt', 'notebook'
   )),
   parent_id uuid,

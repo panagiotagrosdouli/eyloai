@@ -1,5 +1,6 @@
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 import { LEARNING_KINDS } from '@/lib/learning-workspace.mjs';
+import { requireEntityVersion } from '@/lib/entity-optimistic-version.mjs';
 
 async function userId() {
   const session = await getUsableSession({ required: true, validate: true });
@@ -23,14 +24,29 @@ export const learningWorkspace = {
     if (error) throw error;
     return row;
   },
-  async update(id, patch) {
+  async get(id) {
     const owner = await userId();
-    const { data: current, error: readError } = await requireSupabase().from('learning_records')
-      .select('data').eq('id', id).eq('user_id', owner).single();
-    if (readError) throw readError;
-    const { data: row, error } = await requireSupabase().from('learning_records')
-      .update({ data: { ...current.data, ...patch } }).eq('id', id).eq('user_id', owner).select('*').single();
+    const { data, error } = await requireSupabase().from('learning_records')
+      .select('id,user_id,kind,parent_id,data,created_date,updated_date')
+      .eq('id', id).eq('user_id', owner).single();
     if (error) throw error;
+    return data;
+  },
+  async update(id, patch, expectedUpdatedDate = null) {
+    const owner = await userId();
+    const version = expectedUpdatedDate ? requireEntityVersion(expectedUpdatedDate) : null;
+    const { data: current, error: readError } = await requireSupabase().from('learning_records')
+      .select('data,updated_date').eq('id', id).eq('user_id', owner).single();
+    if (readError) throw readError;
+    const query = requireSupabase().from('learning_records')
+      .update({ data: { ...current.data, ...patch } }).eq('id', id).eq('user_id', owner);
+    if (version) query.eq('updated_date', version);
+    const { data: row, error } = await query.select('*').maybeSingle();
+    if (error) throw error;
+    if (!row && version) {
+      throw Object.assign(new Error('This note changed in another tab or session. Your draft is still here; reload the latest version before saving again.'), { code: 'ENTITY_CONFLICT' });
+    }
+    if (!row) throw Object.assign(new Error('Record was not found or access was denied.'), { code: 'LEARNING_RECORD_NOT_FOUND' });
     return row;
   },
   async history(noteId) {

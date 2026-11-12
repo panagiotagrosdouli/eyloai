@@ -100,6 +100,12 @@
   }
 }
 
+[contenteditable="true"][data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
