@@ -31,6 +31,7 @@ const LiteratureReview = lazy(() => import('@/pages/LiteratureReview'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
 const Researchers = lazy(() => import('@/pages/Researchers'));
+const Collaborations = lazy(() => import('@/pages/Collaborations'));
 const PublicCareers = lazy(() => import('@/pages/PublicCareers'));
 const Opportunities = lazy(() => import('@/pages/Opportunities'));
 const History = lazy(() => import('@/pages/History'));
@@ -105,6 +106,7 @@ const AuthenticatedApp = () => {
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/researchers" element={<Researchers />} />
+          <Route path="/collaborations" element={<Collaborations />} />
           <Route path="/opportunities" element={<Opportunities />} />
           <Route path="/history" element={<History />} />
           <Route path="/challenges" element={<Challenges />} />

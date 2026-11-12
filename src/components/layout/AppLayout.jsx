@@ -35,6 +35,7 @@ const TOOL_GROUPS = [
     section: 'Workspace',
     description: 'Research work that stays connected to projects',
     items: [
+      { label: 'Collaborations', path: '/collaborations', icon: Users, desc: 'Find or publish targeted research partnerships, co-author calls and jobs' },
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
