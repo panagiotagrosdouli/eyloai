@@ -20,7 +20,7 @@ export default function UniversalSearch() {
 
   useEffect(() => {
     generation.current += 1;
-    setSourcePages({}); setPages({}); setFailed([]);
+    setSourcePages({}); setFailed([]);
     const currentGeneration = generation.current;
     const term = query.trim();
     if (!user?.id || term.length < 2) { setLoading(false); return undefined; }
