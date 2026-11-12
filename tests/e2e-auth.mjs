@@ -657,7 +657,9 @@ try {
       if (request.method() === 'GET') {
         const ids = (url.searchParams.get('file_id') || '').match(/\((.*)\)/)?.[1]?.replaceAll('"', '').split(',') || [];
         const fileId = url.searchParams.get('file_id')?.replace('eq.', '');
-        const matchingRows = versionRows.filter(row => ids.includes(row.file_id) || row.file_id === fileId)
+        const versionId = url.searchParams.get('id')?.replace('eq.', '');
+        const matchingRows = versionRows.filter(row => (!ids.length && !fileId || ids.includes(row.file_id) || row.file_id === fileId)
+          && (!versionId || row.id === versionId))
           .sort((left, right) => right.version_number - left.version_number);
         return sendAuthJson(route, matchingRows);
       }
@@ -754,7 +756,10 @@ try {
   assert.equal(await filesPage.getByLabel('Link protocol.txt to a project').inputValue(), 'file-project-1');
   const versionDownload = filesPage.waitForEvent('download');
   await filesPage.getByRole('button', { name: 'Download' }).first().click();
-  assert.equal((await versionDownload).suggestedFilename(), 'protocol.txt');
+  const downloadedVersion = await versionDownload;
+  assert.equal(downloadedVersion.suggestedFilename(), 'protocol.txt');
+  assert.equal(await readDataLabDownload(await downloadedVersion.path(), 'utf8'), 'version two',
+    'the selected latest version must download the exact persisted bytes');
   await filesPage.getByRole('link', { name: 'Create a document' }).first().click();
   await filesPage.getByRole('heading', { name: 'Document Editor' }).waitFor();
   const editor = filesPage.getByLabel('Document text (Markdown)');
