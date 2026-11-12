@@ -545,7 +545,80 @@ try {
   assert.equal(exportedReview.protocol.screening[0].paper_id, 'library-paper-1');
   assert.match(exportedReview.reporting_note, /Not a PRISMA-compliant/);
 
+  // Funding ranking and comparison browser flow against provider-shaped source
+  // records. The fixtures verify UI integration without claiming live provider access.
+  const fundingSourceRecords = [
+    { id: 'grant-1', title: 'Official climate grant', type: 'grant', source: 'Grants.gov', agency: 'NSF', description: 'Climate resilience', eligibility: 'Universities', amount: '$1,000,000', deadline: '2099-12-31', deadline_days: 26600, categories: ['Climate'], source_url: 'https://www.grants.gov/search-results-detail/1' },
+    { id: 'grant-2', title: 'Official health grant', type: 'grant', source: 'Grants.gov', agency: 'NIH', description: 'Health research', eligibility: 'Universities', amount: '', deadline: '', deadline_days: null, categories: ['Health'], source_url: 'https://www.grants.gov/search-results-detail/2' },
+    { id: 'grant-3', title: 'Official EU call', type: 'call', source: 'EU Funding & Tenders Portal', agency: 'Horizon Europe', description: 'EU climate research', eligibility: 'Research organisations', amount: { currency: 'EUR', amount: 2000000 }, deadline: '2099-11-30', deadline_days: 26600, categories: ['Climate'], source_url: 'https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/HORIZON-CLIMATE' },
+    { id: 'grant-4', title: 'Untrusted URL record', type: 'grant', source: 'Grants.gov', agency: 'NSF', description: 'Climate datasets', eligibility: '', amount: '', deadline: '', deadline_days: null, categories: ['Climate'], source_url: 'javascript:alert(1)' },
+  ];
+  let fundingSearchCalls = 0;
+  await dataLab.route('**/api/opportunities**', async route => {
+    fundingSearchCalls++;
+    const url = new URL(route.request().url());
+    const records = url.searchParams.get('q') === 'health' ? [fundingSourceRecords[1]] : fundingSourceRecords;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      query: url.searchParams.get('q'), source: 'Grants.gov + EU Funding & Tenders Portal',
+      retrieved_at: new Date().toISOString(), partial_results: false, items: records,
+    }) });
+  });
+  let fundingRankCalls = 0;
+  await dataLab.route('**/api/eyra', async route => {
+    fundingRankCalls++;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: { ranked: [
+      { id: 'grant-1', match_score: 90, match_reason: '<img src=x onerror=alert(1)> climate fit', difficulty: 'Medium', title: 'Model invented title' },
+      { id: 'grant-1', match_score: 1, match_reason: 'duplicate', difficulty: 'High' },
+      { id: 'unknown', match_score: 100, title: 'Invented opportunity' },
+    ] } }) });
+  });
+  await dataLab.goto(`${baseUrl}/opportunities`);
+  await dataLab.getByLabel('Funding search').fill('climate');
+  const fundingResponse = dataLab.waitForResponse(response => response.url().includes('/api/opportunities'), { timeout: 10000 });
+  await dataLab.getByRole('button', { name: 'Find' }).click();
+  const fundingSourceResponse = await fundingResponse;
+  assert.equal(fundingSourceResponse.status(), 200);
+  const fundingFixturePayload = await fundingSourceResponse.json();
+  assert.equal(fundingFixturePayload.items?.length, 4, 'the provider fixture must return four official records');
+  try {
+    await dataLab.getByText('Official climate grant', { exact: true }).waitFor({ timeout: 10000 });
+  } catch (failure) {
+    const alerts = await dataLab.locator('[role="alert"]').allTextContents();
+    const bodyText = (await dataLab.locator('body').innerText()).slice(-1200);
+    throw new Error(`Funding results missing after ${fundingSearchCalls} source and ${fundingRankCalls} ranking fixture request(s): ${JSON.stringify({ alerts, url: dataLab.url(), bodyText })}`, { cause: failure });
+  }
+  await dataLab.getByText('currency: EUR; amount: 2000000', { exact: true }).waitFor();
+  assert.equal(await dataLab.getByRole('heading', { name: 'Model invented title' }).count(), 0);
+  await dataLab.getByText('AI relevance estimate: 90/100').waitFor();
+  await dataLab.getByText('<img src=x onerror=alert(1)> climate fit').waitFor();
+  assert.equal(await dataLab.locator('img[src="x"]').count(), 0, 'model rationale must render as text');
+  const compareFirst = dataLab.getByRole('button', { name: 'Add Official climate grant to comparison' });
+  await compareFirst.focus();
+  await dataLab.keyboard.press('Enter');
+  await dataLab.getByRole('heading', { name: 'Compare official opportunities' }).waitFor();
+  await dataLab.getByRole('button', { name: 'Add Official health grant to comparison' }).click();
+  await dataLab.getByRole('button', { name: 'Add Official EU call to comparison' }).click();
+  assert.equal(await dataLab.getByRole('button', { name: 'Add Untrusted URL record to comparison' }).isDisabled(), true);
+  assert.equal(await dataLab.getByRole('link', { name: 'Open official source', exact: true }).count(), 3,
+    'the comparison table exposes exactly the three selected safe official links');
+  await dataLab.getByLabel('Filter by research field').fill('health');
+  await dataLab.getByRole('columnheader', { name: /Official health grant/ }).waitFor();
+  assert.equal(await dataLab.getByRole('columnheader', { name: /Official climate grant/ }).count(), 0,
+    'comparison follows the filtered record set');
+  assert.match(await dataLab.getByRole('cell').filter({ hasText: 'Not provided by source' }).first().textContent(), /Not provided/);
+  await dataLab.getByLabel('Filter by research field').fill('');
+  await dataLab.getByLabel('Funding search').fill('health');
+  await dataLab.getByRole('button', { name: 'Find' }).click();
+  await dataLab.getByRole('heading', { name: 'Official health grant' }).waitFor();
+  await dataLab.getByRole('heading', { name: 'Compare official opportunities' }).waitFor({ state: 'detached' });
+  assert.equal(fundingSearchCalls, 2);
+  assert.equal(fundingRankCalls, 2);
+  await dataLab.setViewportSize({ width: 375, height: 812 });
+  assert.equal(await dataLab.getByRole('heading', { name: 'Official health grant' }).isVisible(), true);
+  console.log('Funding ranking and comparison passed with authenticated browser fixtures; provider calls and production persistence were not exercised.');
+
   // Verify sign-out actually invalidates the session and protects private routes.
+  await dataLab.setViewportSize({ width: 1365, height: 900 });
   await dataLab.route('**/auth/v1/logout**', route => route.fulfill({
     status: 204,
     headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' },

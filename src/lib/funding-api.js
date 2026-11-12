@@ -1,4 +1,7 @@
 import { protectedApiFetch } from '@/lib/protected-api';
+import { applyFundingRanking } from './funding-ranking.mjs';
+
+export { applyFundingRanking } from './funding-ranking.mjs';
 
 export class FundingRequestError extends Error {
   constructor(message, status) {
@@ -7,6 +10,7 @@ export class FundingRequestError extends Error {
     this.status = status;
   }
 }
+
 
 export async function searchFundingOpportunities(query, limit = 12, options = {}) {
   const cleanQuery = String(query || '').trim();
