@@ -649,6 +649,7 @@ try {
   const versionRows = [];
   const storedObjects = new Map();
   const storageReads = [];
+  const fileWrites = [];
   filesPage.on('request', request => {
     if (request.url().includes('/storage/v1/object/') && request.method() === 'GET') storageReads.push(request.url());
   });
@@ -661,6 +662,9 @@ try {
       'access-control-allow-headers': '*',
     } });
     const table = url.pathname.split('/').at(-1);
+    if (['eylo_files', 'eylo_file_versions'].includes(table) && !['GET', 'OPTIONS'].includes(request.method())) {
+      fileWrites.push({ table, method: request.method(), body: request.postDataJSON() });
+    }
     if (table === 'projects') return sendAuthJson(route, [{ id: 'file-project-1', user_id: testUser.id, data: { title: 'File project' } }]);
     if (table === 'eylo_files') {
       const id = url.searchParams.get('id')?.replace('eq.', '');
@@ -808,6 +812,8 @@ try {
   } catch (cause) {
     throw new Error('New document did not navigate to its saved record: ' + JSON.stringify({
       url: filesPage.url(), fileRows, versionRows,
+      fileWrites,
+      secureUuidAvailable: await filesPage.evaluate(() => typeof crypto.randomUUID === 'function'),
       alerts: await filesPage.locator('[role="alert"]').allInnerTexts(),
     }), { cause });
   }
