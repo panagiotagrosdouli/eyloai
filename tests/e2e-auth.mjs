@@ -567,6 +567,18 @@ try {
         : [];
     await route.fulfill({ status: 200, headers, body: JSON.stringify({ total: args.p_source === 'Project' ? 21 : args.p_source === 'Note' ? 1 : 0, page: args.p_page, page_size: args.p_page_size, items }) });
   });
+  await dataLab.route('**/rest/v1/rpc/search_private_files', async route => {
+    const request = route.request();
+    const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'content-type': 'application/json' };
+    if (request.method() === 'OPTIONS') { await route.fulfill({ status: 204, headers }); return; }
+    const args = request.postDataJSON();
+    assert.equal(args.p_query, 'climate');
+    assert.ok(args.p_page_size <= 50);
+    await route.fulfill({ status: 200, headers, body: JSON.stringify({
+      total: 1, page: args.p_page, page_size: args.p_page_size,
+      items: [{ id: 'file-1', title: 'Climate protocol.md', snippet: 'Source screening workflow', score: 0.7, updated_date: '2026-11-12T00:00:00Z' }],
+    }) });
+  });
   await dataLab.route('**/rest/v1/notes**', async route => {
     const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'content-type': 'application/json' };
     if (route.request().method() === 'OPTIONS') { await route.fulfill({ status: 204, headers }); return; }
@@ -586,8 +598,11 @@ try {
   await dataLab.getByRole('alert').getByText('Partial results:', { exact: false }).waitFor();
   await dataLab.getByRole('link', { name: 'Climate note' }).waitFor();
   await dataLab.getByRole('link', { name: 'Climate project 1' }).waitFor();
+  const fileSearchResult = dataLab.getByRole('link', { name: 'Climate protocol.md' });
+  await fileSearchResult.waitFor();
+  assert.equal(await fileSearchResult.getAttribute('href'), '/files?focus=file-1');
   assert.equal(await dataLab.getByText('Page 1 of 2').isVisible(), true);
-  assert.ok(searchRpcCalls >= 8, 'one bounded server search call is made per source');
+  assert.ok(searchRpcCalls >= 8, 'one bounded server search call is made per workspace source');
   await dataLab.getByRole('region', { name: 'Projects search results' }).getByRole('button', { name: 'Next' }).click();
   await dataLab.getByRole('link', { name: 'Climate project 2' }).waitFor();
   await dataLab.getByRole('link', { name: 'Climate note' }).click();
@@ -654,6 +669,19 @@ try {
     if (['watchlists', 'monitoring_discoveries'].includes(table) && request.method() === 'GET') return sendAuthJson(route, []);
     throw new Error(`Unexpected EYLO Files database request ${request.method()} ${url.pathname}`);
   });
+  await filesPage.route('https://eylo-auth-test.supabase.co/rest/v1/rpc/search_private_files', async route => {
+    const request = route.request();
+    const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'content-type': 'application/json' };
+    if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
+    const args = request.postDataJSON();
+    assert.equal(args.p_query, 'protocol');
+    assert.ok(args.p_page_size <= 50);
+    const file = fileRows.find(row => row.name.toLocaleLowerCase().includes(args.p_query));
+    return route.fulfill({ status: 200, headers, body: JSON.stringify({
+      total: file ? 1 : 0, page: args.p_page, page_size: args.p_page_size,
+      items: file ? [{ id: file.id, title: file.name, snippet: file.description, score: 0.7, updated_date: file.updated_at }] : [],
+    }) });
+  });
   await filesPage.route('https://eylo-auth-test.supabase.co/storage/v1/**', async route => {
     const request = route.request();
     const url = new URL(request.url());
@@ -700,6 +728,15 @@ try {
   await filesPage.getByText('Version 2 · latest').waitFor();
   assert.equal(versionRows.length, 2, 'each upload is stored as a separate immutable version');
   assert.equal(storedObjects.size, 2, 'the earlier object remains available after a replacement upload');
+  const savedFileId = fileRows[0].id;
+  await filesPage.goto(`${baseUrl}/workspace/search`);
+  await filesPage.getByRole('heading', { name: 'Search your workspace' }).waitFor();
+  await filesPage.getByLabel('Filter by source').selectOption('EyloFile');
+  await filesPage.getByRole('searchbox', { name: 'Search your records' }).fill('protocol');
+  await filesPage.getByRole('link', { name: 'protocol.txt' }).click();
+  assert.equal(new URL(filesPage.url()).pathname, '/files');
+  assert.equal(new URL(filesPage.url()).searchParams.get('focus'), savedFileId);
+  assert.match(await filesPage.locator(`#eylo-file-${savedFileId}`).getAttribute('class'), /border-primary/, 'search deep link focuses the exact private file');
   await filesPage.reload();
   await filesPage.getByText('Methods protocol').waitFor();
   assert.equal(await filesPage.getByLabel('Link protocol.txt to a project').inputValue(), 'file-project-1');
