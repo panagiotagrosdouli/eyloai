@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { compareResearchNumericColumns, parseResearchCsv } from '../src/lib/research-data.mjs';
+import { compareResearchNumericColumns, exportResearchDataComparisonCsv, parseResearchCsv } from '../src/lib/research-data.mjs';
 
 test('pairwise Pearson r uses complete numeric pairs and reports skipped rows', () => {
   const dataset = parseResearchCsv('hours,score\n1,2\n2,4\n3,6\n,8\n5,not recorded');
@@ -44,4 +44,14 @@ test('pairwise correlation remains finite for very large finite observations', (
   const result = compareResearchNumericColumns(dataset, 'x', 'y');
   assert.equal(result.available, true);
   assert.equal(result.pearsonR, 1);
+});
+
+test('comparison CSV exports aggregates only and protects formula-like column names', () => {
+  const result = compareResearchNumericColumns(parseResearchCsv('=group,score\n1,2\n2,4\n3,6'), '=group', 'score');
+  const csv = exportResearchDataComparisonCsv(result);
+  assert.match(csv, /"'=group"/);
+  assert.match(csv, /"Pearson correlation \(r\)","1"/);
+  assert.match(csv, /"Complete pairs used","3"/);
+  assert.match(csv, /no causal or statistical significance claim/);
+  assert.doesNotMatch(csv, /\r?\n"1","2"/);
 });
