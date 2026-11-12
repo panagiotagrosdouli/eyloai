@@ -78,7 +78,7 @@ try {
   await page.getByRole('button', { name: 'Study planner' }).click();
   await page.getByLabel('Subject name').fill('Biology');
   await page.getByRole('button', { name: 'Add subject' }).click();
-  await page.getByText('Biology', { exact: true }).waitFor();
+  await page.locator('article strong').filter({ hasText: 'Biology' }).waitFor();
 
   await page.getByRole('button', { name: 'Notes', exact: true }).click();
   await page.getByRole('button', { name: 'New note' }).click();

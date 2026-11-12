@@ -8,7 +8,7 @@ This tracker preserves the requested 77-product inventory. “Foundation started
 |---|---|
 | EYLO Life | Foundation in code: goals with measurable milestones, daily habit check-ins, tasks with daily/weekly recurrence, and dated completion records. |
 | EYLO Calendar | Queued |
-| EYLO Notes | Foundation in code: autosave, tags, search, pinning/favorites, notebooks, subject links, Markdown tools/export, and database-backed version history with restore. WYSIWYG editing remains. |
+| EYLO Notes | Foundation in code: rich-text editing, autosave, tags, search, pinning/favorites, notebooks, subject links, templates, archived-note recovery, optimistic conflict protection, and database-backed version history with restore. |
 | EYLO Spaces | Queued |
 | EYLO Memory | Queued |
 | EYLO Notifications | Queued |
@@ -19,7 +19,7 @@ This tracker preserves the requested 77-product inventory. “Foundation started
 | Product | Status |
 |---|---|
 | EYLO Learn | Foundation started: shared learning workspace route and persistence model. |
-| EYLO Study Planner | Foundation in code: subjects, exam dates, study sessions, 7/3/1-day revision planning, completion, and saved history. |
+| EYLO Study Planner | Foundation in code: subjects, exam dates, measurable session goals, rescheduling, 7/3/1-day revision planning, completion, and saved history. |
 | EYLO Flashcards | Foundation in code: manual creation/editing, named collections, authorized note import, review outcomes, and SM-2 scheduling. |
 | EYLO Quiz Generator | Foundation in code: manual/note-based multiple-choice quizzes, validation, scoring, explanations, saved attempts, and missed-question practice. AI generation remains unavailable. |
 | EYLO Skills | Queued |
@@ -121,4 +121,4 @@ This tracker preserves the requested 77-product inventory. “Foundation started
 
 ## Next implementation
 
-Complete review and deployment verification for the initial learning vertical, add WYSIWYG note editing, real multi-user isolation coverage, and run the Playwright user journey in an authorized browser runner. Then proceed to EYLO Files, EYLO Create, EYLO Document Editor, EYLO Universal Search, and EYLO Export Center.
+Complete PR CI, real multi-user isolation, authorized staging validation, and E2E acceptance for the learning vertical. Then implement EYLO Files, EYLO Create, EYLO Document Editor, EYLO Universal Search, and EYLO Export Center as connected workflows with explicit persistence and verification evidence.
