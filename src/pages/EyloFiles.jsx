@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Download, FileText, FolderOpen, Loader2, Plus, RefreshCw, Search, Trash2, Upload } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { supabase } from '@/lib/supabaseClient';
 import { EYLO_FILE_MAX_BYTES, filterEyloFiles } from '@/lib/eylo-files.mjs';
@@ -38,6 +38,8 @@ export default function EyloFiles() {
   const [descriptionDrafts, setDescriptionDrafts] = useState({});
   const [error, setError] = useState('');
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const focusId = searchParams.get('focus') || '';
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -56,10 +58,22 @@ export default function EyloFiles() {
 
   useEffect(() => { void load(); }, [load]);
 
+  useEffect(() => {
+    if (!focusId || loading) return;
+    const focusedFile = records.find(record => record.id === focusId);
+    if (focusedFile) setSearch(focusedFile.name);
+  }, [focusId, loading, records]);
+
   const visibleFiles = useMemo(() => filterEyloFiles(records.map(record => ({
     ...record,
     project_title: projects.find(project => project.id === record.project_id)?.title || '',
   })), search), [records, projects, search]);
+
+  useEffect(() => {
+    if (!focusId || !visibleFiles.some(record => record.id === focusId)) return undefined;
+    const timer = window.setTimeout(() => document.getElementById(`eylo-file-${focusId}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 0);
+    return () => window.clearTimeout(timer);
+  }, [focusId, visibleFiles]);
 
   async function saveUpload(file, fileId = null) {
     setBusyId(fileId || 'new');
@@ -159,7 +173,7 @@ export default function EyloFiles() {
           {!search && <div className="mt-5 flex flex-wrap justify-center gap-2"><Link to="/documents/new" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold"><Plus size={16} aria-hidden="true" />Create a document</Link><button type="button" onClick={() => inputRef.current?.click()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"><Upload size={16} aria-hidden="true" />Add your first file</button></div>}
         </section>
         : <section aria-label="Your files" className="grid gap-4 xl:grid-cols-2">
-          {visibleFiles.map(file => <article key={file.id} className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-5">
+          {visibleFiles.map(file => <article key={file.id} id={`eylo-file-${file.id}`} className={`min-w-0 rounded-2xl border bg-card p-4 sm:p-5 ${focusId === file.id ? 'border-primary ring-2 ring-primary/20' : 'border-border'}`}>
             <div className="flex min-w-0 items-start gap-3">
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><FileText size={18} aria-hidden="true" /></div>
               <div className="min-w-0 flex-1"><h2 className="break-words text-sm font-semibold">{file.name}</h2><p className="mt-1 text-xs text-muted-foreground">{formatBytes(file.size_bytes)} · {file.versions.length} version{file.versions.length === 1 ? '' : 's'} · Updated {new Date(file.updated_at).toLocaleDateString()}</p></div>
