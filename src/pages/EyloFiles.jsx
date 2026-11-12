@@ -129,10 +129,13 @@ export default function EyloFiles() {
           <h1 className="eylo-page-heading">EYLO Files</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Keep research documents in a private workspace, link them to projects, and retrieve earlier versions when needed.</p>
         </div>
-        <button type="button" onClick={() => inputRef.current?.click()} disabled={Boolean(busyId)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
-          {busyId === 'new' ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Upload size={16} aria-hidden="true" />}
-          Add a file
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <Link to="/documents/new" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold hover:bg-secondary"><Plus size={16} aria-hidden="true" />Create a document</Link>
+          <button type="button" onClick={() => inputRef.current?.click()} disabled={Boolean(busyId)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
+            {busyId === 'new' ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Upload size={16} aria-hidden="true" />}
+            Add a file
+          </button>
+        </div>
         <input ref={inputRef} className="sr-only" type="file" aria-label="Choose a file to upload" onChange={event => event.target.files?.[0] && void saveUpload(event.target.files[0], pending)} />
       </header>
 
@@ -153,7 +156,7 @@ export default function EyloFiles() {
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-secondary text-muted-foreground"><FolderOpen size={22} aria-hidden="true" /></div>
           <h2 className="mt-4 text-lg font-semibold">{search ? 'No matching files' : 'Your file workspace is ready'}</h2>
           <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted-foreground">{search ? 'Try another name or note.' : 'Add a proposal, dataset, paper, or working document. Files remain private and can be linked to a project.'}</p>
-          {!search && <button type="button" onClick={() => inputRef.current?.click()} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"><Plus size={16} aria-hidden="true" />Add your first file</button>}
+          {!search && <div className="mt-5 flex flex-wrap justify-center gap-2"><Link to="/documents/new" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold"><Plus size={16} aria-hidden="true" />Create a document</Link><button type="button" onClick={() => inputRef.current?.click()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"><Upload size={16} aria-hidden="true" />Add your first file</button></div>}
         </section>
         : <section aria-label="Your files" className="grid gap-4 xl:grid-cols-2">
           {visibleFiles.map(file => <article key={file.id} className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-5">
@@ -175,6 +178,7 @@ export default function EyloFiles() {
               <button type="button" onClick={() => void updateFile(file, { description: descriptionDrafts[file.id] ?? file.description ?? '' })} disabled={busyId === file.id} className="min-h-10 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary disabled:opacity-50">Save details</button>
             </div>
             {file.project_id && <Link to={`/projects/${file.project_id}`} className="mt-2 inline-flex min-h-9 items-center text-xs font-medium text-primary hover:underline">Open linked project</Link>}
+            {['text/markdown', 'text/plain'].includes(file.mime_type) && <Link to={`/documents/${file.id}`} className="mt-2 inline-flex min-h-9 items-center text-xs font-medium text-primary hover:underline">Open in Document Editor</Link>}
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
               <span className="text-xs font-semibold text-muted-foreground">Version history</span>
