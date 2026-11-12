@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Activity, ArrowRight, BookOpen, CalendarDays, Check, ChevronRight,
-  CirclePlus, Clock3, FileText, FolderOpen, GraduationCap, Layers3,
+  CirclePlus, Clock3, FolderOpen, GraduationCap, Layers3,
   NotebookPen, Search, Sparkles, Target,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
@@ -15,7 +15,7 @@ const SOURCES = [
   ['projects', () => base44.entities.Project.list('-updated_date', 4)],
   ['notes', () => base44.entities.Note.list('-updated_date', 4)],
   ['tasks', () => base44.entities.LifeTask.filter({ due_date: localDate() }, '-updated_date', 100)],
-  ['goals', () => base44.entities.LifeGoal.list('-updated_date', 4)],
+  ['goals', () => base44.entities.LifeGoal.filter({ area: 'study' }, '-updated_date', 4)],
   ['events', () => base44.entities.CalendarEvent.list('-updated_date', 8)],
   ['decks', () => base44.entities.FlashcardDeck.list('-updated_date', 4)],
   ['papers', () => base44.entities.SavedPaper.list('-updated_date', 4)],
@@ -48,7 +48,7 @@ function recordHref(kind, item) {
   return item.action === 'deleted' ? route : route + '?focus=' + id;
 }
 
-function Section({ title, href, icon: Icon, empty, children, count }) {
+function Section({ title, href, icon: Icon, empty, children, count, source, failedSources = [] }) {
   return (
     <section className="rounded-2xl border border-border bg-card p-4 sm:p-5">
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -60,7 +60,7 @@ function Section({ title, href, icon: Icon, empty, children, count }) {
           Open <ArrowRight size={13} aria-hidden="true" />
         </Link>
       </div>
-      {children || <div className="rounded-xl border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">{empty}</div>}
+      {failedSources.includes(source) ? <p role="status" className="rounded-xl border border-border px-4 py-5 text-sm text-muted-foreground">This section could not be loaded. Retry to check your saved data.</p> : children || <div className="rounded-xl border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">{empty}</div>}
     </section>
   );
 }
@@ -182,35 +182,35 @@ export default function PersonalizedDashboard({ onSearch }) {
       </div>}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Section title="Today's tasks" href="/life" icon={Target} empty="No tasks are due today." count={tasks.length}>
+        <Section title="Today's tasks" href="/life" icon={Target} source="tasks" failedSources={failed} empty="No tasks are due today." count={tasks.length}>
           {loading ? <p role="status" className="py-4 text-sm text-muted-foreground">Loading your tasks…</p> : tasks.length ? <div className="divide-y divide-border">{tasks.slice(0, 6).map(task => <ItemLink key={task.id} href={recordHref('tasks', task)} title={task.title} detail={task.area === 'study' ? 'Study planner' : task.priority ? task.priority + ' priority' : 'Task'} />)}</div> : <EmptyAction href="/life">No open tasks are due today.</EmptyAction>}
         </Section>
 
-        <Section title="Calendar" href="/calendar" icon={CalendarDays} empty="No upcoming events are saved." count={events.length}>
+        <Section title="Calendar" href="/calendar" icon={CalendarDays} source="events" failedSources={failed} empty="No upcoming events are saved." count={events.length}>
           {loading ? <p role="status" className="py-4 text-sm text-muted-foreground">Loading calendar…</p> : events.length ? <div className="divide-y divide-border">{events.map(event => <ItemLink key={event.id} href={recordHref('events', event)} title={event.title} detail={formatDate(event.start_at, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })} />)}</div> : <EmptyAction href="/calendar">Add your first calendar event.</EmptyAction>}
         </Section>
 
-        <Section title="Recent projects" href="/projects" icon={FolderOpen} empty="Your projects will appear here." count={(data.projects || []).length}>
+        <Section title="Recent projects" href="/projects" icon={FolderOpen} source="projects" failedSources={failed} empty="Your projects will appear here." count={(data.projects || []).length}>
           {loading ? <p role="status" className="py-4 text-sm text-muted-foreground">Loading projects…</p> : data.projects?.length ? <div className="divide-y divide-border">{data.projects.map(item => <ItemLink key={item.id} href={recordHref('projects', item)} title={item.title} detail={item.updated_date ? 'Updated ' + formatDate(item.updated_date) : 'Project'} />)}</div> : <EmptyAction href="/projects">Create a project to keep your research together.</EmptyAction>}
         </Section>
 
-        <Section title="Recent notes" href="/notes" icon={NotebookPen} empty="Your saved notes will appear here." count={(data.notes || []).length}>
+        <Section title="Recent notes" href="/notes" icon={NotebookPen} source="notes" failedSources={failed} empty="Your saved notes will appear here." count={(data.notes || []).length}>
           {loading ? <p role="status" className="py-4 text-sm text-muted-foreground">Loading notes…</p> : data.notes?.length ? <div className="divide-y divide-border">{data.notes.map(item => <ItemLink key={item.id} href={recordHref('notes', item)} title={item.title} detail={item.updated_date ? 'Edited ' + formatDate(item.updated_date) : 'Note'} />)}</div> : <EmptyAction href="/notes">Write your first note.</EmptyAction>}
         </Section>
 
-        <Section title="Study planner" href="/study-planner" icon={GraduationCap} empty="Your study tasks and goals will appear here." count={(data.goals || []).length}>
+        <Section title="Study planner" href="/study-planner" icon={GraduationCap} source="goals" failedSources={failed} empty="Your study tasks and goals will appear here." count={(data.goals || []).length}>
           {loading ? <p role="status" className="py-4 text-sm text-muted-foreground">Loading study goals…</p> : data.goals?.length ? <div className="divide-y divide-border">{data.goals.map(item => <ItemLink key={item.id} href={'/life/goals?focus=' + encodeURIComponent(item.id)} title={item.title} detail={item.area === 'study' ? 'Study goal' : 'Goal'} />)}</div> : <EmptyAction href="/study-planner">Plan a study session or goal.</EmptyAction>}
         </Section>
 
-        <Section title="Flashcards" href="/flashcards" icon={Layers3} empty="Your decks will appear here." count={(data.decks || []).length}>
+        <Section title="Flashcards" href="/flashcards" icon={Layers3} source="decks" failedSources={failed} empty="Your decks will appear here." count={(data.decks || []).length}>
           {loading ? <p role="status" className="py-4 text-sm text-muted-foreground">Loading decks…</p> : data.decks?.length ? <div className="divide-y divide-border">{data.decks.map(item => <ItemLink key={item.id} href={recordHref('decks', item)} title={item.title} detail={item.course || 'Saved deck'} />)}</div> : <EmptyAction href="/flashcards">Create your first flashcard deck.</EmptyAction>}
         </Section>
 
-        <Section title="Saved research" href="/library" icon={BookOpen} empty="Save a paper to return to it here." count={(data.papers || []).length}>
+        <Section title="Saved research" href="/library" icon={BookOpen} source="papers" failedSources={failed} empty="Save a paper to return to it here." count={(data.papers || []).length}>
           {loading ? <p role="status" className="py-4 text-sm text-muted-foreground">Loading saved research…</p> : data.papers?.length ? <div className="divide-y divide-border">{data.papers.map(item => <ItemLink key={item.id} href={recordHref('papers', item)} title={item.title || item.name} detail={item.updated_date ? 'Saved ' + formatDate(item.updated_date) : 'Saved paper'} />)}</div> : <EmptyAction href="/workspace/search">Search your workspace</EmptyAction>}
         </Section>
 
-        <Section title="Recent activity" href="/activity" icon={Clock3} empty="New saved changes will appear here." count={(data.activity || []).length}>
+        <Section title="Recent activity" href="/activity" icon={Clock3} source="activity" failedSources={failed} empty="New saved changes will appear here." count={(data.activity || []).length}>
           {loading ? <p role="status" className="py-4 text-sm text-muted-foreground">Loading activity…</p> : data.activity?.length ? <div className="divide-y divide-border">{data.activity.map(item => <ItemLink key={item.id} href={recordHref('activity', item)} title={(item.action || 'Changed') + ' · ' + (item.entity_label || 'Workspace record')} detail={formatDate(item.created_date, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })} />)}</div> : <EmptyAction href="/activity">Your recorded changes will be listed here.</EmptyAction>}
         </Section>
       </div>
