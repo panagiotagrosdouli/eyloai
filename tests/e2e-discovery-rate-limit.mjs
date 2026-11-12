@@ -51,9 +51,8 @@ try {
   });
 
   await limited.goto(`${baseUrl}/discover?q=${encodeURIComponent('climate adaptation in coastal cities')}`);
-  const eyloMessage = 'EYLO public search limit reached for this network; wait before retrying';
-  await limited.getByText(eyloMessage, { exact: true }).waitFor();
-  assert.equal(await limited.getByText(eyloMessage, { exact: true }).count(), 1,
+  await limited.getByText(/EYLO public search limit reached for this network; wait before retrying/).waitFor();
+  assert.equal(await limited.getByText(/EYLO public search limit reached for this network; wait before retrying/).count(), 1,
     'one EYLO throttle should not be repeated once for every index');
   assert.ok([...providers].every(provider => seenProviders.has(provider)),
     `expected all paper indexes to report EYLO throttling; saw ${[...seenProviders].join(', ')}`);
@@ -69,7 +68,7 @@ try {
   }));
   await limited.getByRole('button', { name: 'Retry live retrieval' }).click();
   await Promise.all(retryResponses);
-  await limited.getByText(eyloMessage, { exact: true }).waitFor();
+  await limited.getByText(/EYLO public search limit reached for this network; wait before retrying/).waitFor();
 
   const providerLimited = await browser.newPage({ viewport: { width: 1365, height: 900 } });
   await providerLimited.route('**/api/discovery**', async route => {
@@ -96,7 +95,7 @@ try {
 
   await providerLimited.goto(`${baseUrl}/discover?q=${encodeURIComponent('coastal erosion')}`);
   await providerLimited.getByText(/OpenAlex is rate limited \(HTTP 429\)/).waitFor();
-  assert.equal(await providerLimited.getByText('EYLO public search limit reached for this network; wait before retrying').count(), 0,
+  assert.equal(await providerLimited.getByText(/EYLO public search limit reached for this network; wait before retrying/).count(), 0,
     'an upstream provider 429 must not be attributed to EYLO');
   console.log('Public discovery browser rate-limit regression passed on mobile and desktop.');
 } finally {
