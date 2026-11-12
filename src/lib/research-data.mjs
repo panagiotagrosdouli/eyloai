@@ -133,7 +133,7 @@ function disclosureThreshold(value = 1) {
 /** Calculate deterministic per-column summaries without modifying the source rows. */
 export function summarizeResearchData(dataset, options = {}) {
   if (!dataset || !Array.isArray(dataset.headers) || !Array.isArray(dataset.rows)) return [];
-  const minimumCellSize = disclosureThreshold(options.minimumCellSize);
+  const minimumCellSize = disclosureThreshold(options.minimumCellSize ?? DATA_LAB_DEFAULT_MINIMUM_CELL_SIZE);
   return dataset.headers.map((header, columnIndex) => {
     const values = dataset.rows.map((row) => String(row?.[columnIndex] ?? '').trim());
     const present = values.filter(Boolean);
