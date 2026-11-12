@@ -14,7 +14,10 @@ function responseMock() {
 }
 
 test('Vercel schedules real server-side monitoring without an open browser', () => {
-  assert.deepEqual(config.crons, [{ path: '/api/monitor', schedule: '0 8 * * *' }]);
+  assert.deepEqual(config.crons, [
+    { path: '/api/monitor', schedule: '0 8 * * *' },
+    { path: '/api/calendar-reminders', schedule: '0 * * * *' },
+  ]);
 });
 
 test('scheduled monitor refuses unauthenticated invocations', async () => {

@@ -9,6 +9,7 @@ const FILTERS = [
   { id: 'researcher', label: 'Researchers' },
   { id: 'institution', label: 'Institutions' },
   { id: 'opportunity', label: 'Funding' },
+  { id: 'reminder', label: 'Reminders' },
 ];
 
 export default function Notifications() {

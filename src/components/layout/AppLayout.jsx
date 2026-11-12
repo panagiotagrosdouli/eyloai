@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Activity, Award, BarChart3, BookOpen, Brain, Briefcase, ChevronDown, FileEdit, FolderOpen, GitBranch, History,
-  Home, LayoutDashboard, LayoutGrid, Lightbulb, LogOut, Menu, Mic, Presentation,
-  Rocket, Search, Settings, Sparkles, Target, Trophy, User, Users,
+  Activity, Award, BarChart3, BookOpen, Brain, Briefcase, CalendarDays, ChevronDown, FileEdit, FolderOpen, GitBranch, GraduationCap, History,
+  Home, LayoutDashboard, LayoutGrid, Lightbulb, LogOut, Menu, Mic, NotebookPen, Presentation, CircleHelp,
+  Rocket, Search, Settings, Sparkles, Target, Timer, Trophy, User, Users,
   Video, X, Zap,
 } from 'lucide-react';
 import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
@@ -36,6 +36,14 @@ const TOOL_GROUPS = [
     description: 'Research work that stays connected to projects',
     items: [
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
+      { label: 'Notes', path: '/notes', icon: NotebookPen, desc: 'Private notes with autosave and version history' },
+      { label: 'Calendar', path: '/calendar', icon: CalendarDays, desc: 'Events, project deadlines, and scheduled reminders' },
+      { label: 'Study planner', path: '/study-planner', icon: GraduationCap, desc: 'Schedule study sessions and track completion' },
+      { label: 'Life planner', path: '/life', icon: Target, desc: 'Goals, habits, milestones, routines, and AI planning' },
+      { label: 'Time tracker', path: '/time-tracker', icon: Timer, desc: 'Record work sessions, report project time, and export entries' },
+      { label: 'Flashcards', path: '/flashcards', icon: BookOpen, desc: 'Build note-linked decks and review with spaced repetition' },
+      { label: 'Quiz generator', path: '/quiz-generator', icon: CircleHelp, desc: 'Generate source-grounded quizzes, grade and save results' },
+      { label: 'Learn', path: '/learn', icon: GraduationCap, desc: 'Build source-grounded courses and track lesson progress' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
       { label: 'Literature review protocol', path: '/literature-review', icon: BookOpen, desc: 'Document search methods and screen saved publications' },
