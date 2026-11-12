@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { paginateSearchResults, searchWorkspaceRecords } from '../src/lib/universal-search-domain.mjs';
-import { readFile } from 'node:fs/promises';
+import { paginateSearchResults, searchSourcePage, searchWorkspaceRecords } from '../src/lib/universal-search-domain.mjs';
 
 const collections = {
   Project: [{ id: 'p1', title: 'Climate adaptation', description: 'Coastal resilience' }],
@@ -35,15 +34,26 @@ test('workspace search paginates result sets and clamps invalid page sizes', () 
   assert.equal(paginateSearchResults(items, 2, 500).pageSize, 100);
 });
 
-test('workspace search page uses per-user repositories and reports partial source errors', async () => {
-  const [ui, repo, app] = await Promise.all([
-    readFile(new URL('../src/pages/UniversalSearch.jsx', import.meta.url), 'utf8'),
-    readFile(new URL('../src/services/supabase-entities.js', import.meta.url), 'utf8'),
-    readFile(new URL('../src/App.jsx', import.meta.url), 'utf8'),
-  ]);
-  assert.match(repo, /async list\(sort = '-created_date', limit = 100\)[\s\S]*eq\('user_id', user\.id\)/);
-  assert.match(ui, /Promise\.allSettled/);
-  assert.match(ui, /Some sources could not be loaded/);
-  assert.match(ui, /pageData\.pages/);
-  assert.match(app, /<Route element=\{<ProtectedRoute \/>\}>[\s\S]*<Route path="\/workspace\/search" element=\{<UniversalSearch \/>\}/);
+test('server search sends bounded page parameters and normalizes results into individual deep links', async () => {
+  let call;
+  const result = await searchSourcePage({
+    rpc: async (...args) => { call = args; return { data: { total: 43, page: 2, page_size: 20, items: [{ id: 'note/3', title: 'Saved note', snippet: '<b>climate</b>', score: 0.42, updated_date: '2026-01-01T00:00:00Z' }] }, error: null }; },
+    source: 'Note', query: ' climate ', page: 2, pageSize: 20,
+  });
+  assert.equal(call[0], 'search_workspace_records');
+  assert.deepEqual(call[1], { p_source: 'Note', p_query: 'climate', p_page: 2, p_page_size: 20 });
+  assert.deepEqual(result, {
+    items: [{ id: 'Note:note/3', recordId: 'note/3', source: 'Note', sourceLabel: 'Notes', title: 'Saved note', snippet: '<b>climate</b>', updatedDate: '2026-01-01T00:00:00Z', score: 0.42, href: '/notes?focus=note%2F3' }],
+    total: 43, page: 2, pageSize: 20, pages: 3,
+  });
 });
+
+test('server search bounds requests and rejects invalid providers, malformed responses and errors', async () => {
+  let call;
+  await searchSourcePage({ rpc: async (...args) => { call = args; return { data: { total: 0, page: 1, page_size: 50, items: [] }, error: null }; }, source: 'Project', query: 'ab', page: 10001, pageSize: 500 });
+  assert.deepEqual(call[1], { p_source: 'Project', p_query: 'ab', p_page: 10000, p_page_size: 50 });
+  await assert.rejects(searchSourcePage({ rpc: async () => ({ data: null, error: null }), source: 'Profile', query: 'ab' }), { code: 'SEARCH_SOURCE_INVALID' });
+  await assert.rejects(searchSourcePage({ rpc: async () => ({ data: { total: 1, page: 1, page_size: 20, items: [{ title: 'missing id' }] }, error: null }), source: 'Note', query: 'ab' }), { code: 'SEARCH_RESPONSE_INVALID' });
+  await assert.rejects(searchSourcePage({ rpc: async () => ({ data: null, error: { code: '42501', message: 'denied' } }), source: 'Note', query: 'ab' }), { code: '42501', message: 'denied' });
+});
+
