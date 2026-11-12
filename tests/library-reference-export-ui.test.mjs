@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 const source = readFileSync(new URL('../src/pages/Library.jsx', import.meta.url), 'utf8');
 
 test('authenticated Library exports filtered saved papers, not unrequested unfiltered records', () => {
-  assert.match(source, /const filteredPapers = filter\(papers, \['title', 'authors', 'source'\]\)/);
+  assert.match(source, /const filteredPapers = focusedPaperId[\s\S]*?: filter\(papers, \['title', 'authors', 'source'\]\)/);
   assert.match(source, /toBibTeX\(filteredPapers\)/);
   assert.match(source, /toRIS\(filteredPapers\)/);
   assert.match(source, /Export BibTeX/);
