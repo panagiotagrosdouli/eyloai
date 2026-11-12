@@ -29,6 +29,7 @@ function isComplete(task) {
   return task?.completed === true || ['done', 'complete', 'completed'].includes(String(task?.status || '').toLowerCase());
 }
 
+/** @param {string | number | Date} value @param {Intl.DateTimeFormatOptions} [options] */
 function formatDate(value, options = { month: 'short', day: 'numeric' }) {
   const date = new Date(String(value));
   return Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat(undefined, options).format(date);
@@ -129,7 +130,7 @@ export default function PersonalizedDashboard() {
   }, [user?.id, attempt, today]);
 
   const tasks = (data.tasks || []).filter(task => !isComplete(task)).sort((a, b) => String(a.due_date || '').localeCompare(String(b.due_date || '')));
-  const events = (data.events || []).filter(event => event.start_at && new Date(event.start_at).getTime() >= Date.now()).sort((a, b) => new Date(a.start_at) - new Date(b.start_at)).slice(0, 4);
+  const events = (data.events || []).filter(event => event.start_at && new Date(event.start_at).getTime() >= Date.now()).sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime()).slice(0, 4);
   const hasFailures = failed.length > 0;
 
   /** @type {Array<[string, string, typeof NotebookPen]>} */
