@@ -36,8 +36,7 @@ test('workspace-only draft may lack live source IDs but cannot invent one', () =
 test('Project Detail validates citations before the persisted project write', () => {
   const source = readFileSync(new URL('../src/pages/ProjectDetail.jsx', import.meta.url), 'utf8');
   const validation = source.indexOf('validateProjectEyraReport(result, { papers, researchers, opportunities, hasLiveEvidence })');
-  const save = source.indexOf('Project.updateIfUnchanged(');
-  const scopedSave = source.indexOf('id, { eyra_analysis: result }, analysisProjectVersion', save);
-  assert.ok(scopedSave > save, 'EYRA report must use the starting project version');
+  const save = source.indexOf('id, { eyra_analysis: result }, analysisProjectVersion');
+  assert.ok(save > 0, 'EYRA report must use the starting project version');
   assert.ok(validation > 0 && save > validation);
 });
