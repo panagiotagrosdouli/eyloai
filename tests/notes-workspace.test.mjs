@@ -36,16 +36,19 @@ test('Markdown export preserves note text and includes tags and project provenan
 
 test('database migration enforces private notes, owned project links, full text and bounded history', () => {
   assert.match(migration, /alter table public\.notes enable row level security/i);
+  assert.match(migration, /revoke all on schema private from public, anon, authenticated/i);
   assert.match(migration, /auth\.uid\(\).*user_id/i);
   assert.match(migration, /notes_search_idx[\s\S]*to_tsvector\('simple'/i);
   assert.match(migration, /p\.id = project_text::uuid and p\.user_id = new\.user_id/i);
+  assert.match(migration, /auth\.uid\(\)[\s\S]*is distinct from new\.user_id/i);
   assert.match(migration, /insert into public\.note_versions/i);
   assert.match(migration, /old\.version - 50/i);
   assert.match(migration, /projects_unlink_deleted_notes after delete on public\.projects/i);
   assert.match(migration, /security invoker/i);
   assert.match(migration, /grant execute on function public\.search_notes\(text, integer\) to authenticated/i);
   assert.match(migration, /revoke insert, update, delete on public\.note_versions/i);
-  assert.match(migration, /revoke all on function public\.capture_note_version\(\) from public, anon, authenticated/i);
+  assert.match(migration, /create or replace function private\.capture_note_version\(\)[\s\S]*security definer/i);
+  assert.match(migration, /revoke all on function private\.capture_note_version\(\) from public, anon, authenticated/i);
 });
 
 test('authenticated Notes repository uses the private search RPC and owner-scoped version reads', () => {
