@@ -18,6 +18,7 @@ function dateLabel(value) {
 export default function LifeGoals() {
   const { user } = useAuth();
   const ownerRef = useRef(user?.id || null);
+  const focusedGoalRef = useRef(false);
   const [goals, setGoals] = useState([]);
   const [projects, setProjects] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -49,6 +50,7 @@ export default function LifeGoals() {
 
   useEffect(() => {
     ownerRef.current = user?.id || null;
+    focusedGoalRef.current = false;
     setGoals([]);
     setProjects([]);
     setSelected(null);
@@ -80,6 +82,13 @@ export default function LifeGoals() {
     setError('');
     setNotice('');
   };
+  const chooseGoalRef = useRef(chooseGoal);
+  chooseGoalRef.current = chooseGoal;
+  useEffect(() => {
+    const focusId = new URLSearchParams(window.location.search).get('focus');
+    const match = focusId && !focusedGoalRef.current ? goals.find(goal => String(goal.id) === focusId) : null;
+    if (match) { focusedGoalRef.current = true; chooseGoalRef.current(match); }
+  }, [goals]);
 
   const saveGoal = async event => {
     event.preventDefault();
@@ -213,3 +222,4 @@ export default function LifeGoals() {
     </div>
   );
 }
+
