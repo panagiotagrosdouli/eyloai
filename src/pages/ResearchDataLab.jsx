@@ -322,13 +322,13 @@ export default function ResearchDataLab() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 id="catalog-title" className="text-lg font-semibold">Local Data Catalog</h2>
-            <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">Opt in to save a dataset name, dimensions, file size, saved date and optional SHA-256 fingerprint in this browser, scoped to your signed-in account. CSV contents and column values are never stored. Names and hashes can still be sensitive; catalog exports do not guarantee anonymity.</p>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">Opt in to save a dataset name, dimensions, file size, saved date and optional SHA-256 fingerprint in this browser, scoped to your signed-in account. CSV contents and column values are never stored, so reselect the original file to analyze it again after leaving this page. Names and hashes can still be sensitive; catalog exports do not guarantee anonymity.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={exportCatalog} disabled={!catalogEntries.length} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50">
               <Download size={15} aria-hidden="true" /> Export catalog metadata
             </button>
-            <button type="button" onClick={() => setConfirmCatalogClear(true)} disabled={!catalogEntries.length && !catalogError} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50">
+            <button type="button" onClick={() => setConfirmCatalogClear(true)} disabled={!catalogKey || (!catalogEntries.length && !catalogError)} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50">
               <Trash2 size={15} aria-hidden="true" /> Clear catalog
             </button>
           </div>
