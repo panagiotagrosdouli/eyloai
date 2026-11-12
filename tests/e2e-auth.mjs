@@ -508,11 +508,14 @@ try {
   await dataLab.getByRole('button', { name: 'Find' }).click();
   const fundingSourceResponse = await fundingResponse;
   assert.equal(fundingSourceResponse.status(), 200);
+  const fundingFixturePayload = await fundingSourceResponse.json();
+  assert.equal(fundingFixturePayload.items?.length, 4, 'the provider fixture must return four official records');
   try {
-    await dataLab.getByRole('heading', { name: 'Official climate grant' }).waitFor({ timeout: 10000 });
+    await dataLab.getByText('Official climate grant', { exact: true }).waitFor({ timeout: 10000 });
   } catch (failure) {
     const alerts = await dataLab.locator('[role="alert"]').allTextContents();
-    throw new Error(`Funding results missing after ${fundingSearchCalls} fixture request(s): ${JSON.stringify(alerts)}`, { cause: failure });
+    const bodyText = (await dataLab.locator('body').innerText()).slice(-1200);
+    throw new Error(`Funding results missing after ${fundingSearchCalls} source and ${fundingRankCalls} ranking fixture request(s): ${JSON.stringify({ alerts, url: dataLab.url(), bodyText })}`, { cause: failure });
   }
   assert.equal(await dataLab.getByRole('heading', { name: 'Model invented title' }).count(), 0);
   await dataLab.getByText('AI relevance estimate: 90/100').waitFor();
@@ -541,6 +544,168 @@ try {
   await dataLab.setViewportSize({ width: 375, height: 812 });
   assert.equal(await dataLab.getByRole('heading', { name: 'Official health grant' }).isVisible(), true);
   console.log('Funding ranking and comparison passed with authenticated browser fixtures; provider calls and production persistence were not exercised.');
+
+  // Project-scoped Grant Builder browser workflow against isolated authenticated
+  // PostgREST records. It checks switching, reload, notes and persisted drafts.
+  await dataLab.route('**/api/capabilities', route => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ ai: true, billing: false }),
+  }));
+  const grantCors = {
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET, POST, PATCH, OPTIONS',
+    'access-control-allow-headers': 'apikey, authorization, content-type, x-client-info, prefer',
+  };
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/saved_opportunities**', route => route.fulfill({
+    status: 200, contentType: 'application/json', headers: grantCors,
+    body: JSON.stringify([{ id: 'grant-opportunity-1', user_id: testUser.id, data: {
+      title: 'Official grant for project isolation', source_id: 'GRANT-E2E-1', type: 'grant',
+      source_url: 'https://www.grants.gov/search-results-detail/100', agency: 'NSF',
+      description: 'Official notice text', eligibility: 'Universities', amount: '$250,000',
+    } }]),
+  }));
+  const grantProjects = [
+    { id: 'grant-project-a', user_id: testUser.id, data: { title: 'Grant Project A', goal: 'A distinct research goal' } },
+    { id: 'grant-project-b', user_id: testUser.id, data: { title: 'Grant Project B', goal: 'A separate research goal' } },
+  ];
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/projects**', route => route.fulfill({
+    status: 200, contentType: 'application/json', headers: grantCors, body: JSON.stringify(grantProjects),
+  }));
+  const grantApplications = [];
+  let nextGrantApplication = 0;
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/grant_applications**', async route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (request.method() === 'OPTIONS') {
+      await route.fulfill({ status: 204, headers: grantCors });
+      return;
+    }
+    if (request.method() === 'GET') {
+      const opportunityId = url.searchParams.get('saved_opportunity_id')?.replace(/^eq\./, '');
+      const projectId = url.searchParams.get('project_id')?.replace(/^eq\./, '');
+      const rows = grantApplications.filter(row => row.user_id === testUser.id
+        && row.saved_opportunity_id === opportunityId && row.project_id === projectId);
+      await route.fulfill({ status: 200, contentType: 'application/json', headers: grantCors, body: JSON.stringify(rows) });
+      return;
+    }
+    if (request.method() === 'POST') {
+      const row = { id: `grant-application-${++nextGrantApplication}`, created_date: new Date().toISOString(), updated_date: new Date().toISOString(), ...request.postDataJSON() };
+      grantApplications.push(row);
+      await route.fulfill({ status: 201, contentType: 'application/json', headers: grantCors, body: JSON.stringify(row) });
+      return;
+    }
+    if (request.method() === 'PATCH') {
+      const projectId = url.searchParams.get('project_id')?.replace(/^eq\./, '');
+      const expectedVersion = Number(url.searchParams.get('version')?.replace(/^eq\./, ''));
+      const row = grantApplications.find(item => item.user_id === testUser.id
+        && item.saved_opportunity_id === 'grant-opportunity-1'
+        && item.project_id === projectId && item.version === expectedVersion);
+      if (row) Object.assign(row, request.postDataJSON(), { updated_date: new Date().toISOString() });
+      await route.fulfill({ status: 200, contentType: 'application/json', headers: grantCors, body: JSON.stringify(row ? [row] : []) });
+      return;
+    }
+    throw new Error(`Unexpected grant application method: ${request.method()}`);
+  });
+  await dataLab.route('**/api/eyra', async route => {
+    const prompt = route.request().postDataJSON()?.prompt || '';
+    const projectName = prompt.includes('Title: Grant Project A') ? 'Grant Project A' : 'Grant Project B';
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: {
+      fit_summary: `Draft saved for ${projectName}`,
+      eligibility_check: [{ requirement: 'Applicant type', evidence: 'Universities appear in notice text.', status: 'supported' }],
+      project_summary: `${projectName} summary`, need_statement: 'Need to be confirmed by the researcher.',
+      objectives: ['Objective grounded in the project record'], work_packages: [],
+      impact_and_evaluation: 'To be defined.', budget_assumptions: [], missing_information: ['Confirm budget'], next_actions: ['Review official call'],
+    } }) });
+  });
+  await dataLab.goto(`${baseUrl}/grant-builder`);
+  await dataLab.getByRole('heading', { name: 'Grant Builder' }).waitFor();
+  await dataLab.getByLabel('Project').selectOption('grant-project-a');
+  await dataLab.getByRole('button', { name: 'Generate working draft' }).click();
+  await dataLab.getByText('Draft saved for Grant Project A').waitFor();
+  await dataLab.getByLabel('Tracker notes').fill('Notes unique to project A');
+  await dataLab.getByRole('button', { name: 'Save tracker' }).click();
+  await dataLab.getByText('Application tracker saved').waitFor();
+  await dataLab.getByLabel('Project').selectOption('grant-project-b');
+  await dataLab.getByText('Draft saved for Grant Project A').waitFor({ state: 'detached' });
+  await dataLab.getByLabel('Tracker notes').fill('Notes unique to project B');
+  await dataLab.getByRole('button', { name: 'Generate working draft' }).click();
+  await dataLab.getByText('Draft saved for Grant Project B').waitFor();
+  await dataLab.getByRole('button', { name: 'Save tracker' }).click();
+  await dataLab.getByText('Application tracker saved').waitFor();
+  await dataLab.getByLabel('Project').selectOption('grant-project-a');
+  await dataLab.getByText('Draft saved for Grant Project A').waitFor();
+  assert.equal(await dataLab.getByLabel('Tracker notes').inputValue(), 'Notes unique to project A');
+  assert.equal(grantApplications.length, 2, 'one opportunity has a separate persisted application for each project');
+  await dataLab.reload();
+  await dataLab.getByText('Draft saved for Grant Project A').waitFor();
+  assert.equal(await dataLab.getByLabel('Tracker notes').inputValue(), 'Notes unique to project A');
+  console.log('Grant Builder project isolation passed with authenticated PostgREST fixtures; live RLS and concurrent database writes were not exercised.');
+
+  // Research Gap Finder live-search and save workflow using scholarly-provider
+  // shaped responses plus an isolated authenticated PostgREST persistence fixture.
+  const providerCors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };
+  await dataLab.route('https://api.openalex.org/works**', route => route.fulfill({
+    status: 200, contentType: 'application/json', headers: providerCors,
+    body: JSON.stringify({ results: [{
+      id: 'https://openalex.org/W987654321', doi: 'https://doi.org/10.1234/climate.2026',
+      title: 'Climate adaptation evidence in coastal cities', publication_year: 2026,
+      authorships: [{ author: { display_name: 'A. Researcher', id: 'https://openalex.org/A123' } }],
+      abstract_inverted_index: { Climate: [0], adaptation: [1], evidence: [2], coastal: [3], cities: [4] },
+      primary_location: { source: { display_name: 'Climate Science Journal' } },
+      cited_by_count: 12, open_access: { is_oa: true }, type: 'article', relevance_score: 0.98,
+    }] }),
+  }));
+  await dataLab.route('https://export.arxiv.org/api/query**', route => route.fulfill({
+    status: 200, contentType: 'application/atom+xml', headers: providerCors,
+    body: '<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"></feed>',
+  }));
+  await dataLab.route('https://www.ebi.ac.uk/europepmc/webservices/rest/search**', route => route.fulfill({
+    status: 200, contentType: 'application/json', headers: providerCors, body: JSON.stringify({ resultList: { result: [] } }),
+  }));
+  await dataLab.route('https://api.crossref.org/works**', route => route.fulfill({
+    status: 200, contentType: 'application/json', headers: providerCors, body: JSON.stringify({ message: { items: [] } }),
+  }));
+  await dataLab.route('https://api.semanticscholar.org/graph/v1/paper/search**', route => route.fulfill({
+    status: 503, contentType: 'application/json', headers: providerCors, body: JSON.stringify({ message: 'test provider outage' }),
+  }));
+  const persistedGapPapers = [];
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/saved_papers**', async route => {
+    const request = route.request();
+    if (request.method() === 'OPTIONS') {
+      await route.fulfill({ status: 204, headers: { ...providerCors, 'access-control-allow-methods': 'GET, POST, PATCH, OPTIONS', 'access-control-allow-headers': 'apikey, authorization, content-type, x-client-info, prefer' } });
+      return;
+    }
+    if (request.method() === 'GET') {
+      await route.fulfill({ status: 200, contentType: 'application/json', headers: providerCors, body: JSON.stringify(persistedGapPapers) });
+      return;
+    }
+    if (request.method() === 'POST') {
+      const payload = request.postDataJSON();
+      const row = { id: 'saved-gap-paper-1', user_id: testUser.id, data: payload.data, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      persistedGapPapers.push(row);
+      const single = /vnd\.pgrst\.object\+json/i.test(request.headers().accept || '');
+      await route.fulfill({ status: 201, contentType: 'application/json', headers: providerCors, body: JSON.stringify(single ? row : [row]) });
+      return;
+    }
+    throw new Error(`Unexpected saved-paper method: ${request.method()}`);
+  });
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/projects**', route => sendAuthJson(route, []));
+  await dataLab.goto(`${baseUrl}/research-gaps`);
+  await dataLab.getByRole('heading', { name: 'Research Gap Finder' }).waitFor();
+  await dataLab.getByLabel('Search scholarly literature').fill('climate adaptation');
+  await dataLab.getByRole('button', { name: 'Search literature' }).click();
+  await dataLab.getByText('Climate adaptation evidence in coastal cities').waitFor();
+  await dataLab.getByText(/4 of 5 sources responded/).waitFor();
+  assert.equal(await dataLab.getByRole('button', { name: 'Find research gaps' }).isDisabled(), true,
+    'retrieved but unsaved literature cannot enter analysis');
+  await dataLab.getByRole('button', { name: 'Save to Library' }).click();
+  await dataLab.getByText('Saved to Library and selected').waitFor();
+  assert.equal(persistedGapPapers.length, 1, 'the authenticated persistence path stores the paper before it becomes analysis evidence');
+  await dataLab.getByRole('button', { name: 'Already in Library' }).waitFor();
+  await dataLab.reload();
+  await dataLab.getByRole('heading', { name: 'Climate adaptation evidence in coastal cities' }).waitFor();
+  assert.equal(await dataLab.getByRole('button', { name: 'Find research gaps' }).isDisabled(), true,
+    'one saved paper is still below the two-paper analysis requirement');
+  console.log('Research Gap Finder browser flow passed with provider-shaped fixtures and isolated authenticated persistence; live providers and production RLS were not exercised.');
 
   // Verify sign-out actually invalidates the session and protects private routes.
   await dataLab.route('**/auth/v1/logout**', route => route.fulfill({
