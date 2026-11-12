@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarDays, Check, Circle, Clock3, Plus, Save, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import { isOverdueLifeTask, normalizeLifeTask, sortLifeTasks } from '@/lib/life-domain.mjs';
+import { isOverdueLifeTask, nextLifeTaskDate, normalizeLifeTask, sortLifeTasks } from '@/lib/life-domain.mjs';
 
-const EMPTY_TASK = { title: '', description: '', status: 'todo', priority: 'normal', due_date: '', project_id: '' };
+const EMPTY_TASK = { title: '', description: '', status: 'todo', priority: 'normal', recurrence: 'none', due_date: '', project_id: '' };
 const copyTask = task => ({ ...EMPTY_TASK, ...(task || {}), due_date: task?.due_date || '', project_id: task?.project_id || '' });
 const sameTask = (left, right) => JSON.stringify(copyTask(left)) === JSON.stringify(copyTask(right));
 
@@ -144,16 +144,47 @@ export default function Life() {
 
   const cycleStatus = async task => {
     const nextStatus = task.status === 'done' ? 'todo' : 'done';
+    const ownerId = ownerRef.current;
+    if (!ownerId) return;
     try {
       const updated = await base44.entities.LifeTask.updateIfUnchanged(task.id, { status: nextStatus }, task.updated_date);
+      if (ownerId !== ownerRef.current) return;
+      let nextOccurrence = null;
+      if (nextStatus === 'done' && task.recurrence && task.recurrence !== 'none' && task.due_date) {
+        const nextDate = nextLifeTaskDate(task.due_date, task.recurrence);
+        const parentId = task.recurrence_parent_id || task.id;
+        const existing = await base44.entities.LifeTask.filter({
+          recurrence_parent_id: parentId,
+          recurrence_instance_date: nextDate,
+        }, '-created_date', 1);
+        if (ownerId !== ownerRef.current) return;
+        nextOccurrence = existing[0] || await base44.entities.LifeTask.create({
+          title: task.title,
+          description: task.description || '',
+          status: 'todo',
+          priority: task.priority || 'normal',
+          recurrence: task.recurrence,
+          recurrence_parent_id: parentId,
+          recurrence_instance_date: nextDate,
+          due_date: nextDate,
+          project_id: task.project_id || null,
+          project_title: task.project_title || '',
+        });
+      }
+      if (ownerId !== ownerRef.current) return;
       if (task.id === selected?.id) {
         setSelected(updated);
         const next = copyTask(updated);
         setEditor(next);
         setBaseline(next);
       }
-      setTasks(current => sortLifeTasks(current.map(item => item.id === task.id ? updated : item)));
+      setTasks(current => sortLifeTasks([
+        ...current.map(item => item.id === task.id ? updated : item),
+        ...(nextOccurrence && !current.some(item => item.id === nextOccurrence.id) ? [nextOccurrence] : []),
+      ]));
+      setNotice(nextOccurrence ? `Task completed. Next occurrence scheduled for ${formatDate(nextOccurrence.due_date)}.` : 'Task status updated.');
     } catch (updateError) {
+      if (ownerId !== ownerRef.current) return;
       setError(updateError?.code === 'ENTITY_CONFLICT' ? 'This task changed elsewhere. Reload before updating it.' : updateError?.message || 'Task status could not be updated.');
     }
   };
@@ -210,6 +241,7 @@ export default function Life() {
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-xs font-medium text-muted-foreground">Status<select value={editor.status} onChange={event => setEditor(current => ({ ...current, status: event.target.value }))} className="mt-1.5 min-h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"><option value="todo">To do</option><option value="in_progress">In progress</option><option value="done">Done</option></select></label>
               <label className="text-xs font-medium text-muted-foreground">Priority<select value={editor.priority} onChange={event => setEditor(current => ({ ...current, priority: event.target.value }))} className="mt-1.5 min-h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"><option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option></select></label>
+              <label className="text-xs font-medium text-muted-foreground">Repeat<select value={editor.recurrence} onChange={event => setEditor(current => ({ ...current, recurrence: event.target.value }))} className="mt-1.5 min-h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"><option value="none">Does not repeat</option><option value="daily">Every day</option><option value="weekly">Every week</option><option value="monthly">Every month</option></select></label>
               <label className="text-xs font-medium text-muted-foreground">Due date<input type="date" value={editor.due_date} onChange={event => setEditor(current => ({ ...current, due_date: event.target.value }))} className="mt-1.5 min-h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground" /></label>
               <label className="text-xs font-medium text-muted-foreground">Project link<select value={editor.project_id} onChange={event => setEditor(current => ({ ...current, project_id: event.target.value }))} className="mt-1.5 min-h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"><option value="">No project</option>{projects.map(project => <option key={project.id} value={project.id}>{project.title || 'Untitled project'}</option>)}</select></label>
             </div>
