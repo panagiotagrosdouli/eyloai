@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { searchFundingOpportunities } from '@/lib/funding-api';
+import { applyFundingRanking, searchFundingOpportunities } from '@/lib/funding-api';
 import { promiseWithTimeout } from '@/lib/promise-timeout';
 import {
   Bookmark, Award, Loader2, DollarSign, Trophy,
@@ -150,11 +150,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
 
         if (requestId !== searchSequence.current) return;
 
-        const byId = new Map((ranking.ranked || []).map((item) => [item.id, item]));
-        const ranked = verified
-          .map((item) => ({ ...item, ...(byId.get(item.id) || {}) }))
-          .sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1));
-        setResults(ranked);
+        setResults(applyFundingRanking(verified, ranking));
       } catch (error) {
         if (requestId === searchSequence.current) {
           setRankingError(
