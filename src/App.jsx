@@ -39,6 +39,7 @@ const ResearchGaps = lazy(() => import('@/pages/ResearchGaps'));
 const LiteratureReview = lazy(() => import('@/pages/LiteratureReview'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
+const ProjectDecisions = lazy(() => import('@/pages/ProjectDecisions'));
 const Researchers = lazy(() => import('@/pages/Researchers'));
 const PublicCareers = lazy(() => import('@/pages/PublicCareers'));
 const Opportunities = lazy(() => import('@/pages/Opportunities'));
@@ -121,6 +122,7 @@ const AuthenticatedApp = () => {
           <Route path="/labs/data" element={<ResearchDataLab />} />
           <Route path="/knowledge-graph" element={<ResearchKnowledgeGraph />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/projects/:id/decisions" element={<ProjectDecisions />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/researchers" element={<Researchers />} />
           <Route path="/opportunities" element={<Opportunities />} />

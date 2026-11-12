@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  Plus, FolderOpen, ChevronRight, Trash2, Sparkles,
+  Plus, FolderOpen, ChevronRight, Trash2, Sparkles, Scale,
   Clock, X, ArrowRight, LayoutTemplate, Search
 } from 'lucide-react';
 import ProjectTemplates from '@/components/projects/ProjectTemplates';
@@ -343,6 +343,12 @@ export default function Projects() {
                       Open <ChevronRight size={10} />
                     </span>
                   </div>
+                </Link>
+                <Link
+                  to={'/projects/' + p.id + '/decisions'}
+                  className="mx-5 mb-4 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary"
+                >
+                  <Scale size={13} /> Decision workspace
                 </Link>
                 <button
                   onClick={(e) => deleteProject(p.id, e)}
