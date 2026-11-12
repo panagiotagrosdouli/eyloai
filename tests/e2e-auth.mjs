@@ -6,6 +6,30 @@ import { readFile as readDataLabDownload } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const baseUrl = 'http://127.0.0.1:4173';
+
+function extractMultipartFileBytes(request) {
+  const body = request.postDataBuffer();
+  const contentType = request.headers()['content-type'] || '';
+  const boundary = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/)?.slice(1).find(Boolean);
+  if (!boundary) throw new Error('Expected a multipart Storage upload in the EYLO Files browser fixture.');
+  const marker = Buffer.from(`--${boundary}`);
+  const partBoundary = Buffer.from(`\r\n--${boundary}`);
+  let cursor = 0;
+  while (cursor < body.length) {
+    const partStart = body.indexOf(marker, cursor);
+    if (partStart < 0) break;
+    const headerStart = partStart + marker.length + 2;
+    if (body.subarray(headerStart, headerStart + 2).toString() === '--') break;
+    const headerEnd = body.indexOf(Buffer.from('\r\n\r\n'), headerStart);
+    const nextBoundary = body.indexOf(partBoundary, headerEnd + 4);
+    if (headerEnd < 0 || nextBoundary < 0) throw new Error('Malformed multipart Storage upload in browser fixture.');
+    const headers = body.subarray(headerStart, headerEnd).toString('latin1');
+    if (/content-disposition:[^\r\n]*filename=/i.test(headers)) return body.subarray(headerEnd + 4, nextBoundary);
+    cursor = nextBoundary + 2;
+  }
+  throw new Error('Multipart Storage upload did not contain a file part.');
+}
+
 const server = spawn('npx', ['vite', '--host', '127.0.0.1', '--port', '4173', '--strictPort'], {
   env: {
     ...process.env,
@@ -705,7 +729,7 @@ try {
     } });
     if (request.method() === 'POST' && url.pathname.includes('/object/eylo-files/')) {
       const path = decodeURIComponent(url.pathname.split('/object/eylo-files/')[1]);
-      storedObjects.set(path, request.postDataBuffer());
+      storedObjects.set(path, extractMultipartFileBytes(request));
       return sendAuthJson(route, { Key: path });
     }
     if (request.method() === 'GET' && url.pathname.includes('/object/')) {
