@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { lifeGoalProgress, normalizeLifeGoal } from '@/lib/life-domain.mjs';
 
-const EMPTY_GOAL = { title: '', description: '', status: 'active', target_date: '', project_id: '', milestones: [] };
+const EMPTY_GOAL = { title: '', description: '', status: 'active', area: 'personal', target_date: '', project_id: '', milestones: [] };
 const copyGoal = goal => ({ ...EMPTY_GOAL, ...(goal || {}), target_date: goal?.target_date || '', project_id: goal?.project_id || '', milestones: Array.isArray(goal?.milestones) ? goal.milestones.map(item => ({ ...item })) : [] });
 const sameGoal = (left, right) => JSON.stringify(copyGoal(left)) === JSON.stringify(copyGoal(right));
 
@@ -178,7 +178,7 @@ export default function LifeGoals() {
               return <li key={goal.id} className={`rounded-lg border p-3 ${selected?.id === goal.id ? 'border-primary/40 bg-primary/5' : 'border-border'}`}>
                 <button type="button" onClick={() => chooseGoal(goal)} className="w-full text-left">
                   <span className="flex items-center justify-between gap-3"><span className="truncate text-sm font-medium">{goal.title}</span><span className="text-[11px] text-muted-foreground">{goal.status || 'active'}</span></span>
-                  <span className="mt-1 block text-[11px] text-muted-foreground">{dateLabel(goal.target_date)} · {goal.milestones?.filter(item => item.complete).length || 0}/{goal.milestones?.length || 0} milestones</span>
+                  <span className="mt-1 block text-[11px] text-muted-foreground">{goal.area || 'personal'} · {dateLabel(goal.target_date)} · {goal.milestones?.filter(item => item.complete).length || 0}/{goal.milestones?.length || 0} milestones</span>
                   <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-secondary"><span className="block h-full rounded-full bg-primary" style={{ width: `${progress}%` }} /></span>
                   <span className="mt-1 block text-right text-[10px] tabular-nums text-muted-foreground">{progress}%</span>
                 </button>
@@ -197,6 +197,7 @@ export default function LifeGoals() {
             <div className="mb-4 grid gap-3 sm:grid-cols-2">
               <label className="text-xs font-medium text-muted-foreground">Target date<input type="date" value={editor.target_date} onChange={event => setEditor(current => ({ ...current, target_date: event.target.value }))} className="mt-1.5 min-h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground" /></label>
               <label className="text-xs font-medium text-muted-foreground">Status<select value={editor.status} onChange={event => setEditor(current => ({ ...current, status: event.target.value }))} className="mt-1.5 min-h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"><option value="active">Active</option><option value="paused">Paused</option><option value="completed">Completed</option></select></label>
+              <label className="text-xs font-medium text-muted-foreground">Area<select value={editor.area} onChange={event => setEditor(current => ({ ...current, area: event.target.value }))} className="mt-1.5 min-h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"><option value="personal">Personal</option><option value="research">Research</option><option value="study">Study</option><option value="work">Work</option></select></label>
             </div>
             <label className="mb-5 block text-xs font-medium text-muted-foreground">Project link<select value={editor.project_id} onChange={event => setEditor(current => ({ ...current, project_id: event.target.value }))} className="mt-1.5 min-h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"><option value="">No project</option>{projects.map(project => <option key={project.id} value={project.id}>{projectNames.get(project.id)}</option>)}</select></label>
 
