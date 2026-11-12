@@ -204,6 +204,8 @@ try {
   await dataLab.getByText(digestOf(originalCsv), { exact: true }).waitFor();
   await dataLab.getByRole('button', { name: 'Save metadata to Data Catalog' }).click();
   await dataLab.getByRole('status').filter({ hasText: 'Dataset metadata saved in this browser.' }).waitFor();
+  assert.equal(await dataLab.getByRole('listitem').filter({ hasText: digestOf(originalCsv) }).count(), 1,
+    'saved metadata must appear in the Data Catalog list');
   const catalogStorage = await dataLab.evaluate(() => localStorage.getItem('eylo.research-data-catalog.v1:eylo-e2e-user'));
   assert.ok(catalogStorage.includes(digestOf(originalCsv)));
   assert.equal(catalogStorage.includes(canary), false, 'the catalog must never persist raw CSV values');
@@ -234,10 +236,10 @@ try {
   });
   await dataLab.getByText(digestOf(modifiedCsv), { exact: true }).waitFor();
   assert.notEqual(digestOf(modifiedCsv), digestOf(originalCsv));
-  assert.equal(await dataLab.getByText(digestOf(originalCsv), { exact: true }).count(), 1,
+  assert.equal(await dataLab.getByRole('listitem').filter({ hasText: digestOf(originalCsv) }).count(), 1,
     'Replacing the active file must not silently erase its separately saved catalog metadata');
   await dataLab.getByRole('button', { name: 'Remove study.csv from catalog' }).click();
-  assert.equal(await dataLab.getByText(digestOf(originalCsv), { exact: true }).count(), 0,
+  assert.equal(await dataLab.getByRole('listitem').filter({ hasText: digestOf(originalCsv) }).count(), 0,
     'Removing a catalog entry must remove its saved fingerprint');
   await dataLab.getByRole('button', { name: 'Save metadata to Data Catalog' }).click();
   await dataLab.getByRole('button', { name: 'Clear catalog' }).click();
