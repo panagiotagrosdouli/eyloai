@@ -820,6 +820,10 @@ try {
   const markdownPath = new URL(filesPage.url()).pathname;
   assert.match(markdownPath, /^\/documents\/[\da-f-]+$/i);
   assert.equal(fileRows.length, 2);
+  const savedDocument = fileRows.find(row => row.name === 'Untitled research note.md');
+  assert.ok(savedDocument?.id, 'first editor save must persist a file record with an ID');
+  assert.equal(versionRows.filter(row => row.file_id === savedDocument.id).length, 1,
+    'the first saved version must be attached to the created file record');
   const editorBody = filesPage.getByLabel('Document text (Markdown)');
   await editorBody.fill('# Proposal\n\nRevised with a verified citation.');
   await filesPage.getByRole('button', { name: 'Save version' }).click();
