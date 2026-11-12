@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { searchFundingOpportunities } from '@/lib/funding-api';
+import { getFundingComparisonRecords, toggleFundingComparisonSelection } from '@/lib/funding-comparison.mjs';
 import { promiseWithTimeout } from '@/lib/promise-timeout';
 import {
   Bookmark, Award, Loader2, DollarSign, Trophy,
@@ -52,6 +53,7 @@ export default function Opportunities() {
   const [deadlineFilter, setDeadlineFilter] = useState('all');
   const [fieldFilter, setFieldFilter] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
+  const [comparisonIds, setComparisonIds] = useState([]);
   const searchSequence = useRef(0);
   const searchController = useRef(null);
   const { toast } = useToast();
@@ -85,6 +87,7 @@ export default function Opportunities() {
     setRankingError('');
     setSourceMeta(null);
     setResults([]);
+    setComparisonIds([]);
 
     try {
       // Retrieval first: these fields come directly from the official source.
@@ -242,6 +245,20 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
   });
 
   const difficultyColor = { Low: 'text-green-400', Medium: 'text-amber-400', High: 'text-red-400' };
+  const comparisonRecords = getFundingComparisonRecords(results, comparisonIds);
+  const comparisonFields = [
+    ['agency', 'Agency / programme'],
+    ['status', 'Status'],
+    ['deadline', 'Deadline'],
+    ['eligibility', 'Eligibility'],
+    ['amount', 'Funding amount'],
+    ['country', 'Country / region'],
+    ['categories', 'Research fields'],
+  ];
+  const comparisonValue = (record, field) => {
+    const value = field === 'categories' ? (record.categories || []).join(', ') : record[field];
+    return typeof value === 'string' && value.trim() ? value : 'Not provided by source';
+  };
 
   return (
     <div className="eylo-page">
@@ -330,6 +347,49 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
         <input value={countryFilter} onChange={(event) => setCountryFilter(event.target.value)} placeholder="Filter by country or eligibility" aria-label="Filter by country" className="rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-foreground" />
       </div>}
 
+      {comparisonRecords.length > 0 && (
+        <section aria-labelledby="funding-comparison-heading" className="mb-6 overflow-hidden rounded-xl border border-primary/25 bg-card">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <div>
+              <h2 id="funding-comparison-heading" className="text-sm font-semibold text-foreground">Compare official opportunities</h2>
+              <p className="mt-1 text-[11px] text-muted-foreground">Source-provided fields only. Missing values are marked explicitly.</p>
+            </div>
+            <button type="button" onClick={() => setComparisonIds([])} className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">
+              Clear
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-[760px] w-full border-collapse text-left text-xs">
+              <thead>
+                <tr>
+                  <th scope="col" className="w-36 p-3 text-muted-foreground">Field</th>
+                  {comparisonRecords.map((record) => (
+                    <th scope="col" key={record.id} className="min-w-52 border-l border-border p-3 align-top">
+                      <div className="font-semibold text-foreground">{record.title}</div>
+                      <a href={record.source_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-primary hover:underline">
+                        Open official source <ExternalLink size={11} />
+                      </a>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonFields.map(([field, label]) => (
+                  <tr key={field} className="border-t border-border">
+                    <th scope="row" className="p-3 font-medium text-muted-foreground">{label}</th>
+                    {comparisonRecords.map((record) => (
+                      <td key={record.id} className="border-l border-border p-3 align-top text-foreground">
+                        {comparisonValue(record, field)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       {loading && (
         <div className="flex flex-col items-center justify-center py-20">
           <div className="w-12 h-12 rounded-full eyra-gradient flex items-center justify-center mb-4 animate-pulse-glow">
@@ -403,6 +463,22 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
                       </div>
                     </div>
                     <div className="flex flex-col gap-1 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = toggleFundingComparisonSelection(comparisonIds, opp.id);
+                          if (next === null) {
+                            toast({ title: 'Comparison limit reached', description: 'Compare up to three opportunities at a time.' });
+                          } else {
+                            setComparisonIds(next);
+                          }
+                        }}
+                        disabled={!comparisonIds.includes(opp.id) && comparisonIds.length >= 3}
+                        aria-pressed={comparisonIds.includes(opp.id)}
+                        className={`rounded-lg border px-2.5 py-1.5 text-[10px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${comparisonIds.includes(opp.id) ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}
+                      >
+                        {comparisonIds.includes(opp.id) ? 'Remove comparison' : 'Compare'}
+                      </button>
                       <button
                         type="button"
                         onClick={() => saveOpportunity(opp)}
