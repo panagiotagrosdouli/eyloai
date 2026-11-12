@@ -43,6 +43,7 @@ const TOOL_GROUPS = [
       { label: 'Time tracker', path: '/time-tracker', icon: Timer, desc: 'Record work sessions, report project time, and export entries' },
       { label: 'Flashcards', path: '/flashcards', icon: BookOpen, desc: 'Build note-linked decks and review with spaced repetition' },
       { label: 'Quiz generator', path: '/quiz-generator', icon: CircleHelp, desc: 'Generate source-grounded quizzes, grade and save results' },
+      { label: 'Learn', path: '/learn', icon: GraduationCap, desc: 'Build source-grounded courses and track lesson progress' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
       { label: 'Literature review protocol', path: '/literature-review', icon: BookOpen, desc: 'Document search methods and screen saved publications' },

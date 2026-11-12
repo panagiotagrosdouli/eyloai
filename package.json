@@ -27,6 +27,7 @@
     "test:e2e:time-tracker": "node tests/e2e-time-tracker.mjs",
     "test:e2e:flashcards": "node tests/e2e-flashcards.mjs",
     "test:e2e:quiz-generator": "node tests/e2e-quiz-generator.mjs",
+    "test:e2e:learn": "node tests/e2e-learn.mjs",
     "test:e2e:project-concurrency": "node tests/e2e-supabase-project-concurrency.mjs"
   },
   "dependencies": {
