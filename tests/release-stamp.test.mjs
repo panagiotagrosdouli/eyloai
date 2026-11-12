@@ -54,3 +54,24 @@ test('Vercel builds require Vercel Git metadata and do not borrow GITHUB_SHA', (
     fs.rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test('Vercel builds stamp the actual Vercel deployment SHA over unrelated workflow metadata', () => {
+  const directory = fs.mkdtempSync(path.join(process.cwd(), 'test-tmp-eylo-release-'));
+  const manifestPath = path.join(directory, 'dist', 'release.json');
+  fs.mkdirSync(path.dirname(manifestPath));
+  fs.writeFileSync(manifestPath, JSON.stringify({ release: 'release-1' }));
+  const vercelSha = 'a'.repeat(40);
+  const unrelatedGithubSha = 'b'.repeat(40);
+
+  try {
+    const result = spawnSync(process.execPath, [new URL('../scripts/stamp-release.mjs', import.meta.url).pathname], {
+      cwd: directory,
+      env: { ...process.env, VERCEL: '1', VERCEL_GIT_COMMIT_SHA: vercelSha, GITHUB_SHA: unrelatedGithubSha },
+      encoding: 'utf8',
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(JSON.parse(fs.readFileSync(manifestPath, 'utf8')).git_commit, vercelSha);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});

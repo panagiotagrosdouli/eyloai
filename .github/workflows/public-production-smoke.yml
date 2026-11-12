@@ -7,6 +7,9 @@ on:
         description: 'Reviewed public HTTPS origin to check'
         required: true
         default: 'https://eyloai.vercel.app'
+      expected_deployment_sha:
+        description: 'Full Git commit SHA of the deployment under test; smoke fails if either release identity differs'
+        required: true
 
 permissions:
   contents: read
@@ -23,5 +26,5 @@ jobs:
       - name: Check public routes and deployed commit identity
         env:
           EYLO_SMOKE_URL: ${{ inputs.target_url }}
-          EYLO_EXPECTED_GIT_SHA: ${{ github.sha }}
+          EYLO_EXPECTED_GIT_SHA: ${{ inputs.expected_deployment_sha }}
         run: node scripts/smoke-public.mjs
