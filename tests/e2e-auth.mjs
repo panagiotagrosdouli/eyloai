@@ -548,6 +548,11 @@ try {
   // Team Planner uses real OpenAlex-shaped candidate records, deterministic
   // topic overlap, a locally computed completeness value, and ignores a late
   // AI response after the researcher changes their project query.
+  await dataLab.route('**/api/capabilities', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ ai: true, billing: false, contact: false, scheduled_monitoring: false, institution_analytics: false }),
+  }));
   await dataLab.route('**/rest/v1/projects**', async route => {
     if (route.request().method() === 'OPTIONS') {
       await route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' } });
