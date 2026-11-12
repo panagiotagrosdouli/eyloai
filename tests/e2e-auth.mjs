@@ -220,6 +220,18 @@ try {
     'Clear must remove the fingerprint');
 
   await dataLab.locator('input[type="file"]').setInputFiles({
+    name: 'relationship.csv', mimeType: 'text/csv',
+    buffer: Buffer.from('hours,score\n1,2\n2,4\n3,6\n,8\n'),
+  });
+  const comparisonStatus = dataLab.getByRole('status').filter({ hasText: 'Pearson correlation, r' });
+  await comparisonStatus.waitFor();
+  const comparisonText = await comparisonStatus.innerText();
+  assert.match(comparisonText, /Pearson correlation, r\s+1/);
+  assert.match(comparisonText, /Complete pairs used\s+3/);
+  assert.match(comparisonText, /Rows skipped for blanks or non-numeric cells\s+1/);
+  await dataLab.getByRole('button', { name: 'Clear data' }).click();
+
+  await dataLab.locator('input[type="file"]').setInputFiles({
     name: 'oversized.csv', mimeType: 'text/csv',
     buffer: Buffer.alloc(5 * 1024 * 1024 + 1, 65),
   });
