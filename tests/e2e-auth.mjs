@@ -6,6 +6,30 @@ import { readFile as readDataLabDownload } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const baseUrl = 'http://127.0.0.1:4173';
+
+function extractMultipartFileBytes(request) {
+  const body = request.postDataBuffer();
+  const contentType = request.headers()['content-type'] || '';
+  const boundary = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/)?.slice(1).find(Boolean);
+  if (!boundary) throw new Error('Expected a multipart Storage upload in the EYLO Files browser fixture.');
+  const marker = Buffer.from(`--${boundary}`);
+  const partBoundary = Buffer.from(`\r\n--${boundary}`);
+  let cursor = 0;
+  while (cursor < body.length) {
+    const partStart = body.indexOf(marker, cursor);
+    if (partStart < 0) break;
+    const headerStart = partStart + marker.length + 2;
+    if (body.subarray(headerStart, headerStart + 2).toString() === '--') break;
+    const headerEnd = body.indexOf(Buffer.from('\r\n\r\n'), headerStart);
+    const nextBoundary = body.indexOf(partBoundary, headerEnd + 4);
+    if (headerEnd < 0 || nextBoundary < 0) throw new Error('Malformed multipart Storage upload in browser fixture.');
+    const headers = body.subarray(headerStart, headerEnd).toString('latin1');
+    if (/content-disposition:[^\r\n]*filename=/i.test(headers)) return body.subarray(headerEnd + 4, nextBoundary);
+    cursor = nextBoundary + 2;
+  }
+  throw new Error('Multipart Storage upload did not contain a file part.');
+}
+
 const server = spawn('npx', ['vite', '--host', '127.0.0.1', '--port', '4173', '--strictPort'], {
   env: {
     ...process.env,
@@ -567,6 +591,18 @@ try {
         : [];
     await route.fulfill({ status: 200, headers, body: JSON.stringify({ total: args.p_source === 'Project' ? 21 : args.p_source === 'Note' ? 1 : 0, page: args.p_page, page_size: args.p_page_size, items }) });
   });
+  await dataLab.route('**/rest/v1/rpc/search_private_files', async route => {
+    const request = route.request();
+    const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'content-type': 'application/json' };
+    if (request.method() === 'OPTIONS') { await route.fulfill({ status: 204, headers }); return; }
+    const args = request.postDataJSON();
+    assert.equal(args.p_query, 'climate');
+    assert.ok(args.p_page_size <= 50);
+    await route.fulfill({ status: 200, headers, body: JSON.stringify({
+      total: 1, page: args.p_page, page_size: args.p_page_size,
+      items: [{ id: 'file-1', title: 'Climate protocol.md', snippet: 'Source screening workflow', score: 0.7, updated_date: '2026-11-12T00:00:00Z' }],
+    }) });
+  });
   await dataLab.route('**/rest/v1/notes**', async route => {
     const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'content-type': 'application/json' };
     if (route.request().method() === 'OPTIONS') { await route.fulfill({ status: 204, headers }); return; }
@@ -586,8 +622,11 @@ try {
   await dataLab.getByRole('alert').getByText('Partial results:', { exact: false }).waitFor();
   await dataLab.getByRole('link', { name: 'Climate note' }).waitFor();
   await dataLab.getByRole('link', { name: 'Climate project 1' }).waitFor();
+  const fileSearchResult = dataLab.getByRole('link', { name: 'Climate protocol.md' });
+  await fileSearchResult.waitFor();
+  assert.equal(await fileSearchResult.getAttribute('href'), '/files?focus=file-1');
   assert.equal(await dataLab.getByText('Page 1 of 2').isVisible(), true);
-  assert.ok(searchRpcCalls >= 8, 'one bounded server search call is made per source');
+  assert.ok(searchRpcCalls >= 8, 'one bounded server search call is made per workspace source');
   await dataLab.getByRole('region', { name: 'Projects search results' }).getByRole('button', { name: 'Next' }).click();
   await dataLab.getByRole('link', { name: 'Climate project 2' }).waitFor();
   await dataLab.getByRole('link', { name: 'Climate note' }).click();
@@ -597,6 +636,204 @@ try {
   await dataLab.waitForFunction(() => document.querySelector('#note-title')?.value === 'Climate note');
   assert.equal(await dataLab.getByLabel('Note title').inputValue(), 'Climate note', 'record deep link should open the exact saved note');
   console.log('Universal Search rendered paginated results, partial source coverage and opened the exact note from an RPC-shaped response.');
+
+  // EYLO Files browser workflow uses isolated PostgREST and Storage fixtures;
+  // it exercises the real page and SDK calls without touching a live project.
+  const filesPage = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await filesPage.route('https://eylo-auth-test.supabase.co/auth/v1/token?grant_type=password', route => sendAuthJson(route, {
+    access_token: 'eylo-files-e2e-access-token', token_type: 'bearer', expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: 'eylo-files-e2e-refresh-token', user: testUser,
+  }));
+  await filesPage.route('https://eylo-auth-test.supabase.co/auth/v1/user**', route => sendAuthJson(route, testUser));
+  const fileRows = [];
+  const versionRows = [];
+  const storedObjects = new Map();
+  const storageReads = [];
+  const fileWrites = [];
+  filesPage.on('request', request => {
+    if (request.url().includes('/storage/v1/object/') && request.method() === 'GET') storageReads.push(request.url());
+  });
+  await filesPage.route('https://eylo-auth-test.supabase.co/rest/v1/**', async route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: {
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+      'access-control-allow-headers': '*',
+    } });
+    const table = url.pathname.split('/').at(-1);
+    if (['eylo_files', 'eylo_file_versions'].includes(table) && !['GET', 'OPTIONS'].includes(request.method())) {
+      fileWrites.push({ table, method: request.method(), body: request.postDataJSON() });
+    }
+    if (table === 'projects') return sendAuthJson(route, [{ id: 'file-project-1', user_id: testUser.id, data: { title: 'File project' } }]);
+    if (table === 'eylo_files') {
+      const id = url.searchParams.get('id')?.replace('eq.', '');
+      if (request.method() === 'GET') return sendAuthJson(route, fileRows.filter(row => !id || row.id === id));
+      if (request.method() === 'POST') {
+        const row = { ...request.postDataJSON(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+        fileRows.push(row); return sendAuthJson(route, row);
+      }
+      if (request.method() === 'PATCH') {
+        const row = fileRows.find(item => item.id === id);
+        if (!row) return sendAuthJson(route, []);
+        Object.assign(row, request.postDataJSON(), { updated_at: new Date().toISOString() });
+        return sendAuthJson(route, row);
+      }
+      if (request.method() === 'DELETE') {
+        const index = fileRows.findIndex(item => item.id === id);
+        const removed = index >= 0 ? fileRows.splice(index, 1) : [];
+        return sendAuthJson(route, removed);
+      }
+    }
+    if (table === 'eylo_file_versions') {
+      if (request.method() === 'GET') {
+        const ids = (url.searchParams.get('file_id') || '').match(/\((.*)\)/)?.[1]?.replaceAll('"', '').split(',') || [];
+        const fileId = url.searchParams.get('file_id')?.replace('eq.', '');
+        const versionId = url.searchParams.get('id')?.replace('eq.', '');
+        const matchingRows = versionRows.filter(row => (!ids.length && !fileId || ids.includes(row.file_id) || row.file_id === fileId)
+          && (!versionId || row.id === versionId))
+          .sort((left, right) => right.version_number - left.version_number);
+        if (request.headers().accept?.includes('application/vnd.pgrst.object+json')) {
+          if (matchingRows.length !== 1) return route.fulfill({ status: 406, contentType: 'application/json', body: JSON.stringify({ code: 'PGRST116', message: 'JSON object requested, exactly one row required' }) });
+          return sendAuthJson(route, matchingRows[0]);
+        }
+        return sendAuthJson(route, matchingRows);
+      }
+      if (request.method() === 'POST') {
+        const row = { ...request.postDataJSON(), created_at: new Date().toISOString() };
+        versionRows.push(row); return sendAuthJson(route, row);
+      }
+    }
+    // The authenticated application shell also loads a private watchlist summary.
+    // Keep this test fixture isolated and do not mistake that unrelated GET for
+    // an EYLO Files request; other unexpected write operations still fail.
+    if (['watchlists', 'monitoring_discoveries', 'notifications'].includes(table) && request.method() === 'GET') return sendAuthJson(route, []);
+    throw new Error(`Unexpected EYLO Files database request ${request.method()} ${url.pathname}`);
+  });
+  await filesPage.route('https://eylo-auth-test.supabase.co/rest/v1/rpc/search_private_files', async route => {
+    const request = route.request();
+    const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'content-type': 'application/json' };
+    if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
+    const args = request.postDataJSON();
+    assert.equal(args.p_query, 'protocol');
+    assert.ok(args.p_page_size <= 50);
+    const file = fileRows.find(row => row.name.toLocaleLowerCase().includes(args.p_query));
+    return route.fulfill({ status: 200, headers, body: JSON.stringify({
+      total: file ? 1 : 0, page: args.p_page, page_size: args.p_page_size,
+      items: file ? [{ id: file.id, title: file.name, snippet: file.description, score: 0.7, updated_date: file.updated_at }] : [],
+    }) });
+  });
+  await filesPage.route('https://eylo-auth-test.supabase.co/storage/v1/**', async route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: {
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'GET, POST, DELETE, OPTIONS',
+      'access-control-allow-headers': '*',
+    } });
+    if (request.method() === 'POST' && url.pathname.includes('/object/eylo-files/')) {
+      const path = decodeURIComponent(url.pathname.split('/object/eylo-files/')[1]);
+      storedObjects.set(path, extractMultipartFileBytes(request));
+      return sendAuthJson(route, { Key: path });
+    }
+    if (request.method() === 'GET' && url.pathname.includes('/object/')) {
+      const path = decodeURIComponent(url.pathname.split('/object/').at(-1).replace(/^authenticated\//, '').replace(/^eylo-files\//, ''));
+      const bytes = storedObjects.get(path);
+      if (!bytes) return route.fulfill({ status: 404, body: 'Not found' });
+      return route.fulfill({ status: 200, body: bytes, headers: {
+        'access-control-allow-origin': '*',
+        'access-control-allow-headers': '*',
+        'content-type': 'text/plain',
+      } });
+    }
+    if (request.method() === 'DELETE' && url.pathname.endsWith('/object/eylo-files')) {
+      for (const path of request.postDataJSON().prefixes) storedObjects.delete(path);
+      return sendAuthJson(route, []);
+    }
+    throw new Error(`Unexpected EYLO Files storage request ${request.method()} ${url.pathname}`);
+  });
+  await filesPage.goto(`${baseUrl}/login`);
+  await filesPage.getByLabel('Email address').fill(testUser.email);
+  await filesPage.getByLabel('Password').fill('Test-password-123');
+  await filesPage.getByRole('button', { name: 'Continue with password' }).click();
+  await filesPage.getByRole('heading', { name: 'Continue your research' }).waitFor({ state: 'detached' });
+  await filesPage.goto(`${baseUrl}/files`);
+  await filesPage.getByRole('heading', { name: 'EYLO Files' }).waitFor();
+  await filesPage.locator('input[type="file"]').setInputFiles({ name: 'protocol.txt', mimeType: 'text/plain', buffer: Buffer.from('version one') });
+  await filesPage.getByText('protocol.txt', { exact: true }).waitFor();
+  assert.equal(fileRows.length, 1);
+  assert.equal(versionRows.length, 1);
+  assert.equal(storedObjects.size, 1);
+  await filesPage.getByLabel('File note').fill('Methods protocol');
+  await filesPage.getByLabel('Link protocol.txt to a project').selectOption('file-project-1');
+  await filesPage.getByRole('button', { name: 'Save details' }).click();
+  await filesPage.getByText('Open linked project').waitFor();
+  await filesPage.getByRole('button', { name: 'Upload new version' }).click();
+  await filesPage.locator('input[type="file"]').setInputFiles({ name: 'protocol.txt', mimeType: 'text/plain', buffer: Buffer.from('version two') });
+  await filesPage.getByText('New file version saved').waitFor({ timeout: 8000 });
+  assert.equal(versionRows.length, 2, 'the browser submitted and persisted the second version row');
+  await filesPage.getByText('Version 2 · latest').waitFor({ timeout: 8000 });
+  assert.equal(versionRows.length, 2, 'each upload is stored as a separate immutable version');
+  assert.equal(storedObjects.size, 2, 'the earlier object remains available after a replacement upload');
+  const savedFileId = fileRows[0].id;
+  await filesPage.goto(`${baseUrl}/workspace/search`);
+  await filesPage.getByRole('heading', { name: 'Search your workspace' }).waitFor();
+  await filesPage.getByLabel('Filter by source').selectOption('EyloFile');
+  await filesPage.getByRole('searchbox', { name: 'Search your records' }).fill('protocol');
+  await filesPage.getByRole('link', { name: 'protocol.txt' }).click();
+  assert.equal(new URL(filesPage.url()).pathname, '/files');
+  assert.equal(new URL(filesPage.url()).searchParams.get('focus'), savedFileId);
+  await filesPage.getByRole('heading', { name: 'EYLO Files' }).waitFor();
+  const focusedFileCard = filesPage.locator(`#eylo-file-${savedFileId}`);
+  await focusedFileCard.waitFor({ timeout: 8000 });
+  assert.match(await focusedFileCard.getAttribute('class'), /border-primary/, 'search deep link focuses the exact private file');
+  await filesPage.reload();
+  await filesPage.getByText('Methods protocol').waitFor();
+  assert.equal(await filesPage.getByLabel('Link protocol.txt to a project').inputValue(), 'file-project-1');
+  const versionDownload = filesPage.waitForEvent('download', { timeout: 8000 }).catch(() => null);
+  await filesPage.getByRole('button', { name: 'Download' }).first().click();
+  const downloadedVersion = await versionDownload;
+  if (!downloadedVersion) throw new Error('EYLO file download failed: ' + JSON.stringify({
+    storageReads, versionRows, alert: await filesPage.locator('[role="alert"]').allInnerTexts(),
+    body: (await filesPage.locator('body').innerText()).slice(-1500),
+  }));
+  assert.equal(downloadedVersion.suggestedFilename(), 'protocol.txt');
+  assert.equal(await readDataLabDownload(await downloadedVersion.path(), 'utf8'), 'version two',
+    'the selected latest version must download the exact persisted bytes');
+  await filesPage.getByRole('link', { name: 'Create a document' }).first().click();
+  await filesPage.getByRole('heading', { name: 'Document Editor' }).waitFor();
+  const editor = filesPage.getByLabel('Document text (Markdown)');
+  await editor.fill('# Proposal\n\nA source-linked research plan.');
+  await filesPage.getByRole('button', { name: 'Save version' }).click();
+  await filesPage.getByRole('heading', { name: 'Document Editor' }).waitFor();
+  await filesPage.getByText('All changes saved').waitFor();
+  try {
+    await filesPage.waitForURL(url => /^\/documents\/[\da-f-]+$/i.test(url.pathname), { timeout: 8000 });
+  } catch (cause) {
+    throw new Error('New document did not navigate to its saved record: ' + JSON.stringify({
+      url: filesPage.url(), fileRows, versionRows,
+      fileWrites,
+      secureUuidAvailable: await filesPage.evaluate(() => typeof crypto.randomUUID === 'function'),
+      alerts: await filesPage.locator('[role="alert"]').allInnerTexts(),
+    }), { cause });
+  }
+  const markdownPath = new URL(filesPage.url()).pathname;
+  assert.match(markdownPath, /^\/documents\/[\da-f-]+$/i);
+  assert.equal(fileRows.length, 2);
+  const savedDocument = fileRows.find(row => row.name === 'Untitled research note.md');
+  assert.ok(savedDocument?.id, 'first editor save must persist a file record with an ID');
+  assert.equal(versionRows.filter(row => row.file_id === savedDocument.id).length, 1,
+    'the first saved version must be attached to the created file record');
+  const editorBody = filesPage.getByLabel('Document text (Markdown)');
+  await editorBody.fill('# Proposal\n\nRevised with a verified citation.');
+  await filesPage.getByRole('button', { name: 'Save version' }).click();
+  await filesPage.getByText(/Version 2 ·/).waitFor();
+  await filesPage.reload();
+  assert.equal(await filesPage.getByLabel('Document text (Markdown)').inputValue(), '# Proposal\n\nRevised with a verified citation.');
+  const markdownExport = filesPage.waitForEvent('download');
+  await filesPage.getByRole('button', { name: 'Export Markdown' }).click();
+  assert.equal((await markdownExport).suggestedFilename(), 'Untitled research note.md');
+  console.log('EYLO Files browser workflow passed against isolated PostgREST and Storage fixtures.');
 
   // Verify sign-out actually invalidates the session and protects private routes.
   await dataLab.route('**/auth/v1/logout**', route => route.fulfill({

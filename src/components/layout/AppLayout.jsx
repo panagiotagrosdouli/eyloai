@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Activity, Award, BarChart3, BookOpen, Brain, Briefcase, CalendarDays, ChevronDown, Clock3, FileEdit, Flame, FolderOpen, GitBranch, GraduationCap, History,
+  Activity, Award, BarChart3, BookOpen, Brain, Briefcase, CalendarDays, ChevronDown, Clock3, File, FileEdit, FilePlus2, Flame, FolderOpen, GitBranch, GraduationCap, History,
   Home, LayoutDashboard, LayoutGrid, Lightbulb, ListTodo, LogOut, Menu, Mic, NotebookPen, Presentation, Layers3,
   Rocket, Search, Settings, Sparkles, Target, Trophy, User, Users,
   Video, X, Zap,
@@ -35,6 +35,8 @@ const TOOL_GROUPS = [
     section: 'Workspace',
     description: 'Research work that stays connected to projects',
     items: [
+      { label: 'EYLO Files', path: '/files', icon: File, desc: 'Private project files with version history' },
+      { label: 'EYLO Create', path: '/documents/new', icon: FilePlus2, desc: 'Create and version Markdown research documents' },
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
       { label: 'Life', path: '/life', icon: ListTodo, desc: 'Private tasks, priorities, due dates and project links' },
       { label: 'Goals', path: '/life/goals', icon: Target, desc: 'Track personal goals with measurable milestones' },

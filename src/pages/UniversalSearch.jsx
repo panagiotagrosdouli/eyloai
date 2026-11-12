@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { UNIVERSAL_SEARCH_PAGE_SIZE, UNIVERSAL_SEARCH_SOURCES } from '@/lib/universal-search-domain.mjs';
 import { searchWorkspaceSource } from '@/services/universal-search';
 
-const LABELS = { all: 'All sources', Project: 'Projects', Note: 'Notes', LifeTask: 'Tasks and study', LifeGoal: 'Goals', FlashcardDeck: 'Flashcards', CalendarEvent: 'Calendar', SavedPaper: 'Saved research', Idea: 'Ideas' };
+const LABELS = { all: 'All sources', Project: 'Projects', Note: 'Notes', LifeTask: 'Tasks and study', LifeGoal: 'Goals', FlashcardDeck: 'Flashcards', CalendarEvent: 'Calendar', SavedPaper: 'Saved research', Idea: 'Ideas', EyloFile: 'EYLO Files' };
 
 export default function UniversalSearch() {
   const { user } = useAuth();
@@ -45,7 +45,7 @@ export default function UniversalSearch() {
   const availableTotal = Object.values(sourcePages).reduce((sum, result) => sum + result.total, 0);
 
   return <div className="eylo-page max-w-5xl">
-    <header className="mb-6"><p className="eylo-eyebrow">Private workspace</p><h1 className="eylo-page-heading">Search your workspace</h1><p className="mt-1 max-w-2xl text-sm text-muted-foreground">Find saved notes, projects, tasks, study items, events, flashcards, ideas and research. Search uses your signed-in account's saved records.</p></header>
+    <header className="mb-6"><p className="eylo-eyebrow">Private workspace</p><h1 className="eylo-page-heading">Search your workspace</h1><p className="mt-1 max-w-2xl text-sm text-muted-foreground">Find saved notes, projects, tasks, study items, events, flashcards, ideas, research, and EYLO Files by file name or note. Search uses your signed-in account's saved records; file contents are not indexed.</p></header>
     <div className="mb-4 flex flex-wrap gap-3 rounded-xl border border-border bg-card p-4">
       <label className="flex min-w-56 flex-1 items-center gap-2 rounded-lg border border-border bg-background px-3"><Search size={16} className="text-muted-foreground"/><span className="sr-only">Search your records</span><input autoFocus type="search" value={query} onChange={event => { setQuery(event.target.value); setPages({}); }} placeholder="Search at least 2 characters" className="min-h-11 w-full bg-transparent text-sm outline-none"/></label>
       <label className="sr-only" htmlFor="universal-source">Filter by source</label><select id="universal-source" value={source} onChange={event => { setSource(event.target.value); setPages({}); }} className="min-h-11 rounded-lg border border-border bg-background px-3 text-sm"><option value="all">All sources</option>{UNIVERSAL_SEARCH_SOURCES.map(name => <option key={name} value={name}>{LABELS[name]}</option>)}</select>

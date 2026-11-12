@@ -26,6 +26,8 @@ const CapabilityGate = lazy(() => import('@/components/system/CapabilityGate'));
 const PageNotFound = lazy(() => import('./lib/PageNotFound'));
 const Home = lazy(() => import('@/pages/Home'));
 const Library = lazy(() => import('@/pages/Library'));
+const EyloFiles = lazy(() => import('@/pages/EyloFiles'));
+const DocumentEditor = lazy(() => import('@/pages/DocumentEditor'));
 const Notes = lazy(() => import('@/pages/Notes'));
 const Life = lazy(() => import('@/pages/Life'));
 const LifeGoals = lazy(() => import('@/pages/LifeGoals'));
@@ -108,6 +110,9 @@ const AuthenticatedApp = () => {
           <Route path="/workspace/careers" element={<PublicCareers />} />
           <Route path="/search" element={<Home searchOnly />} />
           <Route path="/library" element={<Library />} />
+          <Route path="/files" element={<EyloFiles />} />
+          <Route path="/documents/new" element={<DocumentEditor isNewDocument />} />
+          <Route path="/documents/:id" element={<DocumentEditor />} />
           <Route path="/notes" element={<Notes />} />
           <Route path="/life" element={<Life />} />
           <Route path="/life/goals" element={<LifeGoals />} />
