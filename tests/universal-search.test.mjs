@@ -25,6 +25,8 @@ test('workspace search returns safe route targets and snippets from matches', ()
   const [result] = searchWorkspaceRecords({ Project: [{ id: 'safe-id', title: 'Coastal research', description: 'A resilience project' }] }, 'resilience');
   assert.equal(result.href, '/projects/safe-id');
   assert.match(result.snippet, /resilience/);
+  const [note] = searchWorkspaceRecords({ Note: [{ id: 'note/1', title: 'Coastal field notes', content: 'Resilience observations' }] }, 'resilience');
+  assert.equal(note.href, '/notes?focus=note%2F1');
 });
 
 test('workspace search paginates result sets and clamps invalid page sizes', () => {
