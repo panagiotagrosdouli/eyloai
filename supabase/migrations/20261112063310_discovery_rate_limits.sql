@@ -11,7 +11,7 @@ grant usage on schema private to service_role;
 
 create table if not exists private.discovery_rate_limit_counters (
   client_hash text primary key check (client_hash ~ '^[a-f0-9]{64}$'),
-  tokens numeric(12, 6) not null check (tokens >= 0),
+  tokens numeric(16, 9) not null check (tokens >= 0),
   last_refill_at timestamptz not null,
   last_allowed boolean not null,
   updated_at timestamptz not null default clock_timestamp()
@@ -62,7 +62,7 @@ set search_path = ''
 as $$
 declare
   v_now timestamptz := coalesce(p_now, clock_timestamp());
-  v_tokens numeric(12, 6);
+  v_tokens numeric(16, 9);
   v_allowed boolean;
 begin
   if p_client_hash is null or p_client_hash !~ '^[a-f0-9]{64}$'
