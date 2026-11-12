@@ -43,7 +43,11 @@ try {
     const method = route.request().method();
     const wantsObject = route.request().headers().accept?.includes('vnd.pgrst.object');
     const response = (value) => route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'content-range': `0-${Math.max(0, records.length - 1)}/${records.length}` }, body: JSON.stringify(value) });
-    if (method === 'GET') return response(records.filter((item) => item.user_id === user.id));
+    if (method === 'GET') {
+      const id = url.searchParams.get('id')?.replace('eq.', '');
+      const matching = records.filter((item) => item.user_id === user.id && (!id || item.id === id));
+      return response(wantsObject ? (matching[0] || null) : matching);
+    }
     if (method === 'POST') {
       const payload = route.request().postDataJSON();
       const row = { id: `learning-${records.length + 1}`, user_id: user.id, kind: payload.kind, parent_id: payload.parent_id || null, data: payload.data || {}, created_date: new Date().toISOString(), updated_date: new Date().toISOString() };
