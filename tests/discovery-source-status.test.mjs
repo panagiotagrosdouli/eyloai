@@ -62,3 +62,29 @@ test('EYLO rate limiting is attributed to the public-search service across every
     globalThis.fetch = previousFetch;
   }
 });
+
+test('same-origin EYLO 429 never falls back to direct provider requests', async () => {
+  const previousFetch = globalThis.fetch;
+  const previousWindow = globalThis.window;
+  const requestedUrls = [];
+  globalThis.window = {};
+  globalThis.fetch = async input => {
+    const url = String(input);
+    requestedUrls.push(url);
+    assert.match(url, /^\/api\/discovery\?/);
+    return new Response(JSON.stringify({
+      code: 'DISCOVERY_RATE_LIMITED',
+      error: 'Too many scholarly searches from this network.',
+    }), { status: 429, headers: { 'content-type': 'application/json', 'retry-after': '9' } });
+  };
+  try {
+    const result = await searchAllPapersWithStatus('gene regulation');
+    assert.equal(result.unavailable_source_count, 5);
+    assert.equal(requestedUrls.length, 5);
+    assert.ok(requestedUrls.every(url => url.startsWith('/api/discovery?')));
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousWindow === undefined) delete globalThis.window;
+    else globalThis.window = previousWindow;
+  }
+});

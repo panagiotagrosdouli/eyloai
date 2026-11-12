@@ -90,6 +90,10 @@ async function fetchResearchSource(provider, query, limit, sort, directUrl, opti
       if (proxyBaseUrl) return proxied;
       if (proxied.ok || proxied.status < 500) return proxied;
     } catch (error) {
+      // An explicit EYLO network quota response is an application decision,
+      // not a proxy outage. Falling back to provider URLs here would let the
+      // browser bypass the shared server-side limiter.
+      if (discoveryErrorCodeFromError(error) === 'DISCOVERY_RATE_LIMITED') throw error;
       if (proxyBaseUrl) throw error;
       // Fall back to the provider directly when the same-origin proxy itself is unavailable.
     }
