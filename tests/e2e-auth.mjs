@@ -650,6 +650,25 @@ try {
   const versionDownload = filesPage.waitForEvent('download');
   await filesPage.getByRole('button', { name: 'Download' }).first().click();
   assert.equal((await versionDownload).suggestedFilename(), 'protocol.txt');
+  await filesPage.getByRole('link', { name: 'Create a document' }).first().click();
+  await filesPage.getByRole('heading', { name: 'Document Editor' }).waitFor();
+  const editor = filesPage.getByLabel('Document text (Markdown)');
+  await editor.fill('# Proposal\n\nA source-linked research plan.');
+  await filesPage.getByRole('button', { name: 'Save version' }).click();
+  await filesPage.getByRole('heading', { name: 'Document Editor' }).waitFor();
+  await filesPage.getByText('All changes saved').waitFor();
+  const markdownPath = new URL(filesPage.url()).pathname;
+  assert.match(markdownPath, /^\/documents\/[\da-f-]+$/i);
+  assert.equal(fileRows.length, 2);
+  const editorBody = filesPage.getByLabel('Document text (Markdown)');
+  await editorBody.fill('# Proposal\n\nRevised with a verified citation.');
+  await filesPage.getByRole('button', { name: 'Save version' }).click();
+  await filesPage.getByText(/Version 2 ·/).waitFor();
+  await filesPage.reload();
+  assert.equal(await filesPage.getByLabel('Document text (Markdown)').inputValue(), '# Proposal\n\nRevised with a verified citation.');
+  const markdownExport = filesPage.waitForEvent('download');
+  await filesPage.getByRole('button', { name: 'Export Markdown' }).click();
+  assert.equal((await markdownExport).suggestedFilename(), 'Untitled research note.md');
   console.log('EYLO Files browser workflow passed against isolated PostgREST and Storage fixtures.');
 
   // Verify sign-out actually invalidates the session and protects private routes.
