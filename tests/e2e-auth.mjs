@@ -624,6 +624,10 @@ try {
   const fileRows = [];
   const versionRows = [];
   const storedObjects = new Map();
+  const storageReads = [];
+  filesPage.on('request', request => {
+    if (request.url().includes('/storage/v1/object/') && request.method() === 'GET') storageReads.push(request.url());
+  });
   await filesPage.route('https://eylo-auth-test.supabase.co/rest/v1/**', async route => {
     const request = route.request();
     const url = new URL(request.url());
@@ -754,9 +758,13 @@ try {
   await filesPage.reload();
   await filesPage.getByText('Methods protocol').waitFor();
   assert.equal(await filesPage.getByLabel('Link protocol.txt to a project').inputValue(), 'file-project-1');
-  const versionDownload = filesPage.waitForEvent('download');
+  const versionDownload = filesPage.waitForEvent('download', { timeout: 8000 }).catch(() => null);
   await filesPage.getByRole('button', { name: 'Download' }).first().click();
   const downloadedVersion = await versionDownload;
+  if (!downloadedVersion) throw new Error('EYLO file download failed: ' + JSON.stringify({
+    storageReads, versionRows, alert: await filesPage.locator('[role="alert"]').allInnerTexts(),
+    body: (await filesPage.locator('body').innerText()).slice(-1500),
+  }));
   assert.equal(downloadedVersion.suggestedFilename(), 'protocol.txt');
   assert.equal(await readDataLabDownload(await downloadedVersion.path(), 'utf8'), 'version two',
     'the selected latest version must download the exact persisted bytes');
