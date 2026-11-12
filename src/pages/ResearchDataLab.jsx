@@ -8,6 +8,7 @@ import {
   getResearchDataChartRows,
   parseResearchCsv,
   summarizeResearchData,
+  summarizeResearchNumericByCategory,
 } from '@/lib/research-data.mjs';
 import { auditResearchDataQuality } from '@/lib/research-data-quality.mjs';
 import { sha256ResearchFile, buildResearchDataProvenance } from '@/lib/research-data-provenance.mjs';
@@ -44,17 +45,31 @@ export default function ResearchDataLab() {
   const summaries = useMemo(() => summarizeResearchData(dataset), [dataset]);
   const quality = useMemo(() => dataset ? auditResearchDataQuality(dataset) : null, [dataset]);
   const numericColumns = summaries.filter((summary) => summary.type === 'numeric').map((summary) => summary.column);
+  const comparableColumns = summaries.filter((summary) => summary.type === 'numeric' || summary.type === 'text').map((summary) => summary.column);
+  const summaryByColumn = new Map(summaries.map((summary) => [summary.column, summary]));
   const [comparisonColumns, setComparisonColumns] = useState([]);
   const selectedComparisonColumns = [
-    numericColumns.includes(comparisonColumns[0]) ? comparisonColumns[0] : numericColumns[0] || '',
-    numericColumns.includes(comparisonColumns[1]) && comparisonColumns[1] !== (numericColumns.includes(comparisonColumns[0]) ? comparisonColumns[0] : numericColumns[0])
+    comparableColumns.includes(comparisonColumns[0]) ? comparisonColumns[0] : comparableColumns[0] || '',
+    comparableColumns.includes(comparisonColumns[1]) && comparisonColumns[1] !== (comparableColumns.includes(comparisonColumns[0]) ? comparisonColumns[0] : comparableColumns[0])
       ? comparisonColumns[1]
-      : numericColumns.find((column) => column !== (numericColumns.includes(comparisonColumns[0]) ? comparisonColumns[0] : numericColumns[0])) || '',
+      : comparableColumns.find((column) => column !== (comparableColumns.includes(comparisonColumns[0]) ? comparisonColumns[0] : comparableColumns[0])) || '',
   ];
   const comparison = useMemo(
-    () => selectedComparisonColumns.every(Boolean)
-      ? compareResearchNumericColumns(dataset, ...selectedComparisonColumns)
-      : null,
+    () => {
+      if (!selectedComparisonColumns.every(Boolean)) return null;
+      const firstType = summaryByColumn.get(selectedComparisonColumns[0])?.type;
+      const secondType = summaryByColumn.get(selectedComparisonColumns[1])?.type;
+      if (firstType === 'numeric' && secondType === 'numeric') {
+        return compareResearchNumericColumns(dataset, ...selectedComparisonColumns);
+      }
+      if (firstType === 'numeric' && secondType === 'text') {
+        return summarizeResearchNumericByCategory(dataset, selectedComparisonColumns[0], selectedComparisonColumns[1]);
+      }
+      if (firstType === 'text' && secondType === 'numeric') {
+        return summarizeResearchNumericByCategory(dataset, selectedComparisonColumns[1], selectedComparisonColumns[0]);
+      }
+      return { available: false, reason: 'Choose two numeric variables or one numeric and one categorical variable.' };
+    },
     [dataset, selectedComparisonColumns[0], selectedComparisonColumns[1]],
   );
   const selectedChartColumn = numericColumns.includes(chartColumn) ? chartColumn : numericColumns[0] || '';
@@ -159,6 +174,15 @@ export default function ResearchDataLab() {
       URL.revokeObjectURL(url);
     }
   };
+
+  const comparisonExportControl = (
+    <div>
+      <button type="button" onClick={exportComparison} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary">
+        <Download size={15} aria-hidden="true" /> Export comparison CSV
+      </button>
+      <p className="mt-2 text-xs text-muted-foreground">The export contains variable names and aggregate results, not source rows.</p>
+    </div>
+  );
 
   return (
     <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 pb-24 sm:px-8 sm:py-8" aria-labelledby="data-lab-title">
@@ -308,10 +332,10 @@ export default function ResearchDataLab() {
           <section className="rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="comparison-title">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <h2 id="comparison-title" className="text-lg font-semibold">Compare numeric variables</h2>
-                <p className="mt-1 max-w-3xl text-sm text-muted-foreground">Review the pairwise linear association using rows with values in both columns. This descriptive result does not adjust for other variables.</p>
+                <h2 id="comparison-title" className="text-lg font-semibold">Compare variables</h2>
+                <p className="mt-1 max-w-3xl text-sm text-muted-foreground">Compare two numeric variables or summarize a numeric variable across observed categories. Results are descriptive and do not adjust for other variables.</p>
               </div>
-              {numericColumns.length >= 2 && (
+              {comparableColumns.length >= 2 && (
                 <div className="flex flex-wrap gap-3">
                   {[0, 1].map((index) => (
                     <label key={index} className="grid gap-1 text-xs font-medium text-muted-foreground">
@@ -326,8 +350,8 @@ export default function ResearchDataLab() {
                         })}
                         className="min-h-10 min-w-40 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
                       >
-                        {numericColumns.filter((column) => column === selectedComparisonColumns[index] || column !== selectedComparisonColumns[1 - index]).map((column) => (
-                          <option key={column} value={column}>{column}</option>
+                        {comparableColumns.filter((column) => column === selectedComparisonColumns[index] || column !== selectedComparisonColumns[1 - index]).map((column) => (
+                          <option key={column} value={column}>{column} ({summaryByColumn.get(column)?.type})</option>
                         ))}
                       </select>
                     </label>
@@ -335,9 +359,9 @@ export default function ResearchDataLab() {
                 </div>
               )}
             </div>
-            {numericColumns.length < 2 ? (
-              <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">At least two numeric columns are needed for comparison.</p>
-            ) : comparison?.available ? (
+            {comparableColumns.length < 2 ? (
+              <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">At least two non-empty columns are needed for comparison.</p>
+            ) : comparison?.available && comparison.kind === 'pearson-correlation' ? (
               <>
               <div className="mt-4 grid gap-3 sm:grid-cols-3" role="status" aria-live="polite">
                 <div className="rounded-lg border border-border p-4">
@@ -354,10 +378,7 @@ export default function ResearchDataLab() {
                 </div>
                 <p className="text-xs leading-5 text-muted-foreground sm:col-span-3">Pearson r summarizes linear co-variation in these complete pairs. It does not establish causation, statistical significance, or representativeness beyond this file.</p>
                 <div className="sm:col-span-3">
-                  <button type="button" onClick={exportComparison} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary">
-                    <Download size={15} aria-hidden="true" /> Export comparison CSV
-                  </button>
-                  <p className="mt-2 text-xs text-muted-foreground">The export contains variable names and aggregate results, not source rows.</p>
+                  {comparisonExportControl}
                 </div>
               </div>
               {comparison.scatterSample?.length > 0 && (
@@ -396,6 +417,33 @@ export default function ResearchDataLab() {
                 </div>
               )}
               </>
+            ) : comparison?.available && comparison.kind === 'numeric-by-category' ? (
+              <div className="mt-4 space-y-4">
+                <div className="grid gap-3 sm:grid-cols-3" role="status" aria-live="polite">
+                  <div className="rounded-lg border border-border p-4"><p className="text-xs text-muted-foreground">Complete numeric-category observations</p><p className="mt-1 text-2xl font-semibold tabular-nums">{numberFormat.format(comparison.pairs)}</p></div>
+                  <div className="rounded-lg border border-border p-4"><p className="text-xs text-muted-foreground">Rows skipped</p><p className="mt-1 text-2xl font-semibold tabular-nums">{numberFormat.format(comparison.incomplete)}</p></div>
+                  <div className="rounded-lg border border-border p-4"><p className="text-xs text-muted-foreground">Observed categories</p><p className="mt-1 text-2xl font-semibold tabular-nums">{numberFormat.format(comparison.totalGroups)}</p></div>
+                  <p className="text-xs leading-5 text-muted-foreground sm:col-span-3">Group summaries are descriptive. They do not establish differences between populations or statistical significance.</p>
+                </div>
+                <div className="overflow-x-auto rounded-lg border border-border">
+                  <table className="w-full min-w-[760px] text-left text-sm">
+                    <thead className="bg-secondary/60 text-xs text-muted-foreground"><tr>{['Category', 'n', 'Mean', 'Median', 'Sample SD', 'Minimum', 'Maximum'].map(label => <th key={label} scope="col" className="p-3 font-semibold">{label}</th>)}</tr></thead>
+                    <tbody>{comparison.groups.map(group => (
+                      <tr key={group.category} className="border-t border-border">
+                        <th scope="row" className="max-w-64 break-words p-3 font-medium">{group.category}</th>
+                        <td className="p-3 tabular-nums">{numberFormat.format(group.count)}</td>
+                        <td className="p-3 tabular-nums">{displayNumber(group.mean)}</td>
+                        <td className="p-3 tabular-nums">{displayNumber(group.median)}</td>
+                        <td className="p-3 tabular-nums">{displayNumber(group.sampleStandardDeviation)}</td>
+                        <td className="p-3 tabular-nums">{displayNumber(group.min)}</td>
+                        <td className="p-3 tabular-nums">{displayNumber(group.max)}</td>
+                      </tr>
+                    ))}</tbody>
+                  </table>
+                </div>
+                {comparison.omittedGroups > 0 && <p className="text-xs text-muted-foreground">Showing the 50 most frequent of {numberFormat.format(comparison.totalGroups)} categories. {numberFormat.format(comparison.omittedGroups)} less frequent categories ({numberFormat.format(comparison.omittedObservations)} observations) are included in the complete observation count but omitted from this table.</p>}
+                {comparisonExportControl}
+              </div>
             ) : (
               <p role="status" className="mt-4 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">{comparison?.reason || 'Choose two numeric columns.'}</p>
             )}
