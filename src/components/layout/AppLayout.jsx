@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Activity, Award, BarChart3, BookOpen, Brain, Briefcase, CalendarDays, ChevronDown, FileEdit, Flame, FolderOpen, GitBranch, GraduationCap, History,
+  Activity, Award, BarChart3, BookOpen, Brain, Briefcase, CalendarDays, ChevronDown, Clock3, FileEdit, Flame, FolderOpen, GitBranch, GraduationCap, History,
   Home, LayoutDashboard, LayoutGrid, Lightbulb, ListTodo, LogOut, Menu, Mic, NotebookPen, Presentation, Layers3,
   Rocket, Search, Settings, Sparkles, Target, Trophy, User, Users,
   Video, X, Zap,
@@ -43,6 +43,7 @@ const TOOL_GROUPS = [
       { label: 'Flashcards', path: '/flashcards', icon: Layers3, desc: 'Review saved cards with spaced repetition' },
       { label: 'Calendar', path: '/calendar', icon: CalendarDays, desc: 'Plan private events and project deadlines' },
       { label: 'Workspace search', path: '/workspace/search', icon: Search, desc: 'Search your own notes, projects, tasks and saved research' },
+      { label: 'Activity history', path: '/activity', icon: Clock3, desc: 'Review recent private workspace changes' },
       { label: 'Notes', path: '/notes', icon: NotebookPen, desc: 'Private notes with project links and version history' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
