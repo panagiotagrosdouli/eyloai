@@ -54,3 +54,10 @@ The public capability endpoint reports all five services disabled. It intentiona
 ## Next highest-priority task
 
 Restore Vercel project access and deploy the reviewed commit so production identity and server configuration can be inspected. Until then, production release identity and all service activations remain externally blocked.
+
+## Revalidation against current main — 2026-11-12
+
+- Main advanced after this PR was opened. This branch was merged with current `main` at `78b6c041cb4bfe28b3febf7e640742d6f49993e0`, retaining the Data Lab browser regression added by PR #383.
+- Local `npm run check` passed on the merged tree: 472 tests, import checks, TypeScript, ESLint and Vite production build. This does not stamp a SHA locally; only an actual Vercel build can verify Vercel's `VERCEL_GIT_COMMIT_SHA` input.
+- Fresh public read-only probes: the home page returns HTTP 200; `/release.json` returns HTTP 200 JSON but still has no `git_commit`; `/api/deployment-status` returns HTTP 200 `text/html` (SPA fallback) instead of JSON; `/api/capabilities` returns HTTP 200 JSON with all five optional services disabled.
+- Production therefore remains a no-go for this release. These live probes confirm stale/misrouted production identity and do not prove which project or build is currently serving the alias. No production writes or deployment were made.
