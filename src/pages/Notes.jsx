@@ -32,9 +32,32 @@ function displayDate(value) {
   return Number.isNaN(date.getTime()) ? 'Unknown date' : date.toLocaleString();
 }
 
+function sessionDraftKey(ownerId, noteId) {
+  return `eylo:notes:draft:${ownerId}:${noteId || 'new'}`;
+}
+
+function readSessionDraft(ownerId, noteId) {
+  if (!ownerId) return null;
+  try {
+    const raw = window.sessionStorage.getItem(sessionDraftKey(ownerId, noteId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || parsed.version !== 1 || !parsed.editor || typeof parsed.editor !== 'object') return null;
+    return {
+      editor: editorValue(parsed.editor),
+      tagInput: typeof parsed.tagInput === 'string' ? parsed.tagInput.slice(0, 1300) : '',
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default function Notes() {
   const { user } = useAuth();
   const ownerRef = useRef(user?.id || null);
+  const saveNoteRef = useRef(null);
+  const savingRef = useRef(false);
+  const selectionEpochRef = useRef(0);
   const [notes, setNotes] = useState([]);
   const [projects, setProjects] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -50,6 +73,12 @@ export default function Notes() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [versionError, setVersionError] = useState('');
+  const editorRef = useRef(editor);
+  const tagInputRef = useRef(tagInput);
+  const selectedRef = useRef(selected);
+  editorRef.current = editor;
+  tagInputRef.current = tagInput;
+  selectedRef.current = selected;
   const dirty = !sameNote(editor, baseline) || tagInput.trim() !== baseline.tags.join(', ');
 
   const projectById = useMemo(() => new Map(projects.map(project => [project.id, project])), [projects]);
@@ -73,6 +102,7 @@ export default function Notes() {
   };
 
   useEffect(() => {
+    selectionEpochRef.current += 1;
     ownerRef.current = user?.id || null;
     setNotes([]);
     setProjects([]);
@@ -87,7 +117,15 @@ export default function Notes() {
     setError('');
     setNotice('');
     setVersionError('');
-    if (user?.id) void loadWorkspace(user.id);
+    if (user?.id) {
+      const recovered = readSessionDraft(user.id, null);
+      if (recovered) {
+        setEditor(recovered.editor);
+        setTagInput(recovered.tagInput);
+        setNotice('Recovered a draft saved in this browser tab. It will sync to your account automatically.');
+      }
+      void loadWorkspace(user.id);
+    }
     else setLoading(false);
   }, [user?.id]);
 
@@ -106,18 +144,27 @@ export default function Notes() {
 
   const chooseNote = async (note) => {
     if (dirty && !window.confirm('Discard unsaved changes?')) return;
+    if (dirty) {
+      try { window.sessionStorage.removeItem(sessionDraftKey(ownerRef.current, selected?.id || null)); } catch { /* Browser storage can be unavailable. */ }
+    }
+    selectionEpochRef.current += 1;
     const next = editorValue(note);
+    const recovered = note ? readSessionDraft(ownerRef.current, note.id) : null;
     setSelected(note);
-    setEditor(next);
+    setEditor(recovered?.editor || next);
     setBaseline(next);
-    setTagInput(next.tags.join(', '));
-    setNotice('');
+    setTagInput(recovered?.tagInput ?? next.tags.join(', '));
+    setNotice(recovered ? 'Recovered this note’s unsynced browser-tab draft. It will sync automatically.' : '');
     setVersions([]);
     if (note) await loadVersions(note.id);
   };
 
   const createDraft = () => {
     if (dirty && !window.confirm('Discard unsaved changes?')) return;
+    if (dirty) {
+      try { window.sessionStorage.removeItem(sessionDraftKey(ownerRef.current, selected?.id || null)); } catch { /* Browser storage can be unavailable. */ }
+    }
+    selectionEpochRef.current += 1;
     setSelected(null);
     setEditor(EMPTY_NOTE);
     setBaseline(EMPTY_NOTE);
@@ -160,10 +207,15 @@ export default function Notes() {
     void loadWorkspace();
   };
 
-  const saveNote = async (event) => {
-    event.preventDefault();
+  const saveNote = async (event, automatic = false) => {
+    event?.preventDefault();
     const ownerId = ownerRef.current;
-    if (!ownerId) return;
+    if (!ownerId || savingRef.current) return;
+    const targetId = selected?.id || null;
+    const targetEpoch = selectionEpochRef.current;
+    const savedEditor = editor;
+    const savedTags = tagInput;
+    savingRef.current = true;
     setSaving(true);
     setError('');
     setNotice('');
@@ -173,31 +225,69 @@ export default function Notes() {
       const projectTitle = project?.title || (payload.project_id === selected?.project_id ? selected?.project_title : '') || '';
       const savePayload = { ...payload, project_title: projectTitle };
       const hadFilter = Boolean(activeSearch || activeTag);
-      const saved = selected
-        ? await base44.entities.Note.updateIfUnchanged(selected.id, savePayload, selected.updated_date)
+      const saved = targetId
+        ? await base44.entities.Note.updateIfUnchanged(targetId, savePayload, selected.updated_date)
         : await base44.entities.Note.create(savePayload);
       if (ownerId !== ownerRef.current) return;
-      setSelected(saved);
-      setEditor(editorValue(saved));
-      setBaseline(editorValue(saved));
-      setTagInput((saved.tags || []).join(', '));
-      setSearchInput('');
-      setActiveSearch('');
-      setActiveTag('');
       setNotes(current => [saved, ...current.filter(note => note.id !== saved.id)].sort((a, b) => String(b.updated_date).localeCompare(String(a.updated_date))));
-      setNotice('Saved. Version history updates when note content changes.');
-      if (selected) await loadVersions(saved.id, ownerId);
-      if (hadFilter) void loadWorkspace(ownerId);
+      const sameTarget = selectedRef.current?.id === targetId && selectionEpochRef.current === targetEpoch;
+      if (sameTarget) {
+        const newerEditsExist = !sameNote(editorRef.current, savedEditor) || tagInputRef.current !== savedTags;
+        if (!newerEditsExist) {
+          try {
+            window.sessionStorage.removeItem(sessionDraftKey(ownerId, targetId));
+            window.sessionStorage.removeItem(sessionDraftKey(ownerId, saved.id));
+          } catch { /* Browser storage can be unavailable. */ }
+        }
+        setSelected(saved);
+        setBaseline(editorValue(saved));
+        if (!newerEditsExist) {
+          setEditor(editorValue(saved));
+          setTagInput((saved.tags || []).join(', '));
+        }
+        setSearchInput('');
+        setActiveSearch('');
+        setActiveTag('');
+        setNotice(newerEditsExist
+          ? 'Saved. Newer edits remain in the editor and are being saved next.'
+          : `${automatic ? 'Auto-saved' : 'Saved'}. Version history updates when note content changes.`);
+        if (targetId) await loadVersions(saved.id, ownerId);
+        if (hadFilter) void loadWorkspace(ownerId);
+      } else {
+        try { window.sessionStorage.removeItem(sessionDraftKey(ownerId, targetId)); } catch { /* Browser storage can be unavailable. */ }
+      }
     } catch (saveError) {
       if (ownerId !== ownerRef.current) return;
       const message = saveError?.code === 'ENTITY_CONFLICT'
         ? 'This note changed in another tab. Reload the latest version before saving.'
         : saveError?.message || 'The note could not be saved. Your draft is still here.';
       setError(message);
+      if (automatic) setNotice('Your draft remains in this tab. Retry Save when the connection is ready.');
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
+
+  saveNoteRef.current = saveNote;
+
+  useEffect(() => {
+    const ownerId = ownerRef.current;
+    if (!ownerId || !dirty) return undefined;
+    try {
+      window.sessionStorage.setItem(sessionDraftKey(ownerId, selected?.id || null), JSON.stringify({
+        version: 1,
+        editor,
+        tagInput,
+        savedAt: Date.now(),
+      }));
+    } catch { /* Keep the draft in the editor if browser storage is unavailable. */ }
+    if (!editor.title.trim()) return undefined;
+    const timer = window.setTimeout(() => {
+      void saveNoteRef.current?.(null, true);
+    }, 1200);
+    return () => window.clearTimeout(timer);
+  }, [dirty, editor, tagInput, selected?.id, selected?.updated_date, user?.id]);
 
   const deleteNote = async () => {
     if (!selected || !window.confirm('Delete this note and its version history?')) return;
