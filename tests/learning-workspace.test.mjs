@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { nextReview, scoreMultipleChoice } from '../src/lib/learning-workspace.mjs';
+import { addHabitCheckin, examRevisionDates, nextReview, scoreMultipleChoice } from '../src/lib/learning-workspace.mjs';
 
 test('spaced repetition schedules a new correct card at one day then six days', () => {
   const reviewedAt = new Date('2026-01-01T12:00:00.000Z');
@@ -29,4 +29,16 @@ test('multiple-choice grading returns the score and explanations for review', ()
   assert.equal(result.percent, 50);
   assert.equal(result.results[0].explanation, 'Because evidence supports B.');
   assert.equal(result.results[1].correct, false);
+});
+
+test('revision planning creates 7, 3, and 1 day sessions before an exam', () => {
+  assert.deepEqual(examRevisionDates('2026-04-20', new Date('2026-04-10T12:00:00')), ['2026-04-13', '2026-04-17', '2026-04-19']);
+  assert.deepEqual(examRevisionDates('2026-04-20', new Date('2026-04-18T12:00:00')), ['2026-04-19']);
+  assert.deepEqual(examRevisionDates('not-a-date', new Date('2026-04-10T12:00:00')), []);
+});
+
+test('habit check-ins are dated and idempotent for the same day', () => {
+  const checkins = ['2026-04-01'];
+  assert.deepEqual(addHabitCheckin(checkins, new Date('2026-04-02T10:00:00')), ['2026-04-01', '2026-04-02']);
+  assert.deepEqual(addHabitCheckin(checkins, new Date('2026-04-01T18:00:00')), ['2026-04-01']);
 });

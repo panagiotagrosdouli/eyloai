@@ -33,6 +33,14 @@ export const learningWorkspace = {
     if (error) throw error;
     return row;
   },
+  async history(noteId) {
+    const owner = await userId();
+    const { data, error } = await requireSupabase().from('learning_record_versions')
+      .select('id,note_id,user_id,version_number,snapshot,created_date')
+      .eq('note_id', noteId).eq('user_id', owner).order('version_number', { ascending: false }).limit(50);
+    if (error) throw error;
+    return data || [];
+  },
   async remove(id) {
     const owner = await userId();
     const { data, error } = await requireSupabase().from('learning_records')

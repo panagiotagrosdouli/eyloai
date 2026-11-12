@@ -10,6 +10,7 @@ const server = spawn('npx', ['vite', '--host', '127.0.0.1', '--port', '4174', '-
 let browser;
 const user = { id: 'eylo-learning-user', aud: 'authenticated', role: 'authenticated', email: 'student@example.org', app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: {}, created_at: '2026-01-01T00:00:00.000Z' };
 const records = [];
+const versions = [];
 
 async function waitForServer() {
   const deadline = Date.now() + 30_000;
@@ -34,6 +35,7 @@ try {
   await page.route('**/rest/v1/**', async (route) => {
     if (route.request().method() === 'OPTIONS') return authResponse(route, []);
     const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/learning_record_versions')) return authResponse(route, versions.filter((item) => item.user_id === user.id && item.note_id === url.searchParams.get('note_id')?.replace('eq.', '')).sort((a, b) => b.version_number - a.version_number));
     if (!url.pathname.endsWith('/learning_records')) return authResponse(route, []);
     const method = route.request().method();
     const wantsObject = route.request().headers().accept?.includes('vnd.pgrst.object');
@@ -42,13 +44,17 @@ try {
     if (method === 'POST') {
       const payload = route.request().postDataJSON();
       const row = { id: `learning-${records.length + 1}`, user_id: user.id, kind: payload.kind, parent_id: payload.parent_id || null, data: payload.data || {}, created_date: new Date().toISOString(), updated_date: new Date().toISOString() };
-      records.unshift(row); return response(wantsObject ? row : [row]);
+      records.unshift(row);
+      if (row.kind === 'note') versions.push({ id: `version-${versions.length + 1}`, note_id: row.id, user_id: user.id, version_number: versions.filter((item) => item.note_id === row.id).length + 1, snapshot: row.data, created_date: new Date().toISOString() });
+      return response(wantsObject ? row : [row]);
     }
     if (method === 'PATCH') {
       const id = url.searchParams.get('id')?.replace('eq.', '');
       const row = records.find((item) => item.id === id && item.user_id === user.id);
       if (!row) return route.fulfill({ status: 406, contentType: 'application/json', body: JSON.stringify({ message: 'Not found' }) });
-      Object.assign(row, route.request().postDataJSON(), { updated_date: new Date().toISOString() }); return response(wantsObject ? row : [row]);
+      Object.assign(row, route.request().postDataJSON(), { updated_date: new Date().toISOString() });
+      if (row.kind === 'note') versions.push({ id: `version-${versions.length + 1}`, note_id: row.id, user_id: user.id, version_number: versions.filter((item) => item.note_id === row.id).length + 1, snapshot: row.data, created_date: new Date().toISOString() });
+      return response(wantsObject ? row : [row]);
     }
     if (method === 'DELETE') {
       const id = url.searchParams.get('id')?.replace('eq.', '');
@@ -78,8 +84,13 @@ try {
   await page.getByLabel('Content').fill('Mitochondria function :: ATP production :: Protein synthesis\nWhere is DNA stored? :: In the nucleus :: In the ribosome');
   await page.getByLabel('Subject').selectOption({ label: 'Biology' });
   await page.getByRole('button', { name: 'Save now' }).click();
+  await page.getByLabel('Title').fill('Cell biology revised');
+  await page.getByRole('button', { name: 'Save now' }).click();
+  await page.getByRole('button', { name: 'History', exact: true }).click();
+  await page.getByRole('dialog').getByText(/Version 1/).waitFor();
+  await page.getByRole('button', { name: 'Close' }).click();
   await page.getByRole('button', { name: 'Flashcards' }).click();
-  await page.getByLabel('Import from a note written with “question :: answer” lines').selectOption({ label: 'Cell biology review' });
+  await page.getByLabel('Import from a note written with “question :: answer” lines').selectOption({ label: 'Cell biology revised' });
   await page.getByRole('button', { name: 'Import cards' }).click();
   await page.getByText('Mitochondria function', { exact: true }).waitFor();
   await page.getByRole('button', { name: 'Start review' }).click();
@@ -88,8 +99,8 @@ try {
   await page.getByText('Review saved').waitFor();
 
   await page.getByRole('button', { name: 'Quizzes' }).click();
-  await page.getByLabel('Create questions from a note with “question :: answer :: distractor” lines').selectOption({ label: 'Cell biology review' });
-  await page.getByText('Quiz: Cell biology review').waitFor();
+  await page.getByLabel('Create questions from a note with “question :: answer :: distractor” lines').selectOption({ label: 'Cell biology revised' });
+  await page.getByText('Quiz: Cell biology revised').waitFor();
   await page.getByRole('button', { name: 'Take quiz' }).click();
   await page.getByLabel('ATP production', { exact: true }).check();
   await page.getByRole('button', { name: 'Submit quiz' }).click();

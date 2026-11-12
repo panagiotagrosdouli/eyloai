@@ -1,6 +1,6 @@
 export const LEARNING_KINDS = Object.freeze([
   'note', 'goal', 'habit', 'life_task', 'subject', 'study_session',
-  'deck', 'flashcard', 'quiz', 'quiz_attempt',
+  'deck', 'flashcard', 'quiz', 'quiz_attempt', 'notebook',
 ]);
 
 export function nextReview(card, quality, reviewedAt = new Date()) {
@@ -31,4 +31,23 @@ export function scoreMultipleChoice(questions, answers) {
   }));
   const correct = results.filter((result) => result.correct).length;
   return { correct, total: questions.length, percent: questions.length ? Math.round((correct / questions.length) * 100) : 0, results };
+}
+
+export function examRevisionDates(examDate, today = new Date(), offsets = [7, 3, 1]) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(examDate || ''))) return [];
+  const exam = new Date(`${examDate}T12:00:00`);
+  const start = new Date(today);
+  start.setHours(0, 0, 0, 0);
+  if (Number.isNaN(exam.getTime())) return [];
+  return offsets.map((offset) => {
+    const session = new Date(exam);
+    session.setDate(session.getDate() - offset);
+    return session;
+  }).filter((session) => session >= start && session < exam)
+    .map((session) => `${session.getFullYear()}-${String(session.getMonth() + 1).padStart(2, '0')}-${String(session.getDate()).padStart(2, '0')}`);
+}
+
+export function addHabitCheckin(checkins = [], date = new Date()) {
+  const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  return checkins.includes(key) ? [...checkins] : [...checkins, key].sort();
 }

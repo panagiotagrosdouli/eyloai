@@ -6,9 +6,9 @@ This tracker preserves the requested 77-product inventory. “Foundation started
 
 | Product | Status |
 |---|---|
-| EYLO Life | Foundation started: goals and tasks persist; habits, recurrence, milestones, and history remain. |
+| EYLO Life | Foundation in code: goals with measurable milestones, daily habit check-ins, tasks with daily/weekly recurrence, and dated completion records. |
 | EYLO Calendar | Queued |
-| EYLO Notes | Foundation started: autosaved notes, tags, search, pinning, subject links, and Markdown export; version history and rich-text editing remain. |
+| EYLO Notes | Foundation in code: autosave, tags, search, pinning/favorites, notebooks, subject links, Markdown tools/export, and database-backed version history with restore. WYSIWYG editing remains. |
 | EYLO Spaces | Queued |
 | EYLO Memory | Queued |
 | EYLO Notifications | Queued |
@@ -19,9 +19,9 @@ This tracker preserves the requested 77-product inventory. “Foundation started
 | Product | Status |
 |---|---|
 | EYLO Learn | Foundation started: shared learning workspace route and persistence model. |
-| EYLO Study Planner | Foundation started: subjects, exam dates, study sessions, completion, and saved history. |
-| EYLO Flashcards | Foundation started: manual/imported cards, review outcomes, and SM-2 scheduling. |
-| EYLO Quiz Generator | Foundation started: manual/note-based multiple-choice quizzes, scoring, explanations, and attempts. |
+| EYLO Study Planner | Foundation in code: subjects, exam dates, study sessions, 7/3/1-day revision planning, completion, and saved history. |
+| EYLO Flashcards | Foundation in code: manual creation/editing, named collections, authorized note import, review outcomes, and SM-2 scheduling. |
+| EYLO Quiz Generator | Foundation in code: manual/note-based multiple-choice quizzes, validation, scoring, explanations, saved attempts, and missed-question practice. AI generation remains unavailable. |
 | EYLO Skills | Queued |
 | EYLO Career | Queued |
 | EYLO CV Builder | Queued |
@@ -71,7 +71,7 @@ This tracker preserves the requested 77-product inventory. “Foundation started
 |---|---|
 | EYLO Admin Operations | Queued |
 | EYLO Feature Health | Queued |
-| EYLO Auto-Save | Foundation started for Notes; shared platform service remains. |
+| EYLO Auto-Save | Foundation in code for Notes; shared platform service remains. |
 | EYLO Self-Healing | Queued |
 | EYLO Offline | Queued |
 | EYLO Accessibility | Queued |
@@ -121,4 +121,4 @@ This tracker preserves the requested 77-product inventory. “Foundation started
 
 ## Next implementation
 
-Finish the initial learning vertical by adding note version history and richer editing, a first-class habit and milestone model, flashcard editing and collection management, study-plan revision views, and the outstanding connected workflow acceptance checks. Then proceed to EYLO Files, EYLO Create, EYLO Document Editor, EYLO Universal Search, and EYLO Export Center.
+Complete review and deployment verification for the initial learning vertical, add WYSIWYG note editing, real multi-user isolation coverage, and run the Playwright user journey in an authorized browser runner. Then proceed to EYLO Files, EYLO Create, EYLO Document Editor, EYLO Universal Search, and EYLO Export Center.
