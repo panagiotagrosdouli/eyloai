@@ -28,6 +28,8 @@ test('workplan accepts valid dependencies, but rejects missing references and cy
     { id: 'a', title: 'A', depends_on: ['b'] },
     { id: 'b', title: 'B', depends_on: ['a'] },
   ]).message, /cycle/i);
+  assert.match(validateWorkplan([{ id: 'a', title: 'A', due_date: '2026-02-30' }]).message, /valid calendar dates/i);
+  assert.equal(validateWorkplan([{ id: 'a', title: 'A', due_date: '' }]).valid, true);
 });
 
 test('progress reflects only completed tasks and prerequisites reflect dependency status', () => {
