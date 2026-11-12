@@ -199,11 +199,11 @@ export default function ResearchDataLab() {
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
-                  ['Complete rows', quality.completeRows],
-                  ['Incomplete rows', quality.incompleteRows],
-                  ['Fully missing rows', quality.entirelyMissingRows],
-                  ['Additional identical rows', quality.identicalAdditionalRows],
-                ].map(([label, count]) => (
+                  { label: 'Complete rows', count: quality.completeRows },
+                  { label: 'Incomplete rows', count: quality.incompleteRows },
+                  { label: 'Fully missing rows', count: quality.entirelyMissingRows },
+                  { label: 'Additional identical rows', count: quality.identicalAdditionalRows },
+                ].map(({ label, count }) => (
                   <div key={label} className="rounded-lg border border-border p-3">
                     <p className="text-xl font-bold tabular-nums">{numberFormat.format(count)}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{label}</p>
