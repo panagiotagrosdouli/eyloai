@@ -496,7 +496,7 @@ export default function ResearchDataLab() {
               )}
             </div>
             <p role="note" className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs leading-5 text-muted-foreground">
-              Numeric summaries and grouped cells below k={minimumCellSize} are masked in tables and exports. Lower k values disclose more detail. Aggregate-only output does not guarantee anonymity. These are descriptive analyses: no p-values, population inference, or causal conclusions are calculated.
+              Numeric summaries and grouped cells below k={minimumCellSize} are masked in tables and exports; lower k values disclose more detail. This threshold does not mask source rows in the local preview or individual points in the sampled chart. Dataset contents stay in this browser. CSV exports contain aggregate statistics only, never source rows, but aggregate-only output does not guarantee anonymity. The deterministic chart sample is capped at 500 and may omit rare patterns or outliers; correlations use all complete pairs. These are descriptive analyses: no p-values, population inference, or causal conclusions are calculated.
             </p>
             {comparableColumns.length < 2 ? (
               <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">At least two non-empty columns are needed for comparison.</p>
