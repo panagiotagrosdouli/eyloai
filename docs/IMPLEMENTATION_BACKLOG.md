@@ -33,7 +33,7 @@
 
 ### 3. AI Research Gap Finder — partial
 
-- [x] Search live OpenAlex, arXiv, Europe PMC, Crossref and Semantic Scholar records from the Gap Finder; show per-source availability, result counts and retrieval time; save source records into the user Library and optionally the selected project before analysis.
+- [ ] Search live OpenAlex, arXiv, Europe PMC, Crossref and Semantic Scholar records from the Gap Finder; show per-source availability, result counts and retrieval time; save source records into the user Library and optionally the selected project before analysis.
 
 
 - [x] Reframe landscape-generated “gaps” as tentative, source-linked research questions; validate every model-supplied paper ID against retrieved OpenAlex records.
