@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BarChart3, Download, FileSpreadsheet, LockKeyhole, RotateCcw, Upload } from 'lucide-react';
 import {
   DATA_LAB_LIMITS,
+  DATA_LAB_DEFAULT_MINIMUM_CELL_SIZE,
+  DATA_LAB_DISCLOSURE_THRESHOLDS,
   compareResearchNumericColumns,
   exportResearchDataComparisonCsv,
   exportResearchDataSummaryCsv,
@@ -42,12 +44,13 @@ export default function ResearchDataLab() {
   const [chartColumn, setChartColumn] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const summaries = useMemo(() => summarizeResearchData(dataset), [dataset]);
+  const [comparisonColumns, setComparisonColumns] = useState([]);
+  const [minimumCellSize, setMinimumCellSize] = useState(DATA_LAB_DEFAULT_MINIMUM_CELL_SIZE);
+  const summaries = useMemo(() => summarizeResearchData(dataset, { minimumCellSize }), [dataset, minimumCellSize]);
   const quality = useMemo(() => dataset ? auditResearchDataQuality(dataset) : null, [dataset]);
   const numericColumns = summaries.filter((summary) => summary.type === 'numeric').map((summary) => summary.column);
   const comparableColumns = summaries.filter((summary) => summary.type === 'numeric' || summary.type === 'text').map((summary) => summary.column);
   const summaryByColumn = new Map(summaries.map((summary) => [summary.column, summary]));
-  const [comparisonColumns, setComparisonColumns] = useState([]);
   const selectedComparisonColumns = [
     comparableColumns.includes(comparisonColumns[0]) ? comparisonColumns[0] : comparableColumns[0] || '',
     comparableColumns.includes(comparisonColumns[1]) && comparisonColumns[1] !== (comparableColumns.includes(comparisonColumns[0]) ? comparisonColumns[0] : comparableColumns[0])
@@ -60,17 +63,17 @@ export default function ResearchDataLab() {
       const firstType = summaryByColumn.get(selectedComparisonColumns[0])?.type;
       const secondType = summaryByColumn.get(selectedComparisonColumns[1])?.type;
       if (firstType === 'numeric' && secondType === 'numeric') {
-        return compareResearchNumericColumns(dataset, ...selectedComparisonColumns);
+        return compareResearchNumericColumns(dataset, ...selectedComparisonColumns, { minimumCellSize });
       }
       if (firstType === 'numeric' && secondType === 'text') {
-        return summarizeResearchNumericByCategory(dataset, selectedComparisonColumns[0], selectedComparisonColumns[1]);
+        return summarizeResearchNumericByCategory(dataset, selectedComparisonColumns[0], selectedComparisonColumns[1], { minimumGroupSize: minimumCellSize });
       }
       if (firstType === 'text' && secondType === 'numeric') {
-        return summarizeResearchNumericByCategory(dataset, selectedComparisonColumns[1], selectedComparisonColumns[0]);
+        return summarizeResearchNumericByCategory(dataset, selectedComparisonColumns[1], selectedComparisonColumns[0], { minimumGroupSize: minimumCellSize });
       }
       return { available: false, reason: 'Choose two numeric variables or one numeric and one categorical variable.' };
     },
-    [dataset, selectedComparisonColumns[0], selectedComparisonColumns[1]],
+    [dataset, selectedComparisonColumns[0], selectedComparisonColumns[1], minimumCellSize],
   );
   const selectedChartColumn = numericColumns.includes(chartColumn) ? chartColumn : numericColumns[0] || '';
   const chartRows = useMemo(
@@ -97,6 +100,7 @@ export default function ResearchDataLab() {
     setFileDigest(null);
     setFileBytes(0);
     setDigestError('');
+    setComparisonColumns([]);
     try {
       if (!file.name.toLowerCase().endsWith('.csv')) throw new Error('Choose a .csv file.');
       if (file.size > DATA_LAB_LIMITS.bytes) throw new Error('The CSV exceeds the 5 MB limit.');
@@ -135,6 +139,7 @@ export default function ResearchDataLab() {
     setFileBytes(0);
     setDigestError('');
     setChartColumn('');
+    setComparisonColumns([]);
     setError('');
     if (inputRef.current) inputRef.current.value = '';
   };
@@ -155,6 +160,10 @@ export default function ResearchDataLab() {
       format: 'eylo-local-data-quality-v1',
       generated_at: new Date().toISOString(),
       file_name: filename,
+      disclosure: {
+        minimum_cell_size: minimumCellSize,
+        aggregate_only_output_guarantees_anonymity: false,
+      },
       audit: quality,
       provenance: fileDigest && dataset
         ? buildResearchDataProvenance({
@@ -180,7 +189,7 @@ export default function ResearchDataLab() {
       <button type="button" onClick={exportComparison} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary">
         <Download size={15} aria-hidden="true" /> Export comparison CSV
       </button>
-      <p className="mt-2 text-xs text-muted-foreground">The export contains variable names and aggregate results, not source rows.</p>
+      <p className="mt-2 text-xs text-muted-foreground">Small cells are suppressed using k={minimumCellSize}. Aggregate-only exports do not guarantee anonymity; assess the data and sharing context before distributing.</p>
     </div>
   );
 
@@ -231,7 +240,7 @@ export default function ResearchDataLab() {
               : <p role="status" className="mt-1 text-muted-foreground">{digestError || 'Calculating fingerprint…'}</p>}
             <p className="mt-2 text-muted-foreground">
               Fingerprint of the original CSV bytes, not the parsed rows. Use it to compare later file versions.
-              It is not a scientific validation or a digital signature. Private, predictable datasets may be identifiable from their hash.
+              It is not a scientific validation or a digital signature. Private, predictable datasets may be identifiable from their hash. Aggregate exports are not guaranteed to be anonymous.
               The optional fingerprint is included in the aggregate JSON report.
             </p>
           </div>
@@ -250,6 +259,7 @@ export default function ResearchDataLab() {
                 <Download size={15} aria-hidden="true" /> Export summary CSV
               </button>
             </div>
+            <p role="note" className="mt-3 text-xs leading-5 text-muted-foreground">Numeric summaries below k={minimumCellSize} are masked in this table and export. An aggregate-only export is not guaranteed to be anonymous.</p>
             <div className="mt-4 overflow-x-auto rounded-lg border border-border">
               <table className="w-full min-w-[880px] border-collapse text-left text-sm">
                 <thead className="bg-secondary/60 text-xs text-muted-foreground">
@@ -260,9 +270,9 @@ export default function ResearchDataLab() {
                     <tr key={summary.column} className="border-t border-border">
                       <th scope="row" className="max-w-56 break-words p-3 font-medium">{summary.column}</th>
                       <td className="p-3 capitalize">{summary.type}</td>
-                      <td className="p-3">{summary.rows}</td>
-                      <td className="p-3">{summary.missing}</td>
-                      <td className="p-3">{summary.distinct}</td>
+                      <td className="p-3">{summary.statisticsSuppressed ? '—' : summary.rows}</td>
+                      <td className="p-3">{summary.statisticsSuppressed ? '—' : summary.missing}</td>
+                      <td className="p-3">{summary.statisticsSuppressed ? '—' : summary.distinct}</td>
                       <td className="p-3">{displayNumber(summary.statistics?.mean)}</td>
                       <td className="p-3">{displayNumber(summary.statistics?.median)}</td>
                       <td className="p-3">{displayNumber(summary.statistics?.min)}</td>
@@ -356,9 +366,18 @@ export default function ResearchDataLab() {
                       </select>
                     </label>
                   ))}
+                  <label className="grid gap-1 text-xs font-medium text-muted-foreground">
+                    Minimum cell size (k)
+                    <select aria-label="Minimum disclosure cell size" value={minimumCellSize} onChange={(event) => setMinimumCellSize(Number(event.target.value))} className="min-h-10 min-w-40 rounded-lg border border-border bg-background px-3 text-sm text-foreground">
+                      {DATA_LAB_DISCLOSURE_THRESHOLDS.map((value) => <option key={value} value={value}>{value === 1 ? '1 (no small-cell suppression)' : `${value} observations`}</option>)}
+                    </select>
+                  </label>
                 </div>
               )}
             </div>
+            <p role="note" className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs leading-5 text-muted-foreground">
+              Numeric summaries and grouped cells below k={minimumCellSize} are masked in tables and exports. Lower k values disclose more detail. Aggregate-only output does not guarantee anonymity. These are descriptive analyses: no p-values, population inference, or causal conclusions are calculated.
+            </p>
             {comparableColumns.length < 2 ? (
               <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">At least two non-empty columns are needed for comparison.</p>
             ) : comparison?.available && comparison.kind === 'pearson-correlation' ? (
@@ -376,7 +395,7 @@ export default function ResearchDataLab() {
                   <p className="text-xs text-muted-foreground">Rows skipped for blanks or non-numeric cells</p>
                   <p className="mt-1 text-2xl font-semibold tabular-nums">{numberFormat.format(comparison.incomplete)}</p>
                 </div>
-                <p className="text-xs leading-5 text-muted-foreground sm:col-span-3">Pearson r summarizes linear co-variation in these complete pairs. It does not establish causation, statistical significance, or representativeness beyond this file.</p>
+                <p className="text-xs leading-5 text-muted-foreground sm:col-span-3">Pearson r is a descriptive measure of linear association for complete pairs in this file. It is not an inferential test or causal estimate. The deterministic value-hash sample can omit rare patterns and outliers; r is calculated from all complete pairs.</p>
                 <div className="sm:col-span-3">
                   {comparisonExportControl}
                 </div>
@@ -386,7 +405,7 @@ export default function ResearchDataLab() {
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h3 className="font-semibold">Pairwise pattern</h3>
                     <p className="text-xs text-muted-foreground">
-                      Showing {numberFormat.format(comparison.scatterSample.length)} evenly spaced rows of {numberFormat.format(comparison.pairs)} complete pairs; r uses all pairs.
+                      Showing {numberFormat.format(comparison.scatterSampleSize)} of {numberFormat.format(comparison.pairs)} complete pairs with a deterministic value-hash sample; r uses all pairs.
                     </p>
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -405,14 +424,17 @@ export default function ResearchDataLab() {
                         <title>Row {point.row}: {selectedComparisonColumns[0]} {numberFormat.format(point.first)}, {selectedComparisonColumns[1]} {numberFormat.format(point.second)}</title>
                       </circle>
                     ))}
+                    <text x="64" y="252" textAnchor="start" fontSize="10" fill="currentColor">{displayNumber(comparison.firstMin)}</text>
+                    <text x="334" y="252" textAnchor="middle" fontSize="10" fill="currentColor">{displayNumber((comparison.firstMin / 2) + (comparison.firstMax / 2))}</text>
+                    <text x="604" y="252" textAnchor="end" fontSize="10" fill="currentColor">{displayNumber(comparison.firstMax)}</text>
                     <text x="334" y="275" textAnchor="middle" fontSize="12" fill="currentColor">{selectedComparisonColumns[0]}</text>
-                    <text x="334" y="298" textAnchor="middle" fontSize="11" fill="currentColor">Low → high</text>
                     <text x="16" y="126" textAnchor="middle" fontSize="12" fill="currentColor" transform="rotate(-90 16 126)">{selectedComparisonColumns[1]}</text>
-                    <text x="45" y="22" textAnchor="end" fontSize="10" fill="currentColor">High</text>
-                    <text x="45" y="239" textAnchor="end" fontSize="10" fill="currentColor">Low</text>
+                    <text x="48" y="22" textAnchor="end" fontSize="10" fill="currentColor">{displayNumber(comparison.secondMax)}</text>
+                    <text x="48" y="130" textAnchor="end" fontSize="10" fill="currentColor">{displayNumber((comparison.secondMin / 2) + (comparison.secondMax / 2))}</text>
+                    <text x="48" y="239" textAnchor="end" fontSize="10" fill="currentColor">{displayNumber(comparison.secondMin)}</text>
                   </svg>
                   <div className="sr-only">
-                    <table><caption>Sampled values for {selectedComparisonColumns[0]} and {selectedComparisonColumns[1]}</caption><thead><tr><th>Source row</th><th>{selectedComparisonColumns[0]}</th><th>{selectedComparisonColumns[1]}</th></tr></thead><tbody>{comparison.scatterSample.slice(0, 20).map(point => <tr key={point.row}><td>{point.row}</td><td>{point.first}</td><td>{point.second}</td></tr>)}</tbody></table>
+                    <table><caption>All {comparison.scatterSampleSize} displayed sampled values for {selectedComparisonColumns[0]} and {selectedComparisonColumns[1]}</caption><thead><tr><th>Source row</th><th>{selectedComparisonColumns[0]}</th><th>{selectedComparisonColumns[1]}</th></tr></thead><tbody>{comparison.scatterSample.map(point => <tr key={point.row}><td>{point.row}</td><td>{point.first}</td><td>{point.second}</td></tr>)}</tbody></table>
                   </div>
                 </div>
               )}
@@ -420,10 +442,10 @@ export default function ResearchDataLab() {
             ) : comparison?.available && comparison.kind === 'numeric-by-category' ? (
               <div className="mt-4 space-y-4">
                 <div className="grid gap-3 sm:grid-cols-3" role="status" aria-live="polite">
-                  <div className="rounded-lg border border-border p-4"><p className="text-xs text-muted-foreground">Complete numeric-category observations</p><p className="mt-1 text-2xl font-semibold tabular-nums">{numberFormat.format(comparison.pairs)}</p></div>
-                  <div className="rounded-lg border border-border p-4"><p className="text-xs text-muted-foreground">Rows skipped</p><p className="mt-1 text-2xl font-semibold tabular-nums">{numberFormat.format(comparison.incomplete)}</p></div>
-                  <div className="rounded-lg border border-border p-4"><p className="text-xs text-muted-foreground">Observed categories</p><p className="mt-1 text-2xl font-semibold tabular-nums">{numberFormat.format(comparison.totalGroups)}</p></div>
-                  <p className="text-xs leading-5 text-muted-foreground sm:col-span-3">Group summaries are descriptive. They do not establish differences between populations or statistical significance.</p>
+                  <div className="rounded-lg border border-border p-4"><p className="text-xs text-muted-foreground">Complete numeric-category observations</p><p className="mt-1 text-2xl font-semibold tabular-nums">{comparison.pairs == null ? 'Suppressed' : numberFormat.format(comparison.pairs)}</p></div>
+                  <div className="rounded-lg border border-border p-4"><p className="text-xs text-muted-foreground">Rows skipped</p><p className="mt-1 text-2xl font-semibold tabular-nums">{comparison.incomplete == null ? 'Suppressed' : numberFormat.format(comparison.incomplete)}</p></div>
+                  <div className="rounded-lg border border-border p-4"><p className="text-xs text-muted-foreground">Observed categories</p><p className="mt-1 text-2xl font-semibold tabular-nums">{comparison.totalGroups == null ? 'Some suppressed' : numberFormat.format(comparison.totalGroups)}</p></div>
+                  <p className="text-xs leading-5 text-muted-foreground sm:col-span-3">Group summaries are descriptive. Missing/non-numeric rows are excluded; no imputation, population inference, significance test, or causal conclusion is performed.</p>
                 </div>
                 <div className="overflow-x-auto rounded-lg border border-border">
                   <table className="w-full min-w-[760px] text-left text-sm">
@@ -441,7 +463,10 @@ export default function ResearchDataLab() {
                     ))}</tbody>
                   </table>
                 </div>
-                {comparison.omittedGroups > 0 && <p className="text-xs text-muted-foreground">Showing the 50 most frequent of {numberFormat.format(comparison.totalGroups)} categories. {numberFormat.format(comparison.omittedGroups)} less frequent categories ({numberFormat.format(comparison.omittedObservations)} observations) are included in the complete observation count but omitted from this table.</p>}
+                {comparison.hasSuppressedGroups && <p role="status" className="text-xs text-muted-foreground">Small groups below k={comparison.minimumGroupSize} are omitted without showing their labels, counts, or numeric summaries.</p>}
+                {comparison.groupsTruncated && (comparison.omittedGroups == null
+                  ? <p className="text-xs text-muted-foreground">Additional publishable categories are omitted because the table is limited to 50 rows; omitted counts are hidden while small groups are suppressed.</p>
+                  : <p className="text-xs text-muted-foreground">Showing the 50 most frequent of {numberFormat.format(comparison.totalGroups)} categories. {numberFormat.format(comparison.omittedGroups)} less frequent categories ({numberFormat.format(comparison.omittedObservations)} observations) are included in the complete observation count but omitted from this table.</p>)}
                 {comparisonExportControl}
               </div>
             ) : (
