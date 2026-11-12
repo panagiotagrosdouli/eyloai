@@ -395,7 +395,7 @@ export default function ResearchDataLab() {
                   <p className="text-xs text-muted-foreground">Rows skipped for blanks or non-numeric cells</p>
                   <p className="mt-1 text-2xl font-semibold tabular-nums">{numberFormat.format(comparison.incomplete)}</p>
                 </div>
-                <p className="text-xs leading-5 text-muted-foreground sm:col-span-3">Pearson r is a descriptive measure of linear association for complete pairs in this file. It is not an inferential test or causal estimate. The deterministic value-hash sample can omit rare patterns and outliers; r is calculated from all complete pairs.</p>
+                <p className="text-xs leading-5 text-muted-foreground sm:col-span-3">Pearson r is a descriptive measure of linear association for complete pairs in this file. It is not an inferential test or causal estimate. The deterministic value-hash sample is for visualization, is not a statistically representative sample, and can omit rare patterns and outliers; r is calculated from all complete pairs.</p>
                 <div className="sm:col-span-3">
                   {comparisonExportControl}
                 </div>
