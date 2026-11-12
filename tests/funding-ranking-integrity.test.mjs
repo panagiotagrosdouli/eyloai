@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyFundingRanking } from '../src/lib/funding-api.js';
+import { applyFundingRanking } from '../src/lib/funding-ranking.mjs';
 
 test('ranking output cannot overwrite official funding facts', () => {
   const records = [{
