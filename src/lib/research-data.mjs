@@ -5,6 +5,10 @@ export const DATA_LAB_LIMITS = Object.freeze({
   fieldCharacters: 20_000,
 });
 
+export const DATA_LAB_DISCLOSURE_THRESHOLDS = Object.freeze([1, 3, 5, 10]);
+export const DATA_LAB_DEFAULT_MINIMUM_CELL_SIZE = 5;
+const DATA_LAB_SCATTER_LIMIT = 500;
+
 function parseRows(text) {
   const rows = [];
   let row = [];
@@ -90,12 +94,46 @@ function median(sortedValues) {
   const middle = Math.floor(sortedValues.length / 2);
   return sortedValues.length % 2
     ? sortedValues[middle]
-    : (sortedValues[middle - 1] + sortedValues[middle]) / 2;
+    : midpoint(sortedValues[middle - 1], sortedValues[middle]);
+}
+
+function midpoint(first, second) {
+  if ((first < 0) !== (second < 0)) return (first + second) / 2;
+  return first + ((second - first) / 2);
+}
+
+function numericMoments(values) {
+  if (!values.length) return { mean: null, sampleStandardDeviation: null };
+  const scale = Math.max(...values.map(Math.abs)) || 1;
+  let meanScaled = 0;
+  let sumSquares = 0;
+  values.forEach((value, index) => {
+    const scaled = value / scale;
+    const delta = scaled - meanScaled;
+    meanScaled += delta / (index + 1);
+    sumSquares += delta * (scaled - meanScaled);
+  });
+  const mean = Math.max(-1, Math.min(1, meanScaled)) * scale;
+  const scaledDeviation = values.length > 1 ? Math.sqrt(Math.max(0, sumSquares / (values.length - 1))) : null;
+  const sampleStandardDeviation = scaledDeviation === null ? null : scaledDeviation * scale;
+  return {
+    mean: Number.isFinite(mean) ? mean : null,
+    sampleStandardDeviation: Number.isFinite(sampleStandardDeviation) ? sampleStandardDeviation : null,
+  };
+}
+
+function disclosureThreshold(value = 1) {
+  const threshold = Number(value);
+  if (!Number.isInteger(threshold) || threshold < 1 || threshold > DATA_LAB_LIMITS.rows) {
+    throw new Error('The minimum cell size must be a whole number from 1 to 10,000.');
+  }
+  return threshold;
 }
 
 /** Calculate deterministic per-column summaries without modifying the source rows. */
-export function summarizeResearchData(dataset) {
+export function summarizeResearchData(dataset, options = {}) {
   if (!dataset || !Array.isArray(dataset.headers) || !Array.isArray(dataset.rows)) return [];
+  const minimumCellSize = disclosureThreshold(options.minimumCellSize);
   return dataset.headers.map((header, columnIndex) => {
     const values = dataset.rows.map((row) => String(row?.[columnIndex] ?? '').trim());
     const present = values.filter(Boolean);
@@ -111,16 +149,17 @@ export function summarizeResearchData(dataset) {
     };
 
     if (isNumeric) {
-      const sorted = [...numeric].sort((a, b) => a - b);
-      const mean = numeric.reduce((sum, value) => sum + value, 0) / numeric.length;
-      const squaredDeviation = numeric.reduce((sum, value) => sum + ((value - mean) ** 2), 0);
-      summary.statistics = {
+      const sorted = [...numeric].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+      summary.statisticsSuppressed = numeric.length < minimumCellSize;
+      summary.minimumCellSize = minimumCellSize;
+      const moments = numericMoments(numeric);
+      summary.statistics = summary.statisticsSuppressed ? null : {
         count: numeric.length,
-        mean,
+        mean: moments.mean,
         median: median(sorted),
         min: sorted[0],
         max: sorted[sorted.length - 1],
-        sampleStandardDeviation: numeric.length > 1 ? Math.sqrt(squaredDeviation / (numeric.length - 1)) : null,
+        sampleStandardDeviation: moments.sampleStandardDeviation,
       };
     }
     return summary;
@@ -136,8 +175,37 @@ export function getResearchDataChartRows(dataset, column, limit = 1000) {
   });
 }
 
+function hashText(text) {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return hash >>> 0;
+}
+
+function deterministicScatterSample(pairs, limit) {
+  if (pairs.length <= limit) return [...pairs];
+  const duplicateOccurrences = new Map();
+  const ranked = pairs.map((pair) => {
+    const pairKey = `${pair.first}\u0000${pair.second}`;
+    const occurrence = duplicateOccurrences.get(pairKey) || 0;
+    duplicateOccurrences.set(pairKey, occurrence + 1);
+    const samplingKey = `${pairKey}\u0000${occurrence}`;
+    return { pair, samplingKey, priority: hashText(samplingKey) };
+  });
+  return ranked
+    .sort((left, right) => left.priority - right.priority
+      || left.samplingKey.localeCompare(right.samplingKey)
+      || left.pair.row - right.pair.row)
+    .slice(0, limit)
+    .map(({ pair }) => pair)
+    .sort((left, right) => left.row - right.row);
+}
+
 /** Compare two numeric columns using complete pairs and descriptive Pearson r. */
-export function compareResearchNumericColumns(dataset, firstColumn, secondColumn) {
+export function compareResearchNumericColumns(dataset, firstColumn, secondColumn, options = {}) {
+  const minimumCellSize = disclosureThreshold(options.minimumCellSize ?? DATA_LAB_DEFAULT_MINIMUM_CELL_SIZE);
   const headers = Array.isArray(dataset?.headers) ? dataset.headers : [];
   const rows = Array.isArray(dataset?.rows) ? dataset.rows : [];
   const firstIndex = headers.indexOf(firstColumn);
@@ -159,21 +227,23 @@ export function compareResearchNumericColumns(dataset, firstColumn, secondColumn
     pairs.push({ first, second, row: rowIndex + 1 });
   }
 
-  if (pairs.length < 3) {
+  const requiredPairs = Math.max(3, minimumCellSize);
+  if (pairs.length < requiredPairs) {
     return {
       available: false,
-      reason: 'At least three complete numeric pairs are needed for a descriptive correlation.',
+      reason: `At least ${requiredPairs} complete numeric pairs are needed at the selected disclosure threshold.`,
       pairs: pairs.length,
       incomplete,
+      minimumCellSize,
     };
   }
 
   // Pearson r is unchanged by scaling each variable independently. Scaling
   // first keeps the online covariance calculation finite for large CSV values.
-  const firstMin = Math.min(...pairs.map(({ first }) => first));
-  const firstMax = Math.max(...pairs.map(({ first }) => first));
-  const secondMin = Math.min(...pairs.map(({ second }) => second));
-  const secondMax = Math.max(...pairs.map(({ second }) => second));
+  const firstMin = pairs.reduce((min, pair) => Math.min(min, pair.first), Infinity);
+  const firstMax = pairs.reduce((max, pair) => Math.max(max, pair.first), -Infinity);
+  const secondMin = pairs.reduce((min, pair) => Math.min(min, pair.second), Infinity);
+  const secondMax = pairs.reduce((max, pair) => Math.max(max, pair.second), -Infinity);
   const firstScale = Math.max(Math.abs(firstMin), Math.abs(firstMax)) || 1;
   const secondScale = Math.max(Math.abs(secondMin), Math.abs(secondMax)) || 1;
   let firstMean = 0;
@@ -201,19 +271,18 @@ export function compareResearchNumericColumns(dataset, firstColumn, secondColumn
       reason: 'Correlation is undefined when either column has no variation among complete pairs.',
       pairs: pairs.length,
       incomplete,
+      minimumCellSize,
     };
   }
 
   const pearsonR = Math.max(-1, Math.min(1, coMoment / denominator));
-  const plotLimit = 500;
-  const plotCount = Math.min(pairs.length, plotLimit);
+  const plotLimit = DATA_LAB_SCATTER_LIMIT;
   const firstLow = firstMin / firstScale;
   const firstRange = firstMax / firstScale - firstLow || 1;
   const secondLow = secondMin / secondScale;
   const secondRange = secondMax / secondScale - secondLow || 1;
-  const scatterSample = Array.from({ length: plotCount }, (_, index) => {
-    const sampleIndex = plotCount === 1 ? 0 : Math.round(index * (pairs.length - 1) / (plotCount - 1));
-    const point = pairs[sampleIndex];
+  const sampledPairs = deterministicScatterSample(pairs, plotLimit);
+  const scatterSample = sampledPairs.map((point) => {
     return {
       ...point,
       xPosition: Math.max(0, Math.min(1, ((point.first / firstScale) - firstLow) / firstRange)),
@@ -227,6 +296,10 @@ export function compareResearchNumericColumns(dataset, firstColumn, secondColumn
     secondColumn,
     pairs: pairs.length,
     incomplete,
+    minimumCellSize,
+    scatterSampleSize: scatterSample.length,
+    scatterLimit: plotLimit,
+    samplingMethod: pairs.length <= plotLimit ? 'all complete pairs' : 'deterministic value-hash priority sample',
     firstMin,
     firstMax,
     secondMin,
@@ -237,7 +310,8 @@ export function compareResearchNumericColumns(dataset, firstColumn, secondColumn
 }
 
 /** Describe one numeric variable within observed categories; no group test is performed. */
-export function summarizeResearchNumericByCategory(dataset, numericColumn, categoryColumn) {
+export function summarizeResearchNumericByCategory(dataset, numericColumn, categoryColumn, options = {}) {
+  const minimumGroupSize = disclosureThreshold(options.minimumGroupSize ?? DATA_LAB_DEFAULT_MINIMUM_CELL_SIZE);
   const headers = Array.isArray(dataset?.headers) ? dataset.headers : [];
   const rows = Array.isArray(dataset?.rows) ? dataset.rows : [];
   const numericIndex = headers.indexOf(numericColumn);
@@ -261,56 +335,50 @@ export function summarizeResearchNumericByCategory(dataset, numericColumn, categ
 
   const allGroups = [...groups.entries()]
     .map(([category, values]) => {
-      const scale = Math.max(...values.map(Math.abs)) || 1;
-      let meanScaled = 0;
-      let squaredDeviations = 0;
-      values.forEach((value, index) => {
-        const scaled = value / scale;
-        const delta = scaled - meanScaled;
-        meanScaled += delta / (index + 1);
-        squaredDeviations += delta * (scaled - meanScaled);
-      });
-      const sorted = [...values].sort((a, b) => a - b);
+      const moments = numericMoments(values);
+      const sorted = [...values].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
       const middle = Math.floor(sorted.length / 2);
-      const median = sorted.length % 2
-        ? sorted[middle]
-        : (sorted[middle - 1] / 2) + (sorted[middle] / 2);
-      const mean = meanScaled * scale;
-      const sampleStandardDeviation = values.length > 1
-        ? Math.sqrt(squaredDeviations / (values.length - 1)) * scale
-        : null;
+      const median = sorted.length % 2 ? sorted[middle] : midpoint(sorted[middle - 1], sorted[middle]);
       return {
         category,
         count: values.length,
-        mean: Number.isFinite(mean) ? mean : null,
+        mean: moments.mean,
         median,
         min: sorted[0],
         max: sorted[sorted.length - 1],
-        sampleStandardDeviation: Number.isFinite(sampleStandardDeviation) ? sampleStandardDeviation : null,
+        sampleStandardDeviation: moments.sampleStandardDeviation,
       };
     })
     .sort((left, right) => right.count - left.count || left.category.localeCompare(right.category));
 
+  const suppressedGroups = allGroups.some((group) => group.count < minimumGroupSize);
+  const publishableGroups = allGroups.filter((group) => group.count >= minimumGroupSize);
   const limit = 50;
-  const displayedGroups = allGroups.slice(0, limit);
+  const displayedGroups = publishableGroups.slice(0, limit);
+  const groupsTruncated = publishableGroups.length > limit;
   return {
-    available: displayedGroups.length > 0,
+    available: complete > 0,
     kind: 'numeric-by-category',
     numericColumn,
     categoryColumn,
-    pairs: complete,
-    incomplete: rows.length - complete,
-    totalGroups: allGroups.length,
-    omittedGroups: Math.max(0, allGroups.length - displayedGroups.length),
-    omittedObservations: allGroups.slice(limit).reduce((sum, group) => sum + group.count, 0),
+    pairs: suppressedGroups ? null : complete,
+    incomplete: suppressedGroups ? null : rows.length - complete,
+    minimumGroupSize,
+    totalGroups: suppressedGroups ? null : allGroups.length,
+    omittedGroups: suppressedGroups ? null : Math.max(0, allGroups.length - displayedGroups.length),
+    omittedObservations: suppressedGroups ? null : allGroups.slice(limit).reduce((sum, group) => sum + group.count, 0),
+    hasSuppressedGroups: suppressedGroups,
+    groupsTruncated,
     groups: displayedGroups,
-    reason: displayedGroups.length ? undefined : 'No complete numeric-category observations are available.',
+    reason: displayedGroups.length ? undefined : suppressedGroups
+      ? `All observed groups are below the selected minimum size (k=${minimumGroupSize}) and are suppressed.`
+      : 'No complete numeric-category observations are available.',
   };
 }
 
 /** Export comparison metadata and aggregates only; never export source rows. */
 export function exportResearchDataComparisonCsv(comparison) {
-  const rows = [['Statistic', 'Value']];
+  let rows = [['Statistic', 'Value']];
   if (comparison?.available && comparison.kind === 'pearson-correlation') {
     rows.push(
       ['Variable 1', comparison.firstColumn],
@@ -318,18 +386,26 @@ export function exportResearchDataComparisonCsv(comparison) {
       ['Pearson correlation (r)', comparison.pearsonR],
       ['Complete pairs used', comparison.pairs],
       ['Rows skipped', comparison.incomplete],
-      ['Scope', 'Descriptive pairwise linear association; no causal or statistical significance claim'],
+      ['Minimum complete pairs (k)', comparison.minimumCellSize],
+      ['Scatter observations displayed', comparison.scatterSampleSize],
+      ['Scatter sampling method', comparison.samplingMethod],
+      ['Scope', 'Descriptive within-file linear association; no p-value, population inference, or causal claim'],
     );
   } else if (comparison?.available && comparison.kind === 'numeric-by-category') {
-    rows.push(
+    rows = [['Statistic', 'Value', '', '', '', '', '']];
+    const metadata = [
       ['Numeric variable', comparison.numericColumn],
       ['Categorical variable', comparison.categoryColumn],
       ['Complete observations used', comparison.pairs],
       ['Rows skipped', comparison.incomplete],
-      ['Categories in file', comparison.totalGroups],
+      ['Minimum group size (k)', comparison.minimumGroupSize],
+      ['Small groups suppressed', comparison.hasSuppressedGroups ? 'Yes' : 'No'],
+      ...(comparison.totalGroups == null ? [] : [['Categories in file', comparison.totalGroups]]),
       ['Categories included in table', comparison.groups.length],
-      ['Scope', 'Descriptive group summaries only; no statistical test or causal claim'],
-      [],
+      ['Scope', 'Descriptive group summaries only; no group test, population inference, or causal claim. Aggregate output does not guarantee anonymity.'],
+    ];
+    rows.push(...metadata.map((row) => [...row, '', '', '', '', '']), ['', '', '', '', '', '', '']);
+    rows.push(
       ['Category', 'Count', 'Mean', 'Median', 'Sample SD', 'Minimum', 'Maximum'],
       ...comparison.groups.map((group) => [group.category, group.count, group.mean, group.median, group.sampleStandardDeviation, group.min, group.max]),
     );
@@ -344,13 +420,15 @@ function csvCell(value) {
 }
 
 export function exportResearchDataSummaryCsv(summaries) {
-  const headers = ['Column', 'Type', 'Rows', 'Missing', 'Distinct', 'Count', 'Mean', 'Median', 'Minimum', 'Maximum', 'Sample SD'];
+  const headers = ['Column', 'Type', 'Minimum cell size (k)', 'Disclosure', 'Rows', 'Missing', 'Distinct', 'Count', 'Mean', 'Median', 'Minimum', 'Maximum', 'Sample SD'];
   const rows = (Array.isArray(summaries) ? summaries : []).map((item) => [
     item.column,
     item.type,
-    item.rows,
-    item.missing,
-    item.distinct,
+    item.minimumCellSize,
+    item.statisticsSuppressed ? 'Suppressed: below minimum cell size' : 'Not suppressed',
+    item.statisticsSuppressed ? '' : item.rows,
+    item.statisticsSuppressed ? '' : item.missing,
+    item.statisticsSuppressed ? '' : item.distinct,
     item.statistics?.count,
     item.statistics?.mean,
     item.statistics?.median,
