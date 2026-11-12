@@ -2,7 +2,7 @@ export const LIFE_TASK_STATUSES = Object.freeze(['todo', 'in_progress', 'done'])
 export const LIFE_TASK_PRIORITIES = Object.freeze(['low', 'normal', 'high', 'urgent']);
 export const LIFE_TASK_RECURRENCES = Object.freeze(['none', 'daily', 'weekly', 'monthly']);
 export const LIFE_AREAS = Object.freeze(['personal', 'research', 'study', 'work']);
-export const LIFE_TASK_KINDS = Object.freeze(['task', 'study', 'syllabus', 'exam']);
+export const LIFE_TASK_KINDS = Object.freeze(['task', 'study', 'syllabus', 'exam', 'habit']);
 
 function text(value, max, name, required = false, code = 'LIFE_TASK_VALIDATION') {
   const result = String(value ?? '').trim();
@@ -32,6 +32,9 @@ export function normalizeLifeTask(input = {}) {
   if (recurrence !== 'none' && !dueDate) {
     throw Object.assign(new Error('A due date is required for a recurring task.'), { code: 'LIFE_TASK_VALIDATION' });
   }
+  if (kind === 'habit' && !['daily', 'weekly'].includes(recurrence)) {
+    throw Object.assign(new Error('Habits must repeat daily or weekly.'), { code: 'LIFE_TASK_VALIDATION' });
+  }
   const projectId = text(input.project_id, 64, 'Project ID');
   return {
     title,
@@ -46,6 +49,57 @@ export function normalizeLifeTask(input = {}) {
     due_date: dueDate || null,
     project_id: projectId || null,
   };
+}
+
+function shiftDate(dateString, days) {
+  const date = new Date(`${dateString}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function daysBetween(left, right) {
+  return Math.round((new Date(`${right}T00:00:00Z`).getTime() - new Date(`${left}T00:00:00Z`).getTime()) / 86_400_000);
+}
+
+export function summarizeHabits(tasks, today = new Date().toISOString().slice(0, 10)) {
+  const groups = new Map();
+  for (const task of tasks) {
+    if (task.kind !== 'habit') continue;
+    const id = task.recurrence_parent_id || task.id;
+    if (!id) continue;
+    if (!groups.has(id)) groups.set(id, []);
+    groups.get(id).push(task);
+  }
+
+  return [...groups.entries()].map(([id, occurrences]) => {
+    const ordered = [...occurrences].sort((a, b) => String(a.due_date || '').localeCompare(String(b.due_date || '')));
+    const completedDates = [...new Set(ordered.filter(item => item.status === 'done' && item.due_date).map(item => item.due_date))].sort();
+    const current = ordered.find(item => item.status !== 'done') || ordered.at(-1);
+    const frequency = current?.recurrence || ordered.at(-1)?.recurrence || 'daily';
+    const interval = frequency === 'weekly' ? 7 : 1;
+    let streak = 0;
+    let expected = completedDates.at(-1);
+    const daysSinceLastCheckin = expected ? daysBetween(expected, today) : Infinity;
+    if (expected && daysSinceLastCheckin >= 0 && daysSinceLastCheckin <= interval) {
+      while (completedDates.includes(expected)) {
+        streak += 1;
+        expected = shiftDate(expected, -interval);
+      }
+    }
+    return {
+      id,
+      occurrences: ordered,
+      current,
+      title: current?.title || ordered.at(-1)?.title || 'Untitled habit',
+      description: current?.description || '',
+      frequency,
+      completedCount: completedDates.length,
+      completedDates,
+      currentStreak: streak,
+      latestCompletion: completedDates.at(-1) || null,
+      today,
+    };
+  }).sort((a, b) => String(a.current?.due_date || '9999-12-31').localeCompare(String(b.current?.due_date || '9999-12-31')));
 }
 
 export function nextLifeTaskDate(dueDate, recurrence) {
