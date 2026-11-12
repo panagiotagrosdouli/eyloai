@@ -122,6 +122,9 @@ export default function Notes() {
     setEditor(EMPTY_NOTE);
     setBaseline(EMPTY_NOTE);
     setTagInput('');
+    setSearchInput('');
+    setActiveSearch('');
+    setActiveTag('');
     setVersions([]);
     setVersionError('');
     setError('');
@@ -150,6 +153,13 @@ export default function Notes() {
     }
   };
 
+  const clearSearch = () => {
+    setSearchInput('');
+    setActiveSearch('');
+    setActiveTag('');
+    void loadWorkspace();
+  };
+
   const saveNote = async (event) => {
     event.preventDefault();
     const ownerId = ownerRef.current;
@@ -160,8 +170,9 @@ export default function Notes() {
     try {
       const payload = normalizeNote({ ...editor, tags: tagInput });
       const project = payload.project_id ? projectById.get(payload.project_id) : null;
-      if (payload.project_id && !project) throw new Error('Select a project you own or remove the project link.');
-      const savePayload = { ...payload, project_title: project?.title || '' };
+      const projectTitle = project?.title || (payload.project_id === selected?.project_id ? selected?.project_title : '') || '';
+      const savePayload = { ...payload, project_title: projectTitle };
+      const hadFilter = Boolean(activeSearch || activeTag);
       const saved = selected
         ? await base44.entities.Note.updateIfUnchanged(selected.id, savePayload, selected.updated_date)
         : await base44.entities.Note.create(savePayload);
@@ -170,9 +181,13 @@ export default function Notes() {
       setEditor(editorValue(saved));
       setBaseline(editorValue(saved));
       setTagInput((saved.tags || []).join(', '));
+      setSearchInput('');
+      setActiveSearch('');
+      setActiveTag('');
       setNotes(current => [saved, ...current.filter(note => note.id !== saved.id)].sort((a, b) => String(b.updated_date).localeCompare(String(a.updated_date))));
       setNotice('Saved. Version history updates when note content changes.');
       if (selected) await loadVersions(saved.id, ownerId);
+      if (hadFilter) void loadWorkspace(ownerId);
     } catch (saveError) {
       if (ownerId !== ownerRef.current) return;
       const message = saveError?.code === 'ENTITY_CONFLICT'
@@ -246,7 +261,7 @@ export default function Notes() {
         <button type="submit" className="min-h-10 rounded-lg border border-border px-4 text-sm font-medium hover:bg-secondary">Search</button>
       </form>
 
-      {activeSearch && <p className="mb-3 text-xs text-muted-foreground">Full-text results for “{activeSearch}” · <button type="button" onClick={() => { setSearchInput(''); setActiveSearch(''); void runSearch({ preventDefault() {} }); }} className="underline">Clear search</button></p>}
+      {activeSearch && <p className="mb-3 text-xs text-muted-foreground">Full-text results for “{activeSearch}” · <button type="button" onClick={clearSearch} className="underline">Clear search</button></p>}
       {error && <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"><span>{error}</span><button type="button" onClick={() => void loadWorkspace()} className="font-semibold underline">Retry</button></div>}
       {notice && <p role="status" className="mb-4 text-sm text-muted-foreground">{notice}</p>}
 
