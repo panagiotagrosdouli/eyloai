@@ -119,6 +119,8 @@
 
 ## Work recorded
 
+- **2026-11-12:** Funding search now supports comparing up to three current official-source opportunities side by side. The comparison contains only retrieved source fields, links each record to its official page, labels missing source data explicitly, and drops records when they are no longer in the current result set. Added deterministic selection and stale-record tests. Hosted checks are pending for this change.
+
 - **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.
 - **2026-11-10:** Project Evidence adds a source-linked, editable matrix for linked papers; notes are stored on the project and exported as CSV with spreadsheet formula escaping. Missing notes are shown as unrecorded rather than inferred.
 - **2026-11-10:** Research Data Lab adds private, in-browser CSV preview, validation, missingness and numeric summaries, an accessible row chart, reproducible analysis steps, and formula-safe summary export. Dataset contents are not uploaded, persisted, or sent to AI.
