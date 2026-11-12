@@ -11,6 +11,8 @@ let browser;
 const user = { id: 'eylo-learning-user', aud: 'authenticated', role: 'authenticated', email: 'student@example.org', app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: {}, created_at: '2026-01-01T00:00:00.000Z' };
 const records = [];
 const versions = [];
+let resolveQuizAttemptSaved;
+const quizAttemptSaved = new Promise((resolve) => { resolveQuizAttemptSaved = resolve; });
 
 async function waitForServer() {
   const deadline = Date.now() + 30_000;
@@ -46,6 +48,7 @@ try {
       const payload = route.request().postDataJSON();
       const row = { id: `learning-${records.length + 1}`, user_id: user.id, kind: payload.kind, parent_id: payload.parent_id || null, data: payload.data || {}, created_date: new Date().toISOString(), updated_date: new Date().toISOString() };
       records.unshift(row);
+      if (row.kind === 'quiz_attempt') resolveQuizAttemptSaved(row);
       if (row.kind === 'note') versions.push({ id: `version-${versions.length + 1}`, note_id: row.id, user_id: user.id, version_number: versions.filter((item) => item.note_id === row.id).length + 1, snapshot: row.data, created_date: new Date().toISOString() });
       return response(wantsObject ? row : [row]);
     }
@@ -107,7 +110,8 @@ try {
   await page.getByLabel('ATP production', { exact: true }).check();
   await page.getByRole('button', { name: 'Submit quiz' }).click();
   await page.getByText('50%', { exact: true }).waitFor();
-  assert.ok(records.some((item) => item.kind === 'quiz_attempt' && item.data.percent === 50), 'quiz attempt should be persisted');
+  const savedAttempt = await quizAttemptSaved;
+  assert.equal(savedAttempt.data.percent, 50, 'quiz attempt should be persisted before the flow continues');
   assert.ok(records.some((item) => item.kind === 'flashcard' && item.data.review_count === 1), 'flashcard review outcome should be persisted');
 
   await page.getByRole('button', { name: 'Notes', exact: true }).click();
