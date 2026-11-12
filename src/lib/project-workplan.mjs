@@ -20,7 +20,7 @@ export function normalizeWorkplan(items) {
       deliverable: cleanText(item.deliverable),
       due_date: isDate(item.due_date) ? item.due_date : '',
       status: STATUSES.has(item.status) ? item.status : 'todo',
-      depends_on: Array.isArray(item.depends_on) ? [...new Set(item.depends_on.map(value => cleanText(value, 80)).filter(value => value && value !== id))].slice(0, MAX_ITEMS) : [],
+      depends_on: Array.isArray(item.depends_on) ? [...new Set(item.depends_on.map(value => cleanText(value, 80)).filter(Boolean))].slice(0, MAX_ITEMS) : [],
     }];
   }).map(item => ({ ...item, depends_on: item.depends_on.filter(dependency => seen.has(dependency)) }));
 }

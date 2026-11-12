@@ -23,6 +23,7 @@ test('workplan normalization preserves valid user fields and discards malformed 
 test('workplan accepts valid dependencies, but rejects missing references and cycles', () => {
   assert.equal(validateWorkplan(items).valid, true);
   assert.equal(validateWorkplan([{ id: 'a', title: 'A', depends_on: ['missing'] }]).valid, false);
+  assert.match(validateWorkplan([{ id: 'a', title: 'A', depends_on: ['a'] }]).message, /itself/i);
   assert.match(validateWorkplan([
     { id: 'a', title: 'A', depends_on: ['b'] },
     { id: 'b', title: 'B', depends_on: ['a'] },
