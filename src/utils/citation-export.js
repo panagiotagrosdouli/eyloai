@@ -50,7 +50,11 @@ export function publicBibliographyUrl(value) {
       || /^kbzjngpzxpniaumlupaa\.supabase\.co$/i.test(url.hostname)
       || /\.supabase\.co$/i.test(url.hostname) && url.pathname.startsWith('/storage/')) return '';
     if (/^\/(?:api|workspace|login|projects|library)(?:\/|$)/i.test(url.pathname)) return '';
-    if ([...url.searchParams.keys()].some(key => /^(token|access_token|refresh_token|jwt|signature|sig|api_key|key|x-amz-signature|x-amz-credential|se)$/i.test(key))) return '';
+    let sensitiveQuery = false;
+    url.searchParams.forEach((_, key) => {
+      if (/^(token|access_token|refresh_token|jwt|signature|sig|api_key|key|x-amz-signature|x-amz-credential|se)$/i.test(key)) sensitiveQuery = true;
+    });
+    if (sensitiveQuery) return '';
     if (url.hash) url.hash = '';
     return url.toString();
   } catch {
