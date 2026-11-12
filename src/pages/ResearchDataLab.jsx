@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BarChart3, Download, FileSpreadsheet, LockKeyhole, RotateCcw, Upload } from 'lucide-react';
 import {
   DATA_LAB_LIMITS,
@@ -29,6 +29,8 @@ function displayNumber(value) {
 
 export default function ResearchDataLab() {
   const inputRef = useRef(null);
+  const loadGenerationRef = useRef(0);
+  useEffect(() => () => { loadGenerationRef.current += 1; }, []);
   const [dataset, setDataset] = useState(null);
   const [filename, setFilename] = useState('');
   const [fileDigest, setFileDigest] = useState(null);
@@ -57,6 +59,7 @@ export default function ResearchDataLab() {
   const loadFile = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    const generation = ++loadGenerationRef.current;
     setError('');
     setLoading(true);
     setDataset(null);
@@ -68,25 +71,34 @@ export default function ResearchDataLab() {
       if (!file.name.toLowerCase().endsWith('.csv')) throw new Error('Choose a .csv file.');
       if (file.size > DATA_LAB_LIMITS.bytes) throw new Error('The CSV exceeds the 5 MB limit.');
       const rawBytes = await file.arrayBuffer();
+      if (generation !== loadGenerationRef.current) return;
       const result = parseResearchCsv(new TextDecoder('utf-8').decode(rawBytes));
       setDataset(result);
       setFilename(file.name);
       setFileBytes(rawBytes.byteLength);
       try {
-        setFileDigest(await sha256ResearchFile(rawBytes));
+        const digest = await sha256ResearchFile(rawBytes);
+        if (generation !== loadGenerationRef.current) return;
+        setFileDigest(digest);
       } catch {
+        if (generation !== loadGenerationRef.current) return;
         setDigestError('File fingerprint unavailable in this browser. Data analysis remains local.');
       }
+      if (generation !== loadGenerationRef.current) return;
       setChartColumn(result.headers.find((header) => summarizeResearchData(result).find((item) => item.column === header && item.type === 'numeric')) || '');
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'The CSV could not be read. Check its format and try again.');
+      if (generation === loadGenerationRef.current) {
+        setError(cause instanceof Error ? cause.message : 'The CSV could not be read. Check its format and try again.');
+      }
     } finally {
-      setLoading(false);
+      if (generation === loadGenerationRef.current) setLoading(false);
       event.target.value = '';
     }
   };
 
   const clearData = () => {
+    loadGenerationRef.current += 1;
+    setLoading(false);
     setDataset(null);
     setFilename('');
     setFileDigest(null);
