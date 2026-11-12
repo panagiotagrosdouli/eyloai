@@ -36,9 +36,9 @@ function clearDraft(key) {
   try { sessionStorage.removeItem(key); } catch { /* Browser storage is optional. */ }
 }
 
-export default function DocumentEditor() {
+export default function DocumentEditor({ isNewDocument = false } = {}) {
   const { id } = useParams();
-  const isNew = id === 'new';
+  const isNew = isNewDocument || id === 'new';
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
