@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import {
@@ -59,14 +59,29 @@ export default function ProjectDetail() {
   const [savedOpportunities, setSavedOpportunities] = useState([]);
   const [meetings, setMeetings] = useState([]);
   const [loadError, setLoadError] = useState('');
+  // Keep in-flight reads from one project from overwriting another project's page.
+  const loadGenerationRef = useRef(0);
   const [plannerDraft, setPlannerDraft] = useState('');
   const [plannerNotice, setPlannerNotice] = useState('');
   const { toast } = useToast();
 
-  useEffect(() => { loadAll(); }, [id]);
+  useEffect(() => {
+    loadAll();
+    return () => { loadGenerationRef.current += 1; };
+  }, [id]);
 
   const loadAll = async () => {
+    const generation = ++loadGenerationRef.current;
     setLoading(true);
+    // Hide the previous project's private records before loading the new ID.
+    setProject(null);
+    setSavedPapers([]);
+    setSavedResearchers([]);
+    setSavedOpportunities([]);
+    setMeetings([]);
+    setMatrixPaperIds([]);
+    setMatrixNotes({});
+    setEditing({});
     setLoadError('');
     setPlannerDraft('');
     setPlannerNotice('');
@@ -80,9 +95,12 @@ export default function ProjectDetail() {
       base44.entities.SavedOpportunity.filter({ project_id: id }, '-created_date', 100),
       base44.entities.Meeting.filter({ project_id: id }, '-date', 20),
     ]);
-    if (projectResult.status !== 'fulfilled') {
+    if (loadGenerationRef.current !== generation) return;
+    if (projectResult.status !== 'fulfilled' || !projectResult.value || projectResult.value.id !== id) {
       setProject(null);
-      setLoadError(projectResult.reason?.message || 'This project could not be loaded.');
+      setLoadError(projectResult.status === 'rejected'
+        ? (projectResult.reason?.message || 'This project could not be loaded.')
+        : 'Project not found or returned an unexpected identifier.');
       setLoading(false);
       return;
     }
@@ -322,7 +340,8 @@ Rules:
     }
   };
 
-  if (loading) {
+  // A route transition may render before the effect resets component state.
+  if (loading || (project && project.id !== id)) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin" />
