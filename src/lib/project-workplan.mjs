@@ -31,7 +31,11 @@ export function validateWorkplan(items) {
   const ids = new Set(normalized.map(item => item.id));
   const byId = new Map(normalized.map(item => [item.id, item]));
   for (const item of normalized) {
-    if (Array.isArray(items.find(raw => raw?.id === item.id)?.depends_on) && items.find(raw => raw?.id === item.id).depends_on.some(dependency => !ids.has(dependency))) {
+    const rawItem = items.find(raw => raw?.id === item.id);
+    if (rawItem?.due_date && !isDate(rawItem.due_date)) {
+      return { valid: false, message: 'Target dates must be valid calendar dates in YYYY-MM-DD format.' };
+    }
+    if (Array.isArray(rawItem?.depends_on) && rawItem.depends_on.some(dependency => !ids.has(dependency))) {
       return { valid: false, message: 'A dependency points to a task that is not in this workplan.' };
     }
     if (item.depends_on.includes(item.id)) return { valid: false, message: 'A task cannot depend on itself.' };
