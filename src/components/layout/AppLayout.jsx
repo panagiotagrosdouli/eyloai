@@ -42,6 +42,7 @@ const TOOL_GROUPS = [
       { label: 'Habits', path: '/habits', icon: Flame, desc: 'Track routines, check-ins and saved streak history' },
       { label: 'Flashcards', path: '/flashcards', icon: Layers3, desc: 'Review saved cards with spaced repetition' },
       { label: 'Calendar', path: '/calendar', icon: CalendarDays, desc: 'Plan private events and project deadlines' },
+      { label: 'Workspace search', path: '/workspace/search', icon: Search, desc: 'Search your own notes, projects, tasks and saved research' },
       { label: 'Notes', path: '/notes', icon: NotebookPen, desc: 'Private notes with project links and version history' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
