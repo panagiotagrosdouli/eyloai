@@ -111,7 +111,7 @@ const AuthenticatedApp = () => {
           <Route path="/search" element={<Home searchOnly />} />
           <Route path="/library" element={<Library />} />
           <Route path="/files" element={<EyloFiles />} />
-          <Route path="/documents/new" element={<DocumentEditor />} />
+          <Route path="/documents/new" element={<DocumentEditor isNewDocument />} />
           <Route path="/documents/:id" element={<DocumentEditor />} />
           <Route path="/notes" element={<Notes />} />
           <Route path="/life" element={<Life />} />
