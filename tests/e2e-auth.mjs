@@ -187,8 +187,8 @@ try {
   });
   await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor();
   await dataLab.getByRole('row', { name: /score numeric — — —/ }).waitFor();
-  assert.match(await dataLab.locator('[role="note"]').first().innerText(), /aggregate-only export is not guaranteed to be anonymous/i);
-  const disclosureNote = await dataLab.locator('[role="note"]').first().innerText();
+  const disclosureNote = await dataLab.locator('[role="note"]').filter({ hasText: 'Numeric summaries and grouped cells below' }).innerText();
+  assert.match(disclosureNote, /aggregate-only output does not guarantee anonymity/i);
   assert.match(disclosureNote, /does not mask source rows in the local preview or individual points in the sampled chart/i);
   assert.match(disclosureNote, /capped at 500 and may omit rare patterns or outliers/i);
   await dataLab.getByLabel('Minimum disclosure cell size').selectOption('1');
