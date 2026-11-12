@@ -59,6 +59,7 @@ const Notes = lazy(() => import('@/pages/Notes'));
 const Calendar = lazy(() => import('@/pages/Calendar'));
 const StudyPlanner = lazy(() => import('@/pages/StudyPlanner'));
 const Life = lazy(() => import('@/pages/Life'));
+const TimeTracker = lazy(() => import('@/pages/TimeTracker'));
 
 const AiTool = ({ minimum, children }) => (
   <CapabilityGate capability="ai">
@@ -106,6 +107,7 @@ const AuthenticatedApp = () => {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/study-planner" element={<StudyPlanner />} />
           <Route path="/life" element={<Life />} />
+          <Route path="/time-tracker" element={<TimeTracker />} />
           <Route path="/research-gaps" element={<ResearchGaps />} />
           <Route path="/literature-review" element={<LiteratureReview />} />
           <Route path="/labs/data" element={<ResearchDataLab />} />

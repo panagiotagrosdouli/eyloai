@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Activity, Award, BarChart3, BookOpen, Brain, Briefcase, CalendarDays, ChevronDown, FileEdit, FolderOpen, GitBranch, GraduationCap, History,
   Home, LayoutDashboard, LayoutGrid, Lightbulb, LogOut, Menu, Mic, Presentation, NotebookPen,
-  Rocket, Search, Settings, Sparkles, Target, Trophy, User, Users,
+  Rocket, Search, Settings, Sparkles, Target, Timer, Trophy, User, Users,
   Video, X, Zap,
 } from 'lucide-react';
 import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
@@ -40,6 +40,7 @@ const TOOL_GROUPS = [
       { label: 'Calendar', path: '/calendar', icon: CalendarDays, desc: 'Events, project deadlines, and scheduled reminders' },
       { label: 'Study planner', path: '/study-planner', icon: GraduationCap, desc: 'Schedule study sessions and track completion' },
       { label: 'Life planner', path: '/life', icon: Target, desc: 'Goals, habits, milestones, routines, and AI planning' },
+      { label: 'Time tracker', path: '/time-tracker', icon: Timer, desc: 'Record work sessions, report project time, and export entries' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
       { label: 'Literature review protocol', path: '/literature-review', icon: BookOpen, desc: 'Document search methods and screen saved publications' },
