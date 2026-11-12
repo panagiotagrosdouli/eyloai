@@ -135,17 +135,17 @@ test('correlation matches an independently calculated outlier-sensitive Pearson 
 test('very small finite values retain correlation and finite descriptive summaries', () => {
   const dataset = parseResearchCsv('x,y\n1e-300,2e-300\n2e-300,4e-300\n3e-300,6e-300');
   const result = compareResearchNumericColumns(dataset, 'x', 'y', { minimumCellSize: 1 });
-  const [summary] = summarizeResearchData(dataset);
+  const [summary] = summarizeResearchData(dataset, { minimumCellSize: 1 });
   assert.equal(result.pearsonR, 1);
   assert.equal(summary.statistics.mean, 2e-300);
   assert.ok(Number.isFinite(summary.statistics.sampleStandardDeviation));
 });
 
 test('summary moments avoid overflow for large values and use a safe even-sample median', () => {
-  const [summary] = summarizeResearchData(parseResearchCsv('x\n1e308\n1e308\n1e308'));
+  const [summary] = summarizeResearchData(parseResearchCsv('x\n1e308\n1e308\n1e308'), { minimumCellSize: 1 });
   assert.equal(summary.statistics.mean, 1e308);
   assert.equal(summary.statistics.median, 1e308);
-  const [wideMedian] = summarizeResearchData(parseResearchCsv('x\n1e308\n1.7e308'));
+  const [wideMedian] = summarizeResearchData(parseResearchCsv('x\n1e308\n1.7e308'), { minimumCellSize: 1 });
   assert.equal(wideMedian.statistics.median, 1.35e308);
 });
 
@@ -176,6 +176,16 @@ test('numeric summary CSV masks all small-cell counts and statistics', () => {
   assert.match(summaryCsv, /Minimum cell size \(k\)/);
   assert.equal(summaryCsv.includes('7654321'), false);
   assert.match(summaryCsv, /"value","numeric","5","Suppressed: below minimum cell size","","",""/);
+});
+
+test('summary API defaults to small-cell suppression instead of exposing singleton values', () => {
+  const dataset = parseResearchCsv('private_value\n987654321');
+  const [summary] = summarizeResearchData(dataset);
+  assert.equal(summary.statisticsSuppressed, true);
+  assert.equal(summary.minimumCellSize, 5);
+  assert.equal(summary.statistics, null);
+  const csv = exportResearchDataSummaryCsv([summary]);
+  assert.equal(csv.includes('987654321'), false);
 });
 
 test('group summaries preserve unequal counts and skewed-distribution descriptive values', () => {
