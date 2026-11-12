@@ -6,8 +6,7 @@ Session handoff: 2026-11-12 (Europe/Athens)
 
 - Repository: `panagiotagrosdouli/eyloai`, working branch `codex/eylo-notes-calendar-study`.
 - Latest upstream main inspected: `78b6c041cb4bfe28b3febf7e640742d6f49993e0`.
-- Draft PR #391: https://github.com/panagiotagrosdouli/eyloai/pull/391. It includes Notes, Calendar, Study Planner, Life, Time Tracker and Flashcards. The Quiz Generator is verified locally and pending its commit and PR update.
-- Last pushed PR head is `6f16df43c43723e2becc45f3f3a522fccdf0d797`. Vercel status is failed because the project is on Hobby and the configured hourly cron exceeds its daily-cron allowance. Do not claim the reminders are timely or merge/deploy until an authorized supported scheduler is configured.
+- Draft PR #391: https://github.com/panagiotagrosdouli/eyloai/pull/391. It includes Notes, Calendar, Study Planner, Life, Time Tracker, Flashcards and Quiz Generator. Current pushed PR head is `2ba45ee3c635428017315294d66184e4acb63e05`. Vercel status is failed because the project is on Hobby and the configured hourly cron exceeds its daily-cron allowance. Do not claim the reminders are timely or merge/deploy until an authorized supported scheduler is configured.
 - No production database or production deployment was modified. Supabase credentials are placeholders; no staging user accounts were available.
 - The tracker lists all 77 products and marks no product production-ready.
 
@@ -39,10 +38,9 @@ All seven workflows remain **IN_PROGRESS**, not production-ready. Migration appl
 
 ## Next implementation sequence
 
-1. Commit the verified Quiz Generator slice, record its SHA in the tracker, and update PR #391; keep the PR in draft.
-2. Continue with EYLO Learn using actual course/lesson/assessment records and connect saved quiz progress.
-3. Continue sequentially through the remaining backlog without exposing unfinished routes as complete.
-4. Once staging is explicitly configured: apply migrations in order, run two-user RLS and all E2E workflows, verify actual AI and reminder provider behavior, and update every affected tracker row with evidence.
+1. Continue with EYLO Learn using actual course/lesson/assessment records and connect saved quiz progress.
+2. Continue sequentially through the remaining backlog without exposing unfinished routes as complete.
+3. Once staging is explicitly configured: apply migrations in order, run two-user RLS and all E2E workflows, verify actual AI and reminder provider behavior, and update every affected tracker row with evidence.
 
 ## Relevant files
 
