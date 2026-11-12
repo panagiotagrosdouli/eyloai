@@ -242,7 +242,7 @@ try {
     name: 'grouped-study.csv', mimeType: 'text/csv',
     buffer: Buffer.from('group,score\ncontrol,1\ncontrol,3\ntreatment,5\ntreatment,7\n,9\n'),
   });
-  await dataLab.getByText('Observed categories').waitFor();
+  await dataLab.getByText('Observed categories', { exact: true }).waitFor();
   await dataLab.getByRole('row', { name: /control 2 2 2 1\.4142 1 3/ }).waitFor();
   await dataLab.getByRole('row', { name: /treatment 2 6 6 1\.4142 5 7/ }).waitFor();
   const groupedExportPromise = dataLab.waitForEvent('download');
