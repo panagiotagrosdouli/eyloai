@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { BarChart3, Download, FileSpreadsheet, LockKeyhole, RotateCcw, Upload } from 'lucide-react';
+import { BarChart3, Database, Download, FileSpreadsheet, LockKeyhole, RotateCcw, Trash2, Upload } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 import {
   DATA_LAB_LIMITS,
   DATA_LAB_DEFAULT_MINIMUM_CELL_SIZE,
@@ -14,6 +15,7 @@ import {
 } from '@/lib/research-data.mjs';
 import { auditResearchDataQuality } from '@/lib/research-data-quality.mjs';
 import { sha256ResearchFile, buildResearchDataProvenance } from '@/lib/research-data-provenance.mjs';
+import { addResearchCatalogEntry, clearResearchCatalog, exportResearchCatalogJson, readResearchCatalog, removeResearchCatalogEntry, researchCatalogStorageKey } from '@/lib/research-catalog.mjs';
 
 const numberFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 4 });
 
@@ -33,6 +35,7 @@ function displayNumber(value) {
 }
 
 export default function ResearchDataLab() {
+  const { user } = useAuth();
   const inputRef = useRef(null);
   const loadGenerationRef = useRef(0);
   useEffect(() => () => { loadGenerationRef.current += 1; }, []);
@@ -46,6 +49,23 @@ export default function ResearchDataLab() {
   const [loading, setLoading] = useState(false);
   const [comparisonColumns, setComparisonColumns] = useState([]);
   const [minimumCellSize, setMinimumCellSize] = useState(DATA_LAB_DEFAULT_MINIMUM_CELL_SIZE);
+  const [catalogEntries, setCatalogEntries] = useState([]);
+  const [catalogError, setCatalogError] = useState('');
+  const [catalogStatus, setCatalogStatus] = useState('');
+  const [confirmCatalogClear, setConfirmCatalogClear] = useState(false);
+  const catalogKey = useMemo(() => researchCatalogStorageKey(user?.id), [user?.id]);
+  useEffect(() => {
+    setCatalogEntries([]);
+    setCatalogStatus('');
+    setCatalogError('');
+    setConfirmCatalogClear(false);
+    if (!catalogKey) {
+      setCatalogError('Sign in to access this account’s browser-local catalog.');
+      return;
+    }
+    try { setCatalogEntries(readResearchCatalog(window.localStorage, catalogKey)); }
+    catch (cause) { setCatalogError(cause.message || 'The local catalog could not be opened.'); }
+  }, [catalogKey]);
   const summaries = useMemo(() => summarizeResearchData(dataset, { minimumCellSize }), [dataset, minimumCellSize]);
   const quality = useMemo(() => dataset ? auditResearchDataQuality(dataset) : null, [dataset]);
   const numericColumns = summaries.filter((summary) => summary.type === 'numeric').map((summary) => summary.column);
@@ -184,6 +204,54 @@ export default function ResearchDataLab() {
     }
   };
 
+  const saveToCatalog = () => {
+    if (!dataset) return;
+    if (!catalogKey) { setCatalogError('Sign in before saving dataset metadata.'); return; }
+    try {
+      const result = addResearchCatalogEntry(window.localStorage, {
+        id: window.crypto.randomUUID(), fileName: filename, sha256: fileDigest,
+        byteLength: fileBytes, rowCount: dataset.rows.length, columnCount: dataset.headers.length,
+        addedAt: new Date().toISOString(),
+      }, catalogKey);
+      setCatalogEntries(result.entries);
+      setCatalogError('');
+      setCatalogStatus(result.duplicate ? 'This exact file fingerprint is already in your catalog.' : 'Dataset metadata saved in this browser.');
+    } catch (cause) { setCatalogError(cause.message || 'The local catalog could not save this entry.'); }
+  };
+
+  const deleteCatalogEntry = (id) => {
+    try {
+      const entries = removeResearchCatalogEntry(window.localStorage, id, catalogKey);
+      setCatalogEntries(entries);
+      setCatalogError('');
+      setCatalogStatus('Catalog entry removed from this browser.');
+    } catch (cause) { setCatalogError(cause.message || 'The catalog entry could not be removed.'); }
+  };
+
+  const deleteCatalog = () => {
+    try {
+      clearResearchCatalog(window.localStorage, catalogKey);
+      setCatalogEntries([]);
+      setCatalogError('');
+      setCatalogStatus('Local catalog cleared.');
+      setConfirmCatalogClear(false);
+    } catch (cause) { setCatalogError(cause.message || 'The local catalog could not be cleared.'); }
+  };
+
+  const exportCatalog = () => {
+    try {
+      const blob = new Blob([exportResearchCatalogJson(catalogEntries)], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'eylo-local-research-catalog.json';
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    } catch (cause) { setCatalogError(cause.message || 'The catalog export could not be created.'); }
+  };
+
   const comparisonExportControl = (
     <div>
       <button type="button" onClick={exportComparison} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary">
@@ -243,8 +311,60 @@ export default function ResearchDataLab() {
               It is not a scientific validation or a digital signature. Private, predictable datasets may be identifiable from their hash. Aggregate exports are not guaranteed to be anonymous.
               The optional fingerprint is included in the aggregate JSON report.
             </p>
+            <button type="button" onClick={saveToCatalog} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary">
+              <Database size={15} aria-hidden="true" /> Save metadata to Data Catalog
+            </button>
           </div>
         )}
+      </section>
+
+      <section className="rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="catalog-title">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 id="catalog-title" className="text-lg font-semibold">Local Data Catalog</h2>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">Opt in to save a dataset name, dimensions, file size, saved date and optional SHA-256 fingerprint in this browser, scoped to your signed-in account. CSV contents and column values are never stored. Names and hashes can still be sensitive; catalog exports do not guarantee anonymity.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={exportCatalog} disabled={!catalogEntries.length} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50">
+              <Download size={15} aria-hidden="true" /> Export catalog metadata
+            </button>
+            <button type="button" onClick={() => setConfirmCatalogClear(true)} disabled={!catalogEntries.length && !catalogError} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50">
+              <Trash2 size={15} aria-hidden="true" /> Clear catalog
+            </button>
+          </div>
+        </div>
+        {confirmCatalogClear && <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3" role="alertdialog" aria-labelledby="clear-catalog-title" aria-describedby="clear-catalog-description">
+          <h3 id="clear-catalog-title" className="text-sm font-semibold">Clear all catalog metadata?</h3>
+          <p id="clear-catalog-description" className="mt-1 text-sm text-muted-foreground">This removes {catalogEntries.length} browser-local entries for this account. It does not affect source files or analysis data.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" onClick={() => setConfirmCatalogClear(false)} className="min-h-10 rounded-lg border border-border px-3 text-sm">Cancel</button>
+            <button type="button" onClick={deleteCatalog} className="min-h-10 rounded-lg bg-destructive px-3 text-sm font-semibold text-destructive-foreground">Confirm clear catalog</button>
+          </div>
+        </div>}
+        {catalogError && <p role="alert" className="mt-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{catalogError}</p>}
+        {catalogStatus && <p role="status" className="mt-3 text-sm text-muted-foreground">{catalogStatus}</p>}
+        {catalogEntries.length ? (
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {catalogEntries.map((entry) => (
+              <li key={entry.id} className="min-w-0 rounded-xl border border-border p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="break-words text-sm font-semibold">{entry.fileName}</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">{numberFormat.format(entry.rowCount)} rows · {entry.columnCount} columns · {numberFormat.format(entry.byteLength)} bytes</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Saved {new Date(entry.addedAt).toLocaleString()}</p>
+                    {entry.sha256 && <code className="mt-2 block break-all text-[11px] text-muted-foreground">SHA-256 · {entry.sha256}</code>}
+                    {!entry.sha256 && <p className="mt-2 text-[11px] text-muted-foreground">File fingerprint unavailable when saved.</p>}
+                  </div>
+                  <button type="button" onClick={() => deleteCatalogEntry(entry.id)} aria-label={`Remove ${entry.fileName} from catalog`} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg border border-border px-2 text-xs hover:bg-secondary">
+                    <Trash2 size={14} aria-hidden="true" /> Remove
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : !catalogError ? (
+          <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">No catalog entries yet. Open a CSV and choose “Save metadata to Data Catalog” to remember its identity on this device.</p>
+        ) : null}
       </section>
 
       {dataset && (
@@ -395,7 +515,7 @@ export default function ResearchDataLab() {
                   <p className="text-xs text-muted-foreground">Rows skipped for blanks or non-numeric cells</p>
                   <p className="mt-1 text-2xl font-semibold tabular-nums">{numberFormat.format(comparison.incomplete)}</p>
                 </div>
-                <p className="text-xs leading-5 text-muted-foreground sm:col-span-3">Pearson r is a descriptive measure of linear association for complete pairs in this file. It is not an inferential test or causal estimate. The deterministic value-hash sample is for visualization, is not a statistically representative sample, and can omit rare patterns and outliers; r is calculated from all complete pairs.</p>
+                <p className="text-xs leading-5 text-muted-foreground sm:col-span-3">Pearson r is a descriptive measure of linear association for complete pairs in this file. It is not an inferential test or causal estimate. The deterministic value-hash sample can omit rare patterns and outliers; r is calculated from all complete pairs.</p>
                 <div className="sm:col-span-3">
                   {comparisonExportControl}
                 </div>
