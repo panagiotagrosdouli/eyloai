@@ -803,6 +803,14 @@ try {
   await filesPage.getByRole('button', { name: 'Save version' }).click();
   await filesPage.getByRole('heading', { name: 'Document Editor' }).waitFor();
   await filesPage.getByText('All changes saved').waitFor();
+  try {
+    await filesPage.waitForURL(url => /^\/documents\/[\da-f-]+$/i.test(url.pathname), { timeout: 8000 });
+  } catch (cause) {
+    throw new Error('New document did not navigate to its saved record: ' + JSON.stringify({
+      url: filesPage.url(), fileRows, versionRows,
+      alerts: await filesPage.locator('[role="alert"]').allInnerTexts(),
+    }), { cause });
+  }
   const markdownPath = new URL(filesPage.url()).pathname;
   assert.match(markdownPath, /^\/documents\/[\da-f-]+$/i);
   assert.equal(fileRows.length, 2);
