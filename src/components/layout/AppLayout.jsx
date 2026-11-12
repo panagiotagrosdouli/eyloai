@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Activity, Award, BarChart3, BookOpen, Brain, Briefcase, ChevronDown, FileEdit, FolderOpen, GitBranch, GraduationCap, History,
+  Activity, Award, BarChart3, BookOpen, Brain, Briefcase, ChevronDown, FileEdit, Flame, FolderOpen, GitBranch, GraduationCap, History,
   Home, LayoutDashboard, LayoutGrid, Lightbulb, ListTodo, LogOut, Menu, Mic, Presentation, NotebookPen,
   Rocket, Search, Settings, Sparkles, Target, Trophy, User, Users,
   Video, X, Zap,
@@ -39,6 +39,7 @@ const TOOL_GROUPS = [
       { label: 'Life', path: '/life', icon: ListTodo, desc: 'Private tasks, priorities, due dates and project links' },
       { label: 'Goals', path: '/life/goals', icon: Target, desc: 'Track personal goals with measurable milestones' },
       { label: 'Study Planner', path: '/study-planner', icon: GraduationCap, desc: 'Plan courses, syllabus items, study sessions and exam dates' },
+      { label: 'Habits', path: '/habits', icon: Flame, desc: 'Track routines, check-ins and saved streak history' },
       { label: 'Notes', path: '/notes', icon: NotebookPen, desc: 'Private notes with project links and version history' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
