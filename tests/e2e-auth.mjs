@@ -257,6 +257,7 @@ try {
   assert.match(groupedCsv, /"Category","Count","Mean","Median","Sample SD","Minimum","Maximum"/);
   assert.match(groupedCsv, /"control","2","2","2"/);
   assert.equal(groupedCsv.includes('"control","1"'), false, 'grouped export must omit raw source rows');
+  await dataLab.setViewportSize({ width: 1365, height: 900 });
   await dataLab.getByRole('button', { name: 'Clear data' }).click();
 
   await dataLab.locator('input[type="file"]').setInputFiles({
