@@ -4,15 +4,15 @@ import { compareResearchNumericColumns, exportResearchDataComparisonCsv, parseRe
 
 test('pairwise Pearson r uses complete numeric pairs and reports skipped rows', () => {
   const dataset = parseResearchCsv('hours,score\n1,2\n2,4\n3,6\n,8\n5,not recorded');
-  assert.deepEqual(compareResearchNumericColumns(dataset, 'hours', 'score'), {
-    available: true,
-    kind: 'pearson-correlation',
-    firstColumn: 'hours',
-    secondColumn: 'score',
-    pairs: 3,
-    incomplete: 2,
-    pearsonR: 1,
-  });
+  const result = compareResearchNumericColumns(dataset, 'hours', 'score');
+  assert.equal(result.available, true);
+  assert.equal(result.kind, 'pearson-correlation');
+  assert.equal(result.firstColumn, 'hours');
+  assert.equal(result.secondColumn, 'score');
+  assert.equal(result.pairs, 3);
+  assert.equal(result.incomplete, 2);
+  assert.equal(result.pearsonR, 1);
+  assert.deepEqual(result.scatterSample.map(point => point.row), [1, 2, 3]);
 });
 
 test('pairwise comparison detects a negative linear association without inference claims', () => {
@@ -54,4 +54,15 @@ test('comparison CSV exports aggregates only and protects formula-like column na
   assert.match(csv, /"Complete pairs used","3"/);
   assert.match(csv, /no causal or statistical significance claim/);
   assert.doesNotMatch(csv, /\r?\n"1","2"/);
+});
+
+test('scatter sample is bounded and spans the complete-pair row range', () => {
+  const rows = Array.from({ length: 1200 }, (_, index) => `${index},${index * 2}`).join('\n');
+  const result = compareResearchNumericColumns(parseResearchCsv(`x,y\n${rows}`), 'x', 'y');
+  assert.equal(result.pairs, 1200);
+  assert.equal(result.scatterSample.length, 500);
+  assert.equal(result.scatterSample[0].row, 1);
+  assert.equal(result.scatterSample.at(-1).row, 1200);
+  assert.ok(result.scatterSample.every(point => point.xPosition >= 0 && point.xPosition <= 1
+    && point.yPosition >= 0 && point.yPosition <= 1));
 });
