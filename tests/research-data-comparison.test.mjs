@@ -206,6 +206,14 @@ test('correlation disclosure threshold is user controlled and masks too-small pa
   assert.equal(compareResearchNumericColumns(dataset, 'x', 'y', { minimumCellSize: 1 }).pearsonR, 1);
 });
 
+test('correlation CSV labels its deterministic visualization sample as non-representative', () => {
+  const dataset = parseResearchCsv('x,y\n1,2\n2,4\n3,6');
+  const result = compareResearchNumericColumns(dataset, 'x', 'y');
+  const csv = exportResearchDataComparisonCsv(result);
+  assert.match(csv, /Visualization sample only; not statistically representative/);
+  assert.match(csv, /all complete pairs/);
+});
+
 test('comparison export is rectangular valid CSV and documents disclosure limits', () => {
   const result = summarizeResearchNumericByCategory(parseResearchCsv('g,x\nA,1\nA,2\nA,3'), 'x', 'g', { minimumGroupSize: 1 });
   const csv = exportResearchDataComparisonCsv(result);
