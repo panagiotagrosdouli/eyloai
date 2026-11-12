@@ -651,7 +651,7 @@ try {
     // The authenticated application shell also loads a private watchlist summary.
     // Keep this test fixture isolated and do not mistake that unrelated GET for
     // an EYLO Files request; other unexpected write operations still fail.
-    if (table === 'watchlists' && request.method() === 'GET') return sendAuthJson(route, []);
+    if (['watchlists', 'monitoring_discoveries'].includes(table) && request.method() === 'GET') return sendAuthJson(route, []);
     throw new Error(`Unexpected EYLO Files database request ${request.method()} ${url.pathname}`);
   });
   await filesPage.route('https://eylo-auth-test.supabase.co/storage/v1/**', async route => {
