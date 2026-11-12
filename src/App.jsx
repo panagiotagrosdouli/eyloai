@@ -55,6 +55,7 @@ const GrantBuilder = lazy(() => import('@/pages/GrantBuilder'));
 const InstitutionAdmin = lazy(() => import('@/pages/InstitutionAdmin'));
 const ResearchDataLab = lazy(() => import('@/pages/ResearchDataLab'));
 const ResearchKnowledgeGraph = lazy(() => import('@/pages/ResearchKnowledgeGraph'));
+const LearningWorkspace = lazy(() => import('@/pages/LearningWorkspace'));
 
 const AiTool = ({ minimum, children }) => (
   <CapabilityGate capability="ai">
@@ -98,6 +99,7 @@ const AuthenticatedApp = () => {
           <Route path="/workspace/careers" element={<PublicCareers />} />
           <Route path="/search" element={<Home searchOnly />} />
           <Route path="/library" element={<Library />} />
+          <Route path="/learn" element={<LearningWorkspace />} />
           <Route path="/research-gaps" element={<ResearchGaps />} />
           <Route path="/literature-review" element={<LiteratureReview />} />
           <Route path="/labs/data" element={<ResearchDataLab />} />

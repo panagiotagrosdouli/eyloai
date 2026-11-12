@@ -36,6 +36,7 @@ const TOOL_GROUPS = [
     description: 'Research work that stays connected to projects',
     items: [
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
+      { label: 'Learn & Life', path: '/learn', icon: BookOpen, desc: 'Notes, study plans, goals, cards, and quizzes', badge: 'New' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
       { label: 'Literature review protocol', path: '/literature-review', icon: BookOpen, desc: 'Document search methods and screen saved publications' },
