@@ -475,6 +475,101 @@ try {
   assert.equal(exportedReview.protocol.screening[0].paper_id, 'library-paper-1');
   assert.match(exportedReview.reporting_note, /Not a PRISMA-compliant/);
 
+  // Project-scoped Grant Builder browser workflow against isolated authenticated
+  // PostgREST records. It checks switching, reload, notes and persisted drafts.
+  await dataLab.route('**/api/capabilities', route => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ ai: true, billing: false }),
+  }));
+  const grantCors = {
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET, POST, PATCH, OPTIONS',
+    'access-control-allow-headers': 'apikey, authorization, content-type, x-client-info, prefer',
+  };
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/saved_opportunities**', route => route.fulfill({
+    status: 200, contentType: 'application/json', headers: grantCors,
+    body: JSON.stringify([{ id: 'grant-opportunity-1', user_id: testUser.id, data: {
+      title: 'Official grant for project isolation', source_id: 'GRANT-E2E-1', type: 'grant',
+      source_url: 'https://www.grants.gov/search-results-detail/100', agency: 'NSF',
+      description: 'Official notice text', eligibility: 'Universities', amount: '$250,000',
+    } }]),
+  }));
+  const grantProjects = [
+    { id: 'grant-project-a', user_id: testUser.id, data: { title: 'Grant Project A', goal: 'A distinct research goal' } },
+    { id: 'grant-project-b', user_id: testUser.id, data: { title: 'Grant Project B', goal: 'A separate research goal' } },
+  ];
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/projects**', route => route.fulfill({
+    status: 200, contentType: 'application/json', headers: grantCors, body: JSON.stringify(grantProjects),
+  }));
+  const grantApplications = [];
+  let nextGrantApplication = 0;
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/grant_applications**', async route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (request.method() === 'OPTIONS') {
+      await route.fulfill({ status: 204, headers: grantCors });
+      return;
+    }
+    if (request.method() === 'GET') {
+      const opportunityId = url.searchParams.get('saved_opportunity_id')?.replace(/^eq\./, '');
+      const projectId = url.searchParams.get('project_id')?.replace(/^eq\./, '');
+      const rows = grantApplications.filter(row => row.user_id === testUser.id
+        && row.saved_opportunity_id === opportunityId && row.project_id === projectId);
+      await route.fulfill({ status: 200, contentType: 'application/json', headers: grantCors, body: JSON.stringify(rows) });
+      return;
+    }
+    if (request.method() === 'POST') {
+      const row = { id: `grant-application-${++nextGrantApplication}`, created_date: new Date().toISOString(), updated_date: new Date().toISOString(), ...request.postDataJSON() };
+      grantApplications.push(row);
+      await route.fulfill({ status: 201, contentType: 'application/json', headers: grantCors, body: JSON.stringify(row) });
+      return;
+    }
+    if (request.method() === 'PATCH') {
+      const projectId = url.searchParams.get('project_id')?.replace(/^eq\./, '');
+      const expectedVersion = Number(url.searchParams.get('version')?.replace(/^eq\./, ''));
+      const row = grantApplications.find(item => item.user_id === testUser.id
+        && item.saved_opportunity_id === 'grant-opportunity-1'
+        && item.project_id === projectId && item.version === expectedVersion);
+      if (row) Object.assign(row, request.postDataJSON(), { updated_date: new Date().toISOString() });
+      await route.fulfill({ status: 200, contentType: 'application/json', headers: grantCors, body: JSON.stringify(row ? [row] : []) });
+      return;
+    }
+    throw new Error(`Unexpected grant application method: ${request.method()}`);
+  });
+  await dataLab.route('**/api/eyra', async route => {
+    const prompt = route.request().postDataJSON()?.prompt || '';
+    const projectName = prompt.includes('Title: Grant Project A') ? 'Grant Project A' : 'Grant Project B';
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: {
+      fit_summary: `Draft saved for ${projectName}`,
+      eligibility_check: [{ requirement: 'Applicant type', evidence: 'Universities appear in notice text.', status: 'supported' }],
+      project_summary: `${projectName} summary`, need_statement: 'Need to be confirmed by the researcher.',
+      objectives: ['Objective grounded in the project record'], work_packages: [],
+      impact_and_evaluation: 'To be defined.', budget_assumptions: [], missing_information: ['Confirm budget'], next_actions: ['Review official call'],
+    } }) });
+  });
+  await dataLab.goto(`${baseUrl}/grant-builder`);
+  await dataLab.getByRole('heading', { name: 'Grant Builder' }).waitFor();
+  await dataLab.getByLabel('Project').selectOption('grant-project-a');
+  await dataLab.getByRole('button', { name: 'Generate working draft' }).click();
+  await dataLab.getByText('Draft saved for Grant Project A').waitFor();
+  await dataLab.getByLabel('Tracker notes').fill('Notes unique to project A');
+  await dataLab.getByRole('button', { name: 'Save tracker' }).click();
+  await dataLab.getByText('Application tracker saved').waitFor();
+  await dataLab.getByLabel('Project').selectOption('grant-project-b');
+  await dataLab.getByText('Draft saved for Grant Project A').waitFor({ state: 'detached' });
+  await dataLab.getByLabel('Tracker notes').fill('Notes unique to project B');
+  await dataLab.getByRole('button', { name: 'Generate working draft' }).click();
+  await dataLab.getByText('Draft saved for Grant Project B').waitFor();
+  await dataLab.getByRole('button', { name: 'Save tracker' }).click();
+  await dataLab.getByText('Application tracker saved').waitFor();
+  await dataLab.getByLabel('Project').selectOption('grant-project-a');
+  await dataLab.getByText('Draft saved for Grant Project A').waitFor();
+  assert.equal(await dataLab.getByLabel('Tracker notes').inputValue(), 'Notes unique to project A');
+  assert.equal(grantApplications.length, 2, 'one opportunity has a separate persisted application for each project');
+  await dataLab.reload();
+  await dataLab.getByText('Draft saved for Grant Project A').waitFor();
+  assert.equal(await dataLab.getByLabel('Tracker notes').inputValue(), 'Notes unique to project A');
+  console.log('Grant Builder project isolation passed with authenticated PostgREST fixtures; live RLS and concurrent database writes were not exercised.');
+
   // Verify sign-out actually invalidates the session and protects private routes.
   await dataLab.route('**/auth/v1/logout**', route => route.fulfill({
     status: 204,
