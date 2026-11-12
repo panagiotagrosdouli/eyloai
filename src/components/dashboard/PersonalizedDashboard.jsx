@@ -204,6 +204,6 @@ export default function PersonalizedDashboard() {
           </Link>)}
         </div>
       </section>
-    </main>
+    </section>
   );
 }
