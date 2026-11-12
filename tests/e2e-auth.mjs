@@ -545,6 +545,58 @@ try {
   assert.equal(exportedReview.protocol.screening[0].paper_id, 'library-paper-1');
   assert.match(exportedReview.reporting_note, /Not a PRISMA-compliant/);
 
+  // For You queries actual profile signals against provider-shaped scholarly
+  // fixtures, deduplicates records and confirms a Library write before toast.
+  const savedForYouPapers = [];
+  let openAlexCalls = 0;
+  await dataLab.route('**/rest/v1/projects**', async route => {
+    const request = route.request();
+    if (request.method() === 'OPTIONS') { await route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' } }); return; }
+    await sendAuthJson(route, [{ id: 'foryou-project-1', user_id: testUser.id, created_at: '2026-11-10T00:00:00.000Z', data: { title: 'Soil resilience project', goal: 'soil resilience', status: 'active' } }]);
+  });
+  await dataLab.route('**/rest/v1/search_history**', async route => {
+    const request = route.request();
+    if (request.method() === 'OPTIONS') { await route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' } }); return; }
+    await sendAuthJson(route, [{ id: 'foryou-search-1', user_id: testUser.id, created_at: '2026-11-11T00:00:00.000Z', data: { query: 'soil resilience' } }]);
+  });
+  await dataLab.route('**/rest/v1/saved_papers**', async route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (request.method() === 'OPTIONS') { await route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' } }); return; }
+    if (request.method() === 'POST') {
+      const body = request.postDataJSON();
+      const row = { id: `foryou-saved-${savedForYouPapers.length + 1}`, user_id: testUser.id, created_at: new Date().toISOString(), data: body.data || body };
+      savedForYouPapers.push(row);
+      await sendAuthJson(route, [row]);
+      return;
+    }
+    const matchingId = url.searchParams.get('source_id')?.replace(/^eq\./, '');
+    await sendAuthJson(route, matchingId ? savedForYouPapers.filter(row => row.data.source_id === decodeURIComponent(matchingId)) : savedForYouPapers);
+  });
+  const providerCors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };
+  await dataLab.route('https://api.openalex.org/works**', async route => {
+    openAlexCalls += 1;
+    await route.fulfill({ status: 200, contentType: 'application/json', headers: providerCors, body: JSON.stringify({ results: [{
+      id: 'https://openalex.org/W999001', doi: 'https://doi.org/10.5555/soil.2026', title: 'Soil resilience research', publication_year: 2026,
+      authorships: [], topics: [], referenced_works: [], abstract_inverted_index: { 'Evidence-backed': [0], 'soil': [1], 'resilience': [2], 'study.': [3] },
+      relevance_score: 0.99, cited_by_count: 4, open_access: { is_oa: true }, primary_location: { source: { display_name: 'Fixture Journal' } }, type: 'article',
+    }] }) });
+  });
+  await dataLab.route('https://export.arxiv.org/api/query**', route => route.fulfill({ status: 200, contentType: 'application/atom+xml', headers: providerCors, body: '<feed xmlns="http://www.w3.org/2005/Atom"></feed>' }));
+  await dataLab.route('https://www.ebi.ac.uk/europepmc/webservices/rest/search**', route => route.fulfill({ status: 200, contentType: 'application/json', headers: providerCors, body: JSON.stringify({ resultList: { result: [] } }) }));
+  await dataLab.route('https://api.crossref.org/works**', route => route.fulfill({ status: 200, contentType: 'application/json', headers: providerCors, body: JSON.stringify({ message: { items: [] } }) }));
+  await dataLab.route('https://api.semanticscholar.org/graph/v1/paper/search**', route => route.fulfill({ status: 200, contentType: 'application/json', headers: providerCors, body: JSON.stringify({ data: [] }) }));
+  await dataLab.goto(`${baseUrl}/for-you`);
+  await dataLab.getByRole('heading', { name: 'Research picked from your work' }).waitFor();
+  await dataLab.getByRole('heading', { name: 'Soil resilience research' }).waitFor({ timeout: 30_000 });
+  assert.ok(openAlexCalls >= 1, 'For You must issue a real scholarly provider request from the saved profile signals');
+  assert.equal(await dataLab.getByRole('heading', { name: 'Soil resilience research' }).count(), 1,
+    'duplicate DOI records across profile signals should render once');
+  await dataLab.getByRole('button', { name: 'Save to Library' }).click();
+  await dataLab.getByText('Saved to your Library').waitFor();
+  assert.equal(savedForYouPapers.length, 1, 'the UI reports success only after the paper was persisted');
+  assert.equal(savedForYouPapers[0].data.title, 'Soil resilience research');
+
   // Verify sign-out actually invalidates the session and protects private routes.
   await dataLab.route('**/auth/v1/logout**', route => route.fulfill({
     status: 204,

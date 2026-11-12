@@ -10,6 +10,7 @@ import DailyMissions from '@/components/eyra/DailyMissions';
 import WhileYouWereAway from '@/components/eyra/WhileYouWereAway';
 import LiveIntelligenceFeed from '@/components/monitoring/LiveIntelligenceFeed';
 import ServiceStatus from '@/components/system/ServiceStatus';
+import ForYouResearchFeed from '@/components/eyra/ForYouResearchFeed';
 
 export default function ForYou() {
   const [profile, setProfile] = useState(null);
@@ -78,6 +79,7 @@ export default function ForYou() {
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Main feed */}
         <div className="lg:col-span-2 space-y-5">
+          {profile && <ForYouResearchFeed profile={profile} />}
           <LiveIntelligenceFeed />
 
           {/* WHILE YOU WERE AWAY — primary section */}

@@ -15,6 +15,15 @@
 
 ## Feature checklist
 
+### Personalized For You feed — implementation in review
+
+- [x] Derive search queries from the signed-in user's actual saved interests, recent searches and project goals; do not ask a model to invent recommendations.
+- [x] Fetch current scholarly records through existing OpenAlex, arXiv, Europe PMC, Crossref and Semantic Scholar adapters; show queried-source availability and keep provider outages visible.
+- [x] Deduplicate records across user signals, preserve source metadata, link only safe provider URLs, and explain the user signal behind each result.
+- [x] Save recommendations through authenticated Library entity access and show success only after persistence returns; expose save failures.
+- [x] Add deterministic identity/signal tests and an authenticated provider-shaped browser workflow.
+- [ ] Run the browser workflow in GitHub Actions and verify authenticated Library ownership/RLS against the intended staging Supabase project.
+
 ### 1. Research Knowledge Graph — source-backed saved-collection graph implemented; coverage is partial
 
 - [x] Build sourced nodes for saved publications, exact-ID authors/researchers, institutions, OpenAlex topics, projects and researcher-authored study-design notes.
@@ -118,6 +127,8 @@
 - [ ] Verify the intended live deployment and service configuration before any production-readiness claim.
 
 ## Work recorded
+
+- **2026-11-12:** Added source-grounded personalized research recommendations to For You. Queries come from the account's saved searches, interests and project goals; returned scholarly records retain provider attribution, deduplicate across signals and report source coverage. Library save waits for the authenticated persistence response and reports errors. Added deterministic tests and an authenticated browser scenario with provider-shaped records and an isolated PostgREST persistence fixture. The local container cannot start Chromium due host socket restrictions; CI browser execution and live RLS verification remain pending.
 
 - **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.
 - **2026-11-10:** Project Evidence adds a source-linked, editable matrix for linked papers; notes are stored on the project and exported as CSV with spreadsheet formula escaping. Missing notes are shown as unrecorded rather than inferred.
