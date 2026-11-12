@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useToast } from '@/components/ui/use-toast';
+import { readGrantDraftForProject } from '@/lib/grant-draft-context.mjs';
 
 const DRAFT_SCHEMA = {
   type: 'object',
@@ -56,15 +57,14 @@ export default function GrantBuilder() {
   const project = useMemo(() => projects.find(item => item.id === projectId), [projects, projectId]);
 
   useEffect(() => {
-    if (!opportunity) return;
+    if (!opportunity) {
+      setDraft(null);
+      return;
+    }
     setStatus(opportunity.application_status || 'researching');
     setNotes(opportunity.application_notes || '');
-    if (opportunity.application_draft) {
-      try { setDraft(typeof opportunity.application_draft === 'string' ? JSON.parse(opportunity.application_draft) : opportunity.application_draft); } catch { setDraft(null); }
-    } else {
-      setDraft(null);
-    }
-  }, [opportunityId]);
+    setDraft(readGrantDraftForProject(opportunity, projectId));
+  }, [opportunity, projectId]);
 
   const generate = async () => {
     if (!opportunity || !project) return;
@@ -102,13 +102,18 @@ Rules:
 - End with concrete actions tied to the official notice.`,
         response_json_schema: DRAFT_SCHEMA,
       });
-      setDraft(result);
+      const serializedDraft = JSON.stringify(result);
       await base44.entities.SavedOpportunity.update(opportunity.id, {
-        application_draft: JSON.stringify(result),
+        application_draft: serializedDraft,
+        application_project_id: project.id,
         application_status: status,
         application_notes: notes,
         tracked_at: new Date().toISOString(),
       });
+      setDraft(result);
+      setOpportunities(items => items.map(item => item.id === opportunity.id
+        ? { ...item, application_draft: serializedDraft, application_project_id: project.id, application_status: status, application_notes: notes }
+        : item));
       toast({ title: 'Grant draft generated and saved' });
     } catch (generationError) {
       setError(generationError?.message || 'The grant draft could not be generated.');
@@ -123,9 +128,10 @@ Rules:
       application_status: status,
       application_notes: notes,
       application_draft: draft ? JSON.stringify(draft) : opportunity.application_draft || '',
+      ...(draft ? { application_project_id: project?.id || '' } : {}),
       tracked_at: new Date().toISOString(),
     });
-    setOpportunities(items => items.map(item => item.id === opportunity.id ? { ...item, application_status: status, application_notes: notes, application_draft: draft ? JSON.stringify(draft) : item.application_draft } : item));
+    setOpportunities(items => items.map(item => item.id === opportunity.id ? { ...item, application_status: status, application_notes: notes, application_draft: draft ? JSON.stringify(draft) : item.application_draft, ...(draft ? { application_project_id: project?.id || '' } : {}) } : item));
     toast({ title: 'Application tracker saved' });
   };
 
