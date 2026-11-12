@@ -2,14 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import {
   FileText, Users, Award, Trash2, ExternalLink, Search,
-  BookOpen
+  BookOpen, Download
 } from 'lucide-react';
 import EyraResearchCompanion from '@/components/eyra/EyraResearchCompanion';
 import PaperSummary from '@/components/eyra/PaperSummary';
 import CitationVerification from '@/components/library/CitationVerification';
+import { toBibTeX, toRIS } from '@/utils/citation-export';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, useSearchParams } from 'react-router-dom';
+
+function downloadReferences(content, filename, mimeType) {
+  const url = URL.createObjectURL(new Blob([content], { type: mimeType }));
+  try {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
 
 function ProjectLinkControl({ item, projects, projectsLoaded, onLink, label }) {
   if (!projectsLoaded) return <p className="mt-3 text-sm text-muted-foreground">Project links are unavailable.</p>;
@@ -134,6 +149,18 @@ export default function Library() {
     return items.filter(item => fields.some(f => String(item[f] || '').toLowerCase().includes(q)));
   };
 
+  const filteredPapers = filter(papers, ['title', 'authors', 'source']);
+  const exportPaperReferences = format => {
+    if (loading || failedCollections.includes('papers') || !filteredPapers.length) return;
+    const bib = format === 'bibtex';
+    const content = bib ? toBibTeX(filteredPapers) : toRIS(filteredPapers);
+    if (!content) return;
+    downloadReferences(content, bib ? 'eylo-saved-papers.bib' : 'eylo-saved-papers.ris',
+      bib ? 'application/x-bibtex;charset=utf-8' : 'application/x-research-info-systems;charset=utf-8');
+    toast({ title: `${filteredPapers.length} saved paper citations exported`,
+      description: 'Exported the saved metadata. Verify titles, authors, DOI and publication notices before scholarly use.' });
+  };
+
   const counts = { papers: papers.length, researchers: researchers.length, opportunities: opportunities.length };
   const failedCollectionMessage = 'This collection could not be loaded. Use Retry loading above instead of assuming it is empty.';
   return (
@@ -224,6 +251,24 @@ export default function Library() {
           {/* Papers */}
           {tab === 'papers' && (
             <div className="space-y-3">
+              {!failedCollections.includes('papers') && filteredPapers.length > 0 && (
+                <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3" aria-label="Export saved publications">
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    Export the {filteredPapers.length} currently filtered saved publication{filteredPapers.length === 1 ? '' : 's'}.
+                    Metadata are not automatically Crossref-verified; only loaded records are included.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" onClick={() => exportPaperReferences('bibtex')}
+                      className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary">
+                      <Download size={14} aria-hidden="true" /> Export BibTeX
+                    </button>
+                    <button type="button" onClick={() => exportPaperReferences('ris')}
+                      className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary">
+                      <Download size={14} aria-hidden="true" /> Export RIS
+                    </button>
+                  </div>
+                </section>
+              )}
               {failedCollections.includes('papers')
                 ? <p role="alert" className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">{failedCollectionMessage}</p>
                 : filter(papers, ['title', 'authors', 'source']).length === 0
