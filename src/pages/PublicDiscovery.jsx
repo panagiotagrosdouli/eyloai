@@ -239,7 +239,6 @@ export default function PublicDiscovery() {
 
   const sourceIndexes = [...new Set((data.papers || []).map(paper => paper.source_index || paper.source).filter(Boolean))];
   const unavailableSources = sourceStatus.filter(source => source.status === 'unavailable');
-  const availableSources = sourceStatus.filter(source => source.status === 'available');
   const availablePaperIndexCount = countAvailablePaperIndexes(sourceStatus);
 
   return (
@@ -331,7 +330,7 @@ export default function PublicDiscovery() {
           </div>
         )}
 
-        {!loading && refined && unavailableSources.length > 0 && availableSources.length > 0 && (
+        {!loading && refined && unavailableSources.length > 0 && availablePaperIndexCount > 0 && (
           <div role="status" className="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-4 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <AlertTriangle size={17} className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true" />
