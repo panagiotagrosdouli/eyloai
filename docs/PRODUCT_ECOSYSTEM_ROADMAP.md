@@ -2,7 +2,7 @@
 
 **Reviewed:** 2026-11-12
 **Code baseline:** `main` at `78b6c04`
-**Purpose:** authoritative inventory for the 47-product ecosystem brief and the existing EYLO research platform. This is an engineering tracker, not a production-readiness claim.
+**Purpose:** authoritative inventory for the 47-product ecosystem brief, 10 strategic innovations, and the existing EYLO research platform. This is an engineering tracker, not a production-readiness claim.
 
 ## Status definitions
 
@@ -74,6 +74,23 @@
 | 45 | EYLO Onboarding | P3 | Not audited | Inspect first-use flows; add guided setup only for real features and verify skip/recovery behavior. |
 | 46 | EYLO Feedback | P2 | Partial | Contact endpoint exists but is not production configured; verify secure bug-report submission, privacy-conscious diagnostics and receipt semantics. |
 | 47 | EYLO AI Workspace Command Center | P3 | Partial | EYRA is a research assistant, not a cross-product execution center; wait for shared action APIs, then execute authorized workflows with reviewable steps. |
+
+## Strategic innovations (10)
+
+These are tracked separately from the 47 named products. Status reflects verified code on the reviewed `main`; related features do not count as a complete innovation.
+
+| # | Innovation | Status on reviewed main | Dependencies / next verifiable milestone |
+|---:|---|---|---|
+| 01 | EYLO Evidence Ledger | Partial | Citation provenance and source verification exist; implement claim-linked evidence records with retrieval time, support/counterevidence, validation state and project association. Test immutable source facts and user ownership. |
+| 02 | EYLO Research Reproducibility Studio | Partial | Data Lab provides local SHA-256 provenance; add methodology records, dataset metadata, reusable protocols and reproducibility checklists without uploading private raw data. |
+| 03 | EYLO Research Collaboration Matcher | Partial | Researcher discovery exists; build explainable public-record matching, verified affiliation provenance and user-controlled shortlist actions. |
+| 04 | EYLO Academic Writing Assistant | Partial | EYRA and report workflows can produce source-aware text; add editable outlines, literature synthesis and citation formatting with academic-integrity boundaries and export validation. |
+| 05 | EYLO Methodology Coach | Partial | Research Landscape can offer suggestions; implement a source-aware study-design workflow that explains assumptions and limitations and never invents results. Validate with domain reviewers. |
+| 06 | EYLO Peer Review Workspace | Not implemented | Depends on versioned document editing and source verification; add structured comments, tracked issues, evidence checks, revisions and private review history. |
+| 07 | EYLO Project Intelligence | Partial | Projects, tasks and evidence context exist; add explainable risk/dependency analysis from persisted project records with user review and correction. |
+| 08 | EYLO Knowledge Timeline | Partial | Research/search history and project activity exist; implement dated, source-linked topic/project timelines and test ordering, provenance and deletion behavior. |
+| 09 | EYLO Decision Workspace | Partial | Opportunity comparison and project planning exist; add persistent options, criteria, evidence, uncertainty, scenario comparison and recorded rationale. |
+| 10 | EYLO Research-to-Product Studio | Partial | Idea Vault, briefings and pitch workflows exist; connect them into a research-backed proposal flow with validated requirements and no invented demand or market metrics. |
 
 ## Existing research platform inventory
 
