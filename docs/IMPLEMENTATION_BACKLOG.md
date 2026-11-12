@@ -11,7 +11,8 @@
 - [ ] Run a human-judged discovery evaluation. Existing heuristic coverage is not a scientific relevance benchmark.
 - [ ] Verify billing lifecycle, entitlements and signed webhooks in Stripe test mode before enabling paid plans.
 - [ ] Resolve retention, privacy-policy, legal-terms and account-deletion requirements with the service owner; repository notes say account deletion is not yet verified.
-- [ ] Add a shared discovery rate limiter and test provider timeouts, 429s and response-size failures.
+- [x] Add a shared, atomic Supabase-backed discovery rate limiter using keyed IP hashes; fail closed when production configuration is absent.
+- [ ] Apply and concurrency-test the new limiter migration in intended staging/production; keep service-side provider timeout, 429 and response-size checks covered.
 
 ## Feature checklist
 
@@ -118,6 +119,8 @@
 - [ ] Verify the intended live deployment and service configuration before any production-readiness claim.
 
 ## Work recorded
+
+- **2026-11-12:** Added a shared, atomic ten-minute scholarly-proxy quota (120 requests per trusted client IP), HMAC-only network identity storage, service-role-only RPC/table permissions and bounded stale-row cleanup. Vercel requests fail closed when the migration or service credential is missing. Mock-boundary tests verify trusted IP resolution, HMAC privacy, limiter outages, exhausted quotas and that HTTP 429 prevents provider calls. Vercel configuration and concurrent database behavior still require staging verification.
 
 - **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.
 - **2026-11-10:** Project Evidence adds a source-linked, editable matrix for linked papers; notes are stored on the project and exported as CSV with spreadsheet formula escaping. Missing notes are shown as unrecorded rather than inferred.
