@@ -199,7 +199,7 @@ export default function PersonalizedDashboard({ onSearch }) {
         </Section>
 
         <Section title="Study planner" href="/study-planner" icon={GraduationCap} empty="Your study tasks and goals will appear here." count={(data.goals || []).length}>
-          {loading ? <p role="status" className="py-4 text-sm text-muted-foreground">Loading study goals…</p> : data.goals?.length ? <div className="divide-y divide-border">{data.goals.map(item => <ItemLink key={item.id} href="/life/goals?focus=" + encodeURIComponent(item.id) title={item.title} detail={item.area === 'study' ? 'Study goal' : 'Goal'} />)}</div> : <EmptyAction href="/study-planner">Plan a study session or goal.</EmptyAction>}
+          {loading ? <p role="status" className="py-4 text-sm text-muted-foreground">Loading study goals…</p> : data.goals?.length ? <div className="divide-y divide-border">{data.goals.map(item => <ItemLink key={item.id} href={'/life/goals?focus=' + encodeURIComponent(item.id)} title={item.title} detail={item.area === 'study' ? 'Study goal' : 'Goal'} />)}</div> : <EmptyAction href="/study-planner">Plan a study session or goal.</EmptyAction>}
         </Section>
 
         <Section title="Flashcards" href="/flashcards" icon={Layers3} empty="Your decks will appear here." count={(data.decks || []).length}>
