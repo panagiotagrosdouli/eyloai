@@ -1,0 +1,10 @@
+PASS Landing HTML: /
+  release: 2026-08-10-guided-discovery-eyra-resilience
+PASS Release manifest: /release.json
+PASS Robots policy: /robots.txt
+PASS Public discovery route: /discover
+PASS Login route: /login
+PASS Registration route: /register
+PASS Recovery route: /forgot-password
+PASS Server capability endpoint: /api/capabilities
+NOTE: These checks do NOT test auth, RLS, AI accuracy, billing or live data integrity.

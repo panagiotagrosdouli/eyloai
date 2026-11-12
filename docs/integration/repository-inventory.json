@@ -1,0 +1,2031 @@
+{
+  "source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+  "files": [
+    {
+      "path": ".github/workflows/build.yml",
+      "kind": "ci_workflow",
+      "blob_sha": "0322ac3ac65dd9114ea2b92380d8fa7661d2503f"
+    },
+    {
+      "path": ".github/workflows/deploy-pages.yml",
+      "kind": "ci_workflow",
+      "blob_sha": "e475bd407995bbc1d5405836029e44ef4a086119"
+    },
+    {
+      "path": ".github/workflows/eylo-quality.yml",
+      "kind": "ci_workflow",
+      "blob_sha": "b52a55d5f7be0bc855ed153e9a1bcde8897e72fe"
+    },
+    {
+      "path": ".github/workflows/normalize-base44.yml",
+      "kind": "ci_workflow",
+      "blob_sha": "e3cd029ad695efb7e02892f394228a95bca9f511"
+    },
+    {
+      "path": ".github/workflows/public-production-smoke.yml",
+      "kind": "ci_workflow",
+      "blob_sha": "264fc7d3cce7efd88382ae1465a2ec9359876394"
+    },
+    {
+      "path": ".github/workflows/quality.yml",
+      "kind": "ci_workflow",
+      "blob_sha": "ef08954dea7901592a65d4266de24219df416c54"
+    },
+    {
+      "path": ".github/workflows/remotive-jobs.yml",
+      "kind": "ci_workflow",
+      "blob_sha": "4fa5e9bf74a93ee85d9bf3504b3b979561fa2190"
+    },
+    {
+      "path": "api/admin-analytics.js",
+      "kind": "serverless_api",
+      "blob_sha": "2c6a09ca55cc882808f6ded53cbf0b9fbae9a905"
+    },
+    {
+      "path": "api/billing.js",
+      "kind": "serverless_api",
+      "blob_sha": "44dd58f8c47eb354bb4373a9e3e91787f403bb2f"
+    },
+    {
+      "path": "api/capabilities.js",
+      "kind": "serverless_api",
+      "blob_sha": "73951f78d1351ed9da264bdc47ba3c85b5d81575"
+    },
+    {
+      "path": "api/contact.js",
+      "kind": "serverless_api",
+      "blob_sha": "404e2b5d76913697ddd6a22216c8537a529edef2"
+    },
+    {
+      "path": "api/deployment-status.js",
+      "kind": "serverless_api",
+      "blob_sha": "8ec7a672a57d06275a5d9f4b4755a56e1dfb581b"
+    },
+    {
+      "path": "api/discovery.js",
+      "kind": "serverless_api",
+      "blob_sha": "466a08b41884d0ccd745bd62df8a76bc3fda1da8"
+    },
+    {
+      "path": "api/euraxess.js",
+      "kind": "serverless_api",
+      "blob_sha": "7741be903627f1a1e9007ef1d05b8c5b21ac4929"
+    },
+    {
+      "path": "api/eyra.js",
+      "kind": "serverless_api",
+      "blob_sha": "d6ec132e2c0c998693ab7bff052c36250af27887"
+    },
+    {
+      "path": "api/general-jobs.js",
+      "kind": "serverless_api",
+      "blob_sha": "21cb5d278719ceaf6df8f8d998bcee7cf18597a3"
+    },
+    {
+      "path": "api/meeting-room.js",
+      "kind": "serverless_api",
+      "blob_sha": "0c7497ba2a55ff4b0c8a468bf9316757d7bf9d3e"
+    },
+    {
+      "path": "api/monitor.js",
+      "kind": "serverless_api",
+      "blob_sha": "61640951c01eecf6c465de0f2d3fb6a1fbb9bb4a"
+    },
+    {
+      "path": "api/opportunities.js",
+      "kind": "serverless_api",
+      "blob_sha": "40fbdc13d5a08e96c2cfe631d40a436be400009a"
+    },
+    {
+      "path": "api/stripe-webhook.js",
+      "kind": "serverless_api",
+      "blob_sha": "90acdbe8b6805decb92916f5efc6eb33af71e227"
+    },
+    {
+      "path": "api/supabase-config.mjs",
+      "kind": "serverless_api",
+      "blob_sha": "772531ceb60fb1fc8652a217253124abdf4e9464"
+    },
+    {
+      "path": "src/App.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "2982e0a73d8ee765a934712e17b7c08d51af38e6"
+    },
+    {
+      "path": "src/api/base44Client.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "622cf1d6b50184c907a1e64c118c332ea8a322d2"
+    },
+    {
+      "path": "src/components/AuthLayout.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "f21f2f9345b785bb592b1bc22f290b57f494a8e2"
+    },
+    {
+      "path": "src/components/GoogleIcon.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "30bd088215642edf40000aca45a0f868e82cf729"
+    },
+    {
+      "path": "src/components/ProtectedRoute.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "559ab9ef26b500f33fa876a44665061015939761"
+    },
+    {
+      "path": "src/components/ScrollToTop.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "5114bd1c5b79051f7b1203a039125173647bb4a5"
+    },
+    {
+      "path": "src/components/UserNotRegisteredError.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "34d2445e03dfb5ce1aaca400f831986c6a5a7b1c"
+    },
+    {
+      "path": "src/components/billing/PlanGate.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "b4fc3e12b4cf155481e91b94d8e5b2dde3581a62"
+    },
+    {
+      "path": "src/components/brand/BrandLogo.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "5d3cafed287105ddf3342c2e94e21445b567e301"
+    },
+    {
+      "path": "src/components/dashboard/DailyMission.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "97284148330296b361438a9c0b9fef2902c3eff6"
+    },
+    {
+      "path": "src/components/dashboard/Dashboard.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "9b40f734c94924001befd2128cac476b44606ce0"
+    },
+    {
+      "path": "src/components/dashboard/EyraHome.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "87f1d2aa02ea63849d93cb15888aabc7be78b83d"
+    },
+    {
+      "path": "src/components/dashboard/PersonalizedDashboard.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "9070049db65ac6d438e0b0a4295c9a77190b0e1c"
+    },
+    {
+      "path": "src/components/discovery/DiscoveryResults.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "aafe01e2b743a98b48c1190ec45e36c154e133cf"
+    },
+    {
+      "path": "src/components/discovery/GuidedSearch.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "910631424f866d8e05b0b9b01affdbf244d5b7cd"
+    },
+    {
+      "path": "src/components/discovery/LoadingState.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "2bffb08471acbdb93b9eb45009c5ac51f6c46298"
+    },
+    {
+      "path": "src/components/discovery/SearchHero.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a8846bf8bed12361419d78cf1226d83eaa5b22c2"
+    },
+    {
+      "path": "src/components/discovery/VoiceSearchButton.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "e2b217c457e819f4b55a7fc5c97015bf06f78b03"
+    },
+    {
+      "path": "src/components/eylo/ResearchQuestion.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "2699fd476dd795891382d534aa52c4c579a5f262"
+    },
+    {
+      "path": "src/components/eylo/SeeEylo.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "aa85d55cadf3453160756d993b8318f721fffa08"
+    },
+    {
+      "path": "src/components/eylo/SeeEyra.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "046c06ddfe2bcf0a74298ec7745d856633b4b179"
+    },
+    {
+      "path": "src/components/eyra/DailyMissions.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "433f3c001230ce5405007fc9a35e7fb7766c9fd8"
+    },
+    {
+      "path": "src/components/eyra/EyraAgentPanel.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "7e05c1fa3d5f0c76f527d3ae0c862af501b4f4f3"
+    },
+    {
+      "path": "src/components/eyra/EyraBadge.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "fc69e69c525bf662012e1e7c9a926f24d4ab7764"
+    },
+    {
+      "path": "src/components/eyra/EyraButton.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ccc7b45399660f5d9a60d708c4fc3e460c45fa7a"
+    },
+    {
+      "path": "src/components/eyra/EyraCommandCenter.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "b114d87dfdbe8a2c3c569901b604c706105a308f"
+    },
+    {
+      "path": "src/components/eyra/EyraDailyBriefing.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "2a9d9fcd3e812dfc0cb6f1f38f5de40ced7c3bb4"
+    },
+    {
+      "path": "src/components/eyra/EyraDigitalTwin.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "be2ac0ec55263543c3a8ba273a33b22c3f071ab0"
+    },
+    {
+      "path": "src/components/eyra/EyraProjectTwin.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "d0a87cd9ffb1704c88333c85ac5e8b3ba830f689"
+    },
+    {
+      "path": "src/components/eyra/EyraResearchCompanion.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ecab4748554379680d78042eec1139a541d569f9"
+    },
+    {
+      "path": "src/components/eyra/PaperSummary.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "01dc710537a4044416666ae1a0e7f6256fcb2576"
+    },
+    {
+      "path": "src/components/eyra/UserTypeOnboarding.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "320b354482c44fc68ac30344a54771eb2d522bb2"
+    },
+    {
+      "path": "src/components/eyra/WhileYouWereAway.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a07a260f2a22ec4eb004e777fac8ed302b6aa42f"
+    },
+    {
+      "path": "src/components/futureme/FutureMeDashboard.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "0ede55adafc1f2f573cdc672b27150a69e1d5c71"
+    },
+    {
+      "path": "src/components/futureme/FutureMeGapAnalysis.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "9fc320a2fcb5eb374dbd5cafbed496400c5f5b52"
+    },
+    {
+      "path": "src/components/futureme/FutureMeRoadmap.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "8d29ece8c1219d2c98be38e06e24291998f4fa4e"
+    },
+    {
+      "path": "src/components/futureme/FutureMeScores.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "8205aa930e5d851d823ee5e636e838d3ebd55c81"
+    },
+    {
+      "path": "src/components/futureme/FutureMeSetup.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "d4ca9f32124eaba4b4fb2a59c827cc496882616e"
+    },
+    {
+      "path": "src/components/futureme/FutureMeWhatIf.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "1eaff51c2dd12732e79480b3e06c3c11f5d3846e"
+    },
+    {
+      "path": "src/components/layout/AppLayout.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "c706d55ffa9a914cf1862449927fca222d6ce6e4"
+    },
+    {
+      "path": "src/components/layout/GlobalCommandCenter.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "de9516fd8d5ab321643e7d1858e5da42d705d926"
+    },
+    {
+      "path": "src/components/library/CitationVerification.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "4996d3576c5f241113e801f15bc60c4d1fe62a10"
+    },
+    {
+      "path": "src/components/meetings/MeetingCard.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "b15fbd24c03bae8b4d4b477ae9a9b91a379fc1e0"
+    },
+    {
+      "path": "src/components/meetings/MeetingDetail.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a23ac7d795306c9ebc8616edae427efc36e7210b"
+    },
+    {
+      "path": "src/components/meetings/MeetingForm.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "1c94b5c71460f94874326cdc9b2e4d80cf377ebb"
+    },
+    {
+      "path": "src/components/meetings/MeetingRoom.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "d2310214a4c385af1d2141ed4b53a849fa4b9480"
+    },
+    {
+      "path": "src/components/meetings/ProjectMeetings.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "adf65a9a8e10e8858aeea660313a4d25e07554b0"
+    },
+    {
+      "path": "src/components/monitoring/LiveIntelligenceFeed.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "dfa1746c87cc88882cad8b25a899a0a2b83eb727"
+    },
+    {
+      "path": "src/components/monitoring/NotificationsBell.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "57e9e259893b5f66851b512cbb0db80d014bcc46"
+    },
+    {
+      "path": "src/components/monitoring/WatchlistManager.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "9ba0db47408da21c7b128309bd340105d0eab921"
+    },
+    {
+      "path": "src/components/projects/GapCandidateReviewItem.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "b06587e9ffda6e31566e2bec5c9aceb1f16937f3"
+    },
+    {
+      "path": "src/components/projects/ProjectConflictRecovery.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "7e0de75379b614c9eff8b262a37c0694e4ba74f0"
+    },
+    {
+      "path": "src/components/projects/ProjectHealthScore.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "d74b4538a045e586b3edb2b00a6bcb321f10e882"
+    },
+    {
+      "path": "src/components/projects/ProjectTemplates.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "b0e8bb1bfbefa3a50d728159a00457858a064a60"
+    },
+    {
+      "path": "src/components/projects/ReproducibilityReview.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "6d4d28523c1feb8477c6a67190a049bd30b70094"
+    },
+    {
+      "path": "src/components/projects/StartupBuilder.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "e854f28394dddc3b3e048bd5aea7af7f17623424"
+    },
+    {
+      "path": "src/components/system/CapabilityGate.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "f84523d56afaec0469e5e1565f981e680ed79d14"
+    },
+    {
+      "path": "src/components/system/ServiceStatus.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "0df2fcce76352605489bb888897a591127464219"
+    },
+    {
+      "path": "src/components/ui/accordion.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "3edc05674495ee6d948410ce888e796a068839e2"
+    },
+    {
+      "path": "src/components/ui/alert-dialog.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "8d16864f480e9b6529f8169545d3114fb7ac41da"
+    },
+    {
+      "path": "src/components/ui/button.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "e56bf2c198e699e42a8d6a77f6f9bc5aabb7bfed"
+    },
+    {
+      "path": "src/components/ui/input-otp.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "dfc8ecd3d34fcdad7826a3b20232b014ad32a71d"
+    },
+    {
+      "path": "src/components/ui/input.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "989bf9120165c585c2bcc89dc0a15bb1f24c87f8"
+    },
+    {
+      "path": "src/components/ui/label.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "85d5cf55181255ea6e1715ab4ceb5b257df69836"
+    },
+    {
+      "path": "src/components/ui/toaster.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "25d9c6a7f10338b6104b779a76bcd66e779cfda0"
+    },
+    {
+      "path": "src/components/ui/use-toast.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "54683ec1bdd2874e51dc2b70a91ab442b396c021"
+    },
+    {
+      "path": "src/index.css",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "0d13f09997f87f10ce7cb046182c26602d82d9ca"
+    },
+    {
+      "path": "src/lib/AuthContext.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a51e23d9b1203c726f1c316cfa3074452c3fbf6d"
+    },
+    {
+      "path": "src/lib/PageNotFound.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "0749a78aa511d4cc80ca9bb7915ba5db2dbebf86"
+    },
+    {
+      "path": "src/lib/analytics-readiness.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "7f11f7f2827bdda752beadfa9fa799322c95ae17"
+    },
+    {
+      "path": "src/lib/api-cors.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "14d95f3ce800e5c58b50ea9c2e005fbe0994432d"
+    },
+    {
+      "path": "src/lib/api-url.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "20ff80e0c24d3c768627cc7bc1eae5c1358126f2"
+    },
+    {
+      "path": "src/lib/arxiv-feed.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "605623dccc41f829c848a1e6e080c1fc5e885b5b"
+    },
+    {
+      "path": "src/lib/auth/authOperation.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "6f7f4804bfbf96d5778681cd355eef6fc6b636ee"
+    },
+    {
+      "path": "src/lib/auth/oauthPopup.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "fde7c426d0d2727bd4ba99df8bff2564c5e755a9"
+    },
+    {
+      "path": "src/lib/auth/privateRadarCache.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "bba303b0ac7600db667f37b8f4c2901f1121c69f"
+    },
+    {
+      "path": "src/lib/auth/privateSessionBoundary.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a7546cc5a6816daecb701040f79d106e84c69cd5"
+    },
+    {
+      "path": "src/lib/auth/routePaths.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "6679a56d9c793b0aced4bf9f8812eb5152b2c1d9"
+    },
+    {
+      "path": "src/lib/auth/safeRedirect.ts",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "4a792027213be78807675c2f0945688cf00b5505"
+    },
+    {
+      "path": "src/lib/auth/sessionContract.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "0a80be0306cdf89f84f7d04ff0435991b241656f"
+    },
+    {
+      "path": "src/lib/billing.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "b34cb65ecebe6d565fa418eaee08706b13f68a45"
+    },
+    {
+      "path": "src/lib/calendar-domain.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "7669874c5e2e389237d7cb98b568603fb1753eca"
+    },
+    {
+      "path": "src/lib/capabilities.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "1b3a8992ecffe0bb3ecaaa6254bdc6f3154f34af"
+    },
+    {
+      "path": "src/lib/careers-api.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "0e5b0d023a3775c18ebb71d28b9d8574b3d2d202"
+    },
+    {
+      "path": "src/lib/challenge-records.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "04aeb57b1a087cb0095a2ef2d25efd0e8cbb72e7"
+    },
+    {
+      "path": "src/lib/citation-verification.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ef7d34676a4863aa97c40d33f6e2cd2a5d3c9436"
+    },
+    {
+      "path": "src/lib/config/env.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "8c7700e567f328ef91c16742c3b8e47bbb0af6e2"
+    },
+    {
+      "path": "src/lib/cv-extraction.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "869fe8c0551c6204db7838b9b1721c2960d5f2eb"
+    },
+    {
+      "path": "src/lib/decision-workspace.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ab263debf1b34a0c173190f125e87487ce91c6e7"
+    },
+    {
+      "path": "src/lib/discovery-response-limit.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "7c21fde30e1121d442eec82245303204f21748f4"
+    },
+    {
+      "path": "src/lib/discovery-source-status.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "c7790d0202d5e8fef0bd24be3ec21e1a1240afbf"
+    },
+    {
+      "path": "src/lib/discovery/workspaceSignup.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "bfa573e1d4a54e6195c2dff9dd31284bd08da457"
+    },
+    {
+      "path": "src/lib/entity-optimistic-version.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "77a4dddb50bf9e33941b0b872529bebfb710163b"
+    },
+    {
+      "path": "src/lib/evidence-matrix.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "6e4426f85d8330255ea90aadc67c508c8be48108"
+    },
+    {
+      "path": "src/lib/evidence-verification.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "1fe38536468619170e9cd72426942929a78c87b2"
+    },
+    {
+      "path": "src/lib/eylo-files.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "7d735cbd3b086ac962f15c1597cacb269d53272b"
+    },
+    {
+      "path": "src/lib/eyra-api.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "084a129970f30ca1ba2ac2112e74c29fa2fed415"
+    },
+    {
+      "path": "src/lib/eyra-cache-key.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "f7a1f70d056ab959cce754ffb4dddd748d3428e7"
+    },
+    {
+      "path": "src/lib/eyra-citation-ids.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "6a87bf9afbdb35bf3865ba75069a43e59fe39171"
+    },
+    {
+      "path": "src/lib/eyra-engine.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "beb377f4c455730716996b4db23fa45ef935c5db"
+    },
+    {
+      "path": "src/lib/eyra-intelligence.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "2d54cbd977bf735372928f7fa6d511d79f839ecf"
+    },
+    {
+      "path": "src/lib/eyra-monitor.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "1776cdfc65bef9a36da81e63333a0ee043d0ab85"
+    },
+    {
+      "path": "src/lib/eyra-structured-contract.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "45a2200fc0dd915b97f9b75bec4735c0ce6a2920"
+    },
+    {
+      "path": "src/lib/eyra-usage-policy.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "fc2ca28a7cb80f09fced9dd03821bb3c5166a6e9"
+    },
+    {
+      "path": "src/lib/flashcards-domain.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "e62525448873760b800e431b8e92d4a249bc13d3"
+    },
+    {
+      "path": "src/lib/funding-api.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ea0e65a43d56931a6c17bb56d773295d5b04ef15"
+    },
+    {
+      "path": "src/lib/gap-candidate-review.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "aa35676aae5820dfcf381b55a1fa1a9e803a8f07"
+    },
+    {
+      "path": "src/lib/industry-research-labs.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "9207a5f5ba7362a0382ce87ff428aef80aa202ec"
+    },
+    {
+      "path": "src/lib/life-domain.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "6cc484d79c95f8ea46c74d96e7e1ed13c6d784be"
+    },
+    {
+      "path": "src/lib/literature-review-methods-audit.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "5a2b4894ea202463834f73df4aa1e25f7e9046c1"
+    },
+    {
+      "path": "src/lib/literature-review-protocol.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a1d04ec029dcbec68fdcc5ea946dc0ae22a4d324"
+    },
+    {
+      "path": "src/lib/local-greeting.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "8fc4662717b4e931ce5d61161f428fe70a613429"
+    },
+    {
+      "path": "src/lib/meeting-invitation.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "b3303731d7711598b1f835f1795ce08c2846606b"
+    },
+    {
+      "path": "src/lib/meeting-links.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "d63ee9f7ec96b55442233365338ce8b839d9958e"
+    },
+    {
+      "path": "src/lib/meeting-plans.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "9da45d9e37d45f0ffe57a7387bbbcfead7f37f1b"
+    },
+    {
+      "path": "src/lib/meetings-e2e-target.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "5c2189ff3cc92547911b6dd27b2445bd5d7b662e"
+    },
+    {
+      "path": "src/lib/monitor-scheduling.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "33e6953901389cd5bd466f14b0e4448ab5441ab8"
+    },
+    {
+      "path": "src/lib/monitoring-service.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "cc5f28a8735a447c1709f2d229d1940378f2c753"
+    },
+    {
+      "path": "src/lib/notes-domain.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "f5a5103134486192bd1c1e8606597f3ebdb22061"
+    },
+    {
+      "path": "src/lib/paper-summary-persistence.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "450fe66e73ef4d320d91d1110e2de026f1a3fc72"
+    },
+    {
+      "path": "src/lib/paper-summary.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "2ac87fd99ec7b69ac001c725b0230ccb8539bf97"
+    },
+    {
+      "path": "src/lib/persona.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "b03bb8afbe9fc65daad08671fcc159e79080bd52"
+    },
+    {
+      "path": "src/lib/preferences.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "af12a365937906b02e83f8edb34750bbdb1df073"
+    },
+    {
+      "path": "src/lib/product-analytics.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "3ba574ac0641a56e62801289ef93b14305f1b50c"
+    },
+    {
+      "path": "src/lib/profile-merge.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "73cde18ee828240facdb48c9f1d640306fb53a9d"
+    },
+    {
+      "path": "src/lib/project-conflict-recovery.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "1aae96abe663cc580c595de2e2dd1a9c0c5ebd5d"
+    },
+    {
+      "path": "src/lib/project-eyra-provenance.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "83d5a9fc0f89bda54003872bc3b786344e78a0a3"
+    },
+    {
+      "path": "src/lib/project-plan-draft.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "3d281d46b791c066255eb3c86065ccad7b8dd701"
+    },
+    {
+      "path": "src/lib/project-tasks.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "527b99397d252e9b1d9b21c34697892fd72b9a34"
+    },
+    {
+      "path": "src/lib/project-workplan.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "5c1c61dcb0e70001a24aad95afd7b0a92b2c89e9"
+    },
+    {
+      "path": "src/lib/promise-timeout.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "8e372e37ef0e4edcc05034b6b818e4aea671f2eb"
+    },
+    {
+      "path": "src/lib/protected-api.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "249cb53fcd124617d2591395d86013963bb0672b"
+    },
+    {
+      "path": "src/lib/publication-type-label.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "4a2138f714a1931022a36c2ee54aa2e2d66b188b"
+    },
+    {
+      "path": "src/lib/query-client.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a7f26a59d1e07c1e721ca6f7b4a6c2d9816e9e79"
+    },
+    {
+      "path": "src/lib/reproducibility-review.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "96d40e3c1bd812b2eaf17737dd06be3d0bf653cc"
+    },
+    {
+      "path": "src/lib/research-catalog.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "61b2bb2c50f294d3b8df68747ea94568db862841"
+    },
+    {
+      "path": "src/lib/research-data-provenance.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a31256265f44af022c9e6d2b2ce82e5464e9c481"
+    },
+    {
+      "path": "src/lib/research-data-quality.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "1dcaf62f278c6819f2b6b4c80d114a5b962f2e98"
+    },
+    {
+      "path": "src/lib/research-data.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a0da77105cf6b6df25bc1664aa71d20458ca3531"
+    },
+    {
+      "path": "src/lib/research-email.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "e02fb3140e97ac22903336720d46ba437aa13934"
+    },
+    {
+      "path": "src/lib/research-gap-candidate-save.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a0861cd5b132969b87ed689dd415205bd44c4567"
+    },
+    {
+      "path": "src/lib/research-gap-candidates.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "3f78c994352980ed86fd34d7b88803950fba720b"
+    },
+    {
+      "path": "src/lib/research-gap-context.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "336f6c3743dea80db67e5d7ee7aedc2768e29512"
+    },
+    {
+      "path": "src/lib/research-knowledge-graph.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "61a4bad49e3fb440aecdef585c8d04918e59c009"
+    },
+    {
+      "path": "src/lib/research-provenance.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "51747534daf1d871c3d19fc4292c3025b40caad2"
+    },
+    {
+      "path": "src/lib/researcher-query-plan.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "deff698cce4c76cec32a38c866bffe39cf4e226f"
+    },
+    {
+      "path": "src/lib/researcher-shortlist.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "afde7fd8a9ece265d9fb4da8b4d92d408ac3d1e2"
+    },
+    {
+      "path": "src/lib/scholarly-provider-backoff.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "27671bdeca7f0ed9ef5b95b72188cf4e01e6d769"
+    },
+    {
+      "path": "src/lib/second-brain.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "b7ee8994765bcb497d621fa97b34aba43dbed93f"
+    },
+    {
+      "path": "src/lib/supabase/auth.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ecf9b7544d928f0c45e4e47ea138c0655fa18187"
+    },
+    {
+      "path": "src/lib/supabase/errors.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "9fed10881608f84bb5229c11180a27a2a8e3972a"
+    },
+    {
+      "path": "src/lib/supabase/types.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "9b67059b1e6d5a37c2fec90eaaf035ad9196ae9e"
+    },
+    {
+      "path": "src/lib/supabaseClient.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "f57771db6782238207f5cea665a362bb7cf04701"
+    },
+    {
+      "path": "src/lib/supervisor-matching.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "56893044a9365998cf08a6c7520c71376410bc19"
+    },
+    {
+      "path": "src/lib/theme.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "06a0116733434c6b7ca7260b66b86c5d8267928a"
+    },
+    {
+      "path": "src/lib/universal-search-domain.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "547a2bb654eaa9323551fe35fea2c5d7066c33ad"
+    },
+    {
+      "path": "src/lib/utils.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a2b6729dd3aa0866a931ae95f3e103bb4551b2d9"
+    },
+    {
+      "path": "src/lib/validation/auth.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "e30e4422594be3fe1d64c7d8fd7631cfdbaabe89"
+    },
+    {
+      "path": "src/lib/workspace-export.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "9036fa5551df7e6d9275b1b07cb9de79357fa002"
+    },
+    {
+      "path": "src/main.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "60f0ea2a177fb9ada404809df849dd9cb11b0b8f"
+    },
+    {
+      "path": "src/pages/ActivityHistory.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "c50c0c0b446bdf6dfc8a2bab6e9a193edd4ece38"
+    },
+    {
+      "path": "src/pages/AuthCallback.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "d8ed444e2a202883b5e281125c5e02639376ac63"
+    },
+    {
+      "path": "src/pages/Calendar.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a1f05f00602bbd6203edb5d6d37fcd3241aee555"
+    },
+    {
+      "path": "src/pages/Careers.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "4159205c294bb19b65a49d03c4852d10281a46d0"
+    },
+    {
+      "path": "src/pages/Challenges.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ad72bb534b8121e549da139493c152a999b9f3e2"
+    },
+    {
+      "path": "src/pages/CompanyPage.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "edf0800ea088fb103cee1dc2a3f850d9d3e621df"
+    },
+    {
+      "path": "src/pages/ConfigurationError.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "3c2b37c57703dacc0f796f1f571862e96deade71"
+    },
+    {
+      "path": "src/pages/Contact.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "b10dae74bfca33c9cd5837203097902c562ab8b9"
+    },
+    {
+      "path": "src/pages/DocumentEditor.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "99c4110c2500678c4e16987962cd48271276090b"
+    },
+    {
+      "path": "src/pages/DreamTeam.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "74d6decbb0b8af46f0025c69db55d41fc621ab29"
+    },
+    {
+      "path": "src/pages/ExecutiveBriefing.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "1bd78486064e7eb1abe8f7cefbe4ded6fbdaddbf"
+    },
+    {
+      "path": "src/pages/EyloEyra.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "5eab67dfca1bf55558580a6513b183a205725288"
+    },
+    {
+      "path": "src/pages/EyloFiles.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a12567c193e1d7134a7940260f9b48d37493901b"
+    },
+    {
+      "path": "src/pages/Flashcards.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "8c76ba54b3d9c4d4058c0dadfba569335dd26a82"
+    },
+    {
+      "path": "src/pages/ForYou.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "6627052e9c887e77434e8a7013b2c363506a9802"
+    },
+    {
+      "path": "src/pages/ForgotPassword.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "59beaa8038c34dc5c45fad92e23dfa726cf1d90d"
+    },
+    {
+      "path": "src/pages/FutureMe.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "03c0b76b114728f56d295d66605edd21c7e0ca74"
+    },
+    {
+      "path": "src/pages/FutureSimulator.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "af3e0e3d2e87574d90052fd9ae6f88ea19db7b5c"
+    },
+    {
+      "path": "src/pages/GrantBuilder.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "59913e8fd3e1a48028fa9b05ec7a3931944527a1"
+    },
+    {
+      "path": "src/pages/Habits.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "bc9e5b61fad3193e24d3429620b7f78c52801c42"
+    },
+    {
+      "path": "src/pages/History.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "6b66bc6cd9f10571ae998547042b7aa756c20993"
+    },
+    {
+      "path": "src/pages/Home.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "68b51ea5d370830d97ea9a62311da9098e38bcfe"
+    },
+    {
+      "path": "src/pages/IdeaVault.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "0289c16d9a5e6d9c0f24b3029132ac784ee94388"
+    },
+    {
+      "path": "src/pages/ImpactPredictor.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "d9a9982831007b48db73a619267073d86228d21b"
+    },
+    {
+      "path": "src/pages/InstitutionAdmin.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "bde120c09332646610e738cc2d8bd450b1da27bd"
+    },
+    {
+      "path": "src/pages/Landing.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "5e6376635068ed897bebfe5fb06bf76095a4d11f"
+    },
+    {
+      "path": "src/pages/Library.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ab3e903b4dc5493fbed50958edcd638b374adb4d"
+    },
+    {
+      "path": "src/pages/Life.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "dd5630934d730039b3fdc4cf2a18ddeb694ad1c1"
+    },
+    {
+      "path": "src/pages/LifeGoals.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "16a5f102af0dfe5d0b07bd32e1956f1b9bbdbd1c"
+    },
+    {
+      "path": "src/pages/LiteratureReview.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "b0b0a11d7058370020bbc7764a542ec13daa6272"
+    },
+    {
+      "path": "src/pages/Login.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "3ffcb3f51524ecc7413db50bf78f4dec97ecfdb9"
+    },
+    {
+      "path": "src/pages/Meetings.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a7c6cf7af34c6880c3200266597458600de254eb"
+    },
+    {
+      "path": "src/pages/Notes.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "52d14d0779d2043876b38f4e5565023f5203f7df"
+    },
+    {
+      "path": "src/pages/Notifications.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "0e0ea66ad773b2b53ed92a50497596d213c75f29"
+    },
+    {
+      "path": "src/pages/Opportunities.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "7ea10a919b75db59095d8d92fd83f3a45384415b"
+    },
+    {
+      "path": "src/pages/OpportunityRadar.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "3948dc4b546c1f5c342f5b6f0d1bc3ede4c1807f"
+    },
+    {
+      "path": "src/pages/PitchDeckBuilder.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "fdbec781b35ba592a1257bc711cf84d7947b5505"
+    },
+    {
+      "path": "src/pages/Pricing.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "1ad215ecac997fd184d93a10358563c5c188ad72"
+    },
+    {
+      "path": "src/pages/Profile.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "c5da45514c825d17f6f89fd0287e7fad426161aa"
+    },
+    {
+      "path": "src/pages/ProjectDecisions.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a50aabf96329f0e4b1e71dc9a8db9611c10a4ca1"
+    },
+    {
+      "path": "src/pages/ProjectDetail.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "0948ef4d426a31b24f737a9bf924336432bc9511"
+    },
+    {
+      "path": "src/pages/Projects.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "62e53c45197838c612145b3cdd8e6f0c18d4c451"
+    },
+    {
+      "path": "src/pages/PublicCareers.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "cd0dc5e7117d6860335f3cc04daded1eece2207a"
+    },
+    {
+      "path": "src/pages/PublicDiscovery.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "973de79d361fa8f82a293c949ed040be1a69182b"
+    },
+    {
+      "path": "src/pages/PublicResearchers.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "f02d8e3091872b01fa8113553e4f374512e4f4ba"
+    },
+    {
+      "path": "src/pages/Register.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ba6c265f2f5d6368edd1bc0cade76c6b666f5f54"
+    },
+    {
+      "path": "src/pages/ResearchBattlefield.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "d5a42b44ef6529e07c6fdea52a3c49d8f2ebd6b4"
+    },
+    {
+      "path": "src/pages/ResearchDataLab.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "656e032159db1af5ff65e9b7ad7cc89382b753ae"
+    },
+    {
+      "path": "src/pages/ResearchGaps.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "f5aa73dbe9d932234acd3bbbc35a540fb3209258"
+    },
+    {
+      "path": "src/pages/ResearchKnowledgeGraph.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "87d6c9f0015d3969c7e4025a27030cc503219cc1"
+    },
+    {
+      "path": "src/pages/Researchers.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "38016b55f0b390b3e95f5879ee95e9e438e6c1e3"
+    },
+    {
+      "path": "src/pages/ResetPassword.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "2750055319e48ed00c6604ce2cbb6b8a6182067c"
+    },
+    {
+      "path": "src/pages/Settings.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "2beb3ab7145c00131e47e322383dece4cb67f275"
+    },
+    {
+      "path": "src/pages/StudyPlanner.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "1f11b0f93af2bd1bc449a0f70d2e29c62f4d336f"
+    },
+    {
+      "path": "src/pages/UniversalSearch.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "1e490a9df559f4cd9e2c798f22d35fc9f5343923"
+    },
+    {
+      "path": "src/pages/VoiceAssistant.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "213a354985f2c241ba7147029bc1180a41d1c460"
+    },
+    {
+      "path": "src/pages/eylo-approved-scene.css",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "acb00090e8d1cacd6f63480796796d323a3724e2"
+    },
+    {
+      "path": "src/pages/eylo-live-atmosphere.css",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "c9a7a8154f8350bdf1e6ddd02ed495e31b1ae0b0"
+    },
+    {
+      "path": "src/pages/eylo-photographic-hero.css",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "e1f3774fb892c305ca8c4f3f3c754d5c4ccc4632"
+    },
+    {
+      "path": "src/pages/eylo-reference-live.css",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "c8ef55f063813e100d19eee6c258c3329e878d34"
+    },
+    {
+      "path": "src/pages/eylo-reference-stage.css",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "f71e6b6b99919ad62301228d4525c434d5605019"
+    },
+    {
+      "path": "src/pages/eylo-screenshot-hero.css",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "82cb158ef8dd0ade8322588322566f6a413356aa"
+    },
+    {
+      "path": "src/services/entity-serialization.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "e616009d12221378608126996336d4dc794b697a"
+    },
+    {
+      "path": "src/services/eylo-files.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "65bfd5e68d240dad1811ea3bcf62262d9a9a493c"
+    },
+    {
+      "path": "src/services/supabase-entities.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "e2ce68c7838460bb18671677e868349bf00c1a71"
+    },
+    {
+      "path": "src/services/universal-search.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "61e4d626159dc7793d22124e0ebfde11b11d3582"
+    },
+    {
+      "path": "src/styles.css",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "6576f79f2dbab05b3397dcc066069a453d03b490"
+    },
+    {
+      "path": "src/utils/citation-export.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "46b61942940abf073515a4c8e4d2a79a935eee81"
+    },
+    {
+      "path": "src/utils/index.ts",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "abc4e0ef4a3ac680495797b4737a1a275003fb49"
+    },
+    {
+      "path": "supabase/functions/_shared/monitor-provider-response.mjs",
+      "kind": "edge_function",
+      "blob_sha": "2fdd595f3b72131fb155671fcfe3881d29d26f61"
+    },
+    {
+      "path": "supabase/functions/scheduled-monitoring/index.ts",
+      "kind": "edge_function",
+      "blob_sha": "9dc4fdf80e991527db5c38251bf131af4bea777f"
+    },
+    {
+      "path": "supabase/migrations/20260803_eylo_core_entities.sql",
+      "kind": "migration",
+      "blob_sha": "b73e239c57b53f6409bfd4882df78887184d6495"
+    },
+    {
+      "path": "supabase/migrations/20260803_eylo_monitoring_entities.sql",
+      "kind": "migration",
+      "blob_sha": "93aa5676379e6a00479a2c902b0791d6a08ebf6e"
+    },
+    {
+      "path": "supabase/migrations/20260811053718_production_billing_entitlements.sql",
+      "kind": "migration",
+      "blob_sha": "b9257b7bde2590d60b16eddaec53e688747608aa"
+    },
+    {
+      "path": "supabase/migrations/20260817090000_operational_services.sql",
+      "kind": "migration",
+      "blob_sha": "c120fdf72cd90ff77d393ab2ebe5d21cf04a7542"
+    },
+    {
+      "path": "supabase/migrations/20260817090500_security_hardening.sql",
+      "kind": "migration",
+      "blob_sha": "4877434c0bc846747f7e218f8a12f5fbcc2fb1b8"
+    },
+    {
+      "path": "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
+      "kind": "migration",
+      "blob_sha": "1b788206a5501aa9d09100ab918c70400e18fa1b"
+    },
+    {
+      "path": "supabase/migrations/20260817090700_analytics_smoke_verification.sql",
+      "kind": "migration",
+      "blob_sha": "69da46a1e4206439df1212befd655cece8bd9ad7"
+    },
+    {
+      "path": "supabase/migrations/20260817091000_scheduled_monitoring.sql",
+      "kind": "migration",
+      "blob_sha": "ee8b47340cb07ff6bc60f057e5a937e56beb34f6"
+    },
+    {
+      "path": "supabase/migrations/20261017090000_monitoring_discovery_uniqueness.sql",
+      "kind": "migration",
+      "blob_sha": "f08917156e2adef2492b4814e5ac076d8cc36b8d"
+    },
+    {
+      "path": "supabase/migrations/20261110_native_video_meetings.sql",
+      "kind": "migration",
+      "blob_sha": "8333d16e83ed7a18cefc728a41e84d3d73e45c9a"
+    },
+    {
+      "path": "supabase/migrations/20261112154425_private_notes.sql",
+      "kind": "migration",
+      "blob_sha": "b6b8eeccc659b8fcea876de5b56863d6e7867dc9"
+    },
+    {
+      "path": "supabase/migrations/20261112161818_eylo_life_tasks.sql",
+      "kind": "migration",
+      "blob_sha": "41f6827d894ec31db5f6cc242008f0e8fb6cde0a"
+    },
+    {
+      "path": "supabase/migrations/20261112163010_eylo_life_goals_milestones.sql",
+      "kind": "migration",
+      "blob_sha": "01c48155cb0030ab6fe1ce8e67b54006920e477e"
+    },
+    {
+      "path": "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
+      "kind": "migration",
+      "blob_sha": "390a04955954f2fc62f72752976b8b82867b80f0"
+    },
+    {
+      "path": "supabase/migrations/20261112173500_eylo_calendar_events.sql",
+      "kind": "migration",
+      "blob_sha": "fe1b9784c05294de8040d73bc1a39644ce3ad0b6"
+    },
+    {
+      "path": "supabase/migrations/20261112181000_eylo_activity_history.sql",
+      "kind": "migration",
+      "blob_sha": "6c34dfc8516a70902da8afd7f543da351c0d1d51"
+    },
+    {
+      "path": "supabase/migrations/20261112183722_universal_workspace_search.sql",
+      "kind": "migration",
+      "blob_sha": "d175ff1aa379b622136047de30b61d95fe1b21d8"
+    },
+    {
+      "path": "supabase/migrations/20261112190430_eylo_files.sql",
+      "kind": "migration",
+      "blob_sha": "ed923c259b3e9039160282c52bd729fac27503f5"
+    },
+    {
+      "path": "supabase/migrations/20261112200000_private_file_search.sql",
+      "kind": "migration",
+      "blob_sha": "3982c4ab8b12ebed3472819281a69ee76a245927"
+    },
+    {
+      "path": "tests/activity-history.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "329004e79dd596a19b870159a3ac0611373eb147"
+    },
+    {
+      "path": "tests/analytics-availability.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "378804b36e55166b0f483c572a2862f63d38cf0d"
+    },
+    {
+      "path": "tests/api-cors.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "bb6b5f552cec29d9b5449d40523c5f17faf218ca"
+    },
+    {
+      "path": "tests/arxiv-feed.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "66f4fda0d70b7101f1498038196c982f3d9f305f"
+    },
+    {
+      "path": "tests/auth-magic-link-signin.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "fc8976cbcad8edae08237e7eba486bed42ead01c"
+    },
+    {
+      "path": "tests/auth-operation-race.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "1dfd2e1cf2ae54ea758c966819e8eaaf3263b234"
+    },
+    {
+      "path": "tests/auth-route-paths.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "6b9e55d0d482c7df2a71f234c3b5deb601a6a207"
+    },
+    {
+      "path": "tests/auth-security.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "8b874261f6c599e051bd672d98cec00559b70920"
+    },
+    {
+      "path": "tests/auth-signin-contract.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "d3e6719be518f5aa74a46a1645d5c81f41ee129c"
+    },
+    {
+      "path": "tests/billing-private-error-logging.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "cbb21e626f3bc191a29ab84943e48b2d4a0fe37d"
+    },
+    {
+      "path": "tests/billing-return-origin.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "f1d4e817f9a73685f1257f4a7a3b8340bd8a2458"
+    },
+    {
+      "path": "tests/calendar-workspace.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "579cdc639096eb71f3b86f230ad05f2ad7199989"
+    },
+    {
+      "path": "tests/capabilities.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "30519225dffb76eab089e125994a4c75beb7699f"
+    },
+    {
+      "path": "tests/careers-api.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "82fd4a167591c28f9b8ff2244bbd6d80419a9a44"
+    },
+    {
+      "path": "tests/challenge-records.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "7ab33ff18d78382f3f7490a122ad2e0bff63ca88"
+    },
+    {
+      "path": "tests/citation-export.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "1a167d97be57576ab1a0029eac86a340a5c63043"
+    },
+    {
+      "path": "tests/citation-verification.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "bdcefe72619f1b79d84e1c9e30c4520c5da41b70"
+    },
+    {
+      "path": "tests/crossref-paper-types.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "d1e144d446af344fe3551ba32fdfd9f6b05d1650"
+    },
+    {
+      "path": "tests/decision-workspace.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "a372a74d8ef297d35a7f96c043e502e1e6f8aed1"
+    },
+    {
+      "path": "tests/deployment-status.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "6129c9a72189a60c3e0dbcd92cebbb44b04d4cc9"
+    },
+    {
+      "path": "tests/discovery-human-benchmark.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "4b0295ac14fe8ef98d8a72ab9ccf94a3ea019a52"
+    },
+    {
+      "path": "tests/discovery-proxy.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "a18eda798ac329ef6532d255e51f4b60469e8826"
+    },
+    {
+      "path": "tests/discovery-ranking.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "0475436f9e355e11d57b1bbaf9f359af5699c612"
+    },
+    {
+      "path": "tests/discovery-source-status.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "353290f4ec667e3edb6a06240401186afe9e6e9c"
+    },
+    {
+      "path": "tests/discovery-workspace-signup.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "655f9a701c88210b2e8868ab6bd8f7cc2e2bf398"
+    },
+    {
+      "path": "tests/e2e-auth.mjs",
+      "kind": "automated_test",
+      "blob_sha": "445c0d447549b05be846d07fbc953661724f8e52"
+    },
+    {
+      "path": "tests/e2e-native-meetings.mjs",
+      "kind": "automated_test",
+      "blob_sha": "8484ecd73e63dbc21d359b104b18a51ec28743ef"
+    },
+    {
+      "path": "tests/e2e-supabase-project-concurrency.mjs",
+      "kind": "automated_test",
+      "blob_sha": "d0dbe66db5081d451ef465647e1fb9eb037f8baa"
+    },
+    {
+      "path": "tests/entity-optimistic-version.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "2aba8dea5cf4a8516fcaaaf255331dc9cad43e2a"
+    },
+    {
+      "path": "tests/entity-ownership.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "e2ebd6d344d322ec6be2eede67c85acb28a3a65b"
+    },
+    {
+      "path": "tests/entity-serialization.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "ff2db8b728eb56d4f88543deade6719f358b67e7"
+    },
+    {
+      "path": "tests/euraxess.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "245e551442ddf229b07dac272eed24ffdd8a86f8"
+    },
+    {
+      "path": "tests/evidence-matrix.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "8e3bacfb5b9f270172f9013d6a4286fa6a6128eb"
+    },
+    {
+      "path": "tests/evidence-verification.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "9b1f55b62dc36cba3458933c706fcb26a2d1fae2"
+    },
+    {
+      "path": "tests/eylo-files.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "8d47766176166fbd90f9a7e39d7df3704c1b9bd4"
+    },
+    {
+      "path": "tests/eyra-boundaries.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "54746574d84594949bf23d128d7156cd7ded9f69"
+    },
+    {
+      "path": "tests/eyra-cache-key.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "50b45999f59801412cef470143653c06638c3b40"
+    },
+    {
+      "path": "tests/eyra-cancellation.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "8ce8d49944b7a8c58da457761537b7fcdc55a8da"
+    },
+    {
+      "path": "tests/eyra-capability-copy.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "eb531ff964cf88c146120b0d80c84b9578750fa5"
+    },
+    {
+      "path": "tests/eyra-citation-ids.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "2b84aa75bf88a6eba07e48101b4c6539034a5479"
+    },
+    {
+      "path": "tests/eyra-engine-concurrency.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "dfbdf118037f6d9fda7f318f7f8c128da7c131d1"
+    },
+    {
+      "path": "tests/eyra-private-error-logging.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "b6f3d95bee51d7fb3230695b3e6fcb46ad842468"
+    },
+    {
+      "path": "tests/eyra-project-tools.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "35297825ff4be24aacd33cb578553066d28b0735"
+    },
+    {
+      "path": "tests/eyra-request-safety.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "f28b1164ec3854a87eead2e50552dacb721924ab"
+    },
+    {
+      "path": "tests/eyra-research-companion.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "99e94bf80c720f08318ff254588377368512eecd"
+    },
+    {
+      "path": "tests/eyra-stop-generation-ui.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "491d1227060060575d46d1ee3beac82a9afd72cc"
+    },
+    {
+      "path": "tests/eyra-structured-api.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "83f5fa2a4f108d625da8ef72f6060a946fccb3fb"
+    },
+    {
+      "path": "tests/eyra-structured-contract.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "a66bb116a7be2f3508c590fdad62afe1ff610159"
+    },
+    {
+      "path": "tests/eyra-timeout-response.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "84c93ed11885c50bf582279eb9dcef1b66c8a928"
+    },
+    {
+      "path": "tests/eyra-tool-action-ui.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "e4df64d6d836d7bb06f6906d5d384aa3c9f7d58c"
+    },
+    {
+      "path": "tests/eyra-upstream-timeouts.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "13775f43c7a21c9c3fc9a58fbd51672a67949350"
+    },
+    {
+      "path": "tests/eyra-usage-limit-contract.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "7807b8bc8f277407a917145b08871771ad66db60"
+    },
+    {
+      "path": "tests/flashcards-workspace.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "b1365aa1e937402e48d58b3f418c9a82bd42e834"
+    },
+    {
+      "path": "tests/funding-auth-config.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "0bd4815ca175fb0611c653a21e5566e12090aa64"
+    },
+    {
+      "path": "tests/funding-eu-source.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "10e84267e99a08cb9f2dbbb73467571711385389"
+    },
+    {
+      "path": "tests/gap-candidate-review.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "e28cec8a0b532012dfb38a671fe809b06bc567de"
+    },
+    {
+      "path": "tests/general-career-listings.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "d092d2cdfae66e350d8e1e1e582ba50c3eef5fde"
+    },
+    {
+      "path": "tests/human-evaluation.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "79463b182a801930f6de5131b98e2d3bbf3c96f3"
+    },
+    {
+      "path": "tests/idea-vault-reliability.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "e2c5df7d43df79d416284497f32d1328a90afd17"
+    },
+    {
+      "path": "tests/integration/workspace-postgres.sql",
+      "kind": "automated_test",
+      "blob_sha": "aa1970a1ba7915472153c47d7f8fa5311df69e34"
+    },
+    {
+      "path": "tests/library-reference-export-ui.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "ada55d8a9f987791a2474fca2b15f25b7ad0d24a"
+    },
+    {
+      "path": "tests/life-workspace.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "f1b8730314e98e16425bd29cfa285008323278d9"
+    },
+    {
+      "path": "tests/literature-review-methods-audit.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "90b7f5a9014a7b68a5c9b8144a4e55f0fcd417d4"
+    },
+    {
+      "path": "tests/literature-review-protocol.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "f25471aa26d79f5aeb16158d5caa97a76807cbe1"
+    },
+    {
+      "path": "tests/meeting-links.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "7c0bf962efe0d0f81f8eb342cd49acfac1be4ae6"
+    },
+    {
+      "path": "tests/meeting-plans.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "641550ff3d9d339e637fb5f047597440915ec973"
+    },
+    {
+      "path": "tests/meeting-room.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "b88f2551e871639a789a0127a4032c9232c6fc71"
+    },
+    {
+      "path": "tests/meetings-e2e-target.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "e34ed5192e5c91e3367b8925bb1cfb85faddcb37"
+    },
+    {
+      "path": "tests/monitor-edge-provider-safety.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "f546a1627a873ffce5f74a6376a11025aca0b48f"
+    },
+    {
+      "path": "tests/monitor-provider-response.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "ca9e87be0c9baa25ccdb035a818b4ddf7914ae3b"
+    },
+    {
+      "path": "tests/monitor-provider-retry.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "ba22745ace0f28b9039eeaed2f198193467c7485"
+    },
+    {
+      "path": "tests/monitor-scheduling.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "a135e55a2048a46a604c4b3c6ff866613f393ff5"
+    },
+    {
+      "path": "tests/monitor-source-failure.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "6c89a87d7a4c4f01714dc90c5609c9c28c030f89"
+    },
+    {
+      "path": "tests/notes-workspace.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "56c49fdc41ff6ad19995f5483347fd3dc5d02e72"
+    },
+    {
+      "path": "tests/pages-hosting.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "1f359ef0c9ecbefd849980aa8435740004fa98a7"
+    },
+    {
+      "path": "tests/paper-summary-persistence.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "77206110cc9c64405e9e62c605eac304c0306a9b"
+    },
+    {
+      "path": "tests/paper-summary.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "bb4f113b82b73205cd204d939800fe782e9c39ff"
+    },
+    {
+      "path": "tests/private-radar-cache.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "341270bac34ac3f40de4409329bb3fce5fe17297"
+    },
+    {
+      "path": "tests/private-session-boundary.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "9fb67b510eb7294589ab461ca30bded0b8ff6f1d"
+    },
+    {
+      "path": "tests/profile-merge.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "ffdff63bfa9ec3abdbd74fcc174e76f497f73291"
+    },
+    {
+      "path": "tests/project-conflict-recovery.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "271c7858a8fb6d65e61911d0095d61fd643b5f8a"
+    },
+    {
+      "path": "tests/project-detail-stale-navigation.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "45cf6f75dc447b7f7bcfd8786a633781a5289555"
+    },
+    {
+      "path": "tests/project-evidence-loading.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "6b017678cfd627058011fb6355934de8ec181fa3"
+    },
+    {
+      "path": "tests/project-eyra-evidence.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "441004741dc4aa0cf8b9c7d2bd36d750798cf2ed"
+    },
+    {
+      "path": "tests/project-eyra-provenance.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "e8b1fdeac45817e77a2be1cc47ae1965d66898d4"
+    },
+    {
+      "path": "tests/project-load-recovery.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "5ae4c911655aaa3dff5363d27457a824da09ef12"
+    },
+    {
+      "path": "tests/project-plan-draft.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "f4e532f58c836cafff4b828a4b7954dcabcc554f"
+    },
+    {
+      "path": "tests/project-planner-ui.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "1884406bb4e749dd1e331efcbb314fe5af09d98b"
+    },
+    {
+      "path": "tests/project-tasks.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "eca241a9c2e117b7e329a11b88ac1637dd1a1a27"
+    },
+    {
+      "path": "tests/project-versioned-saves.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "fd1f241c80a7b7486946047b411d2e135b723d20"
+    },
+    {
+      "path": "tests/project-workplan.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "e4559b5b27dc008570d8e3a3aa2bc6525cf1f67e"
+    },
+    {
+      "path": "tests/projects-loading-vs-create-error.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "2bc2f3231ae46e77b91395827fe8e41a46009b13"
+    },
+    {
+      "path": "tests/publication-type-label.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "36c8954fefe7073d36785614c79e493d36ab243a"
+    },
+    {
+      "path": "tests/remotive-career-snapshot.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "508c2449d8b20c9dff9af80ca680c84c1b830328"
+    },
+    {
+      "path": "tests/reproducibility-review.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "ff850c3f33783f81c6b5e5a91d1d7802d1164e7b"
+    },
+    {
+      "path": "tests/research-catalog.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "d33ef2d44c2355c5c62de44f79e8aa1e4409b2fd"
+    },
+    {
+      "path": "tests/research-data-comparison.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "6743b2b6a47bc1c5a04013f879f12e7c0cba0a8a"
+    },
+    {
+      "path": "tests/research-data-provenance.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "5c5385b3c71157b75a85c2c60c32d6ee35cf149b"
+    },
+    {
+      "path": "tests/research-data-quality-ui.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "a14adade6f560d25c8c2b47a17f0c97705b10b17"
+    },
+    {
+      "path": "tests/research-data-quality.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "94e11a4192cf08f342e8776064aee3b629dc9698"
+    },
+    {
+      "path": "tests/research-data.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "54626853678f876ae13d52690b1d4aac2ae09d82"
+    },
+    {
+      "path": "tests/research-email.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "ab78a8d49c6e8e6477bfd0e8b3835f6874ed4e94"
+    },
+    {
+      "path": "tests/research-gap-candidate-save.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "4f7a9d30bda9903d72229f37e29a1e294f90db52"
+    },
+    {
+      "path": "tests/research-gap-candidates.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "eac9379be8307f2dc4d0f9070f54913dc84f74e5"
+    },
+    {
+      "path": "tests/research-gap-context.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "7aa66698f9452b6cc704a5a572c99de47f2a5eed"
+    },
+    {
+      "path": "tests/research-gap-project-flow.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "b66f2f069fb6f89cd561bf5beda3bb48b574d56d"
+    },
+    {
+      "path": "tests/research-knowledge-graph.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "a13b6abf746abcb32f428f84f8d9e09ba5407e9a"
+    },
+    {
+      "path": "tests/research-landscape-partial-sources.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "22febcfb50d4333e86200fd0ee179ba930996e1f"
+    },
+    {
+      "path": "tests/research-provenance.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "029771089deae3258e3e0b17d7c70c917135bee3"
+    },
+    {
+      "path": "tests/research-workflow-reliability.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "3272fb1602d3ff6e5f35d329532951baf0b70ba7"
+    },
+    {
+      "path": "tests/researcher-discovery-fallback.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "434f80f24c7160c4684e33fbbfc01667da0213f3"
+    },
+    {
+      "path": "tests/researcher-query-plan.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "7ec45254318b4526a8aa040aa93290d63355b1a8"
+    },
+    {
+      "path": "tests/researcher-shortlist.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "3d9cacd170a95ff54f5e0379f9b79ce21c1fafbb"
+    },
+    {
+      "path": "tests/rls-fixture-requires-authorization.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "c41047336917063bae738b4ef88d91fda4d4c099"
+    },
+    {
+      "path": "tests/scheduled-monitoring.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "49afbd2b2ada413e91a13772ca244a8406012d2e"
+    },
+    {
+      "path": "tests/scholarly-provider-backoff.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "8053e3b7585876b46e5ac0f5a10c8cb7aaebbd80"
+    },
+    {
+      "path": "tests/scholarly-work-attribution.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "e89ad04fde7797cd82c1085823179b2951c30a03"
+    },
+    {
+      "path": "tests/service-status-deployment.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "f0505408006eca2a42be99785939e7b78767906f"
+    },
+    {
+      "path": "tests/stripe-webhook-size.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "a7e14bd0fcadce08bd12dc9de198d93f86c737db"
+    },
+    {
+      "path": "tests/supabase-api-config.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "62db4e63e7e3676164afc5909b50456ac69e5001"
+    },
+    {
+      "path": "tests/supabase-env-config.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "7fde92412309154c2cb6ff18cc671801a12feae6"
+    },
+    {
+      "path": "tests/supervisor-meetings.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "3bec6d9ef6133bfdb8db82a16c783eb8948b6503"
+    },
+    {
+      "path": "tests/unified-academic-colors.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "be8bd48f6bbd8f70216a036b927d8a94adebc5bf"
+    },
+    {
+      "path": "tests/universal-search.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "6e0e35c0acbbb45fdffac8b8304b0cf01657cf5c"
+    },
+    {
+      "path": "tests/workspace-export.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "a321ac77be99085d6d52f6e81c1f4ae9dab4414f"
+    }
+  ],
+  "npm_scripts": {
+    "dev": "vite",
+    "check:imports": "node scripts/check-local-imports.mjs",
+    "build": "npm run check:imports && vite build",
+    "lint": "eslint . --quiet",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc -p ./jsconfig.json && tsc -p ./jsconfig.api.json",
+    "test": "node --test tests/*.test.mjs",
+    "test:e2e:auth": "node tests/e2e-auth.mjs",
+    "check": "npm run check:imports && npm run typecheck && npm run lint && npm run test && npm run build",
+    "preview": "vite preview",
+    "normalize:base44": "node scripts/normalize-base44-paths.mjs",
+    "benchmark:relevance": "node scripts/benchmark-relevance.mjs",
+    "benchmark:relevance:live": "node scripts/benchmark-live-retrieval.mjs",
+    "benchmark:human": "node scripts/evaluate-discovery.mjs",
+    "test:retrieval": "node scripts/test-partial-retrieval.mjs",
+    "test:eyra-auth": "node scripts/test-eyra-auth-config.mjs",
+    "test:greeting": "node scripts/test-local-greeting.mjs",
+    "test:services": "node scripts/test-service-server-keys.mjs",
+    "test:e2e:meetings": "node tests/e2e-native-meetings.mjs",
+    "test:e2e:project-concurrency": "node tests/e2e-supabase-project-concurrency.mjs"
+  },
+  "documented_environment_variable_names": [
+    "VITE_SUPABASE_URL",
+    "VITE_SUPABASE_ANON_KEY",
+    "OPENALEX_API_KEY",
+    "SEMANTIC_SCHOLAR_API_KEY",
+    "RESEARCH_CONTACT_EMAIL",
+    "OPENAI_API_KEY",
+    "OPENAI_MODEL",
+    "SUPABASE_PUBLISHABLE_KEY",
+    "SUPABASE_SECRET_KEY",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "STRIPE_PRO_PRICE_ID",
+    "STRIPE_FOUNDER_PRICE_ID",
+    "APP_URL",
+    "CRON_SECRET",
+    "RESEND_API_KEY",
+    "CONTACT_TO_EMAIL",
+    "RESEND_FROM_EMAIL",
+    "LIVEKIT_URL",
+    "LIVEKIT_API_KEY",
+    "LIVEKIT_API_SECRET"
+  ],
+  "note": "Variable names only; no credentials or environment values are included. Source inventory does not certify behavior."
+}

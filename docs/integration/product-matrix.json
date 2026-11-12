@@ -1,7 +1,11 @@
 {
   "schema_version": 1,
   "baseline_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-  "inventory_method": "Explicit tracker ID mapping to tracked source files, route declarations, table references in migrations, tests, and all 65 open PR diffs. Related source presence is not implementation verification. Shared surfaces may support several partial products.",
+  "inventory_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+  "scope": "Integration candidate branch, not current main or deployed product",
+  "intended_eylo_supabase_ref": "kbzjngpzxpniaumlupaa",
+  "live_access": "Owner identified this ref; connector permission denied. Repository guards it as live EYLO. Separate staging identity remains required.",
+  "inventory_method": "Explicit tracker ID mapping to tracked source files, route declarations, table references in migrations, tests, and all 65 open PR diffs. Related source presence is not implementation verification. Shared surfaces may support several partial products. See verification.json for subsequent combined-suite results; those do not establish per-product acceptance.",
   "products": [
     {
       "id": 1,
@@ -46,10 +50,12 @@
       "automated_test_files": [
         "tests/life-workspace.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: goals with measurable milestones, daily habit check-ins, tasks with daily/weekly recurrence, and dated completion records.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "511ba98ccfe5d474b5a72f7eeaed933eaafc7588",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -91,10 +97,12 @@
       "automated_test_files": [
         "tests/calendar-workspace.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: owner-scoped event workflow and month filtering; reminders are not verified as delivered and external OAuth sync is absent. Next: verify persistence in staging and implement configured delivery.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "627b1ca1bf0b63928cfd83f6d7b9fb052085f63a",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -137,10 +145,12 @@
       "automated_test_files": [
         "tests/notes-workspace.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: rich-text editing, autosave, tags, search, pinning/favorites, notebooks, subject links, templates, archived-note recovery, optimistic conflict protection, and database-backed version history with restore.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "b604c1f42b9b92d7da2660c33029f2be9dec02ab",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -164,9 +174,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -188,9 +200,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -229,9 +243,11 @@
       "automated_test_files": [
         "tests/scheduled-monitoring.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: in-app notifications and a bell exist; event coverage, preference controls and delivery are incomplete. Next: verify read/unread and preference persistence.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "9f96f560f345ca4b367ba534b2d09c9beeea44ae",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -249,6 +265,7 @@
       "status": "Partially implemented",
       "tracker_statement": "PARTIAL in main after #396: real authorized project, note, task, calendar, study, saved research, and activity sources with retry/empty states. Next: staging authorization checks, mobile/visual review, and source-level user acceptance.",
       "source_files": [
+        "src/components/dashboard/PersonalizedDashboard.jsx",
         "src/pages/Home.jsx"
       ],
       "frontend_routes": [
@@ -281,7 +298,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -290,9 +308,11 @@
         90
       ],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main after #396: real authorized project, note, task, calendar, study, saved research, and activity sources with retry/empty states. Next: staging authorization checks, mobile/visual review, and source-level user acceptance.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
+      "implementation_commit": "f5fd2bf29b5331ca9be48a9a1dccb7ccfc23e11d",
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -320,9 +340,11 @@
         391
       ],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED on main; learning workspace implementation is PR-only in #391/#393. Next: select one learning data contract, then integrate and test lessons, assessment, and progress as a complete workflow.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -363,10 +385,12 @@
       "automated_test_files": [
         "tests/notes-workspace.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: subjects, exam dates, measurable session goals, rescheduling, 7/3/1-day revision planning, completion, and saved history.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "55f46921be983ae64e74581349f38b75c43990cc",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -408,10 +432,12 @@
       "automated_test_files": [
         "tests/flashcards-workspace.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: manual creation/editing, named collections, authorized note import, review outcomes, and SM-2 scheduling.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "0d8f6948afbfcf962b70e3615e962d744cc0f7cc",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -438,9 +464,11 @@
         391
       ],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED on main; quiz implementation is PR-only in #391/#393. Next: resolve the shared learning schema, then integrate manual authoring, grading, saved attempts, and review.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -462,9 +490,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -522,9 +552,11 @@
         "tests/careers-api.test.mjs",
         "tests/general-career-listings.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: career opportunity discovery and profile-linked CV support exist; verified opportunity completeness is not claimed. Next: track user-owned goals and portfolio progress.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "4cd54257a825ee9a295f096415a48aaeb0bae3b7",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -571,9 +603,11 @@
       "automated_test_files": [
         "tests/profile-merge.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: CV data and local document parsing exist; template editing and verified exports need acceptance. Next: validate saved versions and DOCX/PDF output.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "4fffd9fac4803a22e62b9b0d44f59d1be5011f3a",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -598,9 +632,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -612,79 +648,149 @@
     {
       "id": 16,
       "name": "EYLO Files",
-      "status": "PR-only",
+      "status": "Partially implemented",
       "tracker_statement": "NOT_STARTED on main; implementation proposal is PR-only in #395. Next: integrate secure upload, ownership, validation and version workflows after branch review.",
-      "source_files": [],
-      "frontend_routes": [],
+      "source_files": [
+        "src/lib/eylo-files.mjs",
+        "src/pages/EyloFiles.jsx",
+        "src/services/eylo-files.mjs"
+      ],
+      "frontend_routes": [
+        {
+          "path": "/files",
+          "source": "src/pages/EyloFiles.jsx"
+        }
+      ],
       "backend_apis": [],
-      "supabase_entities": [],
-      "migration_files": [],
-      "authentication": "Not implemented on baseline",
+      "supabase_entities": [
+        "eylo_files",
+        "eylo_file_versions"
+      ],
+      "migration_files": [
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261112200000_private_file_search.sql"
+      ],
+      "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
         395
       ],
-      "automated_test_files": [],
+      "automated_test_files": [
+        "tests/eylo-files.test.mjs"
+      ],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED on main; implementation proposal is PR-only in #395. Next: integrate secure upload, ownership, validation and version workflows after branch review.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": null,
-      "automated_test_status": "No dedicated test evidence mapped",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "63f67c0d7fdebbdd238d1e55f705625d30abf575",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Files/document create, version, reload, download/export and exact-link browser fixtures; local PostgreSQL metadata policies. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
-      "deployment_dependencies": [],
+      "deployment_dependencies": [
+        "Verified EYLO Supabase project and reviewed migrations"
+      ],
       "known_blockers": [
-        "Acceptance criteria and full product workflow still incomplete"
+        "Acceptance criteria and full product workflow still incomplete",
+        "Authorized staging access and test accounts missing"
       ]
     },
     {
       "id": 17,
       "name": "EYLO Create",
-      "status": "PR-only",
+      "status": "Partially implemented",
       "tracker_statement": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
-      "source_files": [],
-      "frontend_routes": [],
+      "source_files": [
+        "src/pages/DocumentEditor.jsx"
+      ],
+      "frontend_routes": [
+        {
+          "path": "/documents/new",
+          "source": "src/pages/DocumentEditor.jsx"
+        },
+        {
+          "path": "/documents/:id",
+          "source": "src/pages/DocumentEditor.jsx"
+        }
+      ],
       "backend_apis": [],
-      "supabase_entities": [],
-      "migration_files": [],
-      "authentication": "Not implemented on baseline",
+      "supabase_entities": [
+        "eylo_files",
+        "eylo_file_versions"
+      ],
+      "migration_files": [
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261112200000_private_file_search.sql"
+      ],
+      "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
         395
       ],
-      "automated_test_files": [],
+      "automated_test_files": [
+        "tests/eylo-files.test.mjs"
+      ],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": null,
-      "automated_test_status": "No dedicated test evidence mapped",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "a617ced27c91451d85e9b86f0eb4e2bd23876318",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Files/document create, version, reload, download/export and exact-link browser fixtures; local PostgreSQL metadata policies. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
-      "deployment_dependencies": [],
+      "deployment_dependencies": [
+        "Verified EYLO Supabase project and reviewed migrations"
+      ],
       "known_blockers": [
-        "Acceptance criteria and full product workflow still incomplete"
+        "Acceptance criteria and full product workflow still incomplete",
+        "Authorized staging access and test accounts missing"
       ]
     },
     {
       "id": 18,
       "name": "EYLO Document Editor",
-      "status": "PR-only",
+      "status": "Partially implemented",
       "tracker_statement": "NOT_STARTED on main; implementation proposal is PR-only in #395. Next: integrate editable documents and validate DOCX/PDF exports.",
-      "source_files": [],
-      "frontend_routes": [],
+      "source_files": [
+        "src/pages/DocumentEditor.jsx"
+      ],
+      "frontend_routes": [
+        {
+          "path": "/documents/new",
+          "source": "src/pages/DocumentEditor.jsx"
+        },
+        {
+          "path": "/documents/:id",
+          "source": "src/pages/DocumentEditor.jsx"
+        }
+      ],
       "backend_apis": [],
-      "supabase_entities": [],
-      "migration_files": [],
-      "authentication": "Not implemented on baseline",
+      "supabase_entities": [
+        "eylo_files",
+        "eylo_file_versions"
+      ],
+      "migration_files": [
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261112200000_private_file_search.sql"
+      ],
+      "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
         395
       ],
-      "automated_test_files": [],
+      "automated_test_files": [
+        "tests/eylo-files.test.mjs"
+      ],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED on main; implementation proposal is PR-only in #395. Next: integrate editable documents and validate DOCX/PDF exports.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": null,
-      "automated_test_status": "No dedicated test evidence mapped",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "a617ced27c91451d85e9b86f0eb4e2bd23876318",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Files/document create, version, reload, download/export and exact-link browser fixtures; local PostgreSQL metadata policies. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
-      "deployment_dependencies": [],
+      "deployment_dependencies": [
+        "Verified EYLO Supabase project and reviewed migrations"
+      ],
       "known_blockers": [
-        "Acceptance criteria and full product workflow still incomplete"
+        "Acceptance criteria and full product workflow still incomplete",
+        "Authorized staging access and test accounts missing"
       ]
     },
     {
@@ -718,14 +824,17 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: Pitch Deck authoring/export exists; a general editable presentation workspace is not complete. Next: verify PPTX export and round-trip editing.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
+      "implementation_commit": "58b859b236d09204ecb405a16faeb84407051995",
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -751,9 +860,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -800,7 +911,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -809,10 +921,12 @@
       "automated_test_files": [
         "tests/universal-search.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: bounded server-side, permission-aware search for supported workspace sources with pagination and exact-result links. Next: expand supported sources and verify authorization/scale in staging.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "824127409bbb3415a5c72341a6d5d0f807307492",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -836,9 +950,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -881,16 +997,19 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
       "automated_test_files": [
         "tests/research-knowledge-graph.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: research-paper/concept graph exists; it does not yet connect all authorized EYLO record types. Next: add cross-product records with exact source links and permissions.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "d83205120f94c9cf4ae06ef8359830eade96660a",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -930,7 +1049,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -944,9 +1064,11 @@
         "tests/eyra-boundaries.test.mjs",
         "tests/eyra-project-tools.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "FOUNDATION in main: EYRA tool/workflow foundations exist; durable authorized agent execution, cancellation and verified completion are not established. Next: build persisted runs with scoped approvals and audit outcomes.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "b599f84a559984dab2c69674af6a12e49938ff49",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -972,9 +1094,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1017,9 +1141,11 @@
         "tests/monitor-source-failure.test.mjs",
         "tests/scheduled-monitoring.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "FOUNDATION in main: server-side scheduled monitoring exists; user-defined workflow scheduling, retries, cancellation and history are absent. Next: add durable user-owned jobs with idempotency and failure states.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "9e60c9217d0518fd3b820f5a6e871a20ea23d875",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1074,9 +1200,11 @@
         "tests/monitor-source-failure.test.mjs",
         "tests/private-radar-cache.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: scholarly watchlists and scheduled source monitoring exist; alert coverage and user controls need verification. Next: validate source deduplication, persistence and delivery.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "9e60c9217d0518fd3b820f5a6e871a20ea23d875",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1111,9 +1239,11 @@
       "authentication": "Public and/or protected shared surface; see route guards",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: voice workspace exists; provider readiness, consent and persistent audio workflows require verification. Next: validate enabled speech services and accessible transcripts.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
+      "implementation_commit": "3d479be3c59e19993b1ab12ea768365123b2016f",
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1141,9 +1271,11 @@
       "automated_test_files": [
         "tests/profile-merge.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: supported CV/file parsing exists; no universal preview/mapping/rollback import flow. Next: build format validation and import history.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "85b1560fd2a4787e53e83afb3ec2d0d791909333",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1176,9 +1308,11 @@
         "tests/citation-verification.test.mjs",
         "tests/evidence-verification.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: citation/reference validation and source provenance checks exist; this is not general truth verification. Next: add claim-to-source comparison and human review.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "eb95aa32093cc64dbe437f9adc18c707be5677e4",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1222,7 +1356,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -1236,9 +1371,11 @@
         "tests/citation-export.test.mjs",
         "tests/workspace-export.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: bibliography, local CSV and workspace JSON exports exist; format coverage and integrity remain incomplete. Next: validate supported DOCX/PDF/PPTX/XLSX exports and formula-safe handling.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "9568258dcb23717da3e44ddcc55ade7a6b0ffdfb",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1263,9 +1400,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1280,6 +1419,7 @@
       "status": "Partially implemented",
       "tracker_statement": "PARTIAL in main: meetings, project links and action/follow-up records exist; transcription/recording require configured consent and provider verification. Next: validate the complete authorized meeting journey.",
       "source_files": [
+        "src/components/meetings/MeetingRoom.jsx",
         "src/lib/meetings-e2e-target.mjs",
         "src/pages/Meetings.jsx"
       ],
@@ -1316,9 +1456,11 @@
         "tests/meetings-e2e-target.test.mjs",
         "tests/supervisor-meetings.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: meetings, project links and action/follow-up records exist; transcription/recording require configured consent and provider verification. Next: validate the complete authorized meeting journey.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "3e9cac90bc49044079024cd10b078159ded09c0e",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1344,9 +1486,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1368,9 +1512,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1440,9 +1586,11 @@
         "tests/scholarly-provider-backoff.test.mjs",
         "tests/scholarly-work-attribution.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: live scholarly and opportunity discovery routes exist; recommendations remain source-limited. Next: improve transparent relevance and coverage.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "01f4d22b11220265ff44bca2ccb89c40c09223af",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1468,9 +1616,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1505,10 +1655,12 @@
       "automated_test_files": [
         "tests/activity-history.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: metadata-only owner-scoped records for supported writes; coverage is not a complete security audit trail. Next: verify transactional event coverage and retention in staging.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "aafb9d70dd619f292979918eb7afb6a0c1027021",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -1532,9 +1684,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1568,9 +1722,11 @@
         "tests/deployment-status.test.mjs",
         "tests/service-status-deployment.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: service status reporting exists, but it does not verify every dependency or operational readiness. Next: replace hardcoded/partial states with real dependency checks and staging verification.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "ee4c66d68e2bedb6dca398263c5c8d4d9323e22b",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1613,9 +1769,11 @@
       "automated_test_files": [
         "tests/notes-workspace.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main for Notes: autosave, session recovery, versioning and conflict protection; no shared save service for all products. Next: exercise reload/network/conflict flows in staging and add other editors only with recovery guarantees.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "b604c1f42b9b92d7da2660c33029f2be9dec02ab",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1640,9 +1798,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1664,9 +1824,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1703,9 +1865,11 @@
       "automated_test_files": [
         "tests/e2e-auth.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: shared keyboard/focus/label patterns and baseline checks exist; WCAG 2.2 AA is not verified. Next: audit representative desktop and mobile journeys.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "157e691e90fa8d27656f12982659d9f2606773fc",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1737,9 +1901,11 @@
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: account/profile onboarding exists; goal-personalized first-task activation is not complete. Next: add user-selected goals and progress to a first real task.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
+      "implementation_commit": "dcc38409ec1762bcaaa42d5f3acaad1840ef59fd",
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1764,9 +1930,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1803,7 +1971,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -1817,9 +1986,11 @@
         "tests/eyra-project-tools.test.mjs",
         "tests/eyra-tool-action-ui.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: global EYRA command surface exists; cross-product execution tracking and verified outcomes remain incomplete. Next: expose authorized tool runs and completion evidence.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "b599f84a559984dab2c69674af6a12e49938ff49",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1863,7 +2034,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -1877,9 +2049,11 @@
       "automated_test_files": [
         "tests/evidence-matrix.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: project evidence matrix and source-linked records exist; no append-only claim/evidence ledger. Next: add traceable claims and contradictory-source review.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1916,16 +2090,19 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
       "automated_test_files": [
         "tests/reproducibility-review.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: project protocol/provenance review exists; it does not capture a full software/data environment or reproduce analyses. Next: extend traceable protocol, analysis and environment records.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "a6f4c9f018fbb61c6eaebca9662bbf479d409dd8",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1977,7 +2154,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -1990,9 +2168,11 @@
         "tests/researcher-shortlist.test.mjs",
         "tests/supervisor-meetings.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: researcher matching/discovery exists; availability and willingness are not verified. Next: retain only public evidence and state matching limits.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "00beec020f22ffe06f1cba39ac75e6beba6e19df",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2036,7 +2216,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2051,9 +2232,11 @@
         "tests/project-eyra-evidence.test.mjs",
         "tests/project-eyra-provenance.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: EYRA and project writing assistance exist; complete source-grounded drafting/revision workflow is unverified. Next: add citation-linked editing with provenance and export.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2079,9 +2262,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2103,9 +2288,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2145,7 +2332,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2167,12 +2355,15 @@
         "tests/project-planner-ui.test.mjs",
         "tests/project-tasks.test.mjs",
         "tests/project-versioned-saves.test.mjs",
+        "tests/project-workplan.test.mjs",
         "tests/projects-loading-vs-create-error.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: project-linked EYRA analysis, milestones and evidence exist; progress and risks are not fully verified. Next: ground summaries in recorded data and show evidence links/limits.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Project workplan subset: browser persistence/conflict fixtures and independent local PostgreSQL compare-and-set sessions. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -2213,7 +2404,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2235,12 +2427,15 @@
         "tests/project-planner-ui.test.mjs",
         "tests/project-tasks.test.mjs",
         "tests/project-versioned-saves.test.mjs",
+        "tests/project-workplan.test.mjs",
         "tests/projects-loading-vs-create-error.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: project timeline surface and saved dates exist; it is not a cross-workspace knowledge history. Next: connect source records and decision history with provenance.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Project workplan subset: browser persistence/conflict fixtures and independent local PostgreSQL compare-and-set sessions. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -2281,16 +2476,19 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
       "automated_test_files": [
         "tests/decision-workspace.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in draft PR #397: project-scoped alternatives, criteria, sources, choice, rationale, review date and outcome with compare-and-set saves. No score is fabricated. Next: staging persistence, concurrency, permission and mobile acceptance.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "3b40488e706728773a4282d27c203e2738f640a6",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2338,7 +2536,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2360,11 +2559,14 @@
         "tests/project-planner-ui.test.mjs",
         "tests/project-tasks.test.mjs",
         "tests/project-versioned-saves.test.mjs",
+        "tests/project-workplan.test.mjs",
         "tests/projects-loading-vs-create-error.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: project startup/product concept tooling exists; commercial validation is not established. Next: tie problem and experiment planning to recorded evidence.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2419,7 +2621,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2442,9 +2645,11 @@
         "tests/research-gap-context.test.mjs",
         "tests/research-gap-project-flow.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: source-backed scholarly retrieval, saved papers and project-linked analysis exist; coverage and scientific conclusions remain bounded by retrieved records. Next: add monitored comparisons with explicit source provenance and failure states.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "01f4d22b11220265ff44bca2ccb89c40c09223af",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2470,9 +2675,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2494,9 +2701,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2518,9 +2727,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2563,7 +2774,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2574,9 +2786,11 @@
         "tests/literature-review-methods-audit.test.mjs",
         "tests/literature-review-protocol.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: protocol and screening workflows exist; completeness and PRISMA compliance are not claimed. Next: verify search/import/dedup/screening and evidence extraction in staging.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "65eea849843a94e7e53257a6a459bf0cf041f769",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2622,9 +2836,11 @@
       "automated_test_files": [
         "tests/research-knowledge-graph.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: research knowledge graph and citation metadata paths exist; coverage gaps remain. Next: validate provider identity and expose citation coverage limits.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "d83205120f94c9cf4ae06ef8359830eade96660a",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2650,9 +2866,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2686,15 +2904,18 @@
         387
       ],
       "automated_test_files": [
+        "tests/research-data-comparison.test.mjs",
         "tests/research-data-provenance.test.mjs",
         "tests/research-data-quality-ui.test.mjs",
         "tests/research-data-quality.test.mjs",
         "tests/research-data.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: Research Data Lab plots local user datasets; it is not a general editable figure editor. Next: validate units, labels, calculations and export integrity.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "45f16d5eccee7e6c0012fbea04c7fec8f24e5385",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Local Data Lab/catalog subset: browser analysis, export, disclosure and account-scoped metadata fixtures. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [],
@@ -2715,9 +2936,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2772,9 +2995,11 @@
       "automated_test_files": [
         "tests/supervisor-meetings.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: supervisor discovery and meeting planning exist; secure review/version workflow is absent. Next: add role-bound feedback and revision states.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "3e9cac90bc49044079024cd10b078159ded09c0e",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2800,9 +3025,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2824,9 +3051,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2848,9 +3077,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2872,9 +3103,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2908,15 +3141,18 @@
         387
       ],
       "automated_test_files": [
+        "tests/research-data-comparison.test.mjs",
         "tests/research-data-provenance.test.mjs",
         "tests/research-data-quality-ui.test.mjs",
         "tests/research-data-quality.test.mjs",
         "tests/research-data.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: local Research Data Lab can analyze user-provided numeric data; survey-specific privacy/statistics workflows are absent. Next: validate authorized survey data handling and disclosure safeguards.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "45f16d5eccee7e6c0012fbea04c7fec8f24e5385",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Local Data Lab/catalog subset: browser analysis, export, disclosure and account-scoped metadata fixtures. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [],
@@ -2927,9 +3163,10 @@
     {
       "id": 73,
       "name": "Data Catalog",
-      "status": "PR-only",
+      "status": "Partially implemented",
       "tracker_statement": "NOT_STARTED on main; metadata-only local catalog is PR-only in #387. Next: review privacy and storage behavior, then integrate without uploading raw Data Lab contents.",
       "source_files": [
+        "src/lib/research-catalog.mjs",
         "src/pages/ResearchDataLab.jsx"
       ],
       "frontend_routes": [
@@ -2945,11 +3182,15 @@
       "open_prs": [
         387
       ],
-      "automated_test_files": [],
+      "automated_test_files": [
+        "tests/research-catalog.test.mjs"
+      ],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED on main; metadata-only local catalog is PR-only in #387. Next: review privacy and storage behavior, then integrate without uploading raw Data Lab contents.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "No dedicated test evidence mapped",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "45f16d5eccee7e6c0012fbea04c7fec8f24e5385",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Local Data Lab/catalog subset: browser analysis, export, disclosure and account-scoped metadata fixtures. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [],
@@ -2981,7 +3222,8 @@
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -2996,12 +3238,15 @@
         "tests/project-planner-ui.test.mjs",
         "tests/project-tasks.test.mjs",
         "tests/project-versioned-saves.test.mjs",
+        "tests/project-workplan.test.mjs",
         "tests/projects-loading-vs-create-error.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: project templates create project drafts; broader linked-task/workflow creation remains. Next: validate resulting records and permissions.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
-      "integration_test_status": "Not independently verified per product",
+      "implementation_commit": "55a00ff0d935dd849a1546c7464d38f613cfa0ca",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+      "integration_test_status": "Partial local verification: Project workplan subset: browser persistence/conflict fixtures and independent local PostgreSQL compare-and-set sessions. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -3027,9 +3272,11 @@
         391
       ],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED on main; implementation proposal is PR-only in #391. Next: review shared entity contracts, then integrate persisted entries and export.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3051,9 +3298,11 @@
       "authentication": "Not implemented on baseline",
       "open_prs": [],
       "automated_test_files": [],
+      "user_workflow_and_remaining_acceptance": "NOT_STARTED \u2014 define the core workflow, data/security model, tests, and dependencies before implementation.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": null,
       "automated_test_status": "No dedicated test evidence mapped",
+      "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3094,9 +3343,11 @@
       "automated_test_files": [
         "tests/analytics-availability.test.mjs"
       ],
+      "user_workflow_and_remaining_acceptance": "PARTIAL in main: institutional analytics/admin surface exists; organization membership, delegated roles and privacy boundaries remain incomplete. Next: enforce institution roles without exposing personal records.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-      "automated_test_status": "Baseline suite passed (491 tests); file mapping is not product acceptance",
+      "implementation_commit": "836ae95d4511b46f01a89d2d3c6ee4266cbaea78",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",

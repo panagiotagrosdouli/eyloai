@@ -14,7 +14,7 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 4||||
 5||||
 6|Notifications|notifications||scheduled-monitoring
-7|Home,WorkspaceOverview|projects,notes,life_tasks,calendar_events,study_flashcard_decks,activity_events||
+7|Home,PersonalizedDashboard|projects,notes,life_tasks,calendar_events,study_flashcard_decks,activity_events||
 8|Learn,LearningWorkspace|||learn,learning-workspace
 9|StudyPlanner|notes,calendar_events||notes-workspace
 10|Flashcards|study_flashcard_decks||flashcards-workspace
@@ -40,7 +40,7 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 30|citation-verification,evidence-verification||eyra|citation-verification,evidence-verification
 31|workspace-export,Settings|profiles,projects,saved_papers||workspace-export,citation-export
 32||||
-33|Meetings,NativeMeeting|meetings,meeting_participants|meeting-room|meeting,supervisor-meetings
+33|Meetings,MeetingRoom|meetings,meeting_participants|meeting-room|meeting,supervisor-meetings
 34||||
 35||||
 36|PublicDiscovery,ForYou,Home|saved_papers|discovery,opportunities|discovery,arxiv,scholarly
@@ -102,6 +102,15 @@ def main():
             if re.search(r'<' + component + r'(?:\s|/|>)', element):
                 route_map.append((path, source.replace('@/', 'src/') + '.jsx'))
     products = []
+    verification_path = ROOT / 'docs/integration/verification.json'
+    verification = json.loads(verification_path.read_text()) if verification_path.exists() else {}
+    suite = verification.get('local_checks', {}).get('npm_run_check', {})
+    workflow_evidence = {
+        **{i: 'Files/document create, version, reload, download/export and exact-link browser fixtures; local PostgreSQL metadata policies' for i in (16, 17, 18)},
+        **{i: 'Project workplan subset: browser persistence/conflict fixtures and independent local PostgreSQL compare-and-set sessions' for i in (54, 55, 74)},
+        **{i: 'Local Data Lab/catalog subset: browser analysis, export, disclosure and account-scoped metadata fixtures' for i in (65, 72, 73)},
+        **{i: 'Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities' for i in (1, 2, 3, 9, 10, 21, 38)},
+    }
     for line in MAP.splitlines():
         raw_id, stems, tables, apis, test_stems = line.split('|')
         i = int(raw_id)
@@ -113,8 +122,8 @@ def main():
         tests = [p for p in tracked if p.startswith('tests/') and any(Path(p).stem.startswith(s) for s in test_stems.split(',') if s)] if files else []
         endpoints = [f'api/{a.strip()}.js' for a in apis.split(',') if a.strip() and f'api/{a.strip()}.js' in tracked] if files else []
         related_prs = [p['number'] for p in prs if any(f in p['changed_files'] for f in files) or any(Path(f).stem.lower().startswith(s.lower()) for f in p['changed_files'] if f.startswith('src/') for s in stems)]
-        if i in (8, 11, 16, 17, 18, 75) and not files:
-            status = 'PR-only' if related_prs else 'Not implemented'
+        if i in (8, 11, 16, 17, 18, 75):
+            status = 'Partially implemented' if files else ('PR-only' if related_prs else 'Not implemented')
         elif 'NOT_STARTED' in declared and i != 73:
             status = 'Not implemented'
         elif i == 73 and not any('research-catalog' in p for p in files):
@@ -130,10 +139,12 @@ def main():
             'supabase_entities': tables if files else [], 'migration_files': migrations,
             'authentication': 'Supabase authenticated owner scope; live RLS unverified' if files and tables else ('Public and/or protected shared surface; see route guards' if files else 'Not implemented on baseline'),
             'open_prs': related_prs, 'automated_test_files': tests,
+            'user_workflow_and_remaining_acceptance': declared,
             'workflow_acceptance': 'Not established; tracker statement describes remaining work',
-            'implementation_commit': BASE if files else None,
-            'automated_test_status': 'Baseline suite passed (491 tests); file mapping is not product acceptance' if tests else 'No dedicated test evidence mapped',
-            'integration_test_status': 'Not independently verified per product',
+            'implementation_commit': git('log', '-1', '--format=%H', '--', *files) if files else None,
+            'automated_test_status': f"Combined suite {suite.get('status', 'baseline PASS')}: {suite.get('tests', 491)} tests; mapped file presence is not full product acceptance" if tests else 'No dedicated test evidence mapped',
+            'automated_test_source_commit': verification.get('tested_source_commit', BASE) if tests else None,
+            'integration_test_status': ('Partial local verification: ' + workflow_evidence[i] + '. Remaining product criteria unverified.') if i in workflow_evidence else 'Not independently verified per product',
             'staging_verification': 'NOT_RUN: intended EYLO staging is not connected',
             'production_verification': 'NOT_RUN: deployment identity not verified',
             'deployment_dependencies': (['Verified EYLO Supabase project and reviewed migrations'] if files and tables else []) + (['Configured serverless API/providers: ' + ', '.join(endpoints)] if endpoints else []),
@@ -141,7 +152,7 @@ def main():
         })
     assert sorted(rows) == list(range(1, 78))
     assert [p['id'] for p in products] == list(range(1, 78))
-    result = {'schema_version': 1, 'baseline_commit': BASE, 'inventory_method': 'Explicit tracker ID mapping to tracked source files, route declarations, table references in migrations, tests, and all 65 open PR diffs. Related source presence is not implementation verification. Shared surfaces may support several partial products.', 'products': products}
+    result = {'schema_version': 1, 'baseline_commit': BASE, 'inventory_commit': git('rev-parse', 'HEAD'), 'scope': 'Integration candidate branch, not current main or deployed product', 'intended_eylo_supabase_ref': 'kbzjngpzxpniaumlupaa', 'live_access': 'Owner identified this ref; connector permission denied. Repository guards it as live EYLO. Separate staging identity remains required.', 'inventory_method': 'Explicit tracker ID mapping to tracked source files, route declarations, table references in migrations, tests, and all 65 open PR diffs. Related source presence is not implementation verification. Shared surfaces may support several partial products. See verification.json for subsequent combined-suite results; those do not establish per-product acceptance.', 'products': products}
     (ROOT / 'docs/integration/product-matrix.json').write_text(json.dumps(result, indent=2) + '\n')
     print(f'Inventoried {len(products)} products against {len(prs)} open PRs')
 
