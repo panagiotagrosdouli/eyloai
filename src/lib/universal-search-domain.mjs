@@ -1,7 +1,7 @@
 const SOURCE_CONFIG = Object.freeze({
   Project: { label: 'Projects', href: item => `/projects/${encodeURIComponent(item.id)}`, fields: ['title', 'description'] },
   Note: { label: 'Notes', href: item => `/notes?focus=${encodeURIComponent(item.id)}`, fields: ['title', 'content'] },
-  LifeTask: { label: 'Tasks and study plan', href: item => `${item.area === 'study' ? '/study-planner' : '/life'}?focus=${encodeURIComponent(item.id)}`, fields: ['title', 'description', 'course', 'syllabus_item'] },
+  LifeTask: { label: 'Tasks and study plan', href: item => `/life?focus=${encodeURIComponent(item.id)}`, fields: ['title', 'description', 'course', 'syllabus_item'] },
   LifeGoal: { label: 'Goals', href: item => `/life/goals?focus=${encodeURIComponent(item.id)}`, fields: ['title', 'description'] },
   FlashcardDeck: { label: 'Flashcards', href: item => `/flashcards?focus=${encodeURIComponent(item.id)}`, fields: ['title', 'description', 'course'] },
   CalendarEvent: { label: 'Calendar', href: item => `/calendar?focus=${encodeURIComponent(item.id)}`, fields: ['title', 'description', 'project_title'] },
