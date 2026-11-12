@@ -57,64 +57,64 @@ NOTICE:  policy "EYLO file owner can upload objects" for relation "storage.objec
 NOTICE:  policy "EYLO file owner can delete objects" for relation "storage.objects" does not exist, skipping
 APPLIED locally: 20261112190430_eylo_files.sql
 APPLIED locally: 20261112200000_private_file_search.sql
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
 PASS: two independent PostgreSQL sessions competing on one project version return one save and one conflict.

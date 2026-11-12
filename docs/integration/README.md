@@ -15,7 +15,7 @@ The candidate integrates private Files/Create/Document Editor (#395), project wo
 
 ## Verification
 
-Machine-readable results and their scopes are in [verification.json](verification.json). Genuine run output is preserved under [evidence](evidence).
+Machine-readable results and their scopes are in [verification.json](verification.json). Genuine run output is preserved under [evidence](evidence), with trailing whitespace normalized.
 
 | Check | Result | Scope |
 | --- | --- | --- |

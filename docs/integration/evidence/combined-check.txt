@@ -291,7 +291,7 @@ EYRA auth rejected { reason: 'supabase_user_rejected', status: 401 }
 ✔ meeting cards use keyboard-operable controls and keep meeting links outside the details button (0.472648ms)
 ✔ new meeting flows create native rooms and historical external links remain available (1.036491ms)
 Deprecation warning: value provided is not in a recognized RFC2822 or ISO format. moment construction falls back to js Date(), which is not reliable across all browsers and versions. Non RFC2822/ISO date formats are discouraged. Please refer to http://momentjs.com/guides/#/warnings/js-date/ for more info.
-Arguments: 
+Arguments:
 [0] _isAMomentObject: true, _isUTC: false, _useUTC: false, _l: undefined, _i: not-a-date, _f: undefined, _strict: undefined, _locale: [object Object]
 Error
     at hooks.createFromInputFallback (/workspace/work/eyloai/node_modules/moment/moment.js:326:25)
@@ -645,10 +645,10 @@ node_modules/zod/v4/core/util.js (400:0): A comment
 in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
 ✓ 3230 modules transformed.
 rendering chunks...
-[plugin vite:reporter] 
+[plugin vite:reporter]
 (!) /workspace/work/eyloai/src/lib/supabaseClient.js is dynamically imported by /workspace/work/eyloai/src/lib/AuthContext.jsx but also statically imported by /workspace/work/eyloai/src/components/meetings/MeetingRoom.jsx, /workspace/work/eyloai/src/lib/billing.js, /workspace/work/eyloai/src/lib/eyra-intelligence.js, /workspace/work/eyloai/src/lib/eyra-monitor.js, /workspace/work/eyloai/src/lib/monitoring-service.js, /workspace/work/eyloai/src/lib/protected-api.js, /workspace/work/eyloai/src/lib/second-brain.js, /workspace/work/eyloai/src/lib/supabase/auth.js, /workspace/work/eyloai/src/pages/DocumentEditor.jsx, /workspace/work/eyloai/src/pages/EyloFiles.jsx, /workspace/work/eyloai/src/pages/Meetings.jsx, /workspace/work/eyloai/src/pages/Settings.jsx, /workspace/work/eyloai/src/services/supabase-entities.js, /workspace/work/eyloai/src/services/universal-search.js, dynamic import will not move module into another chunk.
 
-[plugin vite:reporter] 
+[plugin vite:reporter]
 (!) /workspace/work/eyloai/src/lib/supabase/auth.js is dynamically imported by /workspace/work/eyloai/src/lib/AuthContext.jsx but also statically imported by /workspace/work/eyloai/src/pages/AuthCallback.jsx, dynamic import will not move module into another chunk.
 
 computing gzip size...
