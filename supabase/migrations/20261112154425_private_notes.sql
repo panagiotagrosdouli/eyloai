@@ -11,6 +11,9 @@ create table if not exists public.notes (
   constraint notes_tags_array check (not (data ? 'tags') or jsonb_typeof(data -> 'tags') is not distinct from 'array')
 );
 
+create schema if not exists private;
+revoke all on schema private from public, anon, authenticated;
+
 create index if not exists notes_user_updated_idx on public.notes (user_id, updated_date desc);
 create index if not exists notes_tags_idx on public.notes using gin ((data -> 'tags'));
 create index if not exists notes_search_idx on public.notes using gin (
@@ -47,7 +50,7 @@ revoke all on public.note_versions from anon;
 revoke insert, update, delete on public.note_versions from anon, authenticated;
 grant select on public.note_versions to authenticated;
 
-create or replace function public.capture_note_version()
+create or replace function private.capture_note_version()
 returns trigger
 language plpgsql
 security definer
@@ -56,6 +59,9 @@ as $$
 declare
   project_text text;
 begin
+  if (select auth.uid()) is distinct from new.user_id then
+    raise exception 'Note owner does not match the authenticated user' using errcode = '42501';
+  end if;
   if tg_op = 'UPDATE' and old.user_id <> new.user_id then
     raise exception 'Note owner cannot be changed' using errcode = '42501';
   end if;
@@ -114,13 +120,13 @@ $$;
 
 drop trigger if exists notes_capture_version on public.notes;
 create trigger notes_capture_version before insert or update on public.notes
-  for each row execute function public.capture_note_version();
-revoke all on function public.capture_note_version() from public, anon, authenticated;
+  for each row execute function private.capture_note_version();
+revoke all on function private.capture_note_version() from public, anon, authenticated;
 
-create or replace function public.unlink_deleted_project_notes()
+create or replace function private.unlink_deleted_project_notes()
 returns trigger
 language plpgsql
-security definer
+security invoker
 set search_path = ''
 as $$
 begin
@@ -134,8 +140,8 @@ $$;
 
 drop trigger if exists projects_unlink_deleted_notes on public.projects;
 create trigger projects_unlink_deleted_notes after delete on public.projects
-  for each row execute function public.unlink_deleted_project_notes();
-revoke all on function public.unlink_deleted_project_notes() from public, anon, authenticated;
+  for each row execute function private.unlink_deleted_project_notes();
+revoke all on function private.unlink_deleted_project_notes() from public, anon, authenticated;
 
 create or replace function public.search_notes(search_query text, result_limit integer default 100)
 returns setof public.notes
