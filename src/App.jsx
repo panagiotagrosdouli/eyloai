@@ -27,6 +27,7 @@ const PageNotFound = lazy(() => import('./lib/PageNotFound'));
 const Home = lazy(() => import('@/pages/Home'));
 const Library = lazy(() => import('@/pages/Library'));
 const EyloFiles = lazy(() => import('@/pages/EyloFiles'));
+const DocumentEditor = lazy(() => import('@/pages/DocumentEditor'));
 const ResearchGaps = lazy(() => import('@/pages/ResearchGaps'));
 const LiteratureReview = lazy(() => import('@/pages/LiteratureReview'));
 const Projects = lazy(() => import('@/pages/Projects'));
@@ -100,6 +101,8 @@ const AuthenticatedApp = () => {
           <Route path="/search" element={<Home searchOnly />} />
           <Route path="/library" element={<Library />} />
           <Route path="/files" element={<EyloFiles />} />
+          <Route path="/documents/new" element={<DocumentEditor />} />
+          <Route path="/documents/:id" element={<DocumentEditor />} />
           <Route path="/research-gaps" element={<ResearchGaps />} />
           <Route path="/literature-review" element={<LiteratureReview />} />
           <Route path="/labs/data" element={<ResearchDataLab />} />
