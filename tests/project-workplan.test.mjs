@@ -36,6 +36,9 @@ test('progress reflects only completed tasks and prerequisites reflect dependenc
   assert.deepEqual(getWorkplanProgress(items), { total: 2, done: 1, percent: 50 });
   assert.equal(canStartWorkplanTask(items[1], items), true);
   assert.equal(canStartWorkplanTask(items[1], [{ ...items[0], status: 'in_progress' }, items[1]]), false);
+  const reopenedPrerequisite = [{ ...items[0], status: 'todo' }, { ...items[1], status: 'done' }];
+  assert.equal(canStartWorkplanTask(reopenedPrerequisite[1], reopenedPrerequisite), false);
+  assert.match(validateWorkplan(reopenedPrerequisite).message, /prerequisites completed/i);
   assert.deepEqual(getWorkplanProgress([]), { total: 0, done: 0, percent: 0 });
 });
 
