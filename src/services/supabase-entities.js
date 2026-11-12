@@ -1,5 +1,6 @@
 import { getBillingStatus } from '@/lib/billing';
 import { mergeWorkspaceProfile, assertCanonicalProfileWrite } from '@/lib/profile-merge.mjs';
+import { requireEntityVersion, requireVersionedWriteResult } from '@/lib/entity-optimistic-version.mjs';
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 import { recordActivation, trackEyraFollowthrough } from '@/lib/product-analytics';
 import { applyEntityFilters, rowToEntity, splitPayload } from './entity-serialization';
@@ -140,6 +141,28 @@ function entityRepository({ table }) {
         trackEyraFollowthrough('project');
       }
       return rowToEntity(data);
+    },
+    /**
+     * Opt-in compare-and-set update for documents with concurrent editors.
+     * Keep the original full update API for unrelated existing workflows.
+     */
+    async updateIfUnchanged(entityId, patch, expectedUpdatedDate) {
+      const version = requireEntityVersion(expectedUpdatedDate);
+      const user = await currentUser();
+      const existing = await this.get(entityId);
+      const { id: _id, created_date: _created, updated_date: _updated, ...current } = existing;
+      const write = splitPayload({ ...current, ...patch });
+      const result = await requireSupabase().from(table).update(write)
+        .eq('id', entityId)
+        .eq('user_id', user.id)
+        .eq('updated_date', version)
+        .select('*')
+        .maybeSingle();
+      const row = requireVersionedWriteResult(result);
+      if (table === 'projects' && containsSavedEyraOutput(patch)) {
+        trackEyraFollowthrough('project');
+      }
+      return rowToEntity(row);
     },
     async delete(entityId) {
       const user = await currentUser();
