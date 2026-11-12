@@ -61,6 +61,6 @@ export async function saveResearchGapCandidate({ entities, projectId, gap, selec
   const key = entry => `${bounded(entry?.question, 500).toLowerCase()}|${(entry?.selected_source_ids || []).slice().sort().join(',')}`;
   if (saved.some(entry => key(entry) === key(candidate))) return { status: 'already_saved', count: saved.length };
   if (saved.length >= 20) throw new Error('This project has reached its 20-candidate review limit.');
-  await entities.Project.update(projectId, { gap_candidates: [...saved, candidate] });
+  await entities.Project.updateIfUnchanged(projectId, { gap_candidates: [...saved, candidate] }, project.updated_date);
   return { status: 'saved', count: saved.length + 1 };
 }

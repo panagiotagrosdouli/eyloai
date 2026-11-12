@@ -37,7 +37,7 @@ export async function reviewSavedGapCandidate({ entities, projectId, index, expe
     reviewer_note: reviewNote,
     reviewed_at: reviewedAt,
   };
-  const saved = await entities.Project.update(projectId, { gap_candidates: candidates });
+  const saved = await entities.Project.updateIfUnchanged(projectId, { gap_candidates: candidates }, project.updated_date);
   return saved;
 }
 export async function removeSavedGapCandidate({ entities, projectId, index, expected }) {
@@ -45,5 +45,5 @@ export async function removeSavedGapCandidate({ entities, projectId, index, expe
   assertProject(project, projectId);
   assertCandidate(project.gap_candidates, index, expected);
   const candidates = project.gap_candidates.filter((_, i) => i !== index);
-  return entities.Project.update(projectId, { gap_candidates: candidates });
+  return entities.Project.updateIfUnchanged(projectId, { gap_candidates: candidates }, project.updated_date);
 }
