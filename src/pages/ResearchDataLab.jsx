@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BarChart3, Download, FileSpreadsheet, LockKeyhole, RotateCcw, Upload } from 'lucide-react';
 import {
   DATA_LAB_LIMITS,
+  compareResearchNumericColumns,
   exportResearchDataSummaryCsv,
   getResearchDataChartRows,
   parseResearchCsv,
@@ -42,6 +43,19 @@ export default function ResearchDataLab() {
   const summaries = useMemo(() => summarizeResearchData(dataset), [dataset]);
   const quality = useMemo(() => dataset ? auditResearchDataQuality(dataset) : null, [dataset]);
   const numericColumns = summaries.filter((summary) => summary.type === 'numeric').map((summary) => summary.column);
+  const [comparisonColumns, setComparisonColumns] = useState([]);
+  const selectedComparisonColumns = [
+    numericColumns.includes(comparisonColumns[0]) ? comparisonColumns[0] : numericColumns[0] || '',
+    numericColumns.includes(comparisonColumns[1]) && comparisonColumns[1] !== (numericColumns.includes(comparisonColumns[0]) ? comparisonColumns[0] : numericColumns[0])
+      ? comparisonColumns[1]
+      : numericColumns.find((column) => column !== (numericColumns.includes(comparisonColumns[0]) ? comparisonColumns[0] : numericColumns[0])) || '',
+  ];
+  const comparison = useMemo(
+    () => selectedComparisonColumns.every(Boolean)
+      ? compareResearchNumericColumns(dataset, ...selectedComparisonColumns)
+      : null,
+    [dataset, selectedComparisonColumns[0], selectedComparisonColumns[1]],
+  );
   const selectedChartColumn = numericColumns.includes(chartColumn) ? chartColumn : numericColumns[0] || '';
   const chartRows = useMemo(
     () => getResearchDataChartRows(dataset, selectedChartColumn),
@@ -284,6 +298,59 @@ export default function ResearchDataLab() {
               <p className="mt-3 text-xs text-muted-foreground">{quality.disclaimer} The JSON export includes column names and aggregates but no raw dataset rows.</p>
             </section>
           )}
+
+          <section className="rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="comparison-title">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 id="comparison-title" className="text-lg font-semibold">Compare numeric variables</h2>
+                <p className="mt-1 max-w-3xl text-sm text-muted-foreground">Review the pairwise linear association using rows with values in both columns. This descriptive result does not adjust for other variables.</p>
+              </div>
+              {numericColumns.length >= 2 && (
+                <div className="flex flex-wrap gap-3">
+                  {[0, 1].map((index) => (
+                    <label key={index} className="grid gap-1 text-xs font-medium text-muted-foreground">
+                      Variable {index + 1}
+                      <select
+                        aria-label={`Comparison variable ${index + 1}`}
+                        value={selectedComparisonColumns[index]}
+                        onChange={(event) => setComparisonColumns((current) => {
+                          const next = [...selectedComparisonColumns];
+                          next[index] = event.target.value;
+                          return next;
+                        })}
+                        className="min-h-10 min-w-40 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+                      >
+                        {numericColumns.filter((column) => column === selectedComparisonColumns[index] || column !== selectedComparisonColumns[1 - index]).map((column) => (
+                          <option key={column} value={column}>{column}</option>
+                        ))}
+                      </select>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+            {numericColumns.length < 2 ? (
+              <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">At least two numeric columns are needed for comparison.</p>
+            ) : comparison?.available ? (
+              <div className="mt-4 grid gap-3 sm:grid-cols-3" role="status" aria-live="polite">
+                <div className="rounded-lg border border-border p-4">
+                  <p className="text-xs text-muted-foreground">Pearson correlation, r</p>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums">{numberFormat.format(comparison.pearsonR)}</p>
+                </div>
+                <div className="rounded-lg border border-border p-4">
+                  <p className="text-xs text-muted-foreground">Complete pairs used</p>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums">{numberFormat.format(comparison.pairs)}</p>
+                </div>
+                <div className="rounded-lg border border-border p-4">
+                  <p className="text-xs text-muted-foreground">Rows skipped for blanks or non-numeric cells</p>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums">{numberFormat.format(comparison.incomplete)}</p>
+                </div>
+                <p className="text-xs leading-5 text-muted-foreground sm:col-span-3">Pearson r summarizes linear co-variation in these complete pairs. It does not establish causation, statistical significance, or representativeness beyond this file.</p>
+              </div>
+            ) : (
+              <p role="status" className="mt-4 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">{comparison?.reason || 'Choose two numeric columns.'}</p>
+            )}
+          </section>
 
           <section className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]">
             <div className="rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="chart-title">
