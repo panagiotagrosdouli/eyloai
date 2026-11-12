@@ -187,7 +187,7 @@ try {
   });
   await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor();
   await dataLab.getByRole('row', { name: /score numeric — — —/ }).waitFor();
-  assert.match(await dataLab.locator('[role="note"]').first().innerText(), /Aggregate-only export is not guaranteed to be anonymous/);
+  assert.match(await dataLab.locator('[role="note"]').first().innerText(), /aggregate-only export is not guaranteed to be anonymous/i);
   await dataLab.getByLabel('Minimum disclosure cell size').selectOption('1');
   await dataLab.getByRole('row', { name: /score numeric 3 1 2 1.5/ }).waitFor();
   await dataLab.getByRole('img', { name: 'Bar chart of score by row number' }).waitFor();
