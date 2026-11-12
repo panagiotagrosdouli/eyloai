@@ -4,6 +4,7 @@ import { once } from 'node:events';
 import { createHash } from 'node:crypto';
 import { readFile as readDataLabDownload } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { parseResearchCsv } from '../src/lib/research-data.mjs';
 
 const baseUrl = 'http://127.0.0.1:4173';
 const server = spawn('npx', ['vite', '--host', '127.0.0.1', '--port', '4173', '--strictPort'], {
@@ -185,13 +186,40 @@ try {
     buffer: originalCsv,
   });
   await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor();
+  await dataLab.getByRole('row', { name: /score numeric — — —/ }).waitFor();
+  const disclosureNote = await dataLab.locator('[role="note"]').filter({ hasText: 'Numeric summaries and grouped cells below' }).innerText();
+  assert.match(disclosureNote, /aggregate-only output does not guarantee anonymity/i);
+  assert.match(disclosureNote, /does not mask source rows in the local preview or individual points in the sampled chart/i);
+  assert.match(disclosureNote, /capped at 500 and may omit rare patterns or outliers/i);
+  await dataLab.getByLabel('Minimum disclosure cell size').selectOption('1');
   await dataLab.getByRole('row', { name: /score numeric 3 1 2 1.5/ }).waitFor();
   await dataLab.getByRole('img', { name: 'Bar chart of score by row number' }).waitFor();
   const summaryDownload = dataLab.waitForEvent('download');
   await dataLab.getByRole('button', { name: 'Export summary CSV' }).click();
-  assert.equal((await summaryDownload).suggestedFilename(), 'research-data-summary.csv');
+  const summaryFile = await summaryDownload;
+  assert.equal(summaryFile.suggestedFilename(), 'research-data-summary.csv');
+  const summaryCsv = await readDataLabDownload(await summaryFile.path(), 'utf8');
+  const parsedSummary = parseResearchCsv(summaryCsv);
+  assert.equal(parsedSummary.headers.includes('Disclosure'), true);
+  assert.ok(parsedSummary.rows.every(row => row.length === parsedSummary.headers.length));
+  assert.equal(summaryCsv.includes(canary), false, 'summary export must not contain raw source text');
   await dataLab.getByText('Local file identity (SHA-256)').waitFor();
   await dataLab.getByText(digestOf(originalCsv), { exact: true }).waitFor();
+  await dataLab.getByRole('button', { name: 'Save metadata to Data Catalog' }).click();
+  await dataLab.getByRole('status').filter({ hasText: 'Dataset metadata saved in this browser.' }).waitFor();
+  assert.equal(await dataLab.getByRole('listitem').filter({ hasText: digestOf(originalCsv) }).count(), 1,
+    'saved metadata must appear in the Data Catalog list');
+  const catalogStorage = await dataLab.evaluate(() => localStorage.getItem('eylo.research-data-catalog.v1:eylo-e2e-user'));
+  assert.ok(catalogStorage.includes(digestOf(originalCsv)));
+  assert.equal(catalogStorage.includes(canary), false, 'the catalog must never persist raw CSV values');
+  const catalogDownloadPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export catalog metadata' }).click();
+  const catalogDownload = await catalogDownloadPromise;
+  assert.equal(catalogDownload.suggestedFilename(), 'eylo-local-research-catalog.json');
+  const exportedCatalog = JSON.parse(await readDataLabDownload(await catalogDownload.path(), 'utf8'));
+  assert.equal(exportedCatalog.rawDataIncluded, false);
+  assert.equal(exportedCatalog.anonymityGuaranteed, false);
+  assert.equal(JSON.stringify(exportedCatalog).includes(canary), false);
 
   const qualityPromise = dataLab.waitForEvent('download');
   await dataLab.getByRole('button', { name: 'Export quality JSON' }).click();
@@ -211,13 +239,76 @@ try {
   });
   await dataLab.getByText(digestOf(modifiedCsv), { exact: true }).waitFor();
   assert.notEqual(digestOf(modifiedCsv), digestOf(originalCsv));
-  assert.equal(await dataLab.getByText(digestOf(originalCsv), { exact: true }).count(), 0,
-    'Replacing a file must not expose the previous fingerprint');
+  assert.equal(await dataLab.getByRole('listitem').filter({ hasText: digestOf(originalCsv) }).count(), 1,
+    'Replacing the active file must not silently erase its separately saved catalog metadata');
+  await dataLab.getByRole('button', { name: 'Remove study.csv from catalog' }).click();
+  assert.equal(await dataLab.getByRole('listitem').filter({ hasText: digestOf(originalCsv) }).count(), 0,
+    'Removing a catalog entry must remove its saved fingerprint');
+  await dataLab.getByRole('button', { name: 'Save metadata to Data Catalog' }).click();
+  await dataLab.getByRole('button', { name: 'Clear catalog' }).click();
+  await dataLab.getByRole('button', { name: 'Confirm clear catalog' }).click();
+  assert.equal(await dataLab.evaluate(() => localStorage.getItem('eylo.research-data-catalog.v1:eylo-e2e-user')), null,
+    'Clear catalog must remove the browser-local metadata');
 
   await dataLab.getByRole('button', { name: 'Clear data' }).click();
   await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor({ state: 'detached' });
   assert.equal(await dataLab.getByText('Local file identity (SHA-256)').count(), 0,
     'Clear must remove the fingerprint');
+
+  await dataLab.locator('input[type="file"]').setInputFiles({
+    name: 'relationship.csv', mimeType: 'text/csv',
+    buffer: Buffer.from('hours,score\n1,2\n2,4\n3,6\n,8\n'),
+  });
+  await dataLab.getByLabel('Minimum disclosure cell size').selectOption('1');
+  const comparisonStatus = dataLab.getByRole('status').filter({ hasText: 'Pearson correlation, r' });
+  await comparisonStatus.waitFor();
+  const comparisonText = await comparisonStatus.innerText();
+  assert.match(comparisonText, /Pearson correlation, r\s+1/);
+  assert.match(comparisonText, /Complete pairs used\s+3/);
+  assert.match(comparisonText, /Rows skipped for blanks or non-numeric cells\s+1/);
+  await dataLab.getByRole('img', { name: 'Scatter plot of hours against score using a sample of 3 complete rows' }).waitFor();
+  const comparisonDownloadPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export comparison CSV' }).click();
+  const comparisonDownload = await comparisonDownloadPromise;
+  assert.equal(comparisonDownload.suggestedFilename(), 'research-variable-comparison.csv');
+  const comparisonCsv = await readDataLabDownload(await comparisonDownload.path(), 'utf8');
+  assert.match(comparisonCsv, /Pearson correlation \(r\)/);
+  assert.match(comparisonCsv, /Complete pairs used/);
+  assert.equal(comparisonCsv.includes(canary), false, 'comparison export must not include private source values');
+  await dataLab.locator('input[type="file"]').setInputFiles({
+    name: 'grouped-study.csv', mimeType: 'text/csv',
+    buffer: Buffer.from('group,score\ncontrol,1\ncontrol,3\ntreatment,5\ntreatment,7\nrare,987654321\n,9\n'),
+  });
+  await dataLab.getByLabel('Minimum disclosure cell size').selectOption('5');
+  await dataLab.getByText('Small groups below k=5 are omitted without showing their labels, counts, or numeric summaries.').waitFor();
+  const suppressedExportPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export comparison CSV' }).click();
+  const suppressedExport = await suppressedExportPromise;
+  const suppressedCsv = await readDataLabDownload(await suppressedExport.path(), 'utf8');
+  assert.equal(suppressedCsv.includes('control'), false);
+  assert.equal(suppressedCsv.includes('treatment'), false);
+  assert.equal(suppressedCsv.includes('rare'), false);
+  assert.equal(suppressedCsv.includes('987654321'), false, 'the suppressed singleton value must not be exported');
+  await dataLab.getByLabel('Minimum disclosure cell size').selectOption('1');
+  await dataLab.getByText('Observed categories', { exact: true }).waitFor();
+  await dataLab.getByRole('row', { name: /control 2 2 2 1\.4142 1 3/ }).waitFor();
+  await dataLab.getByRole('row', { name: /treatment 2 6 6 1\.4142 5 7/ }).waitFor();
+  await dataLab.setViewportSize({ width: 375, height: 812 });
+  assert.equal(await dataLab.getByLabel('Comparison variable 1').isVisible(), true);
+  assert.equal(await dataLab.getByLabel('Comparison variable 2').isVisible(), true);
+  await dataLab.getByRole('button', { name: 'Export comparison CSV' }).scrollIntoViewIfNeeded();
+  assert.equal(await dataLab.getByRole('button', { name: 'Export comparison CSV' }).isVisible(), true);
+  const groupedExportPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export comparison CSV' }).click();
+  const groupedExport = await groupedExportPromise;
+  const groupedCsv = await readDataLabDownload(await groupedExport.path(), 'utf8');
+  assert.match(groupedCsv, /"Category","Count","Mean","Median","Sample SD","Minimum","Maximum"/);
+  assert.match(groupedCsv, /"control","2","2","2"/);
+  const parsedGrouped = parseResearchCsv(groupedCsv);
+  assert.ok(parsedGrouped.rows.every(row => row.length === parsedGrouped.headers.length));
+  assert.equal(groupedCsv.includes(canary), false, 'grouped export must not contain the unrelated raw source text');
+  await dataLab.setViewportSize({ width: 1365, height: 900 });
+  await dataLab.getByRole('button', { name: 'Clear data' }).click();
 
   await dataLab.locator('input[type="file"]').setInputFiles({
     name: 'oversized.csv', mimeType: 'text/csv',
