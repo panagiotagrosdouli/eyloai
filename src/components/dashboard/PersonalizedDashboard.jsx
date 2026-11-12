@@ -8,6 +8,7 @@ import {
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
+/** @type {Array<[string, () => Promise<any[]>]>} */
 const SOURCES = [
   ['projects', () => base44.entities.Project.list('-updated_date', 4)],
   ['notes', () => base44.entities.Note.list('-updated_date', 4)],
@@ -19,6 +20,7 @@ const SOURCES = [
   ['activity', () => base44.entities.ActivityEvent.list('-created_date', 6)],
 ];
 
+/** @param {Date} [date] */
 function localDate(date = new Date()) {
   return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
 }
@@ -28,7 +30,7 @@ function isComplete(task) {
 }
 
 function formatDate(value, options = { month: 'short', day: 'numeric' }) {
-  const date = new Date(value);
+  const date = new Date(String(value));
   return Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat(undefined, options).format(date);
 }
 
@@ -88,6 +90,7 @@ function EmptyAction({ children, href }) {
 export default function PersonalizedDashboard() {
   const { user } = useAuth();
   const [attempt, setAttempt] = useState(0);
+  /** @type {[Record<string, any[]>, React.Dispatch<React.SetStateAction<Record<string, any[]>>>]} */
   const [data, setData] = useState({});
   const [failed, setFailed] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +112,9 @@ export default function PersonalizedDashboard() {
     }
     Promise.allSettled(SOURCES.map(([, load]) => load())).then(results => {
       if (!active) return;
+      /** @type {Record<string, any[]>} */
       const next = {};
+      /** @type {string[]} */
       const errors = [];
       results.forEach((result, index) => {
         const [key] = SOURCES[index];
@@ -126,6 +131,13 @@ export default function PersonalizedDashboard() {
   const tasks = (data.tasks || []).filter(task => !isComplete(task)).sort((a, b) => String(a.due_date || '').localeCompare(String(b.due_date || '')));
   const events = (data.events || []).filter(event => event.start_at && new Date(event.start_at).getTime() >= Date.now()).sort((a, b) => new Date(a.start_at) - new Date(b.start_at)).slice(0, 4);
   const hasFailures = failed.length > 0;
+
+  /** @type {Array<[string, string, typeof NotebookPen]>} */
+  const products = [
+    ['Notes', '/notes', NotebookPen], ['Life', '/life', Target], ['Study Planner', '/study-planner', GraduationCap],
+    ['Calendar', '/calendar', CalendarDays], ['Flashcards', '/flashcards', Layers3], ['Universal Search', '/workspace/search', Search],
+    ['Activity History', '/activity', Activity], ['Research Library', '/library', BookOpen],
+  ];
 
   return (
     <section className="eylo-page mx-auto max-w-7xl pt-0" aria-labelledby="personal-workspace-title">
@@ -195,11 +207,7 @@ export default function PersonalizedDashboard() {
           <div><p className="eylo-eyebrow">Workspace tools</p><h2 id="products-heading" className="mt-1 text-lg font-semibold">EYLO products</h2></div>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            ['Notes', '/notes', NotebookPen], ['Life', '/life', Target], ['Study Planner', '/study-planner', GraduationCap],
-            ['Calendar', '/calendar', CalendarDays], ['Flashcards', '/flashcards', Layers3], ['Universal Search', '/workspace/search', Search],
-            ['Activity History', '/activity', Activity], ['Research Library', '/library', BookOpen],
-          ].map(([label, href, Icon]) => <Link key={label} to={href} className="flex min-h-12 items-center gap-3 rounded-xl border border-border px-3 text-sm font-medium hover:border-primary/40 hover:bg-secondary/30">
+          {products.map(([label, href, Icon]) => <Link key={label} to={href} className="flex min-h-12 items-center gap-3 rounded-xl border border-border px-3 text-sm font-medium hover:border-primary/40 hover:bg-secondary/30">
             <Icon size={16} className="text-primary" aria-hidden="true" />{label}<ChevronRight size={14} className="ml-auto text-muted-foreground" aria-hidden="true" />
           </Link>)}
         </div>
