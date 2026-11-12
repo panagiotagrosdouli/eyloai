@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 const project = readFileSync(new URL('../src/pages/ProjectDetail.jsx', import.meta.url), 'utf8');
 
 test('core human-authored project fields use versioned saves', () => {
-  assert.match(project, /Project\.updateIfUnchanged\(id, editing, project\.updated_date\)/);
+  assert.match(project, /Project\.updateIfUnchanged\(id, localDraft, base\.updated_date\)/);
   assert.match(project, /Project\.updateIfUnchanged\(id, \{ tasks \}, project\.updated_date\)/);
   assert.match(project, /Project\.updateIfUnchanged\(id, \{ evidence_matrix \}, project\.updated_date\)/);
 });
