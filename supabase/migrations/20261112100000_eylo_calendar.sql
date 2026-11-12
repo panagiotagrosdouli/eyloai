@@ -2,6 +2,7 @@ create table if not exists public.calendar_events (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   project_id uuid references public.projects(id) on delete set null,
+  life_item_id uuid,
   title text not null check (char_length(title) between 1 and 200),
   description text not null default '',
   subject text not null default '' check (char_length(subject) <= 120),
@@ -17,6 +18,7 @@ create table if not exists public.calendar_events (
 );
 
 create index if not exists calendar_events_owner_start_idx on public.calendar_events(user_id, starts_at);
+create unique index if not exists calendar_events_life_item_unique on public.calendar_events(life_item_id) where life_item_id is not null;
 create index if not exists calendar_events_reminders_idx on public.calendar_events(reminder_minutes, starts_at)
   where reminder_minutes is not null;
 create or replace function public.validate_calendar_event()

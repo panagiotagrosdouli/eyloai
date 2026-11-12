@@ -39,6 +39,7 @@ const TOOL_GROUPS = [
       { label: 'Notes', path: '/notes', icon: NotebookPen, desc: 'Private notes with autosave and version history' },
       { label: 'Calendar', path: '/calendar', icon: CalendarDays, desc: 'Events, project deadlines, and scheduled reminders' },
       { label: 'Study planner', path: '/study-planner', icon: GraduationCap, desc: 'Schedule study sessions and track completion' },
+      { label: 'Life planner', path: '/life', icon: Target, desc: 'Goals, habits, milestones, routines, and AI planning' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
       { label: 'Literature review protocol', path: '/literature-review', icon: BookOpen, desc: 'Document search methods and screen saved publications' },

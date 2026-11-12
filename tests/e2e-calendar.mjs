@@ -60,16 +60,51 @@ try {
 
   await host.goto(new URL('/calendar', target.origin).href);
   await host.getByText('Completed', { exact: true }).waitFor();
-  host.once('dialog', dialog => dialog.accept());
-  await host.getByRole('button', { name: `Delete ${marker}` }).click();
-  await host.getByRole('status').getByText('Calendar entry deleted.').waitFor();
 
   await login(guest, guestAccount);
   await guest.goto(new URL('/calendar', target.origin).href);
   await guest.getByRole('heading', { name: 'EYLO Calendar' }).waitFor();
   await guest.getByText(marker, { exact: true }).waitFor({ state: 'detached' });
 
-  console.log(JSON.stringify({ result: 'PASS', target: target.origin, createdReloaded: true, studyPlannerSync: true, completedStatusPersisted: true, deleted: true, secondAccountIsolation: true }));
+  await host.goto(new URL('/calendar', target.origin).href);
+  host.once('dialog', dialog => dialog.accept());
+  await host.getByRole('button', { name: `Delete ${marker}` }).click();
+  await host.getByRole('status').getByText('Calendar entry deleted.').waitFor();
+
+  await host.goto(new URL('/life', target.origin).href);
+  const goalMarker = `${marker} goal`;
+  await host.getByLabel('Type').selectOption('goal');
+  await host.getByLabel('Title', { exact: true }).fill(goalMarker);
+  await host.getByRole('button', { name: 'Save life item' }).click();
+  await host.getByRole('status').getByText('Goal saved.').waitFor();
+
+  await host.getByLabel('Type').selectOption('task');
+  await host.getByLabel('Title', { exact: true }).fill(`${marker} task`);
+  await host.getByLabel('Parent goal').selectOption({ label: goalMarker });
+  await host.getByLabel('Due date and time').fill(await host.evaluate(() => {
+    const date = new Date(Date.now() + 2 * 60 * 60_000);
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+  }));
+  await host.getByLabel('Due reminder').selectOption('5');
+  await host.getByRole('button', { name: 'Save life item' }).click();
+  await host.getByRole('status').getByText('Task saved.').waitFor();
+  const lifeTaskTitle = `${marker} task`;
+  await host.goto(new URL('/calendar', target.origin).href);
+  await host.getByRole('heading', { name: lifeTaskTitle }).waitFor();
+  await host.getByRole('link', { name: 'Manage in EYLO Life' }).waitFor();
+
+  await host.goto(new URL('/life', target.origin).href);
+  host.once('dialog', dialog => dialog.accept());
+  await host.getByRole('button', { name: `Delete ${lifeTaskTitle}` }).click();
+  await host.getByRole('status').getByText('Life item deleted.').waitFor();
+  await host.goto(new URL('/calendar', target.origin).href);
+  await host.getByRole('heading', { name: lifeTaskTitle }).waitFor({ state: 'detached' });
+  await host.goto(new URL('/life', target.origin).href);
+  host.once('dialog', dialog => dialog.accept());
+  await host.getByRole('button', { name: `Delete ${goalMarker}` }).click();
+  await host.getByRole('status').getByText('Life item deleted.').waitFor();
+
+  console.log(JSON.stringify({ result: 'PASS', target: target.origin, createdReloaded: true, studyPlannerSync: true, completedStatusPersisted: true, lifeToCalendarSync: true, crossAccountIsolation: true, deleted: true }));
 } finally {
   await Promise.all([guestContext.close(), hostContext.close()]);
   await browser.close();
