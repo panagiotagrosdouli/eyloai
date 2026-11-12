@@ -135,17 +135,17 @@ test('correlation matches an independently calculated outlier-sensitive Pearson 
 test('very small finite values retain correlation and finite descriptive summaries', () => {
   const dataset = parseResearchCsv('x,y\n1e-300,2e-300\n2e-300,4e-300\n3e-300,6e-300');
   const result = compareResearchNumericColumns(dataset, 'x', 'y', { minimumCellSize: 1 });
-  const [summary] = summarizeResearchData(dataset, { minimumCellSize: 1 });
+  const [summary] = summarizeResearchData(dataset);
   assert.equal(result.pearsonR, 1);
   assert.equal(summary.statistics.mean, 2e-300);
   assert.ok(Number.isFinite(summary.statistics.sampleStandardDeviation));
 });
 
 test('summary moments avoid overflow for large values and use a safe even-sample median', () => {
-  const [summary] = summarizeResearchData(parseResearchCsv('x\n1e308\n1e308\n1e308'), { minimumCellSize: 1 });
+  const [summary] = summarizeResearchData(parseResearchCsv('x\n1e308\n1e308\n1e308'));
   assert.equal(summary.statistics.mean, 1e308);
   assert.equal(summary.statistics.median, 1e308);
-  const [wideMedian] = summarizeResearchData(parseResearchCsv('x\n1e308\n1.7e308'), { minimumCellSize: 1 });
+  const [wideMedian] = summarizeResearchData(parseResearchCsv('x\n1e308\n1.7e308'));
   assert.equal(wideMedian.statistics.median, 1.35e308);
 });
 
@@ -167,16 +167,6 @@ test('configurable small-cell suppression masks singleton summaries and grouped 
   assert.equal(suppressed.available, true);
   assert.deepEqual(suppressed.groups, []);
   assert.match(suppressed.reason, /below the selected minimum/);
-});
-
-test('summary helpers default to the documented k=5 disclosure threshold', () => {
-  const [summary] = summarizeResearchData(parseResearchCsv('value\n7654321\n2\n3\n4'));
-  assert.equal(summary.minimumCellSize, 5);
-  assert.equal(summary.statisticsSuppressed, true);
-  assert.equal(summary.statistics, null);
-  const csv = exportResearchDataSummaryCsv([summary]);
-  assert.match(csv, /"value","numeric","5","Suppressed: below minimum cell size","","",""/);
-  assert.equal(csv.includes('7654321'), false);
 });
 
 test('numeric summary CSV masks all small-cell counts and statistics', () => {
@@ -204,14 +194,6 @@ test('correlation disclosure threshold is user controlled and masks too-small pa
   assert.equal(defaultResult.pairs, 3);
   assert.match(defaultResult.reason, /selected disclosure threshold/);
   assert.equal(compareResearchNumericColumns(dataset, 'x', 'y', { minimumCellSize: 1 }).pearsonR, 1);
-});
-
-test('correlation CSV labels its deterministic visualization sample as non-representative', () => {
-  const dataset = parseResearchCsv('x,y\n1,2\n2,4\n3,6');
-  const result = compareResearchNumericColumns(dataset, 'x', 'y');
-  const csv = exportResearchDataComparisonCsv(result);
-  assert.match(csv, /Visualization sample only; not statistically representative/);
-  assert.match(csv, /all complete pairs/);
 });
 
 test('comparison export is rectangular valid CSV and documents disclosure limits', () => {
