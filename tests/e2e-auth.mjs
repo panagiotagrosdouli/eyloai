@@ -693,7 +693,7 @@ try {
   await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/projects**', route => sendAuthJson(route, []));
   await dataLab.goto(`${baseUrl}/research-gaps`);
   await dataLab.getByRole('heading', { name: 'Research Gap Finder' }).waitFor();
-  await dataLab.getByLabel('Search scholarly literature').fill('climate adaptation');
+  await dataLab.getByRole('textbox', { name: 'Search scholarly literature' }).fill('climate adaptation');
   await dataLab.getByRole('button', { name: 'Search literature' }).click();
   await dataLab.getByText('Climate adaptation evidence in coastal cities').waitFor();
   await dataLab.getByText(/4 of 5 sources responded/).waitFor();
