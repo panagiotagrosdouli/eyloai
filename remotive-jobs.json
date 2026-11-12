@@ -1,9 +1,23 @@
 {
   "source": "Remotive",
   "source_url": "https://remotive.com/remote-jobs/api",
-  "retrieved_at": "2026-11-11T12:43:06.588Z",
+  "retrieved_at": "2026-11-12T13:44:55.830Z",
   "provider_delay_hours": 24,
   "items": [
+    {
+      "id": "remotive-2091136",
+      "title": "Senior React Full-stack Developer",
+      "organization": "Lemon.io",
+      "country": "LATAM, Europe, USA, Canada, APAC",
+      "description": "Lemon.io helps companies in the US and Europe hire experienced engineers, from funded startups to teams like Klarna, Retool, and Pinterest. We’ve been doing this since 2015, and more than 1,500 companies have hired engineers through us. New roles for Senior React Full-stack Engineers come in all the time, and several are open right now. Two ways to work with clients Contract: most roles are contract-based. You join the client’s team and work as part of it. Direct hire: some clients hire engineers full-time, and we support you through the process. Because companies trust our vetting, applying through Lemon.io is often a shortcut. You get to the client faster than going through their full hiring process on your own. What you get Competitive rate, based on your seniority and skills We find the projects. No client hunting or rate negotiations. We match you manually based on your skills and preferences. Flexible schedule. Work async or with a small overlap with the team’s hours. No micromanagement, no screen trackers Direct work with clients, most of them with technical backgrounds Ongoing support from your application through every project, plus a community of engineers from 75+ countr",
+      "salary": "",
+      "category": "Software Development",
+      "job_type": "full_time",
+      "published_at": "2026-11-10T14:25:05",
+      "deadline": "",
+      "source": "Remotive",
+      "source_url": "https://remotive.com/remote-jobs/software-development/senior-react-full-stack-developer-2091136"
+    },
     {
       "id": "remotive-2086540",
       "title": "Inside Sales Contractor",
