@@ -2,7 +2,43 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import handler from '../api/discovery.js';
+import { consumeDiscoveryRateLimit, discoveryClientHash, getTrustedDiscoveryClientIp } from '../api/discovery-rate-limit.mjs';
 import { MAX_SCHOLARLY_RESPONSE_BYTES, readBoundedScholarlyResponse } from '../src/lib/discovery-response-limit.mjs';
+
+const RATE_LIMIT_ENV_KEYS = ['VITE_SUPABASE_URL', 'SUPABASE_SECRET_KEY', 'DISCOVERY_RATE_LIMIT_HMAC_KEY', 'VERCEL'];
+const rateLimitSecret = 'test-only-hmac-secret-with-at-least-32-bytes';
+
+async function invoke(request, response, {
+  rateDecision = { allowed: true, retry_after_seconds: 0 },
+  rateStatus = 200,
+} = {}) {
+  const priorEnv = Object.fromEntries(RATE_LIMIT_ENV_KEYS.map(key => [key, process.env[key]]));
+  const priorFetch = globalThis.fetch;
+  Object.assign(process.env, {
+    VITE_SUPABASE_URL: 'https://rate-limit-test.supabase.co',
+    SUPABASE_SECRET_KEY: 'sb_secret_test-only',
+    DISCOVERY_RATE_LIMIT_HMAC_KEY: rateLimitSecret,
+    VERCEL: '1',
+  });
+  globalThis.fetch = async (url, options) => {
+    if (String(url) === 'https://rate-limit-test.supabase.co/rest/v1/rpc/consume_discovery_rate_limit') {
+      return new Response(JSON.stringify([rateDecision]), { status: rateStatus, headers: { 'content-type': 'application/json' } });
+    }
+    return priorFetch(url, options);
+  };
+  try {
+    return await handler({
+      ...request,
+      headers: { ...(request.headers || {}), 'x-vercel-forwarded-for': '203.0.113.14' },
+    }, response);
+  } finally {
+    globalThis.fetch = priorFetch;
+    for (const key of RATE_LIMIT_ENV_KEYS) {
+      if (priorEnv[key] === undefined) delete process.env[key];
+      else process.env[key] = priorEnv[key];
+    }
+  }
+}
 
 function createResponse() {
   return {
@@ -27,6 +63,127 @@ function createResponse() {
   };
 }
 
+test('shared discovery limiting uses a trusted Vercel IP and stores only a keyed hash', async () => {
+  const env = {
+    VERCEL: '1',
+    DISCOVERY_RATE_LIMIT_HMAC_KEY: rateLimitSecret,
+    VITE_SUPABASE_URL: 'https://rate-limit-test.supabase.co',
+    SUPABASE_SECRET_KEY: 'sb_secret_test-only',
+  };
+  assert.equal(getTrustedDiscoveryClientIp({ headers: { 'x-forwarded-for': '198.51.100.8' } }, env), '');
+  assert.equal(getTrustedDiscoveryClientIp({ headers: { 'x-vercel-forwarded-for': '203.0.113.14' } }, env), '203.0.113.14');
+  assert.equal(discoveryClientHash('203.0.113.14', rateLimitSecret), discoveryClientHash('::ffff:203.0.113.14', rateLimitSecret));
+  assert.equal(discoveryClientHash('2001:db8:abcd:12::1', rateLimitSecret), discoveryClientHash('2001:db8:abcd:12::dead:beef', rateLimitSecret));
+  assert.notEqual(discoveryClientHash('2001:db8:abcd:12::1', rateLimitSecret), discoveryClientHash('2001:db8:abcd:13::1', rateLimitSecret));
+  assert.equal(discoveryClientHash('203.0.113.14', 'short'), '');
+  const hash = discoveryClientHash('203.0.113.14', rateLimitSecret);
+  assert.match(hash, /^[a-f0-9]{64}$/);
+  assert.doesNotMatch(hash, /203\.0\.113\.14/);
+
+  let requestOptions;
+  const result = await consumeDiscoveryRateLimit({
+    request: { headers: { 'x-vercel-forwarded-for': '203.0.113.14' } },
+    env,
+    fetchImpl: async (url, options) => {
+      assert.equal(url, 'https://rate-limit-test.supabase.co/rest/v1/rpc/consume_discovery_rate_limit');
+      requestOptions = options;
+      return new Response(JSON.stringify([{ allowed: true, retry_after_seconds: 0 }]), { status: 200 });
+    },
+  });
+  assert.equal(result.status, 'allowed');
+  assert.equal(requestOptions.headers.apikey, 'sb_secret_test-only');
+  assert.equal('authorization' in requestOptions.headers, false);
+  assert.equal(requestOptions.cache, 'no-store');
+  const body = JSON.parse(requestOptions.body);
+  assert.equal(body.p_client_hash, hash);
+  assert.equal(body.p_window_seconds, 60);
+  assert.equal(body.p_max_requests, 60);
+});
+
+test('shared discovery limiting accepts legacy service-role JWTs and fails closed on missing configuration', async () => {
+  let authorization = '';
+  const legacy = await consumeDiscoveryRateLimit({
+    request: { socket: { remoteAddress: '198.51.100.9' }, headers: {} },
+    env: {
+      VITE_SUPABASE_URL: 'https://rate-limit-test.supabase.co',
+      SUPABASE_SERVICE_ROLE_KEY: 'eyJ-disposable-service-role-jwt',
+      DISCOVERY_RATE_LIMIT_HMAC_KEY: rateLimitSecret,
+    },
+    fetchImpl: async (_url, options) => {
+      authorization = options.headers.authorization;
+      return new Response(JSON.stringify([{ allowed: true, retry_after_seconds: 0 }]), { status: 200 });
+    },
+  });
+  assert.equal(legacy.status, 'allowed');
+  assert.equal(authorization, 'Bearer eyJ-disposable-service-role-jwt');
+
+  let called = false;
+  const missing = await consumeDiscoveryRateLimit({
+    request: { headers: { 'x-vercel-forwarded-for': '203.0.113.1' } },
+    env: { VERCEL: '1', DISCOVERY_RATE_LIMIT_HMAC_KEY: rateLimitSecret },
+    fetchImpl: async () => { called = true; throw new Error('must not access database'); },
+  });
+  assert.deepEqual(missing, { status: 'unconfigured' });
+  assert.equal(called, false);
+});
+
+test('shared discovery limiting rejects failed and malformed database decisions', async () => {
+  const input = {
+    request: { headers: { 'x-vercel-forwarded-for': '203.0.113.14' } },
+    env: {
+      VERCEL: '1',
+      VITE_SUPABASE_URL: 'https://rate-limit-test.supabase.co',
+      SUPABASE_SECRET_KEY: 'sb_secret_test-only',
+      DISCOVERY_RATE_LIMIT_HMAC_KEY: rateLimitSecret,
+    },
+  };
+  const failed = await consumeDiscoveryRateLimit({ ...input, fetchImpl: async () => new Response('{}', { status: 503 }) });
+  assert.deepEqual(failed, { status: 'unavailable' });
+  const malformed = await consumeDiscoveryRateLimit({ ...input, fetchImpl: async () => new Response('{"allowed":true}', { status: 200 }) });
+  assert.deepEqual(malformed, { status: 'unavailable' });
+});
+
+test('rate-limited discovery requests return 429 and do not call scholarly providers', async () => {
+  const before = globalThis.fetch;
+  let providerCalls = 0;
+  globalThis.fetch = async () => { providerCalls++; throw new Error('provider should not be called'); };
+  try {
+    const res = createResponse();
+    await invoke({ method: 'GET', query: { provider: 'openalex_works', q: 'interpretable machine learning' } }, res, {
+      rateDecision: { allowed: false, retry_after_seconds: 17 },
+    });
+    assert.equal(res.statusCode, 429);
+    assert.equal(res.headers['retry-after'], '17');
+    assert.equal(res.headers['cache-control'], 'no-store');
+    assert.equal(res.payload.code, 'DISCOVERY_RATE_LIMITED');
+    assert.equal(providerCalls, 0);
+  } finally {
+    globalThis.fetch = before;
+  }
+});
+
+test('discovery fails closed if the shared limiter is unavailable', async () => {
+  const before = globalThis.fetch;
+  let providerCalls = 0;
+  globalThis.fetch = async () => new Response('{}', { status: 503 });
+  try {
+    const res = createResponse();
+    const priorFetch = globalThis.fetch;
+    globalThis.fetch = async (url, options) => {
+      if (String(url).includes('/rpc/consume_discovery_rate_limit')) return priorFetch(url, options);
+      providerCalls++;
+      return new Response(JSON.stringify({ results: [] }), { status: 200 });
+    };
+    await invoke({ method: 'GET', query: { provider: 'openalex_works', q: 'interpretable machine learning' } }, res, { rateStatus: 503 });
+    assert.equal(res.statusCode, 503);
+    assert.equal(res.payload.code, 'DISCOVERY_RATE_LIMIT_UNAVAILABLE');
+    assert.equal(res.headers['cache-control'], 'no-store');
+    assert.equal(providerCalls, 0);
+  } finally {
+    globalThis.fetch = before;
+  }
+});
+
 test('discovery proxy rejects unknown providers before fetching upstream', async () => {
   const originalFetch = globalThis.fetch;
   let called = false;
@@ -37,7 +194,7 @@ test('discovery proxy rejects unknown providers before fetching upstream', async
 
   try {
     const response = createResponse();
-    await handler(
+    await invoke(
       { method: 'GET', query: { provider: 'https://example.com', q: 'test', limit: '10' } },
       response,
     );
@@ -64,7 +221,7 @@ test('discovery proxy bounds provider limits and emits cache/source headers', as
 
   try {
     const response = createResponse();
-    await handler(
+    await invoke(
       {
         method: 'GET',
         query: {
@@ -108,7 +265,7 @@ test('OpenAlex proxy uses a server-side API key without returning it to the brow
   });
 
   const response = createResponse();
-  await handler({
+  await invoke({
     method: 'GET',
     query: { provider: 'openalex_works', q: 'CRISPR gene editing', limit: '5' },
   }, response);
@@ -138,7 +295,7 @@ test('Semantic Scholar proxy sends an optional server-side API key in its header
   });
 
   const response = createResponse();
-  await handler({
+  await invoke({
     method: 'GET',
     query: { provider: 'semantic_scholar', q: 'CRISPR gene editing', limit: '5' },
   }, response);
@@ -162,7 +319,7 @@ test('Crossref proxy requests the work type needed to exclude non-paper records'
 
   try {
     const response = createResponse();
-    await handler({
+    await invoke({
       method: 'GET',
       query: { provider: 'crossref', q: 'CRISPR gene editing', limit: '8' },
     }, response);
@@ -188,7 +345,7 @@ test('Crossref proxy performs exact DOI lookups through its fixed provider host'
 
   try {
     const response = createResponse();
-    await handler({
+    await invoke({
       method: 'GET',
       query: { provider: 'crossref', doi: 'https://doi.org/10.1234%2FExample' },
     }, response);
@@ -207,11 +364,11 @@ test('exact DOI lookup rejects malformed identifiers and non-Crossref providers 
   globalThis.fetch = async () => { called = true; throw new Error('must not be called'); };
   try {
     const invalid = createResponse();
-    await handler({ method: 'GET', query: { provider: 'crossref', doi: 'https://example.com/doi/10.1234/x' } }, invalid);
+    await invoke({ method: 'GET', query: { provider: 'crossref', doi: 'https://example.com/doi/10.1234/x' } }, invalid);
     assert.equal(invalid.statusCode, 400);
 
     const wrongProvider = createResponse();
-    await handler({ method: 'GET', query: { provider: 'openalex_works', doi: '10.1234/example' } }, wrongProvider);
+    await invoke({ method: 'GET', query: { provider: 'openalex_works', doi: '10.1234/example' } }, wrongProvider);
     assert.equal(wrongProvider.statusCode, 400);
     assert.equal(called, false);
   } finally {
@@ -221,7 +378,7 @@ test('exact DOI lookup rejects malformed identifiers and non-Crossref providers 
 
 test('discovery proxy rejects overlong research queries', async () => {
   const response = createResponse();
-  await handler(
+  await invoke(
     {
       method: 'GET',
       query: {
@@ -238,7 +395,7 @@ test('discovery proxy rejects overlong research queries', async () => {
 
 test('discovery proxy only accepts GET', async () => {
   const response = createResponse();
-  await handler({ method: 'POST', query: {} }, response);
+  await invoke({ method: 'POST', query: {} }, response);
 
   assert.equal(response.statusCode, 405);
   assert.equal(response.headers.allow, 'GET');
@@ -252,7 +409,7 @@ test('discovery proxy never caches upstream errors or provider rate limits', asy
   });
   try {
     const response = createResponse();
-    await handler({ method: 'GET', query: { provider: 'openalex_works', q: 'trajectory prediction' } }, response);
+    await invoke({ method: 'GET', query: { provider: 'openalex_works', q: 'trajectory prediction' } }, response);
     assert.equal(response.statusCode, 429);
     assert.equal(response.headers['cache-control'], 'no-store');
     assert.equal(response.headers['x-eylo-source'], 'openalex_works');
@@ -266,7 +423,7 @@ test('discovery proxy gives uncached 502 when a research source is unreachable',
   globalThis.fetch = async () => { throw new Error('network failure'); };
   try {
     const response = createResponse();
-    await handler({ method: 'GET', query: { provider: 'crossref', q: 'robotics' } }, response);
+    await invoke({ method: 'GET', query: { provider: 'crossref', q: 'robotics' } }, response);
     assert.equal(response.statusCode, 502);
     assert.equal(response.headers['cache-control'], 'no-store');
     assert.match(response.payload.error, /temporarily unavailable/);
@@ -284,7 +441,7 @@ test('discovery proxy preserves Greek topic queries when searching researchers',
   };
   try {
     const response = createResponse();
-    await handler({ method: 'GET', query: { provider: 'openalex_authors', q: 'τεχνητή νοημοσύνη', page: '2', limit: '12', country: 'gr' } }, response);
+    await invoke({ method: 'GET', query: { provider: 'openalex_authors', q: 'τεχνητή νοημοσύνη', page: '2', limit: '12', country: 'gr' } }, response);
     const upstream = new URL(requestedUrl);
     assert.equal(response.statusCode, 200);
     assert.equal(upstream.hostname, 'api.openalex.org');
@@ -310,7 +467,7 @@ test('discovery proxy rejects malformed paging and country filters without upstr
       { provider: 'openalex_authors', q: 'robotics', country: 'GR|US' },
     ]) {
       const response = createResponse();
-      await handler({ method: 'GET', query }, response);
+      await invoke({ method: 'GET', query }, response);
       assert.equal(response.statusCode, 400);
     }
     assert.equal(calls, 0);
@@ -337,7 +494,7 @@ test('discovery proxy rejects oversized Content-Length without returning provide
   });
   try {
     const res = createResponse();
-    await handler({ method: 'GET', query: { provider: 'crossref', q: 'AI safety' } }, res);
+    await invoke({ method: 'GET', query: { provider: 'crossref', q: 'AI safety' } }, res);
     assert.equal(res.statusCode, 502);
     assert.equal(res.payload.code, 'SOURCE_RESPONSE_TOO_LARGE');
     assert.equal(res.headers['cache-control'], 'no-store');
@@ -357,7 +514,7 @@ test('discovery proxy refuses oversized chunked responses even with a fake small
   }), { status: 200, headers: { 'content-length': '32' } });
   try {
     const res = createResponse();
-    await handler({ method: 'GET', query: { provider: 'openalex_works', q: 'pedestrian trajectories' } }, res);
+    await invoke({ method: 'GET', query: { provider: 'openalex_works', q: 'pedestrian trajectories' } }, res);
     assert.equal(res.statusCode, 502);
     assert.equal(res.payload.code, 'SOURCE_RESPONSE_TOO_LARGE');
     assert.equal(res.headers['cache-control'], 'no-store');
@@ -374,7 +531,7 @@ test('proxy does not reflect upstream HTML media types into its own origin', asy
   });
   try {
     const res = createResponse();
-    await handler({ method: 'GET', query: { provider: 'openalex_works', q: 'test' } }, res);
+    await invoke({ method: 'GET', query: { provider: 'openalex_works', q: 'test' } }, res);
     assert.equal(res.statusCode, 502);
     assert.equal(res.payload.code, 'INVALID_SOURCE_RESPONSE');
     assert.equal(res.headers['cache-control'], 'no-store');
@@ -391,7 +548,7 @@ test('HTML challenges disguised as JSON are not cached as scholarly results', as
   });
   try {
     const res = createResponse();
-    await handler({ method: 'GET', query: { provider: 'openalex_works', q: 'research integrity' } }, res);
+    await invoke({ method: 'GET', query: { provider: 'openalex_works', q: 'research integrity' } }, res);
     assert.equal(res.statusCode, 502);
     assert.equal(res.payload.code, 'INVALID_SOURCE_RESPONSE');
     assert.equal(res.headers['cache-control'], 'no-store');
@@ -408,7 +565,7 @@ test('arXiv proxy still returns Atom XML content type with nosniff protection', 
   });
   try {
     const res = createResponse();
-    await handler({ method: 'GET', query: { provider: 'arxiv', q: 'transformers' } }, res);
+    await invoke({ method: 'GET', query: { provider: 'arxiv', q: 'transformers' } }, res);
     assert.equal(res.statusCode, 200);
     assert.equal(res.headers['content-type'], 'application/atom+xml; charset=utf-8');
     assert.equal(res.headers['x-content-type-options'], 'nosniff');

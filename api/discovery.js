@@ -2,6 +2,7 @@ import { applyCors } from '../src/lib/api-cors.mjs';
 import { fetchWithScholarlyBackoff } from '../src/lib/scholarly-provider-backoff.mjs';
 import { readBoundedScholarlyResponse, ScholarlyResponseTooLargeError } from '../src/lib/discovery-response-limit.mjs';
 import { normalizeDoi } from '../src/lib/citation-verification.mjs';
+import { consumeDiscoveryRateLimit } from './discovery-rate-limit.mjs';
 
 const PROVIDERS = new Set([
   'openalex_works',
@@ -137,6 +138,8 @@ function buildProviderUrl(provider, query, limit, sort, page = 1, country = '', 
 
 export default async function handler(request, response) {
   if (applyCors(request, response, ["GET"])) return;
+  response.setHeader('Cache-Control', 'no-store');
+  response.setHeader('X-Content-Type-Options', 'nosniff');
   if (request.method !== 'GET') {
     response.setHeader('Allow', 'GET');
     return response.status(405).json({ error: 'Method not allowed.' });
@@ -165,6 +168,24 @@ export default async function handler(request, response) {
     return response.status(400).json({ error: 'Provide a valid research query.' });
   }
 
+  const rateLimit = await consumeDiscoveryRateLimit({ request });
+  if (rateLimit.status === 'limited') {
+    response.setHeader('Retry-After', String(rateLimit.retryAfterSeconds));
+    response.setHeader('X-RateLimit-Limit', '60');
+    response.setHeader('Cache-Control', 'no-store');
+    return response.status(429).json({
+      error: 'Too many scholarly searches from this network. Try again shortly.',
+      code: 'DISCOVERY_RATE_LIMITED',
+      retry_after_seconds: rateLimit.retryAfterSeconds,
+    });
+  }
+  if (rateLimit.status !== 'allowed') {
+    return response.status(503).json({
+      error: 'Scholarly discovery is temporarily unavailable because its request protection could not be verified.',
+      code: 'DISCOVERY_RATE_LIMIT_UNAVAILABLE',
+    });
+  }
+
   const url = buildProviderUrl(provider, query, limit, sort, page, provider === 'openalex_authors' ? country : '', exactDoi);
   if (!url) return response.status(400).json({ error: 'Provider configuration is invalid.' });
 
@@ -188,7 +209,6 @@ export default async function handler(request, response) {
     const htmlContent = /text\/html/i.test(providerContentType)
       || /^\s*(?:<!doctype\s+html|<html\b|<head\b|<body\b|<script\b)/i.test(body.toString('utf8', 0, 512));
     if (upstream.ok && htmlContent) {
-      response.setHeader('Cache-Control', 'no-store');
       response.setHeader('X-Content-Type-Options', 'nosniff');
       return response.status(502).json({
         error: 'Scholarly source returned an invalid response.',
@@ -198,7 +218,6 @@ export default async function handler(request, response) {
     response.status(upstream.status);
     // A compromised provider must never turn this same-origin endpoint into
     // an HTML/JavaScript page. Return only the expected scholarly media type.
-    response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Content-Type', provider === 'arxiv'
       ? 'application/atom+xml; charset=utf-8'
       : 'application/json; charset=utf-8');

@@ -1,7 +1,7 @@
 // EYRA Discovery Engine — Real Data Sources
 // OpenAlex, arXiv, Crossref, Europe PMC
 
-import { httpStatusFromError } from './discovery-source-status.js';
+import { discoveryErrorCodeFromError, httpStatusFromError } from './discovery-source-status.js';
 import { parseArxivFeed } from './arxiv-feed.js';
 
 const OPENALEX_BASE = 'https://api.openalex.org';
@@ -73,6 +73,18 @@ async function fetchResearchSource(provider, query, limit, sort, directUrl, opti
         options.country || '',
         proxyBaseUrl,
       ), options);
+      if (proxied.status === 429) {
+        const payload = await proxied.clone().json().catch(() => null);
+        if (payload?.code === 'DISCOVERY_RATE_LIMITED') {
+          const retryAfter = Number(proxied.headers.get('retry-after'));
+          const errorDetails = {
+            code: payload.code,
+            status: proxied.status,
+            ...(Number.isInteger(retryAfter) && retryAfter > 0 ? { retryAfterSeconds: retryAfter } : {}),
+          };
+          throw Object.assign(new Error('EYLO public discovery request limit reached'), errorDetails);
+        }
+      }
       // An explicitly configured proxy is the benchmark target. Do not make a
       // failed deployment proxy look healthy by silently querying providers directly.
       if (proxyBaseUrl) return proxied;
@@ -687,6 +699,7 @@ export async function searchAllPapersWithStatus(query, options = {}) {
     status: result.status === 'fulfilled' ? 'available' : 'unavailable',
     count: result.status === 'fulfilled' ? result.value.length : 0,
     error_status: result.status === 'rejected' ? httpStatusFromError(result.reason) : null,
+    error_code: result.status === 'rejected' ? discoveryErrorCodeFromError(result.reason) : null,
   }));
   const sources = settled.map((result, sourceIndex) => result.status === 'fulfilled'
     ? result.value.map((item, itemIndex) => ({

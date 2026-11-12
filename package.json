@@ -19,6 +19,7 @@
     "benchmark:relevance:live": "node scripts/benchmark-live-retrieval.mjs",
     "benchmark:human": "node scripts/evaluate-discovery.mjs",
     "test:retrieval": "node scripts/test-partial-retrieval.mjs",
+    "test:discovery-rate-limit:staging": "node scripts/test-discovery-rate-limit-staging.mjs",
     "test:eyra-auth": "node scripts/test-eyra-auth-config.mjs",
     "test:greeting": "node scripts/test-local-greeting.mjs",
     "test:services": "node scripts/test-service-server-keys.mjs",

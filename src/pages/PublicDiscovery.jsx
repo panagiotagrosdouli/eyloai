@@ -175,7 +175,10 @@ export default function PublicDiscovery() {
         } else if (availablePaperIndexCount > 0) {
           setError(`No records came back from the ${availablePaperIndexCount} of ${PAPER_INDEX_SOURCE_IDS.length} paper indexes that responded. Other indexes were unavailable, so this does not establish that no literature exists.`);
         } else {
-          setError('The scholarly paper indexes are temporarily unavailable. No records have been invented.');
+          const failureDetails = [...new Set((paperBundle.source_status || [])
+            .filter(source => source.status === 'unavailable')
+            .map(formatUnavailableSource))];
+          setError(`The scholarly paper indexes are temporarily unavailable. No records have been invented.${failureDetails.length ? ` ${failureDetails.join('; ')}.` : ''}`);
         }
       }
       setLoading(false);
@@ -334,7 +337,7 @@ export default function PublicDiscovery() {
               <AlertTriangle size={17} className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true" />
               <p className="leading-6">
                 <strong>Partial live retrieval.</strong> {availablePaperIndexCount} of {PAPER_INDEX_SOURCE_IDS.length} scholarly paper indexes are available.
-                {' '}{unavailableSources.map(formatUnavailableSource).join('; ')}.
+                {' '}{[...new Set(unavailableSources.map(formatUnavailableSource))].join('; ')}.
               </p>
             </div>
             <button type="button" onClick={() => setAttempt(value => value + 1)}
