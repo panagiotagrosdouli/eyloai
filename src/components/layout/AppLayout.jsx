@@ -37,6 +37,7 @@ const TOOL_GROUPS = [
     items: [
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
       { label: 'Life', path: '/life', icon: ListTodo, desc: 'Private tasks, priorities, due dates and project links' },
+      { label: 'Goals', path: '/life/goals', icon: Target, desc: 'Track personal goals with measurable milestones' },
       { label: 'Notes', path: '/notes', icon: NotebookPen, desc: 'Private notes with project links and version history' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
@@ -134,7 +135,7 @@ export default function AppLayout() {
   };
 
   const isWorkspaceHome = location.pathname === '/home';
-  const isActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const isActive = path => location.pathname === path || (path !== '/life' && location.pathname.startsWith(`${path}/`));
   const toolsActive = ALL_TOOLS.some(item => isActive(item.path));
   const query = toolQuery.trim().toLowerCase();
   const visibleGroups = TOOL_GROUPS.map(group => ({
