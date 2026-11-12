@@ -18,6 +18,7 @@ const ENTITY_SCHEMAS = {
   LifeGoal: { table: 'life_goals' },
   FlashcardDeck: { table: 'study_flashcard_decks' },
   CalendarEvent: { table: 'calendar_events' },
+  ActivityEvent: { table: 'activity_events' },
   Watchlist: { table: 'watchlists' },
   MonitoringDiscovery: { table: 'monitoring_discoveries' },
   Notification: { table: 'notifications' },
