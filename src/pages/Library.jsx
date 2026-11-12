@@ -68,7 +68,8 @@ export default function Library() {
   useEffect(() => {
     setSearchTerm(searchParams.get('q') || '');
     const requestedTab = searchParams.get('tab');
-    if (TABS.some(candidate => candidate.key === requestedTab)) setTab(requestedTab);
+    if (searchParams.get('focus')) setTab('papers');
+    else if (TABS.some(candidate => candidate.key === requestedTab)) setTab(requestedTab);
   }, [searchParams]);
 
   const loadAll = async () => {
@@ -149,7 +150,10 @@ export default function Library() {
     return items.filter(item => fields.some(f => String(item[f] || '').toLowerCase().includes(q)));
   };
 
-  const filteredPapers = filter(papers, ['title', 'authors', 'source']);
+  const focusedPaperId = searchParams.get('focus');
+  const filteredPapers = focusedPaperId
+    ? papers.filter(paper => String(paper.id) === focusedPaperId)
+    : filter(papers, ['title', 'authors', 'source']);
   const exportPaperReferences = format => {
     if (loading || failedCollections.includes('papers') || !filteredPapers.length) return;
     const bib = format === 'bibtex';

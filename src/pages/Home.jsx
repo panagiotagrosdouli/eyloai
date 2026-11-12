@@ -8,6 +8,7 @@ import GuidedSearch from '@/components/discovery/GuidedSearch';
 import DiscoveryResults from '@/components/discovery/DiscoveryResults';
 import LoadingState from '@/components/discovery/LoadingState';
 import EyraHome from '@/components/dashboard/EyraHome';
+import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
 
 export default function Home({ searchOnly = false }) {
   const [state, setState] = useState(searchOnly ? 'search' : 'dashboard'); // dashboard | search | loading | results
@@ -132,5 +133,5 @@ export default function Home({ searchOnly = false }) {
     );
   }
 
-  return <EyraHome onSearch={handleSearch} />;
+  return <><EyraHome onSearch={handleSearch} /><PersonalizedDashboard /></>;
 }

@@ -13,6 +13,12 @@ const ENTITY_SCHEMAS = {
   SavedResearcher: { table: 'saved_researchers' },
   SavedOpportunity: { table: 'saved_opportunities' },
   SearchHistory: { table: 'search_history' },
+  Note: { table: 'notes' },
+  LifeTask: { table: 'life_tasks' },
+  LifeGoal: { table: 'life_goals' },
+  FlashcardDeck: { table: 'study_flashcard_decks' },
+  CalendarEvent: { table: 'calendar_events' },
+  ActivityEvent: { table: 'activity_events' },
   Watchlist: { table: 'watchlists' },
   MonitoringDiscovery: { table: 'monitoring_discoveries' },
   Notification: { table: 'notifications' },
@@ -108,6 +114,33 @@ function entityRepository({ table }) {
       if (error) throw error;
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
     },
+    async search(searchQuery, limit = 100) {
+      if (table !== 'notes') throw new Error('Full-text search is only available for notes.');
+      const query = String(searchQuery || '').trim();
+      if (!query) return this.list('-updated_date', limit);
+      if (query.length > 200) {
+        throw Object.assign(new Error('Search must be 200 characters or fewer.'), { code: 'NOTE_SEARCH_INVALID' });
+      }
+      await currentUser();
+      const { data, error } = await requireSupabase().rpc('search_notes', {
+        search_query: query,
+        result_limit: Math.max(1, Math.min(Number(limit) || 100, 100)),
+      });
+      if (error) throw error;
+      return (data || []).map(rowToEntity);
+    },
+    async versions(entityId, limit = 50) {
+      if (table !== 'notes') throw new Error('Version history is only available for notes.');
+      const user = await currentUser();
+      const { data, error } = await requireSupabase().from('note_versions')
+        .select('id,note_id,user_id,version,snapshot,created_date')
+        .eq('note_id', entityId)
+        .eq('user_id', user.id)
+        .order('version', { ascending: false })
+        .limit(Math.max(1, Math.min(Number(limit) || 50, 50)));
+      if (error) throw error;
+      return data || [];
+    },
     async get(entityId) {
       const user = await currentUser();
       const { data, error } = await requireSupabase().from(table).select('*').eq('id', entityId).eq('user_id', user.id).single();
@@ -173,6 +206,13 @@ function entityRepository({ table }) {
         throw Object.assign(new Error('Record was not found or access was denied.'), { code: 'ENTITY_NOT_FOUND' });
       }
       return { id: entityId };
+    },
+    async clear() {
+      if (table !== 'activity_events') throw new Error('Bulk clear is only available for activity history.');
+      const user = await currentUser();
+      const { error } = await requireSupabase().from(table).delete().eq('user_id', user.id);
+      if (error) throw error;
+      return { cleared: true };
     },
   };
 }

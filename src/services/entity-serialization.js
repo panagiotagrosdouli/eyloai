@@ -1,5 +1,6 @@
 const RESERVED_FIELDS = new Set([
   'id', 'user_id', 'created_at', 'updated_at', 'created_date', 'updated_date', 'data',
+  'version',
 ]);
 
 /** Convert the application's JSONB-backed entity rows into their legacy shape. */

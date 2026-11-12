@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Activity, Award, BarChart3, BookOpen, Brain, Briefcase, ChevronDown, FileEdit, FolderOpen, GitBranch, History,
-  Home, LayoutDashboard, LayoutGrid, Lightbulb, LogOut, Menu, Mic, Presentation,
+  Activity, Award, BarChart3, BookOpen, Brain, Briefcase, CalendarDays, ChevronDown, Clock3, FileEdit, Flame, FolderOpen, GitBranch, GraduationCap, History,
+  Home, LayoutDashboard, LayoutGrid, Lightbulb, ListTodo, LogOut, Menu, Mic, NotebookPen, Presentation, Layers3,
   Rocket, Search, Settings, Sparkles, Target, Trophy, User, Users,
   Video, X, Zap,
 } from 'lucide-react';
@@ -36,6 +36,15 @@ const TOOL_GROUPS = [
     description: 'Research work that stays connected to projects',
     items: [
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
+      { label: 'Life', path: '/life', icon: ListTodo, desc: 'Private tasks, priorities, due dates and project links' },
+      { label: 'Goals', path: '/life/goals', icon: Target, desc: 'Track personal goals with measurable milestones' },
+      { label: 'Study Planner', path: '/study-planner', icon: GraduationCap, desc: 'Plan courses, syllabus items, study sessions and exam dates' },
+      { label: 'Habits', path: '/habits', icon: Flame, desc: 'Track routines, check-ins and saved streak history' },
+      { label: 'Flashcards', path: '/flashcards', icon: Layers3, desc: 'Review saved cards with spaced repetition' },
+      { label: 'Calendar', path: '/calendar', icon: CalendarDays, desc: 'Plan private events and project deadlines' },
+      { label: 'Workspace search', path: '/workspace/search', icon: Search, desc: 'Search your own notes, projects, tasks and saved research' },
+      { label: 'Activity history', path: '/activity', icon: Clock3, desc: 'Review recent private workspace changes' },
+      { label: 'Notes', path: '/notes', icon: NotebookPen, desc: 'Private notes with project links and version history' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
       { label: 'Literature review protocol', path: '/literature-review', icon: BookOpen, desc: 'Document search methods and screen saved publications' },
@@ -132,7 +141,7 @@ export default function AppLayout() {
   };
 
   const isWorkspaceHome = location.pathname === '/home';
-  const isActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const isActive = path => location.pathname === path || (path !== '/life' && location.pathname.startsWith(`${path}/`));
   const toolsActive = ALL_TOOLS.some(item => isActive(item.path));
   const query = toolQuery.trim().toLowerCase();
   const visibleGroups = TOOL_GROUPS.map(group => ({

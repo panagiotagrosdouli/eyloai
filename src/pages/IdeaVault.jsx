@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { searchAllPapers } from '@/lib/eyra-api';
@@ -35,6 +35,7 @@ export default function IdeaVault() {
   const [formError, setFormError] = useState('');
   const [form, setForm] = useState({ title: '', description: '', category: 'research', tags: '' });
   const [searchParams, setSearchParams] = useSearchParams();
+  const focusedIdeaRef = useRef(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -81,6 +82,13 @@ export default function IdeaVault() {
     setFormError('');
     setShowNew(true);
   };
+  const startEditingRef = useRef(startEditing);
+  startEditingRef.current = startEditing;
+  useEffect(() => {
+    const focusId = searchParams.get('focus');
+    const match = focusId && !focusedIdeaRef.current ? ideas.find(idea => String(idea.id) === focusId) : null;
+    if (match) { focusedIdeaRef.current = true; startEditingRef.current(match); }
+  }, [ideas, searchParams]);
 
   const createIdea = async () => {
     const title = form.title.trim();
