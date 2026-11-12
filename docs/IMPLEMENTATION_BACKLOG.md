@@ -119,6 +119,8 @@
 
 ## Work recorded
 
+- **2026-11-12:** Replaced the single saved-opportunity draft slot with owner-scoped `grant_applications` keyed by saved opportunity and project. Composite owner foreign keys, RLS, unique project/opportunity pairs, and version-based compare-and-set writes prevent cross-project disclosure and stale overwrites. The existing legacy draft is read only for its recorded project and is copied forward only after an explicit scoped save. Isolation/concurrency tests and the migration check pass locally. The migration and two-account RLS behavior still require an authorized staging database; no production migration was applied.
+
 - **2026-11-12:** Grant application drafts are now scoped to the project context used to generate them. Switching projects hides a draft tied to a different project; legacy drafts are shown only when the saved opportunity's project association matches. Draft generation persists the project ID, and tests cover matching, mismatched, legacy, and malformed records. GitHub Actions passed production build, typecheck, lint, import checks, core and browser regressions, service checks, and deterministic relevance benchmark on commit `ebccde0c83edac5381d18d8c853b1a5d43deddc5`.
 
 - **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.

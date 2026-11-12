@@ -1,10 +1,22 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CheckCircle2, Download, ExternalLink, Loader2, Save, Sparkles,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useToast } from '@/components/ui/use-toast';
-import { readGrantDraftForProject } from '@/lib/grant-draft-context.mjs';
+import { getProjectGrantApplication, saveProjectGrantApplication } from '@/lib/grant-applications';
+import { legacyGrantApplication } from '@/lib/grant-applications-repository.mjs';
+
+function isOfficialFundingUrl(value) {
+  if (typeof value !== 'string') return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password && !url.port
+      && ['grants.gov', 'europa.eu'].some(host => url.hostname === host || url.hostname.endsWith(`.${host}`));
+  } catch {
+    return false;
+  }
+}
 
 const DRAFT_SCHEMA = {
   type: 'object',
@@ -36,9 +48,13 @@ export default function GrantBuilder() {
   const [draft, setDraft] = useState(null);
   const [status, setStatus] = useState('researching');
   const [notes, setNotes] = useState('');
+  const [application, setApplication] = useState(null);
+  const [applicationLoading, setApplicationLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
+  const loadSequence = useRef(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -57,17 +73,40 @@ export default function GrantBuilder() {
   const project = useMemo(() => projects.find(item => item.id === projectId), [projects, projectId]);
 
   useEffect(() => {
-    if (!opportunity) {
+    const sequence = ++loadSequence.current;
+    if (!opportunity || !projectId) {
+      setApplication(null);
       setDraft(null);
+      setStatus('researching');
+      setNotes('');
+      setApplicationLoading(false);
       return;
     }
-    setStatus(opportunity.application_status || 'researching');
-    setNotes(opportunity.application_notes || '');
-    setDraft(readGrantDraftForProject(opportunity, projectId));
+    setApplicationLoading(true);
+    setError('');
+    getProjectGrantApplication(opportunity.id, projectId).then((saved) => {
+      if (sequence !== loadSequence.current) return;
+      const record = saved || legacyGrantApplication(opportunity, projectId);
+      setApplication(saved);
+      setDraft(record?.draft || null);
+      setStatus(record?.status || 'researching');
+      setNotes(record?.notes || '');
+    }).catch((loadError) => {
+      if (sequence !== loadSequence.current) return;
+      setApplication(null);
+      setDraft(null);
+      setError(loadError?.message || 'Could not load this project’s grant draft.');
+    }).finally(() => {
+      if (sequence === loadSequence.current) setApplicationLoading(false);
+    });
+    return () => { loadSequence.current += 1; };
   }, [opportunity, projectId]);
 
   const generate = async () => {
     if (!opportunity || !project) return;
+    const selectedOpportunityId = opportunity.id;
+    const selectedProjectId = project.id;
+    const expectedVersion = application?.version ?? null;
     setGenerating(true);
     setError('');
 
@@ -102,18 +141,18 @@ Rules:
 - End with concrete actions tied to the official notice.`,
         response_json_schema: DRAFT_SCHEMA,
       });
-      const serializedDraft = JSON.stringify(result);
-      await base44.entities.SavedOpportunity.update(opportunity.id, {
-        application_draft: serializedDraft,
-        application_project_id: project.id,
-        application_status: status,
-        application_notes: notes,
-        tracked_at: new Date().toISOString(),
+      const saved = await saveProjectGrantApplication({
+        opportunityId: selectedOpportunityId,
+        projectId: selectedProjectId,
+        status,
+        notes,
+        draft: result,
+        expectedVersion,
       });
-      setDraft(result);
-      setOpportunities(items => items.map(item => item.id === opportunity.id
-        ? { ...item, application_draft: serializedDraft, application_project_id: project.id, application_status: status, application_notes: notes }
-        : item));
+      if (selectedOpportunityId === opportunityId && selectedProjectId === projectId) {
+        setApplication(saved);
+        setDraft(saved.draft);
+      }
       toast({ title: 'Grant draft generated and saved' });
     } catch (generationError) {
       setError(generationError?.message || 'The grant draft could not be generated.');
@@ -123,16 +162,25 @@ Rules:
   };
 
   const saveTracker = async () => {
-    if (!opportunity) return;
-    await base44.entities.SavedOpportunity.update(opportunity.id, {
-      application_status: status,
-      application_notes: notes,
-      application_draft: draft ? JSON.stringify(draft) : opportunity.application_draft || '',
-      ...(draft ? { application_project_id: project?.id || '' } : {}),
-      tracked_at: new Date().toISOString(),
-    });
-    setOpportunities(items => items.map(item => item.id === opportunity.id ? { ...item, application_status: status, application_notes: notes, application_draft: draft ? JSON.stringify(draft) : item.application_draft, ...(draft ? { application_project_id: project?.id || '' } : {}) } : item));
-    toast({ title: 'Application tracker saved' });
+    if (!opportunity || !project) return;
+    setSaving(true);
+    setError('');
+    try {
+      const saved = await saveProjectGrantApplication({
+        opportunityId: opportunity.id,
+        projectId: project.id,
+        status,
+        notes,
+        draft,
+        expectedVersion: application?.version ?? null,
+      });
+      if (opportunity.id === opportunityId && project.id === projectId) setApplication(saved);
+      toast({ title: 'Application tracker saved' });
+    } catch (saveError) {
+      setError(saveError?.message || 'The application tracker could not be saved.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const exportDraft = () => {
@@ -189,12 +237,12 @@ Rules:
       ) : (
         <>
           <section className="grid gap-4 rounded-2xl border border-border bg-card p-5 md:grid-cols-2">
-            <div><label className="mb-2 block text-xs font-semibold">Official opportunity</label><select value={opportunityId} onChange={event => setOpportunityId(event.target.value)} className="w-full rounded-xl border border-border bg-secondary px-3 py-3 text-sm">{opportunities.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></div>
-            <div><label className="mb-2 block text-xs font-semibold">Project</label><select value={projectId} onChange={event => setProjectId(event.target.value)} className="w-full rounded-xl border border-border bg-secondary px-3 py-3 text-sm">{projects.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></div>
+            <div><label htmlFor="grant-opportunity" className="mb-2 block text-xs font-semibold">Official opportunity</label><select id="grant-opportunity" value={opportunityId} onChange={event => setOpportunityId(event.target.value)} className="w-full rounded-xl border border-border bg-secondary px-3 py-3 text-sm">{opportunities.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></div>
+            <div><label htmlFor="grant-project" className="mb-2 block text-xs font-semibold">Project</label><select id="grant-project" value={projectId} onChange={event => setProjectId(event.target.value)} className="w-full rounded-xl border border-border bg-secondary px-3 py-3 text-sm">{projects.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></div>
             <div><label className="mb-2 block text-xs font-semibold">Application status</label><select value={status} onChange={event => setStatus(event.target.value)} className="w-full rounded-xl border border-border bg-secondary px-3 py-3 text-sm"><option value="researching">Researching</option><option value="go_no_go">Go / no-go review</option><option value="drafting">Drafting</option><option value="internal_review">Internal review</option><option value="submitted">Submitted</option><option value="declined">Declined</option><option value="awarded">Awarded</option></select></div>
             <div><label className="mb-2 block text-xs font-semibold">Tracker notes</label><input value={notes} onChange={event => setNotes(event.target.value)} className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm" placeholder="Owner, internal deadline, partner dependency…" /></div>
-            {opportunity?.source_url && <a href={opportunity.source_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs font-semibold text-primary">Open official notice <ExternalLink size={11} /></a>}
-            <div className="flex flex-wrap justify-end gap-2 md:col-start-2"><button onClick={saveTracker} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-xs font-semibold"><Save size={13} />Save tracker</button><button onClick={generate} disabled={generating} className="inline-flex items-center gap-2 rounded-xl eyra-gradient px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-40">{generating ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}{generating ? 'Drafting…' : 'Generate working draft'}</button></div>
+            {isOfficialFundingUrl(opportunity?.source_url) && <a href={opportunity.source_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs font-semibold text-primary">Open official notice <ExternalLink size={11} /></a>}
+            <div className="flex flex-wrap justify-end gap-2 md:col-start-2"><button onClick={saveTracker} disabled={saving || applicationLoading} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-xs font-semibold disabled:opacity-40"><Save size={13} />{saving ? 'Saving…' : 'Save tracker'}</button><button onClick={generate} disabled={generating || applicationLoading} className="inline-flex items-center gap-2 rounded-xl eyra-gradient px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-40">{generating ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}{generating ? 'Drafting…' : 'Generate working draft'}</button></div>
           </section>
 
           {error && <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300">{error}</div>}
