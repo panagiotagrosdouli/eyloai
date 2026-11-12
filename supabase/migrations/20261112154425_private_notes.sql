@@ -22,6 +22,7 @@ drop policy if exists "Users manage own rows" on public.notes;
 create policy "Users manage own rows" on public.notes for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
+revoke all on public.notes from anon;
 grant select, insert, update, delete on public.notes to authenticated;
 
 create table if not exists public.note_versions (
@@ -42,6 +43,7 @@ drop policy if exists "Users read own note versions" on public.note_versions;
 create policy "Users read own note versions" on public.note_versions for select to authenticated
   using ((select auth.uid()) = user_id);
 
+revoke all on public.note_versions from anon;
 revoke insert, update, delete on public.note_versions from anon, authenticated;
 grant select on public.note_versions to authenticated;
 
