@@ -119,7 +119,7 @@
 
 ## Work recorded
 
-- **2026-11-12:** Grant application drafts are now scoped to the project context used to generate them. Switching projects hides a draft tied to a different project; legacy drafts are shown only when the saved opportunity's project association matches. Draft generation persists the project ID, and tests cover matching, mismatched, legacy, and malformed records. Hosted checks are pending.
+- **2026-11-12:** Grant application drafts are now scoped to the project context used to generate them. Switching projects hides a draft tied to a different project; legacy drafts are shown only when the saved opportunity's project association matches. Draft generation persists the project ID, and tests cover matching, mismatched, legacy, and malformed records. GitHub Actions passed production build, typecheck, lint, import checks, core and browser regressions, service checks, and deterministic relevance benchmark on commit `ebccde0c83edac5381d18d8c853b1a5d43deddc5`.
 
 - **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.
 - **2026-11-10:** Project Evidence adds a source-linked, editable matrix for linked papers; notes are stored on the project and exported as CSV with spreadsheet formula escaping. Missing notes are shown as unrecorded rather than inferred.
