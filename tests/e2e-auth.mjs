@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import { createHash } from 'node:crypto';
+import { readFile as readDataLabDownload } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const baseUrl = 'http://127.0.0.1:4173';
@@ -168,12 +170,19 @@ try {
   await dataLab.getByLabel('Password').fill('Test-password-123');
   await dataLab.getByRole('button', { name: 'Continue with password' }).click();
   await dataLab.getByRole('heading', { name: 'Continue your research' }).waitFor({ state: 'detached' });
+  const canary = 'SENSITIVE_LOCAL_CSV_CANARY_7729';
+  const originalCsv = Buffer.from('sample,score\n' + canary + ',1\nB,2\nC,\n');
+  const digestOf = content => createHash('sha256').update(content).digest('hex');
+  const outboundCsvBodies = [];
+  dataLab.on('request', request => {
+    if (request.postData()?.includes(canary)) outboundCsvBodies.push(request.url());
+  });
   await dataLab.goto(`${baseUrl}/labs/data`);
   await dataLab.getByRole('heading', { name: 'Research Data Lab' }).waitFor();
   await dataLab.locator('input[type="file"]').setInputFiles({
     name: 'study.csv',
     mimeType: 'text/csv',
-    buffer: Buffer.from('sample,score\nA,1\nB,2\nC,\n'),
+    buffer: originalCsv,
   });
   await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor();
   await dataLab.getByRole('row', { name: /score numeric 3 1 2 1.5/ }).waitFor();
@@ -181,8 +190,69 @@ try {
   const summaryDownload = dataLab.waitForEvent('download');
   await dataLab.getByRole('button', { name: 'Export summary CSV' }).click();
   assert.equal((await summaryDownload).suggestedFilename(), 'research-data-summary.csv');
+  await dataLab.getByText('Local file identity (SHA-256)').waitFor();
+  await dataLab.getByText(digestOf(originalCsv), { exact: true }).waitFor();
+
+  const qualityPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export quality JSON' }).click();
+  const qualityDownload = await qualityPromise;
+  assert.equal(qualityDownload.suggestedFilename(), 'research-data-quality.json');
+  const qualityFile = JSON.parse(await readDataLabDownload(await qualityDownload.path(), 'utf8'));
+  assert.equal(qualityFile.audit.totalRows, 3);
+  assert.equal(qualityFile.provenance.sha256, digestOf(originalCsv));
+  assert.equal(qualityFile.provenance.file_bytes, originalCsv.byteLength);
+  assert.equal(qualityFile.provenance.columns, 2);
+  assert.equal(JSON.stringify(qualityFile).includes(canary), false,
+    'An aggregate export must not include private source CSV values');
+
+  const modifiedCsv = Buffer.from('sample,score\nA,1\nB,2\nC,99\n');
+  await dataLab.locator('input[type="file"]').setInputFiles({
+    name: 'study-modified.csv', mimeType: 'text/csv', buffer: modifiedCsv,
+  });
+  await dataLab.getByText(digestOf(modifiedCsv), { exact: true }).waitFor();
+  assert.notEqual(digestOf(modifiedCsv), digestOf(originalCsv));
+  assert.equal(await dataLab.getByText(digestOf(originalCsv), { exact: true }).count(), 0,
+    'Replacing a file must not expose the previous fingerprint');
+
   await dataLab.getByRole('button', { name: 'Clear data' }).click();
   await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor({ state: 'detached' });
+  assert.equal(await dataLab.getByText('Local file identity (SHA-256)').count(), 0,
+    'Clear must remove the fingerprint');
+
+  await dataLab.locator('input[type="file"]').setInputFiles({
+    name: 'oversized.csv', mimeType: 'text/csv',
+    buffer: Buffer.alloc(5 * 1024 * 1024 + 1, 65),
+  });
+  await dataLab.getByText('The CSV exceeds the 5 MB limit.').waitFor();
+  assert.equal(await dataLab.getByText('Local file identity (SHA-256)').count(), 0);
+
+  // 4,000 rows, ~99% of the 5 MiB bound, within field and row caps.
+  const nearLimit = Buffer.from('sample,score\n' + ('x'.repeat(1294) + ',1\n').repeat(4000));
+  assert.ok(nearLimit.byteLength < 5 * 1024 * 1024);
+  assert.ok(nearLimit.byteLength > 0.98 * 5 * 1024 * 1024);
+  await dataLab.locator('input[type="file"]').setInputFiles({
+    name: 'near-limit.csv', mimeType: 'text/csv', buffer: nearLimit,
+  });
+  await dataLab.getByText(digestOf(nearLimit), { exact: true }).waitFor({ timeout: 60000 });
+
+  await dataLab.getByRole('button', { name: 'Clear data' }).click();
+
+  // A genuine browser without WebCrypto must not invent a digest.
+  const disabled = await dataLab.evaluate(() => {
+    Object.defineProperty(window.crypto, 'subtle', { configurable: true, value: undefined });
+    return window.crypto.subtle === undefined;
+  });
+  assert.equal(disabled, true);
+  await dataLab.locator('input[type="file"]').setInputFiles({
+    name: 'no-webcrypto.csv', mimeType: 'text/csv',
+    buffer: Buffer.from('sample,score\nA,7\nB,8\n'),
+  });
+  await dataLab.getByText('File fingerprint unavailable in this browser. Data analysis remains local.').waitFor();
+  const fallbackPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export quality JSON' }).click();
+  const fallback = JSON.parse(await readDataLabDownload(await (await fallbackPromise).path(), 'utf8'));
+  assert.equal(fallback.provenance, null);
+  assert.deepEqual(outboundCsvBodies, [], 'No raw uploaded CSV bytes should appear in outbound requests');
 
   await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/meetings**', (route) => sendAuthJson(route, [{
     id: 'meeting-e2e-1',
