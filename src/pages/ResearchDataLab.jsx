@@ -7,6 +7,7 @@ import {
   parseResearchCsv,
   summarizeResearchData,
 } from '@/lib/research-data.mjs';
+import { auditResearchDataQuality } from '@/lib/research-data-quality.mjs';
 
 const numberFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 4 });
 
@@ -33,6 +34,7 @@ export default function ResearchDataLab() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const summaries = useMemo(() => summarizeResearchData(dataset), [dataset]);
+  const quality = useMemo(() => dataset ? auditResearchDataQuality(dataset) : null, [dataset]);
   const numericColumns = summaries.filter((summary) => summary.type === 'numeric').map((summary) => summary.column);
   const selectedChartColumn = numericColumns.includes(chartColumn) ? chartColumn : numericColumns[0] || '';
   const chartRows = useMemo(
@@ -80,6 +82,28 @@ export default function ResearchDataLab() {
 
   const handleExport = () => {
     downloadCsv(exportResearchDataSummaryCsv(summaries), 'research-data-summary.csv');
+  };
+
+  const exportQualityReport = () => {
+    if (!quality) return;
+    // Only aggregate counts and column names are included; never raw rows.
+    const blob = new Blob([JSON.stringify({
+      format: 'eylo-local-data-quality-v1',
+      generated_at: new Date().toISOString(),
+      file_name: filename,
+      audit: quality,
+    }, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    try {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'research-data-quality.json';
+      document.body.append(link);
+      link.click();
+      link.remove();
+    } finally {
+      URL.revokeObjectURL(url);
+    }
   };
 
   return (
@@ -160,6 +184,60 @@ export default function ResearchDataLab() {
               </table>
             </div>
           </section>
+
+          {quality && (
+            <section className="rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="data-quality-title">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 id="data-quality-title" className="text-lg font-semibold">Missing-data and consistency audit</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">Descriptive, local-only review. No missing values are imputed and identical rows are not automatically deleted.</p>
+                </div>
+                <button type="button" onClick={exportQualityReport}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary">
+                  <Download size={15} aria-hidden="true" /> Export quality JSON
+                </button>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[
+                  { label: 'Complete rows', count: quality.completeRows },
+                  { label: 'Incomplete rows', count: quality.incompleteRows },
+                  { label: 'Fully missing rows', count: quality.entirelyMissingRows },
+                  { label: 'Additional identical rows', count: quality.identicalAdditionalRows },
+                ].map(({ label, count }) => (
+                  <div key={label} className="rounded-lg border border-border p-3">
+                    <p className="text-xl font-bold tabular-nums">{numberFormat.format(count)}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{label}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 overflow-x-auto rounded-lg border border-border">
+                <table className="w-full min-w-[600px] text-left text-sm">
+                  <thead className="bg-secondary/60 text-xs text-muted-foreground">
+                    <tr><th className="p-3">Column</th><th className="p-3">Present</th><th className="p-3">Missing</th><th className="p-3">Missing %</th><th className="p-3">Observation</th></tr>
+                  </thead>
+                  <tbody>
+                    {quality.columns.map(item => (
+                      <tr key={item.column} className="border-t border-border">
+                        <th scope="row" className="break-words p-3 font-medium">{item.column}</th>
+                        <td className="p-3 tabular-nums">{item.present}</td>
+                        <td className="p-3 tabular-nums">{item.missing}</td>
+                        <td className="p-3 tabular-nums">{item.missingPercent}%</td>
+                        <td className="p-3 text-xs text-muted-foreground">
+                          {item.allMissing ? 'No observed values' : item.constantAmongPresent ? 'Constant among observed values' : 'No simple flag'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {quality.notes.length > 0 && (
+                <ul className="mt-3 list-inside list-disc space-y-1 text-xs text-amber-600 dark:text-amber-400">
+                  {quality.notes.map(note => <li key={note}>{note}</li>)}
+                </ul>
+              )}
+              <p className="mt-3 text-xs text-muted-foreground">{quality.disclaimer} The JSON export includes column names and aggregates but no raw dataset rows.</p>
+            </section>
+          )}
 
           <section className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]">
             <div className="rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="chart-title">
