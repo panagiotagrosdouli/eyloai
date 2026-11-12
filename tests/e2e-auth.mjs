@@ -608,7 +608,8 @@ try {
   await dataLab.getByRole('link', { name: 'Climate note' }).click();
   assert.equal(new URL(dataLab.url()).pathname, '/notes');
   assert.equal(new URL(dataLab.url()).searchParams.get('focus'), 'note-1');
-  await dataLab.waitForFunction(() => document.getElementById('note-title')?.value === 'Climate note');
+  await dataLab.getByLabel('Note title').waitFor();
+  await dataLab.waitForFunction(() => document.querySelector('#note-title')?.value === 'Climate note');
   assert.equal(await dataLab.getByLabel('Note title').inputValue(), 'Climate note', 'record deep link should open the exact saved note');
   console.log('Universal Search rendered paginated results, partial source coverage and opened the exact note from an RPC-shaped response.');
 
