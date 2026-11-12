@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { buildResearchGapCoverage } from '../src/lib/research-gap-coverage.mjs';
 import { saveDiscoveredGapPaper } from '../src/lib/research-gap-literature-save.mjs';
 
@@ -51,4 +52,12 @@ test('an existing project link is not reassigned when saving live literature', a
     saveDiscoveredGapPaper({ entities, paper: { id: 'W1', title: 'Evidence study' }, project: { id: 'project-1' } }),
     /existing association was preserved/,
   );
+});
+
+test('Research Gap Finder uses live search and exposes retrieval limits', () => {
+  const page = readFileSync(new URL('../src/pages/ResearchGaps.jsx', import.meta.url), 'utf8');
+  assert.match(page, /searchAllPapersWithStatus\(query/);
+  assert.match(page, /buildResearchGapCoverage\(result\)/);
+  assert.match(page, /not a systematic review/);
+  assert.match(page, /Save records to your Library before using them in an analysis/);
 });
