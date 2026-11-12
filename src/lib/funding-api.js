@@ -21,7 +21,7 @@ export function applyFundingRanking(records, ranking) {
 
   for (const candidate of Array.isArray(ranking?.ranked) ? ranking.ranked : []) {
     if (!candidate || typeof candidate !== 'object' || !knownIds.has(candidate.id) || rankedById.has(candidate.id)) continue;
-    const score = Number(candidate.match_score);
+    const score = typeof candidate.match_score === 'number' ? candidate.match_score : Number.NaN;
     rankedById.set(candidate.id, {
       match_score: Number.isFinite(score) && score >= 0 && score <= 100 ? score : null,
       match_reason: typeof candidate.match_reason === 'string' ? candidate.match_reason.trim().slice(0, 500) : '',
