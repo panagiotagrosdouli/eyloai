@@ -211,6 +211,22 @@ export function compareResearchNumericColumns(dataset, firstColumn, secondColumn
   };
 }
 
+/** Export comparison metadata and aggregates only; never export source rows. */
+export function exportResearchDataComparisonCsv(comparison) {
+  const rows = [['Statistic', 'Value']];
+  if (comparison?.available && comparison.kind === 'pearson-correlation') {
+    rows.push(
+      ['Variable 1', comparison.firstColumn],
+      ['Variable 2', comparison.secondColumn],
+      ['Pearson correlation (r)', comparison.pearsonR],
+      ['Complete pairs used', comparison.pairs],
+      ['Rows skipped', comparison.incomplete],
+      ['Scope', 'Descriptive pairwise linear association; no causal or statistical significance claim'],
+    );
+  }
+  return rows.map((row) => row.map(csvCell).join(',')).join('\r\n');
+}
+
 function csvCell(value) {
   const text = value == null ? '' : String(value);
   const safe = typeof value !== 'number' && /^[\t ]*[=+@-]/.test(text) ? `'${text}` : text;
