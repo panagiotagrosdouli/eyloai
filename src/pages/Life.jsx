@@ -25,6 +25,7 @@ function localDateString(date = new Date()) {
 export default function Life() {
   const { user } = useAuth();
   const ownerRef = useRef(user?.id || null);
+  const focusedTaskRef = useRef(false);
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -55,6 +56,7 @@ export default function Life() {
 
   useEffect(() => {
     ownerRef.current = user?.id || null;
+    focusedTaskRef.current = false;
     setTasks([]);
     setProjects([]);
     setSelected(null);
@@ -97,6 +99,13 @@ export default function Life() {
     setError('');
     setNotice('');
   };
+  const chooseTaskRef = useRef(chooseTask);
+  chooseTaskRef.current = chooseTask;
+  useEffect(() => {
+    const focusId = new URLSearchParams(window.location.search).get('focus');
+    const match = focusId && !focusedTaskRef.current ? tasks.find(task => String(task.id) === focusId) : null;
+    if (match) { focusedTaskRef.current = true; chooseTaskRef.current(match); }
+  }, [tasks]);
 
   const saveTask = async event => {
     event.preventDefault();
@@ -260,3 +269,4 @@ export default function Life() {
     </div>
   );
 }
+
