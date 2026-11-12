@@ -28,7 +28,7 @@ The account/workspace branches are separate areas of work: #386 adds For You, #3
 | #388 `20261112165449_eylo_study_flashcards.sql` | Existing `projects`, authenticated users | Not applied |
 | #388 `20261112173500_eylo_calendar_events.sql` | Existing `projects`, authenticated users | Not applied |
 | #388 `20261112181000_eylo_activity_history.sql` | `projects`, Notes, Life tasks/goals, decks, calendar events | Not applied |
-| #388 `20261112203000_universal_workspace_search.sql` | Core `projects`, `ideas`, `saved_papers` plus all #388 tables above | Not applied |
+| #388 `20261112183722_universal_workspace_search.sql` | Core `projects`, `ideas`, `saved_papers` plus all #388 tables above | Not applied |
 | #392 | No new schema migration; workplan lives in owner-scoped `projects.data.plan_items` and uses `updated_date` compare-and-set | Not applicable |
 
 Apply only after reviewing the complete migration set against the intended staging schema. The timestamp order within #388 is intentional: activity history follows all audited entities, and workspace search follows all searchable tables. The project grant migration appears in both #378 and #379 diffs and must not be applied twice.
