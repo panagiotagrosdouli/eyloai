@@ -22,7 +22,8 @@
 - [x] Deduplicate records across user signals, preserve source metadata, link only safe provider URLs, and explain the user signal behind each result.
 - [x] Save recommendations through authenticated Library entity access and show success only after persistence returns; expose save failures.
 - [x] Add deterministic identity/signal tests and an authenticated provider-shaped browser workflow.
-- [ ] Run the browser workflow in GitHub Actions and verify authenticated Library ownership/RLS against the intended staging Supabase project.
+- [x] Run the authenticated browser workflow in GitHub Actions against provider-shaped scholarly responses and an isolated persistence fixture.
+- [ ] Verify authenticated Library ownership/RLS against the intended staging Supabase project.
 
 ### 1. Research Knowledge Graph — source-backed saved-collection graph implemented; coverage is partial
 
