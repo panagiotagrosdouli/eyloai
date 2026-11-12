@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { compareResearchNumericColumns, exportResearchDataComparisonCsv, parseResearchCsv } from '../src/lib/research-data.mjs';
+import {
+  compareResearchNumericColumns,
+  exportResearchDataComparisonCsv,
+  parseResearchCsv,
+  summarizeResearchNumericByCategory,
+} from '../src/lib/research-data.mjs';
 
 test('pairwise Pearson r uses complete numeric pairs and reports skipped rows', () => {
   const dataset = parseResearchCsv('hours,score\n1,2\n2,4\n3,6\n,8\n5,not recorded');
@@ -65,4 +70,41 @@ test('scatter sample is bounded and spans the complete-pair row range', () => {
   assert.equal(result.scatterSample.at(-1).row, 1200);
   assert.ok(result.scatterSample.every(point => point.xPosition >= 0 && point.xPosition <= 1
     && point.yPosition >= 0 && point.yPosition <= 1));
+});
+
+test('numeric-by-category summaries include observed groups and skip incomplete pairs', () => {
+  const dataset = parseResearchCsv('group,score\ncontrol,1\ncontrol,3\ntreatment,5\ntreatment,7\n,9\nunknown,');
+  const result = summarizeResearchNumericByCategory(dataset, 'score', 'group');
+  assert.equal(result.available, true);
+  assert.equal(result.kind, 'numeric-by-category');
+  assert.equal(result.pairs, 4);
+  assert.equal(result.incomplete, 2);
+  assert.equal(result.totalGroups, 2);
+  assert.deepEqual(result.groups.map(group => [group.category, group.count, group.mean, group.median, group.min, group.max]), [
+    ['control', 2, 2, 2, 1, 3],
+    ['treatment', 2, 6, 6, 5, 7],
+  ]);
+  assert.equal('pValue' in result, false);
+});
+
+test('numeric-by-category comparison validates column types and bounds high-cardinality output', () => {
+  const invalid = summarizeResearchNumericByCategory(parseResearchCsv('x,y\n1,A\n2,B\n3,C'), 'x', 'other');
+  assert.equal(invalid.available, false);
+
+  const rows = Array.from({ length: 51 }, (_, index) => `group-${index},${index + 1}`).join('\n');
+  const result = summarizeResearchNumericByCategory(parseResearchCsv(`category,value\n${rows}`), 'value', 'category');
+  assert.equal(result.totalGroups, 51);
+  assert.equal(result.groups.length, 50);
+  assert.equal(result.omittedGroups, 1);
+  assert.equal(result.omittedObservations, 1);
+});
+
+test('grouped comparison CSV exports bounded aggregates without source rows', () => {
+  const grouped = summarizeResearchNumericByCategory(parseResearchCsv('=group,score\ncontrol,1\ncontrol,3'), 'score', '=group');
+  const csv = exportResearchDataComparisonCsv(grouped);
+  assert.match(csv, /"'=group"/);
+  assert.match(csv, /"Category","Count","Mean","Median","Sample SD","Minimum","Maximum"/);
+  assert.match(csv, /"control","2","2","2","1\.414/);
+  assert.doesNotMatch(csv, /\r?\n"control","1"/);
+  assert.match(csv, /no statistical test or causal claim/);
 });
