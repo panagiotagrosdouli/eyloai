@@ -34,6 +34,12 @@ begin
     entity_id := new.id;
     operation := case when tg_op = 'INSERT' then 'created' else 'updated' end;
   end if;
+  -- Skip background cascades and privileged maintenance writes. In particular,
+  -- account deletion must not be blocked by a new log row referencing that user.
+  if owner_id is null or (select auth.uid()) is distinct from owner_id then
+    if tg_op = 'DELETE' then return old; end if;
+    return new;
+  end if;
   entity_label := left(coalesce(nullif(record_data ->> 'title', ''), nullif(record_data ->> 'name', ''), tg_table_name), 160);
   insert into public.activity_events (user_id, data)
   values (owner_id, jsonb_build_object(
