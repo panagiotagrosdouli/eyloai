@@ -98,7 +98,9 @@ export default function ProjectDetail() {
     if (loadGenerationRef.current !== generation) return;
     if (projectResult.status !== 'fulfilled' || !projectResult.value || projectResult.value.id !== id) {
       setProject(null);
-      setLoadError(projectResult.reason?.message || 'This project could not be loaded.');
+      setLoadError(projectResult.status === 'rejected'
+        ? (projectResult.reason?.message || 'This project could not be loaded.')
+        : 'Project not found or returned an unexpected identifier.');
       setLoading(false);
       return;
     }
