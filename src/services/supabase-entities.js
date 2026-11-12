@@ -14,6 +14,7 @@ const ENTITY_SCHEMAS = {
   SavedOpportunity: { table: 'saved_opportunities' },
   SearchHistory: { table: 'search_history' },
   Note: { table: 'notes' },
+  LifeTask: { table: 'life_tasks' },
   Watchlist: { table: 'watchlists' },
   MonitoringDiscovery: { table: 'monitoring_discoveries' },
   Notification: { table: 'notifications' },
