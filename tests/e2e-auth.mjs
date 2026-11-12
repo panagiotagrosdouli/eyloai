@@ -529,7 +529,8 @@ try {
   await dataLab.getByRole('button', { name: 'Add Official health grant to comparison' }).click();
   await dataLab.getByRole('button', { name: 'Add Official EU call to comparison' }).click();
   assert.equal(await dataLab.getByRole('button', { name: 'Add Untrusted URL record to comparison' }).isDisabled(), true);
-  assert.equal(await dataLab.getByRole('link', { name: 'Open official source' }).count(), 2);
+  assert.equal(await dataLab.getByRole('link', { name: 'Open official source', exact: true }).count(), 3,
+    'the comparison table exposes exactly the three selected safe official links');
   await dataLab.getByLabel('Filter by research field').fill('health');
   await dataLab.getByRole('columnheader', { name: /Official health grant/ }).waitFor();
   assert.equal(await dataLab.getByRole('columnheader', { name: /Official climate grant/ }).count(), 0,
