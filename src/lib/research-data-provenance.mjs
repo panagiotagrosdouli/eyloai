@@ -12,7 +12,14 @@ export async function sha256ResearchFile(bytes, subtle = globalThis.crypto?.subt
   if (!(bytes instanceof ArrayBuffer) && !ArrayBuffer.isView(bytes)) {
     throw new TypeError('File bytes must be an ArrayBuffer or typed array.');
   }
-  const digest = await subtle.digest('SHA-256', bytes);
+  // Copy views into a plain ArrayBuffer. DOM WebCrypto types reject
+  // SharedArrayBuffer-backed typed-array views even when byte contents are valid.
+  const source = bytes instanceof ArrayBuffer
+    ? new Uint8Array(bytes)
+    : new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const buffer = new ArrayBuffer(source.byteLength);
+  new Uint8Array(buffer).set(source);
+  const digest = await subtle.digest('SHA-256', buffer);
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
