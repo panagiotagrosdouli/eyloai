@@ -665,6 +665,10 @@ try {
         const matchingRows = versionRows.filter(row => (!ids.length && !fileId || ids.includes(row.file_id) || row.file_id === fileId)
           && (!versionId || row.id === versionId))
           .sort((left, right) => right.version_number - left.version_number);
+        if (request.headers().accept?.includes('application/vnd.pgrst.object+json')) {
+          if (matchingRows.length !== 1) return route.fulfill({ status: 406, contentType: 'application/json', body: JSON.stringify({ code: 'PGRST116', message: 'JSON object requested, exactly one row required' }) });
+          return sendAuthJson(route, matchingRows[0]);
+        }
         return sendAuthJson(route, matchingRows);
       }
       if (request.method() === 'POST') {
