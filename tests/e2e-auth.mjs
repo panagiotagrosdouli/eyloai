@@ -985,6 +985,8 @@ try {
   console.log('Structured project workplan persistence and reload passed against isolated PostgREST fixtures.');
   await captureFixturePage(dataLab, 'project-workplan-wide');
   await dataLab.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await dataLab.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true,
+    'project header and workplan must fit the mobile viewport');
   await captureFixturePage(dataLab, 'project-workplan-mobile');
   await dataLab.setViewportSize({ width: 1365, height: 900 });
 

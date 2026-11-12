@@ -494,8 +494,8 @@ Rules:
       </Link>
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div className="flex-1">
+      <div className="mb-6 flex min-w-0 flex-col items-start justify-between gap-4 sm:flex-row">
+        <div className="min-w-0 w-full sm:flex-1">
           <input
             type="text"
             value={editing.title}
@@ -503,7 +503,7 @@ Rules:
             className="w-full text-2xl sm:text-3xl font-heading font-bold bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground"
             placeholder="Project title"
           />
-          <div className="flex items-center gap-3 mt-2">
+          <div className="mt-2 flex flex-wrap items-center gap-3">
             <select
               value={editing.status}
               onChange={e => setEditing(prev => ({ ...prev, status: e.target.value }))}
@@ -518,7 +518,7 @@ Rules:
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
           <button
             onClick={runEyraAnalysis}
             disabled={analyzing}
