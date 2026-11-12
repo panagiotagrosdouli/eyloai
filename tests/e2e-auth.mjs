@@ -656,7 +656,9 @@ try {
       if (request.method() === 'GET') {
         const ids = (url.searchParams.get('file_id') || '').match(/\((.*)\)/)?.[1]?.replaceAll('"', '').split(',') || [];
         const fileId = url.searchParams.get('file_id')?.replace('eq.', '');
-        return sendAuthJson(route, versionRows.filter(row => ids.includes(row.file_id) || row.file_id === fileId));
+        const matchingRows = versionRows.filter(row => ids.includes(row.file_id) || row.file_id === fileId);
+        console.log('EYLO file version fixture GET', JSON.stringify({ filter: url.searchParams.get('file_id'), ids, fileId, matchingRows }));
+        return sendAuthJson(route, matchingRows);
       }
       if (request.method() === 'POST') {
         const row = { ...request.postDataJSON(), created_at: new Date().toISOString() };
@@ -725,6 +727,8 @@ try {
   await filesPage.getByText('Open linked project').waitFor();
   await filesPage.getByRole('button', { name: 'Upload new version' }).click();
   await filesPage.locator('input[type="file"]').setInputFiles({ name: 'protocol.txt', mimeType: 'text/plain', buffer: Buffer.from('version two') });
+  await filesPage.getByText('New file version saved').waitFor({ timeout: 8000 });
+  assert.equal(versionRows.length, 2, 'the browser submitted and persisted the second version row');
   try {
     await filesPage.getByText('Version 2 · latest').waitFor({ timeout: 8000 });
   } catch (cause) {
