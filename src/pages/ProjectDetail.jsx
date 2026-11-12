@@ -238,6 +238,15 @@ export default function ProjectDetail() {
   };
 
   const updateWorkplanItem = (taskId, patch) => {
+    const current = workplanItems.find(item => item.id === taskId);
+    if (patch.status && patch.status !== 'done' && workplanItems.some(item => item.depends_on.includes(taskId) && ['in_progress', 'done'].includes(item.status))) {
+      setWorkplanError('Move dependent tasks back to To do before reopening this prerequisite.');
+      return;
+    }
+    if (patch.depends_on && current?.status !== 'todo' && !patch.depends_on.every(dependencyId => workplanItems.find(item => item.id === dependencyId)?.status === 'done')) {
+      setWorkplanError('Move this task back to To do before changing it to an incomplete prerequisite.');
+      return;
+    }
     setWorkplanItems(previous => previous.map(item => item.id === taskId ? { ...item, ...patch } : item));
     setWorkplanError('');
   };
