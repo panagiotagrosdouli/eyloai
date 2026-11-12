@@ -229,6 +229,14 @@ try {
   assert.match(comparisonText, /Pearson correlation, r\s+1/);
   assert.match(comparisonText, /Complete pairs used\s+3/);
   assert.match(comparisonText, /Rows skipped for blanks or non-numeric cells\s+1/);
+  const comparisonDownloadPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export comparison CSV' }).click();
+  const comparisonDownload = await comparisonDownloadPromise;
+  assert.equal(comparisonDownload.suggestedFilename(), 'research-variable-comparison.csv');
+  const comparisonCsv = await readDataLabDownload(await comparisonDownload.path(), 'utf8');
+  assert.match(comparisonCsv, /Pearson correlation \(r\)/);
+  assert.match(comparisonCsv, /Complete pairs used/);
+  assert.equal(comparisonCsv.includes(canary), false, 'comparison export must not include private source values');
   await dataLab.getByRole('button', { name: 'Clear data' }).click();
 
   await dataLab.locator('input[type="file"]').setInputFiles({
