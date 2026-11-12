@@ -11,13 +11,14 @@ test('activity history migration records minimal metadata for core workspace tab
   assert.doesNotMatch(migration, /'content'\s*,\s*record_data/i);
 });
 
-test('activity history records are append-only and readable only by their owner', async () => {
+test('activity history is owner-readable and supports explicit owner-controlled clearing', async () => {
   const migration = await readFile(new URL('../supabase/migrations/20261112181000_eylo_activity_history.sql', import.meta.url), 'utf8');
   assert.match(migration, /enable row level security/i);
   assert.match(migration, /auth\.uid\(\)\) = user_id/);
   assert.match(migration, /revoke all on public\.activity_events from anon, authenticated/);
-  assert.match(migration, /grant select on public\.activity_events to authenticated/);
-  assert.doesNotMatch(migration, /grant (insert|update|delete).*activity_events to authenticated/i);
+  assert.match(migration, /create policy "Users clear own activity" on public\.activity_events for delete to authenticated/i);
+  assert.match(migration, /grant select, delete on public\.activity_events to authenticated/i);
+  assert.match(migration, /old\.data is not distinct from new\.data/i);
 });
 
 test('activity history route is protected and maps a read-only event repository', async () => {
@@ -31,3 +32,4 @@ test('activity history route is protected and maps a read-only event repository'
   assert.match(page, /content is not copied into the history/i);
   assert.match(page, /ActivityEvent\.list/);
 });
+
