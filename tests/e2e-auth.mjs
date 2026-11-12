@@ -504,8 +504,16 @@ try {
   });
   await dataLab.goto(`${baseUrl}/opportunities`);
   await dataLab.getByLabel('Funding search').fill('climate');
+  const fundingResponse = dataLab.waitForResponse(response => response.url().includes('/api/opportunities'), { timeout: 10000 });
   await dataLab.getByRole('button', { name: 'Find' }).click();
-  await dataLab.getByRole('heading', { name: 'Official climate grant' }).waitFor();
+  const fundingSourceResponse = await fundingResponse;
+  assert.equal(fundingSourceResponse.status(), 200);
+  try {
+    await dataLab.getByRole('heading', { name: 'Official climate grant' }).waitFor({ timeout: 10000 });
+  } catch (failure) {
+    const alerts = await dataLab.locator('[role="alert"]').allTextContents();
+    throw new Error(`Funding results missing after ${fundingSearchCalls} fixture request(s): ${JSON.stringify(alerts)}`, { cause: failure });
+  }
   assert.equal(await dataLab.getByRole('heading', { name: 'Model invented title' }).count(), 0);
   await dataLab.getByText('AI relevance estimate: 90/100').waitFor();
   await dataLab.getByText('<img src=x onerror=alert(1)> climate fit').waitFor();
