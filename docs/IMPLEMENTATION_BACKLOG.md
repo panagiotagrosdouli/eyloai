@@ -11,7 +11,8 @@
 - [ ] Run a human-judged discovery evaluation. Existing heuristic coverage is not a scientific relevance benchmark.
 - [ ] Verify billing lifecycle, entitlements and signed webhooks in Stripe test mode before enabling paid plans.
 - [ ] Resolve retention, privacy-policy, legal-terms and account-deletion requirements with the service owner; repository notes say account deletion is not yet verified.
-- [ ] Add a shared discovery rate limiter and test provider timeouts, 429s and response-size failures.
+- [x] Implement a shared SQL-backed token bucket (capacity 60, refill 1/sec), trusted proxy IP extraction, IPv4-mapped and IPv6 /64 normalization, HMAC identifiers, fail-closed behavior, and API/SQL contract tests.
+- [ ] Apply the limiter migration in the verified staging project, configure `SUPABASE_SECRET_KEY` and `DISCOVERY_RATE_LIMIT_HMAC_KEY`, verify atomic concurrent behavior and cleanup, and run live rate-limit/provider-failure acceptance before production rollout.
 
 ## Feature checklist
 
@@ -118,6 +119,10 @@
 - [ ] Verify the intended live deployment and service configuration before any production-readiness claim.
 
 ## Work recorded
+
+- **2026-11-12 browser regression follow-up:** GitHub Actions exposed that a same-origin EYLO `DISCOVERY_RATE_LIMITED` response could incorrectly fall back to direct provider calls; the client now rethrows that application-level 429. Browser testing also exposed a false “0 of 5 paper indexes available” banner when only researcher/institution endpoints responded, duplicating limiter text; the banner now requires at least one available paper index. The browser test verifies the contained warning appears once, retry works on mobile, and upstream OpenAlex 429 is attributed to the provider. GitHub Actions Product quality run 1073 passed on commit `807a710656cce1a26b23ce3522e7fa2f23996986`, along with EYLO Quality Gate 670 and Build 1320. Local `npm run check` passed (435 tests); local browser launch remains blocked by host Chromium socket permissions. Staging database and live provider workflows remain unverified.
+
+- **2026-11-12:** Public discovery now requires a shared Supabase rate-limit decision before calling scholarly providers. The API uses Vercel's overwritten `x-vercel-forwarded-for`, stores only a domain-separated HMAC-SHA256 address hash, normalizes IPv4-mapped IPv6 and groups native IPv6 by `/64`, allows a 60-token burst with one token per second refill, returns 429 with `Retry-After`, and returns uncached 503 if protection cannot be verified. The migration uses one atomic token-bucket upsert, restricts database grants to `service_role`, enables five-minute cleanup of idle rows after 24 hours, and keeps the counter table in a private schema. The client distinguishes EYLO throttling from an upstream scholarly index's 429 and deduplicates identical notices. The full local `npm run check` passes: imports, both TypeScript projects, ESLint, 434 tests, and Vite production build; focused discovery tests (29) and partial-source retrieval pass. A staging-only concurrent RPC script and rollout/rollback runbook are added. The live migration, credentials, Cron run history, actual database concurrency and end-to-end staging acceptance remain unverified; do not release until they pass.
 
 - **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.
 - **2026-11-10:** Project Evidence adds a source-linked, editable matrix for linked papers; notes are stored on the project and exported as CSV with spreadsheet formula escaping. Missing notes are shown as unrecorded rather than inferred.

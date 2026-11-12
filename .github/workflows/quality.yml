@@ -50,6 +50,9 @@ jobs:
       - name: Run browser authentication regressions
         run: npm run test:e2e:auth
 
+      - name: Run public discovery rate-limit browser regressions
+        run: npm run test:e2e:discovery-rate-limit
+
       - name: Test local-time greeting states
         run: npm run test:greeting
 

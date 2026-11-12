@@ -175,7 +175,10 @@ export default function PublicDiscovery() {
         } else if (availablePaperIndexCount > 0) {
           setError(`No records came back from the ${availablePaperIndexCount} of ${PAPER_INDEX_SOURCE_IDS.length} paper indexes that responded. Other indexes were unavailable, so this does not establish that no literature exists.`);
         } else {
-          setError('The scholarly paper indexes are temporarily unavailable. No records have been invented.');
+          const failureDetails = [...new Set((paperBundle.source_status || [])
+            .filter(source => source.status === 'unavailable')
+            .map(formatUnavailableSource))];
+          setError(`The scholarly paper indexes are temporarily unavailable. No records have been invented.${failureDetails.length ? ` ${failureDetails.join('; ')}.` : ''}`);
         }
       }
       setLoading(false);
@@ -236,7 +239,6 @@ export default function PublicDiscovery() {
 
   const sourceIndexes = [...new Set((data.papers || []).map(paper => paper.source_index || paper.source).filter(Boolean))];
   const unavailableSources = sourceStatus.filter(source => source.status === 'unavailable');
-  const availableSources = sourceStatus.filter(source => source.status === 'available');
   const availablePaperIndexCount = countAvailablePaperIndexes(sourceStatus);
 
   return (
@@ -328,13 +330,13 @@ export default function PublicDiscovery() {
           </div>
         )}
 
-        {!loading && refined && unavailableSources.length > 0 && availableSources.length > 0 && (
+        {!loading && refined && unavailableSources.length > 0 && availablePaperIndexCount > 0 && (
           <div role="status" className="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-4 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <AlertTriangle size={17} className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true" />
               <p className="leading-6">
                 <strong>Partial live retrieval.</strong> {availablePaperIndexCount} of {PAPER_INDEX_SOURCE_IDS.length} scholarly paper indexes are available.
-                {' '}{unavailableSources.map(formatUnavailableSource).join('; ')}.
+                {' '}{[...new Set(unavailableSources.map(formatUnavailableSource))].join('; ')}.
               </p>
             </div>
             <button type="button" onClick={() => setAttempt(value => value + 1)}

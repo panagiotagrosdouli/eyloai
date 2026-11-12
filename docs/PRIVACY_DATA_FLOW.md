@@ -8,6 +8,8 @@ A public research query can be sent to scholarly metadata providers used by EYLO
 
 Do not treat a public discovery query as private workspace data.
 
+The discovery proxy rate limiter uses Vercel's client IP header to enforce a shared token bucket with capacity 60 and refill rate one request per second. IPv4-mapped IPv6 addresses share the corresponding IPv4 bucket; native IPv6 is grouped by `/64` so temporary interface-address rotation does not create fresh buckets. The network identity is transformed with a server-only, domain-separated HMAC-SHA256 key; raw IP addresses and research-query text are not written to the rate-limit table. Idle counters are scheduled for deletion after 24 hours, with cleanup every five minutes (maximum idle retention is approximately 24 hours and five minutes). The limiter fails closed if its database configuration or RPC is unavailable. This behavior is implemented in the repository but is not active until the migration and server environment values are installed in the intended deployment; see the [staging and release runbook](DISCOVERY_RATE_LIMIT_RUNBOOK.md).
+
 ## Authenticated workspace
 
 Authenticated users can save projects, ideas, papers, researchers, opportunities, meetings, search history, watchlists and related workspace records in Supabase. User-owned rows are expected to be scoped by row-level security to the authenticated user.

@@ -104,6 +104,8 @@ VITE_SUPABASE_ANON_KEY=
 
 AI, funding verification, billing and monitoring also require server-only values. See [`.env.example`](.env.example). Never expose secret or service-role keys through `VITE_*` variables.
 
+Public scholarly discovery also requires the `discovery_rate_limits` Supabase migration, a server-only `SUPABASE_SECRET_KEY` (or legacy service-role key), and a random `DISCOVERY_RATE_LIMIT_HMAC_KEY` of at least 32 bytes. The shared token bucket allows a burst of 60 uncached proxy requests and refills at one request per second; it groups IPv6 clients by `/64`. The API fails closed until the migration and these values are present. Follow [`docs/DISCOVERY_RATE_LIMIT_RUNBOOK.md`](docs/DISCOVERY_RATE_LIMIT_RUNBOOK.md) for staging validation, rollout and recovery; do not deploy before the server configuration is ready.
+
 ## Validation
 
 ```bash

@@ -16,14 +16,23 @@ export function countAvailablePaperIndexes(sourceStatuses = []) {
 }
 
 export function httpStatusFromError(error) {
+  const explicitStatus = Number(error?.status);
+  if (Number.isInteger(explicitStatus) && explicitStatus >= 400 && explicitStatus <= 599) return explicitStatus;
   const message = error instanceof Error ? error.message : String(error || '');
   const match = message.match(/\b([45]\d{2})\b/);
   return match ? Number(match[1]) : null;
 }
 
+export function discoveryErrorCodeFromError(error) {
+  return error?.code === 'DISCOVERY_RATE_LIMITED' ? error.code : null;
+}
+
 export function formatUnavailableSource(source) {
   const label = String(source?.label || 'Research source');
   const status = Number(source?.error_status);
+  if (source?.error_code === 'DISCOVERY_RATE_LIMITED') {
+    return 'EYLO public search limit reached for this network; wait before retrying';
+  }
   if (status === 429) return `${label} is rate limited (HTTP 429)`;
   if (status >= 500 && status <= 599) return `${label} is temporarily unavailable (HTTP ${status})`;
   if (status >= 400 && status <= 499) return `${label} returned HTTP ${status}`;
