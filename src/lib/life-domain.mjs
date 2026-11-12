@@ -1,5 +1,6 @@
 export const LIFE_TASK_STATUSES = Object.freeze(['todo', 'in_progress', 'done']);
 export const LIFE_TASK_PRIORITIES = Object.freeze(['low', 'normal', 'high', 'urgent']);
+export const LIFE_TASK_RECURRENCES = Object.freeze(['none', 'daily', 'weekly', 'monthly']);
 
 function text(value, max, name, required = false) {
   const result = String(value ?? '').trim();
@@ -17,11 +18,15 @@ export function normalizeLifeTask(input = {}) {
   const description = text(input.description, 5000, 'Description');
   const status = LIFE_TASK_STATUSES.includes(input.status) ? input.status : 'todo';
   const priority = LIFE_TASK_PRIORITIES.includes(input.priority) ? input.priority : 'normal';
+  const recurrence = LIFE_TASK_RECURRENCES.includes(input.recurrence) ? input.recurrence : 'none';
   const dueDate = text(input.due_date, 10, 'Due date');
   if (dueDate && (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)
     || Number.isNaN(Date.parse(`${dueDate}T00:00:00Z`))
     || new Date(`${dueDate}T00:00:00Z`).toISOString().slice(0, 10) !== dueDate)) {
     throw Object.assign(new Error('Due date must be a valid calendar date.'), { code: 'LIFE_TASK_VALIDATION' });
+  }
+  if (recurrence !== 'none' && !dueDate) {
+    throw Object.assign(new Error('A due date is required for a recurring task.'), { code: 'LIFE_TASK_VALIDATION' });
   }
   const projectId = text(input.project_id, 64, 'Project ID');
   return {
@@ -29,9 +34,29 @@ export function normalizeLifeTask(input = {}) {
     description,
     status,
     priority,
+    recurrence,
     due_date: dueDate || null,
     project_id: projectId || null,
   };
+}
+
+export function nextLifeTaskDate(dueDate, recurrence) {
+  const parsed = new Date(`${dueDate}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== dueDate) {
+    throw Object.assign(new Error('A valid due date is required to schedule the next occurrence.'), { code: 'LIFE_TASK_VALIDATION' });
+  }
+  if (recurrence === 'daily') parsed.setUTCDate(parsed.getUTCDate() + 1);
+  else if (recurrence === 'weekly') parsed.setUTCDate(parsed.getUTCDate() + 7);
+  else if (recurrence === 'monthly') {
+    const day = parsed.getUTCDate();
+    parsed.setUTCDate(1);
+    parsed.setUTCMonth(parsed.getUTCMonth() + 1);
+    const lastDay = new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth() + 1, 0)).getUTCDate();
+    parsed.setUTCDate(Math.min(day, lastDay));
+  } else {
+    throw Object.assign(new Error('Choose a supported recurrence frequency.'), { code: 'LIFE_TASK_VALIDATION' });
+  }
+  return parsed.toISOString().slice(0, 10);
 }
 
 export function isOverdueLifeTask(task, today = new Date().toISOString().slice(0, 10)) {
