@@ -545,6 +545,37 @@ try {
   assert.equal(exportedReview.protocol.screening[0].paper_id, 'library-paper-1');
   assert.match(exportedReview.reporting_note, /Not a PRISMA-compliant/);
 
+  // Exercise Universal Search through its authenticated browser workflow using
+  // the PostgREST RPC shape. One source outage must be reported as partial.
+  let searchRpcCalls = 0;
+  await dataLab.route('**/rest/v1/rpc/search_workspace_records', async route => {
+    const request = route.request();
+    const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'content-type': 'application/json' };
+    if (request.method() === 'OPTIONS') { await route.fulfill({ status: 204, headers }); return; }
+    const args = request.postDataJSON();
+    assert.equal(args.p_query, 'climate');
+    assert.ok(args.p_page_size <= 50);
+    searchRpcCalls += 1;
+    if (args.p_source === 'Note') {
+      await route.fulfill({ status: 503, headers, body: JSON.stringify({ code: 'SOURCE_UNAVAILABLE', message: 'notes unavailable' }) });
+      return;
+    }
+    const items = args.p_source === 'Project' ? [{ id: `project-${args.p_page}`, title: `Climate project ${args.p_page}`, snippet: 'Coastal research', score: 0.8, updated_date: '2026-11-12T00:00:00Z' }] : [];
+    await route.fulfill({ status: 200, headers, body: JSON.stringify({ total: args.p_source === 'Project' ? 21 : 0, page: args.p_page, page_size: args.p_page_size, items }) });
+  });
+  await dataLab.goto(`${baseUrl}/workspace/search`);
+  await dataLab.getByRole('heading', { name: 'Search your workspace' }).waitFor();
+  await dataLab.getByRole('searchbox', { name: 'Search your records' }).fill('climate');
+  await dataLab.getByRole('alert').getByText('Partial results:', { exact: false }).waitFor();
+  await dataLab.getByRole('link', { name: 'Climate project 1' }).waitFor();
+  assert.equal(await dataLab.getByText('Page 1 of 2').isVisible(), true);
+  assert.ok(searchRpcCalls >= 8, 'one bounded server search call is made per source');
+  await dataLab.getByRole('region', { name: 'Projects search results' }).getByRole('button', { name: 'Next' }).click();
+  await dataLab.getByRole('link', { name: 'Climate project 2' }).waitFor();
+  await dataLab.getByRole('link', { name: 'Climate project 2' }).click();
+  assert.equal(new URL(dataLab.url()).pathname, '/projects/project-2');
+  console.log('Universal Search rendered paginated results, partial source coverage and deep links from RPC-shaped responses.');
+
   // Verify sign-out actually invalidates the session and protects private routes.
   await dataLab.route('**/auth/v1/logout**', route => route.fulfill({
     status: 204,
