@@ -12,12 +12,13 @@ const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
 const layout = readFileSync(new URL('../src/components/layout/AppLayout.jsx', import.meta.url), 'utf8');
 const goalMigration = readFileSync(new URL('../supabase/migrations/20261112163010_eylo_life_goals_milestones.sql', import.meta.url), 'utf8');
 const goalsPage = readFileSync(new URL('../src/pages/LifeGoals.jsx', import.meta.url), 'utf8');
+const studyPage = readFileSync(new URL('../src/pages/StudyPlanner.jsx', import.meta.url), 'utf8');
 
 test('Life task normalization validates fields and preserves allowed states', () => {
   assert.deepEqual(normalizeLifeTask({
-    title: '  Submit paper  ', description: 'Final review', status: 'in_progress', priority: 'urgent', recurrence: 'weekly', due_date: '2026-12-03', project_id: '',
+    title: '  Submit paper  ', description: 'Final review', status: 'in_progress', priority: 'urgent', recurrence: 'weekly', area: 'study', kind: 'exam', course: 'Research Methods', syllabus_item: 'Unit 3', due_date: '2026-12-03', project_id: '',
   }), {
-    title: 'Submit paper', description: 'Final review', status: 'in_progress', priority: 'urgent', recurrence: 'weekly', due_date: '2026-12-03', project_id: null,
+    title: 'Submit paper', description: 'Final review', status: 'in_progress', priority: 'urgent', recurrence: 'weekly', area: 'study', kind: 'exam', course: 'Research Methods', syllabus_item: 'Unit 3', due_date: '2026-12-03', project_id: null,
   });
   assert.throws(() => normalizeLifeTask({ title: ' ' }), error => error.code === 'LIFE_TASK_VALIDATION');
   assert.throws(() => normalizeLifeTask({ title: 'x'.repeat(161) }), error => error.code === 'LIFE_TASK_VALIDATION');
@@ -68,6 +69,8 @@ test('Life task data is private, owner validated and linked only to owned projec
   assert.match(migration, /grant select, insert, update, delete on public\.life_tasks to authenticated/i);
   assert.match(migration, /life_tasks_recurrence_instance_idx/i);
   assert.match(migration, /recurring tasks require a due date/i);
+  assert.match(migration, /life_tasks_area check/i);
+  assert.match(migration, /life_tasks_kind check/i);
   assert.match(repository, /LifeTask: \{ table: 'life_tasks' \}/);
 });
 
@@ -95,6 +98,12 @@ test('Life workspace supports real saved CRUD, status updates and protected navi
   assert.match(page, /ownerRef\.current = user\?\.id \|\| null/);
   assert.match(app, /path="\/life" element=\{<Life \/>\}/);
   assert.match(app, /path="\/life\/goals" element=\{<LifeGoals \/>\}/);
+  assert.match(app, /path="\/study-planner" element=\{<StudyPlanner \/>\}/);
   assert.match(layout, /path: '\/life'/);
   assert.match(layout, /path: '\/life\/goals'/);
+  assert.match(layout, /path: '\/study-planner'/);
+  assert.match(studyPage, /LifeTask\.filter\(\{ area: 'study' \}/);
+  assert.match(studyPage, /kind === 'exam'/);
+  assert.match(studyPage, /Course or subject/);
+  assert.match(studyPage, /base44\.entities\.LifeTask\.create/);
 });
