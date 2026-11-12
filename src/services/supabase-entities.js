@@ -13,6 +13,7 @@ const ENTITY_SCHEMAS = {
   SavedResearcher: { table: 'saved_researchers' },
   SavedOpportunity: { table: 'saved_opportunities' },
   SearchHistory: { table: 'search_history' },
+  Note: { table: 'notes' },
   Watchlist: { table: 'watchlists' },
   MonitoringDiscovery: { table: 'monitoring_discoveries' },
   Notification: { table: 'notifications' },
@@ -107,6 +108,33 @@ function entityRepository({ table }) {
       const { data, error } = await query.limit(Math.max(limit || 100, 1));
       if (error) throw error;
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
+    },
+    async search(searchQuery, limit = 100) {
+      if (table !== 'notes') throw new Error('Full-text search is only available for notes.');
+      const query = String(searchQuery || '').trim();
+      if (!query) return this.list('-updated_date', limit);
+      if (query.length > 200) {
+        throw Object.assign(new Error('Search must be 200 characters or fewer.'), { code: 'NOTE_SEARCH_INVALID' });
+      }
+      await currentUser();
+      const { data, error } = await requireSupabase().rpc('search_notes', {
+        search_query: query,
+        result_limit: Math.max(1, Math.min(Number(limit) || 100, 100)),
+      });
+      if (error) throw error;
+      return (data || []).map(rowToEntity);
+    },
+    async versions(entityId, limit = 50) {
+      if (table !== 'notes') throw new Error('Version history is only available for notes.');
+      const user = await currentUser();
+      const { data, error } = await requireSupabase().from('note_versions')
+        .select('id,note_id,user_id,version,snapshot,created_date')
+        .eq('note_id', entityId)
+        .eq('user_id', user.id)
+        .order('version', { ascending: false })
+        .limit(Math.max(1, Math.min(Number(limit) || 50, 50)));
+      if (error) throw error;
+      return data || [];
     },
     async get(entityId) {
       const user = await currentUser();
