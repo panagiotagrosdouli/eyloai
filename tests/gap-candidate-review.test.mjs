@@ -6,11 +6,11 @@ const example = { question:'Does treatment transfer?', recorded_at:'2026-11-10T1
   supporting_papers:[{paper_id:'paper-1',title:'Source A'}], counterevidence_papers:[], review_status:'candidate_needs_human_review' };
 
 function fixture() {
-  const project={id:'owner-project',gap_candidates:[{...example}]};
+  const project={id:'owner-project',updated_date:'2026-11-12T06:00:00Z',gap_candidates:[{...example}]};
   let writes=0;
   const entities={Project:{
     async get(id){ assert.equal(id,project.id);return project; },
-    async update(id,patch){assert.equal(id,project.id);writes++;project.gap_candidates=patch.gap_candidates;return {...project};},
+    async updateIfUnchanged(id,patch,version){assert.equal(id,project.id);assert.equal(version,project.updated_date);writes++;project.gap_candidates=patch.gap_candidates;return {...project};},
   }};
   return {project,entities,getWrites:()=>writes};
 }
