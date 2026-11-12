@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Activity, Award, BarChart3, BookOpen, Brain, Briefcase, ChevronDown, FileEdit, FolderOpen, GitBranch, History,
-  Home, LayoutDashboard, LayoutGrid, Lightbulb, LogOut, Menu, Mic, Presentation, NotebookPen,
+  Home, LayoutDashboard, LayoutGrid, Lightbulb, ListTodo, LogOut, Menu, Mic, Presentation, NotebookPen,
   Rocket, Search, Settings, Sparkles, Target, Trophy, User, Users,
   Video, X, Zap,
 } from 'lucide-react';
@@ -36,6 +36,7 @@ const TOOL_GROUPS = [
     description: 'Research work that stays connected to projects',
     items: [
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
+      { label: 'Life', path: '/life', icon: ListTodo, desc: 'Private tasks, priorities, due dates and project links' },
       { label: 'Notes', path: '/notes', icon: NotebookPen, desc: 'Private notes with project links and version history' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },
       { label: 'Research gap finder', path: '/research-gaps', icon: Search, desc: 'Compare saved papers and create evidence-based projects' },
