@@ -508,12 +508,16 @@ try {
   await dataLab.getByRole('button', { name: 'Find' }).click();
   const fundingSourceResponse = await fundingResponse;
   assert.equal(fundingSourceResponse.status(), 200);
+  const fundingFixturePayload = await fundingSourceResponse.json();
+  assert.equal(fundingFixturePayload.items?.length, 4, 'the provider fixture must return four official records');
   try {
-    await dataLab.getByRole('heading', { name: 'Official climate grant' }).waitFor({ timeout: 10000 });
+    await dataLab.getByText('Official climate grant', { exact: true }).waitFor({ timeout: 10000 });
   } catch (failure) {
     const alerts = await dataLab.locator('[role="alert"]').allTextContents();
-    throw new Error(`Funding results missing after ${fundingSearchCalls} fixture request(s): ${JSON.stringify(alerts)}`, { cause: failure });
+    const bodyText = (await dataLab.locator('body').innerText()).slice(-1200);
+    throw new Error(`Funding results missing after ${fundingSearchCalls} source and ${fundingRankCalls} ranking fixture request(s): ${JSON.stringify({ alerts, url: dataLab.url(), bodyText })}`, { cause: failure });
   }
+  await dataLab.getByText('currency: EUR; amount: 2000000', { exact: true }).waitFor();
   assert.equal(await dataLab.getByRole('heading', { name: 'Model invented title' }).count(), 0);
   await dataLab.getByText('AI relevance estimate: 90/100').waitFor();
   await dataLab.getByText('<img src=x onerror=alert(1)> climate fit').waitFor();

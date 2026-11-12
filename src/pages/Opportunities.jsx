@@ -107,7 +107,11 @@ export default function Opportunities() {
 
       const verified = sourceResult.items.map((item) => ({
         ...item,
-        typical_amount: item.amount,
+        // EU and other providers can return structured budget metadata. Convert
+        // it to escaped plain text before it reaches a React text node.
+        typical_amount: item.amount == null || item.amount === ''
+          ? ''
+          : formatFundingComparisonValue(item.amount),
         match_score: null,
         match_reason: '',
         difficulty: 'Unranked',
