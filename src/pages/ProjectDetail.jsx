@@ -6,6 +6,8 @@ import {
   Target, RefreshCw, Award, ExternalLink
 } from 'lucide-react';
 import ProjectMeetings from '@/components/meetings/ProjectMeetings';
+import ProjectConflictRecovery from '@/components/projects/ProjectConflictRecovery';
+import { projectEditableValues } from '@/lib/project-conflict-recovery.mjs';
 import GapCandidateReviewItem from '@/components/projects/GapCandidateReviewItem';
 import { reviewSavedGapCandidate, removeSavedGapCandidate } from '@/lib/gap-candidate-review.mjs';
 import ReproducibilityReview from '@/components/projects/ReproducibilityReview';
@@ -51,6 +53,8 @@ export default function ProjectDetail() {
   const [savingGapReview, setSavingGapReview] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [editing, setEditing] = useState(/** @type {any} */ ({}));
+  const [projectConflict, setProjectConflict] = useState(/** @type {any} */ (null));
+  const [checkingConflict, setCheckingConflict] = useState(false);
   const [savedPapers, setSavedPapers] = useState([]);
   const [matrixPaperIds, setMatrixPaperIds] = useState([]);
   const [matrixNotes, setMatrixNotes] = useState({});
@@ -82,6 +86,7 @@ export default function ProjectDetail() {
     setMatrixPaperIds([]);
     setMatrixNotes({});
     setEditing({});
+    setProjectConflict(null);
     setLoadError('');
     setPlannerDraft('');
     setPlannerNotice('');
@@ -120,29 +125,62 @@ export default function ProjectDetail() {
     setSavedResearchers(researchers.filter(item => item.project_id === id));
     setSavedOpportunities(opportunities.filter(item => item.project_id === id));
     setMeetings(mtgs);
-    setEditing({
-      title: data.title || '',
-      goal: data.goal || '',
-      description: data.description || '',
-      milestones: data.milestones || '',
-      tasks: data.tasks || '',
-      notes: data.notes || '',
-      status: data.status || 'planning',
-    });
+    setEditing(projectEditableValues(data));
     if ([papersResult, researchersResult, opportunitiesResult, meetingsResult].some(result => result.status === 'rejected')) {
       setLoadError('Some linked research records could not be loaded. The project itself is available.');
     }
     setLoading(false);
   };
 
+  const showProjectConflict = async (base, localDraft) => {
+    setCheckingConflict(true);
+    try {
+      const latest = await base44.entities.Project.get(id);
+      if (latest?.id !== id) throw new Error('The latest project could not be verified.');
+      setProjectConflict({ base, latest });
+      // Do not reset editing here: the unsaved local fields are valuable.
+      setEditing(localDraft);
+    } catch (failure) {
+      toast({
+        title: 'Project changed, but latest version could not be loaded',
+        description: failure?.message || 'Your draft is still in this editor. Retry after reconnecting.',
+        variant: 'destructive',
+      });
+    } finally {
+      setCheckingConflict(false);
+    }
+  };
+
+  const refreshConflict = async () => {
+    if (!projectConflict || checkingConflict) return;
+    setCheckingConflict(true);
+    try {
+      const latest = await base44.entities.Project.get(id);
+      if (latest?.id !== id) throw new Error('Unexpected project identity.');
+      setProjectConflict(previous => previous ? { ...previous, latest } : null);
+    } catch (failure) {
+      toast({ title: 'Could not fetch latest project', description: failure?.message || 'Retry after reconnecting.', variant: 'destructive' });
+    } finally {
+      setCheckingConflict(false);
+    }
+  };
+
   const saveProject = async () => {
+    if (saving || projectConflict) return;
+    const base = project;
+    const localDraft = { ...editing };
     setSaving(true);
     try {
-      const saved = await base44.entities.Project.updateIfUnchanged(id, editing, project.updated_date);
+      const saved = await base44.entities.Project.updateIfUnchanged(id, localDraft, base.updated_date);
       setProject(saved);
+      setEditing(projectEditableValues(saved));
       toast({ title: 'Project saved' });
     } catch (error) {
-      toast({ title: 'Could not save project', description: error?.message || 'Please try again.', variant: 'destructive' });
+      if (error?.code === 'ENTITY_CONFLICT') {
+        await showProjectConflict(base, localDraft);
+      } else {
+        toast({ title: 'Could not save project', description: error?.message || 'Your draft is preserved. Retry after reconnecting.', variant: 'destructive' });
+      }
     } finally {
       setSaving(false);
     }
@@ -413,7 +451,7 @@ Rules:
           </button>
           <button
             onClick={saveProject}
-            disabled={saving}
+            disabled={saving || !!projectConflict}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-card text-sm font-medium hover:bg-secondary transition-colors"
           >
             {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
@@ -421,6 +459,26 @@ Rules:
           </button>
         </div>
       </div>
+
+      {projectConflict && (
+        <ProjectConflictRecovery
+          base={projectConflict.base} local={editing} latest={projectConflict.latest}
+          busy={saving || checkingConflict}
+          onPrepare={(merged, latest) => {
+            setProject(latest);
+            setEditing(merged);
+            setProjectConflict(null);
+            toast({ title: 'Draft reconciled, not saved', description: 'Review the editor and click Save to persist your chosen changes.' });
+          }}
+          onDiscard={() => {
+            if (!window.confirm('Discard your local project draft and use the latest saved fields?')) return;
+            setProject(projectConflict.latest);
+            setEditing(projectEditableValues(projectConflict.latest));
+            setProjectConflict(null);
+          }}
+          onRetryLoad={refreshConflict}
+        />
+      )}
 
       {loadError && <div role="status" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-amber-200"><span>{loadError}</span><button type="button" onClick={loadAll} className="inline-flex items-center gap-2 rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs hover:bg-amber-500/10"><RefreshCw size={13} /> Retry loading</button></div>}
 
