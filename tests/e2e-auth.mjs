@@ -585,7 +585,7 @@ try {
   await dataLab.route('https://www.ebi.ac.uk/europepmc/webservices/rest/search**', route => route.fulfill({ status: 200, contentType: 'application/json', headers: providerCors, body: JSON.stringify({ resultList: { result: [] } }) }));
   await dataLab.route('https://api.crossref.org/works**', route => route.fulfill({ status: 200, contentType: 'application/json', headers: providerCors, body: JSON.stringify({ message: { items: [] } }) }));
   await dataLab.route('https://api.semanticscholar.org/graph/v1/paper/search**', route => route.fulfill({ status: 200, contentType: 'application/json', headers: providerCors, body: JSON.stringify({ data: [] }) }));
-  await dataLab.goto(`${baseUrl}/for-you`);
+  await dataLab.goto(`${baseUrl}/foryou`);
   await dataLab.getByRole('heading', { name: 'Research picked from your work' }).waitFor();
   await dataLab.getByRole('heading', { name: 'Soil resilience research' }).waitFor({ timeout: 30_000 });
   assert.ok(openAlexCalls >= 1, 'For You must issue a real scholarly provider request from the saved profile signals');
