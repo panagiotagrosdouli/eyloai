@@ -1,5 +1,6 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 import { readSupabaseApiConfig } from './supabase-config.mjs';
+import { stripeTestModeEnabled } from '../src/lib/stripe-readiness.mjs';
 import crypto from 'node:crypto';
 
 const STRIPE_API_VERSION = '2026-06-24.dahlia';
@@ -54,11 +55,13 @@ async function identity(authorization) {
 }
 
 function stripeConfigured() {
+  const configured = (value) => typeof value === 'string' && value.trim().length > 0;
   return Boolean(
-    process.env.STRIPE_SECRET_KEY
-    && process.env.STRIPE_WEBHOOK_SECRET
-    && process.env.STRIPE_PRO_PRICE_ID
-    && process.env.STRIPE_FOUNDER_PRICE_ID
+    stripeTestModeEnabled()
+    && configured(process.env.STRIPE_SECRET_KEY)
+    && configured(process.env.STRIPE_WEBHOOK_SECRET)
+    && configured(process.env.STRIPE_PRO_PRICE_ID)
+    && configured(process.env.STRIPE_FOUNDER_PRICE_ID)
     && supabaseServerKey()
   );
 }

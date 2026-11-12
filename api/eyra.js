@@ -449,7 +449,7 @@ export default async function handler(request, response) {
       return response.status(401).json({ error: 'Authentication required.' });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = String(process.env.OPENAI_API_KEY || '').trim();
     if (!apiKey) return response.status(503).json({ error: 'EYRA AI is not configured.' });
 
     // Reject malformed input rather than silently coercing objects and arrays

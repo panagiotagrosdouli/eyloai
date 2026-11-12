@@ -7,6 +7,27 @@ export function analyticsEnabled(env = process.env) {
   return env.EYLO_ANALYTICS_ENABLED === '1';
 }
 
+export function workspaceAnalyticsConfig(env = process.env) {
+  const url = String(env.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
+  const key = String(
+    env.SUPABASE_PUBLISHABLE_KEY
+    || env.SUPABASE_ANON_KEY
+    || env.VITE_SUPABASE_ANON_KEY
+    || '',
+  ).trim();
+  if (!url || !key) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' || !parsed.hostname.endsWith('.supabase.co')
+      || parsed.username || parsed.password || parsed.port || parsed.pathname !== '/' || parsed.search || parsed.hash) {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+  return { url, key };
+}
+
 export function validWorkspaceAnalyticsPayload(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   if (!['personal', 'institution'].includes(value.scope)) return false;

@@ -6,6 +6,7 @@ const ENVIRONMENT_KEYS = [
   'SUPABASE_SECRET_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
   'CRON_SECRET',
+  'EYLO_SCHEDULED_MONITORING_ENABLED',
   'EYLO_ANALYTICS_ENABLED',
 ];
 
@@ -57,6 +58,54 @@ try {
   };
 
   const { default: monitorHandler } = await import('../api/monitor.js');
+
+  // Valid cron authentication and a valid Supabase server key do not activate
+  // scheduled work. Operators must explicitly enable it after deployment
+  // verification. The disabled path must not touch the database.
+  const disabledResponse = createApiResponse();
+  await monitorHandler(
+    { method: 'GET', headers: { authorization: `Bearer ${process.env.CRON_SECRET}` } },
+    disabledResponse,
+  );
+  if (disabledResponse.statusCode !== 503
+      || disabledResponse.payload?.error !== 'Scheduled monitoring is not enabled for this deployment.') {
+    throw new Error(`Monitoring without explicit activation did not fail closed: ${JSON.stringify(disabledResponse.payload)}`);
+  }
+  if (monitorServerHeaders.length) {
+    throw new Error('Disabled monitoring unexpectedly accessed Supabase.');
+  }
+
+  // The activation flag alone does not bypass cron authentication.
+  process.env.EYLO_SCHEDULED_MONITORING_ENABLED = '1';
+  const unauthorizedResponse = createApiResponse();
+  await monitorHandler({ method: 'GET', headers: {} }, unauthorizedResponse);
+  if (unauthorizedResponse.statusCode !== 401
+      || unauthorizedResponse.payload?.error !== 'Cron authorization required.') {
+    throw new Error(`Monitoring accepted an unauthorized caller: ${JSON.stringify(unauthorizedResponse.payload)}`);
+  }
+
+  const invalidSecretResponse = createApiResponse();
+  await monitorHandler(
+    { method: 'GET', headers: { authorization: 'Bearer incorrect-cron-regression-test' } },
+    invalidSecretResponse,
+  );
+  if (invalidSecretResponse.statusCode !== 401
+      || invalidSecretResponse.payload?.error !== 'Cron authorization required.') {
+    throw new Error(`Monitoring accepted an invalid cron secret: ${JSON.stringify(invalidSecretResponse.payload)}`);
+  }
+
+  delete process.env.SUPABASE_SECRET_KEY;
+  const missingDatabaseResponse = createApiResponse();
+  await monitorHandler(
+    { method: 'GET', headers: { authorization: `Bearer ${process.env.CRON_SECRET}` } },
+    missingDatabaseResponse,
+  );
+  if (missingDatabaseResponse.statusCode !== 503
+      || !/explicitly configured Supabase project and server key/i.test(missingDatabaseResponse.payload?.error || '')) {
+    throw new Error(`Monitoring proceeded without Supabase server credentials: ${JSON.stringify(missingDatabaseResponse.payload)}`);
+  }
+  process.env.SUPABASE_SECRET_KEY = modernServerKey;
+
   const monitorResponse = createApiResponse();
   await monitorHandler(
     { method: 'GET', headers: { authorization: `Bearer ${process.env.CRON_SECRET}` } },

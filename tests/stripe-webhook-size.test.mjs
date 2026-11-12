@@ -1,7 +1,18 @@
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import handler from '../api/stripe-webhook.js';
+
+const previousSecretKey = process.env.STRIPE_SECRET_KEY;
+const previousTestMode = process.env.EYLO_STRIPE_TEST_MODE;
+process.env.STRIPE_SECRET_KEY = 'sk_test_disposable';
+process.env.EYLO_STRIPE_TEST_MODE = '1';
+after(() => {
+  if (previousSecretKey === undefined) delete process.env.STRIPE_SECRET_KEY;
+  else process.env.STRIPE_SECRET_KEY = previousSecretKey;
+  if (previousTestMode === undefined) delete process.env.EYLO_STRIPE_TEST_MODE;
+  else process.env.EYLO_STRIPE_TEST_MODE = previousTestMode;
+});
 
 function request(body, signature = 't=1,v1=invalid') {
   return {
@@ -27,6 +38,24 @@ test('Stripe webhook rejects oversized raw payloads before signature processing'
   await handler(request(Buffer.alloc(1024 * 1024 + 1, 'a')), res);
   assert.equal(res.code, 413);
   assert.deepEqual(res.payload, { error: 'Webhook payload too large.' });
+});
+
+test('Stripe webhook refuses processing without explicit test-mode configuration', async () => {
+  const previousSecretKey = process.env.STRIPE_SECRET_KEY;
+  const previousTestMode = process.env.EYLO_STRIPE_TEST_MODE;
+  process.env.STRIPE_SECRET_KEY = 'sk_live_disposable';
+  process.env.EYLO_STRIPE_TEST_MODE = '1';
+  try {
+    const res = response();
+    await handler(request(Buffer.from('{"id":"evt_live","type":"ping"}')), res);
+    assert.equal(res.code, 503);
+    assert.deepEqual(res.payload, { error: 'Stripe test-mode processing is not enabled.' });
+  } finally {
+    if (previousSecretKey === undefined) delete process.env.STRIPE_SECRET_KEY;
+    else process.env.STRIPE_SECRET_KEY = previousSecretKey;
+    if (previousTestMode === undefined) delete process.env.EYLO_STRIPE_TEST_MODE;
+    else process.env.EYLO_STRIPE_TEST_MODE = previousTestMode;
+  }
 });
 
 test('Stripe webhook still rejects untrusted signatures on ordinary payloads', async () => {

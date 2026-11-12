@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { readSupabaseApiConfig } from './supabase-config.mjs';
+import { stripeTestModeEnabled } from '../src/lib/stripe-readiness.mjs';
 const MAX_WEBHOOK_BODY_BYTES = 1024 * 1024; // Reject unusually large webhook requests before parsing.
 
 export const config = {
@@ -115,6 +116,9 @@ function subscriptionEntitlement(subscription) {
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') return response.status(405).json({ error: 'Method not allowed.' });
+  if (!stripeTestModeEnabled()) {
+    return response.status(503).json({ error: 'Stripe test-mode processing is not enabled.' });
+  }
 
   try {
     const payload = await rawBody(request);
