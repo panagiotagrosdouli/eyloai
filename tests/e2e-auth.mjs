@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { readFile as readDataLabDownload } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const baseUrl = 'http://127.0.0.1:4173';
@@ -197,7 +197,7 @@ try {
   await dataLab.getByRole('button', { name: 'Export quality JSON' }).click();
   const qualityDownload = await qualityPromise;
   assert.equal(qualityDownload.suggestedFilename(), 'research-data-quality.json');
-  const qualityFile = JSON.parse(await readFile(await qualityDownload.path(), 'utf8'));
+  const qualityFile = JSON.parse(await readDataLabDownload(await qualityDownload.path(), 'utf8'));
   assert.equal(qualityFile.audit.totalRows, 3);
   assert.equal(qualityFile.provenance.sha256, digestOf(originalCsv));
   assert.equal(qualityFile.provenance.file_bytes, originalCsv.byteLength);
@@ -250,7 +250,7 @@ try {
   await dataLab.getByText('File fingerprint unavailable in this browser. Data analysis remains local.').waitFor();
   const fallbackPromise = dataLab.waitForEvent('download');
   await dataLab.getByRole('button', { name: 'Export quality JSON' }).click();
-  const fallback = JSON.parse(await readFile(await (await fallbackPromise).path(), 'utf8'));
+  const fallback = JSON.parse(await readDataLabDownload(await (await fallbackPromise).path(), 'utf8'));
   assert.equal(fallback.provenance, null);
   assert.deepEqual(outboundCsvBodies, [], 'No raw uploaded CSV bytes should appear in outbound requests');
 
