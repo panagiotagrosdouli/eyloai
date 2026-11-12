@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import { saveResearcherCandidate as persistResearcherCandidate } from '@/lib/researcher-shortlist.mjs';
+import { calculateDraftCompleteness, rankResearchersForRoles } from '@/lib/team-planner-evidence.mjs';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import {
@@ -34,7 +35,18 @@ export default function DreamTeam() {
   const [buildError, setBuildError] = useState('');
   const [savingResearcherId, setSavingResearcherId] = useState('');
   const [savedResearcherProjects, setSavedResearcherProjects] = useState({});
+  const buildSequence = useRef(0);
+  const buildController = useRef(null);
   const { toast } = useToast();
+  const rankedCandidates = useMemo(
+    () => rankResearchersForRoles(team?.candidate_researchers || [], team?.dream_team || []),
+    [team],
+  );
+
+  useEffect(() => () => {
+    buildSequence.current += 1;
+    buildController.current?.abort();
+  }, []);
 
   useEffect(() => {
     base44.entities.Project.list('-updated_date', 10).then(projs => {
@@ -50,6 +62,11 @@ export default function DreamTeam() {
 
   const handleProjectSelect = (e) => {
     const pid = e.target.value;
+    buildController.current?.abort();
+    buildSequence.current += 1;
+    setLoading(false);
+    setTeam(null);
+    setBuildError('');
     setSelectedProjectId(pid);
     if (pid) {
       const proj = projects.find(p => p.id === pid);
@@ -62,6 +79,10 @@ export default function DreamTeam() {
   const build = async (q) => {
     const searchQuery = q || query;
     if (!searchQuery.trim()) return;
+    buildController.current?.abort();
+    const requestId = ++buildSequence.current;
+    const controller = new AbortController();
+    buildController.current = controller;
     setQuery(searchQuery);
     setLoading(true);
     setTeam(null);
@@ -69,9 +90,10 @@ export default function DreamTeam() {
 
     try {
       const [researchers, institutions] = await Promise.all([
-        searchOpenAlexAuthors(searchQuery, 8),
-        searchOpenAlexInstitutions(searchQuery, 5),
+        searchOpenAlexAuthors(searchQuery, 8, { signal: controller.signal, throwOnError: true }),
+        searchOpenAlexInstitutions(searchQuery, 5, { signal: controller.signal, throwOnError: true }),
       ]);
+      if (requestId !== buildSequence.current) return;
 
       const researcherContext = researchers.map((researcher, index) =>
         `[R${index + 1}] ${researcher.name} — ${researcher.institution} — ${researcher.works_count} works, ${researcher.citation_count} citations — ${researcher.profile_url}`
@@ -85,10 +107,10 @@ export default function DreamTeam() {
 
 PROJECT: "${searchQuery}"
 
-VERIFIED RESEARCHER RECORDS FROM OPENALEX:
+RETRIEVED RESEARCHER RECORDS FROM OPENALEX:
 ${researcherContext || 'No matching researchers were retrieved.'}
 
-VERIFIED INSTITUTION RECORDS FROM OPENALEX:
+RETRIEVED INSTITUTION RECORDS FROM OPENALEX:
 ${institutionContext || 'No matching institutions were retrieved.'}
 
 Design the roles and partner capabilities needed for this project.
@@ -96,16 +118,15 @@ Design the roles and partner capabilities needed for this project.
 Rules:
 - Do not invent named people or institutions.
 - Named candidates shown in the interface come only from [R] and [I] records.
-- team_health_score means completeness of the proposed team design, not an evaluation of an existing team.
-- Equity ranges, seniority and hiring order are planning suggestions, not factual market data.
-- Distinguish required roles from verified candidate records.
+- Distinguish role suggestions from retrieved, source-indexed candidate records.
+- Do not estimate salary, compensation, equity, employment status, academic rank, researcher availability or willingness to collaborate.
+- Role suggestions and outreach wording are AI-generated planning drafts requiring human review.
 
-Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequence, consortium_partners, eyra_team_insight, and first_hire_advice.`,
+Return project_summary, current_gaps, dream_team, hiring_sequence, consortium_partners, eyra_team_insight, and first_hire_advice.`,
         response_json_schema: {
           type: 'object',
           properties: {
             project_summary: { type: 'string' },
-            team_health_score: { type: 'number', minimum: 0, maximum: 100 },
             current_gaps: { type: 'array', items: { type: 'string' } },
             dream_team: {
               type: 'array',
@@ -121,7 +142,6 @@ Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequ
                   where_to_find: { type: 'string' },
                   outreach_hook: { type: 'string' },
                   seniority: { type: 'string' },
-                  equity_range: { type: 'string' },
                 },
               },
             },
@@ -141,17 +161,25 @@ Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequ
             first_hire_advice: { type: 'string' },
           },
         },
+        signal: controller.signal,
       });
+      if (requestId !== buildSequence.current) return;
 
       setTeam({
         ...result,
+        draft_completeness: calculateDraftCompleteness(result),
         candidate_researchers: researchers,
         candidate_institutions: institutions,
       });
     } catch (error) {
-      setBuildError(error instanceof Error ? error.message : 'Team analysis did not complete.');
+      if (requestId === buildSequence.current && !controller.signal.aborted) {
+        setBuildError(error instanceof Error ? error.message : 'Team analysis did not complete.');
+      }
     } finally {
-      setLoading(false);
+      if (requestId === buildSequence.current) {
+        buildController.current = null;
+        setLoading(false);
+      }
     }
   };
 
@@ -246,7 +274,15 @@ Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequ
             <input
               type="text"
               value={query}
-              onChange={e => { setQuery(e.target.value); setSelectedProjectId(''); }}
+              onChange={e => {
+                buildController.current?.abort();
+                buildSequence.current += 1;
+                setLoading(false);
+                setTeam(null);
+                setBuildError('');
+                setQuery(e.target.value);
+                setSelectedProjectId('');
+              }}
               placeholder="Or describe your project / startup..."
               className="w-full h-12 pl-11 pr-4 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
             />
@@ -295,18 +331,18 @@ Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequ
               <p className="text-sm text-foreground/80">{team.project_summary}</p>
             </div>
             <div className="p-4 rounded-xl border border-border bg-card text-center">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Plan Completeness</p>
-              <p className="text-4xl font-black text-primary">{team.team_health_score}</p>
-              <p className="text-[10px] text-muted-foreground">/ 100 today</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Draft completeness</p>
+              <p className="text-4xl font-black text-primary">{team.draft_completeness}</p>
+              <p className="text-[10px] text-muted-foreground">of draft fields filled · not a quality score</p>
             </div>
           </div>
 
           {(team.candidate_researchers?.length > 0 || team.candidate_institutions?.length > 0) && (
             <div className="rounded-2xl border border-green-500/20 bg-green-500/5 p-5">
-              <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-green-400">Verified OpenAlex Matches</p>
-              <p className="mb-4 text-xs text-muted-foreground">Review relevance yourself before outreach. These are retrieved profiles, not AI-generated people.</p>
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-green-400">Retrieved OpenAlex profiles</p>
+              <p className="mb-4 text-xs text-muted-foreground">Role relevance compares proposed role terms with publication-derived OpenAlex topic labels. It does not verify expertise, affiliation, availability or willingness to collaborate.</p>
               <div className="grid gap-3 sm:grid-cols-2">
-                {team.candidate_researchers?.slice(0, 6).map((researcher) => {
+                {rankedCandidates.slice(0, 6).map(({ researcher, roleMatches, matchedTerms }) => {
                   const researcherId = researcher.openalex_id || researcher.id;
                   const hasSavedResearcher = Object.prototype.hasOwnProperty.call(savedResearcherProjects, researcherId);
                   const savedProjectId = savedResearcherProjects[researcherId];
@@ -319,9 +355,13 @@ Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequ
                         <p className="text-xs font-semibold text-foreground">{researcher.name}</p>
                         <p className="mt-0.5 text-[10px] text-muted-foreground">{researcher.institution}</p>
                         <p className="mt-1 text-[10px] text-muted-foreground">{researcher.works_count} works · {researcher.citation_count} citations</p>
+                        <p className="mt-1 text-[10px] leading-4 text-primary">{matchedTerms.length
+                          ? `Indexed topic overlap: ${matchedTerms.join(', ')}${roleMatches.length ? ` · ${roleMatches.map(match => match.role).join(', ')}` : ''}`
+                          : 'No direct overlap in available indexed topics; inspect the profile manually.'}</p>
+                        {researcher.research_areas && <p className="mt-1 text-[10px] text-muted-foreground">OpenAlex topics: {researcher.research_areas}</p>}
                       </div>
                       <a href={researcher.profile_url} target="_blank" rel="noopener noreferrer"
-                        aria-label={`Open verified OpenAlex profile for ${researcher.name}`}
+                        aria-label={`Open OpenAlex author record for ${researcher.name}`}
                         className="inline-flex min-h-8 items-center gap-1 rounded-md px-2 text-[10px] font-semibold text-primary hover:bg-secondary">
                         Open profile <ExternalLink size={11} aria-hidden="true" />
                       </a>
@@ -376,7 +416,7 @@ Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequ
                             <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${priorityColor[member.priority] || 'border-border text-muted-foreground'}`}>
                               {member.priority}
                             </span>
-                            <span className="text-[10px] text-muted-foreground">{member.seniority}</span>
+                          <span className="text-[10px] text-muted-foreground">Suggested seniority: {member.seniority}</span>
                           </div>
                         </div>
                         <p className="text-xs text-muted-foreground mb-3">{member.why_needed}</p>
@@ -400,9 +440,6 @@ Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequ
                               <span key={s} className="text-[10px] px-2 py-0.5 rounded-full border border-border/60 bg-secondary/50 text-muted-foreground">{s}</span>
                             ))}
                           </div>
-                          {member.equity_range && (
-                            <span className="ml-auto text-[10px] font-semibold text-green-400 flex-shrink-0">Equity: {member.equity_range}</span>
-                          )}
                         </div>
                       </div>
                     </div>
