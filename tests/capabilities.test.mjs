@@ -6,6 +6,8 @@ const keys = [
   'OPENAI_API_KEY', 'RESEND_API_KEY', 'CONTACT_TO_EMAIL', 'RESEND_FROM_EMAIL',
   'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET',
   'STRIPE_PRO_PRICE_ID', 'STRIPE_FOUNDER_PRICE_ID',
+  'EYLO_STRIPE_TEST_MODE',
+  'CRON_SECRET', 'EYLO_SCHEDULED_MONITORING_ENABLED',
   'SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY',
   'VITE_SUPABASE_URL', 'SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY', 'SUPABASE_PUBLISHABLE_KEY',
   'EYLO_ANALYTICS_ENABLED',
@@ -61,8 +63,9 @@ test('contact is available only when all email delivery settings are present', (
 
 test('billing requires every secret, price and server-side Supabase credential', () => {
   clearKeys();
-  for (const key of ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET',
-    'STRIPE_PRO_PRICE_ID', 'STRIPE_FOUNDER_PRICE_ID']) process.env[key] = 'test-only';
+  process.env.STRIPE_SECRET_KEY = 'sk_test_disposable';
+  process.env.EYLO_STRIPE_TEST_MODE = '1';
+  for (const key of ['STRIPE_WEBHOOK_SECRET', 'STRIPE_PRO_PRICE_ID', 'STRIPE_FOUNDER_PRICE_ID']) process.env[key] = 'test-only';
   const absent = response();
   handler({ method: 'GET' }, absent);
   assert.equal(absent.body.billing, false);
@@ -80,6 +83,21 @@ test('billing requires every secret, price and server-side Supabase credential',
   const broken = response();
   handler({ method: 'GET' }, broken);
   assert.equal(broken.body.billing, false);
+});
+
+test('live Stripe credentials cannot enable billing, even with the test-mode switch', () => {
+  clearKeys();
+  process.env.STRIPE_SECRET_KEY = 'sk_live_not_for_tests';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+  process.env.STRIPE_PRO_PRICE_ID = 'price_pro';
+  process.env.STRIPE_FOUNDER_PRICE_ID = 'price_founder';
+  process.env.EYLO_STRIPE_TEST_MODE = '1';
+  process.env.SUPABASE_SECRET_KEY = 'server-key';
+  process.env.SUPABASE_PUBLISHABLE_KEY = 'public-key';
+  process.env.VITE_SUPABASE_URL = 'https://eylo-capability-test.supabase.co';
+  const res = response();
+  handler({ method: 'GET' }, res);
+  assert.equal(res.body.billing, false);
 });
 
 test('AI availability requires both the model key and server-side quota controls', () => {
@@ -128,7 +146,55 @@ test('institution analytics stays disabled unless explicitly enabled after verif
     assert.equal(res.headers['Cache-Control'], 'no-store');
   }
   process.env.EYLO_ANALYTICS_ENABLED = '1';
+  const missingDatabaseConfig = response();
+  handler({ method: 'GET' }, missingDatabaseConfig);
+  assert.equal(missingDatabaseConfig.body.institution_analytics, false);
+
+  process.env.VITE_SUPABASE_URL = 'https://eylo-capability-test.supabase.co';
+  process.env.SUPABASE_PUBLISHABLE_KEY = 'test-public-only';
   const enabled = response();
   handler({ method: 'GET' }, enabled);
   assert.equal(enabled.body.institution_analytics, true);
+});
+
+test('blank service credentials never mark capabilities available', () => {
+  clearKeys();
+  process.env.OPENAI_API_KEY = '   ';
+  process.env.RESEND_API_KEY = '   ';
+  process.env.CONTACT_TO_EMAIL = 'team@example.test';
+  process.env.RESEND_FROM_EMAIL = 'EYLO <hello@example.test>';
+  process.env.STRIPE_SECRET_KEY = '   ';
+  process.env.EYLO_STRIPE_TEST_MODE = '1';
+  process.env.STRIPE_WEBHOOK_SECRET = 'webhook';
+  process.env.STRIPE_PRO_PRICE_ID = 'price_pro';
+  process.env.STRIPE_FOUNDER_PRICE_ID = 'price_founder';
+  process.env.SUPABASE_SECRET_KEY = 'server-key';
+  process.env.SUPABASE_PUBLISHABLE_KEY = 'public-key';
+  process.env.VITE_SUPABASE_URL = 'https://eylo-capability-test.supabase.co';
+  const res = response();
+  handler({ method: 'GET' }, res);
+  assert.equal(res.body.ai, false);
+  assert.equal(res.body.contact, false);
+  assert.equal(res.body.billing, false);
+});
+
+test('scheduled monitoring requires operator enablement and both database credentials', () => {
+  clearKeys();
+  process.env.EYLO_SCHEDULED_MONITORING_ENABLED = '1';
+  process.env.CRON_SECRET = 'cron-test';
+  const missingDatabase = response();
+  handler({ method: 'GET' }, missingDatabase);
+  assert.equal(missingDatabase.body.scheduled_monitoring, false);
+
+  process.env.VITE_SUPABASE_URL = 'https://eylo-capability-test.supabase.co';
+  process.env.SUPABASE_PUBLISHABLE_KEY = 'public-test';
+  process.env.SUPABASE_SECRET_KEY = 'server-test';
+  const ready = response();
+  handler({ method: 'GET' }, ready);
+  assert.equal(ready.body.scheduled_monitoring, true);
+
+  process.env.EYLO_SCHEDULED_MONITORING_ENABLED = '0';
+  const disabled = response();
+  handler({ method: 'GET' }, disabled);
+  assert.equal(disabled.body.scheduled_monitoring, false);
 });

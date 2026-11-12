@@ -1,24 +1,5 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
-import { analyticsEnabled, validWorkspaceAnalyticsPayload } from '../src/lib/analytics-readiness.mjs';
-
-function configuredSupabaseAnalytics() {
-  const url = String(process.env.VITE_SUPABASE_URL || '').trim();
-  const key = String(
-    process.env.SUPABASE_PUBLISHABLE_KEY
-    || process.env.SUPABASE_ANON_KEY
-    || process.env.VITE_SUPABASE_ANON_KEY
-    || '',
-  ).trim();
-
-  if (!url || !key) return null;
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== 'https:' || !parsed.hostname.endsWith('.supabase.co')) return null;
-  } catch {
-    return null;
-  }
-  return { url, key };
-}
+import { analyticsEnabled, validWorkspaceAnalyticsPayload, workspaceAnalyticsConfig } from '../src/lib/analytics-readiness.mjs';
 
 export default async function handler(request, response) {
   if (applyCors(request, response, ["GET"])) return;
@@ -42,7 +23,7 @@ export default async function handler(request, response) {
     });
   }
 
-  const supabase = configuredSupabaseAnalytics();
+  const supabase = workspaceAnalyticsConfig();
   if (!supabase) {
     return response.status(503).json({
       error: 'Workspace analytics is awaiting verified database setup.',

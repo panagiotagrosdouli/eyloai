@@ -3,7 +3,7 @@ import { after, test } from 'node:test';
 import handler from '../api/billing.js';
 
 const oldFetch = globalThis.fetch;
-const names = ['APP_URL','VERCEL_PROJECT_PRODUCTION_URL','VITE_SUPABASE_URL','VITE_SUPABASE_ANON_KEY','SUPABASE_SECRET_KEY','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','STRIPE_PRO_PRICE_ID','STRIPE_FOUNDER_PRICE_ID'];
+const names = ['APP_URL','VERCEL_PROJECT_PRODUCTION_URL','VITE_SUPABASE_URL','VITE_SUPABASE_ANON_KEY','SUPABASE_SECRET_KEY','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','STRIPE_PRO_PRICE_ID','STRIPE_FOUNDER_PRICE_ID','EYLO_STRIPE_TEST_MODE'];
 const oldEnv = Object.fromEntries(names.map(k => [k, process.env[k]]));
 after(() => {
   globalThis.fetch = oldFetch;
@@ -30,7 +30,8 @@ test('billing rejects attacker Host and constructs Stripe URLs from trusted orig
   process.env.VITE_SUPABASE_ANON_KEY='test-public-key';
   process.env.VITE_SUPABASE_URL='https://eylo-test.supabase.co';
   process.env.SUPABASE_SECRET_KEY='test-secret-key';
-  process.env.STRIPE_SECRET_KEY='test-stripe-key';
+  process.env.STRIPE_SECRET_KEY='sk_test_disposable';
+  process.env.EYLO_STRIPE_TEST_MODE='1';
   process.env.STRIPE_WEBHOOK_SECRET='test-webhook';
   process.env.STRIPE_PRO_PRICE_ID='price_test_pro';
   process.env.STRIPE_FOUNDER_PRICE_ID='price_test_founder';

@@ -31,6 +31,37 @@ test('scheduled monitor refuses unauthenticated invocations', async () => {
   }
 });
 
+test('scheduled monitor remains disabled until explicitly enabled and makes no database calls', async () => {
+  const previousFetch = globalThis.fetch;
+  const previousSecret = process.env.CRON_SECRET;
+  const previousEnabled = process.env.EYLO_SCHEDULED_MONITORING_ENABLED;
+  const previousKey = process.env.SUPABASE_SECRET_KEY;
+  const previousUrl = process.env.VITE_SUPABASE_URL;
+  process.env.CRON_SECRET = 'disabled-cron-secret';
+  delete process.env.EYLO_SCHEDULED_MONITORING_ENABLED;
+  process.env.SUPABASE_SECRET_KEY = 'sb_secret_scheduler_test';
+  process.env.VITE_SUPABASE_URL = 'https://monitor-test.supabase.co';
+  let calls = 0;
+  globalThis.fetch = async () => { calls++; throw new Error('disabled scheduler must not access storage'); };
+  try {
+    const response = responseMock();
+    await monitor({ method: 'GET', headers: { authorization: 'Bearer disabled-cron-secret' } }, response);
+    assert.equal(response.statusCode, 503);
+    assert.match(response.payload.error, /not enabled/i);
+    assert.equal(calls, 0);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousSecret === undefined) delete process.env.CRON_SECRET;
+    else process.env.CRON_SECRET = previousSecret;
+    if (previousEnabled === undefined) delete process.env.EYLO_SCHEDULED_MONITORING_ENABLED;
+    else process.env.EYLO_SCHEDULED_MONITORING_ENABLED = previousEnabled;
+    if (previousKey === undefined) delete process.env.SUPABASE_SECRET_KEY;
+    else process.env.SUPABASE_SECRET_KEY = previousKey;
+    if (previousUrl === undefined) delete process.env.VITE_SUPABASE_URL;
+    else process.env.VITE_SUPABASE_URL = previousUrl;
+  }
+});
+
 test('monitoring releases an in-run deduplication key after a failed database insert', () => {
   const source = readFileSync(new URL('../api/monitor.js', import.meta.url), 'utf8');
   assert.match(source, /seen\.add\(key\);[\s\S]*?await supabase\('monitoring_discoveries'[\s\S]*?catch \(error\) \{[\s\S]*?seen\.delete\(key\);\s*throw error;/);
@@ -67,9 +98,11 @@ test('scheduler gets retryable HTTP status when any watchlist fails', () => {
 test('monitoring reports the specific failed watchlist and excludes inactive ones from checked', async () => {
   const previousFetch = globalThis.fetch;
   const oldSecret = process.env.CRON_SECRET;
+  const oldEnabled = process.env.EYLO_SCHEDULED_MONITORING_ENABLED;
   const oldKey = process.env.SUPABASE_SECRET_KEY;
   const oldUrl = process.env.VITE_SUPABASE_URL;
   process.env.CRON_SECRET = 'test-cron-secret';
+  process.env.EYLO_SCHEDULED_MONITORING_ENABLED = '1';
   process.env.SUPABASE_SECRET_KEY = 'sb_secret_test_placeholder';
   process.env.VITE_SUPABASE_URL = 'https://monitor-test.supabase.co';
   globalThis.fetch = async (url) => {
@@ -101,6 +134,8 @@ test('monitoring reports the specific failed watchlist and excludes inactive one
     globalThis.fetch = previousFetch;
     if (oldSecret === undefined) delete process.env.CRON_SECRET;
     else process.env.CRON_SECRET = oldSecret;
+    if (oldEnabled === undefined) delete process.env.EYLO_SCHEDULED_MONITORING_ENABLED;
+    else process.env.EYLO_SCHEDULED_MONITORING_ENABLED = oldEnabled;
     if (oldKey === undefined) delete process.env.SUPABASE_SECRET_KEY;
     else process.env.SUPABASE_SECRET_KEY = oldKey;
     if (oldUrl === undefined) delete process.env.VITE_SUPABASE_URL;
@@ -121,9 +156,11 @@ test('monitoring retains failure state and clears consecutive failures after suc
 test('old disabled watchlists cannot starve 66 active watchlists over three bounded runs', async () => {
   const previousFetch = globalThis.fetch;
   const oldSecret = process.env.CRON_SECRET;
+  const oldEnabled = process.env.EYLO_SCHEDULED_MONITORING_ENABLED;
   const oldKey = process.env.SUPABASE_SECRET_KEY;
   const oldUrl = process.env.VITE_SUPABASE_URL;
   process.env.CRON_SECRET = 'unit-cron-secret';
+  process.env.EYLO_SCHEDULED_MONITORING_ENABLED = '1';
   process.env.SUPABASE_SECRET_KEY = 'sb_secret_scheduler_unit_test';
   process.env.VITE_SUPABASE_URL = 'https://monitor-test.supabase.co';
   const database = [
@@ -194,6 +231,8 @@ test('old disabled watchlists cannot starve 66 active watchlists over three boun
     globalThis.fetch = previousFetch;
     if (oldSecret === undefined) delete process.env.CRON_SECRET;
     else process.env.CRON_SECRET = oldSecret;
+    if (oldEnabled === undefined) delete process.env.EYLO_SCHEDULED_MONITORING_ENABLED;
+    else process.env.EYLO_SCHEDULED_MONITORING_ENABLED = oldEnabled;
     if (oldKey === undefined) delete process.env.SUPABASE_SECRET_KEY;
     else process.env.SUPABASE_SECRET_KEY = oldKey;
     if (oldUrl === undefined) delete process.env.VITE_SUPABASE_URL;

@@ -25,6 +25,9 @@ test('release identity reports an explicit deployed SHA but no secrets', () => {
     assert.equal(res.payload.provenance_verified, true);
     assert.equal(JSON.stringify(res.payload).includes('secret'), false);
     assert.equal(res.headers['cache-control'], 'no-store');
+    assert.equal(res.headers['content-type'], 'application/json; charset=utf-8');
+    assert.equal(res.headers['x-content-type-options'], 'nosniff');
+    assert.deepEqual(Object.keys(res.payload).sort(), ['deployment_sha', 'environment', 'note', 'provenance_verified']);
   } finally {
     if (prevSha === undefined) delete process.env.VERCEL_GIT_COMMIT_SHA;
     else process.env.VERCEL_GIT_COMMIT_SHA = prevSha;
@@ -45,6 +48,7 @@ test('release identity is explicit about missing or malformed SHA', () => {
     assert.equal(res.payload.deployment_sha, null);
     assert.equal(res.payload.environment, 'unknown');
     assert.equal(res.payload.provenance_verified, false);
+    assert.equal(res.headers['content-type'], 'application/json; charset=utf-8');
   } finally {
     if (prevSha === undefined) delete process.env.VERCEL_GIT_COMMIT_SHA;
     else process.env.VERCEL_GIT_COMMIT_SHA = prevSha;

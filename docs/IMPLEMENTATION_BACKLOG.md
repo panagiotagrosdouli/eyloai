@@ -1,11 +1,11 @@
 # EYLO integrated implementation backlog
 
-**Source:** repository review of the current `main` checkout on 2026-11-10. This is an implementation register, not a release-readiness claim. “Partial” means related routes or services exist; it does not certify end-to-end behavior, persistence or production configuration.
+**Source:** repository review of `main` commit `1804e07859fa3b75e69a1dc658242d1c2c10a573` on 2026-11-12. This is an implementation register, not a release-readiness claim. “Partial” means related routes or services exist; it does not certify end-to-end behavior, persistence or production configuration.
 
 ## Release blockers
 
-- [ ] Verify the intended Vercel project/domain mapping and deployed commit. The 2026-11-07 audit reported 404s; a fresh 2026-11-10 smoke check returned HTTP 200 for all eight public routes/endpoints, but the connected Vercel account currently lists zero projects, so deployment provenance and project settings remain unverified.
-- [ ] Restore production AI, contact, billing and scheduled-monitoring configuration only after their individual backend/security acceptance checks. `/api/capabilities` currently reports `ai`, `contact`, `billing`, `scheduled_monitoring` and `institution_analytics` as disabled.
+- [ ] Verify the intended Vercel project/domain mapping and deployed commit. On 2026-11-12 the public smoke check returned HTTP 200 for all eight public routes/endpoints, but `/release.json` had no `git_commit`; deployment provenance and Vercel project settings remain unverified. The build now stamps Vercel's commit SHA, and the manual production smoke workflow fails if its target does not serve the triggering SHA.
+- [ ] Restore production AI, contact, billing and scheduled-monitoring configuration only after their individual backend/security acceptance checks. `/api/capabilities` currently reports `ai`, `contact`, `billing`, `scheduled_monitoring` and `institution_analytics` as disabled. Current code requires explicit scheduler/analytics activation flags; Stripe accepts test mode only. See [P0 production recovery](./P0_PRODUCTION_RECOVERY_2026-11-12.md) for verified predicates and external blockers.
 - [ ] Verify that production Vercel environment variables point to the intended Supabase project; review live RLS and prove cross-user read/update/delete isolation with disposable accounts.
 - [ ] Complete authenticated browser coverage for sign-in, discovery, saving, project context, EYRA and funding on desktop and mobile.
 - [ ] Run a human-judged discovery evaluation. Existing heuristic coverage is not a scientific relevance benchmark.

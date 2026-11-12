@@ -207,6 +207,9 @@ export default async function handler(request, response) {
   if (!process.env.CRON_SECRET || request.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     return response.status(401).json({ error: 'Cron authorization required.' });
   }
+  if (process.env.EYLO_SCHEDULED_MONITORING_ENABLED !== '1') {
+    return response.status(503).json({ error: 'Scheduled monitoring is not enabled for this deployment.' });
+  }
   if (!readSupabaseApiConfig().hasServerConfig) {
     return response.status(503).json({ error: 'Scheduled monitoring needs an explicitly configured Supabase project and server key.' });
   }

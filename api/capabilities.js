@@ -1,6 +1,12 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
-import { analyticsEnabled } from '../src/lib/analytics-readiness.mjs';
+import { contactDeliveryConfig } from '../src/lib/contact-readiness.mjs';
+import { analyticsEnabled, workspaceAnalyticsConfig } from '../src/lib/analytics-readiness.mjs';
+import { stripeTestModeEnabled } from '../src/lib/stripe-readiness.mjs';
 import { readSupabaseApiConfig } from './supabase-config.mjs';
+
+function hasValue(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
 
 function supabaseServerConfigured() {
   const config = readSupabaseApiConfig();
@@ -17,21 +23,25 @@ export default function handler(request, response) {
     return response.status(405).json({ error: 'Method not allowed.' });
   }
   return response.status(200).json({
-    ai: Boolean(process.env.OPENAI_API_KEY && supabaseServerConfigured()),
-    contact: Boolean(process.env.RESEND_API_KEY && process.env.CONTACT_TO_EMAIL && process.env.RESEND_FROM_EMAIL),
+    ai: Boolean(hasValue(process.env.OPENAI_API_KEY) && supabaseServerConfigured()),
+    contact: Boolean(contactDeliveryConfig()),
     billing: Boolean(
-      process.env.STRIPE_SECRET_KEY
-      && process.env.STRIPE_WEBHOOK_SECRET
-      && process.env.STRIPE_PRO_PRICE_ID
-      && process.env.STRIPE_FOUNDER_PRICE_ID
+      stripeTestModeEnabled()
+      && hasValue(process.env.STRIPE_SECRET_KEY)
+      && hasValue(process.env.STRIPE_WEBHOOK_SECRET)
+      && hasValue(process.env.STRIPE_PRO_PRICE_ID)
+      && hasValue(process.env.STRIPE_FOUNDER_PRICE_ID)
       && supabaseServerConfigured()
     ),
-    // Manual watchlist checks remain available. The production daily schedule
-    // is enabled only after explicit consent to send each active query to the
-    // selected external research/funding source.
-    scheduled_monitoring: false,
+    // The Vercel cron exists in code, but only advertise it after the operator
+    // enables the verified deployment and its scheduler/database credentials.
+    scheduled_monitoring: Boolean(
+      process.env.EYLO_SCHEDULED_MONITORING_ENABLED === '1'
+      && hasValue(process.env.CRON_SECRET)
+      && supabaseServerConfigured()
+    ),
     // Do not advertise the RPC before actual production Supabase acceptance.
     // Operator enablement is a manual post-verification switch.
-    institution_analytics: analyticsEnabled(),
+    institution_analytics: Boolean(analyticsEnabled() && workspaceAnalyticsConfig()),
   });
 }

@@ -4,6 +4,7 @@ import monitor from '../api/monitor.js';
 
 const oldFetch = globalThis.fetch;
 const oldCronSecret = process.env.CRON_SECRET;
+const oldMonitoringEnabled = process.env.EYLO_SCHEDULED_MONITORING_ENABLED;
 const oldSupabaseKey = process.env.SUPABASE_SECRET_KEY;
 const oldSupabaseUrl = process.env.VITE_SUPABASE_URL;
 
@@ -11,6 +12,8 @@ afterEach(() => {
   globalThis.fetch = oldFetch;
   if (oldCronSecret === undefined) delete process.env.CRON_SECRET;
   else process.env.CRON_SECRET = oldCronSecret;
+  if (oldMonitoringEnabled === undefined) delete process.env.EYLO_SCHEDULED_MONITORING_ENABLED;
+  else process.env.EYLO_SCHEDULED_MONITORING_ENABLED = oldMonitoringEnabled;
   if (oldSupabaseKey === undefined) delete process.env.SUPABASE_SECRET_KEY;
   else process.env.SUPABASE_SECRET_KEY = oldSupabaseKey;
   if (oldSupabaseUrl === undefined) delete process.env.VITE_SUPABASE_URL;
@@ -31,6 +34,7 @@ function sourceResponse(data, status = 200) {
 }
 function mockDatabase(providerPayload, { type = 'topic' } = {}) {
   process.env.CRON_SECRET = 'monitor-test-cron';
+  process.env.EYLO_SCHEDULED_MONITORING_ENABLED = '1';
   process.env.SUPABASE_SECRET_KEY = 'sb_secret_disposable_test_only';
   process.env.VITE_SUPABASE_URL = 'https://monitor-test.supabase.co';
   const records = [{

@@ -4,6 +4,7 @@ import { applyCors } from '../src/lib/api-cors.mjs';
 export default function handler(request, response) {
   if (applyCors(request, response, ['GET'])) return;
   response.setHeader('Cache-Control', 'no-store');
+  response.setHeader('Content-Type', 'application/json; charset=utf-8');
   response.setHeader('X-Content-Type-Options', 'nosniff');
   if (request.method !== 'GET') {
     response.setHeader('Allow', 'GET');

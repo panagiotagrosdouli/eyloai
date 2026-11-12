@@ -29,8 +29,24 @@ const checks = [
   { path: '/login', type: 'html', label: 'Login route' },
   { path: '/register', type: 'html', label: 'Registration route' },
   { path: '/forgot-password', type: 'html', label: 'Recovery route' },
+  { path: '/api/deployment-status', type: 'deployment_status', label: 'Deployment identity endpoint' },
   { path: '/api/capabilities', type: 'capabilities', label: 'Server capability endpoint' },
 ];
+
+const expectedSha = process.env.EYLO_EXPECTED_GIT_SHA?.toLowerCase();
+if (expectedSha && !/^[a-f0-9]{40}$/.test(expectedSha)) {
+  console.error('EYLO_EXPECTED_GIT_SHA must be a 40-character commit SHA');
+  process.exit(2);
+}
+
+function verifySha(actual, label) {
+  if (typeof actual !== 'string' || !/^[a-f0-9]{40}$/i.test(actual)) {
+    throw new Error(`${label} does not contain a valid deployed commit SHA`);
+  }
+  if (expectedSha && actual.toLowerCase() !== expectedSha) {
+    throw new Error(`Stale deployment: expected commit ${expectedSha.slice(0, 12)}, served ${actual.slice(0, 12)}`);
+  }
+}
 
 let failed = false;
 for (const check of checks) {
@@ -41,7 +57,7 @@ for (const check of checks) {
     const response = await fetch(url, {
       signal: controller.signal,
       redirect: 'manual',
-      headers: { Accept: ['json', 'capabilities'].includes(check.type) ? 'application/json' : '*/*' },
+      headers: { Accept: ['json', 'capabilities', 'deployment_status'].includes(check.type) ? 'application/json' : '*/*' },
     });
     if (response.status !== 200) throw new Error(`HTTP ${response.status} (expected 200)`);
     const body = await response.text();
@@ -66,12 +82,17 @@ for (const check of checks) {
         throw new Error('Missing release identifier');
       }
       console.log(`  release: ${data.release}`);
-      const expectedSha = process.env.EYLO_EXPECTED_GIT_SHA;
-      if (expectedSha) {
-        if (!/^[a-f0-9]{40}$/i.test(expectedSha)) throw new Error('EYLO_EXPECTED_GIT_SHA must be a 40-character commit SHA');
-        if (data.git_commit?.toLowerCase() !== expectedSha.toLowerCase()) {
-          throw new Error(`Stale deployment: expected commit ${expectedSha.slice(0, 12)}, served ${String(data.git_commit || 'unknown').slice(0, 12)}`);
-        }
+      verifySha(data.git_commit, 'Release manifest');
+    }
+    if (check.type === 'deployment_status') {
+      if (!response.headers.get('content-type')?.toLowerCase().includes('application/json')) {
+        throw new Error(`Expected application/json; received ${response.headers.get('content-type') || 'no content type'}`);
+      }
+      const data = JSON.parse(body);
+      if (data.provenance_verified !== true) throw new Error('Deployment provenance is not verified');
+      verifySha(data.deployment_sha, 'Deployment identity endpoint');
+      if (!['production', 'preview', 'development'].includes(data.environment)) {
+        throw new Error('Deployment environment is missing or invalid');
       }
     }
     console.log(`PASS ${check.label}: ${url.pathname}`);

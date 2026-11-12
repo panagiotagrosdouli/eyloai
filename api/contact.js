@@ -1,4 +1,5 @@
 import { applyCors, isAllowedBrowserOrigin } from '../src/lib/api-cors.mjs';
+import { contactDeliveryConfig } from '../src/lib/contact-readiness.mjs';
 const MAX_BODY_BYTES = 12000;
 const validEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const clean = (value, max) => String(value || '').trim().slice(0, max);
@@ -19,7 +20,9 @@ export default async function handler(req, res) {
   const rawSize = Number(req.headers['content-length'] || 0);
   if (rawSize > MAX_BODY_BYTES) return res.status(413).json({ error: 'Request too large.' });
   const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
-  if (body.website) return res.status(200).json({ ok: true });
+  // Do not report successful delivery for honeypot submissions: nothing was
+  // sent to Resend, and the UI must never claim that an inquiry was delivered.
+  if (body.website) return res.status(400).json({ error: 'Unable to submit this form.' });
   const name = clean(body.name, 100);
   const email = clean(body.email, 200);
   const interest = clean(body.interest, 80);
@@ -27,16 +30,17 @@ export default async function handler(req, res) {
   if (name.length < 2 || !validEmail(email) || !['Research & Evidence', 'AI & Engineering', 'Design & Partnerships', 'Other'].includes(interest) || message.length < 20) {
     return res.status(400).json({ error: 'Please complete all fields with valid information.' });
   }
-  if (!process.env.RESEND_API_KEY || !process.env.CONTACT_TO_EMAIL || !process.env.RESEND_FROM_EMAIL) {
+  const delivery = contactDeliveryConfig();
+  if (!delivery) {
     return res.status(503).json({ error: 'The contact form is currently unavailable. Please try again later.' });
   }
   try {
     const result = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'content-type': 'application/json' },
+      headers: { authorization: `Bearer ${delivery.apiKey}`, 'content-type': 'application/json' },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL,
-        to: [process.env.CONTACT_TO_EMAIL],
+        from: delivery.from,
+        to: [delivery.to],
         reply_to: email,
         subject: `EYLO collaboration interest: ${interest}`,
         html: `<h2>EYLO collaboration inquiry</h2><p><b>Name:</b> ${htmlEscape(name)}</p><p><b>Email:</b> ${htmlEscape(email)}</p><p><b>Area:</b> ${htmlEscape(interest)}</p><p><b>Message:</b></p><p style="white-space:pre-wrap">${htmlEscape(message)}</p>`,
