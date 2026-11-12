@@ -63,3 +63,15 @@ test('same-origin preview deployments remain usable without broad Vercel wildcar
   assert.equal(isAllowedBrowserOrigin('https://eyloai-git-feature-panagiotagrosdoulis-projects.vercel.app', 'eyloai-git-feature-panagiotagrosdoulis-projects.vercel.app'), true);
   assert.equal(isAllowedBrowserOrigin('https://other-project.vercel.app', 'eyloai.vercel.app'), false);
 });
+
+test('same-host HTTP origins cannot access HTTPS preview APIs', () => {
+  assert.equal(isAllowedBrowserOrigin('http://eyloai-git-preview.vercel.app', 'eyloai-git-preview.vercel.app'), false);
+  assert.equal(isAllowedBrowserOrigin('https://eyloai-git-preview.vercel.app', 'eyloai-git-preview.vercel.app'), true);
+  assert.equal(isAllowedBrowserOrigin('https://eyloai-git-preview.vercel.app.attacker.example', 'eyloai-git-preview.vercel.app'), false);
+});
+
+test('authenticated API responses default to non-cacheable', () => {
+  const res = response();
+  applyCors({ method: 'GET', headers: { host: 'eyloai.vercel.app' } }, res, ['GET']);
+  assert.equal(res.headers['Cache-Control'], 'no-store');
+});
