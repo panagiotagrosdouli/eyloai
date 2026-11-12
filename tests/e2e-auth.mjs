@@ -545,6 +545,73 @@ try {
   assert.equal(exportedReview.protocol.screening[0].paper_id, 'library-paper-1');
   assert.match(exportedReview.reporting_note, /Not a PRISMA-compliant/);
 
+  // Team Planner uses real OpenAlex-shaped candidate records, deterministic
+  // topic overlap, a locally computed completeness value, and ignores a late
+  // AI response after the researcher changes their project query.
+  await dataLab.route('**/rest/v1/projects**', async route => {
+    if (route.request().method() === 'OPTIONS') {
+      await route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' } });
+      return;
+    }
+    await sendAuthJson(route, []);
+  });
+  const teamCors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };
+  await dataLab.route('https://api.openalex.org/authors**', route => route.fulfill({
+    status: 200, contentType: 'application/json', headers: teamCors,
+    body: JSON.stringify({ results: [{
+      id: 'https://openalex.org/A9981', display_name: 'Climate Methods Researcher',
+      last_known_institutions: [{ id: 'https://openalex.org/I9981', display_name: 'Example Research Institute', country_code: 'NL' }],
+      topics: [{ id: 'https://openalex.org/T9981', display_name: 'urban climate adaptation' }],
+      works_count: 26, cited_by_count: 101, ids: {},
+    }] }),
+  }));
+  await dataLab.route('https://api.openalex.org/institutions**', route => route.fulfill({
+    status: 200, contentType: 'application/json', headers: teamCors,
+    body: JSON.stringify({ results: [{ id: 'https://openalex.org/I9981', display_name: 'Example Research Institute', country_code: 'NL', works_count: 320 }] }),
+  }));
+  const oldPlan = {
+    project_summary: 'Stale plan for the previous query', current_gaps: [], hiring_sequence: [], consortium_partners: [],
+    eyra_team_insight: '', first_hire_advice: '',
+    dream_team: [{ role: 'Old stale role', why_needed: 'Old', key_skills: [], ideal_background: '', where_to_find: '', outreach_hook: '' }],
+  };
+  const currentPlan = {
+    project_summary: 'Use publication-derived topics to identify climate methods relevant to the current project.',
+    current_gaps: ['No direct evidence of availability'], hiring_sequence: ['Review publications'], consortium_partners: [],
+    eyra_team_insight: 'Review actual work before outreach', first_hire_advice: 'Validate expertise against publications',
+    dream_team: [{ role: 'Climate Data Analyst', why_needed: 'Analyze climate exposures', key_skills: ['climate adaptation'], ideal_background: 'Climate data analysis', where_to_find: 'Research groups', outreach_hook: 'Discuss the published methods', seniority: 'Suggested mid-career' }],
+  };
+  await dataLab.route('**/api/eyra', async route => {
+    const request = route.request();
+    const prompt = request.postDataJSON()?.prompt || '';
+    const isOld = prompt.includes('PROJECT: "OLD_TEAM_QUERY"');
+    if (isOld) await new Promise(resolve => setTimeout(resolve, 1200));
+    try {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: isOld ? oldPlan : currentPlan }) });
+    } catch { /* An aborted stale browser request is expected. */ }
+  });
+  await dataLab.goto(`${baseUrl}/labs/team`);
+  await dataLab.getByRole('heading', { name: 'Team Planner' }).waitFor();
+  const teamQuery = dataLab.getByPlaceholder('Or describe your project / startup...');
+  await teamQuery.fill('OLD_TEAM_QUERY');
+  const oldRequest = dataLab.waitForRequest(request => request.url().includes('/api/eyra') && request.postData()?.includes('OLD_TEAM_QUERY'));
+  await dataLab.getByRole('button', { name: 'Build Team' }).click();
+  await oldRequest;
+  await teamQuery.fill('NEW_TEAM_QUERY');
+  const newRequest = dataLab.waitForRequest(request => request.url().includes('/api/eyra') && request.postData()?.includes('NEW_TEAM_QUERY'));
+  await dataLab.getByRole('button', { name: 'Build Team' }).click();
+  await newRequest;
+  await dataLab.getByRole('heading', { name: 'Climate Data Analyst' }).waitFor();
+  await dataLab.getByText('Indexed topic overlap: climate, adaptation · Climate Data Analyst').waitFor();
+  await dataLab.getByText('Draft completeness', { exact: true }).waitFor();
+  assert.equal(await dataLab.getByRole('heading', { name: 'Old stale role' }).count(), 0);
+  await new Promise(resolve => setTimeout(resolve, 1300));
+  assert.equal(await dataLab.getByRole('heading', { name: 'Climate Data Analyst' }).count(), 1,
+    'a late model response for the prior query must not replace current results');
+  assert.equal(await dataLab.getByText('Plan Completeness', { exact: true }).count(), 0,
+    'the AI supplied team-health score is not shown');
+  assert.equal(await dataLab.getByText(/Equity:/).count(), 0,
+    'an unsourced equity estimate is not shown');
+
   // Verify sign-out actually invalidates the session and protects private routes.
   await dataLab.route('**/auth/v1/logout**', route => route.fulfill({
     status: 204,

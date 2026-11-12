@@ -40,8 +40,8 @@
 
 ### 4. Smart Researcher Matching — partial
 
-- [ ] Inspect current People, Researcher and Dream Team flows for exact matching inputs and persistence.
-- [ ] Add explainable expertise overlap/complementarity derived from scholarly metadata.
+- [x] Inspect current Researchers and Team Planner flows for profile matching inputs and saved-project persistence.
+- [x] Rank retrieved OpenAlex author records against draft roles using a deterministic, visible overlap of proposed role/key-skill terms and publication-derived topic labels; absence of overlap is not a claim of absence of fit.
 - [ ] Integrate saved matches with Projects and Research Passport.
 - [ ] Add privacy-aware, consent-based collaboration requests and two-account access tests.
 
@@ -118,6 +118,8 @@
 - [ ] Verify the intended live deployment and service configuration before any production-readiness claim.
 
 ## Work recorded
+
+- **2026-11-12:** Team Planner no longer displays a model-supplied team-health number or unsourced equity ranges. Its draft completeness percentage is computed deterministically from filled fields; researcher-role relevance is ranked by explicit overlap with retrieved OpenAlex topic metadata and disclaims inferred expertise/availability. Query changes abort retrieval and invalidate older LLM generations. Added helper tests and an authenticated browser scenario with provider-shaped records and deliberately delayed stale AI output; live provider and RLS checks remain staging dependencies.
 
 - **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.
 - **2026-11-10:** Project Evidence adds a source-linked, editable matrix for linked papers; notes are stored on the project and exported as CSV with spreadsheet formula escaping. Missing notes are shown as unrecorded rather than inferred.
