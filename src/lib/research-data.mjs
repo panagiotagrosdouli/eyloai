@@ -136,6 +136,81 @@ export function getResearchDataChartRows(dataset, column, limit = 1000) {
   });
 }
 
+/** Compare two numeric columns using complete pairs and descriptive Pearson r. */
+export function compareResearchNumericColumns(dataset, firstColumn, secondColumn) {
+  const headers = Array.isArray(dataset?.headers) ? dataset.headers : [];
+  const rows = Array.isArray(dataset?.rows) ? dataset.rows : [];
+  const firstIndex = headers.indexOf(firstColumn);
+  const secondIndex = headers.indexOf(secondColumn);
+  if (firstIndex < 0 || secondIndex < 0 || firstIndex === secondIndex) {
+    return { available: false, reason: 'Choose two different numeric columns.' };
+  }
+
+  const pairs = [];
+  let incomplete = 0;
+  for (const row of rows) {
+    const first = numericValue(row?.[firstIndex]);
+    const second = numericValue(row?.[secondIndex]);
+    if (first === null || second === null) {
+      incomplete += 1;
+      continue;
+    }
+    pairs.push([first, second]);
+  }
+
+  if (pairs.length < 3) {
+    return {
+      available: false,
+      reason: 'At least three complete numeric pairs are needed for a descriptive correlation.',
+      pairs: pairs.length,
+      incomplete,
+    };
+  }
+
+  // Pearson r is unchanged by scaling each variable independently. Scaling
+  // first keeps the online covariance calculation finite for large CSV values.
+  const firstScale = Math.max(...pairs.map(([value]) => Math.abs(value))) || 1;
+  const secondScale = Math.max(...pairs.map(([, value]) => Math.abs(value))) || 1;
+  let firstMean = 0;
+  let secondMean = 0;
+  let firstSquares = 0;
+  let secondSquares = 0;
+  let coMoment = 0;
+  pairs.forEach(([first, second], index) => {
+    const count = index + 1;
+    const scaledFirst = first / firstScale;
+    const scaledSecond = second / secondScale;
+    const firstDelta = scaledFirst - firstMean;
+    const secondDelta = scaledSecond - secondMean;
+    firstMean += firstDelta / count;
+    secondMean += secondDelta / count;
+    firstSquares += firstDelta * (scaledFirst - firstMean);
+    secondSquares += secondDelta * (scaledSecond - secondMean);
+    coMoment += firstDelta * (scaledSecond - secondMean);
+  });
+
+  const denominator = Math.sqrt(firstSquares * secondSquares);
+  if (!Number.isFinite(denominator) || denominator === 0) {
+    return {
+      available: false,
+      reason: 'Correlation is undefined when either column has no variation among complete pairs.',
+      pairs: pairs.length,
+      incomplete,
+    };
+  }
+
+  const pearsonR = Math.max(-1, Math.min(1, coMoment / denominator));
+  return {
+    available: Number.isFinite(pearsonR),
+    kind: 'pearson-correlation',
+    firstColumn,
+    secondColumn,
+    pairs: pairs.length,
+    incomplete,
+    pearsonR: Number.isFinite(pearsonR) ? pearsonR : null,
+  };
+}
+
 function csvCell(value) {
   const text = value == null ? '' : String(value);
   const safe = typeof value !== 'number' && /^[\t ]*[=+@-]/.test(text) ? `'${text}` : text;
