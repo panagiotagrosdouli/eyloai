@@ -42,3 +42,11 @@ test('Data Lab computes provenance locally and exports no raw CSV values', () =>
   assert.match(ui, /The optional fingerprint is included in the aggregate JSON report/);
   assert.doesNotMatch(ui, /fetch\([^)]*rawBytes/);
 });
+
+test('late fingerprint promises cannot repopulate an intentionally cleared dataset', () => {
+  const ui = readFileSync(new URL('../src/pages/ResearchDataLab.jsx', import.meta.url), 'utf8');
+  assert.match(ui, /const generation = \+\+loadGenerationRef\.current/);
+  assert.match(ui, /if \(generation !== loadGenerationRef\.current\) return/);
+  assert.match(ui, /const clearData = \(\) => \{\s*loadGenerationRef\.current \+= 1/);
+  assert.match(ui, /useEffect\(\(\) => \(\) => \{ loadGenerationRef\.current \+= 1; \}, \[\]\)/);
+});
