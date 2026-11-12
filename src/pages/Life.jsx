@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarDays, Check, Circle, Clock3, Plus, Save, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { isOverdueLifeTask, nextLifeTaskDate, normalizeLifeTask, sortLifeTasks } from '@/lib/life-domain.mjs';
@@ -199,7 +200,7 @@ export default function Life() {
           <h1 className="eylo-page-heading">Life</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Keep personal and research tasks together, with real due dates, priorities and project links.</p>
         </div>
-        <button type="button" onClick={resetEditor} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"><Plus size={16} aria-hidden="true" /> New task</button>
+        <div className="flex gap-2"><Link to="/life/goals" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary">Goals & milestones</Link><button type="button" onClick={resetEditor} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"><Plus size={16} aria-hidden="true" /> New task</button></div>
       </header>
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Task summary">
