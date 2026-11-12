@@ -1,4 +1,3 @@
-import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { createHash } from 'node:crypto';
@@ -666,7 +665,7 @@ try {
     // The authenticated application shell also loads a private watchlist summary.
     // Keep this test fixture isolated and do not mistake that unrelated GET for
     // an EYLO Files request; other unexpected write operations still fail.
-    if (['watchlists', 'monitoring_discoveries'].includes(table) && request.method() === 'GET') return sendAuthJson(route, []);
+    if (['watchlists', 'monitoring_discoveries', 'notifications'].includes(table) && request.method() === 'GET') return sendAuthJson(route, []);
     throw new Error(`Unexpected EYLO Files database request ${request.method()} ${url.pathname}`);
   });
   await filesPage.route('https://eylo-auth-test.supabase.co/rest/v1/rpc/search_private_files', async route => {
