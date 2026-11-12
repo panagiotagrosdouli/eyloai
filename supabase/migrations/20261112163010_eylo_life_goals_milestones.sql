@@ -8,6 +8,7 @@ create table if not exists public.life_goals (
   constraint life_goals_title_length check (char_length(trim(coalesce(data ->> 'title', ''))) between 1 and 160),
   constraint life_goals_description_length check (char_length(coalesce(data ->> 'description', '')) <= 5000),
   constraint life_goals_status check (coalesce(data ->> 'status', 'active') in ('active', 'paused', 'completed')),
+  constraint life_goals_area check (coalesce(data ->> 'area', 'personal') in ('personal', 'research', 'study', 'work')),
   constraint life_goals_milestones check (
     not (data ? 'milestones') or
     (jsonb_typeof(data -> 'milestones') = 'array' and jsonb_array_length(data -> 'milestones') <= 50)
@@ -53,6 +54,10 @@ begin
   if new.data ? 'status' and (jsonb_typeof(new.data -> 'status') is distinct from 'string'
      or new.data ->> 'status' not in ('active', 'paused', 'completed')) then
     raise exception 'Goal status is invalid' using errcode = '23514';
+  end if;
+  if new.data ? 'area' and (jsonb_typeof(new.data -> 'area') is distinct from 'string'
+     or new.data ->> 'area' not in ('personal', 'research', 'study', 'work')) then
+    raise exception 'Goal area is invalid' using errcode = '23514';
   end if;
 
   target_date_text := nullif(new.data ->> 'target_date', '');
