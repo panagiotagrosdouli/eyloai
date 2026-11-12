@@ -338,6 +338,7 @@ export default function ResearchDataLab() {
             {numericColumns.length < 2 ? (
               <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">At least two numeric columns are needed for comparison.</p>
             ) : comparison?.available ? (
+              <>
               <div className="mt-4 grid gap-3 sm:grid-cols-3" role="status" aria-live="polite">
                 <div className="rounded-lg border border-border p-4">
                   <p className="text-xs text-muted-foreground">Pearson correlation, r</p>
@@ -359,6 +360,42 @@ export default function ResearchDataLab() {
                   <p className="mt-2 text-xs text-muted-foreground">The export contains variable names and aggregate results, not source rows.</p>
                 </div>
               </div>
+              {comparison.scatterSample?.length > 0 && (
+                <div className="mt-6 rounded-xl border border-border p-3 sm:p-4">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <h3 className="font-semibold">Pairwise pattern</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Showing {numberFormat.format(comparison.scatterSample.length)} evenly spaced rows of {numberFormat.format(comparison.pairs)} complete pairs; r uses all pairs.
+                    </p>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {selectedComparisonColumns[0]}: {displayNumber(comparison.firstMin)} to {displayNumber(comparison.firstMax)} · {selectedComparisonColumns[1]}: {displayNumber(comparison.secondMin)} to {displayNumber(comparison.secondMax)}
+                  </p>
+                  <svg className="mt-3 h-72 w-full" viewBox="0 0 640 310" role="img" aria-label={`Scatter plot of ${selectedComparisonColumns[0]} against ${selectedComparisonColumns[1]} using a sample of ${comparison.scatterSample.length} complete rows`}>
+                    <title>Sampled paired values</title>
+                    {[0, 0.5, 1].map(tick => {
+                      const y = 16 + ((1 - tick) * 220);
+                      return <line key={tick} x1="64" y1={y} x2="604" y2={y} stroke="hsl(var(--border))" strokeDasharray="4 4" />;
+                    })}
+                    <line x1="64" y1="236" x2="604" y2="236" stroke="currentColor" strokeOpacity="0.5" />
+                    <line x1="64" y1="16" x2="64" y2="236" stroke="currentColor" strokeOpacity="0.5" />
+                    {comparison.scatterSample.map(point => (
+                      <circle key={point.row} cx={64 + point.xPosition * 540} cy={16 + (1 - point.yPosition) * 220} r="3.5" fill="hsl(var(--primary))" fillOpacity="0.75">
+                        <title>Row {point.row}: {selectedComparisonColumns[0]} {numberFormat.format(point.first)}, {selectedComparisonColumns[1]} {numberFormat.format(point.second)}</title>
+                      </circle>
+                    ))}
+                    <text x="334" y="275" textAnchor="middle" fontSize="12" fill="currentColor">{selectedComparisonColumns[0]}</text>
+                    <text x="334" y="298" textAnchor="middle" fontSize="11" fill="currentColor">Low → high</text>
+                    <text x="16" y="126" textAnchor="middle" fontSize="12" fill="currentColor" transform="rotate(-90 16 126)">{selectedComparisonColumns[1]}</text>
+                    <text x="45" y="22" textAnchor="end" fontSize="10" fill="currentColor">High</text>
+                    <text x="45" y="239" textAnchor="end" fontSize="10" fill="currentColor">Low</text>
+                  </svg>
+                  <div className="sr-only">
+                    <table><caption>Sampled values for {selectedComparisonColumns[0]} and {selectedComparisonColumns[1]}</caption><thead><tr><th>Source row</th><th>{selectedComparisonColumns[0]}</th><th>{selectedComparisonColumns[1]}</th></tr></thead><tbody>{comparison.scatterSample.slice(0, 20).map(point => <tr key={point.row}><td>{point.row}</td><td>{point.first}</td><td>{point.second}</td></tr>)}</tbody></table>
+                  </div>
+                </div>
+              )}
+              </>
             ) : (
               <p role="status" className="mt-4 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">{comparison?.reason || 'Choose two numeric columns.'}</p>
             )}
