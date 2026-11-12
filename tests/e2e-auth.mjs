@@ -741,7 +741,15 @@ try {
   await filesPage.getByRole('link', { name: 'protocol.txt' }).click();
   assert.equal(new URL(filesPage.url()).pathname, '/files');
   assert.equal(new URL(filesPage.url()).searchParams.get('focus'), savedFileId);
-  assert.match(await filesPage.locator(`#eylo-file-${savedFileId}`).getAttribute('class'), /border-primary/, 'search deep link focuses the exact private file');
+  await filesPage.getByRole('heading', { name: 'EYLO Files' }).waitFor();
+  const focusedFileCard = filesPage.locator(`#eylo-file-${savedFileId}`);
+  try {
+    await focusedFileCard.waitFor({ timeout: 8000 });
+  } catch (cause) {
+    console.log('EYLO FILE FOCUS DIAGNOSTIC', JSON.stringify({ fileRows, url: filesPage.url(), body: (await filesPage.locator('body').innerText()).slice(-1800) }));
+    throw cause;
+  }
+  assert.match(await focusedFileCard.getAttribute('class'), /border-primary/, 'search deep link focuses the exact private file');
   await filesPage.reload();
   await filesPage.getByText('Methods protocol').waitFor();
   assert.equal(await filesPage.getByLabel('Link protocol.txt to a project').inputValue(), 'file-project-1');
