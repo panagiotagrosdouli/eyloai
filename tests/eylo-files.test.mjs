@@ -141,3 +141,24 @@ test('remove deletes all stored versions before metadata and returns an empty li
   assert.equal(objects.size, 0);
   assert.deepEqual(await service.list(), []);
 });
+
+test('metadata failure after version insertion preserves the immutable version and its file bytes', async () => {
+  const { client, objects } = testClient();
+  const service = createEyloFilesService(client);
+  const saved = await service.upload(file('study.txt', 'original'));
+  const originalFrom = client.from.bind(client);
+  client.from = table => {
+    const query = originalFrom(table);
+    if (table === 'eylo_files') query.update = () => {
+      query.execute = async () => ({ data: null, error: new Error('Metadata unavailable') });
+      return query;
+    };
+    return query;
+  };
+  await assert.rejects(() => service.addVersion(saved.id, file('study.txt', 'recoverable revision')),
+    error => error.code === 'FILE_VERSION_METADATA_FAILED' && /stored/.test(error.message));
+  const reloaded = await service.get(saved.id);
+  assert.equal(reloaded.versions.length, 2);
+  assert.equal(objects.size, 2);
+  assert.equal((await service.download(reloaded.versions[0])).content, 'recoverable revision');
+});

@@ -135,7 +135,13 @@ export function createEyloFilesService(client) {
         return { ...current, latest_version_id: version.id, name: details.name,
           mime_type: details.mimeType, size_bytes: details.sizeBytes, versions: [version] };
       } catch (error) {
-        if (versionCreated) await supabase.from('eylo_file_versions').delete().eq('id', versionId).eq('user_id', user.id);
+        if (versionCreated) {
+          // Version rows are immutable and cannot be deleted by this role.
+          // Preserve their bytes when the subsequent metadata update fails.
+          throw Object.assign(new Error('The new version was stored, but file details could not be updated. Reload and verify the version before retrying.'), {
+            code: 'FILE_VERSION_METADATA_FAILED', cause: error,
+          });
+        }
         if (uploaded) await supabase.storage.from(EYLO_FILE_BUCKET).remove([storagePath]).catch(() => {});
         throw error;
       }

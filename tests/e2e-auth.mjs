@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { createHash } from 'node:crypto';
-import { readFile as readDataLabDownload } from 'node:fs/promises';
+import { mkdir, readFile as readDataLabDownload } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { parseResearchCsv } from '../src/lib/research-data.mjs';
 
@@ -17,6 +17,13 @@ const server = spawn('npx', ['vite', '--host', '127.0.0.1', '--port', '4173', '-
 });
 
 let browser;
+
+async function captureFixturePage(page, name) {
+  const directory = process.env.EYLO_E2E_ARTIFACT_DIR;
+  if (!directory) return;
+  await mkdir(directory, { recursive: true });
+  await page.screenshot({ path: `${directory}/${name}.png`, fullPage: true });
+}
 
 async function waitForServer() {
   const deadline = Date.now() + 30_000;
@@ -293,6 +300,7 @@ try {
   await dataLab.setViewportSize({ width: 375, height: 812 });
   assert.equal(await dataLab.getByLabel('Comparison variable 1').isVisible(), true);
   assert.equal(await dataLab.getByLabel('Comparison variable 2').isVisible(), true);
+  await captureFixturePage(dataLab, 'data-comparison-mobile');
   await dataLab.getByRole('button', { name: 'Export comparison CSV' }).scrollIntoViewIfNeeded();
   assert.equal(await dataLab.getByRole('button', { name: 'Export comparison CSV' }).isVisible(), true);
   const groupedExportPromise = dataLab.waitForEvent('download');
@@ -873,6 +881,9 @@ try {
   const markdownExport = filesPage.waitForEvent('download');
   await filesPage.getByRole('button', { name: 'Export Markdown' }).click();
   assert.equal((await markdownExport).suggestedFilename(), 'Untitled research note.md');
+  await captureFixturePage(filesPage, 'document-editor-mobile');
+  await filesPage.setViewportSize({ width: 1365, height: 900 });
+  await captureFixturePage(filesPage, 'document-editor-wide');
   console.log('EYLO Files browser workflow passed against isolated PostgREST and Storage fixtures.');
   // Exercise structured workplan creation, dependency/progress UI, optimistic
   // persistence and reload against a provider-shaped PostgREST fixture.
@@ -972,6 +983,10 @@ try {
   assert.equal(workplanWrites, 2, 'the stale session must not produce a second server write');
   await peerSession.close();
   console.log('Structured project workplan persistence and reload passed against isolated PostgREST fixtures.');
+  await captureFixturePage(dataLab, 'project-workplan-wide');
+  await dataLab.setViewportSize({ width: 390, height: 844 });
+  await captureFixturePage(dataLab, 'project-workplan-mobile');
+  await dataLab.setViewportSize({ width: 1365, height: 900 });
 
   // Verify sign-out actually invalidates the session and protects private routes.
   await dataLab.route('**/auth/v1/logout**', route => route.fulfill({
