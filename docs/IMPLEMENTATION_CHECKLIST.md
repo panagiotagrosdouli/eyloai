@@ -1,6 +1,8 @@
 # EYLO platform implementation checklist
 
-This is the working implementation register for the master EYLO platform brief. Status reflects repository code and recorded evidence reviewed on 2026-11-10; a feature is not marked complete because a route or prototype exists. Production, database, scientific-quality, and browser acceptance require separate evidence.
+This is the working implementation register for the master EYLO platform brief. Status reflects repository code and recorded evidence reviewed on 2026-11-12; a feature is not marked complete because a route or prototype exists. Production, database, scientific-quality, and browser acceptance require separate evidence.
+
+The complete 47-product and original research-module inventory, dependencies, status, blockers and next milestones are tracked in [PRODUCT_ECOSYSTEM_ROADMAP.md](./PRODUCT_ECOSYSTEM_ROADMAP.md).
 
 ## Priority 0 — Reliability and safety
 
@@ -75,3 +77,10 @@ This is the working implementation register for the master EYLO platform brief. 
 ## Continuation rule
 
 Update this file after each verified focused change. Preserve blocked status when external project access, real human judgments, consent, or production configuration is unavailable. Do not convert planned work into completion claims.
+
+## 2026-11-12 increment — ecosystem inventory and baseline revalidation
+
+- **Reviewed source:** local `main` commit `78b6c041cb4bfe28b3febf7e640742d6f49993e0` (PR #383). Added [PRODUCT_ECOSYSTEM_ROADMAP.md](./PRODUCT_ECOSYSTEM_ROADMAP.md) as the full 47-product and original research-module inventory, including dependencies, conservative implementation status, external blockers and next milestones.
+- **Baseline verification:** `npm ci` completed; `npm run check` passed on `main`: local imports, both TypeScript projects, ESLint, 453 tests and Vite production build. Existing Rollup annotation and large-chunk warnings remain non-fatal.
+- **Open P0 work:** draft [PR #384](https://github.com/panagiotagrosdouli/eyloai/pull/384) implements release-SHA stamping, API route handling and capability readiness and reports green GitHub Build, Quality Gate and Product Quality checks. It has not been merged or deployed. The production Vercel project/build quota and production Supabase identity/RLS are still externally blocked.
+- **Next action:** review/merge the P0 recovery only through normal review and CI, then verify the exact deployed commit and API routing in the authorized Vercel project. Continue with Supabase two-account RLS acceptance and the shared platform dependencies in the roadmap; no production settings or customer data were changed in this increment.
