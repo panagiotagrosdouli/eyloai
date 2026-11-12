@@ -7,7 +7,7 @@ Session handoff: 2026-11-12 (Europe/Athens)
 - Repository: `panagiotagrosdouli/eyloai`, working branch `codex/eylo-notes-calendar-study`.
 - Latest upstream main inspected: `78b6c041cb4bfe28b3febf7e640742d6f49993e0`.
 - Draft PR #391: https://github.com/panagiotagrosdouli/eyloai/pull/391. Notes, Calendar, Study Planner and Life were published there in the last session; the current Time Tracker work must be committed and then added to this draft PR.
-- Draft PR #391 head is `70e13385641117741a137a00539966c1bbf7e55b` and currently includes Notes, Calendar, Study Planner, Life, and Time Tracker. Vercel status is failed because the project is on Hobby and the configured hourly cron exceeds its daily-cron allowance. Do not claim the reminders are timely or merge/deploy until the cron is supported by an authorized plan/configuration or another verified scheduler. Flashcards are implemented locally and need a commit and PR update.
+- Draft PR #391 head is `3aa1e60e953b9e04633982b256dc285cc0ee5fa5`; it includes Notes, Calendar, Study Planner, Life, Time Tracker, and Flashcards. Vercel status is failed because the project is on Hobby and the configured hourly cron exceeds its daily-cron allowance. Do not claim the reminders are timely or merge/deploy until the cron is supported by an authorized plan/configuration or another verified scheduler.
 - No production database or production deployment was modified. Supabase credentials are placeholders; no staging user accounts were available.
 - The tracker lists all 77 products and marks no product production-ready.
 
@@ -39,8 +39,8 @@ All five workflows remain **IN_PROGRESS**, not production-ready. Migration appli
 
 1. Confirm the final full check result and `node --check tests/e2e-time-tracker.mjs`.
 2. Review/commit the Time Tracker slice and update draft PR #391 without merging.
-3. Commit and update PR #391 with Flashcards (deck/card CRUD, note links, due review and a revision-checked database spaced-repetition RPC); its full local check passed but staging tests are unrun.
-4. Next build Quiz Generator with real grading and saved attempts, followed by Learn/Study Planner integration.
+3. Continue with EYLO Quiz Generator: create real quizzes with validated AI questions and manual source selection, deterministic grading, saved attempts, and integration with Flashcards/Study Planner.
+4. Continue with EYLO Learn using actual course/lesson/assessment records and quiz progress.
 5. Once staging is explicitly configured: apply migrations in order, run two-user RLS and all E2E workflows, verify actual AI and reminder provider behavior, and update every affected tracker row with evidence.
 
 ## Relevant files
