@@ -11,7 +11,7 @@ create table if not exists public.life_tasks (
   constraint life_tasks_priority check (coalesce(data ->> 'priority', 'normal') in ('low', 'normal', 'high', 'urgent')),
   constraint life_tasks_recurrence check (coalesce(data ->> 'recurrence', 'none') in ('none', 'daily', 'weekly', 'monthly')),
   constraint life_tasks_area check (coalesce(data ->> 'area', 'personal') in ('personal', 'research', 'study', 'work')),
-  constraint life_tasks_kind check (coalesce(data ->> 'kind', 'task') in ('task', 'study', 'syllabus', 'exam')),
+  constraint life_tasks_kind check (coalesce(data ->> 'kind', 'task') in ('task', 'study', 'syllabus', 'exam', 'habit')),
   constraint life_tasks_course_length check (char_length(coalesce(data ->> 'course', '')) <= 160),
   constraint life_tasks_syllabus_length check (char_length(coalesce(data ->> 'syllabus_item', '')) <= 200)
 );
@@ -75,7 +75,7 @@ begin
     raise exception 'Task area is invalid' using errcode = '23514';
   end if;
   if new.data ? 'kind' and (jsonb_typeof(new.data -> 'kind') is distinct from 'string'
-     or new.data ->> 'kind' not in ('task', 'study', 'syllabus', 'exam')) then
+     or new.data ->> 'kind' not in ('task', 'study', 'syllabus', 'exam', 'habit')) then
     raise exception 'Task kind is invalid' using errcode = '23514';
   end if;
   if (new.data ? 'course' and jsonb_typeof(new.data -> 'course') is distinct from 'string')
@@ -84,6 +84,9 @@ begin
   end if;
 
   recurrence := coalesce(new.data ->> 'recurrence', 'none');
+  if new.data ->> 'kind' = 'habit' and recurrence not in ('daily', 'weekly') then
+    raise exception 'Habits must repeat daily or weekly' using errcode = '23514';
+  end if;
   due_date_text := nullif(new.data ->> 'due_date', '');
   if recurrence <> 'none' and due_date_text is null then
     raise exception 'Recurring tasks require a due date' using errcode = '23514';
