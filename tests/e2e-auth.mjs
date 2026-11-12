@@ -245,6 +245,11 @@ try {
   await dataLab.getByText('Observed categories', { exact: true }).waitFor();
   await dataLab.getByRole('row', { name: /control 2 2 2 1\.4142 1 3/ }).waitFor();
   await dataLab.getByRole('row', { name: /treatment 2 6 6 1\.4142 5 7/ }).waitFor();
+  await dataLab.setViewportSize({ width: 375, height: 812 });
+  assert.equal(await dataLab.getByLabel('Comparison variable 1').isVisible(), true);
+  assert.equal(await dataLab.getByLabel('Comparison variable 2').isVisible(), true);
+  await dataLab.getByRole('button', { name: 'Export comparison CSV' }).scrollIntoViewIfNeeded();
+  assert.equal(await dataLab.getByRole('button', { name: 'Export comparison CSV' }).isVisible(), true);
   const groupedExportPromise = dataLab.waitForEvent('download');
   await dataLab.getByRole('button', { name: 'Export comparison CSV' }).click();
   const groupedExport = await groupedExportPromise;
