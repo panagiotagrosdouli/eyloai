@@ -104,6 +104,7 @@ export default function ProjectDetail() {
     setWorkplanDueDate('');
     setWorkplanDependency('');
     setWorkplanError('');
+    setSavingWorkplan(false);
     const [projectResult, papersResult, researchersResult, opportunitiesResult, meetingsResult] = await Promise.allSettled([
       base44.entities.Project.get(id),
       // Query the links in Postgres, rather than fetching an arbitrary top 100
@@ -243,6 +244,8 @@ export default function ProjectDetail() {
 
   const saveWorkplan = async () => {
     if (!project || savingWorkplan) return;
+    const generation = loadGenerationRef.current;
+    const projectId = id;
     const validation = validateWorkplan(workplanItems);
     if (!validation.valid) {
       setWorkplanError(validation.message);
@@ -251,16 +254,18 @@ export default function ProjectDetail() {
     setSavingWorkplan(true);
     setWorkplanError('');
     try {
-      const saved = await base44.entities.Project.updateIfUnchanged(id, { plan_items: validation.items }, project.updated_date);
+      const saved = await base44.entities.Project.updateIfUnchanged(projectId, { plan_items: validation.items }, project.updated_date);
+      if (loadGenerationRef.current !== generation) return;
       setProject(previous => ({ ...previous, ...saved }));
       setWorkplanItems(normalizeWorkplan(saved.plan_items));
       toast({ title: 'Workplan saved' });
     } catch (error) {
+      if (loadGenerationRef.current !== generation) return;
       setWorkplanError(error?.code === 'ENTITY_CONFLICT'
         ? 'This project changed in another session. Your workplan edits are still here; reload the project before saving again.'
         : error?.message || 'Workplan could not be saved. Your edits are still here.');
     } finally {
-      setSavingWorkplan(false);
+      if (loadGenerationRef.current === generation) setSavingWorkplan(false);
     }
   };
 
@@ -859,28 +864,28 @@ Rules:
             <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <label htmlFor="workplan-new-title" className="mb-1 block text-xs font-medium">Task</label>
-                <input id="workplan-new-title" value={workplanTitle} onChange={event => setWorkplanTitle(event.target.value)} maxLength={500}
+                <input id="workplan-new-title" disabled={savingWorkplan} value={workplanTitle} onChange={event => setWorkplanTitle(event.target.value)} maxLength={500}
                   placeholder="Describe a project task" className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
               </div>
               <div>
                 <label htmlFor="workplan-new-deliverable" className="mb-1 block text-xs font-medium">Deliverable (optional)</label>
-                <input id="workplan-new-deliverable" value={workplanDeliverable} onChange={event => setWorkplanDeliverable(event.target.value)} maxLength={500}
+                <input id="workplan-new-deliverable" disabled={savingWorkplan} value={workplanDeliverable} onChange={event => setWorkplanDeliverable(event.target.value)} maxLength={500}
                   placeholder="What will this task produce?" className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
               </div>
               <div>
                 <label htmlFor="workplan-new-date" className="mb-1 block text-xs font-medium">Target date (optional)</label>
-                <input id="workplan-new-date" type="date" value={workplanDueDate} onChange={event => setWorkplanDueDate(event.target.value)}
+                <input id="workplan-new-date" type="date" disabled={savingWorkplan} value={workplanDueDate} onChange={event => setWorkplanDueDate(event.target.value)}
                   className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
               </div>
               <div className="sm:col-span-2">
                 <label htmlFor="workplan-new-dependency" className="mb-1 block text-xs font-medium">Depends on (optional)</label>
-                <select id="workplan-new-dependency" value={workplanDependency} onChange={event => setWorkplanDependency(event.target.value)}
+                <select id="workplan-new-dependency" disabled={savingWorkplan} value={workplanDependency} onChange={event => setWorkplanDependency(event.target.value)}
                   className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm">
                   <option value="">No prerequisite</option>
                   {workplanItems.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
                 </select>
               </div>
-              <button type="button" onClick={addWorkplanTask} disabled={!workplanTitle.trim() || workplanItems.length >= 100}
+              <button type="button" onClick={addWorkplanTask} disabled={savingWorkplan || !workplanTitle.trim() || workplanItems.length >= 100}
                 className="min-h-10 justify-self-start rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary disabled:opacity-50">Add task</button>
             </div>
 
@@ -893,12 +898,12 @@ Rules:
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div className="sm:col-span-2">
                       <label htmlFor={`workplan-title-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Task</label>
-                      <input id={`workplan-title-${item.id}`} value={item.title} maxLength={500} onChange={event => updateWorkplanItem(item.id, { title: event.target.value })}
+                      <input id={`workplan-title-${item.id}`} disabled={savingWorkplan} value={item.title} maxLength={500} onChange={event => updateWorkplanItem(item.id, { title: event.target.value })}
                         className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
                     </div>
                     <div>
                       <label htmlFor={`workplan-status-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Status</label>
-                      <select id={`workplan-status-${item.id}`} value={item.status} onChange={event => {
+                      <select id={`workplan-status-${item.id}`} disabled={savingWorkplan} value={item.status} onChange={event => {
                         if (event.target.value !== 'todo' && !ready) {
                           setWorkplanError('Complete the prerequisite task before moving this task forward.');
                           return;
@@ -911,17 +916,17 @@ Rules:
                     </div>
                     <div>
                       <label htmlFor={`workplan-date-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Target date</label>
-                      <input id={`workplan-date-${item.id}`} type="date" value={item.due_date} onChange={event => updateWorkplanItem(item.id, { due_date: event.target.value })}
+                      <input id={`workplan-date-${item.id}`} type="date" disabled={savingWorkplan} value={item.due_date} onChange={event => updateWorkplanItem(item.id, { due_date: event.target.value })}
                         className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
                     </div>
                     <div>
                       <label htmlFor={`workplan-deliverable-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Deliverable</label>
-                      <input id={`workplan-deliverable-${item.id}`} value={item.deliverable} maxLength={500} onChange={event => updateWorkplanItem(item.id, { deliverable: event.target.value })}
+                      <input id={`workplan-deliverable-${item.id}`} disabled={savingWorkplan} value={item.deliverable} maxLength={500} onChange={event => updateWorkplanItem(item.id, { deliverable: event.target.value })}
                         className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
                     </div>
                     <div>
                       <label htmlFor={`workplan-dependency-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Depends on</label>
-                      <select id={`workplan-dependency-${item.id}`} value={item.depends_on[0] || ''} onChange={event => updateWorkplanItem(item.id, { depends_on: event.target.value ? [event.target.value] : [] })}
+                      <select id={`workplan-dependency-${item.id}`} disabled={savingWorkplan} value={item.depends_on[0] || ''} onChange={event => updateWorkplanItem(item.id, { depends_on: event.target.value ? [event.target.value] : [] })}
                         className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm">
                         <option value="">No prerequisite</option>
                         {workplanItems.filter(candidate => candidate.id !== item.id).map(candidate => <option key={candidate.id} value={candidate.id}>{candidate.title}</option>)}
@@ -930,7 +935,7 @@ Rules:
                   </div>
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                     <span className="text-[11px] text-muted-foreground">{ready ? 'Prerequisites complete' : 'Waiting for prerequisite task'}</span>
-                    <button type="button" disabled={hasDependents} title={hasDependents ? 'Remove dependent tasks first' : 'Remove task'}
+                    <button type="button" disabled={savingWorkplan || hasDependents} title={hasDependents ? 'Remove dependent tasks first' : 'Remove task'}
                       onClick={() => setWorkplanItems(previous => previous.filter(candidate => candidate.id !== item.id))}
                       className="min-h-9 rounded-md border border-border px-2 text-xs text-muted-foreground hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40">Remove task</button>
                   </div>
