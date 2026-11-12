@@ -4,6 +4,7 @@ import { once } from 'node:events';
 import { createHash } from 'node:crypto';
 import { readFile as readDataLabDownload } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { parseResearchCsv } from '../src/lib/research-data.mjs';
 
 const baseUrl = 'http://127.0.0.1:4173';
 const server = spawn('npx', ['vite', '--host', '127.0.0.1', '--port', '4173', '--strictPort'], {
@@ -185,11 +186,20 @@ try {
     buffer: originalCsv,
   });
   await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor();
+  await dataLab.getByRole('row', { name: /score numeric — — —/ }).waitFor();
+  assert.match(await dataLab.locator('[role="note"]').first().innerText(), /Aggregate-only export is not guaranteed to be anonymous/);
+  await dataLab.getByLabel('Minimum disclosure cell size').selectOption('1');
   await dataLab.getByRole('row', { name: /score numeric 3 1 2 1.5/ }).waitFor();
   await dataLab.getByRole('img', { name: 'Bar chart of score by row number' }).waitFor();
   const summaryDownload = dataLab.waitForEvent('download');
   await dataLab.getByRole('button', { name: 'Export summary CSV' }).click();
-  assert.equal((await summaryDownload).suggestedFilename(), 'research-data-summary.csv');
+  const summaryFile = await summaryDownload;
+  assert.equal(summaryFile.suggestedFilename(), 'research-data-summary.csv');
+  const summaryCsv = await readDataLabDownload(await summaryFile.path(), 'utf8');
+  const parsedSummary = parseResearchCsv(summaryCsv);
+  assert.equal(parsedSummary.headers.includes('Disclosure'), true);
+  assert.ok(parsedSummary.rows.every(row => row.length === parsedSummary.headers.length));
+  assert.equal(summaryCsv.includes(canary), false, 'summary export must not contain raw source text');
   await dataLab.getByText('Local file identity (SHA-256)').waitFor();
   await dataLab.getByText(digestOf(originalCsv), { exact: true }).waitFor();
 
@@ -223,6 +233,7 @@ try {
     name: 'relationship.csv', mimeType: 'text/csv',
     buffer: Buffer.from('hours,score\n1,2\n2,4\n3,6\n,8\n'),
   });
+  await dataLab.getByLabel('Minimum disclosure cell size').selectOption('1');
   const comparisonStatus = dataLab.getByRole('status').filter({ hasText: 'Pearson correlation, r' });
   await comparisonStatus.waitFor();
   const comparisonText = await comparisonStatus.innerText();
@@ -240,8 +251,19 @@ try {
   assert.equal(comparisonCsv.includes(canary), false, 'comparison export must not include private source values');
   await dataLab.locator('input[type="file"]').setInputFiles({
     name: 'grouped-study.csv', mimeType: 'text/csv',
-    buffer: Buffer.from('group,score\ncontrol,1\ncontrol,3\ntreatment,5\ntreatment,7\n,9\n'),
+    buffer: Buffer.from('group,score\ncontrol,1\ncontrol,3\ntreatment,5\ntreatment,7\nrare,987654321\n,9\n'),
   });
+  await dataLab.getByLabel('Minimum disclosure cell size').selectOption('5');
+  await dataLab.getByText('Small groups below k=5 are omitted without showing their labels, counts, or numeric summaries.').waitFor();
+  const suppressedExportPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export comparison CSV' }).click();
+  const suppressedExport = await suppressedExportPromise;
+  const suppressedCsv = await readDataLabDownload(await suppressedExport.path(), 'utf8');
+  assert.equal(suppressedCsv.includes('control'), false);
+  assert.equal(suppressedCsv.includes('treatment'), false);
+  assert.equal(suppressedCsv.includes('rare'), false);
+  assert.equal(suppressedCsv.includes('987654321'), false, 'the suppressed singleton value must not be exported');
+  await dataLab.getByLabel('Minimum disclosure cell size').selectOption('1');
   await dataLab.getByText('Observed categories', { exact: true }).waitFor();
   await dataLab.getByRole('row', { name: /control 2 2 2 1\.4142 1 3/ }).waitFor();
   await dataLab.getByRole('row', { name: /treatment 2 6 6 1\.4142 5 7/ }).waitFor();
@@ -256,7 +278,9 @@ try {
   const groupedCsv = await readDataLabDownload(await groupedExport.path(), 'utf8');
   assert.match(groupedCsv, /"Category","Count","Mean","Median","Sample SD","Minimum","Maximum"/);
   assert.match(groupedCsv, /"control","2","2","2"/);
-  assert.equal(groupedCsv.includes('"control","1"'), false, 'grouped export must omit raw source rows');
+  const parsedGrouped = parseResearchCsv(groupedCsv);
+  assert.ok(parsedGrouped.rows.every(row => row.length === parsedGrouped.headers.length));
+  assert.equal(groupedCsv.includes(canary), false, 'grouped export must not contain the unrelated raw source text');
   await dataLab.setViewportSize({ width: 1365, height: 900 });
   await dataLab.getByRole('button', { name: 'Clear data' }).click();
 
