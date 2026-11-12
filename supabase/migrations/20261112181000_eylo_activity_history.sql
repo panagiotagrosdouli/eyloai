@@ -11,8 +11,11 @@ alter table public.activity_events enable row level security;
 drop policy if exists "Users read own activity" on public.activity_events;
 create policy "Users read own activity" on public.activity_events for select to authenticated
   using ((select auth.uid()) = user_id);
+drop policy if exists "Users clear own activity" on public.activity_events;
+create policy "Users clear own activity" on public.activity_events for delete to authenticated
+  using ((select auth.uid()) = user_id);
 revoke all on public.activity_events from anon, authenticated;
-grant select on public.activity_events to authenticated;
+grant select, delete on public.activity_events to authenticated;
 
 create or replace function private.capture_activity_event()
 returns trigger language plpgsql security definer set search_path = '' as $$
@@ -23,6 +26,11 @@ declare
   entity_label text;
   operation text;
 begin
+  -- Ignore timestamp-only writes and autosave no-ops; audit content changes,
+  -- not repeated writes of identical user data.
+  if tg_op = 'UPDATE' and old.data is not distinct from new.data then
+    return new;
+  end if;
   if tg_op = 'DELETE' then
     record_data := old.data;
     owner_id := old.user_id;
@@ -72,3 +80,4 @@ for each row execute function private.capture_activity_event();
 drop trigger if exists capture_activity_projects on public.projects;
 create trigger capture_activity_projects after insert or update or delete on public.projects
 for each row execute function private.capture_activity_event();
+
