@@ -138,7 +138,7 @@ export default function ProjectDetail() {
   const saveProject = async () => {
     setSaving(true);
     try {
-      const saved = await base44.entities.Project.update(id, editing);
+      const saved = await base44.entities.Project.updateIfUnchanged(id, editing, project.updated_date);
       setProject(saved);
       toast({ title: 'Project saved' });
     } catch (error) {
@@ -152,7 +152,7 @@ export default function ProjectDetail() {
     const tasks = toggleProjectTask(editing.tasks, lineIndex);
     setSaving(true);
     try {
-      const saved = await base44.entities.Project.update(id, { tasks });
+      const saved = await base44.entities.Project.updateIfUnchanged(id, { tasks }, project.updated_date);
       setEditing(prev => ({ ...prev, tasks }));
       setProject(prev => ({ ...prev, ...saved }));
     } catch (error) {
@@ -201,7 +201,7 @@ export default function ProjectDetail() {
     setSaving(true);
     try {
       const evidence_matrix = { selected_paper_ids: matrixPaperIds, annotations: matrixNotes };
-      const saved = await base44.entities.Project.update(id, { evidence_matrix });
+      const saved = await base44.entities.Project.updateIfUnchanged(id, { evidence_matrix }, project.updated_date);
       setProject(prev => ({ ...prev, ...saved }));
       toast({ title: 'Evidence matrix saved' });
     } catch (error) {
@@ -224,6 +224,7 @@ export default function ProjectDetail() {
   };
 
   const runEyraAnalysis = async () => {
+    const analysisProjectVersion = project.updated_date;
     setAnalyzing(true);
     const query = [editing.title, editing.goal, editing.description]
       .filter(Boolean)
@@ -320,8 +321,10 @@ Rules:
       });
 
       validateProjectEyraReport(result, { papers, researchers, opportunities, hasLiveEvidence });
-      await base44.entities.Project.update(id, { eyra_analysis: result });
-      setProject(prev => ({ ...prev, eyra_analysis: result }));
+      const savedAnalysis = await base44.entities.Project.updateIfUnchanged(
+        id, { eyra_analysis: result }, analysisProjectVersion,
+      );
+      setProject(savedAnalysis);
       setActiveTab('intelligence');
       toast({
         title: !hasLiveEvidence
