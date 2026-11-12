@@ -389,6 +389,7 @@ export function exportResearchDataComparisonCsv(comparison) {
       ['Minimum complete pairs (k)', comparison.minimumCellSize],
       ['Scatter observations displayed', comparison.scatterSampleSize],
       ['Scatter sampling method', comparison.samplingMethod],
+      ['Sampling limitation', 'Visualization sample only; not statistically representative and may omit rare patterns or outliers'],
       ['Scope', 'Descriptive within-file linear association; no p-value, population inference, or causal claim'],
     );
   } else if (comparison?.available && comparison.kind === 'numeric-by-category') {
