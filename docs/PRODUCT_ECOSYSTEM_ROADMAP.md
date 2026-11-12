@@ -1,7 +1,7 @@
 # EYLOAI product ecosystem roadmap
 
-**Reviewed:** 2026-11-12  
-**Code baseline:** `main` at `78b6c04`  
+**Reviewed:** 2026-11-12
+**Code baseline:** `main` at `78b6c04`
 **Purpose:** authoritative inventory for the 47-product ecosystem brief and the existing EYLO research platform. This is an engineering tracker, not a production-readiness claim.
 
 ## Status definitions
