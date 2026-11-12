@@ -913,7 +913,7 @@ Rules:
                     <div>
                       <label htmlFor={`workplan-status-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Status</label>
                       <select id={`workplan-status-${item.id}`} disabled={savingWorkplan} value={item.status} onChange={event => {
-                        if (event.target.value !== 'todo' && !ready) {
+                        if (['in_progress', 'done'].includes(event.target.value) && !ready) {
                           setWorkplanError('Complete the prerequisite task before moving this task forward.');
                           return;
                         }

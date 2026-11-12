@@ -39,6 +39,8 @@ test('progress reflects only completed tasks and prerequisites reflect dependenc
   const reopenedPrerequisite = [{ ...items[0], status: 'todo' }, { ...items[1], status: 'done' }];
   assert.equal(canStartWorkplanTask(reopenedPrerequisite[1], reopenedPrerequisite), false);
   assert.match(validateWorkplan(reopenedPrerequisite).message, /prerequisites completed/i);
+  assert.equal(validateWorkplan([{ ...items[0], status: 'todo' }, { ...items[1], status: 'blocked' }]).valid, true,
+    'a task may be explicitly blocked while waiting for an unfinished prerequisite');
   assert.deepEqual(getWorkplanProgress([]), { total: 0, done: 0, percent: 0 });
 });
 
