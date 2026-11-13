@@ -148,7 +148,7 @@ test('explicit paper-save request verifies DOI metadata and persists the Crossre
     assert.equal(response.payload.actions[0].status, 'succeeded');
     assert.equal(response.payload.actions[0].result.id, 'paper-1');
     assert.equal(response.payload.actions[0].result.verified, true);
-    assert.equal(savedPayload.data.source_id, '10.1234/example');
+    assert.equal(savedPayload.data.source_id, 'doi:10.1234/example');
     assert.equal(savedPayload.data.authors, 'Ada Researcher');
     assert.equal(savedPayload.data.year, 2024);
     assert.equal(savedPayload.data.summary, '');

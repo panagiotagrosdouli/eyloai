@@ -124,6 +124,15 @@ function euText(value) {
   }
   if (typeof value === 'number') return plainText(String(value));
   if (Array.isArray(value)) return value.map(euText).filter(Boolean).join('; ');
+  if (value && typeof value === 'object') {
+    return Object.entries(value)
+      .map(([key, item]) => {
+        const text = euText(item);
+        return text ? `${plainText(key)}: ${text}` : '';
+      })
+      .filter(Boolean)
+      .join('; ');
+  }
   return '';
 }
 

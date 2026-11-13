@@ -571,7 +571,7 @@ export default function EyraCommandCenter({ open, onClose }) {
       const language = LANGUAGE_NAMES[preferences.language] || 'the language used by the user';
       const style = STYLE_INSTRUCTIONS[preferences.ai_response_style] || STYLE_INSTRUCTIONS.balanced;
       const evidenceText = evidence.blocks.length
-        ? evidence.blocks.join('\n')
+        ? [...evidence.blocks.filter(block => block.startsWith('SOURCE STATUS')), ...evidence.blocks.filter(block => !block.startsWith('SOURCE STATUS'))].join('\n')
         : evidence.attempted
           ? 'Retrieval completed but returned no usable records.'
           : 'No external retrieval was necessary for this planning request. Do not introduce external factual claims.';

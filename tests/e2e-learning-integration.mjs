@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const origin = 'http://127.0.0.1:4174';
@@ -22,6 +23,11 @@ const tables = {
 let aiCalls = 0;
 const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS' };
 async function json(route, value) { await route.fulfill({ status: 200, headers, contentType: 'application/json', body: JSON.stringify(value) }); }
+async function capture(page, name) {
+  if (!process.env.EYLO_E2E_ARTIFACT_DIR) return;
+  await mkdir(process.env.EYLO_E2E_ARTIFACT_DIR, { recursive: true });
+  await page.screenshot({ path: `${process.env.EYLO_E2E_ARTIFACT_DIR}/${name}.png`, fullPage: true });
+}
 
 function rpc(name, args) {
   if (name === 'create_quiz') {
@@ -155,6 +161,7 @@ try {
   assert.equal(tables.learning_lessons[0].quiz_id, tables.quizzes[0].id);
   assert.equal(aiCalls, 0, 'manual lesson creation must not invoke AI');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+  await capture(page, 'learning-course-mobile');
   console.log('PASS fixture: manual course, linked quiz, saved lesson progress, reload and mobile viewport.');
 
   await page.route('**/api/capabilities', route => json(route, { ai: true, billing: false, contact: false, scheduled_monitoring: false, institution_analytics: false }));
@@ -186,6 +193,9 @@ try {
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.ideas[0].id);
   await page.getByText(answer, { exact: true }).waitFor();
   assert.equal(aiCalls, 1, 'restoring a saved conversation does not call a model');
+  await capture(page, 'eyra-conversation-mobile');
+  await page.setViewportSize({ width: 1365, height: 900 });
+  await capture(page, 'eyra-conversation-wide');
   console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical Idea conversation save/restore.');
 } finally {
   if (browser) await browser.close();

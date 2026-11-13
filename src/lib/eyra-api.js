@@ -63,8 +63,7 @@ async function fetchResearchSource(provider, query, limit, sort, directUrl, opti
     || (typeof window !== 'undefined' && !import.meta.env?.DEV && !staticPagesHost);
 
   if (shouldUseProxy) {
-    try {
-      const proxied = await fetchWithTimeout(proxyUrl(
+      return fetchWithTimeout(proxyUrl(
         provider,
         query,
         limit,
@@ -73,14 +72,8 @@ async function fetchResearchSource(provider, query, limit, sort, directUrl, opti
         options.country || '',
         proxyBaseUrl,
       ), options);
-      // An explicitly configured proxy is the benchmark target. Do not make a
-      // failed deployment proxy look healthy by silently querying providers directly.
-      if (proxyBaseUrl) return proxied;
-      if (proxied.ok || proxied.status < 500) return proxied;
-    } catch (error) {
-      if (proxyBaseUrl) throw error;
-      // Fall back to the provider directly when the same-origin proxy itself is unavailable.
-    }
+      // Hosted errors must remain visible. A direct retry would bypass shared
+      // quotas, throttling and circuit breakers. Local/static modes remain direct.
   }
 
   return fetchWithTimeout(directUrl, options);

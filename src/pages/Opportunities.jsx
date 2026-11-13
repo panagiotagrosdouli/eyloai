@@ -1,7 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { searchFundingOpportunities } from '@/lib/funding-api';
+import { applyFundingRanking, searchFundingOpportunities } from '@/lib/funding-api';
+import {
+  filterFundingOpportunities,
+  formatFundingComparisonValue,
+  getFundingComparisonRecords,
+  isSafeFundingSourceUrl,
+  toggleFundingComparisonSelection,
+} from '@/lib/funding-comparison.mjs';
 import { promiseWithTimeout } from '@/lib/promise-timeout';
 import {
   Bookmark, Award, Loader2, DollarSign, Trophy,
@@ -52,6 +59,7 @@ export default function Opportunities() {
   const [deadlineFilter, setDeadlineFilter] = useState('all');
   const [fieldFilter, setFieldFilter] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
+  const [comparisonIds, setComparisonIds] = useState([]);
   const searchSequence = useRef(0);
   const searchController = useRef(null);
   const { toast } = useToast();
@@ -81,10 +89,14 @@ export default function Opportunities() {
     setLoading(true);
     setHasSearched(true);
     setActiveCategory('all');
+    setDeadlineFilter('all');
+    setFieldFilter('');
+    setCountryFilter('');
     setSearchError('');
     setRankingError('');
     setSourceMeta(null);
     setResults([]);
+    setComparisonIds([]);
 
     try {
       // Retrieval first: these fields come directly from the official source.
@@ -95,7 +107,11 @@ export default function Opportunities() {
 
       const verified = sourceResult.items.map((item) => ({
         ...item,
-        typical_amount: item.amount,
+        // EU and other providers can return structured budget metadata. Convert
+        // it to escaped plain text before it reaches a React text node.
+        typical_amount: item.amount == null || item.amount === ''
+          ? ''
+          : formatFundingComparisonValue(item.amount),
         match_score: null,
         match_reason: '',
         difficulty: 'Unranked',
@@ -131,7 +147,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
             properties: {
               ranked: {
                 type: 'array',
-                minItems: verified.length,
+                minItems: 0,
                 maxItems: verified.length,
                 items: {
                   type: 'object',
@@ -150,11 +166,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
 
         if (requestId !== searchSequence.current) return;
 
-        const byId = new Map((ranking.ranked || []).map((item) => [item.id, item]));
-        const ranked = verified
-          .map((item) => ({ ...item, ...(byId.get(item.id) || {}) }))
-          .sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1));
-        setResults(ranked);
+        setResults(applyFundingRanking(verified, ranking));
       } catch (error) {
         if (requestId === searchSequence.current) {
           setRankingError(
@@ -231,17 +243,26 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
     }
   };
 
-  const filteredResults = results.filter((record) => {
-    const categoryMatch = activeCategory === 'all' || record.type === activeCategory;
-    const expired = record.deadline_days !== null && record.deadline_days < 0;
-    const deadlineMatch = deadlineFilter === 'all' || (deadlineFilter === 'expired' ? expired : !expired);
-    const terms = [record.title, record.description, ...(record.categories || [])].join(' ').toLowerCase();
-    const fieldMatch = !fieldFilter.trim() || terms.includes(fieldFilter.trim().toLowerCase());
-    const countryMatch = !countryFilter.trim() || String(record.country || record.eligibility || '').toLowerCase().includes(countryFilter.trim().toLowerCase());
-    return categoryMatch && deadlineMatch && fieldMatch && countryMatch;
+  const filteredResults = filterFundingOpportunities(results, {
+    category: activeCategory,
+    deadline: deadlineFilter,
+    field: fieldFilter,
+    country: countryFilter,
   });
 
   const difficultyColor = { Low: 'text-green-400', Medium: 'text-amber-400', High: 'text-red-400' };
+  const comparisonRecords = getFundingComparisonRecords(filteredResults, comparisonIds);
+  const comparisonFields = [
+    ['type', 'Opportunity type'],
+    ['agency', 'Agency / programme'],
+    ['status', 'Status'],
+    ['deadline', 'Deadline'],
+    ['eligibility', 'Eligibility'],
+    ['amount', 'Funding amount'],
+    ['instruments', 'Funding instruments'],
+    ['country', 'Country / region'],
+    ['categories', 'Research fields'],
+  ];
 
   return (
     <div className="eylo-page">
@@ -259,7 +280,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
       <div className="flex items-start gap-2 p-3 rounded-xl border border-green-500/20 bg-green-500/5 mb-4 max-w-2xl">
         <ShieldCheck size={13} className="text-green-400 flex-shrink-0 mt-0.5" />
         <p className="text-[11px] text-muted-foreground leading-relaxed">
-          Opportunity names, agencies, statuses and deadlines are retrieved from the official source. EYRA only ranks relevance and explains fit. Always open the source record before applying.
+          Opportunity details come from the official source. EYRA relevance scores and difficulty labels are estimates, not eligibility decisions or probabilities of success. Always open the source record before applying.
         </p>
       </div>
 
@@ -317,6 +338,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
             {results.length} verified records
           </span>
           <span>Source: {sourceMeta.source}</span>
+          <span>AI relevance is an estimate of query fit only; it does not estimate eligibility or funding success.</span>
           {sourceMeta.partial_results && <span className="text-amber-300">One official provider was unavailable; results may be incomplete.</span>}
           <span>Retrieved {new Date(sourceMeta.retrieved_at).toLocaleString()}</span>
         </div>
@@ -329,6 +351,52 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
         <input value={fieldFilter} onChange={(event) => setFieldFilter(event.target.value)} placeholder="Filter by research field" aria-label="Filter by research field" className="rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-foreground" />
         <input value={countryFilter} onChange={(event) => setCountryFilter(event.target.value)} placeholder="Filter by country or eligibility" aria-label="Filter by country" className="rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-foreground" />
       </div>}
+
+      {comparisonRecords.length > 0 && (
+        <section aria-labelledby="funding-comparison-heading" className="mb-6 overflow-hidden rounded-xl border border-primary/25 bg-card">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <div>
+              <h2 id="funding-comparison-heading" className="text-sm font-semibold text-foreground">Compare official opportunities</h2>
+              <p className="mt-1 text-[11px] text-muted-foreground">Source-provided fields only. Missing values are marked explicitly.</p>
+            </div>
+            <button type="button" onClick={() => setComparisonIds([])} className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">
+              Clear
+            </button>
+          </div>
+          <div className="overflow-x-auto" tabIndex={0} aria-label="Scrollable funding comparison">
+            <table aria-label="Comparison of selected official funding opportunities" className="min-w-[760px] w-full border-collapse text-left text-xs">
+              <caption className="sr-only">Comparison of selected funding opportunities. Missing details are not provided by the source.</caption>
+              <thead>
+                <tr>
+                  <th scope="col" className="w-36 p-3 text-muted-foreground">Field</th>
+                  {comparisonRecords.map((record) => (
+                    <th scope="col" key={record.id} className="min-w-52 border-l border-border p-3 align-top">
+                      <div className="font-semibold text-foreground">{record.title}</div>
+                      {isSafeFundingSourceUrl(record.source_url)
+                        ? <a href={record.source_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                            Open official source <ExternalLink size={11} />
+                          </a>
+                        : <span className="mt-2 block text-[10px] text-muted-foreground">Official source link unavailable</span>}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonFields.map(([field, label]) => (
+                  <tr key={field} className="border-t border-border">
+                    <th scope="row" className="p-3 font-medium text-muted-foreground">{label}</th>
+                    {comparisonRecords.map((record) => (
+                      <td key={record.id} className="border-l border-border p-3 align-top text-foreground">
+                        {formatFundingComparisonValue(record[field])}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {loading && (
         <div className="flex flex-col items-center justify-center py-20">
@@ -375,11 +443,14 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
                           <Icon size={9} /> {config.label}
                         </span>
                         {Number.isFinite(opp.match_score) && (
-                          <span className="text-[10px] font-semibold text-primary">{Math.round(opp.match_score)}/100 relevance</span>
+                          <span className="text-[10px] font-semibold text-primary">AI relevance estimate: {Math.round(opp.match_score)}/100</span>
+                        )}
+                        {!Number.isFinite(opp.match_score) && (
+                          <span className="text-[10px] text-muted-foreground">Relevance unranked</span>
                         )}
                         {opp.difficulty && (
                           <span className={`text-[10px] font-medium ${difficultyColor[opp.difficulty] || 'text-muted-foreground'}`}>
-                            {opp.difficulty} difficulty
+                            {opp.difficulty === 'Unranked' ? 'Difficulty unranked' : `AI difficulty estimate: ${opp.difficulty}`}
                           </span>
                         )}
                         {opp.deadline_days !== null && opp.deadline_days < 0 && <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-300">Expired</span>}
@@ -387,7 +458,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
                       </div>
                       <h4 className="font-semibold text-sm text-foreground mb-1">{opp.title}</h4>
                       <p className="text-xs text-muted-foreground leading-relaxed mb-2">{opp.description || 'Open the official record for the full announcement.'}</p>
-                      {opp.match_reason && <p className="text-[11px] text-primary/90 mb-3"><span className="font-semibold">EYRA fit:</span> {opp.match_reason}</p>}
+                        {opp.match_reason && <p className="text-[11px] text-primary/90 mb-3"><span className="font-semibold">Estimated relevance rationale:</span> {opp.match_reason}</p>}
                       <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
                         {opp.eligibility && (
                           <span><span className="font-medium text-foreground">Eligible:</span> {opp.eligibility}</span>
@@ -405,21 +476,41 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
                     <div className="flex flex-col gap-1 flex-shrink-0">
                       <button
                         type="button"
+                        onClick={() => {
+                          const next = toggleFundingComparisonSelection(comparisonIds, opp.id);
+                          if (next === null) {
+                            toast({ title: 'Comparison limit reached', description: 'Compare up to three opportunities at a time.' });
+                          } else {
+                            setComparisonIds(next);
+                          }
+                        }}
+                        disabled={!comparisonIds.includes(opp.id) && comparisonIds.length >= 3}
+                        aria-label={`${comparisonIds.includes(opp.id) ? 'Remove' : 'Add'} ${opp.title} ${comparisonIds.includes(opp.id) ? 'from' : 'to'} comparison`}
+                        aria-pressed={comparisonIds.includes(opp.id)}
+                        className={`rounded-lg border px-2.5 py-1.5 text-[10px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-40 ${comparisonIds.includes(opp.id) ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}
+                      >
+                        {comparisonIds.includes(opp.id) ? 'Remove comparison' : 'Compare'}
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => saveOpportunity(opp)}
                         className="p-2.5 rounded-lg hover:bg-secondary transition-colors"
                         title="Save to library"
                       >
                         <Bookmark size={14} className="text-muted-foreground" />
                       </button>
-                      <a
-                        href={opp.source_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2.5 rounded-lg hover:bg-secondary transition-colors"
-                        title="Open official source"
-                      >
-                        <ExternalLink size={14} className="text-primary" />
-                      </a>
+                      {isSafeFundingSourceUrl(opp.source_url) && (
+                        <a
+                          href={opp.source_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2.5 rounded-lg hover:bg-secondary transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                          title="Open official source"
+                          aria-label={`Open official source for ${opp.title}`}
+                        >
+                          <ExternalLink size={14} className="text-primary" />
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>

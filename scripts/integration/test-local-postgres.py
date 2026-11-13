@@ -26,6 +26,8 @@ MIGRATIONS = [
     '20261112183722_universal_workspace_search.sql',
     '20261112190430_eylo_files.sql',
     '20261112200000_private_file_search.sql',
+    '20261112090000_project_scoped_grant_applications.sql',
+    '20261112091000_saved_paper_identity_uniqueness.sql',
     '20261113062923_canonical_learning_time.sql',
     '20261113113010_shared_discovery_quota.sql',
 ]
@@ -76,6 +78,7 @@ try:
     sql((ROOT / 'tests/integration/workspace-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/learning-time-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/discovery-quota-postgres.sql').read_text())
+    sql((ROOT / 'tests/integration/funding-postgres.sql').read_text())
     version = subprocess.check_output([*DOCKER, 'exec', NAME, 'psql', '-U', 'postgres', '-Atc',
         "select updated_date from projects where id = '10000000-0000-0000-0000-000000000001'"], env=ENV, text=True).strip()
 

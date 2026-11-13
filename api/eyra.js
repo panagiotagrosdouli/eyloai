@@ -326,7 +326,7 @@ async function executeProjectTool(name, rawArguments, identity) {
       || metadata['published-online']?.['date-parts']?.[0]
       || [];
     const record = {
-      source_id: doi,
+      source_id: `doi:${doi}`,
       title: verifiedTitle.slice(0, 1000),
       authors: authorNames.join(', ').slice(0, 4000),
       doi,
