@@ -36,3 +36,20 @@ These tests use disposable values and mocked HTTPS responses; they do not call O
 ## Next smallest task
 
 Build and test a read-only, owner-scoped EYRA conversation listing/loading interface against an explicitly approved canonical persistence contract. Before selecting Ideas, examine actual Ideas RLS, retention and record semantics. Do not create a parallel table merely to unblock this task. Keep the PR draft.
+
+
+## 2026-11-13 follow-up — conversation retrieval contract review
+
+Starting HEAD verified: `7b78ba63948254c930d4664ef7cf2347267aeaad`. Scope limited to EYRA read-only conversation listing/loading.
+
+**Decision: BLOCKED — NO APPROVED SERVER-SIDE CONVERSATION PERSISTENCE CONTRACT.** No functional conversation listing/loading API was introduced; returning Ideas or searches under a conversation label would be unsafe and misleading. No production or staging write was performed.
+
+Source findings:
+- `supabase/migrations/20260803_eylo_core_entities.sql` creates `ideas`, `search_history`, `projects` and other distinct owner-scoped generic entities. The policy `Users manage own rows` restricts authenticated access by `auth.uid() = user_id`. The migration provides an updated timestamp but no conversation versioning, retention TTL or message schema.
+- `src/pages/IdeaVault.jsx` expects Idea rows to represent editable research/startup ideas, with categories/tags, user deletion, research-watchlist creation and `eyra_notes` from idea analysis. Reusing Idea rows as hidden conversations would risk leaking chat records into the Idea Vault, destructive cross-product UX, and incompatible retention semantics.
+- `src/components/eyra/EyraCommandCenter.jsx` saves the last 30 messages to `sessionStorage['eyra_command_conversation_v2']`. This is browser session state, not a durable authenticated conversation database; it cannot support server-side User A/User B isolation guarantees.
+- `src/services/supabase-entities.js` has owner-filtered entity reads but no approved `Conversation` entity. Existing `search_history` is not a threaded conversation contract.
+
+Commit `e0605ade435494b9b31c570fe823b0fbb76ecc38` adds three focused regression guards for Idea semantics, browser session-only history and owner filters. These are **contract tests**, not tests of a nonexistent conversation listing API. User A/User B conversation cross-read, invalid/missing conversation IDs and unauthenticated conversation endpoint tests remain **NOT RUN / NOT IMPLEMENTED**. Existing local PostgreSQL owner-policy evidence is about existing entities, not conversations. Hosted Supabase is **NOT VERIFIED**.
+
+Next smallest task: explicitly approve a durable owner-scoped conversation persistence contract with message schema, ID semantics, versioning, retention, deletion and RLS acceptance criteria, without repurposing Ideas. Then implement read-only GET list and by-ID handlers with authenticated Supabase bearer and explicit user-id filtering, 400 invalid ID, 401 unauthenticated, and indistinguishable 404 for missing/foreign IDs; run mocked API tests and disposable PostgreSQL two-user policy tests. Keep PR Draft; do not migrate staging until separately authorized.
