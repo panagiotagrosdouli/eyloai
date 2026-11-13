@@ -1,6 +1,6 @@
 {
   "date": "2026-11-13",
-  "tested_source_commit": "784d1e5999b18bfb05bfba2f3c3e13748df508d8",
+  "tested_source_commit": "84efa01b7551a705a271ab8544964b666c48b3fc",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
@@ -15,7 +15,8 @@
         "Node unit/API regressions",
         "Vite production build"
       ],
-      "evidence": "evidence/2026-11-13/privacy-check-final.txt"
+      "evidence": "evidence/2026-11-13/privacy-check-final.txt",
+      "source_scope": "Application sources at 784d1e5; later change is SQL-only optional-source retry normalization, independently tested on PostgreSQL"
     },
     "browser": {
       "status": "PASS",
@@ -66,7 +67,8 @@
         "duplicate source ID and normalized DOI rejection",
         "idempotent snapshot retry and conflicting identity rejection",
         "stale-version and outsider snapshot deletion rejected",
-        "two independent sessions save the same snapshot UUID and create one message"
+        "two independent sessions save the same snapshot UUID and create one message",
+        "exact retries normalize omitted optional sources to the stored empty array"
       ],
       "hosted_supabase_verified": false,
       "evidence": "evidence/2026-11-13/privacy-postgres-final.txt"

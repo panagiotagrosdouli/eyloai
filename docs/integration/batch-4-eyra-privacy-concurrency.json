@@ -17,7 +17,8 @@
     "python scripts/integration/test-local-postgres.py": "PASS: 17 selected migrations, actual RLS/CAS/cascade/idempotency and independent concurrent sessions"
   },
   "VERIFIED": [
-    "Synthetic authenticated browser fixtures, actual disposable PostgreSQL 17.6; no hosted acceptance"
+    "Synthetic authenticated browser fixtures, actual disposable PostgreSQL 17.6; no hosted acceptance",
+    "SQL-only followup normalizes omitted optional source arrays on exact retry; 17-migration disposable PostgreSQL acceptance rerun PASS"
   ],
   "FAILED": [
     "Initial new test harness variable collision and early assertion timing corrected",
@@ -35,5 +36,6 @@
     "Unmerged PR400 automatic user-message writer: reviewed but not merged; current explicit snapshot path retains user-controlled save semantics, shares canonical tables and does not introduce another store"
   ],
   "remote_migrations_applied": false,
-  "production_writes": false
+  "production_writes": false,
+  "sql_followup_commit": "84efa01b7551a705a271ab8544964b666c48b3fc"
 }
