@@ -42,5 +42,14 @@
   ],
   "schema_changes": false,
   "remote_migrations_applied": false,
-  "production_writes": false
+  "production_writes": false,
+  "exact_project_followup": {
+    "commit": "c842cc543a8500e489ae4593dbee62b76d42223d",
+    "implemented": "Owner-scoped exact project load beyond the recent100 cap, explicit URL selection priority and fail-closed missing/foreign targets",
+    "verification": "Combined616-test check and expanded browser suite PASS; no silent fallback to a different owned project",
+    "evidence": [
+      "evidence/2026-11-13/research-check-exact-project.txt",
+      "evidence/2026-11-13/research-browser-exact-project.txt"
+    ]
+  }
 }

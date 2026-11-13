@@ -1,6 +1,6 @@
 {
   "date": "2026-11-13",
-  "tested_source_commit": "f7a2a1824b40204f7b0715b7dfc8a3ed4ae61130",
+  "tested_source_commit": "c842cc543a8500e489ae4593dbee62b76d42223d",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
@@ -15,8 +15,8 @@
         "Node unit/API regressions",
         "Vite production build"
       ],
-      "evidence": "evidence/2026-11-13/research-check-final.txt",
-      "source_scope": "Current application and test sources at f7a2a1824b40204f7b0715b7dfc8a3ed4ae61130"
+      "evidence": "evidence/2026-11-13/research-check-exact-project.txt",
+      "source_scope": "Current application/test sources at c842cc543a8500e489ae4593dbee62b76d42223d"
     },
     "browser": {
       "status": "PASS",
@@ -44,9 +44,10 @@
         "late history response cannot repopulate a cleared tab",
         "reproducibility checklist save/reload and conflict preserves local draft",
         "Literature Review protocol/screening persistence, project selection reload, conflicts and private export",
-        "One scholarly publication retains co-indexing and abstract-donor attribution; canonical Library save while AI is unavailable"
+        "One scholarly publication retains co-indexing and abstract-donor attribution; canonical Library save while AI is unavailable",
+        "Exact protocol project deep link beyond recent100; missing/foreign owner-scoped target fails closed instead of selecting another owned project"
       ],
-      "evidence": "evidence/2026-11-13/research-browser-final.txt; evidence/2026-11-13/research-auth-browser.txt"
+      "evidence": "evidence/2026-11-13/research-browser-exact-project.txt; evidence/2026-11-13/research-auth-browser.txt"
     },
     "postgres": {
       "status": "PASS",
@@ -178,7 +179,7 @@
     ],
     "FAILED": [
       "Fresh five-query real-provider diagnostic: source coverage 3/5; covered-query heuristic gates 2/3; overall FAIL",
-      "Vercel latest known build-rate-limit; fresh continuation status remains to be checked"
+      "Vercel preview failed; current cause unverified because scoped deployment metadata/logs return404"
     ],
     "BLOCKED": [
       "Separate authorized Supabase staging and Vercel identity/access",
@@ -200,23 +201,24 @@
     "prior_pr": 402,
     "prior_pr_state": "Merged externally as b0124de before this batch",
     "continuation_branch": "codex/eylo-platform-integration-audit",
-    "current_pr": "Draft continuation to be created after this evidence push"
+    "current_pr": 403
   },
   "github_ci": {
-    "commit": "493a33be24ad3c70df2caced934a07f4eeae7fa1",
+    "commit": "adc5b38b72a87e381776c4349a27271bea35312b",
     "status": "PASS",
     "runs": {
-      "Build": 43421003793,
-      "EYLO Quality Gate": 43421003801,
-      "Product quality": 43421003936
+      "Build": 43441906193,
+      "EYLO Quality Gate": 43441906207,
+      "Product quality": 43441906292
     },
-    "scope": "Full checks including fixture browsers and disposable PostgreSQL; before final saved-history label correction, separately rerun locally"
+    "scope": "Previous head before exact-project followup; final PR403 checks remain authoritative"
   },
   "latest_vercel_observation": {
-    "commit": "493a33be24ad3c70df2caced934a07f4eeae7fa1",
+    "commit": "adc5b38b72a87e381776c4349a27271bea35312b",
     "status": "FAIL",
-    "deployment_id": "dpl_71qdfqfvxmqV7jeusSuBRMEkkRNF",
-    "cause": "UNVERIFIED; deployment API and build logs unavailable to connected team. Earlier build-rate-limit evidence is historical, not proof of current failure cause."
+    "deployment_id": "dpl_BYosDMvVkgFhLFpugKdK9ALUkkp3",
+    "metadata_and_logs": "Both404 in explicitly scoped connected team",
+    "cause": "UNVERIFIED. GitHub status reports deployment failure; previous build-rate-limit is historical and not assumed to explain this failure."
   },
   "ci_failure_and_repair": {
     "failed_head": "de485c1",
