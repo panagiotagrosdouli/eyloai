@@ -4,6 +4,7 @@ import { environment } from '@/lib/config/env';
 import { shouldApplyAuthResult } from '@/lib/auth/authOperation';
 import { shouldClearPrivateCache } from '@/lib/auth/privateSessionBoundary';
 import { bindRadarBrowserCache, clearRadarBrowserCache } from '@/lib/auth/privateRadarCache.mjs';
+import { clearOfflineVaults } from '@/lib/offline-vault.mjs';
 import { queryClientInstance } from '@/lib/query-client';
 import { AppErrorCode, createAppError, mapSupabaseError } from '@/lib/supabase/errors';
 
@@ -16,12 +17,13 @@ function clearPrivateSessionData() {
   } catch {
     // Restricted browser storage should not block signing out.
   }
+  try { clearOfflineVaults(window.localStorage); } catch { /* Unavailable storage must not block sign-out. */ }
   try {
     window.sessionStorage.removeItem('eyra_command_conversation');
     window.sessionStorage.removeItem('eyra_command_conversation_v2');
     for (let index = window.sessionStorage.length - 1; index >= 0; index--) {
       const key = window.sessionStorage.key(index);
-      if (key?.startsWith('eyra:conversation:v3:')) window.sessionStorage.removeItem(key);
+      if (key?.startsWith('eyra:conversation:v3:') || key?.startsWith('eylo:product-operation:')) window.sessionStorage.removeItem(key);
     }
   } catch {
     // Some browsers restrict storage access.

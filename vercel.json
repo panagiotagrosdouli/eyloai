@@ -6,6 +6,14 @@
   "installCommand": "npm ci --no-audit --no-fund",
   "rewrites": [
     {
+      "source": "/api/developer",
+      "destination": "/api/system?endpoint=developer"
+    },
+    {
+      "source": "/api/admin-operations",
+      "destination": "/api/system?endpoint=admin-operations"
+    },
+    {
       "source": "/api/capabilities",
       "destination": "/api/system?endpoint=capabilities"
     },

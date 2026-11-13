@@ -1,0 +1,38 @@
+PASS fixture: all22 product entries are discoverable in the authenticated tools hub.
+PASS fixture: Connect opt-in directory and explicit connection request persistence.
+PASS fixture: Teams creation/invitation UI; actual consent/role/revocation SQL checked separately.
+PASS fixture: Community deliberate publication and threaded reply persistence.
+PASS fixture: Feedback saved receipt and status tracking.
+PASS fixture: Peer Review explicit snapshot sharing to an accepted connection; real draft privacy SQL checked separately.
+OFFLINE ASSET FAILURE: /assets/index-BBNLu_8l.js net::ERR_ABORTED
+OFFLINE ASSET FAILURE: /assets/supabase-vendor-_Ts6dIFp.js net::ERR_ABORTED
+OFFLINE ASSET FAILURE: /assets/index-CZF8-naS.css net::ERR_ABORTED
+FIXTURE FAILURE VIEW:
+STATIC CACHE: [
+  '/offline-shell',
+  '/assets/index-BBNLu_8l.js',
+  '/assets/index-CZF8-naS.css',
+  '/assets/supabase-vendor-_Ts6dIFp.js',
+  '/assets/OfflineWorkspace-C9NUQZ7u.js',
+  '/assets/ProjectDocumentWorkspace-CY0e8vXJ.js',
+  '/assets/base44Client-DLrOdRP-.js',
+  '/assets/supabase-entities-CmQSJ_FC.js',
+  '/assets/billing-DFKIZh1X.js',
+  '/assets/api-url-tGFngulw.js'
+]
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Timeout 20000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('heading', { name: 'Offline', exact: true }) to be visible[22m
+
+    at /workspace/work/eyloai/tests/e2e-products.mjs:84:113 {
+  log: [
+    "  - waiting for getByRole('heading', { name: 'Offline', exact: true }) to be visible"
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v24.22.1

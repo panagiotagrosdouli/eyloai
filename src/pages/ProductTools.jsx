@@ -1,0 +1,111 @@
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
+import { PRODUCT_TOOLS } from "@/lib/product-registry.mjs";
+import PersonalTools from "@/components/products/PersonalTools";
+import {
+  workspaceInput as input,
+  workspaceButton as button,
+} from "@/components/projects/ProjectDocumentWorkspace";
+export default function ProductTools() {
+  const { tool } = useParams();
+  const config = PRODUCT_TOOLS.find((p) => p.slug === tool);
+  if (!tool)
+    return (
+      <main className="eylo-page mx-auto max-w-6xl space-y-5">
+        <h1 className="text-2xl font-bold">EYLO tools</h1>
+        <p className="text-sm text-muted-foreground">
+          Choose tools for your private projects, collaboration and workspace
+          operations. Availability depends on your permissions and enabled
+          services.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {PRODUCT_TOOLS.map((p) => (
+            <Link
+              className="rounded-xl border border-border bg-card p-4 hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+              key={p.id}
+              to={
+                p.kind === "offline"
+                  ? "/offline"
+                  : p.kind === "collaboration"
+                    ? `/collaboration/${p.slug}`
+                    : `/tools/${p.slug}`
+              }
+            >
+              <h2 className="font-semibold">{p.title}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {p.description}
+              </p>
+            </Link>
+          ))}
+        </div>
+      </main>
+    );
+  if (!config) return <main className="eylo-page">Unknown tool.</main>;
+  return config.kind === "project" || config.kind === "personal-project" ? (
+    <ProjectChooser key={tool} config={config} />
+  ) : (
+    <PersonalTools key={tool} tool={tool} />
+  );
+}
+function ProjectChooser({ config }) {
+  const [projects, setProjects] = useState([]),
+    [selected, setSelected] = useState(""),
+    [error, setError] = useState(""),
+    [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let active = true;
+    void base44.entities.Project.list("-updated_date", 1000)
+      .then((rows) => {
+        if (active) setProjects(rows);
+      })
+      .catch(() => {
+        if (active) setError("Private projects could not be loaded.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  return (
+    <main className="eylo-page mx-auto max-w-3xl space-y-5">
+      <Link to="/tools">All tools</Link>
+      <h1 className="text-2xl font-bold">{config.title}</h1>
+      <p>{config.description}</p>
+      {error && <p role="alert">{error}</p>}
+      {loading && <p role="status">Loading private projects…</p>}
+      <label className="block text-sm">
+        Private project
+        <select
+          className={input}
+          value={selected}
+          onChange={(e) => setSelected(e.target.value)}
+        >
+          <option value="">Choose a project</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.title}
+            </option>
+          ))}
+        </select>
+      </label>
+      {selected && (
+        <Link
+          className={button}
+          to={
+            config.slug === "spreadsheets"
+              ? `/projects/${selected}/spreadsheet`
+              : `/projects/${selected}/workbench/${config.slug}`
+          }
+        >
+          Open {config.title}
+        </Link>
+      )}
+      <Link className="block text-sm text-primary" to="/projects">
+        Create or manage projects
+      </Link>
+    </main>
+  );
+}

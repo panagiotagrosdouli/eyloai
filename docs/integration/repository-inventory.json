@@ -1,5 +1,5 @@
 {
-  "source_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
+  "source_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
   "files": [
     {
       "path": ".github/workflows/build.yml",
@@ -29,7 +29,7 @@
     {
       "path": ".github/workflows/quality.yml",
       "kind": "ci_workflow",
-      "blob_sha": "e02a4ff579f3c91e040b2fb931e2ee3dee9c64cd"
+      "blob_sha": "b27810b6997d8e713886d9f37d111b315c6c5748"
     },
     {
       "path": ".github/workflows/remotive-jobs.yml",
@@ -44,32 +44,12 @@
     {
       "path": "api/billing.js",
       "kind": "serverless_api",
-      "blob_sha": "44dd58f8c47eb354bb4373a9e3e91787f403bb2f"
-    },
-    {
-      "path": "api/capabilities.js",
-      "kind": "serverless_api",
-      "blob_sha": "73951f78d1351ed9da264bdc47ba3c85b5d81575"
-    },
-    {
-      "path": "api/contact.js",
-      "kind": "serverless_api",
-      "blob_sha": "404e2b5d76913697ddd6a22216c8537a529edef2"
-    },
-    {
-      "path": "api/deployment-status.js",
-      "kind": "serverless_api",
-      "blob_sha": "8ec7a672a57d06275a5d9f4b4755a56e1dfb581b"
-    },
-    {
-      "path": "api/discovery-rate-limit.mjs",
-      "kind": "serverless_api",
-      "blob_sha": "1f805c8859c27ce81a61702d5fb64a5f426126e9"
+      "blob_sha": "977a9690f7149308789ab830729ed6acbcabdc5f"
     },
     {
       "path": "api/discovery.js",
       "kind": "serverless_api",
-      "blob_sha": "c79e717fa86f3084d696f98dd45ecf693e13d68b"
+      "blob_sha": "711812735c626c860f532554d15b73125a86a56f"
     },
     {
       "path": "api/euraxess.js",
@@ -79,12 +59,12 @@
     {
       "path": "api/eyra-conversations.js",
       "kind": "serverless_api",
-      "blob_sha": "85ddbfc81b055b388f459950c7dc58cf978219dc"
+      "blob_sha": "a228d5552ccb6c5549f052ccf309733ae7c15299"
     },
     {
       "path": "api/eyra.js",
       "kind": "serverless_api",
-      "blob_sha": "d3447b6e5ef94f16bba986cceceb46377d764574"
+      "blob_sha": "eb7ede840df05f16403cb173bdda710cc8856dfc"
     },
     {
       "path": "api/general-jobs.js",
@@ -94,37 +74,72 @@
     {
       "path": "api/meeting-room.js",
       "kind": "serverless_api",
-      "blob_sha": "0c7497ba2a55ff4b0c8a468bf9316757d7bf9d3e"
+      "blob_sha": "8a5f8cd2a3f37cc32393a57deb7c1b22f981d5a7"
     },
     {
       "path": "api/monitor.js",
       "kind": "serverless_api",
-      "blob_sha": "61640951c01eecf6c465de0f2d3fb6a1fbb9bb4a"
+      "blob_sha": "d2112fe4452eb9cd3f307b2a5ec942f0ee9a28df"
     },
     {
       "path": "api/opportunities.js",
       "kind": "serverless_api",
-      "blob_sha": "c168dd5c94663852f85282d8c1116add12a80949"
-    },
-    {
-      "path": "api/scholarly-resilience.mjs",
-      "kind": "serverless_api",
-      "blob_sha": "4868dc23385bd6794e1c15ecc15cd0a194761c22"
+      "blob_sha": "f8c7d112aa224ddef3302721aadcd13594c1d1c0"
     },
     {
       "path": "api/stripe-webhook.js",
       "kind": "serverless_api",
-      "blob_sha": "90acdbe8b6805decb92916f5efc6eb33af71e227"
+      "blob_sha": "535ddd7bd25fee9e8cb065592501d5e317416db3"
     },
     {
-      "path": "api/supabase-config.mjs",
+      "path": "api/system.js",
       "kind": "serverless_api",
+      "blob_sha": "76a4ead6afbc579efa8e3cc5c68b79c83a79257b"
+    },
+    {
+      "path": "public/sw-offline.js",
+      "kind": "static_offline_worker",
+      "blob_sha": "a8d7007098ba8e5bc7c04772ea6f77b8d4dca374"
+    },
+    {
+      "path": "server/capabilities.js",
+      "kind": "backend_helper",
+      "blob_sha": "73951f78d1351ed9da264bdc47ba3c85b5d81575"
+    },
+    {
+      "path": "server/contact.js",
+      "kind": "backend_helper",
+      "blob_sha": "404e2b5d76913697ddd6a22216c8537a529edef2"
+    },
+    {
+      "path": "server/deployment-status.js",
+      "kind": "backend_helper",
+      "blob_sha": "8ec7a672a57d06275a5d9f4b4755a56e1dfb581b"
+    },
+    {
+      "path": "server/discovery-rate-limit.mjs",
+      "kind": "backend_helper",
+      "blob_sha": "1f805c8859c27ce81a61702d5fb64a5f426126e9"
+    },
+    {
+      "path": "server/product-api.js",
+      "kind": "backend_helper",
+      "blob_sha": "7aa2d3ff8dec6e465d09eec4c80d30174657bbf2"
+    },
+    {
+      "path": "server/scholarly-resilience.mjs",
+      "kind": "backend_helper",
+      "blob_sha": "4868dc23385bd6794e1c15ecc15cd0a194761c22"
+    },
+    {
+      "path": "server/supabase-config.mjs",
+      "kind": "backend_helper",
       "blob_sha": "772531ceb60fb1fc8652a217253124abdf4e9464"
     },
     {
       "path": "src/App.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "95c16eb023a6b9a851566ecfe658ae0eac7aaf69"
+      "blob_sha": "0148c6c128e809a2bd10343301c7e0f04f7e8cf4"
     },
     {
       "path": "src/api/base44Client.js",
@@ -319,7 +334,7 @@
     {
       "path": "src/components/layout/AppLayout.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "14e58539ec8032de38d32234bffeb902659ee806"
+      "blob_sha": "b19eb2fd3eb6c0cd1a533fee0c51971fbb014cd3"
     },
     {
       "path": "src/components/layout/GlobalCommandCenter.jsx",
@@ -372,6 +387,11 @@
       "blob_sha": "9ba0db47408da21c7b128309bd340105d0eab921"
     },
     {
+      "path": "src/components/products/PersonalTools.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "7d9660d8b7fca75879026418de1d1f44fa2d1ff5"
+    },
+    {
       "path": "src/components/projects/GapCandidateReviewItem.jsx",
       "kind": "frontend_or_client_source",
       "blob_sha": "b06587e9ffda6e31566e2bec5c9aceb1f16937f3"
@@ -384,7 +404,7 @@
     {
       "path": "src/components/projects/ProjectDocumentWorkspace.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "0db6e52982d05357fb7e42dbffd615f6b478038c"
+      "blob_sha": "8133b058c1179a1a4153ea2fe21cc9ef5c488de0"
     },
     {
       "path": "src/components/projects/ProjectHealthScore.jsx",
@@ -462,14 +482,9 @@
       "blob_sha": "54683ec1bdd2874e51dc2b70a91ab442b396c021"
     },
     {
-      "path": "src/index.css",
-      "kind": "frontend_or_client_source",
-      "blob_sha": "0d13f09997f87f10ce7cb046182c26602d82d9ca"
-    },
-    {
       "path": "src/lib/AuthContext.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "6a294d29a6f57ec3782925cdeae1e5cee2dfcd99"
+      "blob_sha": "f139e5a919000840a26eca5dd8630cd10aff9897"
     },
     {
       "path": "src/lib/PageNotFound.jsx",
@@ -782,6 +797,11 @@
       "blob_sha": "f5a5103134486192bd1c1e8606597f3ebdb22061"
     },
     {
+      "path": "src/lib/offline-vault.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "3ba036a530750d859cb4c0e0e2fcfbe38ae8e0e5"
+    },
+    {
       "path": "src/lib/paper-summary-persistence.js",
       "kind": "frontend_or_client_source",
       "blob_sha": "450fe66e73ef4d320d91d1110e2de026f1a3fc72"
@@ -805,6 +825,26 @@
       "path": "src/lib/product-analytics.js",
       "kind": "frontend_or_client_source",
       "blob_sha": "3ba574ac0641a56e62801289ef93b14305f1b50c"
+    },
+    {
+      "path": "src/lib/product-operation-recovery.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a8a516bc42f69603d00c8c7b36f9752488e79e57"
+    },
+    {
+      "path": "src/lib/product-registry.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "806a95277d3d905c770b1804e0926963c5cd97dc"
+    },
+    {
+      "path": "src/lib/product-utilities.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "4eb990b2c6992ff0f8e65c108ac69b6b926dedc9"
+    },
+    {
+      "path": "src/lib/product-workbench.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "8ef5eca023b04eff2215a960ff4fbfad57a333e9"
     },
     {
       "path": "src/lib/profile-merge.mjs",
@@ -894,7 +934,7 @@
     {
       "path": "src/lib/research-data.mjs",
       "kind": "frontend_or_client_source",
-      "blob_sha": "a0da77105cf6b6df25bc1664aa71d20458ca3531"
+      "blob_sha": "40d846abf9de2f47c8b3309ac0f7d163ef65cb7d"
     },
     {
       "path": "src/lib/research-email.mjs",
@@ -1062,6 +1102,11 @@
       "blob_sha": "ad72bb534b8121e549da139493c152a999b9f3e2"
     },
     {
+      "path": "src/pages/CollaborationTools.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "80ec16d8768ea2c11ae99eed95d25356f6fb029d"
+    },
+    {
       "path": "src/pages/CompanyPage.jsx",
       "kind": "frontend_or_client_source",
       "blob_sha": "edf0800ea088fb103cee1dc2a3f850d9d3e621df"
@@ -1212,6 +1257,11 @@
       "blob_sha": "0e0ea66ad773b2b53ed92a50497596d213c75f29"
     },
     {
+      "path": "src/pages/OfflineWorkspace.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "b3f851f764ad3a3d3360e918ac3a3beaa7350239"
+    },
+    {
       "path": "src/pages/Opportunities.jsx",
       "kind": "frontend_or_client_source",
       "blob_sha": "525ad94b62a5c54e508db73a069960cb5e4f1605"
@@ -1230,6 +1280,16 @@
       "path": "src/pages/Pricing.jsx",
       "kind": "frontend_or_client_source",
       "blob_sha": "1ad215ecac997fd184d93a10358563c5c188ad72"
+    },
+    {
+      "path": "src/pages/ProductTools.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "848df6255da1a79a821fa1bd5e23545d092437cb"
+    },
+    {
+      "path": "src/pages/ProductWorkbench.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "b3207a8688c7789d5bef72ee7a6e47db79892d89"
     },
     {
       "path": "src/pages/Profile.jsx",
@@ -1347,36 +1407,6 @@
       "blob_sha": "213a354985f2c241ba7147029bc1180a41d1c460"
     },
     {
-      "path": "src/pages/eylo-approved-scene.css",
-      "kind": "frontend_or_client_source",
-      "blob_sha": "acb00090e8d1cacd6f63480796796d323a3724e2"
-    },
-    {
-      "path": "src/pages/eylo-live-atmosphere.css",
-      "kind": "frontend_or_client_source",
-      "blob_sha": "c9a7a8154f8350bdf1e6ddd02ed495e31b1ae0b0"
-    },
-    {
-      "path": "src/pages/eylo-photographic-hero.css",
-      "kind": "frontend_or_client_source",
-      "blob_sha": "e1f3774fb892c305ca8c4f3f3c754d5c4ccc4632"
-    },
-    {
-      "path": "src/pages/eylo-reference-live.css",
-      "kind": "frontend_or_client_source",
-      "blob_sha": "c8ef55f063813e100d19eee6c258c3329e878d34"
-    },
-    {
-      "path": "src/pages/eylo-reference-stage.css",
-      "kind": "frontend_or_client_source",
-      "blob_sha": "f71e6b6b99919ad62301228d4525c434d5605019"
-    },
-    {
-      "path": "src/pages/eylo-screenshot-hero.css",
-      "kind": "frontend_or_client_source",
-      "blob_sha": "82cb158ef8dd0ade8322588322566f6a413356aa"
-    },
-    {
       "path": "src/services/entity-serialization.js",
       "kind": "frontend_or_client_source",
       "blob_sha": "e616009d12221378608126996336d4dc794b697a"
@@ -1397,11 +1427,6 @@
       "blob_sha": "61e4d626159dc7793d22124e0ebfde11b11d3582"
     },
     {
-      "path": "src/styles.css",
-      "kind": "frontend_or_client_source",
-      "blob_sha": "6576f79f2dbab05b3397dcc066069a453d03b490"
-    },
-    {
       "path": "src/utils/citation-export.js",
       "kind": "frontend_or_client_source",
       "blob_sha": "46b61942940abf073515a4c8e4d2a79a935eee81"
@@ -1410,16 +1435,6 @@
       "path": "src/utils/index.ts",
       "kind": "frontend_or_client_source",
       "blob_sha": "abc4e0ef4a3ac680495797b4737a1a275003fb49"
-    },
-    {
-      "path": "supabase/functions/_shared/monitor-provider-response.mjs",
-      "kind": "edge_function",
-      "blob_sha": "2fdd595f3b72131fb155671fcfe3881d29d26f61"
-    },
-    {
-      "path": "supabase/functions/scheduled-monitoring/index.ts",
-      "kind": "edge_function",
-      "blob_sha": "9dc4fdf80e991527db5c38251bf131af4bea777f"
     },
     {
       "path": "supabase/migrations/20260803_eylo_core_entities.sql",
@@ -1552,6 +1567,11 @@
       "blob_sha": "7586642c5b8bd32186219b2cb9a53b5808788946"
     },
     {
+      "path": "supabase/migrations/20261113180517_complete_workspace_products.sql",
+      "kind": "migration",
+      "blob_sha": "c5d339543de558260ad63650335498e2f7fb9640"
+    },
+    {
       "path": "tests/activity-history.test.mjs",
       "kind": "automated_test",
       "blob_sha": "329004e79dd596a19b870159a3ac0611373eb147"
@@ -1614,7 +1634,7 @@
     {
       "path": "tests/capabilities.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "30519225dffb76eab089e125994a4c75beb7699f"
+      "blob_sha": "738d4bcf404dbf560315b59eb59281f01e505b7b"
     },
     {
       "path": "tests/careers-api.test.mjs",
@@ -1637,6 +1657,11 @@
       "blob_sha": "bdcefe72619f1b79d84e1c9e30c4520c5da41b70"
     },
     {
+      "path": "tests/complete-products.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "597e0b174327b65c63e050670a1d941d842ce526"
+    },
+    {
       "path": "tests/crossref-paper-types.test.mjs",
       "kind": "automated_test",
       "blob_sha": "d1e144d446af344fe3551ba32fdfd9f6b05d1650"
@@ -1654,7 +1679,7 @@
     {
       "path": "tests/deployment-status.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "6129c9a72189a60c3e0dbcd92cebbb44b04d4cc9"
+      "blob_sha": "cfacabe3108a6473f63f07418d9902b584f8b84a"
     },
     {
       "path": "tests/discovery-candidate-budget.test.mjs",
@@ -1674,7 +1699,7 @@
     {
       "path": "tests/discovery-proxy.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "303f28cd6bfb2451b56a1648bb5d679b6457c66f"
+      "blob_sha": "66b601b5b0c18d7903f45b78b32fee756bb3d2ef"
     },
     {
       "path": "tests/discovery-ranking.test.mjs",
@@ -1684,7 +1709,7 @@
     {
       "path": "tests/discovery-rate-limit.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "55b7adf273440eaa57e842a8c4c180e6253bb3be"
+      "blob_sha": "6ddd9d61ed7b6532a9fa1ec5513bc1ad4e402488"
     },
     {
       "path": "tests/discovery-source-status.test.mjs",
@@ -1715,6 +1740,11 @@
       "path": "tests/e2e-native-meetings.mjs",
       "kind": "automated_test",
       "blob_sha": "8484ecd73e63dbc21d359b104b18a51ec28743ef"
+    },
+    {
+      "path": "tests/e2e-products.mjs",
+      "kind": "automated_test",
+      "blob_sha": "16497b3307bf6e4df8b885cc284b411c03e5c6a2"
     },
     {
       "path": "tests/e2e-quiz-generator.mjs",
@@ -1947,6 +1977,11 @@
       "blob_sha": "e2c5df7d43df79d416284497f32d1328a90afd17"
     },
     {
+      "path": "tests/integration/complete-products-postgres.sql",
+      "kind": "automated_test",
+      "blob_sha": "9f2254b641019fc35348f2e43dac212d681c196b"
+    },
+    {
       "path": "tests/integration/discovery-quota-postgres.sql",
       "kind": "automated_test",
       "blob_sha": "c80c930cdd6b04e5dd8dda90c3da60afbd8948be"
@@ -2080,6 +2115,11 @@
       "path": "tests/private-session-boundary.test.mjs",
       "kind": "automated_test",
       "blob_sha": "9fb67b510eb7294589ab461ca30bded0b8ff6f1d"
+    },
+    {
+      "path": "tests/product-api.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "35bfb5e81c6108f14da3e6da7a3fe9ccb5566f96"
     },
     {
       "path": "tests/profile-merge.test.mjs",
@@ -2304,7 +2344,7 @@
     {
       "path": "tests/scholarly-resilience.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "03a3f628c08e91bd4b7b4ed6bcc0b4c71e26dd4c"
+      "blob_sha": "4f9e617e4a75e10ff281fefdacfa2c94983400df"
     },
     {
       "path": "tests/scholarly-work-attribution.test.mjs",
@@ -2319,7 +2359,7 @@
     {
       "path": "tests/staging-config.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "b37a3dbf9f288c68b82b5a505d43a249301be584"
+      "blob_sha": "52aaaf416c471787eaab8ae6521246f82f8b6d62"
     },
     {
       "path": "tests/stripe-webhook-size.test.mjs",
@@ -2329,7 +2369,7 @@
     {
       "path": "tests/supabase-api-config.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "62db4e63e7e3676164afc5909b50456ac69e5001"
+      "blob_sha": "56d6797190cd556e46c5802b460ffa892a05e763"
     },
     {
       "path": "tests/supabase-env-config.test.mjs",
@@ -2340,6 +2380,11 @@
       "path": "tests/supervisor-meetings.test.mjs",
       "kind": "automated_test",
       "blob_sha": "3bec6d9ef6133bfdb8db82a16c783eb8948b6503"
+    },
+    {
+      "path": "tests/system-api-routing.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "5b695a0bc3dc17556f3a4c135f56cf53ed31b3de"
     },
     {
       "path": "tests/thesis-outline.test.mjs",
@@ -2390,7 +2435,8 @@
     "test:e2e:meetings": "node tests/e2e-native-meetings.mjs",
     "test:e2e:project-concurrency": "node tests/e2e-supabase-project-concurrency.mjs",
     "release:readiness": "node scripts/check-release-readiness.mjs",
-    "release:probe": "node scripts/probe-release-target.mjs"
+    "release:probe": "node scripts/probe-release-target.mjs",
+    "test:e2e:products": "node tests/e2e-products.mjs"
   },
   "documented_environment_variable_names": [
     "VITE_SUPABASE_URL",

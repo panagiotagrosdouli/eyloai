@@ -1,0 +1,153 @@
+
+> eyloai@0.0.0 test:e2e:products
+> node tests/e2e-products.mjs
+
+PASS fixture: all22 product entries are discoverable in the authenticated tools hub.
+PASS fixture: Spaces authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Skills authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Interview Simulator authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Workflow Builder authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Studio authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Methodology Coach authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Research Ethics authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Conference Hub authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Smart Forms authoring, explicit save/reload and product-specific preview/action.
+FIXTURE FAILURE VIEW: Back to Product fixture project
+
+EYLO PROJECT WORKSPACE
+
+Spreadsheets
+
+Private bounded workbook. Supported formulas: SUM, AVERAGE, MIN and MAX over cell ranges, for example =SUM(A1:A3). No scripts or external links execute.
+
+Save Spreadsheets
+Saved version · Explicit save
+Workbook title
+Add row
+Add column
+Show formulas / edit
+Export saved values CSV
+Export saved workbook JSON
+Import CSV into draft
+Row
+Column 1 label
+
+Column 2 label
+
+Column 3 label
+
+1×	2	5
+2×	3
+3×
+Home
+Discover
+EYRA
+Connect
+Careers
+OVERFLOW ELEMENTS: [
+  {
+    tag: 'TABLE',
+    cls: 'w-full text-sm',
+    left: 21,
+    right: 546.234375,
+    width: 525.234375
+  },
+  {
+    tag: 'THEAD',
+    cls: '',
+    left: 21,
+    right: 546.234375,
+    width: 525.234375
+  },
+  {
+    tag: 'TR',
+    cls: '',
+    left: 21,
+    right: 546.234375,
+    width: 525.234375
+  },
+  {
+    tag: 'TH',
+    cls: 'min-w-40 p-2',
+    left: 386.234375,
+    right: 546.234375,
+    width: 160
+  },
+  {
+    tag: 'LABEL',
+    cls: '',
+    left: 394.234375,
+    right: 538.234375,
+    width: 144
+  },
+  {
+    tag: 'SPAN',
+    cls: 'sr-only',
+    left: 393.234375,
+    right: 394.234375,
+    width: 1
+  },
+  {
+    tag: 'INPUT',
+    cls: 'w-full min-w-0 rounded-lg border border-border bg-background p-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary',
+    left: 394.234375,
+    right: 538.234375,
+    width: 144
+  },
+  {
+    tag: 'TBODY',
+    cls: '',
+    left: 21,
+    right: 546.234375,
+    width: 525.234375
+  },
+  {
+    tag: 'TR',
+    cls: '',
+    left: 21,
+    right: 546.234375,
+    width: 525.234375
+  },
+  {
+    tag: 'TD',
+    cls: 'p-1',
+    left: 386.234375,
+    right: 546.234375,
+    width: 160
+  },
+  {
+    tag: 'TR',
+    cls: '',
+    left: 21,
+    right: 546.234375,
+    width: 525.234375
+  },
+  {
+    tag: 'TD',
+    cls: 'p-1',
+    left: 386.234375,
+    right: 546.234375,
+    width: 160
+  }
+]
+STATIC CACHE: []
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Spreadsheet root overflow
+    at file:///workspace/work/eyloai/tests/e2e-products.mjs:71:642 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.22.1
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

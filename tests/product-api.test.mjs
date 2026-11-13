@@ -1,0 +1,222 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { adminOperations, developerRead } from "../server/product-api.js";
+const uid = "00000000-0000-4000-8000-000000000001",
+  pid = "10000000-0000-4000-8000-000000000001";
+const response = () => ({
+  statusCode: 200,
+  headers: {},
+  body: null,
+  setHeader(k, v) {
+    this.headers[k] = v;
+  },
+  status(code) {
+    this.statusCode = code;
+    return this;
+  },
+  json(body) {
+    this.body = body;
+    return this;
+  },
+  end() {},
+});
+async function withServer(fn, fetcher) {
+  const oldFetch = globalThis.fetch;
+  const names = [
+    "VITE_SUPABASE_URL",
+    "VITE_SUPABASE_ANON_KEY",
+    "SUPABASE_SECRET_KEY",
+  ];
+  const before = names.map((name) => process.env[name]);
+  Object.assign(process.env, {
+    VITE_SUPABASE_URL: "https://fixture.supabase.co",
+    VITE_SUPABASE_ANON_KEY: "public-fixture",
+    SUPABASE_SECRET_KEY: "server-fixture",
+  });
+  globalThis.fetch = fetcher;
+  try {
+    await fn();
+  } finally {
+    globalThis.fetch = oldFetch;
+    names.forEach((name, i) =>
+      before[i] === undefined
+        ? delete process.env[name]
+        : (process.env[name] = before[i]),
+    );
+  }
+}
+const request = (patch) => ({
+  method: "GET",
+  headers: { authorization: "Bearer eylo_pat_" + "a".repeat(64) },
+  query: { resource: "notes", project_id: pid },
+  ...patch,
+});
+test("developer API denies missing auth, writes and out-of-scope project without reading records", async () => {
+  await withServer(
+    async () => {
+      for (const [req, status] of [
+        [request({ headers: {} }), 401],
+        [request({ method: "POST" }), 405],
+        [request(), 403],
+      ]) {
+        const res = response();
+        await developerRead(req, res);
+        assert.equal(res.statusCode, status);
+      }
+    },
+    async (url) => {
+      assert.match(String(url), /lookup_developer_token/);
+      return Response.json([
+        {
+          id: uid,
+          user_id: uid,
+          project_ids: [],
+          expires_at: new Date(Date.now() + 60000).toISOString(),
+        },
+      ]);
+    },
+  );
+});
+test("developer API checks token revocation and expiry before any resource read", async () => {
+  for (const patch of [
+    { revoked_at: "2026-11-13" },
+    { expires_at: "2000-01-01" },
+    { expires_at: "invalid" },
+  ])
+    await withServer(
+      async () => {
+        const res = response();
+        await developerRead(request(), res);
+        assert.equal(res.statusCode, 401);
+      },
+      async () =>
+        Response.json([
+          {
+            id: uid,
+            user_id: uid,
+            project_ids: [pid],
+            expires_at: new Date(Date.now() + 60000).toISOString(),
+            ...patch,
+          },
+        ]),
+    );
+});
+test("developer API uses canonical atomic budgets and explicit token-owner/project predicates", async () => {
+  const reads = [];
+  await withServer(
+    async () => {
+      const res = response();
+      await developerRead(request(), res);
+      assert.equal(res.statusCode, 200);
+      assert.equal(res.body.read_only, true);
+      assert.equal("user_id" in res.body.records[0], false);
+    },
+    async (url, options) => {
+      url = new URL(url);
+      reads.push({ url, options });
+      if (url.pathname.includes("lookup_developer_token"))
+        return Response.json([
+          {
+            id: uid,
+            user_id: uid,
+            project_ids: [pid],
+            expires_at: new Date(Date.now() + 60000).toISOString(),
+          },
+        ]);
+      if (url.pathname.includes("/rpc/")) {
+        assert.equal(url.pathname, "/rest/v1/rpc/consume_discovery_rate_limit");
+        return Response.json([{ allowed: true }]);
+      }
+      assert.equal(url.searchParams.get("user_id"), "eq." + uid);
+      assert.equal(url.searchParams.get("data->>project_id"), "eq." + pid);
+      assert.equal(url.searchParams.get("limit"), "20");
+      return Response.json([
+        { id: uid, user_id: uid, data: { title: "Owned scope" } },
+      ]);
+    },
+  );
+  assert.equal(
+    reads.filter((r) =>
+      r.url.pathname.endsWith("/consume_discovery_rate_limit"),
+    ).length,
+    2,
+  );
+});
+test("developer API fails closed on exhausted quota and foreign returned rows", async () => {
+  for (const failure of ["quota", "foreign"])
+    await withServer(
+      async () => {
+        const res = response();
+        await developerRead(request(), res);
+        assert.equal(res.statusCode, failure === "quota" ? 429 : 503);
+      },
+      async (url) =>
+        String(url).includes("lookup_developer_token")
+          ? Response.json([
+              {
+                id: uid,
+                user_id: uid,
+                project_ids: [pid],
+                expires_at: new Date(Date.now() + 60000).toISOString(),
+              },
+            ])
+          : String(url).includes("/rpc/")
+            ? Response.json([
+                { allowed: failure !== "quota", retry_after_seconds: 20 },
+              ])
+            : Response.json([{ id: uid, user_id: "foreign", data: {} }]),
+    );
+});
+test("admin operations rejects editable user metadata and requires fresh trusted app metadata", async () => {
+  for (const admin of [false, true])
+    await withServer(
+      async () => {
+        const res = response();
+        await adminOperations(
+          {
+            method: "GET",
+            headers: { authorization: "Bearer user-token" },
+            query: {},
+          },
+          res,
+        );
+        assert.equal(res.statusCode, admin ? 200 : 403);
+        if (admin) assert.equal(res.body.configured.auth, true);
+      },
+      async (url) =>
+        String(url).includes("/auth/v1/user")
+          ? Response.json({
+              id: uid,
+              user_metadata: { eylo_role: "admin" },
+              app_metadata: admin ? { eylo_role: "admin" } : {},
+            })
+          : Response.json([]),
+    );
+});
+test("admin status writes are bounded and stale saves return409", async () => {
+  await withServer(
+    async () => {
+      const res = response();
+      await adminOperations(
+        {
+          method: "POST",
+          headers: { authorization: "Bearer user-token" },
+          body: {
+            id: uid,
+            status: "closed",
+            updated_date: "2026-11-13T00:00:00Z",
+          },
+        },
+        res,
+      );
+      assert.equal(res.statusCode, 409);
+    },
+    async (url, options) => {
+      if (String(url).includes("/auth/"))
+        return Response.json({ id: uid, app_metadata: { eylo_role: "admin" } });
+      assert.equal(options.method, "PATCH");
+      assert.match(String(url), /updated_date=eq/);
+      return Response.json([]);
+    },
+  );
+});

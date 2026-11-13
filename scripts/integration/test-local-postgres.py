@@ -35,16 +35,20 @@ MIGRATIONS = [
     '20261113090000_eyra_conversations.sql',
     '20261113114924_eyra_conversation_snapshots.sql',
     '20261113120556_eyra_snapshot_retry_identity.sql',
+    '20261113180517_complete_workspace_products.sql',
 ]
 BOOTSTRAP = '''
 create role anon nologin;
 create role authenticated nologin;
 create role service_role nologin bypassrls;
 create schema auth;
-create table auth.users (id uuid primary key);
+create table auth.users (id uuid primary key, raw_app_meta_data jsonb not null default '{}'::jsonb, banned_until timestamptz);
+create table auth.sessions(id uuid primary key,user_id uuid not null references auth.users(id) on delete cascade);
 create function auth.uid() returns uuid language sql stable as
 $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
 grant usage on schema auth to anon, authenticated, service_role;
+create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb $$;
+grant execute on function auth.jwt() to authenticated,service_role;
 grant execute on function auth.uid() to anon, authenticated, service_role;
 create schema storage;
 create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
@@ -89,6 +93,8 @@ try:
     print('PASS: project research journal, experiments and publications roundtrip, preserve unrelated data, reject stale saves and deny outsider reads/writes/deletes.', flush=True)
     sql((ROOT / 'tests/integration/planning-documents-postgres.sql').read_text())
     print('PASS: research budget and thesis canonical project/Note persistence, unrelated-data preservation, stale-save rejection and outsider isolation.', flush=True)
+    sql((ROOT / 'tests/integration/complete-products-postgres.sql').read_text())
+    print('PASS: new product canonical actions/replays, team consent/role revocation, peer review privacy, feedback trusted-role checks, personal token scopes and publishing budgets.', flush=True)
     export_tables = json.loads(subprocess.check_output(['node', '--input-type=module', '-e',
         "import { WORKSPACE_EXPORT_TABLES } from './src/lib/workspace-export.mjs'; process.stdout.write(JSON.stringify(WORKSPACE_EXPORT_TABLES));"], cwd=ROOT, text=True))
     if any(not isinstance(table, str) or not table.isidentifier() for table in export_tables):

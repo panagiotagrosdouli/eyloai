@@ -48,6 +48,8 @@ const TOOL_GROUPS = [
       { label: 'Flashcards', path: '/flashcards', icon: Layers3, desc: 'Review saved cards with spaced repetition' },
       { label: 'Calendar', path: '/calendar', icon: CalendarDays, desc: 'Plan private events and project deadlines' },
       { label: 'Workspace search', path: '/workspace/search', icon: Search, desc: 'Search your own notes, projects, tasks and saved research' },
+      { label: 'Task automations', path: '/automations', icon: GitBranch, desc: 'Preview saved task workflows and confirmed run history' },
+      { label: 'All workspace tools', path: '/tools', icon: LayoutGrid, desc: 'Private, collaborative and operational product workflows' },
       { label: 'Activity history', path: '/activity', icon: Clock3, desc: 'Review recent private workspace changes' },
       { label: 'Notes', path: '/notes', icon: NotebookPen, desc: 'Private notes with project links and version history' },
       { label: 'Knowledge graph', path: '/knowledge-graph', icon: GitBranch, desc: 'Explore source-linked research relationships' },

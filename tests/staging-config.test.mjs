@@ -14,6 +14,8 @@ test('staging deployment configuration has no production Supabase rewrite or aut
   assert.equal(config.rewrites.some(rule=>rule.source.includes('supabase')),false);
   assert.deepEqual(config.crons,[]);
   assert.match(config.buildCommand,/verify-staging-config/);
-  const fallback=new RegExp('^'+config.rewrites[0].source+'$');
+  const fallback=new RegExp('^'+config.rewrites.find(rule=>rule.destination==='/index.html').source+'$');
   assert.equal(fallback.test('/api/eyra'),false);assert.equal(fallback.test('/projects/p1'),true);
 });
+
+test('staging routes consolidated APIs before the guarded SPA fallback',()=>{const config=JSON.parse(readFileSync(new URL('../vercel.staging.json',import.meta.url),'utf8'));for(const endpoint of ['capabilities','contact','deployment-status','admin-operations','developer'])assert.ok(config.rewrites.some(rule=>rule.source==='/api/'+endpoint&&rule.destination==='/api/system?endpoint='+endpoint));});
