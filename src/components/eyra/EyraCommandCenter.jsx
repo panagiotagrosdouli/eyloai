@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import { getUsableSession } from '@/lib/supabaseClient';
+import {
+  makePendingEyraUserMessage, saveEyraUserMessage, eyraPersistenceStatus,
+} from '@/lib/eyra-conversation-saving.mjs';
 import { buildUserProfile } from '@/lib/second-brain';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
@@ -235,7 +239,7 @@ function TypingIndicator({ stage }) {
   );
 }
 
-function Message({ msg, onSave, onCopy, saved, copied, saving }) {
+function Message({ msg, onSave, onCopy, onRetryPersistence, saved, copied, saving }) {
   const isEyra = msg.role === 'eyra';
   return (
     <motion.div
@@ -291,6 +295,24 @@ function Message({ msg, onSave, onCopy, saved, copied, saving }) {
               </a>
             ))}
             {msg.sources.length > 8 && <span className="px-2 py-1 text-[9px] text-muted-foreground">+{msg.sources.length - 8} more</span>}
+          </div>
+        )}
+        {msg.role === 'user' && (
+          <div className="mt-1 flex items-center gap-2 px-1 text-[10px]" aria-live="polite">
+            <span data-eyra-persistence={msg.persistence || 'local-only'} className="text-muted-foreground">
+              {msg.persistence === 'saved' ? 'Saved to EYRA'
+                : msg.persistence === 'saving' ? 'Saving to EYRA…'
+                : msg.persistence === 'failed' ? 'Save failed · local copy'
+                : msg.persistence === 'unconfirmed' ? 'Save unconfirmed · local copy'
+                : 'Local-only · not saved to EYRA'}
+            </span>
+            {msg.id && msg.persistence !== 'saved' && msg.persistence !== 'saving' && (
+              <button type="button" onClick={() => onRetryPersistence(msg)}
+                aria-label="Retry saving EYRA message"
+                className="rounded border border-border px-2 py-0.5 text-foreground hover:bg-secondary">
+                Retry save
+              </button>
+            )}
           </div>
         )}
         <div className="mt-1 flex items-center gap-1 px-1">
@@ -368,6 +390,15 @@ export default function EyraCommandCenter({ open, onClose }) {
   const recognitionRef = useRef(null);
   const dialogRef = useRef(null);
   const activeRequestRef = useRef(null);
+  const lastPersistable = [...messages].reverse().find(message => (
+    message.role === 'user' && message.conversationId
+  ));
+  const conversationIdRef = useRef(lastPersistable?.conversationId || null);
+  const conversationTitleRef = useRef(
+    messages.find(message => message.role === 'user'
+      && message.conversationId === lastPersistable?.conversationId)?.conversationTitle || null
+  );
+  const persistenceRequestsRef = useRef(new Set());
 
   useEffect(() => {
     if (!open) return undefined;
@@ -496,17 +527,55 @@ export default function EyraCommandCenter({ open, onClose }) {
     setActionError('Generation stopped. No new EYRA response was saved.');
   };
 
+  const persistUserMessage = async (message) => {
+    if (!message?.id || persistenceRequestsRef.current.has(message.id)) return;
+    persistenceRequestsRef.current.add(message.id);
+    setMessages(previous => previous.map(item => item.id === message.id
+      ? { ...item, persistence: 'saving' } : item));
+    try {
+      await saveEyraUserMessage(message, {
+        getSession: () => getUsableSession({ required: false, validate: true }),
+        fetchImpl: fetch,
+        onIdentity: ownerId => setMessages(previous => previous.map(item => (
+          item.id === message.id ? { ...item, ownerId } : item
+        ))),
+      });
+      setMessages(previous => previous.map(item => item.id === message.id
+        ? { ...item, persistence: 'saved' } : item));
+    } catch (error) {
+      setMessages(previous => previous.map(item => item.id === message.id
+        ? { ...item, persistence: eyraPersistenceStatus(error) } : item));
+    } finally {
+      persistenceRequestsRef.current.delete(message.id);
+    }
+  };
+
   const sendMessage = async (text) => {
     const content = (text || input).trim();
     if (!content || loading || activeRequestRef.current) return;
+    let userMsg;
+    try {
+      const conversationId = conversationIdRef.current || crypto.randomUUID();
+      userMsg = makePendingEyraUserMessage(content, conversationId);
+      userMsg.conversationTitle = conversationTitleRef.current || userMsg.conversationTitle;
+      userMsg.ownerId = [...messages].reverse().find(message => (
+        message.role === 'user' && message.conversationId === conversationId && message.ownerId
+      ))?.ownerId;
+      conversationIdRef.current = conversationId;
+      conversationTitleRef.current = userMsg.conversationTitle;
+    } catch {
+      setActionError('This message is too long or your browser cannot generate a secure message ID.');
+      return;
+    }
     const controller = new AbortController();
     activeRequestRef.current = controller;
     setInput('');
     setActionError('');
 
-    const userMsg = { role: 'user', content, timestamp: Date.now() };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
+    // Persistence is independent of generation: failed saves remain retryable.
+    void persistUserMessage(userMsg);
     setLoading(true);
     setLoadingStage('retrieving');
 
@@ -641,6 +710,8 @@ Answer the user's latest request. Cite every externally verifiable claim with th
   const clearConversation = () => {
     window.speechSynthesis?.cancel();
     setMessages([{ ...createWelcomeMessage(userName), mode: activeMode }]);
+    conversationIdRef.current = null;
+    conversationTitleRef.current = null;
     setInput('');
   };
 
@@ -749,6 +820,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
                 msg={msg}
                 onSave={saveInsight}
                 onCopy={copyInsight}
+                onRetryPersistence={persistUserMessage}
                 saved={savedMessageIds.has(msg.timestamp)}
                 saving={savingMessageId === msg.timestamp}
                 copied={copiedMessageId === msg.timestamp}
@@ -799,6 +871,9 @@ Answer the user's latest request. Cite every externally verifiable claim with th
               <p role="alert" className="mt-2 text-center text-[10px] text-amber-300">{actionError}</p>
             )}
             <p className="mt-1.5 text-center text-[9px] text-muted-foreground">
+              EYRA responses and unsaved messages remain local to this browser session. Only messages marked Saved to EYRA are confirmed on the server.
+            </p>
+            <p className="mt-1 text-center text-[9px] text-muted-foreground">
               Responses may use workspace context and retrieved records · Enter to send · Shift+Enter for a new line
             </p>
           </div>
