@@ -108,7 +108,8 @@ def main():
     workflow_evidence = {
         **{i: 'Manual timer/quiz/course browser persistence fixtures and actual PostgreSQL RPC/policy checks' for i in (8, 11, 75)},
         24: 'Authenticated streaming and canonical EYRA snapshot save/restore browser fixtures; SSE/API permission tests; live OpenAI not executed',
-        47: 'Research Gap provider-shaped browser fixtures and canonical literature identity SQL checks; live retrieval diagnostic remains FAIL',
+        47: 'Authenticated EYRA streaming and canonical conversation browser fixtures; live OpenAI not executed',
+        58: 'Research Gap provider-shaped browser fixtures and canonical literature identity SQL checks; live retrieval diagnostic remains FAIL',
         **{i: 'Files/document create, version, reload, download/export and exact-link browser fixtures; local PostgreSQL metadata policies' for i in (16, 17, 18)},
         **{i: 'Project workplan subset: browser persistence/conflict fixtures and independent local PostgreSQL compare-and-set sessions' for i in (54, 55, 74)},
         **{i: 'Local Data Lab/catalog subset: browser analysis, export, disclosure and account-scoped metadata fixtures' for i in (65, 72, 73)},

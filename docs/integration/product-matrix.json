@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "baseline_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-  "inventory_commit": "c02ae9769caddc56e688a80cdd8a20d8ab752ac2",
+  "inventory_commit": "f2c1caa992e5b2d8c2e3a9bb1bbb28cebd8eb57a",
   "scope": "Integration candidate branch, not current main or deployed product",
   "intended_eylo_supabase_ref": "kbzjngpzxpniaumlupaa",
   "live_access": "Owner identified this ref; connector permission denied. Repository guards it as live EYLO. Separate staging identity remains required.",
@@ -2079,7 +2079,7 @@
       "implementation_commit": "c02ae9769caddc56e688a80cdd8a20d8ab752ac2",
       "automated_test_status": "Combined suite PASS: 609 tests; mapped file presence is not full product acceptance",
       "automated_test_source_commit": "c02ae9769caddc56e688a80cdd8a20d8ab752ac2",
-      "integration_test_status": "Partial local verification: Research Gap provider-shaped browser fixtures and canonical literature identity SQL checks; live retrieval diagnostic remains FAIL. Remaining product criteria unverified.",
+      "integration_test_status": "Partial local verification: Authenticated EYRA streaming and canonical conversation browser fixtures; live OpenAI not executed. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -2762,7 +2762,7 @@
       "implementation_commit": "7cb7b2d74671d188d8c494f8e3e428bfb5685256",
       "automated_test_status": "Combined suite PASS: 609 tests; mapped file presence is not full product acceptance",
       "automated_test_source_commit": "c02ae9769caddc56e688a80cdd8a20d8ab752ac2",
-      "integration_test_status": "Not independently verified per product",
+      "integration_test_status": "Partial local verification: Research Gap provider-shaped browser fixtures and canonical literature identity SQL checks; live retrieval diagnostic remains FAIL. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
