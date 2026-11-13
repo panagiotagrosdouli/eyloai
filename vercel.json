@@ -6,6 +6,18 @@
   "installCommand": "npm ci --no-audit --no-fund",
   "rewrites": [
     {
+      "source": "/api/capabilities",
+      "destination": "/api/system?endpoint=capabilities"
+    },
+    {
+      "source": "/api/contact",
+      "destination": "/api/system?endpoint=contact"
+    },
+    {
+      "source": "/api/deployment-status",
+      "destination": "/api/system?endpoint=deployment-status"
+    },
+    {
       "source": "/supabase/:path*",
       "destination": "https://kbzjngpzxpniaumlupaa.supabase.co/:path*"
     },

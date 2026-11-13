@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import handler from '../api/deployment-status.js';
+import handler from '../server/deployment-status.js';
 
 function reply() {
   return {

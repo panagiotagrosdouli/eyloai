@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createScholarlyResilience } from '../api/scholarly-resilience.mjs';
+import { createScholarlyResilience } from '../server/scholarly-resilience.mjs';
 import { fetchWithScholarlyBackoff } from '../src/lib/scholarly-provider-backoff.mjs';
 
 const success = text => ({ status: 200, body: Buffer.from(text), cacheable: true });
