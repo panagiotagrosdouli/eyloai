@@ -1,11 +1,278 @@
-import React,{useEffect,useState} from 'react';
-import {useAuth} from '@/lib/AuthContext';
-import {Link} from 'react-router-dom';
-import {getUsableSession,requireSupabase} from '@/lib/supabaseClient';
-import {decryptOfflineSnapshot,encryptOfflineSnapshot,OFFLINE_PREFIX} from '@/lib/offline-vault.mjs';
-import {workspaceButton as button,workspaceInput as input} from '@/components/projects/ProjectDocumentWorkspace';
-export default function OfflineWorkspace(){const {user,status,initializeAuth}=useAuth();const[passphrase,setPassphrase]=useState(''),[vault,setVault]=useState(null),[snapshot,setSnapshot]=useState(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);const keys=(()=>{try{return Object.keys(localStorage).filter(key=>key.startsWith(OFFLINE_PREFIX)&&(!user||key===OFFLINE_PREFIX+user.id));}catch{return[];}})();const[selected,setSelected]=useState(keys[0]||'');useEffect(()=>{const restore=()=>{if(navigator.onLine&&['idle','error'].includes(status))void initializeAuth();};const lock=()=>{if(document.visibilityState==='hidden'){setSnapshot(null);setPassphrase('');}};restore();window.addEventListener('online',restore);document.addEventListener('visibilitychange',lock);return()=>{window.removeEventListener('online',restore);document.removeEventListener('visibilitychange',lock);};},[status,initializeAuth]);useEffect(()=>{setSnapshot(null);setPassphrase('');setVault(null);setSelected('');},[user?.id]);
- const act=async fn=>{setBusy(true);setError('');try{await fn();}catch(f){setError(f.message);}finally{setBusy(false);}};
- const prepare=()=>act(async()=>{if(!window.confirm('Store an encrypted read-only snapshot on this browser? It contains up to 500 recent Notes and 100 projects, not a complete backup. Signing out clears this cache.'))return;const session=await getUsableSession({required:true,validate:true});const[notes,projects]=await Promise.all(['notes','projects'].map((table,i)=>requireSupabase().from(table).select('*').eq('user_id',session.user.id).order('updated_date',{ascending:false}).limit(i?100:500)));if(notes.error||projects.error)throw new Error('Snapshot sources could not be read.');const current=await getUsableSession({required:true,validate:true});if(current.user.id!==session.user.id)throw new Error('Account changed; snapshot cancelled.');const record={owner_id:session.user.id,created_at:new Date().toISOString(),notes:notes.data,projects:projects.data,coverage:'Recent 500 Notes and 100 projects; readonly, no file bytes or provider data.'};const encrypted=await encryptOfflineSnapshot(record,passphrase);const verified=await getUsableSession({required:true,validate:true});if(verified.user.id!==session.user.id)throw new Error('Account changed; snapshot cancelled.');localStorage.setItem(OFFLINE_PREFIX+session.user.id,JSON.stringify(encrypted));setVault(encrypted);setSelected(OFFLINE_PREFIX+session.user.id);setPassphrase('');if('serviceWorker'in navigator&&import.meta.env.PROD){await navigator.serviceWorker.register('/sw-offline.js');const registration=await navigator.serviceWorker.ready;const channel=new MessageChannel();const ready=new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('Static shell cache preparation timed out.')),15000);channel.port1.onmessage=event=>{clearTimeout(timer);if(event.data?.cached)resolve(true);else reject(new Error('Offline shell preparation was incomplete. Retry while online.'));};});registration.active.postMessage({type:'EYLO_CACHE_SHELL',urls:performance.getEntriesByType('resource').map(item=>item.name)},[channel.port2]);await ready;setNotice('Encrypted snapshot and static Offline shell prepared. Test an offline reload before relying on it.');}else setNotice('Encrypted snapshot saved. Offline shell caching requires a production HTTPS build; dev-mode offline reload is not verified.');});
- return <main className="eylo-page mx-auto max-w-4xl space-y-5 p-5"><Link to="/tools">All tools</Link><h1 className="text-2xl font-bold">Offline</h1><p className="text-sm text-muted-foreground">Encrypted, opt-in, read-only snapshots. The separate passphrase is never stored. This cache is not a complete backup.</p>{error&&<p role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}<label className="block text-sm">Offline passphrase<input className={input} type="password" autoComplete="off" value={passphrase} onChange={e=>setPassphrase(e.target.value)}/></label><button className={button} disabled={busy} onClick={prepare}>Prepare encrypted snapshot while online</button><label className="block text-sm">Stored account snapshot<select className={input} value={selected} onChange={e=>{setSelected(e.target.value);setSnapshot(null);}}><option value="">Choose snapshot</option>{[...new Set([...keys,...(vault?[OFFLINE_PREFIX+vault.owner_id]:[])])].map(key=><option key={key}>{key}</option>)}</select></label><div className="flex flex-wrap gap-2"><button className={button} disabled={busy||!selected} onClick={()=>act(async()=>{const saved=JSON.parse(localStorage.getItem(selected)||'null');if(user&&saved?.owner_id!==user.id)throw new Error('Choose a snapshot belonging to this account.');setSnapshot(await decryptOfflineSnapshot(saved,passphrase));setPassphrase('');setNotice('Read-only snapshot unlocked locally. Server authorization and current data are not verified offline.');})}>Unlock locally</button><button className={button} onClick={()=>{setSnapshot(null);setPassphrase('');}}>Lock snapshot</button><button className={button} disabled={!selected} onClick={()=>{if(window.confirm('Delete this browser’s encrypted snapshot?')){localStorage.removeItem(selected);setSnapshot(null);setVault(null);setSelected('');setNotice('Local snapshot deleted.');}}}>Delete local snapshot</button></div>{snapshot&&<section className="space-y-3"><h2 className="font-semibold">Snapshot from {snapshot.created_at}</h2><p className="text-xs">{snapshot.coverage}</p>{snapshot.projects.map(row=><article key={row.id} className="rounded-lg border border-border p-3">Project: {row.data?.title||'Untitled'}</article>)}{snapshot.notes.map(row=><article key={row.id} className="rounded-lg border border-border p-3"><h3 className="font-semibold">{row.data?.title}</h3><p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{row.data?.content}</p></article>)}</section>}</main>;
+import React, { useEffect, useState } from "react";
+import { useAuth } from "@/lib/AuthContext";
+import { Link } from "react-router-dom";
+import { getUsableSession, requireSupabase } from "@/lib/supabaseClient";
+import {
+  decryptOfflineSnapshot,
+  encryptOfflineSnapshot,
+  OFFLINE_PREFIX,
+} from "@/lib/offline-vault.mjs";
+import {
+  workspaceButton as button,
+  workspaceInput as input,
+} from "@/components/projects/ProjectDocumentWorkspace";
+export default function OfflineWorkspace() {
+  const { user, status, initializeAuth } = useAuth();
+  const [passphrase, setPassphrase] = useState(""),
+    [vault, setVault] = useState(null),
+    [snapshot, setSnapshot] = useState(null),
+    [error, setError] = useState(""),
+    [notice, setNotice] = useState(""),
+    [busy, setBusy] = useState(false);
+  const keys = (() => {
+    try {
+      return Object.keys(localStorage).filter(
+        (key) =>
+          key.startsWith(OFFLINE_PREFIX) &&
+          (!user || key === OFFLINE_PREFIX + user.id),
+      );
+    } catch {
+      return [];
+    }
+  })();
+  const [selected, setSelected] = useState(keys[0] || "");
+  useEffect(() => {
+    const restore = () => {
+      if (navigator.onLine && ["idle", "error"].includes(status))
+        void initializeAuth();
+    };
+    const lock = () => {
+      if (document.visibilityState === "hidden") {
+        setSnapshot(null);
+        setPassphrase("");
+      }
+    };
+    restore();
+    window.addEventListener("online", restore);
+    document.addEventListener("visibilitychange", lock);
+    return () => {
+      window.removeEventListener("online", restore);
+      document.removeEventListener("visibilitychange", lock);
+    };
+  }, [status, initializeAuth]);
+  useEffect(() => {
+    setSnapshot(null);
+    setPassphrase("");
+    setVault(null);
+    setSelected("");
+  }, [user?.id]);
+  const act = async (fn) => {
+    setBusy(true);
+    setError("");
+    try {
+      await fn();
+    } catch (f) {
+      setError(f.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const prepare = () =>
+    act(async () => {
+      if (
+        !window.confirm(
+          "Store an encrypted read-only snapshot on this browser? It contains up to 500 recent Notes and 100 projects, not a complete backup. Signing out clears this cache.",
+        )
+      )
+        return;
+      const session = await getUsableSession({
+        required: true,
+        validate: true,
+      });
+      const [notes, projects] = await Promise.all(
+        ["notes", "projects"].map((table, i) =>
+          requireSupabase()
+            .from(table)
+            .select("*")
+            .eq("user_id", session.user.id)
+            .order("updated_date", { ascending: false })
+            .limit(i ? 100 : 500),
+        ),
+      );
+      if (notes.error || projects.error)
+        throw new Error("Snapshot sources could not be read.");
+      const current = await getUsableSession({
+        required: true,
+        validate: true,
+      });
+      if (current.user.id !== session.user.id)
+        throw new Error("Account changed; snapshot cancelled.");
+      const record = {
+        owner_id: session.user.id,
+        created_at: new Date().toISOString(),
+        notes: notes.data,
+        projects: projects.data,
+        coverage:
+          "Recent 500 Notes and 100 projects; readonly, no file bytes or provider data.",
+      };
+      const encrypted = await encryptOfflineSnapshot(record, passphrase);
+      const verified = await getUsableSession({
+        required: true,
+        validate: true,
+      });
+      if (verified.user.id !== session.user.id)
+        throw new Error("Account changed; snapshot cancelled.");
+      localStorage.setItem(
+        OFFLINE_PREFIX + session.user.id,
+        JSON.stringify(encrypted),
+      );
+      setVault(encrypted);
+      setSelected(OFFLINE_PREFIX + session.user.id);
+      setPassphrase("");
+      if ("serviceWorker" in navigator && import.meta.env.PROD) {
+        await navigator.serviceWorker.register("/sw-offline.js");
+        const registration = await navigator.serviceWorker.ready;
+        const channel = new MessageChannel();
+        const ready = new Promise((resolve, reject) => {
+          const timer = setTimeout(
+            () =>
+              reject(new Error("Static shell cache preparation timed out.")),
+            15000,
+          );
+          channel.port1.onmessage = (event) => {
+            clearTimeout(timer);
+            if (event.data?.cached) resolve(true);
+            else
+              reject(
+                new Error(
+                  "Offline shell preparation was incomplete. Retry while online.",
+                ),
+              );
+          };
+        });
+        registration.active.postMessage(
+          {
+            type: "EYLO_CACHE_SHELL",
+            urls: performance
+              .getEntriesByType("resource")
+              .map((item) => item.name),
+          },
+          [channel.port2],
+        );
+        await ready;
+        setNotice(
+          "Encrypted snapshot and static Offline shell prepared. Test an offline reload before relying on it.",
+        );
+      } else
+        setNotice(
+          "Encrypted snapshot saved. Offline shell caching requires a production HTTPS build; dev-mode offline reload is not verified.",
+        );
+    });
+  return (
+    <main className="eylo-page mx-auto max-w-4xl space-y-5 p-5">
+      <Link to="/tools">All tools</Link>
+      <h1 className="text-2xl font-bold">Offline</h1>
+      <p className="text-sm text-muted-foreground">
+        Encrypted, opt-in, read-only snapshots. The separate passphrase is never
+        stored. This cache is not a complete backup.
+      </p>
+      {error && <p role="alert">{error}</p>}
+      {notice && <p role="status">{notice}</p>}
+      <label className="block text-sm">
+        Offline passphrase
+        <input
+          className={input}
+          type="password"
+          autoComplete="off"
+          value={passphrase}
+          onChange={(e) => setPassphrase(e.target.value)}
+        />
+      </label>
+      <button className={button} disabled={busy} onClick={prepare}>
+        Prepare encrypted snapshot while online
+      </button>
+      <label className="block text-sm">
+        Stored account snapshot
+        <select
+          className={input}
+          value={selected}
+          onChange={(e) => {
+            setSelected(e.target.value);
+            setSnapshot(null);
+          }}
+        >
+          <option value="">Choose snapshot</option>
+          {[
+            ...new Set([
+              ...keys,
+              ...(vault ? [OFFLINE_PREFIX + vault.owner_id] : []),
+            ]),
+          ].map((key) => (
+            <option key={key}>{key}</option>
+          ))}
+        </select>
+      </label>
+      <div className="flex flex-wrap gap-2">
+        <button
+          className={button}
+          disabled={busy || !selected}
+          onClick={() =>
+            act(async () => {
+              const saved = JSON.parse(
+                localStorage.getItem(selected) || "null",
+              );
+              if (user && saved?.owner_id !== user.id)
+                throw new Error("Choose a snapshot belonging to this account.");
+              setSnapshot(await decryptOfflineSnapshot(saved, passphrase));
+              setPassphrase("");
+              setNotice(
+                "Read-only snapshot unlocked locally. Server authorization and current data are not verified offline.",
+              );
+            })
+          }
+        >
+          Unlock locally
+        </button>
+        <button
+          className={button}
+          onClick={() => {
+            setSnapshot(null);
+            setPassphrase("");
+          }}
+        >
+          Lock snapshot
+        </button>
+        <button
+          className={button}
+          disabled={!selected}
+          onClick={() => {
+            if (window.confirm("Delete this browser’s encrypted snapshot?")) {
+              localStorage.removeItem(selected);
+              setSnapshot(null);
+              setVault(null);
+              setSelected("");
+              setNotice("Local snapshot deleted.");
+            }
+          }}
+        >
+          Delete local snapshot
+        </button>
+      </div>
+      {snapshot && (
+        <section className="space-y-3">
+          <h2 className="font-semibold">Snapshot from {snapshot.created_at}</h2>
+          <p className="text-xs">{snapshot.coverage}</p>
+          {snapshot.projects.map((row) => (
+            <article
+              key={row.id}
+              className="rounded-lg border border-border p-3"
+            >
+              Project: {row.data?.title || "Untitled"}
+            </article>
+          ))}
+          {snapshot.notes.map((row) => (
+            <article
+              key={row.id}
+              className="rounded-lg border border-border p-3"
+            >
+              <h3 className="font-semibold">{row.data?.title}</h3>
+              <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">
+                {row.data?.content}
+              </p>
+            </article>
+          ))}
+        </section>
+      )}
+    </main>
+  );
 }
