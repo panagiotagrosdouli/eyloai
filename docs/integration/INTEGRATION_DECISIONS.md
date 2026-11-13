@@ -73,3 +73,5 @@ Batch `784d1e5` adds owner/version-checked snapshot deletion with confirmation, 
 Current draft continuation: [#402](https://github.com/panagiotagrosdouli/eyloai/pull/402). Prior merged PRs are historical.
 
 SQL follow-up `84efa01`: exact retry comparison normalizes omitted optional sources to the stored default empty array; the complete 17-migration disposable PostgreSQL suite passed again, including two independent same-ID snapshot writers.
+
+CI run `43424465089` at `de485c1` exposed an actual speculative-insert race on the composite parent unique index, despite the primary-key conflict target. Repair `05241b7` handles all unique conflicts before the same owner lookup/content verification. The local suite passed with three overlapping transaction rounds; the original CI failure is preserved under evidence/2026-11-13. Final PR checks must pass before claiming CI success.

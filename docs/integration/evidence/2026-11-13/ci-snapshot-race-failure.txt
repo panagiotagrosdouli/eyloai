@@ -1,0 +1,37 @@
+e.
+2026-11-13T12:22:12.4846218Z ERROR:  duplicate key value violates unique constraint "eyra_conversations_id_user_id_key"
+2026-11-13T12:22:12.4847441Z CONTEXT:  SQL statement "insert into public.eyra_conversations(id,user_id,title) values(p_snapshot_id,auth.uid(),p_title)
+2026-11-13T12:22:12.4847966Z   on conflict (id) do nothing returning *"
+2026-11-13T12:22:12.4848519Z PL/pgSQL function public.save_eyra_conversation_snapshot(text,jsonb,uuid) line 16 at SQL statement
+2026-11-13T12:22:12.5938366Z Traceback (most recent call last):
+2026-11-13T12:22:12.5943098Z   File "/home/runner/work/eyloai/eyloai/scripts/integration/test-local-postgres.py", line 124, in <module>
+2026-11-13T12:22:12.5943455Z     snapshot_outcomes = list(pool.map(concurrent_snapshot, [1, 2]))
+2026-11-13T12:22:12.5943790Z   File "/usr/lib/python3.14/concurrent/futures/_base.py", line 639, in result_iterator
+2026-11-13T12:22:12.5944078Z     yield _result_or_cancel(fs.pop())
+2026-11-13T12:22:12.5944254Z           ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+2026-11-13T12:22:12.5944509Z   File "/usr/lib/python3.14/concurrent/futures/_base.py", line 311, in _result_or_cancel
+2026-11-13T12:22:12.5944758Z     return fut.result(timeout)
+2026-11-13T12:22:12.5944917Z            ~~~~~~~~~~^^^^^^^^^
+2026-11-13T12:22:12.5945132Z   File "/usr/lib/python3.14/concurrent/futures/_base.py", line 450, in result
+2026-11-13T12:22:12.5945355Z     return self.__get_result()
+2026-11-13T12:22:12.5945505Z            ~~~~~~~~~~~~~~~~~^^
+2026-11-13T12:22:12.5945822Z   File "/usr/lib/python3.14/concurrent/futures/_base.py", line 395, in __get_result
+2026-11-13T12:22:12.5946157Z     raise self._exception
+2026-11-13T12:22:12.5946372Z   File "/usr/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+2026-11-13T12:22:12.5946595Z     result = ctx.run(self.task)
+2026-11-13T12:22:12.5946808Z   File "/usr/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+2026-11-13T12:22:12.5947030Z     return fn(*args, **kwargs)
+2026-11-13T12:22:12.5947342Z   File "/home/runner/work/eyloai/eyloai/scripts/integration/test-local-postgres.py", line 122, in concurrent_snapshot
+2026-11-13T12:22:12.5947874Z     return subprocess.check_output([*DOCKER, 'exec', '-i', NAME, 'psql', '-U', 'postgres', '-qAt', '-v', 'ON_ERROR_STOP=1'], env=ENV, input=statement, text=True).strip()
+2026-11-13T12:22:12.5948333Z            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-13T12:22:12.5948629Z   File "/usr/lib/python3.14/subprocess.py", line 473, in check_output
+2026-11-13T12:22:12.5948918Z     return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+2026-11-13T12:22:12.5949150Z            ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-13T12:22:12.5949330Z                **kwargs).stdout
+2026-11-13T12:22:12.5949479Z                ^^^^^^^^^
+2026-11-13T12:22:12.5949662Z   File "/usr/lib/python3.14/subprocess.py", line 578, in run
+2026-11-13T12:22:12.5949883Z     raise CalledProcessError(retcode, process.args,
+2026-11-13T12:22:12.5950311Z                              output=stdout, stderr=stderr)
+2026-11-13T12:22:12.5951025Z subprocess.CalledProcessError: Command '['docker', '--host=unix:///var/run/docker.sock', 'exec', '-i', 'eylo-sql-test-fb5bccf701', 'psql', '-U', 'postgres', '-qAt', '-v', 'ON_ERROR_STOP=1']' returned non-zero exit status 3.
+2026-11-13T12:22:12.6065708Z ##[error]Process completed with exit code 1.
+2026-11-13T12:22:12.6156292Z

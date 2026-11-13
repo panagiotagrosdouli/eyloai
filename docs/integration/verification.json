@@ -1,6 +1,6 @@
 {
   "date": "2026-11-13",
-  "tested_source_commit": "84efa01b7551a705a271ab8544964b666c48b3fc",
+  "tested_source_commit": "05241b743505d45eae9de75a882d9d417a60f454",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
@@ -68,10 +68,11 @@
         "idempotent snapshot retry and conflicting identity rejection",
         "stale-version and outsider snapshot deletion rejected",
         "two independent sessions save the same snapshot UUID and create one message",
-        "exact retries normalize omitted optional sources to the stored empty array"
+        "exact retries normalize omitted optional sources to the stored empty array",
+        "three overlapping transaction rounds cover both parent unique indexes during concurrent same-ID replay"
       ],
       "hosted_supabase_verified": false,
-      "evidence": "evidence/2026-11-13/privacy-postgres-final.txt"
+      "evidence": "evidence/2026-11-13/privacy-postgres-race-fixed.txt"
     },
     "supplemental_ci": {
       "status": "PASS",
@@ -210,5 +211,16 @@
     "status": "FAIL",
     "deployment_id": "dpl_71qdfqfvxmqV7jeusSuBRMEkkRNF",
     "cause": "UNVERIFIED; deployment API and build logs unavailable to connected team. Earlier build-rate-limit evidence is historical, not proof of current failure cause."
+  },
+  "ci_failure_and_repair": {
+    "failed_head": "de485c1",
+    "run_id": 43424465089,
+    "job_id": 131882353387,
+    "cause": "Concurrent speculative inserts collided with composite eyra_conversations_id_user_id_key, outside explicit primary-key ON CONFLICT target",
+    "repair_commit": "05241b7",
+    "repair": "ON CONFLICT DO NOTHING covers both unique indexes; caller-owner lookup and exact content comparison remain required",
+    "local_retest": "PASS: 17 migrations and three overlapping transaction rounds",
+    "evidence": "evidence/2026-11-13/ci-snapshot-race-failure.txt",
+    "final_ci": "PENDING: see draft PR402 checks"
   }
 }

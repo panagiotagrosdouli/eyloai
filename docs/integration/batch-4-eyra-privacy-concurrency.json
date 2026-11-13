@@ -18,13 +18,15 @@
   },
   "VERIFIED": [
     "Synthetic authenticated browser fixtures, actual disposable PostgreSQL 17.6; no hosted acceptance",
-    "SQL-only followup normalizes omitted optional source arrays on exact retry; 17-migration disposable PostgreSQL acceptance rerun PASS"
+    "SQL-only followup normalizes omitted optional source arrays on exact retry; 17-migration disposable PostgreSQL acceptance rerun PASS",
+    "17-migration local suite passed after repair, including three overlapping transaction rounds"
   ],
   "FAILED": [
     "Initial new test harness variable collision and early assertion timing corrected",
     "Initial migration signature replacement corrected before acceptance",
     "Checklist save response exposed an existing effect that erased success state; same-project draft/confirmation preserved",
-    "Historical live retrieval diagnostic still FAIL at 4/5; not rerun for this unchanged retrieval code"
+    "Historical live retrieval diagnostic still FAIL at 4/5; not rerun for this unchanged retrieval code",
+    "GitHub Quality Gate at de485c1 revealed composite unique-index race, repaired in 05241b7; original failure evidence preserved"
   ],
   "BLOCKED": [
     "Separate authorized Supabase staging",
@@ -37,5 +39,6 @@
   ],
   "remote_migrations_applied": false,
   "production_writes": false,
-  "sql_followup_commit": "84efa01b7551a705a271ab8544964b666c48b3fc"
+  "sql_followup_commit": "84efa01b7551a705a271ab8544964b666c48b3fc",
+  "final_ci": "PENDING at recording time; final PR402 checks authoritative"
 }
