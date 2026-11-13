@@ -1,6 +1,6 @@
 {
   "date": "2026-11-13",
-  "tested_source_commit": "c02ae9769caddc56e688a80cdd8a20d8ab752ac2",
+  "tested_source_commit": "19ee90bee2c20a7816fa113bc6f2368498569f28",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
@@ -15,7 +15,7 @@
         "Node unit/API regressions",
         "Vite production build"
       ],
-      "evidence": "evidence/2026-11-13/merged-check.txt"
+      "evidence": "evidence/2026-11-13/snapshot-final-check.txt"
     },
     "browser": {
       "status": "PASS",
@@ -38,7 +38,7 @@
         "two project-scoped grant drafts, switching and reload",
         "Research Gap real-provider-shaped fixtures, source coverage and canonical literature saving"
       ],
-      "evidence": "evidence/2026-11-13/final-auth-browser.txt; evidence/2026-11-13/merged-learning-browser.txt"
+      "evidence": "evidence/2026-11-13/final-auth-browser.txt; evidence/2026-11-13/saved-label-browser.txt"
     },
     "postgres": {
       "status": "PASS",
@@ -155,7 +155,8 @@
       "Europe PMC real responses after sort parameter repair"
     ],
     "FAILED": [
-      "Live scholarly diagnostic: sufficient coverage 4/5; heuristic gates 3/4; overall FAIL"
+      "Live scholarly diagnostic: sufficient coverage 4/5; heuristic gates 3/4; overall FAIL",
+      "Latest Vercel preview failed; current cause inaccessible, not inferred from previous rate limit"
     ],
     "BLOCKED": [
       "Separate authorized Supabase staging and Vercel identity/access",
@@ -179,5 +180,21 @@
     "prior_pr_state": "Merged externally before continuation push",
     "prior_merge_commit": "83a647f9d07d147c1d212996c852ef122f48b296",
     "production_deployment_verified": false
+  },
+  "github_ci": {
+    "commit": "493a33be24ad3c70df2caced934a07f4eeae7fa1",
+    "status": "PASS",
+    "runs": {
+      "Build": 43421003793,
+      "EYLO Quality Gate": 43421003801,
+      "Product quality": 43421003936
+    },
+    "scope": "Full checks including fixture browsers and disposable PostgreSQL; before final saved-history label correction, separately rerun locally"
+  },
+  "latest_vercel_observation": {
+    "commit": "493a33be24ad3c70df2caced934a07f4eeae7fa1",
+    "status": "FAIL",
+    "deployment_id": "dpl_71qdfqfvxmqV7jeusSuBRMEkkRNF",
+    "cause": "UNVERIFIED; deployment API and build logs unavailable to connected team. Earlier build-rate-limit evidence is historical, not proof of current failure cause."
   }
 }
