@@ -172,5 +172,12 @@
     "merge_commit": "195d99d",
     "final_contract": "canonical eyra_conversations/messages; no chat records written to Ideas",
     "save_semantics": "Explicit immutable snapshot; existing records not overwritten; separate source metadata column; security-invoker atomic RPC with caller RLS"
+  },
+  "review": {
+    "current_draft_pr": 401,
+    "prior_pr": 398,
+    "prior_pr_state": "Merged externally before continuation push",
+    "prior_merge_commit": "83a647f9d07d147c1d212996c852ef122f48b296",
+    "production_deployment_verified": false
   }
 }

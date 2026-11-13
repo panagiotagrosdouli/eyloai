@@ -82,8 +82,10 @@ Verified starting HEAD: `aee9f370aa6a4fe1eb25dbd5ae308f8f9ec280ed`. Existing PR 
 
 ### Next smallest task
 
-After authorized separate staging becomes available, apply the reviewed migration to staging, exercise authenticated read-only list/load with two disposable accounts, and verify hosted PostgreSQL RLS and deletion. Until then, keep the PR in Draft and deployment blocked.
+After authorized separate staging becomes available, apply the reviewed migration to staging, exercise authenticated read-only list/load with two disposable accounts, and verify hosted PostgreSQL RLS and deletion. Until then, keep the continuation PR #401 in Draft and deployment blocked.
 
 ## Reconciled integration continuation
 
 The checkpoint sections above describe their original commit scopes. Merge `195d99d` retains this remote foundation alongside the concurrent integration work. Final implementation `c02ae97` uses canonical EYRA conversation/message tables for explicit immutable snapshots and owner-filtered browser save/restore; it does not repurpose Ideas. Streaming, client cancellation and source validation are locally tested. An additive migration stores bounded historical source attribution and an atomic security-invoker snapshot RPC. Sixteen selected migrations passed disposable PostgreSQL checks, including owner isolation, cascade and invalid-snapshot rollback. Combined check passed 609 tests; browser fixtures passed. Live OpenAI and hosted staging acceptance remain blocked/unverified; no hosted migrations or production writes occurred. See verification.json for exact scope and evidence.
+
+Current review: [draft continuation #401](https://github.com/panagiotagrosdouli/eyloai/pull/401), same integration branch. GitHub reports #398 was already merged externally at `002281a` / merge `83a647f` on 2026-11-13 07:56 UTC. The integration session did not merge it. New continuation changes are not part of that merged PR; #401 contains the remaining diff against main. No duplicate open PR existed for this branch when #401 was created.
