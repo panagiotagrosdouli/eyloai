@@ -1,5 +1,5 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
-import { readSupabaseApiConfig } from './supabase-config.mjs';
+import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
 import crypto from 'node:crypto';
 import { FREE_MONTHLY_AI_ACTIONS } from '../src/lib/eyra-usage-policy.mjs';
 import { matchesEyraResponseSchema } from '../src/lib/eyra-structured-contract.mjs';

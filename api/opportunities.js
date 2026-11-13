@@ -1,5 +1,5 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
-import { readSupabaseApiConfig } from './supabase-config.mjs';
+import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
 const GRANTS_SEARCH_URL = 'https://api.grants.gov/v1/api/search2';
 const GRANTS_DETAIL_URL = 'https://api.grants.gov/v1/api/fetchOpportunity';
 const EU_SEARCH_URL = 'https://api.tech.ec.europa.eu/search-api/prod/rest/search?apiKey=SEDIA&text=';

@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { AccessToken, RoomServiceClient, TrackSource } from 'livekit-server-sdk';
 import { applyCors } from '../src/lib/api-cors.mjs';
-import { readSupabaseApiConfig } from './supabase-config.mjs';
+import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
 
 const TOKEN_TTL_SECONDS = 600;
 const MAX_PARTICIPANTS = 20;

@@ -1,5 +1,5 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
-import { readSupabaseApiConfig } from './supabase-config.mjs';
+import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
 import crypto from 'node:crypto';
 
 const STRIPE_API_VERSION = '2026-06-24.dahlia';

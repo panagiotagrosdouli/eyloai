@@ -1,5 +1,5 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
-import { readSupabaseApiConfig } from './supabase-config.mjs';
+import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const NOT_FOUND = { error: 'Conversation not found.', code: 'CONVERSATION_NOT_FOUND' };
