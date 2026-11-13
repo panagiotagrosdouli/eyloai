@@ -1,0 +1,66 @@
+
+> eyloai@0.0.0 test:e2e:learning
+> node tests/e2e-learning-integration.mjs
+
+PASS fixture: canonical task timer start, reload, stop and export.
+PASS fixture: manual quiz creation, saved attempt, grading response and reload.
+PASS fixture: manual course, linked quiz, saved lesson progress, reload and mobile viewport.
+PASS fixture: delayed history response cannot repopulate a cleared conversation.
+PASS fixture: ambiguous snapshot save retries the same UUID, private export and confirmed cascade deletion; cancelled deletion leaves records unchanged.
+PASS fixture: reproducibility checklist save/reload and stale-write rejection preserve both the winning record and unsaved draft.
+PASS fixture: Literature Review protocol/screening save/reload, CAS conflict draft retention, cancelled/confirmed project switching, private export and mobile viewport.
+PASS fixture: scholarly duplicate records render one publication with retained provider/abstract attribution and save canonical DOI/provenance to the Library while AI is unavailable.
+PASS fixture: protocol deep links load an authorized exact project beyond the recent cap and fail closed for distinct foreign-owner and missing IDs; synthetic PostgREST, not hosted RLS.
+PASS fixture: Research Journal create/reload, owner-filtered CAS conflict and draft recovery, portable export, search, mobile and cancelled/confirmed deletion.
+PASS fixture: Experiment Lab create/reload, owner-filtered CAS conflict and draft recovery, portable export, search, mobile and cancelled/confirmed deletion.
+PASS fixture: Publication Tracker create/reload, owner-filtered CAS conflict and draft recovery, portable export, search, mobile and cancelled/confirmed deletion.
+PASS fixture: foreign project research workspace fails closed without carrying another project draft. Hosted RLS remains unverified.
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.selectOption: Timeout 20000ms exceeded.
+Call log:
+[2m  - waiting for getByLabel('Settings section')[22m
+[2m    - locator resolved to <select aria-label="Settings section" class="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none">…</select>[22m
+[2m  - attempting select option action[22m
+[2m    2 × waiting for element to be visible and enabled[22m
+[2m      - element is not visible[22m
+[2m    - retrying select option action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible and enabled[22m
+[2m      - element is not visible[22m
+[2m    - retrying select option action[22m
+[2m      - waiting 100ms[22m
+[2m    38 × waiting for element to be visible and enabled[22m
+[2m       - element is not visible[22m
+[2m     - retrying select option action[22m
+[2m       - waiting 500ms[22m
+
+    at /workspace/work/eyloai/tests/e2e-learning-integration.mjs:451:45 {
+  log: [
+    "  - waiting for getByLabel('Settings section')",
+    '    - locator resolved to <select aria-label="Settings section" class="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none">…</select>',
+    '  - attempting select option action',
+    '    2 × waiting for element to be visible and enabled',
+    '      - element is not visible',
+    '    - retrying select option action',
+    '    - waiting 20ms',
+    '    2 × waiting for element to be visible and enabled',
+    '      - element is not visible',
+    '    - retrying select option action',
+    '      - waiting 100ms',
+    '    38 × waiting for element to be visible and enabled',
+    '       - element is not visible',
+    '     - retrying select option action',
+    '       - waiting 500ms'
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v24.22.1
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

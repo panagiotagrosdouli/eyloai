@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "scope": "research-workspace-v1",
+  "commit": null,
+  "target": {
+    "environment": "staging",
+    "supabase_ref": null,
+    "owner_confirmed": false,
+    "connector_verified": false,
+    "vercel_team_id": null,
+    "vercel_project_id": null,
+    "deployment_environment": "preview",
+    "deployment_sha": null,
+    "manifest_sha": null
+  },
+  "checks": {
+    "ci": {
+      "status": "NOT_RUN",
+      "scope": "ci",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    },
+    "auth": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    },
+    "isolation": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    },
+    "files": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    },
+    "projects": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    },
+    "eyra": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    },
+    "research": {
+      "status": "NOT_RUN",
+      "scope": "live-and-human",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    },
+    "funding": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    },
+    "stripe": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    },
+    "livekit": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    },
+    "privacy": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    },
+    "ux": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    },
+    "operations": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    },
+    "legal_pilot": {
+      "status": "NOT_RUN",
+      "scope": "human-review",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {}
+    }
+  },
+  "recorded_state": "NO-GO: hosted infrastructure, providers, legal review and external pilot acceptance are unavailable/unverified; local tests do not satisfy these gates."
+}

@@ -3,10 +3,12 @@ import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { WORKSPACE_EXPORT_TABLES } from '../src/lib/workspace-export.mjs';
 
 const origin = 'http://127.0.0.1:4174';
 const supabaseUrl = 'https://eylo-learning-test.supabase.co';
 const user = { id: '00000000-0000-0000-0000-000000000001', email: 'learning@example.org', aud: 'authenticated', role: 'authenticated', app_metadata: { provider: 'email' }, user_metadata: {} };
+let fixtureUser = user;
 const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '4174', '--strictPort'], {
   env: { ...process.env, VITE_SUPABASE_URL: supabaseUrl, VITE_SUPABASE_ANON_KEY: 'learning-browser-public-test-key' }, stdio: 'ignore',
 });
@@ -20,6 +22,7 @@ const tables = {
   meetings: [], notifications: [], watchlists: [], monitoring_discoveries: [], profiles: [],
   eyra_conversations: [], eyra_messages: [], ideas: [], study_flashcard_decks: [], saved_papers: [], saved_researchers: [], saved_opportunities: [], search_history: [],
 };
+for (const table of WORKSPACE_EXPORT_TABLES) tables[table] ||= [];
 let aiCalls = 0;
 let interruptSnapshotSave = true;
 let snapshotWrites = 0;
@@ -93,8 +96,8 @@ try {
     const request = route.request();
     if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
     const url = new URL(request.url());
-    if (url.pathname.includes('/auth/v1/token')) return json(route, { access_token: 'learning-fixture-access-token', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now()/1000)+3600, refresh_token: 'learning-fixture-refresh-token', user });
-    if (url.pathname.includes('/auth/v1/user')) return json(route, user);
+    if (url.pathname.includes('/auth/v1/token')) return json(route, { access_token: fixtureUser.id === user.id ? 'learning-fixture-access-token' : 'learning-fixture-access-token-b', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now()/1000)+3600, refresh_token: 'learning-fixture-refresh-token', user: fixtureUser });
+    if (url.pathname.includes('/auth/v1/user')) return json(route, fixtureUser);
     if (url.pathname.includes('/rest/v1/rpc/')) {
       const name = url.pathname.split('/').at(-1); const result = rpc(name, request.postDataJSON());
       if (name === 'save_eyra_conversation_snapshot' && interruptSnapshotSave) { interruptSnapshotSave = false; return route.abort('failed'); }
@@ -387,6 +390,115 @@ try {
   await page.getByText('Could not load the requested private project and saved papers. Check access and your connection, then retry.').waitFor();
   assert.equal(await page.getByLabel('Select literature review project').count(), 0);
   console.log('PASS fixture: protocol deep links load an authorized exact project beyond the recent cap and fail closed for distinct foreign-owner and missing IDs; synthetic PostgREST, not hosted RLS.');
+
+
+  // Real React forms and canonical Project SDK; transport remains synthetic.
+  for (const [kind, title, singular, fields] of [
+    ['journal', 'Research Journal', 'entry', { Observation: 'Measured a lower response rate', 'Interpretation and uncertainty': 'Small sample; uncertain', 'Next step': 'Repeat collection' }],
+    ['experiments', 'Experiment Lab', 'experiment', { Hypothesis: 'A testable hypothesis', 'Method and analysis plan': 'Compare supplied measurements', 'Observed result': 'No difference observed', 'Limitations and deviations': 'Exploratory sample' }],
+    ['publications', 'Publication Tracker', 'publication', { 'Journal or venue': 'User-supplied test venue', 'Submission reference or DOI': 'TEST-2026-01', 'Next action': 'Review manuscript', 'Decision and revision notes': 'Awaiting response' }],
+  ]) {
+    const project = tables.projects[0];
+    await page.goto(`${origin}/projects/${project.id}/research/${kind}`);
+    await page.getByRole('heading', { name: title, exact: true }).waitFor();
+    await page.getByRole('button', { name: `New ${singular}`, exact: true }).click();
+    await page.getByLabel('Title', { exact: true }).fill(`${title} private fixture`);
+    for (const [label, value] of Object.entries(fields)) await page.getByLabel(label, { exact: true }).fill(value);
+    await page.getByRole('button', { name: 'Save record', exact: true }).click();
+    await page.getByText('Record saved to this project.', { exact: true }).waitFor();
+    await page.reload();
+    await page.getByRole('heading', { name: `${title} private fixture`, exact: true }).waitFor();
+    await page.getByRole('button', { name: `Edit ${singular}`, exact: true }).click();
+    await page.getByLabel('Title', { exact: true }).fill(`${title} retained draft`);
+    // A second writer changes the canonical project while the form is open.
+    project.updated_date = '2026-11-15T00:00:00.000Z'; project.data.concurrent_marker = kind;
+    await page.getByRole('button', { name: 'Save record', exact: true }).click();
+    await page.getByRole('alert').filter({ hasText: 'changed in another tab' }).waitFor();
+    assert.equal(await page.getByLabel('Title', { exact: true }).inputValue(), `${title} retained draft`);
+    await page.getByRole('button', { name: 'Reload latest project' }).click();
+    await page.getByRole('button', { name: 'Save record', exact: true }).click();
+    await page.getByText('Record saved to this project.', { exact: true }).waitFor();
+    assert.equal(project.data.concurrent_marker, kind);
+    const downloadEvent = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export saved records' }).click();
+    const download = await downloadEvent; const stream = await download.createReadStream(); let content = '';
+    for await (const chunk of stream) content += chunk;
+    const exported = JSON.parse(content); assert.equal(exported.workspace, kind); assert.equal(exported.records[0].title, `${title} retained draft`);
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${title} mobile overflow`);
+    await capture(page, `research-${kind}-mobile`);
+    await page.getByLabel('Find saved records').fill('unmatched-query'); await page.getByText('No records match your search.', { exact: true }).waitFor();
+    await page.getByLabel('Find saved records').fill('');
+    page.once('dialog', dialog => dialog.dismiss());
+    await page.getByRole('button', { name: `Delete ${singular}`, exact: true }).click();
+    assert.equal(await page.getByRole('heading', { name: `${title} retained draft`, exact: true }).count(), 1);
+    page.once('dialog', dialog => dialog.accept());
+    await page.getByRole('button', { name: `Delete ${singular}`, exact: true }).click();
+    await page.getByText('Record deleted.', { exact: true }).waitFor();
+    await page.reload(); await page.getByText(`No records yet. Add your first ${singular}.`, { exact: true }).waitFor();
+    await page.setViewportSize({ width: 1280, height: 900 });
+    console.log(`PASS fixture: ${title} create/reload, owner-filtered CAS conflict and draft recovery, portable export, search, mobile and cancelled/confirmed deletion.`);
+  }
+  await page.goto(`${origin}/projects/${tables.projects[0].id}/research/journal`);
+  await page.getByRole('button', { name: 'New entry', exact: true }).click();
+  await page.getByLabel('Title', { exact: true }).fill('Must not leak to another project');
+  page.once('dialog', dialog => dialog.accept());
+  await page.goto(`${origin}/projects/10000000-0000-4000-8000-000000000998/research/journal`);
+  await page.getByRole('alert').waitFor();
+  assert.equal(await page.getByLabel('Title', { exact: true }).count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'New entry', exact: true }).isDisabled(), true);
+  console.log('PASS fixture: foreign project research workspace fails closed without carrying another project draft. Hosted RLS remains unverified.');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${origin}/settings`);
+  await page.getByLabel('Settings section').selectOption('privacy');
+  const workspaceDownloadEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download saved workspace', exact: true }).click();
+  const workspaceDownload = await workspaceDownloadEvent;
+  const workspaceStream = await workspaceDownload.createReadStream(); let workspaceJson = '';
+  for await (const chunk of workspaceStream) workspaceJson += chunk;
+  const workspaceExport = JSON.parse(workspaceJson);
+  assert.equal(workspaceExport.version, 2);
+  assert.equal(workspaceExport.account.user_id, user.id);
+  assert.equal(workspaceExport.collections.notes[0].data.title, 'Canonical note');
+  assert.equal(workspaceExport.collections.learning_courses.length, 1);
+  assert.equal(workspaceExport.collections.quiz_attempts.length, 1);
+  assert.equal(workspaceExport.collections.time_entries.length, 1);
+  assert.ok(workspaceExport.collections.projects.every(row => row.user_id === user.id));
+  assert.ok(Object.keys(workspaceExport.collections).includes('eyra_messages'));
+  console.log('PASS fixture: Settings downloads owner-validated portable workspace v2 including canonical notes, learning and timer records; file bytes explicitly excluded.');
+  const privateATitle = 'Account A confidential fixture paper';
+  const privateBTitle = 'Account B confidential fixture paper';
+  const ownerB = { ...user, id: '00000000-0000-0000-0000-000000000002', email: 'second-fixture@example.org' };
+  tables.saved_papers.push({ id: '90000000-0000-4000-8000-000000000010', user_id: user.id, data: { title: privateATitle } });
+  tables.saved_papers.push({ id: '90000000-0000-4000-8000-000000000011', user_id: ownerB.id, data: { title: privateBTitle } });
+  await page.goto(`${origin}/library`);
+  await page.getByText(privateATitle, { exact: true }).waitFor();
+  let markOwnerQuery;
+  let releaseOwnerQuery;
+  const ownerQueryStarted = new Promise(resolve => { markOwnerQuery = resolve; });
+  const ownerQueryGate = new Promise(resolve => { releaseOwnerQuery = resolve; });
+  await page.route(`${supabaseUrl}/rest/v1/saved_papers**`, async route => {
+    if (new URL(route.request().url()).searchParams.get('user_id') === `eq.${ownerB.id}`) {
+      markOwnerQuery(); await ownerQueryGate;
+    }
+    await route.fallback();
+  });
+  fixtureUser = ownerB;
+  try {
+    const signedInId = await page.evaluate(async () => {
+      const { supabase } = await import('/src/lib/supabaseClient.js');
+      const result = await supabase.auth.signInWithPassword({ email: 'second-fixture@example.org', password: 'Fixture-password-123' });
+      if (result.error) throw result.error;
+      return result.data.user.id;
+    });
+    assert.equal(signedInId, ownerB.id);
+    await Promise.race([ownerQueryStarted, new Promise((_, reject) => setTimeout(() => reject(new Error('New account did not reload its private route')), 5000))]);
+    assert.equal(await page.getByText(privateATitle, { exact: true }).count(), 0, 'old-account content must disappear before new-account data arrives');
+    releaseOwnerQuery();
+    await page.getByText(privateBTitle, { exact: true }).waitFor();
+    assert.equal(await page.getByText(privateATitle, { exact: true }).count(), 0);
+    console.log('PASS fixture: a same-route authenticated account switch removes old private component state before the delayed new-owner query resolves.');
+  } finally { releaseOwnerQuery(); }
   console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.');
 } finally {
   if (browser) await browser.close();

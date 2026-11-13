@@ -1,12 +1,12 @@
 {
   "date": "2026-11-13",
-  "tested_source_commit": "63671871726786cebfb33f867dbc3fcc0609c2cc",
+  "tested_source_commit": "4a044bceae97a87ac483d5b2985798ad941b8f1c",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
     "npm_run_check": {
       "status": "PASS",
-      "tests": 616,
+      "tests": 640,
       "failed": 0,
       "includes": [
         "local imports",
@@ -15,8 +15,8 @@
         "Node unit/API regressions",
         "Vite production build"
       ],
-      "evidence": "evidence/2026-11-13/research-check-exact-project.txt",
-      "source_scope": "Application and unit-test sources unchanged from c842cc5; test-only followup6367187 adds explicit foreign/missing browser fixture cases"
+      "evidence": "evidence/2026-11-13/batch7-check-final.txt",
+      "source_scope": "Application/domain tests at 4a044bceae97a87ac483d5b2985798ad941b8f1c"
     },
     "browser": {
       "status": "PASS",
@@ -46,16 +46,20 @@
         "Literature Review protocol/screening persistence, project selection reload, conflicts and private export",
         "One scholarly publication retains co-indexing and abstract-donor attribution; canonical Library save while AI is unavailable",
         "Exact protocol project deep link beyond recent100; missing/foreign owner-scoped target fails closed instead of selecting another owned project",
-        "Distinct foreign-user fixture row and nonexistent ID both produce the same protocol load error; this proves client owner filtering, not hosted RLS"
+        "Distinct foreign-user fixture row and nonexistent ID both produce the same protocol load error; this proves client owner filtering, not hosted RLS",
+        "Portable workspace v2 export across canonical collections",
+        "Same-route account switch clears old private page state before delayed new-owner data",
+        "Research Journal, Experiment Lab and Publication Tracker create/reload, CAS conflict draft retention, reviewed retry, scoped export, search, mobile and confirmed deletion",
+        "Foreign project research records fail closed and never substitute another owned project"
       ],
-      "evidence": "evidence/2026-11-13/research-browser-owner-boundary.txt; evidence/2026-11-13/research-auth-browser.txt",
-      "fixture_source_commit": "63671871726786cebfb33f867dbc3fcc0609c2cc",
-      "fixture_blob_sha": "d0e04eac9654feae04e102da19ace20f73525137"
+      "evidence": "evidence/2026-11-13/batch7-browser-final.txt; evidence/2026-11-13/batch7-auth-browser.txt",
+      "fixture_source_commit": "4a044bceae97a87ac483d5b2985798ad941b8f1c",
+      "fixture_blob_sha": "fd8c0f5b3299602aef0837bc6605525101eb56c7"
     },
     "postgres": {
       "status": "PASS",
       "database": "disposable PostgreSQL 17.6; no network or published ports",
-      "migrations_executed": 17,
+      "migrations_executed": 18,
       "scope": "real PostgreSQL SQL/RLS/triggers with synthetic auth.uid identities and Storage metadata schema",
       "assertions": [
         "owner/outsider isolation across ten tables",
@@ -75,11 +79,13 @@
         "stale-version and outsider snapshot deletion rejected",
         "two independent sessions save the same snapshot UUID and create one message",
         "exact retries normalize omitted optional sources to the stored empty array",
-        "three overlapping transaction rounds cover both parent unique indexes during concurrent same-ID replay"
+        "three overlapping transaction rounds cover both parent unique indexes during concurrent same-ID replay",
+        "All 30 canonical export collections exist with RLS enabled and authenticated SELECT grants; no foreign fixture rows visible",
+        "Research Journal/Experiment Lab/Publication Tracker JSON roundtrip, unrelated data preservation, stale save rejection, outsider read/update/delete denial"
       ],
       "hosted_supabase_verified": false,
-      "evidence": "evidence/2026-11-13/privacy-postgres-race-fixed.txt",
-      "source_scope": "Prior batch local PASS on 17 selected migrations; no schema/policy changes in this batch, not rerun locally. Final CI runs the existing PostgreSQL suite."
+      "evidence": "evidence/2026-11-13/batch7-postgres-final.txt",
+      "source_scope": "Rerun locally: 18 selected migrations plus new canonical project research record persistence, owner/outsider and stale-save assertions"
     },
     "supplemental_ci": {
       "status": "PASS",
@@ -102,7 +108,8 @@
       "deployed_commit_verified": false,
       "reported_release": "2026-08-10-guided-discovery-eyra-resilience",
       "evidence": "evidence/public-smoke.txt",
-      "date": "2026-11-12 (historical; not rerun for this candidate)"
+      "date": "2026-11-12 (historical; not rerun for this candidate)",
+      "scope": "Historical status-only smoke; superseded by strict public_release_probe failure, not current readiness"
     },
     "retrieval_diagnostic": {
       "status": "FAIL",
@@ -118,6 +125,17 @@
       "evidence": "evidence/2026-11-13/research-live-final.txt; evidence/2026-11-13/research-live-final.json",
       "scope": "Candidate handler through localhost with actual provider responses; strict primary-index coverage gates unchanged, co-indexing does not inflate study counts",
       "root_cause": "Europe PMC sort fix retained. Remaining source breadth/candidate coverage and heuristic gate failures unresolved; larger bounded candidate pool did not establish acceptance."
+    },
+    "public_release_probe": {
+      "status": "FAIL",
+      "scope": "public-readonly; no authenticated access or writes",
+      "evidence": "evidence/2026-11-13/market-public-target-probe-final.txt",
+      "observations": [
+        "deployment-status returns HTML with HTTP200",
+        "manifest and server source SHA unverified",
+        "ai, contact and billing reported false"
+      ],
+      "expected_commit_at_execution": "8874b0305b81322a2116ebf44dd516fa5c6c7692"
     }
   },
   "external_blockers": [
@@ -167,22 +185,33 @@
       "DOI-only identity, full-title/author/year fallback, co-indexing and missing abstract provenance",
       "Bounded candidate overfetch; one request per provider; exact query/relevance gates retained",
       "Canonical DOI Library saver reused across discovery and Research Gaps",
-      "Literature Review project CAS, draft conflict retention and project selection persistence"
+      "Literature Review project CAS, draft conflict retention and project selection persistence",
+      "Private routes remount by authenticated user ID",
+      "Portable workspace v2 covers 30 canonical collections with fail-closed ownership checks",
+      "Fourteen evidence gates and strict read-only JSON/source provenance probe",
+      "Staging-only two-account smoke refuses live/unrelated refs and inconclusive empty fixtures",
+      "Project-owned Research Journal, Experiment Lab and Publication Tracker with domain validation and bounded export",
+      "Explicit confirmed deletion and retained draft on canonical project CAS conflicts; no new schema"
     ],
     "EXECUTED": [
-      "616 unit/API tests plus typecheck/lint/import checks/build",
-      "Both isolated browser suites",
-      "Five-query live scholarly diagnostic through candidate handler"
+      "640 unit/API tests plus imports/typecheck/lint/build",
+      "Both browser fixture suites including three project research workspaces",
+      "Disposable PostgreSQL 18 selected migrations and research record isolation/CAS assertions"
     ],
     "VERIFIED": [
       "Local fixture journeys, real SQL policies/CAS/quota and no hosted quota bypass",
       "Europe PMC real responses after sort parameter repair",
       "Ambiguous transport retry and deletion confirmation browser fixtures; actual concurrent snapshot SQL",
-      "Local scholarly identity/provenance unit tests and actual browser Library/protocol fixture journeys"
+      "Local scholarly identity/provenance unit tests and actual browser Library/protocol fixture journeys",
+      "Reproduced and fixed same-route account state leak in browser fixtures",
+      "30 canonical export table contracts in real disposable PostgreSQL",
+      "Three project research workflows with synthetic browser transport and real local PostgreSQL policies; hosted acceptance remains unverified"
     ],
     "FAILED": [
       "Fresh five-query real-provider diagnostic: source coverage 3/5; covered-query heuristic gates 2/3; overall FAIL",
-      "Vercel preview failed; current cause unverified because scoped deployment metadata/logs return404"
+      "Vercel preview failed; current cause unverified because scoped deployment metadata/logs return404",
+      "Public deployment identity/API/configuration probe; see exact observations",
+      "Pre-fix same-route account switch regression reproduced, then repaired and passing"
     ],
     "BLOCKED": [
       "Separate authorized Supabase staging and Vercel identity/access",
@@ -190,8 +219,11 @@
       "Live authenticated OpenAI, Stripe sandbox, LiveKit media and deletion acceptance"
     ],
     "NOT_IMPLEMENTED": [
-      "Full acceptance across all 77 products",
-      "Remaining historical PR behavior reviews and unimplemented product workflows"
+      "Full acceptance across all 77 products: 52 partial,24 not implemented,1 infrastructure only; zero fully certified",
+      "Remaining historical PR behavior reviews and unimplemented product workflows",
+      "Full account deletion/DSAR including file bytes, Auth/provider records and backups",
+      "Legal sign-off, external pilot acceptance and operational recovery proof",
+      "Experiment execution/data attachments, immutable research journal, publisher status verification and delivered publication reminders"
     ]
   },
   "concurrent_branch_reconciliation": {
@@ -201,20 +233,20 @@
     "save_semantics": "Explicit immutable snapshot; existing records not overwritten; separate source metadata column; security-invoker atomic RPC with caller RLS"
   },
   "review": {
-    "prior_pr": 402,
-    "prior_pr_state": "Merged externally as b0124de before this batch",
+    "prior_pr": 403,
+    "prior_pr_state": "Merged externally as 468f949 before this batch",
     "continuation_branch": "codex/eylo-platform-integration-audit",
-    "current_pr": 403
+    "current_pr": 404
   },
   "github_ci": {
-    "commit": "adc5b38b72a87e381776c4349a27271bea35312b",
+    "commit": "e949e939899a48b94cc870cea30089e7492a4a24",
     "status": "PASS",
     "runs": {
-      "Build": 43441906193,
-      "EYLO Quality Gate": 43441906207,
-      "Product quality": 43441906292
+      "Build": 43468833941,
+      "EYLO Quality Gate": 43468834041,
+      "Product quality": 43468834034
     },
-    "scope": "Previous head before exact-project followup; final PR403 checks remain authoritative"
+    "scope": "Previous batch6 head. New batch7 final-head CI pending at evidence commit; current PR body records exact final results."
   },
   "latest_vercel_observation": {
     "commit": "adc5b38b72a87e381776c4349a27271bea35312b",

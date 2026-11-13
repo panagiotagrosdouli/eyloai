@@ -1,6 +1,6 @@
 # EYLO — Launch readiness gate
 
-This is a release **gate**, not a claim that EYLO is already production-ready. Keep all items unchecked until a reviewer has recorded evidence of a successful run in the intended production environment.
+This is a release **gate**, not a claim that EYLO is already production-ready. Keep all items unchecked until a reviewer has recorded successful, source-matched acceptance in a separate authorized staging environment. Production promotion and live payments require separate explicit owner authorization.
 
 ## Gate A — Quality and deployment
 
@@ -18,7 +18,7 @@ This is a release **gate**, not a claim that EYLO is already production-ready. K
 
 ## Gate C — Two-user Supabase acceptance test
 
-**Use a dedicated test environment or disposable test accounts** tied to the *actual production project's ID*. Do not connect to or change any unrelated Supabase project.
+**Use a separate, owner-confirmed staging Supabase project and two disposable accounts.** Independently verify its identity and the matching Preview deployment. Never run acceptance writes against live EYLO (`kbzjngpzxpniaumlupaa`) or the unrelated connected project (`umzrggayitzfgrrofjnw`).
 
 1. Register test account A and test account B; verify login, logout, password reset and session expiration.
 2. Under A, create a project and save one paper. Link that paper to the project.
@@ -33,7 +33,7 @@ This is a release **gate**, not a claim that EYLO is already production-ready. K
 
 ## Gate D — Billing and entitlements
 
-- [ ] Verify production Stripe credentials, signed webhook handling and customer mapping.
+- [ ] Verify Stripe test-mode credentials, signed webhook handling and customer mapping in staging. No live charges or paid-plan activation without separate owner authorization.
 - [ ] Test checkout, successful renewal, cancellation, failed payment, billing portal and duplicate-checkout prevention.
 - [ ] Verify backend limits for free, paid, revoked and expired entitlements.
 - [ ] Ensure any incomplete payment integration is explicitly unavailable, not advertised as functional.
@@ -92,3 +92,13 @@ The GitHub public smoke workflow tested `https://eyloai.vercel.app` against main
 - Vercel production deployment for the reviewed main commit: **NOT VERIFIED**.
 
 **Release decision: NO-GO** for public production and closed researcher pilot until the 404 is resolved and the relevant live data-security and research-quality gates pass. GitHub Pages success and CI success do not establish Vercel production readiness.
+
+## Current market candidate — 2026-11-13
+
+Primary target: a verified Vercel Preview linked to a separate authorized Supabase staging project, not a static Pages deployment and not the live database. The first market scope is `research-workspace-v1`: account access/recovery, sourced discovery, canonical Library, Projects/workplans/review protocols, Notes/Files, authenticated EYRA, privacy/export/deletion, and the promised provider integrations. This scope does not claim all 77 products complete.
+
+Run `npm run release:readiness` from the reviewed candidate checkout. The default ledger is `docs/release/market-readiness-evidence.json`; it deliberately records unexecuted hosted gates as NOT_RUN and exits1 / NO-GO. A green local fixture or CI suite cannot satisfy a hosted/human gate. Reports must match the candidate SHA and confirmed infrastructure, be recent, contain an accountable reviewer and sanitized artifact reference, and cover each required assertion. A fully compatible evidence set yields only READY_FOR_OWNER_REVIEW, never production authorization. This checks report compatibility, not the honesty of reports or independent execution; reviewers must inspect artifacts.
+
+The current live scholarly diagnostic remains failed at strict 3/5 source coverage. Hosted Auth, isolation, Storage byte access, live OpenAI, Stripe test lifecycle, LiveKit media, account deletion, operational recovery, legal review and external pilot feedback remain unverified. The per-product matrix is not replaced by this release gate. Old production observations below/above are historical and do not establish the current deployment's identity or readiness.
+
+Same-route account-switch browser regression reproduced stale private page state before the identity-keyed private route fix. Workspace export v2 now includes the canonical research/productivity/learning/file-metadata/EYRA collections, with ownership revalidation and original size/row limits. Uploaded bytes, provider/billing records and backups remain excluded; this is not a full DSAR or verified account-deletion workflow.

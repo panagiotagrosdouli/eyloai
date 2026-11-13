@@ -1,0 +1,66 @@
+{
+  "date": "2026-11-13",
+  "tested_source_commit": "4a044bceae97a87ac483d5b2985798ad941b8f1c",
+  "products": [
+    60,
+    66,
+    69
+  ],
+  "decision": "NO-GO",
+  "implementation_status": "Three newly implemented local workflows; partial product status, no hosted completion",
+  "canonical_storage": "Existing projects.data.research_journal/experiment_records/publication_records with project updated_date CAS; zero migrations added",
+  "categories": {
+    "IMPLEMENTED": [
+      "Research Journal dated observations/uncertainty/next steps",
+      "Experiment Lab hypotheses/methods/results/limitations; completed requires result",
+      "Publication Tracker self-reported lifecycle, venue/reference/deadline/next action",
+      "Private bounded search/export, explicit save, conflict retention, confirmed deletion"
+    ],
+    "EXECUTED": [
+      "640 unit/API tests plus imports/typecheck/lint/build",
+      "Both browser fixture suites including three project research workspaces",
+      "Disposable PostgreSQL 18 selected migrations and research record isolation/CAS assertions"
+    ],
+    "VERIFIED": [
+      "640 tests and full static/build checks",
+      "Three actual React workflows against synthetic owner-filtered PostgREST",
+      "Actual PostgreSQL project RLS and timestamp CAS with synthetic auth identities",
+      "Mobile390px overflow assertions; Research Journal screenshot inspected; existing visual tokens retained"
+    ],
+    "FAILED": [
+      "Initial added browser harness ended at a hidden mobile-only Settings control after restoring desktop viewport; fixed viewport and full browser rerun PASS",
+      "Initial SQL harness omitted connection-local pg_temp assertion helper; fixed helper and transaction boundaries, full PostgreSQL rerun PASS",
+      "Redundant lint concurrent with unit tests encountered a removed temporary test directory; sequential lint retry PASS"
+    ],
+    "BLOCKED": [
+      "Hosted staging/Auth/PostgREST/Storage/provider acceptance; no authorization/access changes supplied",
+      "Current Vercel project/deployment identity still unverified; latest known check failed on batch6"
+    ],
+    "NOT_IMPLEMENTED": [
+      "Full acceptance across all 77 products: 52 partial,24 not implemented,1 infrastructure only; zero fully certified",
+      "Remaining historical PR behavior reviews and unimplemented product workflows",
+      "Full account deletion/DSAR including file bytes, Auth/provider records and backups",
+      "Legal sign-off, external pilot acceptance and operational recovery proof",
+      "Experiment execution/data attachments, immutable research journal, publisher status verification and delivered publication reminders"
+    ]
+  },
+  "exact_commands": {
+    "npm run check": "PASS640 tests, zero failures; imports/typecheck/lint/Vite build",
+    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:auth": "PASS isolated fixtures",
+    "EYLO_E2E_ARTIFACT_DIR=/workspace/work/continuation/batch7-screenshots PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:learning": "PASS isolated fixtures and screenshots",
+    "python scripts/integration/test-local-postgres.py": "PASS18 selected existing migrations + research contracts",
+    "npm run lint": "Sequential retry PASS after concurrent temporary-directory scan failure"
+  },
+  "remote_mutations": {
+    "remote_migrations": false,
+    "production_data_writes": false,
+    "production_deployment": false,
+    "live_payments": false
+  },
+  "limits": [
+    "No new real scholarly benchmark; prior coverage FAIL3/5 remains historical",
+    "Dates/status/source URLs entered by user, not verified publisher/research claims",
+    "Domain validation is client-side; database enforces existing project ownership",
+    "No autosave or in-app navigation recovery claim; see RESEARCH_RECORDS_CONTRACT.md"
+  ]
+}

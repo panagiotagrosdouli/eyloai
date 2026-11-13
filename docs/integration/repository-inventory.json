@@ -1,5 +1,5 @@
 {
-  "source_commit": "63671871726786cebfb33f867dbc3fcc0609c2cc",
+  "source_commit": "4a044bceae97a87ac483d5b2985798ad941b8f1c",
   "files": [
     {
       "path": ".github/workflows/build.yml",
@@ -124,7 +124,7 @@
     {
       "path": "src/App.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "24fd79165aab6ffc753f7cd45334b0f1ee2064ba"
+      "blob_sha": "cc5dbb599ec594ff3933710bd766446681aaa8af"
     },
     {
       "path": "src/api/base44Client.js",
@@ -144,7 +144,7 @@
     {
       "path": "src/components/ProtectedRoute.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "559ab9ef26b500f33fa876a44665061015939761"
+      "blob_sha": "7b4d4451fe8226ecfc79e2e82df50b4722551e6b"
     },
     {
       "path": "src/components/ScrollToTop.jsx",
@@ -572,6 +572,11 @@
       "blob_sha": "ab263debf1b34a0c173190f125e87487ce91c6e7"
     },
     {
+      "path": "src/lib/deployment-probe.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "db66dfe15d56b4c301240a23a3b45dfb831e3268"
+    },
+    {
       "path": "src/lib/discovery-response-limit.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "7c21fde30e1121d442eec82245303204f21748f4"
@@ -852,6 +857,11 @@
       "blob_sha": "873f2456d35e62f65188e43b17236e9a8784e61a"
     },
     {
+      "path": "src/lib/release-readiness.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "3ab8d70dded468b84586abf8dfd68064476df4a8"
+    },
+    {
       "path": "src/lib/reproducibility-review.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "96d40e3c1bd812b2eaf17737dd06be3d0bf653cc"
@@ -915,6 +925,11 @@
       "path": "src/lib/research-provenance.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "51747534daf1d871c3d19fc4292c3025b40caad2"
+    },
+    {
+      "path": "src/lib/research-records.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "76650aa57ac0de6c6de6e5b7b85fc36d5cacb1b6"
     },
     {
       "path": "src/lib/researcher-query-plan.mjs",
@@ -994,7 +1009,7 @@
     {
       "path": "src/lib/workspace-export.mjs",
       "kind": "frontend_or_client_source",
-      "blob_sha": "9036fa5551df7e6d9275b1b07cb9de79357fa002"
+      "blob_sha": "36a104e7ad2b821dc9651644da69182a55560c7f"
     },
     {
       "path": "src/lib/zoned-time.mjs",
@@ -1214,7 +1229,12 @@
     {
       "path": "src/pages/ProjectDetail.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "0948ef4d426a31b24f737a9bf924336432bc9511"
+      "blob_sha": "8ba7c6ebe16289804bc2633ad224f9352b139d6c"
+    },
+    {
+      "path": "src/pages/ProjectResearchRecords.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ae2614ceed01878b798c2e4cc77153f064775de9"
     },
     {
       "path": "src/pages/Projects.jsx",
@@ -1279,7 +1299,7 @@
     {
       "path": "src/pages/Settings.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "2beb3ab7145c00131e47e322383dece4cb67f275"
+      "blob_sha": "8631ede3d0c697fe5f577e49fccd849f5b3fb25a"
     },
     {
       "path": "src/pages/StudyPlanner.jsx",
@@ -1602,6 +1622,11 @@
       "blob_sha": "a372a74d8ef297d35a7f96c043e502e1e6f8aed1"
     },
     {
+      "path": "tests/deployment-probe.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "a62c42dc4cf5acfb8ca6e6dfed601736837ae361"
+    },
+    {
       "path": "tests/deployment-status.test.mjs",
       "kind": "automated_test",
       "blob_sha": "6129c9a72189a60c3e0dbcd92cebbb44b04d4cc9"
@@ -1659,7 +1684,7 @@
     {
       "path": "tests/e2e-learning-integration.mjs",
       "kind": "automated_test",
-      "blob_sha": "d0e04eac9654feae04e102da19ace20f73525137"
+      "blob_sha": "fd8c0f5b3299602aef0837bc6605525101eb56c7"
     },
     {
       "path": "tests/e2e-native-meetings.mjs",
@@ -1882,6 +1907,11 @@
       "blob_sha": "3e238a41fd2629748dbcfa00b01e8cd7b298db13"
     },
     {
+      "path": "tests/helpers/rls-probe-fixture.mjs",
+      "kind": "automated_test",
+      "blob_sha": "d502c956ab8ef1f8835682b66ca13e11d9cb747c"
+    },
+    {
       "path": "tests/human-evaluation.test.mjs",
       "kind": "automated_test",
       "blob_sha": "79463b182a801930f6de5131b98e2d3bbf3c96f3"
@@ -1910,6 +1940,11 @@
       "path": "tests/integration/learning-time-postgres.sql",
       "kind": "automated_test",
       "blob_sha": "23f9eb19a1e3e6ece6277000d3a4867a0b347a93"
+    },
+    {
+      "path": "tests/integration/research-records-postgres.sql",
+      "kind": "automated_test",
+      "blob_sha": "410c19b46c865a36c650cbf0ad6422926f196065"
     },
     {
       "path": "tests/integration/workspace-postgres.sql",
@@ -2092,6 +2127,11 @@
       "blob_sha": "c6bcad23014628b35ae0e1c13ba46b7de315cff2"
     },
     {
+      "path": "tests/release-readiness.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "44d5cb9eb2cca158e98cc9e7dd64bf6b6ebab365"
+    },
+    {
       "path": "tests/release-stamp.test.mjs",
       "kind": "automated_test",
       "blob_sha": "d63c59dab3a61a118968bc83d9e2d63c80a302ba"
@@ -2182,6 +2222,11 @@
       "blob_sha": "029771089deae3258e3e0b17d7c70c917135bee3"
     },
     {
+      "path": "tests/research-records.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "0a45f2b4e5c0f287b10f0087972efbe6e8aebd29"
+    },
+    {
       "path": "tests/research-workflow-reliability.test.mjs",
       "kind": "automated_test",
       "blob_sha": "3272fb1602d3ff6e5f35d329532951baf0b70ba7"
@@ -2204,7 +2249,7 @@
     {
       "path": "tests/rls-fixture-requires-authorization.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "c41047336917063bae738b4ef88d91fda4d4c099"
+      "blob_sha": "8232342612b0fc1f2b4a833be855fe42e604d3a6"
     },
     {
       "path": "tests/scheduled-monitoring.test.mjs",
@@ -2279,7 +2324,7 @@
     {
       "path": "tests/workspace-export.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "a321ac77be99085d6d52f6e81c1f4ae9dab4414f"
+      "blob_sha": "63907fd13697079cef6f45f537e709cb33ba9db5"
     }
   ],
   "npm_scripts": {
@@ -2303,7 +2348,9 @@
     "test:greeting": "node scripts/test-local-greeting.mjs",
     "test:services": "node scripts/test-service-server-keys.mjs",
     "test:e2e:meetings": "node tests/e2e-native-meetings.mjs",
-    "test:e2e:project-concurrency": "node tests/e2e-supabase-project-concurrency.mjs"
+    "test:e2e:project-concurrency": "node tests/e2e-supabase-project-concurrency.mjs",
+    "release:readiness": "node scripts/check-release-readiness.mjs",
+    "release:probe": "node scripts/probe-release-target.mjs"
   },
   "documented_environment_variable_names": [
     "VITE_SUPABASE_URL",

@@ -2,9 +2,9 @@
 
 ## Verified access boundary
 
-PR #398 continues from `604e629caa6d84faeeaa972866e6d5220650d2a2`. Fresh connector checks still expose only the unrelated Supabase project `supabase-cyan-car` (`umzrggayitzfgrrofjnw`). Direct lookup of owner-identified live EYLO ref `kbzjngpzxpniaumlupaa` is permission denied. The available organization is the Vercel integration organization, not an independently verified EYLO staging organization.
+PRs #398 and #401–#403 were merged externally. This continuation starts at main `468f949`; see the latest draft continuation and verification.json. Fresh connector checks still expose only the unrelated Supabase project `supabase-cyan-car` (`umzrggayitzfgrrofjnw`). Direct lookup of owner-identified live EYLO ref `kbzjngpzxpniaumlupaa` is permission denied. The available organization is the Vercel integration organization, not an independently verified EYLO staging organization.
 
-The connected Vercel Hobby team is `team_IUkyJtLhpTRBaUikmCSYHBDn`, slug `panagiotagrosdoulis-projects`; it exposes no linked projects. Lookup of project `eyloai` returns 404 in that scope. The PR's Vercel check points to the account build-rate-limit upgrade page. This proves a failed Preview check, not a missing application or a code compilation failure. No paid plan change or production release was authorized or performed.
+The connected Vercel Hobby team is `team_IUkyJtLhpTRBaUikmCSYHBDn`, slug `panagiotagrosdoulis-projects`; it exposes no linked projects. Lookup of project `eyloai` returns 404 in that scope. The original PR's Vercel check pointed to a build-rate-limit page; later deployment failures have unverified causes because scoped logs return404. This proves a failed Preview check, not a missing application or a code compilation failure. No paid plan change or production release was authorized or performed.
 
 ## Owner steps required
 
@@ -23,4 +23,4 @@ The connected Vercel Hobby team is `team_IUkyJtLhpTRBaUikmCSYHBDn`, slug `panagi
 - `vercel.staging.json` is a separate candidate configuration; it does not change the live project.
 - `scripts/integration/test-local-postgres.py` creates an isolated, randomly named, network-disabled PostgreSQL container and removes only that container. Synthetic Auth identities and Storage metadata are compatibility fixtures, not hosted service acceptance.
 
-Status: configuration and guards prepared; **hosted staging provisioning/access, migrations and live acceptance BLOCKED** pending owner-controlled access and identity confirmation. PR #398 remains draft.
+Status: configuration and guards prepared; **hosted staging provisioning/access, migrations and live acceptance BLOCKED** pending owner-controlled access and identity confirmation. The current continuation must remain draft until blockers are resolved.

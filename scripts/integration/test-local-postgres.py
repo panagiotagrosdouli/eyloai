@@ -4,6 +4,7 @@ Auth identity and Storage metadata are minimal local compatibility fixtures.
 This checks actual PostgreSQL policies/triggers, not Supabase Auth/Storage services.
 """
 import os
+import json
 from pathlib import Path
 import subprocess
 import time
@@ -17,6 +18,7 @@ NAME = 'eylo-sql-test-' + uuid.uuid4().hex[:10]
 IMAGE = 'postgres:17.6-bookworm'
 MIGRATIONS = [
     '20260803_eylo_core_entities.sql',
+    '20260803_eylo_monitoring_entities.sql',
     '20261112154425_private_notes.sql',
     '20261112161818_eylo_life_tasks.sql',
     '20261112163010_eylo_life_goals_milestones.sql',
@@ -83,6 +85,28 @@ try:
     sql((ROOT / 'tests/integration/discovery-quota-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/funding-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/eyra-conversations-postgres.sql').read_text())
+    sql((ROOT / 'tests/integration/research-records-postgres.sql').read_text())
+    print('PASS: project research journal, experiments and publications roundtrip, preserve unrelated data, reject stale saves and deny outsider reads/writes/deletes.', flush=True)
+    export_tables = json.loads(subprocess.check_output(['node', '--input-type=module', '-e',
+        "import { WORKSPACE_EXPORT_TABLES } from './src/lib/workspace-export.mjs'; process.stdout.write(JSON.stringify(WORKSPACE_EXPORT_TABLES));"], cwd=ROOT, text=True))
+    if any(not isinstance(table, str) or not table.isidentifier() for table in export_tables):
+        raise AssertionError('Export registry contains an invalid table identifier')
+    export_list = ','.join("'" + table + "'" for table in export_tables)
+    sql("""
+    set role authenticated;
+    set request.jwt.claim.sub='00000000-0000-0000-0000-000000000001';
+    do $$ declare target text; exposed bigint; secured boolean; begin
+      foreach target in array array[""" + export_list + """] loop
+        select relrowsecurity into secured from pg_class where oid=('public.'||target)::regclass;
+        if secured is distinct from true then raise exception 'Export table lacks RLS: %', target; end if;
+        execute format('select * from public.%I where user_id=auth.uid() order by id limit 1',target);
+        execute format('select count(*) from public.%I where user_id is distinct from auth.uid()',target) into exposed;
+        if exposed != 0 then raise exception 'Foreign rows exposed in export collection: %',target; end if;
+      end loop;
+    end $$;
+    reset role;
+    """)
+    print(f'PASS: all {len(export_tables)} canonical export collections exist, have RLS enabled and permit authenticated owner reads; empty scopes do not establish isolation.', flush=True)
     print('PASS: disposable PostgreSQL EYRA owner RLS, message constraints, pagination, versioning and cascade deletion.', flush=True)
     version = subprocess.check_output([*DOCKER, 'exec', NAME, 'psql', '-U', 'postgres', '-Atc',
         "select updated_date from projects where id = '10000000-0000-0000-0000-000000000001'"], env=ENV, text=True).strip()

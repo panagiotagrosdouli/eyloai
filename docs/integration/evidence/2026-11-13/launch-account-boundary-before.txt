@@ -1,0 +1,28 @@
+
+> eyloai@0.0.0 test:e2e:learning
+> node tests/e2e-learning-integration.mjs
+
+PASS fixture: canonical task timer start, reload, stop and export.
+PASS fixture: manual quiz creation, saved attempt, grading response and reload.
+PASS fixture: manual course, linked quiz, saved lesson progress, reload and mobile viewport.
+PASS fixture: delayed history response cannot repopulate a cleared conversation.
+PASS fixture: ambiguous snapshot save retries the same UUID, private export and confirmed cascade deletion; cancelled deletion leaves records unchanged.
+PASS fixture: reproducibility checklist save/reload and stale-write rejection preserve both the winning record and unsaved draft.
+PASS fixture: Literature Review protocol/screening save/reload, CAS conflict draft retention, cancelled/confirmed project switching, private export and mobile viewport.
+PASS fixture: scholarly duplicate records render one publication with retained provider/abstract attribution and save canonical DOI/provenance to the Library while AI is unavailable.
+PASS fixture: protocol deep links load an authorized exact project beyond the recent cap and fail closed for distinct foreign-owner and missing IDs; synthetic PostgREST, not hosted RLS.
+file:///workspace/work/eyloai/tests/e2e-learning-integration.mjs:418
+    await Promise.race([ownerQueryStarted, new Promise((_, reject) => setTimeout(() => reject(new Error('New account did not reload its private route')), 5000))]);
+                                                                                              ^
+
+Error: New account did not reload its private route
+    at Timeout._onTimeout (file:///workspace/work/eyloai/tests/e2e-learning-integration.mjs:418:95)
+    at listOnTimeout (node:internal/timers:685:17)
+    at process.processTimers (node:internal/timers:618:7)
+
+Node.js v24.22.1
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice
