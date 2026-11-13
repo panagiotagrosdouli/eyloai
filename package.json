@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "check:imports": "node scripts/check-local-imports.mjs",
-    "build": "npm run check:imports && vite build",
+    "build": "npm run check:imports && vite build && node scripts/stamp-release.mjs",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json && tsc -p ./jsconfig.api.json",
