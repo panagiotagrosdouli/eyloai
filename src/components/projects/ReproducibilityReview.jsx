@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Download, Save } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import {
@@ -15,6 +15,10 @@ const LABELS = {
 };
 
 export default function ReproducibilityReview({ project, onSaved }) {
+  const activeProjectRef = useRef(project?.id);
+  activeProjectRef.current = project?.id;
+  const saveGenerationRef = useRef(0);
+  useEffect(() => { saveGenerationRef.current += 1; setSaving(false); }, [project?.id]);
   const [review, setReview] = useState(() => project?.reproducibility_review || emptyReproducibilityReview());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -26,7 +30,8 @@ export default function ReproducibilityReview({ project, onSaved }) {
     setError('');
     setMessage('');
     setDirty(false);
-  }, [project?.id, project?.reproducibility_review]);
+  // Same-project save responses must not erase the local draft or success state.
+  }, [project?.id]);
 
   useEffect(() => {
     if (!dirty) return undefined;
@@ -57,17 +62,20 @@ export default function ReproducibilityReview({ project, onSaved }) {
     if (!checked.ok) { setError(checked.errors.join(' ')); return; }
     setError('');
     setSaving(true);
+    const projectId = project.id;
+    const generation = saveGenerationRef.current;
     try {
       const next = { ...checked.value, updated_at: new Date().toISOString() };
-      const saved = await base44.entities.Project.update(project.id, { reproducibility_review: next });
+      const saved = await base44.entities.Project.updateIfUnchanged(projectId, { reproducibility_review: next }, project.updated_date);
+      if (activeProjectRef.current !== projectId || saveGenerationRef.current !== generation) return;
       onSaved?.(saved);
       setReview(next);
       setDirty(false);
       setMessage('Documentation checklist saved privately in this project.');
-    } catch {
-      setError('Could not save the checklist. Your changes remain in this editor.');
+    } catch (failure) {
+      if (activeProjectRef.current === projectId && saveGenerationRef.current === generation) setError(failure?.message || 'Could not save the checklist. Your changes remain in this editor.');
     } finally {
-      setSaving(false);
+      if (activeProjectRef.current === projectId && saveGenerationRef.current === generation) setSaving(false);
     }
   };
   const exportJson = () => {

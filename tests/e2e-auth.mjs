@@ -1,13 +1,19 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import { createServer } from 'node:net';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile as readDataLabDownload } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { parseResearchCsv } from '../src/lib/research-data.mjs';
 
-const baseUrl = 'http://127.0.0.1:4173';
-const server = spawn('npx', ['vite', '--host', '127.0.0.1', '--port', '4173', '--strictPort'], {
+const portProbe = createServer();
+await new Promise((resolve, reject) => { portProbe.once('error', reject); portProbe.listen(0, '127.0.0.1', resolve); });
+const port = portProbe.address().port;
+await new Promise(resolve => portProbe.close(resolve));
+const baseUrl = `http://127.0.0.1:${port}`;
+// Own the Vite process directly so cleanup cannot leave an npx child behind.
+const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], {
   env: {
     ...process.env,
     VITE_SUPABASE_URL: 'https://eylo-auth-test.supabase.co',

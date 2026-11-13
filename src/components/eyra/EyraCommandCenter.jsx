@@ -19,7 +19,9 @@ import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
 import { useAuth } from '@/lib/AuthContext';
 import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conversation.mjs';
 
-import { listEyraConversations, saveEyraConversation, loadEyraConversation } from '@/lib/eyra-history';
+import { listEyraConversations, saveEyraConversation, loadEyraConversation, deleteEyraConversation } from '@/lib/eyra-history';
+
+import { snapshotPayload, snapshotIdentity, conversationExport } from '@/lib/eyra-snapshot.mjs';
 
 // EYRA modes change the analysis lens; evidence rules stay identical.
 const MODES = [
@@ -363,6 +365,10 @@ export default function EyraCommandCenter({ open, onClose }) {
   const [savedConversations, setSavedConversations] = useState([]);
   const [remoteConversation, setRemoteConversation] = useState(null);
   const [savingConversation, setSavingConversation] = useState(false);
+  const [historyBusy, setHistoryBusy] = useState(false);
+  const historyEpochRef = useRef(0);
+  const snapshotRequestRef = useRef(null);
+  const historyWriteLockRef = useRef(false);
   const ownerRef = useRef(user?.id);
   ownerRef.current = user?.id;
   const [input, setInput] = useState('');
@@ -391,15 +397,17 @@ export default function EyraCommandCenter({ open, onClose }) {
     setMessages(loadConversation(user?.id)); setConversationOwner(user?.id);
     setWorkspaceContext(''); setContextStatus('idle'); setLiveDraft(''); setLoading(false);
     setRemoteConversation(null); setSavedConversations([]); setAllowWorkspaceActions(false);
+    historyEpochRef.current += 1; snapshotRequestRef.current = null; historyWriteLockRef.current = false; setHistoryBusy(false);
     setSavingConversation(false); setSavedMessageIds(new Set()); setUserName(''); setActionError('');
   }, [user?.id]);
 
   useEffect(() => {
     if (!open || !user?.id) return undefined;
     let live = true;
+    const epoch = historyEpochRef.current;
     listEyraConversations()
-      .then(rows => { if (live) setSavedConversations(rows); })
-      .catch(() => { if (live) setActionError('Saved conversations could not be loaded. You can continue this conversation in this tab.'); });
+      .then(rows => { if (live && epoch === historyEpochRef.current) setSavedConversations(rows); })
+      .catch(() => { if (live && epoch === historyEpochRef.current) setActionError('Saved conversations could not be loaded. You can continue this conversation in this tab.'); });
     return () => { live = false; };
   }, [open, user?.id]);
 
@@ -539,7 +547,7 @@ export default function EyraCommandCenter({ open, onClose }) {
 
   const sendMessage = async (text) => {
     const content = (text || input).trim();
-    if (!content || loading || activeRequestRef.current) return;
+    if (!content || loading || historyBusy || historyWriteLockRef.current || activeRequestRef.current) return;
     if (content.length > (allowWorkspaceActions ? 1000 : 2000)) {
       setActionError(allowWorkspaceActions ? 'Keep a workspace action request to 1,000 characters so its full authorization can be checked.' : 'Keep a message to 2,000 characters. Split longer material into focused questions.');
       return;
@@ -662,27 +670,64 @@ Answer the user's latest request. Cite every externally verifiable claim with th
 
   const saveConversation = async () => {
     const owner = user?.id;
-    if (!owner || loading || savingConversation) return;
+    if (!owner || loading || savingConversation || historyBusy || historyWriteLockRef.current) return;
+    historyWriteLockRef.current = true; const epoch = ++historyEpochRef.current;
     setSavingConversation(true); setActionError('');
     try {
       const conversationMessages = normalizeEyraConversation(messages);
       const firstQuestion = conversationMessages.find(message => message.role === 'user')?.content;
       if (!firstQuestion) throw new Error('Send a message before saving a conversation.');
-      const saved = await saveEyraConversation(`EYRA · ${firstQuestion.slice(0, 100)}`, conversationMessages);
-      if (ownerRef.current !== owner) return;
+      const title = `EYRA · ${firstQuestion.slice(0, 100)}`;
+      const retryKey = `${eyraConversationKey(owner)}:snapshot-request`;
+      let previous = snapshotRequestRef.current;
+      try { previous ||= JSON.parse(sessionStorage.getItem(retryKey) || 'null'); } catch { /* Optional retry recovery. */ }
+      const identity = await snapshotIdentity(snapshotPayload(title, conversationMessages), previous);
+      if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
+      snapshotRequestRef.current = identity;
+      try { sessionStorage.setItem(retryKey, JSON.stringify(identity)); } catch { /* Same-tab retries still reuse identity. */ }
+      const saved = await saveEyraConversation(title, conversationMessages, identity.id);
+      if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
       setRemoteConversation(saved); setSavedConversations(items => [saved, ...items.filter(item => item.id !== saved.id)].slice(0, 20));
-    } catch (error) { if (ownerRef.current === owner) setActionError(error?.message || 'Conversation was not saved.'); }
-    finally { if (ownerRef.current === owner) setSavingConversation(false); }
+    } catch (error) { if (ownerRef.current === owner && historyEpochRef.current === epoch) setActionError(error?.message || 'Conversation was not saved.'); }
+    finally { if (ownerRef.current === owner && historyEpochRef.current === epoch) { setSavingConversation(false); historyWriteLockRef.current = false; } }
   };
 
   const restoreConversation = async id => {
     const owner = user?.id;
-    if (!id || loading) return;
+    if (!id || loading || historyWriteLockRef.current) return;
+    const epoch = ++historyEpochRef.current; setHistoryBusy(true);
     try {
       const saved = await loadEyraConversation(id);
-      if (ownerRef.current !== owner) return;
+      if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
       setMessages(saved.messages); setRemoteConversation(saved); setActionError('');
-    } catch (error) { if (ownerRef.current === owner) setActionError(error?.message || 'Conversation could not be opened.'); }
+    } catch (error) { if (ownerRef.current === owner && historyEpochRef.current === epoch) setActionError(error?.message || 'Conversation could not be opened.'); }
+    finally { if (ownerRef.current === owner && historyEpochRef.current === epoch) setHistoryBusy(false); }
+  };
+
+  const exportConversation = () => {
+    if (conversationOwner !== user?.id || loading || historyBusy) return;
+    try {
+      const payload = conversationExport(remoteConversation?.title, messages);
+      const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
+      const link = document.createElement('a'); link.href = url; link.download = 'eyra-conversation.json';
+      document.body.append(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+    } catch (error) { setActionError(error?.message || 'Conversation could not be exported.'); }
+  };
+  const deleteSnapshot = async () => {
+    const owner = user?.id; const snapshot = remoteConversation;
+    if (!owner || !snapshot || loading || historyBusy || historyWriteLockRef.current) return;
+    if (!window.confirm('Permanently delete this saved snapshot and its messages? This tab will clear. Other saved snapshots and downloaded exports remain.')) return;
+    historyWriteLockRef.current = true; setHistoryBusy(true); setActionError('');
+    const epoch = ++historyEpochRef.current;
+    try {
+      await deleteEyraConversation(snapshot.id, snapshot.version);
+      if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
+      setSavedConversations(items => items.filter(item => item.id !== snapshot.id));
+      setRemoteConversation(null); setMessages([createWelcomeMessage(userName)]); setLiveDraft('');
+      snapshotRequestRef.current = null;
+      try { sessionStorage.removeItem(`${eyraConversationKey(owner)}:snapshot-request`); } catch { /* Optional tab storage. */ }
+    } catch (error) { if (ownerRef.current === owner) setActionError(error?.message || 'Snapshot could not be deleted.'); }
+    finally { if (ownerRef.current === owner) { historyWriteLockRef.current = false; setHistoryBusy(false); } }
   };
 
   const saveInsight = async (msg) => {
@@ -719,7 +764,9 @@ Answer the user's latest request. Cite every externally verifiable claim with th
   };
 
   const clearConversation = () => {
+    if (historyWriteLockRef.current) return;
     if (!window.confirm('Clear the conversation in this tab? Conversations you explicitly saved remain available.')) return;
+    historyEpochRef.current += 1; setHistoryBusy(false);
     activeRequestRef.current?.abort(); activeRequestRef.current = null;
     setLoading(false); setLiveDraft(''); setRemoteConversation(null);
     window.speechSynthesis?.cancel();
@@ -845,8 +892,10 @@ Answer the user's latest request. Cite every externally verifiable claim with th
           {/* Input */}
           <div className="relative z-10 shrink-0 border-t border-border bg-card px-4 py-3">
             <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-              <button type="button" onClick={() => void saveConversation()} disabled={loading || savingConversation} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
-              <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={loading} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
+              <button type="button" onClick={() => void saveConversation()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
+              <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
+              <button type="button" onClick={exportConversation} disabled={loading || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Export conversation</button>
+              {remoteConversation && <button type="button" onClick={() => void deleteSnapshot()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Delete saved snapshot</button>}
               <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => setAllowWorkspaceActions(event.target.checked)} />Allow project and Library actions for this request</label>
             </div>
             <div className="flex items-end gap-2 rounded-xl border border-border bg-background p-2 transition-colors focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10">
