@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Download, FilePlus2, History, Link2, Save, Search, Tag, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { normalizeNote, noteMatchesTag, noteToMarkdown } from '@/lib/notes-domain.mjs';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 
 const EMPTY_NOTE = { title: '', content: '', tags: [], project_id: '' };
@@ -54,11 +55,13 @@ function readSessionDraft(ownerId, noteId) {
 
 export default function Notes() {
   const { user } = useAuth();
+  const { search: locationSearch } = useLocation();
+  const focusId = new URLSearchParams(locationSearch).get('focus') || '';
   const ownerRef = useRef(user?.id || null);
   const saveNoteRef = useRef(null);
   const savingRef = useRef(false);
   const selectionEpochRef = useRef(0);
-  const focusedNoteRef = useRef(false);
+  const focusedNoteRef = useRef('');
   const [notes, setNotes] = useState([]);
   const [projects, setProjects] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -105,7 +108,7 @@ export default function Notes() {
   useEffect(() => {
     selectionEpochRef.current += 1;
     ownerRef.current = user?.id || null;
-    focusedNoteRef.current = false;
+    focusedNoteRef.current = '';
     setNotes([]);
     setProjects([]);
     setSelected(null);
@@ -121,7 +124,7 @@ export default function Notes() {
     setVersionError('');
     if (user?.id) {
       const recovered = readSessionDraft(user.id, null);
-      if (recovered) {
+      if (recovered && !new URLSearchParams(window.location.search).get('focus')) {
         setEditor(recovered.editor);
         setTagInput(recovered.tagInput);
         setNotice('Recovered a draft saved in this browser tab. It will sync to your account automatically.');
@@ -164,11 +167,28 @@ export default function Notes() {
   chooseNoteRef.current = chooseNote;
 
   useEffect(() => {
-    const focusId = new URLSearchParams(window.location.search).get('focus');
-    if (!focusId || focusedNoteRef.current) return;
+    if (!focusId || loading || !user?.id || focusedNoteRef.current === focusId) return;
+    focusedNoteRef.current = focusId;
     const match = notes.find(note => String(note.id) === focusId);
-    if (match) { focusedNoteRef.current = true; void chooseNoteRef.current(match); }
-  }, [notes]);
+    if (match) { void chooseNoteRef.current(match); return; }
+    if (dirty && !window.confirm('Discard unsaved changes to open the requested note?')) return;
+    const ownerId = ownerRef.current, epoch = ++selectionEpochRef.current;
+    let cancelled = false;
+    setSelected(null); setEditor(EMPTY_NOTE); setBaseline(EMPTY_NOTE); setTagInput(''); setVersions([]);
+    setNotice('Loading the requested private note…'); setError('');
+    void base44.entities.Note.get(focusId).then(note => {
+      if (cancelled || ownerId !== ownerRef.current || epoch !== selectionEpochRef.current) return;
+      if (note?.id !== focusId) throw new Error('Requested note unavailable.');
+      setNotes(current => current.some(item => item.id === note.id) ? current : [note, ...current]);
+      setNotice(''); void chooseNoteRef.current(note);
+    }).catch(() => {
+      if (cancelled || ownerId !== ownerRef.current || epoch !== selectionEpochRef.current) return;
+      focusedNoteRef.current = ''; setNotice(''); setError('The requested private note could not be loaded. Check access and retry.');
+    });
+    return () => { cancelled = true; if (focusedNoteRef.current === focusId) focusedNoteRef.current = ''; };
+    // Owner, exact target and workspace reload drive requests; typing cannot cancel retrieval.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusId, loading, user?.id]);
 
   const createDraft = () => {
     if (dirty && !window.confirm('Discard unsaved changes?')) return;

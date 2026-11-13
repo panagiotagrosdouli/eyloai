@@ -1,5 +1,5 @@
 {
-  "source_commit": "4a044bceae97a87ac483d5b2985798ad941b8f1c",
+  "source_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
   "files": [
     {
       "path": ".github/workflows/build.yml",
@@ -124,7 +124,7 @@
     {
       "path": "src/App.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "cc5dbb599ec594ff3933710bd766446681aaa8af"
+      "blob_sha": "95c16eb023a6b9a851566ecfe658ae0eac7aaf69"
     },
     {
       "path": "src/api/base44Client.js",
@@ -380,6 +380,11 @@
       "path": "src/components/projects/ProjectConflictRecovery.jsx",
       "kind": "frontend_or_client_source",
       "blob_sha": "7e0de75379b614c9eff8b262a37c0694e4ba74f0"
+    },
+    {
+      "path": "src/components/projects/ProjectDocumentWorkspace.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "0db6e52982d05357fb7e42dbffd615f6b478038c"
     },
     {
       "path": "src/components/projects/ProjectHealthScore.jsx",
@@ -807,6 +812,11 @@
       "blob_sha": "73cde18ee828240facdb48c9f1d640306fb53a9d"
     },
     {
+      "path": "src/lib/project-budget.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "2abae899aa4c401c39fc37860a1882628cb60f82"
+    },
+    {
       "path": "src/lib/project-conflict-recovery.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "1aae96abe663cc580c595de2e2dd1a9c0c5ebd5d"
@@ -985,6 +995,11 @@
       "path": "src/lib/theme.js",
       "kind": "frontend_or_client_source",
       "blob_sha": "06a0116733434c6b7ca7260b66b86c5d8267928a"
+    },
+    {
+      "path": "src/lib/thesis-outline.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "93dd10a5d464435dae1543deb45f151c1f71e6ea"
     },
     {
       "path": "src/lib/time-tracker-data.mjs",
@@ -1189,7 +1204,7 @@
     {
       "path": "src/pages/Notes.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "52d14d0779d2043876b38f4e5565023f5203f7df"
+      "blob_sha": "e92c954e7d85406021132b79bb4eb2d40eda5966"
     },
     {
       "path": "src/pages/Notifications.jsx",
@@ -1229,7 +1244,7 @@
     {
       "path": "src/pages/ProjectDetail.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "8ba7c6ebe16289804bc2633ad224f9352b139d6c"
+      "blob_sha": "384e8a5784eb2d08472b11539de53becfb9a110b"
     },
     {
       "path": "src/pages/ProjectResearchRecords.jsx",
@@ -1272,6 +1287,11 @@
       "blob_sha": "d5a42b44ef6529e07c6fdea52a3c49d8f2ebd6b4"
     },
     {
+      "path": "src/pages/ResearchBudget.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "4e1c90e0e6a7a90d1ca49a2f495a82da99ab74f6"
+    },
+    {
       "path": "src/pages/ResearchDataLab.jsx",
       "kind": "frontend_or_client_source",
       "blob_sha": "1e3f6e62cf9652633b86e7763b2dc2b3708d31f7"
@@ -1305,6 +1325,11 @@
       "path": "src/pages/StudyPlanner.jsx",
       "kind": "frontend_or_client_source",
       "blob_sha": "1f11b0f93af2bd1bc449a0f70d2e29c62f4d336f"
+    },
+    {
+      "path": "src/pages/ThesisStudio.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "9c4972bf2c57c59af02c53a599732a1185f1c8d6"
     },
     {
       "path": "src/pages/TimeTracker.jsx",
@@ -1684,7 +1709,7 @@
     {
       "path": "tests/e2e-learning-integration.mjs",
       "kind": "automated_test",
-      "blob_sha": "fd8c0f5b3299602aef0837bc6605525101eb56c7"
+      "blob_sha": "fec5e0f5325ad6b1ecf516dbbec537ea492de86f"
     },
     {
       "path": "tests/e2e-native-meetings.mjs",
@@ -1942,6 +1967,11 @@
       "blob_sha": "23f9eb19a1e3e6ece6277000d3a4867a0b347a93"
     },
     {
+      "path": "tests/integration/planning-documents-postgres.sql",
+      "kind": "automated_test",
+      "blob_sha": "55d0729bf659718852b5a010de6274924eba00a0"
+    },
+    {
       "path": "tests/integration/research-records-postgres.sql",
       "kind": "automated_test",
       "blob_sha": "410c19b46c865a36c650cbf0ad6422926f196065"
@@ -2055,6 +2085,11 @@
       "path": "tests/profile-merge.test.mjs",
       "kind": "automated_test",
       "blob_sha": "ffdff63bfa9ec3abdbd74fcc174e76f497f73291"
+    },
+    {
+      "path": "tests/project-budget.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "1c64670ad090bba117cc84e5fe700ba6c7661c02"
     },
     {
       "path": "tests/project-conflict-recovery.test.mjs",
@@ -2305,6 +2340,11 @@
       "path": "tests/supervisor-meetings.test.mjs",
       "kind": "automated_test",
       "blob_sha": "3bec6d9ef6133bfdb8db82a16c783eb8948b6503"
+    },
+    {
+      "path": "tests/thesis-outline.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "b6fb8629b959d5c99c1139f75cd89826a8990596"
     },
     {
       "path": "tests/time-tracker-data.test.mjs",

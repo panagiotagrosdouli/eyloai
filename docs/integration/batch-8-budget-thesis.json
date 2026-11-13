@@ -1,0 +1,66 @@
+{
+  "date": "2026-11-13",
+  "tested_source_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
+  "products": [
+    59,
+    70
+  ],
+  "decision": "NO-GO",
+  "canonical_storage": "Existing projects.data.research_budget/thesis_outline and canonical notes; no migrations or tables added",
+  "categories": {
+    "IMPLEMENTED": [
+      "Single-currency budget allocation, actual/planned costs, exact integer totals/category comparison, protected saved CSV/JSON",
+      "Ordered thesis chapters, canonical note links, actual saved-word counts and source-attributed Markdown/JSON compile",
+      "Explicit project CAS conflict comparison and user-controlled version choice; unapplied editor blocks save",
+      "Exact owner-scoped Notes lookup beyond1000 and inaccessible-query editor clearing"
+    ],
+    "EXECUTED": [
+      "649 unit/API tests plus imports/typecheck/lint/build",
+      "Both browser fixture suites including Budget/Thesis and exact Notes deep links",
+      "Disposable PostgreSQL18 selected migrations and new planning-document/Note source checks"
+    ],
+    "VERIFIED": [
+      "649 tests/static/build PASS",
+      "Both isolated browser suites PASS; Budget/Thesis desktop/mobile390px and screenshots inspected",
+      "Real disposable PostgreSQL persistence/ownership/CAS, synthetic auth identities",
+      "Chapter removal keeps canonical Notes; inaccessible Notes block complete counts/save/compile"
+    ],
+    "FAILED": [
+      "Initial browser run exposed UUID validator rejecting PostgreSQL-accepted existing note identities; repaired and regression tested, full browser rerun PASS",
+      "Initial added harness had a CSV assertion quoting syntax error; corrected before meaningful execution",
+      "Current deployment/provider release blockers remain; no new scholarly or public-site probe executed in this batch"
+    ],
+    "BLOCKED": [
+      "Separate authorized Supabase staging and verified Vercel deployment identity",
+      "Hosted Auth/Storage/providers/payment/media/deletion acceptance and legal/operational/pilot evidence"
+    ],
+    "NOT_IMPLEMENTED": [
+      "Full acceptance across all77 products:54 partial,22 not implemented,1 infrastructure only; zero fully certified",
+      "Remaining historical PR behavior reviews and unimplemented product workflows",
+      "Full account deletion/DSAR including file bytes, Auth/provider records and backups",
+      "Legal sign-off, external pilot acceptance and operational recovery proof",
+      "Experiment execution/data attachments, immutable research journal, publisher status verification and delivered publication reminders",
+      "Multi-currency conversion, banking/accounting integration and financial approval workflow",
+      "Pinned historic-note versions, publication-grade thesis DOCX/PDF formatting and academic review acceptance"
+    ]
+  },
+  "exact_commands": {
+    "npm run check": "PASS649 tests, zero failures; imports/typecheck/lint/build",
+    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:auth": "PASS isolated fixtures",
+    "EYLO_E2E_ARTIFACT_DIR=/workspace/work/continuation/batch8-screenshots PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:learning": "PASS fixtures/screenshots incl explicit conflict/source loss/removal/old-note/foreign-target cases",
+    "python scripts/integration/test-local-postgres.py": "PASS18 selected existing migrations plus planning-documents-postgres.sql",
+    "node --test tests/project-budget.test.mjs tests/thesis-outline.test.mjs": "PASS9 domain regressions"
+  },
+  "scope_limits": [
+    "Field validation is client-side; database policies enforce project/Note ownership",
+    "Note reads and project Save are not one cross-document transaction or pinned historical source version",
+    "No autosave/offline recovery or arbitrary in-app navigation draft persistence claim",
+    "Prior scholarly coverage FAIL3/5 and batch6 public deployment-probe failure remain historical evidence, not rerun for this candidate"
+  ],
+  "remote_mutations": {
+    "remote_migrations": false,
+    "production_data_writes": false,
+    "production_deployment": false,
+    "live_payments": false
+  }
+}

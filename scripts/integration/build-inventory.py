@@ -66,7 +66,7 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 56|ProjectDecisions,decision-workspace|projects||decision-workspace
 57|ProjectDetail,PitchDeckBuilder|projects|eyra|project
 58|Home,ResearchGaps,DiscoveryResults,scholarly-record-identity|projects,saved_papers|discovery,eyra|research-gap,discovery,scholarly-record-identity
-59||||
+59|ThesisStudio,thesis-outline,ProjectDocumentWorkspace|projects,notes||thesis-outline,e2e-learning-integration
 60|ProjectResearchRecords,research-records|projects||research-records,e2e-learning-integration
 61||||
 62|LiteratureReview,literature-review|projects,saved_papers|discovery|literature-review
@@ -77,7 +77,7 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 67|Researchers,Meetings,supervisor-matching|saved_researchers,meetings|discovery,meeting-room|supervisor
 68||||
 69|ProjectResearchRecords,research-records|projects||research-records,e2e-learning-integration
-70||||
+70|ResearchBudget,project-budget,ProjectDocumentWorkspace|projects||project-budget,e2e-learning-integration
 71||||
 72|ResearchDataLab,research-data|||research-data
 73|ResearchDataLab,research-catalog|||research-catalog
@@ -108,6 +108,8 @@ def main():
     workflow_evidence = {
         **{i: 'Manual timer/quiz/course browser persistence fixtures and actual PostgreSQL RPC/policy checks' for i in (8, 11, 75)},
         **{i: 'Project-owned research record browser create/reload, owner-filtered CAS and retained draft, export, search, mobile and confirmed deletion; actual PostgreSQL owner/outsider and stale-save checks. Hosted Supabase unverified' for i in (60, 66, 69)},
+        59: 'Canonical Note chapter ordering/word-count/compile fixtures, source-loss save rejection, exact Notes deep links beyond1000, foreign target rejection; real local PostgreSQL project/Note RLS and CAS. Hosted acceptance unverified',
+        70: 'Exact-cent arithmetic, formula-safe CSV, pending-draft save guard, explicit conflict choice, persistence/removal/mobile browser fixtures; real local PostgreSQL document RLS/CAS. Hosted acceptance unverified',
         62: 'Review protocol and screening browser persistence, CAS conflicts, project-switch confirmation, reload and source-bound JSON export fixtures',
         49: 'Checklist save/reload and stale-write draft retention browser fixtures; project CAS independently tested on disposable PostgreSQL',
         24: 'Authenticated streaming and canonical EYRA snapshot save/restore browser fixtures; SSE/API permission tests; live OpenAI not executed',
@@ -129,7 +131,7 @@ def main():
         tests = [p for p in tracked if p.startswith('tests/') and any(Path(p).stem.startswith(s) for s in test_stems.split(',') if s)] if files else []
         endpoints = [f'api/{a.strip()}.js' for a in apis.split(',') if a.strip() and f'api/{a.strip()}.js' in tracked] if files else []
         related_prs = [p['number'] for p in prs if any(f in p['changed_files'] for f in files) or any(Path(f).stem.lower().startswith(s.lower()) for f in p['changed_files'] if f.startswith('src/') for s in stems)]
-        if i in (8, 11, 16, 17, 18, 60, 66, 69, 75):
+        if i in (8, 11, 16, 17, 18, 59, 60, 66, 69, 70, 75):
             status = 'Partially implemented' if files else ('PR-only' if related_prs else 'Not implemented')
         elif 'NOT_STARTED' in declared and i != 73:
             status = 'Not implemented'
@@ -141,7 +143,7 @@ def main():
             status = 'Infrastructure only'
         else:
             status = 'Partially implemented'
-        remaining = {60: 'Project-owned hypothesis, method, observed-result and limitations records; completion requires a result. Local fixtures/SQL verified. Remaining: hosted persistence, user acceptance, experiment/data attachment and analysis execution; no reproducibility claim.', 66: 'Project-owned dated observations, interpretation/uncertainty, next steps and supplied source links; local fixtures/SQL verified. Remaining: hosted persistence and user acceptance; records are editable, not an immutable lab notebook.', 69: 'Project-owned manuscripts, venues, supplied references, self-reported lifecycle status and deadlines; local fixtures/SQL verified. Remaining: hosted persistence/user acceptance and configured reminders or publisher integration; no publisher status verification.'}.get(i, declared)
+        remaining = {59: 'Canonical Notes-backed chapter outline, saved-note word counts, explicit conflict choice, ordered Markdown/JSON compile and exact note links. Local browser/SQL verified. Remaining: hosted acceptance, source-version pinning, academic workflow and publication-grade document formatting.', 70: 'Single-currency allocated/planned/actual expense planning with exact minor-unit arithmetic, category totals and safe saved CSV/JSON export. Local browser/SQL verified. Remaining: hosted acceptance, accounting integration and multi-currency workflows; no payments or banking connection.', 60: 'Project-owned hypothesis, method, observed-result and limitations records; completion requires a result. Local fixtures/SQL verified. Remaining: hosted persistence, user acceptance, experiment/data attachment and analysis execution; no reproducibility claim.', 66: 'Project-owned dated observations, interpretation/uncertainty, next steps and supplied source links; local fixtures/SQL verified. Remaining: hosted persistence and user acceptance; records are editable, not an immutable lab notebook.', 69: 'Project-owned manuscripts, venues, supplied references, self-reported lifecycle status and deadlines; local fixtures/SQL verified. Remaining: hosted persistence/user acceptance and configured reminders or publisher integration; no publisher status verification.'}.get(i, declared)
         routes = [{'path': p, 'source': s} for p, s in route_map if s in files]
         products.append({
             'id': i, 'name': name, 'status': status, 'tracker_statement': declared,
