@@ -1,12 +1,12 @@
 {
   "date": "2026-11-14",
-  "tested_source_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
+  "tested_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
     "npm_run_check": {
       "status": "PASS",
-      "tests": 688,
+      "tests": 689,
       "failed": 0,
       "includes": [
         "local imports",
@@ -15,8 +15,8 @@
         "Node unit/API regressions",
         "Vite production build"
       ],
-      "evidence": "evidence/2026-11-14/batch10-check-final.txt",
-      "source_scope": "Runtime/domain code at 9e363e24e1b4ff7644efcd70fab1cac637ff2c51; final CI at subsequent inventory/evidence commit is recorded in continuation PR"
+      "evidence": "evidence/2026-11-14/batch10-check-strict-dates.txt",
+      "source_scope": "Final runtime sources at fface77caff24c29499bf92ce6520b3e29d6252c; documentation-only follow-up final CI is in PR408"
     },
     "browser": {
       "status": "PASS",
@@ -63,9 +63,9 @@
         "Actual production static-shell network-off reload and encrypted local snapshot unlock/lock; no plaintext source at rest",
         "Mobile root overflow checks including horizontally scrollable workbook; desktop/mobile tools hub screenshots"
       ],
-      "evidence": "evidence/2026-11-14/batch10-products-browser-final.txt; batch10-learning-browser-final.txt; batch10-auth-browser.txt",
-      "fixture_source_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "source_scope": "All three suites retested after new product/export/calendar changes; synthetic Auth/PostgREST/AI transport; actual production-bundle Offline reload."
+      "evidence": "evidence/2026-11-14/batch10-products-browser-final.txt; batch10-learning-browser-final.txt; batch10-auth-browser.txt; evidence/2026-11-14/batch10-products-strict-dates.txt",
+      "fixture_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "source_scope": "Final689-test combined check and product browser suite include strict date validation and explicit authenticated-navigation wait. Auth/learning suites and SQL ran before this isolated Calendar/test follow-up; exact final CI is in PR408."
     },
     "postgres": {
       "status": "PASS",
@@ -196,10 +196,11 @@
       "Portable workspace v3 covers40 owned/authored collections with correct directory key and credential-safe token metadata",
       "Translation reference integrity guard before marking output complete or saving a canonical Note",
       "Saved private-form CSV export with quoting and formula protection",
-      "Calendar all-day/date-span and viewer-local month/day handling"
+      "Calendar all-day/date-span and viewer-local month/day handling",
+      "Impossible Calendar dates rejected instead of silently normalizing; valid leap day accepted"
     ],
     "EXECUTED": [
-      "npm run check: PASS688 tests,0 failed, imports/typecheck/lint/build",
+      "npm run check: PASS689 tests,0 failed, imports/typecheck/lint/build",
       "Three browser suites PASS; products suite uses actual production bundle and real offline reload",
       "Disposable PostgreSQL17.6: PASS19 selected migrations and40 collection contracts",
       "Real provider diagnostic: FAIL3/5 sufficient source coverage,2/3 covered anchor gates,mean0.80; Semantic Scholar429"
@@ -213,7 +214,8 @@
     "FAILED": [
       "Fresh real-provider scholarly diagnostic remains3/5; queries/gates unchanged; no invented papers",
       "Intermediate test fixture errors retained: calendar assertion ran before data loaded, and token sentinel was mistakenly seeded into non-token rows; repaired tests pass",
-      "Initial full check exposed that private isolation probe must remain private-only when export includes explicitly shared collaboration; kept strict private gates and separate consent/role SQL tests"
+      "Initial full check exposed that private isolation probe must remain private-only when export includes explicitly shared collaboration; kept strict private gates and separate consent/role SQL tests",
+      "Product quality run43520297627/job132212573568 failed at initial login: browser navigated to Tools before asynchronous sign-in completed. Repaired with explicit authenticated navigation wait; local all22 suite passes, final CI pending."
     ],
     "BLOCKED": [
       "Separate independently verified staging and connected Vercel deployment identity/access; no remote migration or hosted acceptance",
@@ -235,17 +237,17 @@
     "prior_pr": 407,
     "prior_pr_state": "Merged externally as b912d9f before batch10",
     "continuation_branch": "codex/eylo-platform-integration-audit",
-    "current_pr": "See current draft continuation; no PR number guessed before creation"
+    "current_pr": 408
   },
   "github_ci": {
-    "commit": "03b68af93acaf3a71f52abacaa67c6e191039acb",
-    "status": "PASS",
+    "commit": "8503c98e48987dbc2ba5dae39be6797109664bbc",
+    "status": "FAIL (Product quality login race; repaired locally, final CI pending)",
     "runs": {
-      "Build": 43475858224,
-      "EYLO Quality Gate": 43475857912,
-      "Product quality": 43475857979
+      "Build": 43520297672,
+      "EYLO Quality Gate": 43520297629,
+      "Product quality": 43520297627
     },
-    "scope": "Historical batch8 only. Batch10 current-head workflow results are recorded in the continuation PR description."
+    "scope": "Initial batch10 head; exact final repaired-head results recorded in PR408."
   },
   "latest_vercel_observation": {
     "commit": "13a8117b911c928acd21b5342c5a1568588cf9c7",

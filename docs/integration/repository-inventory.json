@@ -1,5 +1,5 @@
 {
-  "source_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
+  "source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
   "files": [
     {
       "path": ".github/workflows/build.yml",
@@ -554,7 +554,7 @@
     {
       "path": "src/lib/calendar-domain.mjs",
       "kind": "frontend_or_client_source",
-      "blob_sha": "ff89e59bc84b16c40354d9b1b4ace765437eebf7"
+      "blob_sha": "cc1af2ea0c6f2449ebeaf4d506f033450baf6b6e"
     },
     {
       "path": "src/lib/capabilities.js",
@@ -1634,7 +1634,7 @@
     {
       "path": "tests/calendar-workspace.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "861219f105cf0ba1c2b1df79a3e1dbffcae45a1c"
+      "blob_sha": "8a78e0faa015ca650c943cb74f2720657a9b163a"
     },
     {
       "path": "tests/capabilities.test.mjs",
@@ -1749,7 +1749,7 @@
     {
       "path": "tests/e2e-products.mjs",
       "kind": "automated_test",
-      "blob_sha": "adcdebff76eb4cc874a0f2589b8b865e9ca28832"
+      "blob_sha": "4c6afd9d36e4c96adc94e39cb215e846a2726a4e"
     },
     {
       "path": "tests/e2e-quiz-generator.mjs",

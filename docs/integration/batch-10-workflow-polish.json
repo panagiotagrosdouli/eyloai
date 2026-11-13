@@ -1,7 +1,7 @@
 {
   "date": "2026-11-14",
   "date_timezone": "Europe/Athens; raw executed_at timestamps in artifacts remain UTC",
-  "tested_source_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
+  "tested_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
   "starts_from": "b912d9fd733db09412be4e847b62224af1235958 (PR407 merged externally)",
   "decision": "NO-GO",
   "matrix": {
@@ -15,10 +15,10 @@
       "id": 2,
       "entry_path": "/calendar",
       "project_path": null,
-      "implemented_scope": "Canonical Calendar now preserves and edits all-day UTC-midnight floating dates with an exclusive end, labels single/multi-day events, selects local timed events at month boundaries and shows cross-day spans.",
+      "implemented_scope": "Canonical Calendar now preserves and edits all-day UTC-midnight floating dates with an exclusive end, labels single/multi-day events, selects local timed events at month boundaries and shows cross-day spans. Impossible calendar dates are rejected; valid leap dates retained.",
       "remaining": "Hosted timezone/DST acceptance, reminder delivery, external calendar synchronization and full product acceptance.",
       "local_scope_verified": true,
-      "verification_scope": "688 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance"
+      "verification_scope": "689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance"
     },
     {
       "id": 22,
@@ -27,7 +27,7 @@
       "implemented_scope": "Authenticated EYRA Responses stream, cancel/timeout, bounded source/language selection and explicitly reviewed idempotent saving to canonical Notes. Saving additionally fails closed if supported numeric bracket citations, DOI identifiers, URLs or their repeated counts change.",
       "remaining": "Real-provider translation quality and multilingual/source review; author/year prose reference checks are manual. Numeric reference integrity is not semantic or scholarly truth verification.",
       "local_scope_verified": true,
-      "verification_scope": "688 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance"
+      "verification_scope": "689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance"
     },
     {
       "id": 31,
@@ -36,16 +36,16 @@
       "implemented_scope": "Settings portable workspace v3 paginates40 collections, including authored collaboration data and own memberships; uses directory user_id primary key, validates owner and revalidates account before download. Token metadata only; digest/raw secret excluded by projection and sanitization.",
       "remaining": "Full personal-data response/deletion, received/shared contributions, file bytes, Auth/provider records and backups. Export is bounded and not a cross-table snapshot.",
       "local_scope_verified": true,
-      "verification_scope": "688 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance"
+      "verification_scope": "689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance"
     },
     {
       "id": 68,
       "entry_path": "/tools/conferences",
       "project_path": "/projects/:id/workbench/conferences",
-      "implemented_scope": "User-supplied official URL/date/deadline/location/fee records with date validation and atomic/idempotent canonical UTC Calendar deadline creation. Canonical Calendar editing/rendering now preserves its floating deadline date across timezones.",
+      "implemented_scope": "User-supplied official URL/date/deadline/location/fee records with date validation and atomic/idempotent canonical UTC Calendar deadline creation. Canonical Calendar editing/rendering now preserves its floating deadline date across timezones. Impossible calendar dates are rejected; valid leap dates retained.",
       "remaining": "Real conference-provider discovery, currency confirmation and hosted acceptance.",
       "local_scope_verified": true,
-      "verification_scope": "688 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance"
+      "verification_scope": "689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance"
     },
     {
       "id": 71,
@@ -54,7 +54,7 @@
       "implemented_scope": "Private project form definitions with20 typed required/optional fields, validated responses, immutable definitions after responses, bounded saved records and JSON export. Saved responses export typed-field order and stable response IDs to quoted CSV with formula-prefix protection; unsaved draft changes excluded.",
       "remaining": "Public/team response collection, broader field types and hosted collection acceptance.",
       "local_scope_verified": true,
-      "verification_scope": "688 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance"
+      "verification_scope": "689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance"
     }
   ],
   "categories": {
@@ -62,10 +62,11 @@
       "Portable workspace v3 covers40 owned/authored collections with correct directory key and credential-safe token metadata",
       "Translation reference integrity guard before marking output complete or saving a canonical Note",
       "Saved private-form CSV export with quoting and formula protection",
-      "Calendar all-day/date-span and viewer-local month/day handling"
+      "Calendar all-day/date-span and viewer-local month/day handling",
+      "Impossible Calendar dates rejected instead of silently normalizing; valid leap day accepted"
     ],
     "EXECUTED": [
-      "npm run check: PASS688 tests,0 failed, imports/typecheck/lint/build",
+      "npm run check: PASS689 tests,0 failed, imports/typecheck/lint/build",
       "Three browser suites PASS; products suite uses actual production bundle and real offline reload",
       "Disposable PostgreSQL17.6: PASS19 selected migrations and40 collection contracts",
       "Real provider diagnostic: FAIL3/5 sufficient source coverage,2/3 covered anchor gates,mean0.80; Semantic Scholar429"
@@ -79,7 +80,8 @@
     "FAILED": [
       "Fresh real-provider scholarly diagnostic remains3/5; queries/gates unchanged; no invented papers",
       "Intermediate test fixture errors retained: calendar assertion ran before data loaded, and token sentinel was mistakenly seeded into non-token rows; repaired tests pass",
-      "Initial full check exposed that private isolation probe must remain private-only when export includes explicitly shared collaboration; kept strict private gates and separate consent/role SQL tests"
+      "Initial full check exposed that private isolation probe must remain private-only when export includes explicitly shared collaboration; kept strict private gates and separate consent/role SQL tests",
+      "Product quality run43520297627/job132212573568 failed at initial login: browser navigated to Tools before asynchronous sign-in completed. Repaired with explicit authenticated navigation wait; local all22 suite passes, final CI pending."
     ],
     "BLOCKED": [
       "Separate independently verified staging and connected Vercel deployment identity/access; no remote migration or hosted acceptance",
@@ -92,13 +94,14 @@
     ]
   },
   "commands": {
-    "npm run check": "PASS688",
+    "npm run check": "PASS689 after strict calendar date validation",
     "node --test tests/workspace-export.test.mjs tests/rls-fixture-requires-authorization.test.mjs tests/translation-references.test.mjs tests/calendar-workspace.test.mjs": "PASS32",
     "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:auth": "PASS synthetic Auth/transport",
     "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:learning": "PASS synthetic Auth/PostgREST and real downloaded JSON",
     "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium EYLO_E2E_ARTIFACT_DIR=/workspace/work/continuation/batch10-screenshots npm run test:e2e:products": "PASS production bundle, synthetic Auth/PostgREST/AI, actual offline browser reload",
     "python scripts/integration/test-local-postgres.py": "PASS19 selected migrations, real disposable SQL/policies,40 export collections",
-    "NODE_USE_ENV_PROXY=1 EYLO_RETRIEVAL_REPORT_PATH=/workspace/work/continuation/batch10-research-live.json node scripts/benchmark-local-discovery.mjs": "FAIL exit1; actual public provider responses, no OpenAI request"
+    "NODE_USE_ENV_PROXY=1 EYLO_RETRIEVAL_REPORT_PATH=/workspace/work/continuation/batch10-research-live.json node scripts/benchmark-local-discovery.mjs": "FAIL exit1; actual public provider responses, no OpenAI request",
+    "node --test tests/calendar-workspace.test.mjs": "PASS10 including impossible dates and leap year"
   },
   "evidence": [
     "evidence/2026-11-14/batch10-check-final.txt",
@@ -111,7 +114,11 @@
     "evidence/2026-11-14/batch10-research-live.json",
     "evidence/2026-11-14/batch10-products-first-failure.txt",
     "evidence/2026-11-14/batch10-learning-first-failure.txt",
-    "evidence/2026-11-14/batch10-check.txt"
+    "evidence/2026-11-14/batch10-check.txt",
+    "evidence/2026-11-14/batch10-ci-auth-race.txt",
+    "evidence/2026-11-14/batch10-check-strict-dates.txt",
+    "evidence/2026-11-14/batch10-calendar-date-validation.txt",
+    "evidence/2026-11-14/batch10-products-strict-dates.txt"
   ],
   "remote_mutations": {
     "remote_migrations": false,
@@ -124,5 +131,7 @@
     "supabase": "Fresh list still exposes only unrelated umzrggayitzfgrrofjnw; not used",
     "vercel": "EYLO project search remains empty in explicitly connected team",
     "staging_identity_verified": false
-  }
+  },
+  "initial_tested_source_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
+  "source_scope": "Final689-test combined check and product browser suite include strict date validation and explicit authenticated-navigation wait. Auth/learning suites and SQL ran before this isolated Calendar/test follow-up; exact final CI is in PR408."
 }

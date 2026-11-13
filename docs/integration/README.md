@@ -19,7 +19,7 @@ Machine-readable results and their scopes are in [verification.json](verificatio
 
 | Check | Result | Scope |
 | --- | --- | --- |
-| `npm run check` | PASS, 688 tests, 0 failed | Imports, frontend/API typecheck, ESLint, unit/API tests and Vite build |
+| `npm run check` | PASS, 689 tests, 0 failed | Imports, frontend/API typecheck, ESLint, unit/API tests and Vite build |
 | Browser regression | PASS | Actual pages and SDK calls against isolated Auth/PostgREST/Storage fixtures; auth, local analysis, catalog, Notes/Search, Files/documents, workplans, stale-write recovery and mobile viewport |
 | PostgreSQL migration/policy test | PASS | Nineteen selected migrations on disposable PostgreSQL 17.6; real SQL/RLS/triggers with synthetic Auth identity and Storage metadata schemas; two independent project-save sessions produce one success and one conflict |
 | Strict public deployment probe | FAIL | deployment-status returns HTML with HTTP200; source SHA unverified; AI/contact/billing report false. Earlier 8/8 availability smoke is historical only. |
@@ -116,3 +116,5 @@ Previous draft (merged externally): [#407](https://github.com/panagiotagrosdouli
 Translation saving now rejects missing/added/altered numeric bracket citations, DOI identifiers and URLs, including repeated counts; author/year references and translation quality still require review. Smart Forms exports saved responses to formula-safe quoted CSV with stable IDs; unsaved changes are excluded. Calendar preserves all-day dates across timezone boundaries, edits them without turning them into timed events, handles exclusive ends and shows spans in the correct month/day. [Mobile Calendar fixture](screenshots/calendar-all-day-mobile.png).
 
 688 tests, all three browser suites and19 selected migrations on disposable PostgreSQL pass. Browser transport is synthetic; the production Offline reload actually disables network. The fresh real-provider diagnostic remains **FAIL3/5** coverage, with Semantic Scholar429, and is retained with unchanged queries/gates. A cancelled/superseded CI run is never relabelled as passed; final exact-head results belong in the new draft continuation description. Counts remain77 partial /0 without implementation /0 certified complete. No hosted migration or production action; release remains NO-GO.
+
+Current draft continuation: [#408](https://github.com/panagiotagrosdouli/eyloai/pull/408). Initial Product quality CI failed on an asynchronous fixture-login navigation race; repaired with an explicit successful sign-in navigation wait. Local production-bundle suite passes again. Calendar additionally rejects impossible dates (e.g.30 February) rather than moving them silently, while accepting a valid leap day. Final combined check:689 tests. PR408 records exact final CI and Vercel outcomes; the initial failure is preserved in evidence/2026-11-14/batch10-ci-auth-race.txt.
