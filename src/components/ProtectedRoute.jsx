@@ -17,7 +17,9 @@ export default function ProtectedRoute() {
       </main>
     );
   }
-  if (user) return <Outlet />;
+  // Identity changes must discard page-local private state as well as caches.
+  // Key by user ID so token refreshes preserve the same user's unsaved work.
+  if (user) return <Outlet key={user.id} />;
 
   const requestedPath = `${location.pathname}${location.search}${location.hash}`;
 

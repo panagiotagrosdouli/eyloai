@@ -129,3 +129,24 @@ test('workspace download rejects invalid byte and total row ceilings', async () 
   }
   assert.equal(MAX_WORKSPACE_EXPORT_BYTES, 50 * 1024 * 1024);
 });
+
+test('portable workspace version2 preserves canonical notes, file versions, learning and EYRA data with explicit byte exclusions', async () => {
+  const data = {
+    notes: [{ ...row('notes', 1), data: { title: 'Private note', content: 'Owner material' }, version: 2 }],
+    note_versions: [{ ...row('note_versions', 1), snapshot: { content: 'Earlier owner material' } }],
+    eyra_messages: [{ ...row('eyra_messages', 1), role: 'assistant', content: { text: 'Owner conversation' }, sources: [] }],
+    eylo_file_versions: [{ ...row('eylo_file_versions', 1), storage_path: `${owner}/private-file/version.txt` }],
+    learning_courses: [row('learning_courses', 1)],
+    grant_applications: [row('grant_applications', 1)],
+  };
+  const fetcher = makeFetcher(data);
+  const result = await collectWorkspaceExport({ userId: owner, fetchPage: fetcher.fetchPage });
+  assert.equal(result.version, 2);
+  for (const [table, rows] of Object.entries(data)) assert.deepEqual(result.collections[table], rows);
+  assert.ok(result.limitations.some(value => value.includes('uploaded file bytes are not')));
+  assert.ok(fetcher.calls.every(call => WORKSPACE_EXPORT_TABLES.includes(call.table)));
+});
+test('a foreign canonical EYRA message aborts export before any file can be emitted', async () => {
+  const fetcher = makeFetcher({ eyra_messages: [{ ...row('eyra_messages', 1, 'other-owner'), content: { text: 'Private other account' } }] });
+  await assert.rejects(collectWorkspaceExport({ userId: owner, fetchPage: fetcher.fetchPage }), /ownership/);
+});

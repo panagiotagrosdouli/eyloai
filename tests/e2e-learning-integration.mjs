@@ -3,10 +3,12 @@ import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { WORKSPACE_EXPORT_TABLES } from '../src/lib/workspace-export.mjs';
 
 const origin = 'http://127.0.0.1:4174';
 const supabaseUrl = 'https://eylo-learning-test.supabase.co';
 const user = { id: '00000000-0000-0000-0000-000000000001', email: 'learning@example.org', aud: 'authenticated', role: 'authenticated', app_metadata: { provider: 'email' }, user_metadata: {} };
+let fixtureUser = user;
 const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '4174', '--strictPort'], {
   env: { ...process.env, VITE_SUPABASE_URL: supabaseUrl, VITE_SUPABASE_ANON_KEY: 'learning-browser-public-test-key' }, stdio: 'ignore',
 });
@@ -20,6 +22,7 @@ const tables = {
   meetings: [], notifications: [], watchlists: [], monitoring_discoveries: [], profiles: [],
   eyra_conversations: [], eyra_messages: [], ideas: [], study_flashcard_decks: [], saved_papers: [], saved_researchers: [], saved_opportunities: [], search_history: [],
 };
+for (const table of WORKSPACE_EXPORT_TABLES) tables[table] ||= [];
 let aiCalls = 0;
 let interruptSnapshotSave = true;
 let snapshotWrites = 0;
@@ -93,8 +96,8 @@ try {
     const request = route.request();
     if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
     const url = new URL(request.url());
-    if (url.pathname.includes('/auth/v1/token')) return json(route, { access_token: 'learning-fixture-access-token', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now()/1000)+3600, refresh_token: 'learning-fixture-refresh-token', user });
-    if (url.pathname.includes('/auth/v1/user')) return json(route, user);
+    if (url.pathname.includes('/auth/v1/token')) return json(route, { access_token: fixtureUser.id === user.id ? 'learning-fixture-access-token' : 'learning-fixture-access-token-b', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now()/1000)+3600, refresh_token: 'learning-fixture-refresh-token', user: fixtureUser });
+    if (url.pathname.includes('/auth/v1/user')) return json(route, fixtureUser);
     if (url.pathname.includes('/rest/v1/rpc/')) {
       const name = url.pathname.split('/').at(-1); const result = rpc(name, request.postDataJSON());
       if (name === 'save_eyra_conversation_snapshot' && interruptSnapshotSave) { interruptSnapshotSave = false; return route.abort('failed'); }
@@ -387,6 +390,58 @@ try {
   await page.getByText('Could not load the requested private project and saved papers. Check access and your connection, then retry.').waitFor();
   assert.equal(await page.getByLabel('Select literature review project').count(), 0);
   console.log('PASS fixture: protocol deep links load an authorized exact project beyond the recent cap and fail closed for distinct foreign-owner and missing IDs; synthetic PostgREST, not hosted RLS.');
+
+
+  await page.goto(`${origin}/settings`);
+  await page.getByLabel('Settings section').selectOption('privacy');
+  const workspaceDownloadEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download saved workspace', exact: true }).click();
+  const workspaceDownload = await workspaceDownloadEvent;
+  const workspaceStream = await workspaceDownload.createReadStream(); let workspaceJson = '';
+  for await (const chunk of workspaceStream) workspaceJson += chunk;
+  const workspaceExport = JSON.parse(workspaceJson);
+  assert.equal(workspaceExport.version, 2);
+  assert.equal(workspaceExport.account.user_id, user.id);
+  assert.equal(workspaceExport.collections.notes[0].data.title, 'Canonical note');
+  assert.equal(workspaceExport.collections.learning_courses.length, 1);
+  assert.equal(workspaceExport.collections.quiz_attempts.length, 1);
+  assert.equal(workspaceExport.collections.time_entries.length, 1);
+  assert.ok(workspaceExport.collections.projects.every(row => row.user_id === user.id));
+  assert.ok(Object.keys(workspaceExport.collections).includes('eyra_messages'));
+  console.log('PASS fixture: Settings downloads owner-validated portable workspace v2 including canonical notes, learning and timer records; file bytes explicitly excluded.');
+  const privateATitle = 'Account A confidential fixture paper';
+  const privateBTitle = 'Account B confidential fixture paper';
+  const ownerB = { ...user, id: '00000000-0000-0000-0000-000000000002', email: 'second-fixture@example.org' };
+  tables.saved_papers.push({ id: '90000000-0000-4000-8000-000000000010', user_id: user.id, data: { title: privateATitle } });
+  tables.saved_papers.push({ id: '90000000-0000-4000-8000-000000000011', user_id: ownerB.id, data: { title: privateBTitle } });
+  await page.goto(`${origin}/library`);
+  await page.getByText(privateATitle, { exact: true }).waitFor();
+  let markOwnerQuery;
+  let releaseOwnerQuery;
+  const ownerQueryStarted = new Promise(resolve => { markOwnerQuery = resolve; });
+  const ownerQueryGate = new Promise(resolve => { releaseOwnerQuery = resolve; });
+  await page.route(`${supabaseUrl}/rest/v1/saved_papers**`, async route => {
+    if (new URL(route.request().url()).searchParams.get('user_id') === `eq.${ownerB.id}`) {
+      markOwnerQuery(); await ownerQueryGate;
+    }
+    await route.fallback();
+  });
+  fixtureUser = ownerB;
+  try {
+    const signedInId = await page.evaluate(async () => {
+      const { supabase } = await import('/src/lib/supabaseClient.js');
+      const result = await supabase.auth.signInWithPassword({ email: 'second-fixture@example.org', password: 'Fixture-password-123' });
+      if (result.error) throw result.error;
+      return result.data.user.id;
+    });
+    assert.equal(signedInId, ownerB.id);
+    await Promise.race([ownerQueryStarted, new Promise((_, reject) => setTimeout(() => reject(new Error('New account did not reload its private route')), 5000))]);
+    assert.equal(await page.getByText(privateATitle, { exact: true }).count(), 0, 'old-account content must disappear before new-account data arrives');
+    releaseOwnerQuery();
+    await page.getByText(privateBTitle, { exact: true }).waitFor();
+    assert.equal(await page.getByText(privateATitle, { exact: true }).count(), 0);
+    console.log('PASS fixture: a same-route authenticated account switch removes old private component state before the delayed new-owner query resolves.');
+  } finally { releaseOwnerQuery(); }
   console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.');
 } finally {
   if (browser) await browser.close();

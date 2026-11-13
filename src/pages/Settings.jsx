@@ -432,8 +432,8 @@ export default function Settings() {
               <div className="rounded-xl border border-border bg-card p-4">
                 <h3 className="text-sm font-semibold text-foreground">Download saved research workspace</h3>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Export your profile and saved projects, papers, researchers, opportunities, meetings, ideas, history, watchlists, monitoring results and notifications as JSON.
-                  This is a partial workspace export, not a complete account-data export. Payment records, provider logs and backups are not included. Downloads are limited to 50 MiB and 50,000 records for device safety.
+                  Export your profile, projects, research Library, Notes and note versions, tasks, goals, calendar, study and learning records, saved EYRA conversations, grant drafts and file metadata as JSON.
+                  This is a partial workspace export, not a complete account-data export. Uploaded file contents, payment records, provider logs and backups are not included. Download file contents separately from Files. Downloads are limited to 50 MiB and 50,000 records for device safety.
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   The file is stored unencrypted on this device. Keep it private and delete it when no longer needed.
@@ -488,6 +488,7 @@ export default function Settings() {
       {/* Mobile section picker */}
       <div className="sm:hidden mb-4">
         <select
+          aria-label="Settings section"
           value={active}
           onChange={e => setActive(e.target.value)}
           className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none"

@@ -1,5 +1,5 @@
 /**
- * Read-only export of EYLO's ten user-owned research workspace collections.
+ * Read-only export of EYLO's canonical user-owned workspace collections.
  * This is NOT a complete GDPR data export: billing, auth provider logs,
  * AI/provider logs, operational backups and other processors are excluded.
  */
@@ -18,6 +18,11 @@ export const WORKSPACE_EXPORT_TABLES = Object.freeze([
   'projects', 'ideas', 'meetings', 'saved_papers', 'saved_researchers',
   'saved_opportunities', 'search_history', 'watchlists',
   'monitoring_discoveries', 'notifications',
+  'notes', 'note_versions', 'life_tasks', 'life_goals', 'calendar_events',
+  'study_flashcard_decks', 'activity_events', 'time_entries',
+  'quizzes', 'quiz_questions', 'quiz_attempts',
+  'learning_courses', 'learning_lessons', 'learning_enrollments', 'learning_lesson_progress',
+  'eylo_files', 'eylo_file_versions', 'eyra_conversations', 'eyra_messages', 'grant_applications',
 ]);
 
 export async function collectWorkspaceExport({
@@ -89,12 +94,13 @@ export async function collectWorkspaceExport({
 
   const result = {
     format: 'eylo-workspace-json',
-    version: 1,
+    version: 2,
     exported_at: exportedAt(),
     scope: 'authenticated-workspace-only',
     limitations: [
       'Not a complete personal-data access or portability response.',
       'Excludes billing, Supabase Auth internal records, provider logs, operational logs and backups.',
+      'File and document metadata/version records are included; uploaded file bytes are not. Download file contents separately from Files.',
       'Data can change during the export; this is not a database transaction snapshot.',
     ],
     account: { user_id: userId, email, user_metadata: userMetadata },
