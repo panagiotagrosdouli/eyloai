@@ -392,6 +392,63 @@ try {
   console.log('PASS fixture: protocol deep links load an authorized exact project beyond the recent cap and fail closed for distinct foreign-owner and missing IDs; synthetic PostgREST, not hosted RLS.');
 
 
+  // Real React forms and canonical Project SDK; transport remains synthetic.
+  for (const [kind, title, singular, fields] of [
+    ['journal', 'Research Journal', 'entry', { Observation: 'Measured a lower response rate', 'Interpretation and uncertainty': 'Small sample; uncertain', 'Next step': 'Repeat collection' }],
+    ['experiments', 'Experiment Lab', 'experiment', { Hypothesis: 'A testable hypothesis', 'Method and analysis plan': 'Compare supplied measurements', 'Observed result': 'No difference observed', 'Limitations and deviations': 'Exploratory sample' }],
+    ['publications', 'Publication Tracker', 'publication', { 'Journal or venue': 'User-supplied test venue', 'Submission reference or DOI': 'TEST-2026-01', 'Next action': 'Review manuscript', 'Decision and revision notes': 'Awaiting response' }],
+  ]) {
+    const project = tables.projects[0];
+    await page.goto(`${origin}/projects/${project.id}/research/${kind}`);
+    await page.getByRole('heading', { name: title, exact: true }).waitFor();
+    await page.getByRole('button', { name: `New ${singular}`, exact: true }).click();
+    await page.getByLabel('Title', { exact: true }).fill(`${title} private fixture`);
+    for (const [label, value] of Object.entries(fields)) await page.getByLabel(label, { exact: true }).fill(value);
+    await page.getByRole('button', { name: 'Save record', exact: true }).click();
+    await page.getByText('Record saved to this project.', { exact: true }).waitFor();
+    await page.reload();
+    await page.getByRole('heading', { name: `${title} private fixture`, exact: true }).waitFor();
+    await page.getByRole('button', { name: `Edit ${singular}`, exact: true }).click();
+    await page.getByLabel('Title', { exact: true }).fill(`${title} retained draft`);
+    // A second writer changes the canonical project while the form is open.
+    project.updated_date = '2026-11-15T00:00:00.000Z'; project.data.concurrent_marker = kind;
+    await page.getByRole('button', { name: 'Save record', exact: true }).click();
+    await page.getByRole('alert').filter({ hasText: 'changed in another tab' }).waitFor();
+    assert.equal(await page.getByLabel('Title', { exact: true }).inputValue(), `${title} retained draft`);
+    await page.getByRole('button', { name: 'Reload latest project' }).click();
+    await page.getByRole('button', { name: 'Save record', exact: true }).click();
+    await page.getByText('Record saved to this project.', { exact: true }).waitFor();
+    assert.equal(project.data.concurrent_marker, kind);
+    const downloadEvent = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export saved records' }).click();
+    const download = await downloadEvent; const stream = await download.createReadStream(); let content = '';
+    for await (const chunk of stream) content += chunk;
+    const exported = JSON.parse(content); assert.equal(exported.workspace, kind); assert.equal(exported.records[0].title, `${title} retained draft`);
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${title} mobile overflow`);
+    await capture(page, `research-${kind}-mobile`);
+    await page.getByLabel('Find saved records').fill('unmatched-query'); await page.getByText('No records match your search.', { exact: true }).waitFor();
+    await page.getByLabel('Find saved records').fill('');
+    page.once('dialog', dialog => dialog.dismiss());
+    await page.getByRole('button', { name: `Delete ${singular}`, exact: true }).click();
+    assert.equal(await page.getByRole('heading', { name: `${title} retained draft`, exact: true }).count(), 1);
+    page.once('dialog', dialog => dialog.accept());
+    await page.getByRole('button', { name: `Delete ${singular}`, exact: true }).click();
+    await page.getByText('Record deleted.', { exact: true }).waitFor();
+    await page.reload(); await page.getByText(`No records yet. Add your first ${singular}.`, { exact: true }).waitFor();
+    await page.setViewportSize({ width: 1280, height: 900 });
+    console.log(`PASS fixture: ${title} create/reload, owner-filtered CAS conflict and draft recovery, portable export, search, mobile and cancelled/confirmed deletion.`);
+  }
+  await page.goto(`${origin}/projects/${tables.projects[0].id}/research/journal`);
+  await page.getByRole('button', { name: 'New entry', exact: true }).click();
+  await page.getByLabel('Title', { exact: true }).fill('Must not leak to another project');
+  page.once('dialog', dialog => dialog.accept());
+  await page.goto(`${origin}/projects/10000000-0000-4000-8000-000000000998/research/journal`);
+  await page.getByRole('alert').waitFor();
+  assert.equal(await page.getByLabel('Title', { exact: true }).count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'New entry', exact: true }).isDisabled(), true);
+  console.log('PASS fixture: foreign project research workspace fails closed without carrying another project draft. Hosted RLS remains unverified.');
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${origin}/settings`);
   await page.getByLabel('Settings section').selectOption('privacy');
   const workspaceDownloadEvent = page.waitForEvent('download');

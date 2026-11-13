@@ -67,16 +67,16 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 57|ProjectDetail,PitchDeckBuilder|projects|eyra|project
 58|Home,ResearchGaps,DiscoveryResults,scholarly-record-identity|projects,saved_papers|discovery,eyra|research-gap,discovery,scholarly-record-identity
 59||||
-60||||
+60|ProjectResearchRecords,research-records|projects||research-records,e2e-learning-integration
 61||||
 62|LiteratureReview,literature-review|projects,saved_papers|discovery|literature-review
 63|ResearchKnowledgeGraph,research-knowledge-graph|saved_papers|discovery|research-knowledge-graph
 64||||
 65|ResearchDataLab,research-data|||research-data
-66||||
+66|ProjectResearchRecords,research-records|projects||research-records,e2e-learning-integration
 67|Researchers,Meetings,supervisor-matching|saved_researchers,meetings|discovery,meeting-room|supervisor
 68||||
-69||||
+69|ProjectResearchRecords,research-records|projects||research-records,e2e-learning-integration
 70||||
 71||||
 72|ResearchDataLab,research-data|||research-data
@@ -107,6 +107,7 @@ def main():
     suite = verification.get('local_checks', {}).get('npm_run_check', {})
     workflow_evidence = {
         **{i: 'Manual timer/quiz/course browser persistence fixtures and actual PostgreSQL RPC/policy checks' for i in (8, 11, 75)},
+        **{i: 'Project-owned research record browser create/reload, owner-filtered CAS and retained draft, export, search, mobile and confirmed deletion; actual PostgreSQL owner/outsider and stale-save checks. Hosted Supabase unverified' for i in (60, 66, 69)},
         62: 'Review protocol and screening browser persistence, CAS conflicts, project-switch confirmation, reload and source-bound JSON export fixtures',
         49: 'Checklist save/reload and stale-write draft retention browser fixtures; project CAS independently tested on disposable PostgreSQL',
         24: 'Authenticated streaming and canonical EYRA snapshot save/restore browser fixtures; SSE/API permission tests; live OpenAI not executed',
@@ -128,7 +129,7 @@ def main():
         tests = [p for p in tracked if p.startswith('tests/') and any(Path(p).stem.startswith(s) for s in test_stems.split(',') if s)] if files else []
         endpoints = [f'api/{a.strip()}.js' for a in apis.split(',') if a.strip() and f'api/{a.strip()}.js' in tracked] if files else []
         related_prs = [p['number'] for p in prs if any(f in p['changed_files'] for f in files) or any(Path(f).stem.lower().startswith(s.lower()) for f in p['changed_files'] if f.startswith('src/') for s in stems)]
-        if i in (8, 11, 16, 17, 18, 75):
+        if i in (8, 11, 16, 17, 18, 60, 66, 69, 75):
             status = 'Partially implemented' if files else ('PR-only' if related_prs else 'Not implemented')
         elif 'NOT_STARTED' in declared and i != 73:
             status = 'Not implemented'
@@ -140,6 +141,7 @@ def main():
             status = 'Infrastructure only'
         else:
             status = 'Partially implemented'
+        remaining = {60: 'Project-owned hypothesis, method, observed-result and limitations records; completion requires a result. Local fixtures/SQL verified. Remaining: hosted persistence, user acceptance, experiment/data attachment and analysis execution; no reproducibility claim.', 66: 'Project-owned dated observations, interpretation/uncertainty, next steps and supplied source links; local fixtures/SQL verified. Remaining: hosted persistence and user acceptance; records are editable, not an immutable lab notebook.', 69: 'Project-owned manuscripts, venues, supplied references, self-reported lifecycle status and deadlines; local fixtures/SQL verified. Remaining: hosted persistence/user acceptance and configured reminders or publisher integration; no publisher status verification.'}.get(i, declared)
         routes = [{'path': p, 'source': s} for p, s in route_map if s in files]
         products.append({
             'id': i, 'name': name, 'status': status, 'tracker_statement': declared,
@@ -147,7 +149,7 @@ def main():
             'supabase_entities': tables if files else [], 'migration_files': migrations,
             'authentication': 'Supabase authenticated owner scope; live RLS unverified' if files and tables else ('Public and/or protected shared surface; see route guards' if files else 'Not implemented on baseline'),
             'open_prs': related_prs, 'automated_test_files': tests,
-            'user_workflow_and_remaining_acceptance': declared,
+            'user_workflow_and_remaining_acceptance': remaining,
             'workflow_acceptance': 'Not established; tracker statement describes remaining work',
             'implementation_commit': git('log', '-1', '--format=%H', '--', *files) if files else None,
             'automated_test_status': f"Combined suite {suite.get('status', 'baseline PASS')}: {suite.get('tests', 491)} tests; mapped file presence is not full product acceptance" if tests else 'No dedicated test evidence mapped',

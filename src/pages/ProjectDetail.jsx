@@ -816,6 +816,10 @@ Rules:
         </motion.section>
       )}
 
+      <section aria-label="Research workspaces" className="grid gap-3 sm:grid-cols-3">
+        {[['journal', 'Research Journal', 'Dated observations and next steps'], ['experiments', 'Experiment Lab', 'Hypotheses, methods and observed results'], ['publications', 'Publication Tracker', 'Manuscripts, decisions and deadlines']].map(([slug, title, description]) => <Link key={slug} to={`/projects/${id}/research/${slug}`} className="rounded-xl border border-border bg-card p-4 hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"><h2 className="text-sm font-semibold">{title}</h2><p className="mt-1 text-xs text-muted-foreground">{description}</p></Link>)}
+      </section>
+
       {/* Project tasks, notes, and meetings form one timeline. */}
       {activeTab === 'timeline' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
