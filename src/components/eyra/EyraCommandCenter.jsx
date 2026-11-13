@@ -133,14 +133,14 @@ async function retrieveEvidence(content, mode, workspaceContext) {
   const institutions = (groups.institutions?.items || []).slice(0, 4);
   const funding = (groups.funding?.items || []).slice(0, 8);
   const sources = [
-    ...papers.map((item, index) => ({ id: `P${index + 1}`, type: 'Paper', title: item.title, url: item.url, meta: [item.authors, item.year, item.source].filter(Boolean).join(' · ') })),
+    ...papers.map((item, index) => ({ id: `P${index + 1}`, type: 'Paper', title: item.title, url: item.url, meta: [item.authors, item.year, item.source, item.summary_source ? `Abstract: ${item.summary_source}` : '', item.metadata_conflict ? 'Provider title conflict: check original' : ''].filter(Boolean).join(' · ') })),
     ...researchers.map((item, index) => ({ id: `R${index + 1}`, type: 'Researcher', title: item.name, url: item.profile_url, meta: [item.institution, `${item.works_count || 0} works`].filter(Boolean).join(' · ') })),
     ...institutions.map((item, index) => ({ id: `I${index + 1}`, type: 'Institution', title: item.name, url: item.url, meta: [item.country, `${item.works_count || 0} works`].filter(Boolean).join(' · ') })),
     ...funding.map((item, index) => ({ id: `F${index + 1}`, type: 'Funding', title: item.title, url: item.source_url, meta: [item.agency, item.deadline].filter(Boolean).join(' · ') })),
   ].filter(item => isSafeEyraSourceUrl(item.url));
 
   const blocks = [
-    ...papers.map((item, index) => `[P${index + 1}] PAPER | ${item.title} | DOI ${item.doi || 'unavailable'} | source ID ${item.id || 'unavailable'} | ${item.authors || 'authors unavailable'} | ${item.year || 'year unavailable'} | ${item.source || 'source unavailable'} | citations ${item.cited_by_count || 0} | ${item.summary || 'abstract unavailable'} | URL ${item.url}`),
+    ...papers.map((item, index) => `[P${index + 1}] PAPER | ${item.title} | DOI ${item.doi || 'unavailable'} | source ID ${item.id || 'unavailable'} | ${item.authors || 'authors unavailable'} | ${item.year || 'year unavailable'} | ${item.source || 'source unavailable'} | abstract source ${item.summary_source || 'not supplied'} | indexed by ${(item.indexed_by || []).join(', ') || 'not supplied'} | metadata conflict ${item.metadata_conflict ? 'YES: verify original DOI record' : 'not detected; not independent verification'} | citations ${item.cited_by_count || 0} | ${item.summary || 'abstract unavailable'} | URL ${item.url}`),
     ...researchers.map((item, index) => `[R${index + 1}] RESEARCHER | ${item.name} | ${item.institution || 'institution unavailable'} | ${item.research_areas || 'areas unavailable'} | ${item.works_count || 0} works | ${item.citation_count || 0} citations | URL ${item.profile_url}`),
     ...institutions.map((item, index) => `[I${index + 1}] INSTITUTION | ${item.name} | ${item.type || 'type unavailable'} | ${item.country || 'country unavailable'} | ${item.works_count || 0} works | URL ${item.url}`),
     ...funding.map((item, index) => `[F${index + 1}] FUNDING | ${item.title} | ${item.agency || 'agency unavailable'} | deadline ${item.deadline || 'not supplied'} | amount ${item.amount || 'not supplied'} | eligibility ${item.eligibility || 'open official record'} | ${item.description || ''} | URL ${item.source_url}`),

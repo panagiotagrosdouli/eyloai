@@ -1,3 +1,4 @@
+import { writeFile } from 'node:fs/promises';
 import { searchAllPapersWithStatus } from '../src/lib/eyra-api.js';
 
 const configuredBaseUrl = process.env.EYLO_LIVE_BASE_URL || 'https://eyloai.vercel.app';
@@ -102,6 +103,7 @@ for (const testCase of CASES) {
   });
 }
 
+if (process.env.EYLO_RETRIEVAL_REPORT_PATH) await writeFile(process.env.EYLO_RETRIEVAL_REPORT_PATH, JSON.stringify({ executed_at: new Date().toISOString(), proxy_target: parsedBaseUrl.origin, human_judged: false, cases: rows }, null, 2) + '\n');
 console.table(rows);
 const sourceCoveredRows = rows.filter(row => row.source_coverage_sufficient);
 const averageAnchorCoverage = sourceCoveredRows.length

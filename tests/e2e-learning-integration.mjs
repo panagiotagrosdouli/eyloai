@@ -112,7 +112,7 @@ try {
         tables[table].push(row); rows = [row];
       } else {
         assert.equal(url.searchParams.get('user_id'), `eq.${user.id}`, 'writes must be owner filtered');
-        if (request.method() === 'PATCH') rows.forEach(row => Object.assign(row, request.postDataJSON(), { updated_at: now() }));
+        if (request.method() === 'PATCH') rows.forEach(row => Object.assign(row, request.postDataJSON(), { updated_at: now(), ...(table === 'projects' ? { updated_date: now() } : {}) }));
         else if (request.method() === 'DELETE') {
           const removed = rows.map(row => row.id); tables[table] = tables[table].filter(row => !matching(row));
           if (table === 'eyra_conversations') tables.eyra_messages = tables.eyra_messages.filter(row => !removed.includes(row.conversation_id));
@@ -121,6 +121,7 @@ try {
       }
     }
     const single = request.headers().accept?.includes('application/vnd.pgrst.object+json');
+    if (single && !rows.length) return route.fulfill({ status: 406, headers, contentType: 'application/json', body: JSON.stringify({ code: 'PGRST116', message: 'No matching owner row' }) });
     return json(route, single ? rows[0] : rows.slice(Number(url.searchParams.get('offset')) || 0, (Number(url.searchParams.get('offset')) || 0) + (Number(url.searchParams.get('limit')) || rows.length)));
   });
   await page.goto(`${origin}/login`);
@@ -282,6 +283,110 @@ try {
   assert.equal(await page.getByLabel('Materials assessed (required)').inputValue(), 'My unsaved revision');
   assert.equal(tables.projects[0].data.reproducibility_review.manuscript_reference, 'Other session revision');
   console.log('PASS fixture: reproducibility checklist save/reload and stale-write rejection preserve both the winning record and unsaved draft.');
+
+  tables.saved_papers.push({ id: '90000000-0000-4000-8000-000000000001', user_id: user.id, data: { title: 'Synthetic review protocol fixture paper', authors: 'Fixture Author', year: 2025, url: 'https://example.org/fixture-paper' } });
+  tables.projects.push({ id: '10000000-0000-0000-0000-000000000002', user_id: user.id, data: { title: 'Second protocol project' }, updated_date: now() });
+  await page.goto(`${origin}/literature-review?project_id=${tables.projects[0].id}`);
+  await page.getByLabel('Research question').fill('What methods support coastal adaptation?');
+  await page.getByLabel('Sources searched').fill('Fixture Library only');
+  await page.getByLabel('Exact search strings').fill('coastal adaptation methods');
+  await page.getByLabel('Inclusion criteria').fill('Relevant methods descriptions in supplied metadata');
+  await page.getByLabel('Exclusion criteria').fill('Unrelated methods or missing context');
+  await page.getByRole('button', { name: 'Add to screening log', exact: true }).click();
+  await page.getByLabel('Screening decision for Synthetic review protocol fixture paper', { exact: true }).selectOption('include');
+  await page.getByRole('button', { name: 'Save protocol to project', exact: true }).click();
+  await page.getByText('Protocol saved privately in this research project.').waitFor();
+  const protocolSnapshot = structuredClone(tables.projects[0].data.review_protocol);
+  await page.reload();
+  await page.getByLabel('Research question').waitFor();
+  assert.equal(await page.getByLabel('Research question').inputValue(), protocolSnapshot.question);
+  assert.equal(await page.getByLabel('Screening decision for Synthetic review protocol fixture paper', { exact: true }).inputValue(), 'include');
+  await page.getByLabel('Research question').fill('My protocol draft');
+  tables.projects[0].updated_date = '2026-11-16T00:00:00.000Z';
+  tables.projects[0].data.review_protocol = { ...protocolSnapshot, question: 'Other session protocol' };
+  await page.getByRole('button', { name: 'Save protocol to project', exact: true }).click();
+  await page.getByText('This project changed in another tab. Reload before saving.').waitFor();
+  assert.equal(await page.getByLabel('Research question').inputValue(), 'My protocol draft');
+  assert.equal(tables.projects[0].data.review_protocol.question, 'Other session protocol');
+  page.once('dialog', dialog => dialog.dismiss());
+  await page.getByLabel('Select literature review project').selectOption(tables.projects[1].id);
+  assert.equal(await page.getByLabel('Research question').inputValue(), 'My protocol draft');
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByLabel('Select literature review project').selectOption(tables.projects[1].id);
+  assert.equal(await page.getByLabel('Research question').inputValue(), '');
+  assert.equal(await page.getByLabel('Select literature review project').inputValue(), tables.projects[1].id);
+  await page.getByLabel('Research question').fill('Second project protocol');
+  await page.getByLabel('Sources searched').fill('Fixture Library only');
+  await page.getByLabel('Exact search strings').fill('second project methods');
+  await page.getByLabel('Inclusion criteria').fill('Relevant supplied material');
+  await page.getByLabel('Exclusion criteria').fill('Unrelated supplied material');
+  await page.getByRole('button', { name: 'Save protocol to project', exact: true }).click();
+  await page.getByText('Protocol saved privately in this research project.').waitFor();
+  assert.equal(tables.projects[0].data.review_protocol.question, 'Other session protocol');
+  assert.equal(tables.projects[1].data.review_protocol.question, 'Second project protocol');
+  await page.reload();
+  await page.getByLabel('Research question').waitFor();
+  assert.equal(await page.getByLabel('Select literature review project').inputValue(), tables.projects[1].id);
+  assert.equal(await page.getByLabel('Research question').inputValue(), 'Second project protocol');
+  const reviewExportEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export reproducible JSON', exact: true }).click();
+  const reviewDownload = await reviewExportEvent;
+  assert.equal(reviewDownload.suggestedFilename(), 'eylo-review-protocol.json');
+  const reviewStream = await reviewDownload.createReadStream(); let reviewJson = '';
+  for await (const chunk of reviewStream) reviewJson += chunk;
+  const reviewExport = JSON.parse(reviewJson);
+  assert.equal(reviewExport.project_id, tables.projects[1].id);
+  assert.equal(aiCalls, 1, 'human protocol editing/export does not call a model');
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+  await capture(page, 'literature-review-mobile');
+  console.log('PASS fixture: Literature Review protocol/screening save/reload, CAS conflict draft retention, cancelled/confirmed project switching, private export and mobile viewport.');
+
+  // Provider-shaped synthetic records exercise the real discovery normalizers,
+  // card attribution and canonical Library persistence without live providers.
+  const provenanceTitle = 'Coastal adaptation provenance fixture';
+  const provenanceDoi = '10.1234/coastal-provenance-fixture';
+  await page.route('https://api.openalex.org/**', route => json(route, { results: route.request().url().includes('/works?') ? [{
+    id: 'https://openalex.org/W1234', doi: `https://doi.org/${provenanceDoi}`, title: provenanceTitle, publication_year: 2025, type: 'article', authorships: [],
+  }] : [] }));
+  await page.route('https://api.crossref.org/**', route => json(route, { message: { items: [{ DOI: provenanceDoi, title: [provenanceTitle], published: { 'date-parts': [[2025]] }, type: 'journal-article', abstract: '<jats:p>Coastal adaptation provenance fixture abstract.</jats:p>' }] } }));
+  await page.route('https://export.arxiv.org/**', route => route.fulfill({ status: 200, headers, contentType: 'application/atom+xml', body: '<feed xmlns="http://www.w3.org/2005/Atom"></feed>' }));
+  await page.route('https://www.ebi.ac.uk/**', route => json(route, { resultList: { result: [] } }));
+  await page.route('https://api.semanticscholar.org/**', route => json(route, { data: [] }));
+  await page.route('**/api/opportunities**', route => json(route, { items: [] }));
+  await page.route('**/api/eyra', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Fixture: AI unavailable' }) }));
+  await page.goto(`${origin}/search?q=${encodeURIComponent(provenanceTitle)}&goal=review`);
+  await page.getByRole('button', { name: 'Research', exact: true }).click();
+  await page.getByRole('heading', { name: provenanceTitle, exact: true }).waitFor();
+  await page.getByText('Indexed by OpenAlex, Crossref · one publication, not independent studies.').waitFor();
+  await page.getByText('Abstract metadata from Crossref.', { exact: true }).waitFor();
+  assert.equal(await page.getByRole('heading', { name: provenanceTitle, exact: true }).count(), 1);
+  await page.getByTitle('Save to library', { exact: true }).click();
+  await page.getByText('Paper saved to library', { exact: true }).waitFor();
+  const provenanceSaved = tables.saved_papers.find(row => row.data.doi === provenanceDoi);
+  assert.ok(provenanceSaved);
+  assert.equal(provenanceSaved.data.source_id, `doi:${provenanceDoi}`);
+  assert.deepEqual(provenanceSaved.data.indexed_by, ['OpenAlex', 'Crossref']);
+  assert.equal(provenanceSaved.data.summary_source, 'Crossref');
+  await capture(page, 'scholarly-provenance-mobile');
+  console.log('PASS fixture: scholarly duplicate records render one publication with retained provider/abstract attribution and save canonical DOI/provenance to the Library while AI is unavailable.');
+
+  for (let index = 0; index < 100; index++) tables.projects.push({ id: `10000000-0000-4000-8000-${String(index + 100).padStart(12, '0')}`, user_id: user.id, data: { title: `Recent fixture project ${index}` }, updated_date: now() });
+  const olderProjectId = '10000000-0000-4000-8000-000000000999';
+  tables.projects.push({ id: olderProjectId, user_id: user.id, data: { title: 'Authorized project beyond recent cap' }, updated_date: now() });
+  await page.goto(`${origin}/literature-review?project_id=${olderProjectId}`);
+  await page.getByLabel('Select literature review project').waitFor();
+  assert.equal(await page.getByLabel('Select literature review project').inputValue(), olderProjectId);
+  assert.equal(await page.getByLabel('Research question').inputValue(), '');
+  tables.projects.push({ id: '10000000-0000-4000-8000-000000000998', user_id: '00000000-0000-0000-0000-000000000002', data: { title: 'Other account private fixture project' }, updated_date: now() });
+  await page.goto(`${origin}/literature-review?project_id=10000000-0000-4000-8000-000000000998`);
+  await page.getByText('Could not load the requested private project and saved papers. Check access and your connection, then retry.').waitFor();
+  assert.equal(await page.getByLabel('Select literature review project').count(), 0, 'a missing/foreign requested ID never substitutes another owned project');
+  assert.equal(await page.getByText('Other account private fixture project', { exact: true }).count(), 0);
+  await page.goto(`${origin}/literature-review?project_id=10000000-0000-4000-8000-000000000997`);
+  await page.getByText('Could not load the requested private project and saved papers. Check access and your connection, then retry.').waitFor();
+  assert.equal(await page.getByLabel('Select literature review project').count(), 0);
+  console.log('PASS fixture: protocol deep links load an authorized exact project beyond the recent cap and fail closed for distinct foreign-owner and missing IDs; synthetic PostgREST, not hosted RLS.');
   console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.');
 } finally {
   if (browser) await browser.close();

@@ -36,7 +36,7 @@ export async function saveDiscoveredGapPaper({ entities, paper, project = null }
   const existing = await findExisting();
   if (existing) {
     if (project && existing.project_id && existing.project_id !== project.id) {
-      throw new Error('This source is already linked to another project; its existing association was preserved.');
+      throw Object.assign(new Error('This source is already linked to another project; its existing association was preserved.'), { code: 'PAPER_PROJECT_CONFLICT', record: existing });
     }
     if (project && !existing.project_id) {
       return entities.SavedPaper.update(existing.id, { project_id: project.id, project_title: project.title || '' });
@@ -54,6 +54,13 @@ export async function saveDiscoveredGapPaper({ entities, paper, project = null }
       doi: identity.doi || (typeof paper.doi === 'string' ? paper.doi : ''),
       source: paper.source_index || paper.source || '',
       source_index: paper.source_index || paper.source || '',
+      indexed_by: Array.isArray(paper.indexed_by) ? paper.indexed_by : [],
+      source_records: Array.isArray(paper.source_records) ? paper.source_records : [],
+      summary_source: typeof paper.summary_source === 'string' ? paper.summary_source : '',
+      metadata_conflict: Boolean(paper.metadata_conflict),
+      authorships: Array.isArray(paper.authorships) ? paper.authorships : [],
+      openalex_topics: Array.isArray(paper.openalex_topics) ? paper.openalex_topics : [],
+      referenced_work_ids: Array.isArray(paper.referenced_work_ids) ? paper.referenced_work_ids : [],
       url: isSafeLiteratureSourceUrl(paper.url) ? paper.url : '',
       cited_by_count: Number.isFinite(paper.cited_by_count) ? paper.cited_by_count : null,
       open_access: typeof paper.open_access === 'boolean' ? paper.open_access : null,
@@ -66,7 +73,7 @@ export async function saveDiscoveredGapPaper({ entities, paper, project = null }
     const raced = await findExisting();
     if (!raced) throw error;
     if (project && raced.project_id && raced.project_id !== project.id) {
-      throw new Error('This source is already linked to another project; its existing association was preserved.');
+      throw Object.assign(new Error('This source is already linked to another project; its existing association was preserved.'), { code: 'PAPER_PROJECT_CONFLICT', record: raced });
     }
     if (project && !raced.project_id) {
       return entities.SavedPaper.update(raced.id, { project_id: project.id, project_title: project.title || '' });
@@ -74,3 +81,6 @@ export async function saveDiscoveredGapPaper({ entities, paper, project = null }
     return raced;
   }
 }
+
+// Shared canonical Library saver; retain the historical export for callers.
+export const saveScholarlyPaper = saveDiscoveredGapPaper;

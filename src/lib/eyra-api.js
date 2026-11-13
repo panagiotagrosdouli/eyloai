@@ -3,6 +3,7 @@
 
 import { httpStatusFromError } from './discovery-source-status.js';
 import { parseArxivFeed } from './arxiv-feed.js';
+import { mergeScholarlyRecords } from './scholarly-record-identity.mjs';
 
 const OPENALEX_BASE = 'https://api.openalex.org';
 const RESEARCH_CONTACT_EMAIL = String(import.meta.env?.VITE_RESEARCH_CONTACT_EMAIL || '').trim();
@@ -425,23 +426,6 @@ function normalizedTitle(title) {
   return normalizeSearchText(title).slice(0, 100);
 }
 
-function normalizedDoi(value) {
-  let doi = String(value || '')
-    .trim()
-    .toLowerCase()
-    .replace(/^https?:\/\/(?:dx\.)?doi\.org\//, '')
-    .replace(/^doi:\s*/, '');
-  try {
-    doi = decodeURIComponent(doi);
-  } catch {
-    // Keep the original normalized DOI when a provider returns invalid encoding.
-  }
-  // A trailing `.v2` is part of a DOI unless the issuing source explicitly
-  // supplies a separate version relationship. DOI suffixes are opaque; do not
-  // infer that they are arXiv-style version markers.
-  return doi;
-}
-
 const NON_PAPER_TYPES = new Set([
   'book', 'book-series', 'book-set', 'edited-book', 'reference-book', 'monograph',
   'book-chapter', 'book-part', 'reference-entry', 'dataset', 'data-set', 'database', 'component',
@@ -598,9 +582,8 @@ function normalizeRankingProfile(query, options = {}) {
 
 export function rankPaperRecords(records, query, options = {}) {
   const profile = normalizeRankingProfile(query, options);
-  const seen = new Set();
   const currentYear = new Date().getFullYear();
-  const uniqueRecords = (records || []).flat().filter(Boolean)
+  const eligibleRecords = (records || []).flat().filter(Boolean)
     .filter(isScholarlyWorkRecord)
     // Provider metadata can contain malformed or future publication years.
     // Keep undated records visible, but never present an invalid future year as established research.
@@ -613,17 +596,8 @@ export function rankPaperRecords(records, query, options = {}) {
       if (!['latest', 'five_years'].includes(profile.recency) || !paper.year) return true;
       const earliestYear = currentYear - (profile.recency === 'latest' ? 2 : 5);
       return Number(paper.year) >= earliestYear;
-    }).map(paper => {
-    const doi = normalizedDoi(paper.doi || paper.url);
-    const key = doi
-      ? `doi:${doi}`
-      : `title:${normalizedTitle(paper.title)}`;
-    return { ...paper, _dedupeKey: key };
-  }).filter(paper => {
-    if (!paper.title || seen.has(paper._dedupeKey)) return false;
-    seen.add(paper._dedupeKey);
-    return true;
-  });
+    });
+  const uniqueRecords = mergeScholarlyRecords(eligibleRecords);
 
   const queryTermCount = queryTerms(profile.query).length;
   const minimumCoverage = queryTermCount > 0 && queryTermCount <= 4 ? 1 : 0.67;
@@ -665,12 +639,15 @@ export async function searchAllPapersWithStatus(query, options = {}) {
       : {}),
   };
   const sort = ['latest', 'five_years'].includes(normalizedProfile.recency) ? 'recent' : 'relevance';
+  // Fetch a bounded candidate pool before DOI deduplication and strict relevance
+  // filtering; the final display limit and provider request count stay unchanged.
+  const candidateLimit = Math.min(30, Math.max(12, normalizedProfile.limit * 2));
   const definitions = [
-    { id: 'openalex', label: 'OpenAlex', load: () => searchOpenAlexWorks(query, 12, sort, sourceRequestOptions) },
-    { id: 'arxiv', label: 'arXiv', load: () => searchArxiv(query, 8, sort, sourceRequestOptions) },
-    { id: 'europe_pmc', label: 'Europe PMC', load: () => searchEuropePMC(query, 8, sourceRequestOptions) },
-    { id: 'crossref', label: 'Crossref', load: () => searchCrossref(query, 8, sort, sourceRequestOptions) },
-    { id: 'semantic_scholar', label: 'Semantic Scholar', load: () => searchSemanticScholar(query, 10, sourceRequestOptions) },
+    { id: 'openalex', label: 'OpenAlex', load: () => searchOpenAlexWorks(query, candidateLimit, sort, sourceRequestOptions) },
+    { id: 'arxiv', label: 'arXiv', load: () => searchArxiv(query, Math.min(12, candidateLimit), sort, sourceRequestOptions) },
+    { id: 'europe_pmc', label: 'Europe PMC', load: () => searchEuropePMC(query, candidateLimit, sourceRequestOptions) },
+    { id: 'crossref', label: 'Crossref', load: () => searchCrossref(query, candidateLimit, sort, sourceRequestOptions) },
+    { id: 'semantic_scholar', label: 'Semantic Scholar', load: () => searchSemanticScholar(query, candidateLimit, sourceRequestOptions) },
   ];
 
   const settled = await Promise.allSettled(definitions.map(source => source.load()));
