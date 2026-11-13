@@ -48,7 +48,7 @@ create table public.eyra_messages (
     and content ? 'text'
     and jsonb_typeof(content -> 'text') = 'string'
     and char_length(content ->> 'text') between 1 and 16000
-    and jsonb_object_length(content) = 1
+    and content = jsonb_build_object('text', content ->> 'text')
     and octet_length(content::text) <= 65536
   ),
   created_date timestamptz not null default now(),
