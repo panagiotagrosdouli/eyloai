@@ -50,6 +50,9 @@ jobs:
       - name: Run browser authentication regressions
         run: npm run test:e2e:auth
 
+      - name: Verify canonical timer, quiz and learning workflows
+        run: npm run test:e2e:learning
+
       - name: Test local-time greeting states
         run: npm run test:greeting
 
