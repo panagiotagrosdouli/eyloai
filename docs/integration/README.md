@@ -74,3 +74,5 @@ All three GitHub Actions passed at `493a33b`; the final saved-snapshot label cor
 ## Privacy and concurrency continuation
 
 PR #401 was merged externally as `633de25`; this continuation starts from that main head, preserving all earlier changes. [Batch 4](batch-4-eyra-privacy-concurrency.json) adds idempotent snapshot retries, private JSON export, explicit confirmation and owner/version-checked saved-snapshot deletion, late-history invalidation and reproducibility checklist CAS. Browser fixtures reproduce a committed save followed by lost transport and confirm a retry does not duplicate it; real independent PostgreSQL sessions verify the same behavior. Exports do not call AI. Saved snapshot deletion is not full account deletion and cannot erase already downloaded exports. No remote migration or production change was executed.
+
+Current review: [draft #402](https://github.com/panagiotagrosdouli/eyloai/pull/402), head source `784d1e5` plus evidence commits. #398 and #401 were merged externally; this session did not merge them. No duplicate open PR existed for the branch.

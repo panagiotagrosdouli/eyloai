@@ -187,7 +187,7 @@
     "save_semantics": "Explicit immutable snapshot; existing records not overwritten; separate source metadata column; security-invoker atomic RPC with caller RLS"
   },
   "review": {
-    "current_draft_pr": null,
+    "current_draft_pr": 402,
     "prior_pr": 401,
     "prior_pr_state": "Merged externally before this continuation",
     "prior_merge_commit": "633de25",
