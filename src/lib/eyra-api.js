@@ -311,7 +311,7 @@ export async function searchArxiv(query, limit = 5, sort = 'relevance', strictOp
 
 export async function searchEuropePMC(query, limit = 5, strictOptions = {}) {
   try {
-    const directUrl = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(query)}&format=json&pageSize=${limit}&sort=RELEVANCE`;
+    const directUrl = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(query)}&format=json&pageSize=${limit}`;
     const res = await fetchResearchSource('europe_pmc', query, limit, 'relevance', directUrl, strictOptions);
     if (!res.ok) throw new Error(`Europe PMC request failed: ${res.status}`);
     const data = await res.json();

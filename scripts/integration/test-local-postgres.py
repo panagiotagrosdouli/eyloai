@@ -27,6 +27,7 @@ MIGRATIONS = [
     '20261112190430_eylo_files.sql',
     '20261112200000_private_file_search.sql',
     '20261113062923_canonical_learning_time.sql',
+    '20261113113010_shared_discovery_quota.sql',
 ]
 BOOTSTRAP = '''
 create role anon nologin;
@@ -74,6 +75,7 @@ try:
         print('APPLIED locally:', name, flush=True)
     sql((ROOT / 'tests/integration/workspace-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/learning-time-postgres.sql').read_text())
+    sql((ROOT / 'tests/integration/discovery-quota-postgres.sql').read_text())
     version = subprocess.check_output([*DOCKER, 'exec', NAME, 'psql', '-U', 'postgres', '-Atc',
         "select updated_date from projects where id = '10000000-0000-0000-0000-000000000001'"], env=ENV, text=True).strip()
 
@@ -95,6 +97,14 @@ try:
     if sorted(outcomes) != ['0', '1']:
         raise AssertionError('Expected one successful concurrent save and one stale conflict: ' + repr(outcomes))
     print('PASS: two independent PostgreSQL sessions competing on one project version return one save and one conflict.', flush=True)
+    def concurrent_quota(_request):
+        return subprocess.check_output([*DOCKER, 'exec', '-i', NAME, 'psql', '-U', 'postgres', '-qAt', '-v', 'ON_ERROR_STOP=1'], env=ENV,
+            input="set role service_role; select allowed from consume_discovery_rate_limit(repeat('c',64),1,600);", text=True).strip()
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        quota_outcomes = list(pool.map(concurrent_quota, [1,2]))
+    if sorted(quota_outcomes) != ['f', 't']:
+        raise AssertionError('Shared quota did not enforce one allowed request atomically: ' + repr(quota_outcomes))
+    print('PASS: two independent PostgreSQL quota sessions allow exactly one request at a limit of one.', flush=True)
     print('PASS: PostgreSQL migration execution, two-role workspace isolation, version history, search, project links and Storage metadata policies.', flush=True)
     print('NOT VERIFIED: hosted Supabase Auth, PostgREST, Storage bytes, deployed schema, or service-role operations.', flush=True)
 finally:
