@@ -1,12 +1,12 @@
 {
   "date": "2026-11-13",
-  "tested_source_commit": "63671871726786cebfb33f867dbc3fcc0609c2cc",
+  "tested_source_commit": "cc3547e620da2bc0ef702287d999cd33153b4a6e",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
     "npm_run_check": {
       "status": "PASS",
-      "tests": 616,
+      "tests": 635,
       "failed": 0,
       "includes": [
         "local imports",
@@ -15,8 +15,8 @@
         "Node unit/API regressions",
         "Vite production build"
       ],
-      "evidence": "evidence/2026-11-13/research-check-exact-project.txt",
-      "source_scope": "Application and unit-test sources unchanged from c842cc5; test-only followup6367187 adds explicit foreign/missing browser fixture cases"
+      "evidence": "evidence/2026-11-13/market-release-check-final.txt",
+      "source_scope": "Final code and tests at cc3547e620da2bc0ef702287d999cd33153b4a6e"
     },
     "browser": {
       "status": "PASS",
@@ -46,16 +46,18 @@
         "Literature Review protocol/screening persistence, project selection reload, conflicts and private export",
         "One scholarly publication retains co-indexing and abstract-donor attribution; canonical Library save while AI is unavailable",
         "Exact protocol project deep link beyond recent100; missing/foreign owner-scoped target fails closed instead of selecting another owned project",
-        "Distinct foreign-user fixture row and nonexistent ID both produce the same protocol load error; this proves client owner filtering, not hosted RLS"
+        "Distinct foreign-user fixture row and nonexistent ID both produce the same protocol load error; this proves client owner filtering, not hosted RLS",
+        "Portable workspace v2 export across canonical collections",
+        "Same-route account switch clears old private page state before delayed new-owner data"
       ],
-      "evidence": "evidence/2026-11-13/research-browser-owner-boundary.txt; evidence/2026-11-13/research-auth-browser.txt",
-      "fixture_source_commit": "63671871726786cebfb33f867dbc3fcc0609c2cc",
-      "fixture_blob_sha": "d0e04eac9654feae04e102da19ace20f73525137"
+      "evidence": "evidence/2026-11-13/launch-browser-fixed.txt; evidence/2026-11-13/market-auth-browser-final.txt",
+      "fixture_source_commit": "cc3547e620da2bc0ef702287d999cd33153b4a6e",
+      "fixture_blob_sha": "f274bd97dc2a1238c22f856854d087e3f5fe10c3"
     },
     "postgres": {
       "status": "PASS",
       "database": "disposable PostgreSQL 17.6; no network or published ports",
-      "migrations_executed": 17,
+      "migrations_executed": 18,
       "scope": "real PostgreSQL SQL/RLS/triggers with synthetic auth.uid identities and Storage metadata schema",
       "assertions": [
         "owner/outsider isolation across ten tables",
@@ -75,11 +77,12 @@
         "stale-version and outsider snapshot deletion rejected",
         "two independent sessions save the same snapshot UUID and create one message",
         "exact retries normalize omitted optional sources to the stored empty array",
-        "three overlapping transaction rounds cover both parent unique indexes during concurrent same-ID replay"
+        "three overlapping transaction rounds cover both parent unique indexes during concurrent same-ID replay",
+        "All 30 canonical export collections exist with RLS enabled and authenticated SELECT grants; no foreign fixture rows visible"
       ],
       "hosted_supabase_verified": false,
-      "evidence": "evidence/2026-11-13/privacy-postgres-race-fixed.txt",
-      "source_scope": "Prior batch local PASS on 17 selected migrations; no schema/policy changes in this batch, not rerun locally. Final CI runs the existing PostgreSQL suite."
+      "evidence": "evidence/2026-11-13/market-postgres-final.txt",
+      "source_scope": "Rerun locally: 18 selected existing migrations, all 30 export collections readable with RLS enabled; empty scopes are not isolation evidence"
     },
     "supplemental_ci": {
       "status": "PASS",
@@ -102,7 +105,8 @@
       "deployed_commit_verified": false,
       "reported_release": "2026-08-10-guided-discovery-eyra-resilience",
       "evidence": "evidence/public-smoke.txt",
-      "date": "2026-11-12 (historical; not rerun for this candidate)"
+      "date": "2026-11-12 (historical; not rerun for this candidate)",
+      "scope": "Historical status-only smoke; superseded by strict public_release_probe failure, not current readiness"
     },
     "retrieval_diagnostic": {
       "status": "FAIL",
@@ -118,6 +122,17 @@
       "evidence": "evidence/2026-11-13/research-live-final.txt; evidence/2026-11-13/research-live-final.json",
       "scope": "Candidate handler through localhost with actual provider responses; strict primary-index coverage gates unchanged, co-indexing does not inflate study counts",
       "root_cause": "Europe PMC sort fix retained. Remaining source breadth/candidate coverage and heuristic gate failures unresolved; larger bounded candidate pool did not establish acceptance."
+    },
+    "public_release_probe": {
+      "status": "FAIL",
+      "scope": "public-readonly; no authenticated access or writes",
+      "evidence": "evidence/2026-11-13/market-public-target-probe-final.txt",
+      "observations": [
+        "deployment-status returns HTML with HTTP200",
+        "manifest and server source SHA unverified",
+        "ai, contact and billing reported false"
+      ],
+      "expected_commit_at_execution": "8874b0305b81322a2116ebf44dd516fa5c6c7692"
     }
   },
   "external_blockers": [
@@ -167,22 +182,32 @@
       "DOI-only identity, full-title/author/year fallback, co-indexing and missing abstract provenance",
       "Bounded candidate overfetch; one request per provider; exact query/relevance gates retained",
       "Canonical DOI Library saver reused across discovery and Research Gaps",
-      "Literature Review project CAS, draft conflict retention and project selection persistence"
+      "Literature Review project CAS, draft conflict retention and project selection persistence",
+      "Private routes remount by authenticated user ID",
+      "Portable workspace v2 covers 30 canonical collections with fail-closed ownership checks",
+      "Fourteen evidence gates and strict read-only JSON/source provenance probe",
+      "Staging-only two-account smoke refuses live/unrelated refs and inconclusive empty fixtures"
     ],
     "EXECUTED": [
-      "616 unit/API tests plus typecheck/lint/import checks/build",
+      "635 unit/API tests plus typecheck/lint/import/build",
       "Both isolated browser suites",
-      "Five-query live scholarly diagnostic through candidate handler"
+      "Disposable PostgreSQL: 18 selected migrations",
+      "Read-only public deployment probe",
+      "Readiness gate: expected NO-GO exit1"
     ],
     "VERIFIED": [
       "Local fixture journeys, real SQL policies/CAS/quota and no hosted quota bypass",
       "Europe PMC real responses after sort parameter repair",
       "Ambiguous transport retry and deletion confirmation browser fixtures; actual concurrent snapshot SQL",
-      "Local scholarly identity/provenance unit tests and actual browser Library/protocol fixture journeys"
+      "Local scholarly identity/provenance unit tests and actual browser Library/protocol fixture journeys",
+      "Reproduced and fixed same-route account state leak in browser fixtures",
+      "30 canonical export table contracts in real disposable PostgreSQL"
     ],
     "FAILED": [
       "Fresh five-query real-provider diagnostic: source coverage 3/5; covered-query heuristic gates 2/3; overall FAIL",
-      "Vercel preview failed; current cause unverified because scoped deployment metadata/logs return404"
+      "Vercel preview failed; current cause unverified because scoped deployment metadata/logs return404",
+      "Public deployment identity/API/configuration probe; see exact observations",
+      "Pre-fix same-route account switch regression reproduced, then repaired and passing"
     ],
     "BLOCKED": [
       "Separate authorized Supabase staging and Vercel identity/access",
@@ -191,7 +216,9 @@
     ],
     "NOT_IMPLEMENTED": [
       "Full acceptance across all 77 products",
-      "Remaining historical PR behavior reviews and unimplemented product workflows"
+      "Remaining historical PR behavior reviews and unimplemented product workflows",
+      "Full account deletion/DSAR including file bytes, Auth/provider records and backups",
+      "Legal sign-off, external pilot acceptance and operational recovery proof"
     ]
   },
   "concurrent_branch_reconciliation": {
@@ -201,10 +228,10 @@
     "save_semantics": "Explicit immutable snapshot; existing records not overwritten; separate source metadata column; security-invoker atomic RPC with caller RLS"
   },
   "review": {
-    "prior_pr": 402,
-    "prior_pr_state": "Merged externally as b0124de before this batch",
+    "prior_pr": 403,
+    "prior_pr_state": "Merged externally as 468f949 before this batch",
     "continuation_branch": "codex/eylo-platform-integration-audit",
-    "current_pr": 403
+    "current_pr": null
   },
   "github_ci": {
     "commit": "adc5b38b72a87e381776c4349a27271bea35312b",
@@ -214,7 +241,7 @@
       "EYLO Quality Gate": 43441906207,
       "Product quality": 43441906292
     },
-    "scope": "Previous head before exact-project followup; final PR403 checks remain authoritative"
+    "scope": "Historical prior-batch CI only; current continuation CI pending"
   },
   "latest_vercel_observation": {
     "commit": "adc5b38b72a87e381776c4349a27271bea35312b",

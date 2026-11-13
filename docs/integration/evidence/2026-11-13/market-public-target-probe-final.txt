@@ -1,0 +1,53 @@
+
+> eyloai@0.0.0 release:probe
+> node scripts/probe-release-target.mjs
+
+{
+  "schema_version": 1,
+  "scope": "public-readonly",
+  "target_origin": "https://eyloai.vercel.app",
+  "expected_commit": "8874b0305b81322a2116ebf44dd516fa5c6c7692",
+  "observed_manifest_sha": null,
+  "observed_deployment_sha": null,
+  "identity_verified": false,
+  "configured_capabilities": {
+    "ai": false,
+    "contact": false,
+    "billing": false,
+    "scheduled_monitoring": false,
+    "institution_analytics": false
+  },
+  "decision": "PROBE_FAILED",
+  "market_readiness_proven": false,
+  "production_authorized": false,
+  "note": "Read-only public identity/configuration only. This does not verify project ownership, Auth, RLS, Storage, provider behavior, legal acceptance or authorize any write.",
+  "endpoints": [
+    {
+      "path": "/release.json",
+      "status": 200,
+      "error": null
+    },
+    {
+      "path": "/api/deployment-status",
+      "status": 200,
+      "error": "Expected JSON; a successful HTML SPA fallback is not an API response."
+    },
+    {
+      "path": "/api/capabilities",
+      "status": 200,
+      "error": null
+    }
+  ],
+  "issues": [
+    "/api/deployment-status: Expected JSON; a successful HTML SPA fallback is not an API response.",
+    "Browser manifest and server deployment provenance do not establish the reviewed commit.",
+    "ai is not reported configured; real provider acceptance is still required even when configured.",
+    "contact is not reported configured; real provider acceptance is still required even when configured.",
+    "billing is not reported configured; real provider acceptance is still required even when configured."
+  ]
+}
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

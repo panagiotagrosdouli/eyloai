@@ -1,5 +1,5 @@
 {
-  "source_commit": "63671871726786cebfb33f867dbc3fcc0609c2cc",
+  "source_commit": "cc3547e620da2bc0ef702287d999cd33153b4a6e",
   "files": [
     {
       "path": ".github/workflows/build.yml",
@@ -144,7 +144,7 @@
     {
       "path": "src/components/ProtectedRoute.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "559ab9ef26b500f33fa876a44665061015939761"
+      "blob_sha": "7b4d4451fe8226ecfc79e2e82df50b4722551e6b"
     },
     {
       "path": "src/components/ScrollToTop.jsx",
@@ -994,7 +994,7 @@
     {
       "path": "src/lib/workspace-export.mjs",
       "kind": "frontend_or_client_source",
-      "blob_sha": "9036fa5551df7e6d9275b1b07cb9de79357fa002"
+      "blob_sha": "36a104e7ad2b821dc9651644da69182a55560c7f"
     },
     {
       "path": "src/lib/zoned-time.mjs",
@@ -1279,7 +1279,7 @@
     {
       "path": "src/pages/Settings.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "2beb3ab7145c00131e47e322383dece4cb67f275"
+      "blob_sha": "8631ede3d0c697fe5f577e49fccd849f5b3fb25a"
     },
     {
       "path": "src/pages/StudyPlanner.jsx",
@@ -1659,7 +1659,7 @@
     {
       "path": "tests/e2e-learning-integration.mjs",
       "kind": "automated_test",
-      "blob_sha": "d0e04eac9654feae04e102da19ace20f73525137"
+      "blob_sha": "f274bd97dc2a1238c22f856854d087e3f5fe10c3"
     },
     {
       "path": "tests/e2e-native-meetings.mjs",
@@ -2204,7 +2204,7 @@
     {
       "path": "tests/rls-fixture-requires-authorization.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "c41047336917063bae738b4ef88d91fda4d4c099"
+      "blob_sha": "8232342612b0fc1f2b4a833be855fe42e604d3a6"
     },
     {
       "path": "tests/scheduled-monitoring.test.mjs",
@@ -2279,7 +2279,7 @@
     {
       "path": "tests/workspace-export.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "a321ac77be99085d6d52f6e81c1f4ae9dab4414f"
+      "blob_sha": "63907fd13697079cef6f45f537e709cb33ba9db5"
     }
   ],
   "npm_scripts": {

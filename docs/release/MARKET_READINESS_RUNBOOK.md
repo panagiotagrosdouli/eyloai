@@ -36,3 +36,7 @@ Local fixtures, disposable PostgreSQL, hosted staging, real public-provider call
 - The latest recorded real-provider diagnostic is FAIL, source coverage 3/5, with Semantic Scholar429; no human relevance acceptance exists.
 - No hosted registration/recovery, two-account persistence/Storage, real authenticated OpenAI, Stripe test lifecycle, LiveKit media, full account deletion, operational recovery, legal sign-off or external pilot acceptance is claimed.
 - Workspace export v2 covers 30 user-owned canonical collections and profile metadata; file bytes, Auth internals, billing/provider records and backups remain excluded. Missing-table/permission/read/ownership/budget failures abort the entire export rather than silently omitting data. Deploy only with the reviewed canonical schema and preserve the explicit partial-account-data notice.
+
+## Public deployment identity probe
+
+Run `NODE_USE_ENV_PROXY=1 npm run release:probe` in this managed environment (or `npm run release:probe` with direct network access). It only GETs public release, deployment-status and capabilities JSON. HTTP200 HTML, missing/mismatched source SHAs or disabled AI/contact/billing fail the probe. Even a pass does not prove ownership, hosted acceptance or market readiness. The latest observation failed: deployment-status returned SPA HTML and capabilities reported AI/contact/billing false.
