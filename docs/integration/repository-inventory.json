@@ -1,5 +1,5 @@
 {
-  "source_commit": "66e1c3458b1d8e15fa62df9afec6621e175c8ebb",
+  "source_commit": "f7a2a1824b40204f7b0715b7dfc8a3ed4ae61130",
   "files": [
     {
       "path": ".github/workflows/build.yml",
@@ -189,7 +189,7 @@
     {
       "path": "src/components/discovery/DiscoveryResults.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "aafe01e2b743a98b48c1190ec45e36c154e133cf"
+      "blob_sha": "6e3092f130b93496b7a2ea70bcac06256001ae61"
     },
     {
       "path": "src/components/discovery/GuidedSearch.jsx",
@@ -249,7 +249,7 @@
     {
       "path": "src/components/eyra/EyraCommandCenter.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "f3770e27604a87004eb5ad9a49d7f004a26901e4"
+      "blob_sha": "a7523001b9ac9bdee7de3396a58e4488435bff07"
     },
     {
       "path": "src/components/eyra/EyraDailyBriefing.jsx",
@@ -609,7 +609,7 @@
     {
       "path": "src/lib/eyra-api.js",
       "kind": "frontend_or_client_source",
-      "blob_sha": "f57eb89228cb8ae94e8e58f0c6ea24d5da8a01d3"
+      "blob_sha": "1623c9b4a65861356ee0f8088e5b82b96ce3d77a"
     },
     {
       "path": "src/lib/eyra-cache-key.mjs",
@@ -629,7 +629,7 @@
     {
       "path": "src/lib/eyra-engine.js",
       "kind": "frontend_or_client_source",
-      "blob_sha": "beb377f4c455730716996b4db23fa45ef935c5db"
+      "blob_sha": "e2c89e0d983cd7aa0254efee7089d101d45900cd"
     },
     {
       "path": "src/lib/eyra-history.js",
@@ -904,7 +904,7 @@
     {
       "path": "src/lib/research-gap-literature-save.mjs",
       "kind": "frontend_or_client_source",
-      "blob_sha": "9e8c78078555e8a869d8dbc6b2ef4b6e9fec8eb1"
+      "blob_sha": "35f42bb144629267b2f050830300d0081bc0115e"
     },
     {
       "path": "src/lib/research-knowledge-graph.mjs",
@@ -930,6 +930,11 @@
       "path": "src/lib/scholarly-provider-backoff.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "eaee13688a1717ff20c7a7e1345a04cccd93bb04"
+    },
+    {
+      "path": "src/lib/scholarly-record-identity.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "bbee8830c277fde5d0eee72be4cbf2d023db53e7"
     },
     {
       "path": "src/lib/second-brain.js",
@@ -1154,7 +1159,7 @@
     {
       "path": "src/pages/LiteratureReview.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "b0b0a11d7058370020bbc7764a542ec13daa6272"
+      "blob_sha": "4f2c80abed4f2cf93e670b194797b1873a8b146d"
     },
     {
       "path": "src/pages/Login.jsx",
@@ -1499,7 +1504,7 @@
     {
       "path": "supabase/migrations/20261113120556_eyra_snapshot_retry_identity.sql",
       "kind": "migration",
-      "blob_sha": "cd1d99492b3d006700224db54947493adb71e634"
+      "blob_sha": "7586642c5b8bd32186219b2cb9a53b5808788946"
     },
     {
       "path": "tests/activity-history.test.mjs",
@@ -1602,6 +1607,11 @@
       "blob_sha": "6129c9a72189a60c3e0dbcd92cebbb44b04d4cc9"
     },
     {
+      "path": "tests/discovery-candidate-budget.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "2a399f18327aeeff103780d128e3e31e632ede70"
+    },
+    {
       "path": "tests/discovery-human-benchmark.test.mjs",
       "kind": "automated_test",
       "blob_sha": "4b0295ac14fe8ef98d8a72ab9ccf94a3ea019a52"
@@ -1649,7 +1659,7 @@
     {
       "path": "tests/e2e-learning-integration.mjs",
       "kind": "automated_test",
-      "blob_sha": "26c60979c424255e8606387565dcdd89aa8260aa"
+      "blob_sha": "457409366efcd28da695fbf26f51733b71e1c0c2"
     },
     {
       "path": "tests/e2e-native-meetings.mjs",
@@ -1889,7 +1899,7 @@
     {
       "path": "tests/integration/eyra-conversations-postgres.sql",
       "kind": "automated_test",
-      "blob_sha": "0bfe8ff0041ce89ec47bc36e63c1b3707cbb4655"
+      "blob_sha": "097d7d5e1cff4621e749a4007f319efb93a65c2a"
     },
     {
       "path": "tests/integration/funding-postgres.sql",
@@ -2205,6 +2215,11 @@
       "path": "tests/scholarly-provider-backoff.test.mjs",
       "kind": "automated_test",
       "blob_sha": "8053e3b7585876b46e5ac0f5a10c8cb7aaebbd80"
+    },
+    {
+      "path": "tests/scholarly-record-identity.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "b08874e298e592f4ccedfed93ee4c0db3375d3c7"
     },
     {
       "path": "tests/scholarly-resilience.test.mjs",

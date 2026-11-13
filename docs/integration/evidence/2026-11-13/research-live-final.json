@@ -1,0 +1,132 @@
+{
+  "executed_at": "2026-11-13T14:06:08.013Z",
+  "proxy_target": "http://127.0.0.1:38319",
+  "human_judged": false,
+  "cases": [
+    {
+      "query": "robotics for independent ageing",
+      "records": 10,
+      "heuristic_anchor_coverage_at_10": 1,
+      "anchor_matches": 10,
+      "represented_sources": 1,
+      "available_sources": 4,
+      "unavailable_sources": 1,
+      "available_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref"
+      ],
+      "unavailable_source_names": [
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "Semantic Scholar HTTP 429"
+      ],
+      "top_result": "Social robotic application to support active and healthy ageing",
+      "source_coverage_sufficient": false,
+      "coverage_warning": true,
+      "anchor_gate_passed": null
+    },
+    {
+      "query": "AI for early cancer detection",
+      "records": 10,
+      "heuristic_anchor_coverage_at_10": 0.4,
+      "anchor_matches": 4,
+      "represented_sources": 4,
+      "available_sources": 4,
+      "unavailable_sources": 1,
+      "available_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref"
+      ],
+      "unavailable_source_names": [
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "Semantic Scholar HTTP 429"
+      ],
+      "top_result": "Healthcare’s new Frontier: AI-driven early cancer detection for improved well-being",
+      "source_coverage_sufficient": true,
+      "coverage_warning": false,
+      "anchor_gate_passed": false
+    },
+    {
+      "query": "climate adaptation for coastal cities",
+      "records": 10,
+      "heuristic_anchor_coverage_at_10": 1,
+      "anchor_matches": 10,
+      "represented_sources": 3,
+      "available_sources": 4,
+      "unavailable_sources": 1,
+      "available_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref"
+      ],
+      "unavailable_source_names": [
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "Semantic Scholar HTTP 429"
+      ],
+      "top_result": "Progress and gaps in climate change adaptation in coastal cities across the globe",
+      "source_coverage_sufficient": true,
+      "coverage_warning": false,
+      "anchor_gate_passed": true
+    },
+    {
+      "query": "trustworthy AI in higher education",
+      "records": 10,
+      "heuristic_anchor_coverage_at_10": 1,
+      "anchor_matches": 10,
+      "represented_sources": 2,
+      "available_sources": 4,
+      "unavailable_sources": 1,
+      "available_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref"
+      ],
+      "unavailable_source_names": [
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "Semantic Scholar HTTP 429"
+      ],
+      "top_result": "From ethical principles to executable governance: A policy-as-code framework for trustworthy AI in higher education",
+      "source_coverage_sufficient": true,
+      "coverage_warning": false,
+      "anchor_gate_passed": true
+    },
+    {
+      "query": "uncertainty-aware trajectory prediction vulnerable road users",
+      "records": 3,
+      "heuristic_anchor_coverage_at_10": 1,
+      "anchor_matches": 3,
+      "represented_sources": 1,
+      "available_sources": 4,
+      "unavailable_sources": 1,
+      "available_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref"
+      ],
+      "unavailable_source_names": [
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "Semantic Scholar HTTP 429"
+      ],
+      "top_result": "From Camera-Based Sensing to Reasoning: A Comprehensive Review Toward Proactive Vulnerable Road User Safety",
+      "source_coverage_sufficient": false,
+      "coverage_warning": true,
+      "anchor_gate_passed": null
+    }
+  ]
+}

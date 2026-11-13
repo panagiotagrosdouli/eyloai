@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-13",
+  "tested_source_commit": "f7a2a1824b40204f7b0715b7dfc8a3ed4ae61130",
+  "baseline_main": "b0124de",
+  "IMPLEMENTED": [
+    "Scholarly DOI identity accepts only DOI identifiers and preserves opaque suffixes; title fallback retains full title/author/year rather than URL pseudo-DOIs or 100-character prefix collisions",
+    "Deduplication retains original provider URLs/co-indexing; only matching DOI AND normalized title can donate a missing abstract; conflicting titles flagged and do not donate text",
+    "Discovery cards, Library payloads and EYRA prompt context retain abstract-source attribution; co-indexing is explicitly one publication, not independent studies",
+    "Canonical existing saved-paper repository reused for discovery saves and project seeds, including DOI alias lookup/race recovery and prior project-link preservation",
+    "Bounded overfetch before strict ranking: max30 candidates per provider, arXiv max12; same five provider requests and exact query; final limit unchanged",
+    "Review protocol save uses canonical Project CAS, locks editing while saving, ignores obsolete responses, retains conflict drafts and stores selected project in URL for reload",
+    "Accessible paper-specific screening labels and machine-readable live diagnostic report"
+  ],
+  "EXECUTED": {
+    "npm run check": "PASS: 616 tests, imports/types/lint/build",
+    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:auth": "PASS: existing workspace/auth/funding regressions with isolated fixtures",
+    "EYLO_E2E_ARTIFACT_DIR=/workspace/work/continuation/screenshots PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:learning": "PASS: learning/EYRA/privacy/reproducibility plus protocol conflicts, project switching/reload/export, provenance UI and canonical Library save",
+    "EYLO_RETRIEVAL_REPORT_PATH=/workspace/work/continuation/research-live-final.json NODE_USE_ENV_PROXY=1 node scripts/benchmark-local-discovery.mjs": "EXECUTED with real providers; exit1, overall FAIL"
+  },
+  "VERIFIED": [
+    "Local fixture interactions and domain identity/provenance/resource-budget checks; not hosted acceptance"
+  ],
+  "FAILED": {
+    "real_provider_diagnostic": {
+      "source_coverage": "3/5",
+      "covered_heuristic_gates": "2/3",
+      "average_heuristic_anchor_coverage": 0.88,
+      "human_judged": false,
+      "errors": [
+        "Semantic Scholar HTTP429"
+      ],
+      "note": "Prior batch 4/5 is historical. Strict benchmark gates unchanged; no fabricated fillers or co-index count inflation."
+    }
+  },
+  "BLOCKED": [
+    "Separate authorized Supabase staging and verified Vercel project/deployment identity",
+    "Live authenticated OpenAI, Stripe sandbox, LiveKit and hosted account deletion acceptance"
+  ],
+  "NOT_IMPLEMENTED": [
+    "Resolution of all live retrieval quality/coverage failures",
+    "Full historical migration-chain acceptance and all 77-product completion"
+  ],
+  "schema_changes": false,
+  "remote_migrations_applied": false,
+  "production_writes": false
+}
