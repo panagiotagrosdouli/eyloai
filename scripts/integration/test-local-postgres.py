@@ -87,6 +87,8 @@ try:
     sql((ROOT / 'tests/integration/eyra-conversations-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/research-records-postgres.sql').read_text())
     print('PASS: project research journal, experiments and publications roundtrip, preserve unrelated data, reject stale saves and deny outsider reads/writes/deletes.', flush=True)
+    sql((ROOT / 'tests/integration/planning-documents-postgres.sql').read_text())
+    print('PASS: research budget and thesis canonical project/Note persistence, unrelated-data preservation, stale-save rejection and outsider isolation.', flush=True)
     export_tables = json.loads(subprocess.check_output(['node', '--input-type=module', '-e',
         "import { WORKSPACE_EXPORT_TABLES } from './src/lib/workspace-export.mjs'; process.stdout.write(JSON.stringify(WORKSPACE_EXPORT_TABLES));"], cwd=ROOT, text=True))
     if any(not isinstance(table, str) or not table.isidentifier() for table in export_tables):
