@@ -6,7 +6,7 @@ Baseline main: `7bf956a72d42f251c77cde7276dcb050cebd1a35`.
 
 ## Inventory and decisions
 
-- [77-product candidate matrix](product-matrix.json): 54 partially implemented, 22 not implemented, 1 infrastructure only. **Zero products are certified complete.** Status is for this integration candidate; [the baseline matrix](baseline-product-matrix.json) preserves main's earlier evidence.
+- [77-product candidate matrix](product-matrix.json): 77 partially implemented, 0 not implemented, 0 infrastructure only. **Zero products are certified complete.** Status is for this integration candidate; [the baseline matrix](baseline-product-matrix.json) preserves main's earlier evidence.
 - [65 open PR heads and merge-base comparisons](open-pr-comparison.json), including patch-equivalent commit counts and migration paths. This snapshot predates this integration PR and is not a full behavior/security review of every historical PR.
 - [Migration/table overlap](pr-migration-overlap.json) against the exact baseline; [Tracked source/API/migration/test/CI inventory](repository-inventory.json).
 - [Canonical models, integration choices and remaining batches](INTEGRATION_DECISIONS.md).
@@ -19,9 +19,9 @@ Machine-readable results and their scopes are in [verification.json](verificatio
 
 | Check | Result | Scope |
 | --- | --- | --- |
-| `npm run check` | PASS, 649 tests, 0 failed | Imports, frontend/API typecheck, ESLint, unit/API tests and Vite build |
+| `npm run check` | PASS, 679 tests, 0 failed | Imports, frontend/API typecheck, ESLint, unit/API tests and Vite build |
 | Browser regression | PASS | Actual pages and SDK calls against isolated Auth/PostgREST/Storage fixtures; auth, local analysis, catalog, Notes/Search, Files/documents, workplans, stale-write recovery and mobile viewport |
-| PostgreSQL migration/policy test | PASS | Eighteen selected migrations on disposable PostgreSQL 17.6; real SQL/RLS/triggers with synthetic Auth identity and Storage metadata schemas; two independent project-save sessions produce one success and one conflict |
+| PostgreSQL migration/policy test | PASS | Nineteen selected migrations on disposable PostgreSQL 17.6; real SQL/RLS/triggers with synthetic Auth identity and Storage metadata schemas; two independent project-save sessions produce one success and one conflict |
 | Strict public deployment probe | FAIL | deployment-status returns HTML with HTTP200; source SHA unverified; AI/contact/billing report false. Earlier 8/8 availability smoke is historical only. |
 | Live retrieval diagnostic | FAIL | Candidate handler with real provider responses: 3/5 queries met strict primary-index source-coverage criteria; unsupported Europe PMC sort parameter removed; Semantic Scholar intermittent 429; overall diagnostic still FAIL; automated anchors are not human relevance judgments |
 | Hosted persistence/RLS and providers | NOT VERIFIED | Intended Supabase ref permission denied; separate staging needed; Vercel project/deployment identity unavailable |
@@ -102,3 +102,7 @@ Browser follow-up6367187 separately verifies a synthetic foreign-owner row and a
 [Evidence and exact commands](batch-8-budget-thesis.json), [contract and limits](PLANNING_WORKSPACES_CONTRACT.md). Budget arithmetic uses integer minor units; Thesis compiles existing saved Notes without a parallel writing database. Both have explicit owner/version saves, conflict comparison, guarded exports and fixture/SQL coverage. Notes now opens authorized exact IDs beyond the recent cap. Totals54 partial/22 not implemented/1 infrastructure, zero certified complete; hosted and full-product acceptance remain open.
 
 Current draft continuation: [#405](https://github.com/panagiotagrosdouli/eyloai/pull/405). Its description records final-head GitHub Actions; earlier PR/run IDs in historical sections remain historical.
+
+## Batch9 — all22 missing implementations
+
+[Actual scopes and remaining criteria](REMAINING_22_PRODUCT_CONTRACTS.md), [per-product register](batch-9-product-scopes.json), [evidence/exact commands](batch-9-all22-products.json). All22 now have implemented local flows; task Automations26 also has real user-triggered execution/history. Counts77 partial/0 without implementation/0 infrastructure-only/0 complete. The all22 browser suite includes an actual local production build and network-off encrypted Offline reload. SQL uses19 selected migrations in disposable PostgreSQL. No hosted migration/deployment or production-data/payment action occurred; release remains NO-GO.

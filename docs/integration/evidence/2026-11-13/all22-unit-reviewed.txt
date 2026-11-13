@@ -1,0 +1,39 @@
+✔ all22 requested product identities have a unique reachable work category (2.585471ms)
+✔ spaces: bounded private record roundtrip and meaningful preview (11.940169ms)
+✔ skills: bounded private record roundtrip and meaningful preview (0.385178ms)
+✔ interview: bounded private record roundtrip and meaningful preview (0.635076ms)
+✔ workflows: bounded private record roundtrip and meaningful preview (0.430575ms)
+✔ studio: bounded private record roundtrip and meaningful preview (0.220415ms)
+✔ methodology: bounded private record roundtrip and meaningful preview (0.204581ms)
+✔ ethics: bounded private record roundtrip and meaningful preview (0.294004ms)
+✔ conferences: bounded private record roundtrip and meaningful preview (1.169113ms)
+✔ forms: bounded private record roundtrip and meaningful preview (0.902701ms)
+✔ method planning, ethics approval references and conference dates do not fabricate acceptance (0.99702ms)
+✔ private forms validate required, numeric/date types, definition stability and answer identity (0.840649ms)
+✔ workbook safe aggregates, cycles, invalid references and unsupported scripts (1.399873ms)
+✔ workbook CSV imports preserve quoted content and exports protect formulas (0.905825ms)
+✔ canonical memory requires all query words and retains exact source identity (0.288946ms)
+✔ read-only recovery retries transient responses and rejects HTML200 (449.261918ms)
+✔ personal tokens are unpredictable secrets with only a SHA-256 digest for persistence (3.437256ms)
+✔ encrypted offline snapshot roundtrip, wrong passphrase, tampering and owner substitution (156.677394ms)
+✔ signout cache clearing targets only encrypted EYLO snapshots (0.336776ms)
+✔ operation retry metadata survives reload without storing source text or crossing accounts (2.404194ms)
+✔ workbook evaluation stops excessive dependency chains instead of freezing the editor (0.839918ms)
+✔ unrecognized prototype names cannot select a workbench product (0.172124ms)
+✔ developer API denies missing auth, writes and out-of-scope project without reading records (32.821498ms)
+✔ developer API checks token revocation and expiry before any resource read (1.739203ms)
+✔ developer API uses canonical atomic budgets and explicit token-owner/project predicates (2.182317ms)
+✔ developer API fails closed on exhausted quota and foreign returned rows (2.702363ms)
+✔ admin operations rejects editable user metadata and requires fresh trusted app metadata (1.436337ms)
+✔ admin status writes are bounded and stale saves return409 (1.01791ms)
+✔ staging preparation rejects live, unrelated, mismatched and unconfirmed targets and server keys (1.313612ms)
+✔ staging deployment configuration has no production Supabase rewrite or automatic cron (1.134312ms)
+✔ staging routes consolidated APIs before the guarded SPA fallback (0.436543ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 919.011581

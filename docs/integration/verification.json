@@ -1,12 +1,12 @@
 {
   "date": "2026-11-13",
-  "tested_source_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
+  "tested_source_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
     "npm_run_check": {
       "status": "PASS",
-      "tests": 649,
+      "tests": 679,
       "failed": 0,
       "includes": [
         "local imports",
@@ -15,8 +15,8 @@
         "Node unit/API regressions",
         "Vite production build"
       ],
-      "evidence": "evidence/2026-11-13/batch8-check-release.txt",
-      "source_scope": "Final application/domain/test sources at 1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42"
+      "evidence": "evidence/2026-11-13/all22-check-formatted.txt",
+      "source_scope": "Final runtime/domain sources at 4607d2b5151d0dad07d9288500ad343d0577373e; subsequent changes are inventory/evidence only"
     },
     "browser": {
       "status": "PASS",
@@ -53,16 +53,25 @@
         "Foreign project research records fail closed and never substitute another owned project",
         "Research Budget exact decimals, category totals, formula-safe CSV, pending-draft save guard, persistence, explicit conflict choice, unrelated-data preservation, mobile and confirmed removal",
         "Thesis Studio chapter ordering, canonical saved-note word counts, Markdown/JSON source compilation, reload, mobile, missing-source save rejection and confirmed chapter removal without deleting Notes",
-        "Exact Thesis/Notes IDs beyond1000 recent notes; foreign query changes clear the old editor, foreign project Budget/Thesis cannot save"
+        "Exact Thesis/Notes IDs beyond1000 recent notes; foreign query changes clear the old editor, foreign project Budget/Thesis cannot save",
+        "All22 tools discoverable; nine project tools author/save/reload and domain previews",
+        "Memory canonical retrieval without a model call; spreadsheet edit/formula/CSV source behavior",
+        "Translate authenticated SSE fixture plus explicit reviewed idempotent Note saving; no real OpenAI call",
+        "Connect directory consent, team creation/invites, deliberate community posts/replies, feedback receipts, peer snapshot sharing",
+        "Unauthorized Admin Operations denied; source-bound Business Intelligence explicitly identifies missing budget",
+        "Personal API token secret generated client-side, only digest/scopes persisted, explicit revocation",
+        "Actual production static-shell network-off reload and encrypted local snapshot unlock/lock; no plaintext source at rest",
+        "Mobile root overflow checks including horizontally scrollable workbook; desktop/mobile tools hub screenshots"
       ],
-      "evidence": "evidence/2026-11-13/batch8-browser-release.txt; evidence/2026-11-13/batch8-auth-browser.txt",
-      "fixture_source_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
-      "fixture_blob_sha": "fec5e0f5325ad6b1ecf516dbbec537ea492de86f"
+      "evidence": "evidence/2026-11-13/all22-browser-complete.txt; evidence/2026-11-13/all22-auth-browser.txt; evidence/2026-11-13/all22-learning-browser.txt",
+      "fixture_source_commit": "97ef1f37f65033812faf517f93b06aa671cd841d",
+      "fixture_blob_sha": "40763caf138437ba80f02f61f44e34db83e7f84f",
+      "source_scope": "Functional all22 production-bundle fixture run before the formatting-only commit4607d2b; final CI re-runs all three browser suites at exact final head"
     },
     "postgres": {
       "status": "PASS",
       "database": "disposable PostgreSQL 17.6; no network or published ports",
-      "migrations_executed": 18,
+      "migrations_executed": 19,
       "scope": "real PostgreSQL SQL/RLS/triggers with synthetic auth.uid identities and Storage metadata schema",
       "assertions": [
         "owner/outsider isolation across ten tables",
@@ -85,11 +94,17 @@
         "three overlapping transaction rounds cover both parent unique indexes during concurrent same-ID replay",
         "All 30 canonical export collections exist with RLS enabled and authenticated SELECT grants; no foreign fixture rows visible",
         "Research Journal/Experiment Lab/Publication Tracker JSON roundtrip, unrelated data preservation, stale save rejection, outsider read/update/delete denial",
-        "Research Budget and Thesis document roundtrip; exact decimals retained as strings, canonical Note owner visibility, stale CAS and outsider read/update/delete denial"
+        "Research Budget and Thesis document roundtrip; exact decimals retained as strings, canonical Note owner visibility, stale CAS and outsider read/update/delete denial",
+        "Single-use team invitation acceptance, owner/admin/member roles and removed-member invite replay denial",
+        "Peer manuscript visibility restricted to author/reviewer; reviewer draft hidden from author until final immutable submission",
+        "User metadata/stale JWT role alone cannot grant admin; current Auth metadata/session/account ban governs administrator access",
+        "Personal token owner-project scope, expiry/revocation/account-ban and service-only credential lookup",
+        "Atomic workflow task creation and same-ID replay; Studio Note and conference Calendar idempotent materialization",
+        "Fixed authenticated action quotas reuse existing atomic limiter; successful replay does not consume new quota and deleting posts cannot refund it"
       ],
       "hosted_supabase_verified": false,
-      "evidence": "evidence/2026-11-13/batch8-postgres.txt",
-      "source_scope": "Rerun18 selected migrations and all prior tests plus canonical budget/thesis JSON, Note resolution, unrelated-data preservation, owner/outsider and stale-save tests"
+      "evidence": "evidence/2026-11-13/all22-postgres-verified.txt",
+      "source_scope": "19 selected existing+proposed migrations on disposable PostgreSQL17.6; synthetic Auth identities/users/sessions, not hosted Auth/JWT/PostgREST"
     },
     "supplemental_ci": {
       "status": "PASS",
@@ -199,12 +214,18 @@
       "Exact-minor-unit research budget, allocation/variance/category comparison, bounded lines and safe saved CSV/JSON export",
       "Canonical Notes-backed thesis chapters, saved-word counts, explicit source checks and ordered Markdown/JSON compile",
       "Shared explicit project document CAS conflict comparison and deliberate version choice",
-      "Canonical Notes deep links fetch an owner-authorized exact ID beyond the recent limit and clear inaccessible targets"
+      "Canonical Notes deep links fetch an owner-authorized exact ID beyond the recent limit and clear inaccessible targets",
+      "All22 previously missing products now have defined implemented local workflows; see batch-9-product-scopes.json",
+      "Teams/Connect/Community/Peer Review/Feedback additive canonical RLS contracts; no private project sharing by membership",
+      "Encrypted read-only Offline snapshots and a bounded static-only production service worker",
+      "Scoped/revocable read-only developer tokens and trusted-role/current-session administrative feedback triage",
+      "User-triggered task Automations26 now shares canonical workflow execution/recovery/history instead of infrastructure only"
     ],
     "EXECUTED": [
-      "649 unit/API tests plus imports/typecheck/lint/build",
-      "Both browser fixture suites including Budget/Thesis and exact Notes deep links",
-      "Disposable PostgreSQL18 selected migrations and new planning-document/Note source checks"
+      "679 unit/API regressions plus imports/typecheck/lint/production build",
+      "Three browser suites: legacy Auth, learning/workspace and all22 tools in a real local production build",
+      "Disposable PostgreSQL19 selected migrations and real new role/consent/replay/quota assertions",
+      "Network-disabled browser reload of encrypted Offline workspace"
     ],
     "VERIFIED": [
       "Local fixture journeys, real SQL policies/CAS/quota and no hosted quota bypass",
@@ -216,27 +237,27 @@
       "Three project research workflows with synthetic browser transport and real local PostgreSQL policies; hosted acceptance remains unverified",
       "Exact-cent arithmetic and CSV formula protection",
       "Canonical Notes remain unchanged by chapter edits/removal; incomplete source progress fails closed",
-      "Browser explicit version comparison before conflict retry and pending-editor save guard"
+      "Browser explicit version comparison before conflict retry and pending-editor save guard",
+      "Defined local scopes of all22; not full product completion",
+      "No browser token secret persisted; user/source permission predicates and role boundaries tested locally",
+      "Actual offline reload and root mobile workbook containment; bounded formula evaluation",
+      "Immediate local database admin-role/session/ban and membership revocation behavior"
     ],
     "FAILED": [
-      "Fresh five-query real-provider diagnostic: source coverage 3/5; covered-query heuristic gates 2/3; overall FAIL",
-      "Vercel preview failed; current cause unverified because scoped deployment metadata/logs return404",
-      "Public deployment identity/API/configuration probe; see exact observations",
-      "Pre-fix same-route account switch regression reproduced, then repaired and passing"
+      "Historical scholarly diagnostic FAIL3/5 source coverage; not rerun in this batch",
+      "Historical public deployment provenance/configuration probe failed; not rerun in this batch"
     ],
     "BLOCKED": [
-      "Separate authorized Supabase staging and Vercel identity/access",
-      "Hosted Auth/Storage/two-account acceptance",
-      "Live authenticated OpenAI, Stripe sandbox, LiveKit media and deletion acceptance"
+      "Separate explicitly verified Supabase staging and linked EYLO Vercel identity/access",
+      "Hosted Auth/JWT/Storage, new collaboration RLS and real provider acceptance",
+      "OpenAI translation/interview quality, Stripe sandbox, LiveKit media, account deletion and legal/operational/pilot acceptance",
+      "Final continuation Vercel result pending observation; current PR body records exact outcome"
     ],
     "NOT_IMPLEMENTED": [
-      "Full acceptance across all77 products:54 partial,22 not implemented,1 infrastructure only; zero fully certified",
-      "Remaining historical PR behavior reviews and unimplemented product workflows",
-      "Full account deletion/DSAR including file bytes, Auth/provider records and backups",
-      "Legal sign-off, external pilot acceptance and operational recovery proof",
-      "Experiment execution/data attachments, immutable research journal, publisher status verification and delivered publication reminders",
-      "Multi-currency conversion, banking/accounting integration and financial approval workflow",
-      "Pinned historic-note versions, publication-grade thesis DOCX/PDF formatting and academic review acceptance"
+      "Full acceptance/certification of all77 products; current matrix77 partial/0 not implemented/0 infrastructure-only/0 complete",
+      "Advanced remaining criteria of each new scope listed explicitly in batch-9-product-scopes.json",
+      "Full DSAR/account deletion including new contributions, file bytes, Auth/provider records and backups",
+      "User-defined automation schedules/cancellation, public/shared forms, advanced spreadsheets, institutional collaboration and server-side repair orchestration"
     ]
   },
   "concurrent_branch_reconciliation": {
@@ -246,20 +267,20 @@
     "save_semantics": "Explicit immutable snapshot; existing records not overwritten; separate source metadata column; security-invoker atomic RPC with caller RLS"
   },
   "review": {
-    "prior_pr": 404,
-    "prior_pr_state": "Merged externally as 0f9a5e5 before this batch",
+    "prior_pr": 405,
+    "prior_pr_state": "Merged externally as68271db before this batch; upstream Vercel Hobby function consolidation preserved",
     "continuation_branch": "codex/eylo-platform-integration-audit",
-    "current_pr": 405
+    "current_pr": null
   },
   "github_ci": {
-    "commit": "b3f2ef9c2e549e1373f236077ffe78b36931b935",
+    "commit": "03b68af93acaf3a71f52abacaa67c6e191039acb",
     "status": "PASS",
     "runs": {
-      "Build": 43471399016,
-      "EYLO Quality Gate": 43471399026,
-      "Product quality": 43471398891
+      "Build": 43475858224,
+      "EYLO Quality Gate": 43475857912,
+      "Product quality": 43475857979
     },
-    "scope": "Historical batch7 head. Batch8 final-head CI pending at evidence recording; latest PR body records exact final results."
+    "scope": "Historical batch8 only. Batch9 final CI pending at evidence commit; current PR description records exact final results."
   },
   "latest_vercel_observation": {
     "commit": "adc5b38b72a87e381776c4349a27271bea35312b",

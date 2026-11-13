@@ -1,0 +1,442 @@
+{
+  "date": "2026-11-13",
+  "source_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
+  "scope": "All22 previously not implemented products plus real user-triggered automation extension of26. This is scoped implementation, not full product certification.",
+  "products": [
+    {
+      "id": 4,
+      "slug": "spaces",
+      "title": "Spaces",
+      "description": "Organize your owned projects into private collections.",
+      "kind": "project",
+      "entry_path": "/tools/spaces",
+      "project_path": "/projects/:id/workbench/spaces",
+      "implemented_scope": "Private project collections with owner-checked references,20 projects per collection and50 distinct references per workspace.",
+      "remaining": "Shared/team spaces and hierarchical permissions.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 5,
+      "slug": "memory",
+      "title": "Memory",
+      "description": "Search canonical Notes, projects and saved EYRA messages.",
+      "kind": "personal",
+      "entry_path": "/tools/memory",
+      "project_path": null,
+      "implemented_scope": "Permission-scoped retrieval from actual Notes, projects and saved EYRA messages, exact source IDs, all-word matching and bounded loaded coverage; no new memory store.",
+      "remaining": "Semantic retrieval, full-source pagination and independent relevance acceptance.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 12,
+      "slug": "skills",
+      "title": "Skills",
+      "description": "Self-assessment targets and a private practice log.",
+      "kind": "project",
+      "entry_path": "/tools/skills",
+      "project_path": "/projects/:id/workbench/skills",
+      "implemented_scope": "Saved0\u20135 self-assessment baselines/current/target, practice logs and derived change/target gap.",
+      "remaining": "Verified competence assessment and links to learning outcomes.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 15,
+      "slug": "interview",
+      "title": "Interview Simulator",
+      "description": "Timed question practice and optional EYRA feedback.",
+      "kind": "project",
+      "entry_path": "/tools/interview",
+      "project_path": "/projects/:id/workbench/interview",
+      "implemented_scope": "Timed supplied-question practice, recorded answers/durations and optional authenticated EYRA answer feedback with cancellation; no invented hiring score.",
+      "remaining": "Live-provider evaluation, multi-round coaching and human acceptance.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 20,
+      "slug": "spreadsheets",
+      "title": "Spreadsheets",
+      "description": "Edit a bounded workbook with safe aggregate formulas.",
+      "kind": "personal-project",
+      "entry_path": "/tools/spreadsheets",
+      "project_path": "/projects/:id/spreadsheet",
+      "implemented_scope": "Saved100-row/12-column workbook, editable cells, bounded SUM/AVERAGE/MIN/MAX range formulas, cycle/reference/effort errors, CSV import and formula-safe exports.",
+      "remaining": "Multi-sheet/XLSX roundtrip and broader formula coverage.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 22,
+      "slug": "translate",
+      "title": "Translate",
+      "description": "Authenticated EYRA translation with explicit Note saving.",
+      "kind": "personal",
+      "entry_path": "/tools/translate",
+      "project_path": null,
+      "implemented_scope": "Authenticated EYRA Responses stream, cancel/timeout, bounded source/language selection and explicitly reviewed idempotent saving to canonical Notes.",
+      "remaining": "Real-provider translation quality/citation-marker preservation and language review.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 25,
+      "slug": "workflows",
+      "title": "Workflow Builder",
+      "description": "Preview and create a bounded, idempotent task workflow.",
+      "kind": "project",
+      "entry_path": "/tools/workflows",
+      "project_path": "/projects/:id/workbench/workflows",
+      "implemented_scope": "Saved20-task plans, preview/confirmation, atomic canonical LifeTask creation, stable operation recovery across reload, confirmed run history and server-side daily quotas.",
+      "remaining": "Conditional branches, scheduled/durable non-task workflows and cancellation orchestration.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 32,
+      "slug": "teams",
+      "title": "Teams",
+      "description": "Invite, accept, manage roles and revoke membership.",
+      "kind": "collaboration",
+      "entry_path": "/collaboration/teams",
+      "project_path": null,
+      "implemented_scope": "Explicit team creation,7-day consenting-directory invitations, acceptance, owner/admin/member privileges, one-use join consent and immediate membership revocation.",
+      "remaining": "Granular shared project/file access; joining a team does not share private records.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 34,
+      "slug": "connect",
+      "title": "Connect",
+      "description": "Opt-in directory and mutual connection requests.",
+      "kind": "collaboration",
+      "entry_path": "/collaboration/connect",
+      "project_path": null,
+      "implemented_scope": "Opt-in authenticated directory, mutual connection requests, accept/decline and disconnect; hiding a public profile does not erase an accepted connection.",
+      "remaining": "Messaging, blocking/reporting and moderation/trust workflows.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 35,
+      "slug": "community",
+      "title": "Community",
+      "description": "Publish and reply to authenticated community posts.",
+      "kind": "collaboration",
+      "entry_path": "/collaboration/community",
+      "project_path": null,
+      "implemented_scope": "Deliberate signed-in community publication and replies, authored deletion and a database-enforced20/day quota that deletion cannot refund.",
+      "remaining": "Moderation, abuse response, policy/legal and community pilot acceptance.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 37,
+      "slug": "studio",
+      "title": "Studio",
+      "description": "Draft a creative brief and create a canonical Note.",
+      "kind": "project",
+      "entry_path": "/tools/studio",
+      "project_path": "/projects/:id/workbench/studio",
+      "implemented_scope": "Creative briefs with audience/purpose/authored content, explicit atomic/idempotent canonical Note creation and result history.",
+      "remaining": "Linked media assets and advanced presentation/media authoring.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 39,
+      "slug": "admin",
+      "title": "Admin Operations",
+      "description": "Role-controlled configuration and feedback triage.",
+      "kind": "personal",
+      "entry_path": "/tools/admin",
+      "project_path": null,
+      "implemented_scope": "Fresh Auth role checks, current trusted database admin metadata/active session/account status, configuration flags, private feedback queue and version-checked triage.",
+      "remaining": "Hosted operational monitoring, audit/retention policy and approved rollout tools; configuration flags are not health proof.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 42,
+      "slug": "self-healing",
+      "title": "Self-Healing",
+      "description": "Bounded diagnostics and recovery retries without data changes.",
+      "kind": "personal",
+      "entry_path": "/tools/self-healing",
+      "project_path": null,
+      "implemented_scope": "Read-only diagnostics with bounded retries, cancellation, JSON/HTML-fallback detection and an exported actual-result report.",
+      "remaining": "Server-side remediation, durable repair jobs and rollback approval; this implementation recovers client read attempts only.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 43,
+      "slug": "offline",
+      "title": "Offline",
+      "description": "Opt-in encrypted, read-only browser snapshots.",
+      "kind": "offline",
+      "entry_path": "/offline",
+      "project_path": null,
+      "implemented_scope": "Opt-in AES-GCM encrypted read-only snapshots with PBKDF2, passphrase not persisted, owner/account boundary cleanup, bounded static-only service-worker cache and tested production offline reload.",
+      "remaining": "Offline writes, sync/conflict queue, cross-device keys and complete backup/recovery.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 46,
+      "slug": "feedback",
+      "title": "Feedback",
+      "description": "Submit feedback and track a saved receipt/status.",
+      "kind": "collaboration",
+      "entry_path": "/collaboration/feedback",
+      "project_path": null,
+      "implemented_scope": "Saved owner feedback receipts/category/status, authored deletion, shared atomic publishing budgets and privileged triage through Admin Operations.",
+      "remaining": "Support notifications, service-level workflow and hosted operator acceptance.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 52,
+      "slug": "methodology",
+      "title": "Methodology Coach",
+      "description": "Input-based method planning and review questions.",
+      "kind": "project",
+      "entry_path": "/tools/methodology",
+      "project_path": "/projects/:id/workbench/methodology",
+      "implemented_scope": "Saved question/objective/proposed method/limitations and deterministic input-based review checklists; no fabricated citations or causal certification.",
+      "remaining": "Expert/human review and richer method/analysis planning.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 53,
+      "slug": "peer-review",
+      "title": "Peer Review Workspace",
+      "description": "Share a deliberate snapshot with an accepted connection.",
+      "kind": "collaboration",
+      "entry_path": "/collaboration/peer-review",
+      "project_path": null,
+      "implemented_scope": "Explicit manuscript snapshots shared only to accepted connections, reviewer-only drafts, submitted review visibility, final-review immutability and version checks.",
+      "remaining": "Blind/multi-round review, inline annotation and pinned document versions.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 61,
+      "slug": "business",
+      "title": "Business Intelligence",
+      "description": "Source-bound cost, time and workplan reporting.",
+      "kind": "personal",
+      "entry_path": "/tools/business",
+      "project_path": null,
+      "implemented_scope": "Actual recent-project budget/time/workplan reporting, separate currency totals, explicit missing budgets and coverage; no guessed revenue/profit/forecasts.",
+      "remaining": "Accounting connectors, longitudinal analysis and human business acceptance.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 64,
+      "slug": "ethics",
+      "title": "Research Ethics",
+      "description": "Document consent, review references and retention plans.",
+      "kind": "project",
+      "entry_path": "/tools/ethics",
+      "project_path": "/projects/:id/workbench/ethics",
+      "implemented_scope": "Saved participant/data-sensitivity/consent/review-reference/retention plans; declared approval requires a supplied HTTPS reference and is not certification.",
+      "remaining": "Institutional ethics approval, document verification and regulated review acceptance.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 68,
+      "slug": "conferences",
+      "title": "Conference Hub",
+      "description": "Track supplied conference facts and Calendar deadlines.",
+      "kind": "project",
+      "entry_path": "/tools/conferences",
+      "project_path": "/projects/:id/workbench/conferences",
+      "implemented_scope": "User-supplied official URL/date/deadline/location/fee records with date validation and atomic/idempotent canonical UTC Calendar deadline creation.",
+      "remaining": "Real conference-provider discovery, currency confirmation and complete all-day/timezone rendering acceptance.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 71,
+      "slug": "forms",
+      "title": "Smart Forms",
+      "description": "Build and validate private project forms and responses.",
+      "kind": "project",
+      "entry_path": "/tools/forms",
+      "project_path": "/projects/:id/workbench/forms",
+      "implemented_scope": "Private project form definitions with20 typed required/optional fields, validated responses, immutable definitions after responses, bounded saved records and JSON export.",
+      "remaining": "Public/team response collection, broader field types and response CSV.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 76,
+      "slug": "developer",
+      "title": "API & Developer Hub",
+      "description": "Issue, scope and revoke read-only personal API tokens.",
+      "kind": "personal",
+      "entry_path": "/tools/developer",
+      "project_path": null,
+      "implemented_scope": "Cryptographically random read-only personal tokens, SHA-256 digest storage, owned-project scopes, expiry/revocation/account-ban checks, bounded/paginated project/Note API and one shared atomic quota store.",
+      "remaining": "Hosted token lifecycle/provider configuration, organizational keys, SDK/webhook and write APIs.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt",
+        "evidence/2026-11-13/all22-check-formatted.txt"
+      ]
+    },
+    {
+      "id": 26,
+      "slug": "automations",
+      "title": "Automations",
+      "kind": "existing-product-extension",
+      "entry_path": "/automations",
+      "project_path": "/projects/:id/workbench/workflows",
+      "implemented_scope": "Manual-triggered saved task automations now execute atomically, support idempotent recovery and show confirmed run history, using the same canonical Workflow Builder contract. Existing scheduled scholarly monitoring is preserved.",
+      "remaining": "User-defined schedules, durable cancellation and non-task orchestration. No separate automation database was added.",
+      "status": "Partially implemented",
+      "local_scope_verified": true,
+      "verification_scope": "Workflow browser/action fixtures and real PostgreSQL execution/replay/quota tests; hosted scheduling acceptance unverified",
+      "evidence": [
+        "evidence/2026-11-13/all22-browser-complete.txt",
+        "evidence/2026-11-13/all22-postgres-verified.txt"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,155 @@
+{
+  "date": "2026-11-13",
+  "tested_source_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
+  "functional_browser_source_commit": "97ef1f37f65033812faf517f93b06aa671cd841d",
+  "source_scope": "Subsequent4607d2b formats only new modules; final CI verifies exact continuation head",
+  "products_implemented": [
+    4,
+    5,
+    12,
+    15,
+    20,
+    22,
+    25,
+    32,
+    34,
+    35,
+    37,
+    39,
+    42,
+    43,
+    46,
+    52,
+    53,
+    61,
+    64,
+    68,
+    71,
+    76
+  ],
+  "existing_scope_extended": [
+    26
+  ],
+  "matrix_before": {
+    "partial": 54,
+    "not_implemented": 22,
+    "infrastructure_only": 1,
+    "complete": 0
+  },
+  "matrix_after": {
+    "partial": 77,
+    "not_implemented": 0,
+    "infrastructure_only": 0,
+    "complete": 0
+  },
+  "decision": "NO-GO",
+  "categories": {
+    "IMPLEMENTED": [
+      "Canonical timer/quiz/learning workflows; manual authoring",
+      "Authenticated Responses API streaming and canonical EYRA snapshot saving",
+      "Request-scoped action opt-in, bounded context and source validation",
+      "Provider resilience and one atomic shared discovery quota",
+      "Scoped funding drafts, comparison and Research Gap literature saving",
+      "Separate staging preflight/configuration and release SHA manifests",
+      "Canonical snapshot retry identity with account-scoped recovery digest",
+      "Explicit private export and confirmed owner/version snapshot deletion",
+      "Late-response and same-project checklist conflict protection",
+      "DOI-only identity, full-title/author/year fallback, co-indexing and missing abstract provenance",
+      "Bounded candidate overfetch; one request per provider; exact query/relevance gates retained",
+      "Canonical DOI Library saver reused across discovery and Research Gaps",
+      "Literature Review project CAS, draft conflict retention and project selection persistence",
+      "Private routes remount by authenticated user ID",
+      "Portable workspace v2 covers 30 canonical collections with fail-closed ownership checks",
+      "Fourteen evidence gates and strict read-only JSON/source provenance probe",
+      "Staging-only two-account smoke refuses live/unrelated refs and inconclusive empty fixtures",
+      "Project-owned Research Journal, Experiment Lab and Publication Tracker with domain validation and bounded export",
+      "Explicit confirmed deletion and retained draft on canonical project CAS conflicts; no new schema",
+      "Exact-minor-unit research budget, allocation/variance/category comparison, bounded lines and safe saved CSV/JSON export",
+      "Canonical Notes-backed thesis chapters, saved-word counts, explicit source checks and ordered Markdown/JSON compile",
+      "Shared explicit project document CAS conflict comparison and deliberate version choice",
+      "Canonical Notes deep links fetch an owner-authorized exact ID beyond the recent limit and clear inaccessible targets",
+      "All22 previously missing products now have defined implemented local workflows; see batch-9-product-scopes.json",
+      "Teams/Connect/Community/Peer Review/Feedback additive canonical RLS contracts; no private project sharing by membership",
+      "Encrypted read-only Offline snapshots and a bounded static-only production service worker",
+      "Scoped/revocable read-only developer tokens and trusted-role/current-session administrative feedback triage",
+      "User-triggered task Automations26 now shares canonical workflow execution/recovery/history instead of infrastructure only"
+    ],
+    "EXECUTED": [
+      "679 unit/API regressions plus imports/typecheck/lint/production build",
+      "Three browser suites: legacy Auth, learning/workspace and all22 tools in a real local production build",
+      "Disposable PostgreSQL19 selected migrations and real new role/consent/replay/quota assertions",
+      "Network-disabled browser reload of encrypted Offline workspace"
+    ],
+    "VERIFIED": [
+      "Local fixture journeys, real SQL policies/CAS/quota and no hosted quota bypass",
+      "Europe PMC real responses after sort parameter repair",
+      "Ambiguous transport retry and deletion confirmation browser fixtures; actual concurrent snapshot SQL",
+      "Local scholarly identity/provenance unit tests and actual browser Library/protocol fixture journeys",
+      "Reproduced and fixed same-route account state leak in browser fixtures",
+      "30 canonical export table contracts in real disposable PostgreSQL",
+      "Three project research workflows with synthetic browser transport and real local PostgreSQL policies; hosted acceptance remains unverified",
+      "Exact-cent arithmetic and CSV formula protection",
+      "Canonical Notes remain unchanged by chapter edits/removal; incomplete source progress fails closed",
+      "Browser explicit version comparison before conflict retry and pending-editor save guard",
+      "Defined local scopes of all22; not full product completion",
+      "No browser token secret persisted; user/source permission predicates and role boundaries tested locally",
+      "Actual offline reload and root mobile workbook containment; bounded formula evaluation",
+      "Immediate local database admin-role/session/ban and membership revocation behavior"
+    ],
+    "FAILED": [
+      "Historical scholarly diagnostic FAIL3/5 source coverage; not rerun in this batch",
+      "Historical public deployment provenance/configuration probe failed; not rerun in this batch"
+    ],
+    "BLOCKED": [
+      "Separate explicitly verified Supabase staging and linked EYLO Vercel identity/access",
+      "Hosted Auth/JWT/Storage, new collaboration RLS and real provider acceptance",
+      "OpenAI translation/interview quality, Stripe sandbox, LiveKit media, account deletion and legal/operational/pilot acceptance",
+      "Final continuation Vercel result pending observation; current PR body records exact outcome"
+    ],
+    "NOT_IMPLEMENTED": [
+      "Full acceptance/certification of all77 products; current matrix77 partial/0 not implemented/0 infrastructure-only/0 complete",
+      "Advanced remaining criteria of each new scope listed explicitly in batch-9-product-scopes.json",
+      "Full DSAR/account deletion including new contributions, file bytes, Auth/provider records and backups",
+      "User-defined automation schedules/cancellation, public/shared forms, advanced spreadsheets, institutional collaboration and server-side repair orchestration"
+    ]
+  },
+  "commands": {
+    "npm run check": "PASS679 tests,0 failed; imports/typecheck/lint/build",
+    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:auth": "PASS isolated transport; legacy regressions",
+    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:learning": "PASS isolated transport; prior canonical workflows",
+    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium EYLO_E2E_ARTIFACT_DIR=/workspace/work/continuation/all22-screenshots npm run test:e2e:products": "PASS all22 real React workflows using production build and synthetic Auth/PostgREST/AI; real browser network-off reload",
+    "python scripts/integration/test-local-postgres.py": "PASS19 selected migrations, including new proposal; all SQL runs local/disposable",
+    "node --test tests/complete-products.test.mjs tests/product-api.test.mjs tests/staging-config.test.mjs": "PASS31 selected tests",
+    "SUPABASE_HOME=/workspace/work/supabase-cli node /workspace/work/npm-cache/_npx/aa8e5c70f9d8d161/node_modules/supabase/dist/supabase.js migration new complete_workspace_products": "Created proposal20261113180517_complete_workspace_products.sql; no remote application"
+  },
+  "repaired_failures": [
+    {
+      "observed": "Membership INSERT initially blocked by policy visibility during join",
+      "repair": "Single-use guarded trigger remains authoritative; RLS permits the new member to read their own membership. Actual role/revocation tests pass.",
+      "evidence": "evidence/2026-11-13/all22-postgres-tests.txt"
+    },
+    {
+      "observed": "Offline shell existed but static module fallback failed on network-off reload",
+      "repair": "Cache original network responses, include shell-critical assets, bound/fail incomplete preparation, and ignore Origin Vary differences only for static asset fallback. Actual offline reload passes.",
+      "evidence": "evidence/2026-11-13/all22-offline-debug.txt"
+    },
+    {
+      "observed": "Spreadsheet mobile root overflow from off-screen header accessibility labels",
+      "repair": "Bind the hidden label to a positioned header context and constrain scroll/file-input containers; root overflow assertion and screenshot pass.",
+      "evidence": "evidence/2026-11-13/all22-browser-reviewed.txt"
+    }
+  ],
+  "limits": [
+    "Local Auth/users/sessions are compatibility fixtures; no hosted JWT/persistence/provider acceptance implied",
+    "Existing30-collection workspace export remains a subset; collaboration pages export only loaded authored contributions",
+    "No real translation/interview provider quality or independent scientific relevance test executed",
+    "No hosted Supabase advisors; local privilege/function-body/SQL review only",
+    "No claim that all77 products advanced acceptance criteria are complete"
+  ],
+  "remote_mutations": {
+    "remote_migrations": false,
+    "production_deployment": false,
+    "production_data_writes": false,
+    "live_payments": false
+  }
+}
