@@ -59,7 +59,10 @@ function parseRows(text) {
   return rows;
 }
 
-/** Parse a bounded comma-separated file with one header row. */
+/** Parse a bounded comma-separated file with one header row.
+ * @param {string} input
+ * @param {{bytes:number,rows:number,columns:number,fieldCharacters:number}} [limits]
+ */
 export function parseResearchCsv(input, limits = DATA_LAB_LIMITS) {
   if (typeof input !== 'string' || !input.trim()) throw new Error('Choose a non-empty CSV file.');
   if (new TextEncoder().encode(input).byteLength > limits.bytes) throw new Error('The CSV exceeds the 5 MB limit.');

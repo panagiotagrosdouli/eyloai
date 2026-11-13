@@ -4,8 +4,12 @@ import capabilities from '../server/capabilities.js';
 import contact from '../server/contact.js';
 import deploymentStatus from '../server/deployment-status.js';
 
+import {adminOperations,developerRead} from '../server/product-api.js';
+
 const handlers = Object.freeze({
   capabilities,
+  'admin-operations':adminOperations,
+  developer:developerRead,
   contact,
   'deployment-status': deploymentStatus,
 });
