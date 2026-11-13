@@ -111,3 +111,30 @@ select pg_temp.eyra_assert((select count(*) = 0 from eyra_conversations where ti
 set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000002';
 select pg_temp.eyra_assert((select count(*)=0 from eyra_conversations where title='Explicit snapshot'), 'outsider cannot read snapshot');
 reset role;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
+select public.save_eyra_conversation_snapshot('Retry snapshot','[{"role":"user","text":"Stable retry","sources":[]}]','60000000-0000-4000-8000-000000000020');
+select public.save_eyra_conversation_snapshot('Retry snapshot','[{"role":"user","text":"Stable retry","sources":[]}]','60000000-0000-4000-8000-000000000020');
+select pg_temp.eyra_assert((select count(*)=1 from eyra_messages where conversation_id='60000000-0000-4000-8000-000000000020'), 'same snapshot retry never duplicates messages');
+do $$ begin
+  begin
+    perform public.save_eyra_conversation_snapshot('Changed title','[{"role":"user","text":"Stable retry","sources":[]}]','60000000-0000-4000-8000-000000000020');
+    raise exception 'Conflicting snapshot ID unexpectedly succeeded';
+  exception when unique_violation then null; end;
+end $$;
+with removed as (delete from eyra_conversations where id='60000000-0000-4000-8000-000000000020' and version=2 returning id)
+select pg_temp.eyra_assert((select count(*)=0 from removed), 'stale version cannot delete snapshot');
+set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000002';
+with removed as (delete from eyra_conversations where id='60000000-0000-4000-8000-000000000020' returning id)
+select pg_temp.eyra_assert((select count(*)=0 from removed), 'outsider cannot delete snapshot');
+set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
+delete from eyra_conversations where id='60000000-0000-4000-8000-000000000020' and version=1;
+select pg_temp.eyra_assert((select count(*)=0 from eyra_messages where conversation_id='60000000-0000-4000-8000-000000000020'), 'owner deletion cascades snapshot sources/messages');
+reset role;
+
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
+select public.save_eyra_conversation_snapshot('Optional sources','[{"role":"user","text":"No external sources"}]','60000000-0000-4000-8000-000000000022');
+select public.save_eyra_conversation_snapshot('Optional sources','[{"role":"user","text":"No external sources"}]','60000000-0000-4000-8000-000000000022');
+select pg_temp.eyra_assert((select count(*)=1 from eyra_messages where conversation_id='60000000-0000-4000-8000-000000000022'), 'optional sources default normalizes identically on retry');
+reset role;

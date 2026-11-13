@@ -1,5 +1,5 @@
 {
-  "source_commit": "c02ae9769caddc56e688a80cdd8a20d8ab752ac2",
+  "source_commit": "66e1c3458b1d8e15fa62df9afec6621e175c8ebb",
   "files": [
     {
       "path": ".github/workflows/build.yml",
@@ -79,7 +79,7 @@
     {
       "path": "api/eyra-conversations.js",
       "kind": "serverless_api",
-      "blob_sha": "5661fa90e7aaa21897682bcfad9a2aa9831c923c"
+      "blob_sha": "85ddbfc81b055b388f459950c7dc58cf978219dc"
     },
     {
       "path": "api/eyra.js",
@@ -249,7 +249,7 @@
     {
       "path": "src/components/eyra/EyraCommandCenter.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "d7280fa641f8698f2f66bc34e2417bfc0b8ec320"
+      "blob_sha": "f3770e27604a87004eb5ad9a49d7f004a26901e4"
     },
     {
       "path": "src/components/eyra/EyraDailyBriefing.jsx",
@@ -394,7 +394,7 @@
     {
       "path": "src/components/projects/ReproducibilityReview.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "6d4d28523c1feb8477c6a67190a049bd30b70094"
+      "blob_sha": "821b97fda8b4987364e40f44bb02a5a2d8675388"
     },
     {
       "path": "src/components/projects/StartupBuilder.jsx",
@@ -634,7 +634,7 @@
     {
       "path": "src/lib/eyra-history.js",
       "kind": "frontend_or_client_source",
-      "blob_sha": "aea59ac37cd86fb7d2028abdb6441d04cfa12903"
+      "blob_sha": "825d84b2d4cb3259ab1da681d2929b9ef339bc05"
     },
     {
       "path": "src/lib/eyra-intelligence.js",
@@ -645,6 +645,11 @@
       "path": "src/lib/eyra-monitor.js",
       "kind": "frontend_or_client_source",
       "blob_sha": "1776cdfc65bef9a36da81e63333a0ee043d0ab85"
+    },
+    {
+      "path": "src/lib/eyra-snapshot.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "331f0931cd640b6fde63773e5f5f8c3083e36056"
     },
     {
       "path": "src/lib/eyra-stream.mjs",
@@ -1492,6 +1497,11 @@
       "blob_sha": "b5d390c28e3424128937feedd1285c57913a94f2"
     },
     {
+      "path": "supabase/migrations/20261113120556_eyra_snapshot_retry_identity.sql",
+      "kind": "migration",
+      "blob_sha": "cd1d99492b3d006700224db54947493adb71e634"
+    },
+    {
       "path": "tests/activity-history.test.mjs",
       "kind": "automated_test",
       "blob_sha": "329004e79dd596a19b870159a3ac0611373eb147"
@@ -1629,7 +1639,7 @@
     {
       "path": "tests/e2e-auth.mjs",
       "kind": "automated_test",
-      "blob_sha": "b037b9314d9cff08ec7c4703016268fecd678387"
+      "blob_sha": "48ce5f85035f872fb8f6c9827dfd2c1de2f675f2"
     },
     {
       "path": "tests/e2e-learn.mjs",
@@ -1639,7 +1649,7 @@
     {
       "path": "tests/e2e-learning-integration.mjs",
       "kind": "automated_test",
-      "blob_sha": "fade1c37935add6413e0006f9628b7fe6afdb0f0"
+      "blob_sha": "26c60979c424255e8606387565dcdd89aa8260aa"
     },
     {
       "path": "tests/e2e-native-meetings.mjs",
@@ -1762,6 +1772,11 @@
       "blob_sha": "99e94bf80c720f08318ff254588377368512eecd"
     },
     {
+      "path": "tests/eyra-snapshot.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "8c9403e91a15b597252517b2d066905856962e92"
+    },
+    {
       "path": "tests/eyra-stop-generation-ui.test.mjs",
       "kind": "automated_test",
       "blob_sha": "491d1227060060575d46d1ee3beac82a9afd72cc"
@@ -1874,7 +1889,7 @@
     {
       "path": "tests/integration/eyra-conversations-postgres.sql",
       "kind": "automated_test",
-      "blob_sha": "859b63596048bdb27742c0642be5b2ecc6621e8d"
+      "blob_sha": "0bfe8ff0041ce89ec47bc36e63c1b3707cbb4655"
     },
     {
       "path": "tests/integration/funding-postgres.sql",

@@ -82,7 +82,7 @@ export default async function handler(request, response) {
       });
       if (!rows.length) return privateJson(response, 404, NOT_FOUND);
       const messages = await readRows('eyra_messages', {
-        select: 'id,conversation_id,sequence_number,role,content,created_date',
+        select: 'id,conversation_id,sequence_number,role,content,sources,created_date',
         user_id: owner, conversation_id: `eq.${id}`,
         order: 'sequence_number.asc,id.asc',
         limit: String(limit), offset: String((page - 1) * limit),

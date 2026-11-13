@@ -1,5 +1,6 @@
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 import { normalizeEyraConversation } from './eyra-conversation.mjs';
+import { snapshotPayload } from './eyra-snapshot.mjs';
 
 async function authenticatedClient() {
   const session = await getUsableSession({ required: true, validate: true });
@@ -11,15 +12,18 @@ export async function listEyraConversations() {
   if (error) throw new Error('Saved conversations are unavailable. Separate staging migrations may still be required.');
   return data;
 }
-export async function saveEyraConversation(title, messages) {
+export async function saveEyraConversation(title, messages, snapshotId) {
   const { client } = await authenticatedClient();
-  const normalized = normalizeEyraConversation(messages).filter(message => !message.welcome);
-  if (normalized.some(message => !message.content || message.content.length > 16000)) throw new Error('A message exceeds the canonical conversation text limit.');
-  const { data, error } = await client.rpc('save_eyra_conversation_snapshot', {
-    p_title: title, p_messages: normalized.map(message => ({ role: message.role === 'eyra' ? 'assistant' : 'user', text: message.content, sources: message.sources })),
-  });
-  if (error) throw new Error('Conversation snapshot was not saved. Check staging configuration and try again.');
+  const { data, error } = await client.rpc('save_eyra_conversation_snapshot', { ...snapshotPayload(title, messages), p_snapshot_id: snapshotId });
+  if (error) throw new Error('Save was not confirmed. Retry without editing to reuse the same snapshot ID.');
+  if (!data || data.id !== snapshotId) throw new Error('Save confirmation did not match this snapshot. Retry to verify.');
   return data;
+}
+export async function deleteEyraConversation(id, expectedVersion) {
+  if (!id || !Number.isSafeInteger(expectedVersion) || expectedVersion < 1) throw new Error('Reload the snapshot before deleting it.');
+  const { client, owner } = await authenticatedClient();
+  const { data, error } = await client.from('eyra_conversations').delete().eq('user_id', owner).eq('id', id).eq('version', expectedVersion).select('id');
+  if (error || data?.length !== 1 || data[0].id !== id) throw new Error('Deletion was not confirmed. Reload saved conversations before retrying.');
 }
 export async function loadEyraConversation(id) {
   const { client, owner } = await authenticatedClient();

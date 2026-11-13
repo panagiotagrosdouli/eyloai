@@ -17,21 +17,26 @@ const tables = {
   notes: [{ id: '30000000-0000-0000-0000-000000000001', user_id: user.id, data: { title: 'Canonical note', content: 'Review supplied evidence and document methods and limitations.' }, updated_date: now() }],
   life_tasks: [{ id: '40000000-0000-0000-0000-000000000001', user_id: user.id, data: { title: 'Review canonical task', status: 'todo' }, updated_date: now() }],
   time_entries: [], quizzes: [], quiz_questions: [], quiz_attempts: [], learning_courses: [], learning_lessons: [], learning_lesson_progress: [], learning_enrollments: [],
-  notifications: [], watchlists: [], monitoring_discoveries: [], profiles: [],
+  meetings: [], notifications: [], watchlists: [], monitoring_discoveries: [], profiles: [],
   eyra_conversations: [], eyra_messages: [], ideas: [], study_flashcard_decks: [], saved_papers: [], saved_researchers: [], saved_opportunities: [], search_history: [],
 };
 let aiCalls = 0;
+let interruptSnapshotSave = true;
+let snapshotWrites = 0;
 const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS' };
 async function json(route, value) { await route.fulfill({ status: 200, headers, contentType: 'application/json', body: JSON.stringify(value) }); }
 async function capture(page, name) {
   if (!process.env.EYLO_E2E_ARTIFACT_DIR) return;
   await mkdir(process.env.EYLO_E2E_ARTIFACT_DIR, { recursive: true });
-  await page.screenshot({ path: `${process.env.EYLO_E2E_ARTIFACT_DIR}/${name}.png`, fullPage: true });
+  await page.screenshot({ path: `${process.env.EYLO_E2E_ARTIFACT_DIR}/${name}.png`, fullPage: true, animations: 'disabled' });
 }
 
 function rpc(name, args) {
   if (name === 'save_eyra_conversation_snapshot') {
-    const thread = { id: randomUUID(), user_id: user.id, title: args.p_title, version: 1, updated_date: now() };
+    snapshotWrites += 1;
+    const existing = tables.eyra_conversations.find(item => item.id === args.p_snapshot_id);
+    if (existing) return existing;
+    const thread = { id: args.p_snapshot_id, user_id: user.id, title: args.p_title, version: 1, updated_date: now() };
     tables.eyra_conversations.push(thread);
     args.p_messages.forEach((m, index) => tables.eyra_messages.push({ id: randomUUID(), user_id: user.id, conversation_id: thread.id, sequence_number: index + 1, role: m.role, content: { text: m.text }, sources: m.sources, created_date: now() }));
     return thread;
@@ -90,7 +95,11 @@ try {
     const url = new URL(request.url());
     if (url.pathname.includes('/auth/v1/token')) return json(route, { access_token: 'learning-fixture-access-token', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now()/1000)+3600, refresh_token: 'learning-fixture-refresh-token', user });
     if (url.pathname.includes('/auth/v1/user')) return json(route, user);
-    if (url.pathname.includes('/rest/v1/rpc/')) return json(route, rpc(url.pathname.split('/').at(-1), request.postDataJSON()));
+    if (url.pathname.includes('/rest/v1/rpc/')) {
+      const name = url.pathname.split('/').at(-1); const result = rpc(name, request.postDataJSON());
+      if (name === 'save_eyra_conversation_snapshot' && interruptSnapshotSave) { interruptSnapshotSave = false; return route.abort('failed'); }
+      return json(route, result);
+    }
     const table = url.pathname.split('/').at(-1);
     assert.ok(table in tables, `Unknown table: ${table}`);
     const filters = [...url.searchParams].filter(([key, value]) => value.startsWith('eq.') || value === 'is.null');
@@ -104,7 +113,10 @@ try {
       } else {
         assert.equal(url.searchParams.get('user_id'), `eq.${user.id}`, 'writes must be owner filtered');
         if (request.method() === 'PATCH') rows.forEach(row => Object.assign(row, request.postDataJSON(), { updated_at: now() }));
-        else if (request.method() === 'DELETE') tables[table] = tables[table].filter(row => !matching(row));
+        else if (request.method() === 'DELETE') {
+          const removed = rows.map(row => row.id); tables[table] = tables[table].filter(row => !matching(row));
+          if (table === 'eyra_conversations') tables.eyra_messages = tables.eyra_messages.filter(row => !removed.includes(row.conversation_id));
+        }
         else throw new Error('Unexpected fixture write');
       }
     }
@@ -189,7 +201,12 @@ try {
   await page.getByLabel('Message EYRA').press('Enter');
   await page.getByText(answer, { exact: true }).waitFor();
   await page.getByRole('button', { name: 'Save conversation snapshot', exact: true }).click();
+  await page.getByText(/Save was not confirmed/).waitFor();
+  assert.equal(tables.eyra_conversations.length, 1, 'ambiguous transport failure can follow a committed write');
+  await page.getByRole('button', { name: 'Save conversation snapshot', exact: true }).click();
   await page.getByRole('option', { name: /EYRA · Explain how to plan/ }).waitFor({ state: 'attached' });
+  assert.equal(snapshotWrites, 2, 'retry repeats transport without duplicating records');
+
   assert.equal(tables.ideas.length, 0, 'chat history never enters Idea Vault');
   assert.equal(tables.eyra_conversations.length, 1);
   assert.equal(tables.eyra_messages.at(-1).content.text, answer);
@@ -203,6 +220,68 @@ try {
   await capture(page, 'eyra-conversation-mobile');
   await page.setViewportSize({ width: 1365, height: 900 });
   await capture(page, 'eyra-conversation-wide');
+
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
+  let releaseHistory;
+  let markHistoryStarted;
+  const historyStarted = new Promise(resolve => { markHistoryStarted = resolve; });
+  const historyGate = new Promise(resolve => { releaseHistory = resolve; });
+  await page.route(`${supabaseUrl}/rest/v1/eyra_messages**`, async route => {
+    markHistoryStarted(); await historyGate; await route.fallback();
+  }, { times: 1 });
+  await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
+  await historyStarted;
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
+  const historyResponse = page.waitForResponse(response => response.url().includes('/rest/v1/eyra_messages'));
+  releaseHistory(); await (await historyResponse).finished();
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  assert.equal(await page.getByText(answer, { exact: true }).count(), 0, 'late history cannot restore a chat after clear');
+  await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
+  await page.getByText(answer, { exact: true }).waitFor();
+  console.log('PASS fixture: delayed history response cannot repopulate a cleared conversation.');
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export conversation', exact: true }).click();
+  const conversationDownload = await downloadPromise;
+  assert.equal(conversationDownload.suggestedFilename(), 'eyra-conversation.json');
+  const stream = await conversationDownload.createReadStream(); let exported = '';
+  for await (const chunk of stream) exported += chunk;
+  const exportedConversation = JSON.parse(exported);
+  assert.equal(exportedConversation.messages.at(-1).content, answer);
+  assert.equal(exportedConversation.messages.length, 2);
+  assert.equal(aiCalls, 1, 'exports do not call AI');
+  page.once('dialog', dialog => dialog.dismiss());
+  await page.getByRole('button', { name: 'Delete saved snapshot', exact: true }).click();
+  assert.equal(tables.eyra_conversations.length, 1, 'cancelling confirmation does not delete');
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Delete saved snapshot', exact: true }).click();
+  await page.getByRole('button', { name: 'Delete saved snapshot', exact: true }).waitFor({ state: 'detached' });
+  assert.equal(tables.eyra_conversations.length, 0);
+  assert.equal(tables.eyra_messages.length, 0);
+  await page.reload();
+  await page.getByRole('button', { name: 'Ask EYRA', exact: true }).click();
+  await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
+  console.log('PASS fixture: ambiguous snapshot save retries the same UUID, private export and confirmed cascade deletion; cancelled deletion leaves records unchanged.');
+
+
+  await page.goto(`${origin}/projects/${tables.projects[0].id}`);
+  await page.getByRole('button', { name: 'Reproducibility', exact: true }).click();
+  await page.getByLabel('Materials assessed (required)').fill('Protocol v1');
+  await page.getByRole('button', { name: 'Save checklist', exact: true }).click();
+  await page.getByText('Documentation checklist saved privately in this project.').waitFor();
+  assert.equal(tables.projects[0].data.reproducibility_review.manuscript_reference, 'Protocol v1');
+  await page.reload();
+  await page.getByRole('button', { name: 'Reproducibility', exact: true }).click();
+  assert.equal(await page.getByLabel('Materials assessed (required)').inputValue(), 'Protocol v1');
+  await page.getByLabel('Materials assessed (required)').fill('My unsaved revision');
+  tables.projects[0].updated_date = '2026-11-14T00:00:00.000Z';
+  tables.projects[0].data.reproducibility_review = { ...tables.projects[0].data.reproducibility_review, manuscript_reference: 'Other session revision' };
+  await page.getByRole('button', { name: 'Save checklist', exact: true }).click();
+  await page.getByText('This project changed in another tab. Reload before saving.').waitFor();
+  assert.equal(await page.getByLabel('Materials assessed (required)').inputValue(), 'My unsaved revision');
+  assert.equal(tables.projects[0].data.reproducibility_review.manuscript_reference, 'Other session revision');
+  console.log('PASS fixture: reproducibility checklist save/reload and stale-write rejection preserve both the winning record and unsaved draft.');
   console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.');
 } finally {
   if (browser) await browser.close();

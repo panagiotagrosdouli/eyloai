@@ -107,6 +107,7 @@ def main():
     suite = verification.get('local_checks', {}).get('npm_run_check', {})
     workflow_evidence = {
         **{i: 'Manual timer/quiz/course browser persistence fixtures and actual PostgreSQL RPC/policy checks' for i in (8, 11, 75)},
+        49: 'Checklist save/reload and stale-write draft retention browser fixtures; project CAS independently tested on disposable PostgreSQL',
         24: 'Authenticated streaming and canonical EYRA snapshot save/restore browser fixtures; SSE/API permission tests; live OpenAI not executed',
         47: 'Authenticated EYRA streaming and canonical conversation browser fixtures; live OpenAI not executed',
         58: 'Research Gap provider-shaped browser fixtures and canonical literature identity SQL checks; live retrieval diagnostic remains FAIL',
