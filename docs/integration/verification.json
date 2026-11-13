@@ -249,7 +249,7 @@
     "prior_pr": 404,
     "prior_pr_state": "Merged externally as 0f9a5e5 before this batch",
     "continuation_branch": "codex/eylo-platform-integration-audit",
-    "current_pr": null
+    "current_pr": 405
   },
   "github_ci": {
     "commit": "b3f2ef9c2e549e1373f236077ffe78b36931b935",

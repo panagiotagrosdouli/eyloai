@@ -89,7 +89,7 @@ Current review: [draft #403](https://github.com/panagiotagrosdouli/eyloai/pull/4
 
 Browser follow-up6367187 separately verifies a synthetic foreign-owner row and a nonexistent ID, both failing closed with the same error. This is client owner-boundary evidence, not hosted two-account RLS acceptance. Final draft403 check results remain authoritative.
 
-## Market acceptance continuation — draft PR #404
+## Market acceptance batch6 — historical PR #404 (merged externally)
 
 [Batch6](batch-6-market-readiness.json) records the same-route account isolation regression and fix, canonical workspace export v2, guarded staging isolation probe and 14-gate acceptance evidence validator. Both fixture browser suites pass; all30 canonical export tables have owner-readable contracts with RLS enabled in disposable PostgreSQL. Empty scopes do not establish isolation. `npm run release:readiness` intentionally returns NO-GO/exit1 until real, reviewed acceptance exists. See [owner steps](../release/MARKET_READINESS_RUNBOOK.md). No hosted/provider/legal/operational acceptance is inferred from these local checks.
 
@@ -100,3 +100,5 @@ Browser follow-up6367187 separately verifies a synthetic foreign-owner row and a
 ## Batch8 — Research Budget and Thesis Studio
 
 [Evidence and exact commands](batch-8-budget-thesis.json), [contract and limits](PLANNING_WORKSPACES_CONTRACT.md). Budget arithmetic uses integer minor units; Thesis compiles existing saved Notes without a parallel writing database. Both have explicit owner/version saves, conflict comparison, guarded exports and fixture/SQL coverage. Notes now opens authorized exact IDs beyond the recent cap. Totals54 partial/22 not implemented/1 infrastructure, zero certified complete; hosted and full-product acceptance remain open.
+
+Current draft continuation: [#405](https://github.com/panagiotagrosdouli/eyloai/pull/405). Its description records final-head GitHub Actions; earlier PR/run IDs in historical sections remain historical.
