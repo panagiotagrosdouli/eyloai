@@ -81,3 +81,11 @@ test('month/day selection separates viewer-local timed events from floating all-
     assert.equal(child.status,0,child.stderr);
   }
 });
+
+
+test('Calendar rejects impossible dates instead of silently moving deadlines to another month', () => {
+  for (const date of ['2026-02-29','2026-02-30','2026-04-31']) {
+    assert.throws(()=>normalizeCalendarEvent(event({all_day:true,start_at:date+'T00:00:00Z',end_at:'2026-05-02T00:00:00Z'})),/real calendar date/);
+  }
+  assert.equal(normalizeCalendarEvent(event({all_day:true,start_at:'2028-02-29T00:00:00Z',end_at:'2028-03-01T00:00:00Z'})).start_at,'2028-02-29T00:00:00.000Z');
+});

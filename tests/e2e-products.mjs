@@ -305,6 +305,9 @@ try {
   await page.getByLabel("Email address").fill(user.email);
   await page.getByLabel("Password").fill("Fixture-password-123");
   await page.getByRole("button", { name: "Continue with password" }).click();
+  // Wait for the actual authenticated navigation; click completion does not
+  // wait for asynchronous Supabase sign-in/session persistence.
+  await page.waitForURL(url => url.pathname !== "/login");
   await page.goto(host + "/tools");
   await page
     .getByRole("heading", { name: "EYLO tools", exact: true })
@@ -544,8 +547,9 @@ try {
     assert.equal(await page.getByRole("button", {name:"Save reviewed translation to Notes"}).isDisabled(),true);
     assert.equal(tables.notes.filter(n=>n.data.title === "Translation to Greek").length,1);
     console.log("PASS fixture: a translation that drops a supplied citation fails closed before canonical Note saving.");
-    const firstDate = new Date().toISOString().slice(0,7) + "-01";
-    const endDate = new Date().toISOString().slice(0,7) + "-02";
+    const viewerMonth = await page.evaluate(() => `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,"0")}`);
+    const firstDate = viewerMonth + "-01";
+    const endDate = viewerMonth + "-02";
     const deadline = {id:randomUUID(),user_id:user.id,updated_date:now(),data:{title:"Floating conference deadline",description:"Supplied official deadline",all_day:true,start_at:firstDate+"T00:00:00.000Z",end_at:endDate+"T00:00:00.000Z",reminder_at:null,recurrence:"none",project_id:null}};
     tables.calendar_events.push(deadline);
     await page.goto(host+"/calendar?focus="+deadline.id);

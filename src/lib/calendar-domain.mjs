@@ -17,6 +17,9 @@ function validInstant(value, label, required = false) {
   if (text && (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:?\d{2})$/.test(text) || !Number.isFinite(Date.parse(text)))) {
     throw invalid(`${label} must be a valid date and time with a timezone.`);
   }
+  if (text && new Date(`${text.slice(0, 10)}T00:00:00Z`).toISOString().slice(0, 10) !== text.slice(0, 10)) {
+    throw invalid(`${label} must contain a real calendar date.`);
+  }
   return text ? new Date(text).toISOString() : null;
 }
 
