@@ -61,7 +61,7 @@ export default function ProjectDocumentWorkspace({ id, title, description, read,
     if (!mine) setDraft(structuredClone(latest.doc));
     setLatest(null); setConflict(false); setError(''); setNotice(mine ? 'Your draft is ready for review. Save explicitly to replace this workspace in the latest project.' : 'Saved version loaded.');
   };
-  return <main className="eylo-page mx-auto max-w-5xl space-y-5">
+  return <main className="eylo-page mx-auto w-full min-w-0 max-w-5xl space-y-5">
     <Link className="inline-flex min-h-11 items-center text-sm text-primary" to={`/projects/${id}`} onClick={event => { if (dirty && !window.confirm('Discard unsaved workspace changes?')) event.preventDefault(); }}>Back to {project?.title || 'project'}</Link>
     <header><p className="text-xs uppercase tracking-wider text-primary">EYLO project workspace</p><h1 className="mt-2 text-2xl font-bold">{title}</h1><p className="mt-2 text-sm text-muted-foreground">{description}</p></header>
     {error && <p role="alert" className="rounded-xl border border-destructive p-4 text-sm">{error}</p>}

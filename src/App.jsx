@@ -44,6 +44,11 @@ const ResearchGaps = lazy(() => import('@/pages/ResearchGaps'));
 const LiteratureReview = lazy(() => import('@/pages/LiteratureReview'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
+const ProductTools = lazy(() => import('@/pages/ProductTools'));
+const ProductWorkbench = lazy(() => import('@/pages/ProductWorkbench'));
+const CollaborationTools = lazy(() => import('@/pages/CollaborationTools'));
+const OfflineWorkspace = lazy(() => import('@/pages/OfflineWorkspace'));
+const Spreadsheet = lazy(() => import('@/components/products/PersonalTools').then(module => ({default:module.Spreadsheet})));
 const ResearchBudget = lazy(() => import('@/pages/ResearchBudget'));
 const ThesisStudio = lazy(() => import('@/pages/ThesisStudio'));
 const ProjectResearchRecords = lazy(() => import('@/pages/ProjectResearchRecords'));
@@ -110,7 +115,8 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
 
-      <Route element={<ProtectedRoute />}>
+      <Route path="/offline" element={<OfflineWorkspace />} />
+        <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/home" element={<Home />} />
           <Route path="/workspace/careers" element={<PublicCareers />} />
@@ -136,6 +142,12 @@ const AuthenticatedApp = () => {
           <Route path="/labs/data" element={<ResearchDataLab />} />
           <Route path="/knowledge-graph" element={<ResearchKnowledgeGraph />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/automations" element={<Navigate to="/tools/workflows" replace />} />
+          <Route path="/tools" element={<ProductTools />} />
+          <Route path="/tools/:tool" element={<ProductTools />} />
+          <Route path="/collaboration/:tool" element={<CollaborationTools />} />
+          <Route path="/projects/:id/workbench/:tool" element={<ProductWorkbench />} />
+          <Route path="/projects/:id/spreadsheet" element={<Spreadsheet />} />
           <Route path="/projects/:id/budget" element={<ResearchBudget />} />
           <Route path="/projects/:id/thesis" element={<ThesisStudio />} />
           <Route path="/projects/:id/research/:workspace" element={<ProjectResearchRecords />} />

@@ -53,6 +53,9 @@ jobs:
       - name: Verify canonical timer, quiz and learning workflows
         run: npm run test:e2e:learning
 
+      - name: Verify the remaining22 product workflows and offline production shell
+        run: npm run test:e2e:products
+
       - name: Test local-time greeting states
         run: npm run test:greeting
 

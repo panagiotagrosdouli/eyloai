@@ -26,7 +26,8 @@
     "test:e2e:meetings": "node tests/e2e-native-meetings.mjs",
     "test:e2e:project-concurrency": "node tests/e2e-supabase-project-concurrency.mjs",
     "release:readiness": "node scripts/check-release-readiness.mjs",
-    "release:probe": "node scripts/probe-release-target.mjs"
+    "release:probe": "node scripts/probe-release-target.mjs",
+    "test:e2e:products": "node tests/e2e-products.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
