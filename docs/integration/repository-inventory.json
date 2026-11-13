@@ -572,6 +572,11 @@
       "blob_sha": "ab263debf1b34a0c173190f125e87487ce91c6e7"
     },
     {
+      "path": "src/lib/deployment-probe.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "db66dfe15d56b4c301240a23a3b45dfb831e3268"
+    },
+    {
       "path": "src/lib/discovery-response-limit.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "7c21fde30e1121d442eec82245303204f21748f4"
@@ -850,6 +855,11 @@
       "path": "src/lib/quiz-data.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "873f2456d35e62f65188e43b17236e9a8784e61a"
+    },
+    {
+      "path": "src/lib/release-readiness.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "3ab8d70dded468b84586abf8dfd68064476df4a8"
     },
     {
       "path": "src/lib/reproducibility-review.mjs",
@@ -1602,6 +1612,11 @@
       "blob_sha": "a372a74d8ef297d35a7f96c043e502e1e6f8aed1"
     },
     {
+      "path": "tests/deployment-probe.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "a62c42dc4cf5acfb8ca6e6dfed601736837ae361"
+    },
+    {
       "path": "tests/deployment-status.test.mjs",
       "kind": "automated_test",
       "blob_sha": "6129c9a72189a60c3e0dbcd92cebbb44b04d4cc9"
@@ -1882,6 +1897,11 @@
       "blob_sha": "3e238a41fd2629748dbcfa00b01e8cd7b298db13"
     },
     {
+      "path": "tests/helpers/rls-probe-fixture.mjs",
+      "kind": "automated_test",
+      "blob_sha": "d502c956ab8ef1f8835682b66ca13e11d9cb747c"
+    },
+    {
       "path": "tests/human-evaluation.test.mjs",
       "kind": "automated_test",
       "blob_sha": "79463b182a801930f6de5131b98e2d3bbf3c96f3"
@@ -2090,6 +2110,11 @@
       "path": "tests/quiz-data.test.mjs",
       "kind": "automated_test",
       "blob_sha": "c6bcad23014628b35ae0e1c13ba46b7de315cff2"
+    },
+    {
+      "path": "tests/release-readiness.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "44d5cb9eb2cca158e98cc9e7dd64bf6b6ebab365"
     },
     {
       "path": "tests/release-stamp.test.mjs",
@@ -2303,7 +2328,9 @@
     "test:greeting": "node scripts/test-local-greeting.mjs",
     "test:services": "node scripts/test-service-server-keys.mjs",
     "test:e2e:meetings": "node tests/e2e-native-meetings.mjs",
-    "test:e2e:project-concurrency": "node tests/e2e-supabase-project-concurrency.mjs"
+    "test:e2e:project-concurrency": "node tests/e2e-supabase-project-concurrency.mjs",
+    "release:readiness": "node scripts/check-release-readiness.mjs",
+    "release:probe": "node scripts/probe-release-target.mjs"
   },
   "documented_environment_variable_names": [
     "VITE_SUPABASE_URL",
