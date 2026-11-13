@@ -378,10 +378,15 @@ try {
   await page.getByLabel('Select literature review project').waitFor();
   assert.equal(await page.getByLabel('Select literature review project').inputValue(), olderProjectId);
   assert.equal(await page.getByLabel('Research question').inputValue(), '');
+  tables.projects.push({ id: '10000000-0000-4000-8000-000000000998', user_id: '00000000-0000-0000-0000-000000000002', data: { title: 'Other account private fixture project' }, updated_date: now() });
   await page.goto(`${origin}/literature-review?project_id=10000000-0000-4000-8000-000000000998`);
   await page.getByText('Could not load the requested private project and saved papers. Check access and your connection, then retry.').waitFor();
   assert.equal(await page.getByLabel('Select literature review project').count(), 0, 'a missing/foreign requested ID never substitutes another owned project');
-  console.log('PASS fixture: protocol deep links load an authorized exact project beyond the recent cap and fail closed for missing owner-scoped targets.');
+  assert.equal(await page.getByText('Other account private fixture project', { exact: true }).count(), 0);
+  await page.goto(`${origin}/literature-review?project_id=10000000-0000-4000-8000-000000000997`);
+  await page.getByText('Could not load the requested private project and saved papers. Check access and your connection, then retry.').waitFor();
+  assert.equal(await page.getByLabel('Select literature review project').count(), 0);
+  console.log('PASS fixture: protocol deep links load an authorized exact project beyond the recent cap and fail closed for distinct foreign-owner and missing IDs; synthetic PostgREST, not hosted RLS.');
   console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.');
 } finally {
   if (browser) await browser.close();
