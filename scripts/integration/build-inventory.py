@@ -31,7 +31,7 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 21|UniversalSearch,universal-search|notes,projects,life_tasks,life_goals,calendar_events,study_flashcard_decks,saved_papers,ideas| |universal-search
 22||||
 23|ResearchKnowledgeGraph,research-knowledge-graph|saved_papers,saved_researchers,projects|discovery|research-knowledge-graph
-24|EyraCommandCenter,eyra-project-tools|projects,saved_papers|eyra|eyra-project-tools,eyra-boundaries
+24|EyraCommandCenter,eyra-project-tools,eyra-stream,eyra-conversation|projects,saved_papers,ideas,notes,life_tasks|eyra|eyra-project-tools,eyra-boundaries,eyra-stream
 25||||
 26|monitoring-service|watchlists,monitoring_discoveries,notifications|monitor|monitor,scheduled-monitoring
 27|OpportunityRadar,monitoring-service|watchlists,monitoring_discoveries,notifications|monitor|monitor,private-radar
@@ -128,6 +128,8 @@ def main():
             status = 'Not implemented'
         elif i == 73 and not any('research-catalog' in p for p in files):
             status = 'PR-only'
+        elif i == 24 and files:
+            status = 'Partially implemented'
         elif 'FOUNDATION' in declared:
             status = 'Infrastructure only'
         else:

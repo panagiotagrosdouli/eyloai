@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-13",
+  "source_commit": "6c91aa9bd0a9c557fb5098e1bd63f196d5998b82",
+  "IMPLEMENTED": [
+    "OpenAI Responses text streaming with terminal completion validation and bounded byte/text/token budgets",
+    "per-request project/Library action opt-in; no destructive or external-action tools",
+    "bounded account-scoped chat persistence in canonical ideas, with attribution checks",
+    "canonical Notes/Life/Flashcards context",
+    "Europe PMC sort fix; bounded exponential retry, per-runtime throttling/cache/coalescing/circuit breaker",
+    "one selected #389-derived atomic shared quota with modern server-key support",
+    "separate staging configuration, live/unrelated target rejection, release SHA stamping"
+  ],
+  "EXECUTED": {
+    "check": "PASS: 571 tests, imports/type/lint/build",
+    "browser": "PASS: streamed authenticated fixture chat, task context, write opt-in off, canonical conversation save/restore; prior fixture workflows retained",
+    "postgres": "PASS: 12 selected migrations; actual timer/learning/history isolation and shared quota; separate sessions enforce one allowed request at limit one",
+    "live_retrieval": "Real candidate handler/provider benchmark, no deployment: source coverage 4/5 versus baseline 2/5; Europe PMC returned actual records after removing sort=RELEVANCE; Semantic Scholar still returned intermittent 429"
+  },
+  "VERIFIED": [
+    "local source and browser fixtures",
+    "actual disposable PostgreSQL SQL/RLS/triggers/concurrent quotas",
+    "real Europe PMC query differential: sorted request 503, otherwise identical unsorted request 200"
+  ],
+  "FAILED": [
+    "overall live anchor diagnostic still FAIL: 4/5 source-covered queries, 3/4 covered-query heuristic gates; no human relevance judgments",
+    "#389 original SQL current_time variable conflicted with SQL CURRENT_TIME; corrected to observed_at and executed successfully"
+  ],
+  "BLOCKED": [
+    "hosted staging provisioning/access",
+    "Vercel target identity and build quota",
+    "live authenticated OpenAI, Stripe test lifecycle, LiveKit media and account deletion acceptance"
+  ],
+  "NOT_IMPLEMENTED": [
+    "fully durable autonomous EYRA runs spanning all 77 products",
+    "confirmation UI for destructive actions: these actions are not exposed",
+    "hosted migrations and production promotion"
+  ],
+  "remote_migrations_applied": false
+}

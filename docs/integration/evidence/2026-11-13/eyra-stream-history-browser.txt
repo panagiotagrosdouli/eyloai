@@ -1,0 +1,4 @@
+PASS fixture: canonical task timer start, reload, stop and export.
+PASS fixture: manual quiz creation, saved attempt, grading response and reload.
+PASS fixture: manual course, linked quiz, saved lesson progress, reload and mobile viewport.
+PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical Idea conversation save/restore.

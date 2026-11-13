@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "baseline_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-  "inventory_commit": "848484b1642e3fbd3b3477d50e6ff32c93f2f02f",
+  "inventory_commit": "6c91aa9bd0a9c557fb5098e1bd63f196d5998b82",
   "scope": "Integration candidate branch, not current main or deployed product",
   "intended_eylo_supabase_ref": "kbzjngpzxpniaumlupaa",
   "live_access": "Owner identified this ref; connector permission denied. Repository guards it as live EYLO. Separate staging identity remains required.",
@@ -1077,10 +1077,12 @@
     {
       "id": 24,
       "name": "EYLO Agent",
-      "status": "Infrastructure only",
+      "status": "Partially implemented",
       "tracker_statement": "FOUNDATION in main: EYRA tool/workflow foundations exist; durable authorized agent execution, cancellation and verified completion are not established. Next: build persisted runs with scoped approvals and audit outcomes.",
       "source_files": [
-        "src/components/eyra/EyraCommandCenter.jsx"
+        "src/components/eyra/EyraCommandCenter.jsx",
+        "src/lib/eyra-conversation.mjs",
+        "src/lib/eyra-stream.mjs"
       ],
       "frontend_routes": [],
       "backend_apis": [
@@ -1088,7 +1090,10 @@
       ],
       "supabase_entities": [
         "projects",
-        "saved_papers"
+        "saved_papers",
+        "ideas",
+        "notes",
+        "life_tasks"
       ],
       "migration_files": [
         "supabase/migrations/20260803_eylo_core_entities.sql",
@@ -1115,11 +1120,13 @@
       ],
       "automated_test_files": [
         "tests/eyra-boundaries.test.mjs",
-        "tests/eyra-project-tools.test.mjs"
+        "tests/eyra-project-tools.test.mjs",
+        "tests/eyra-stream-api.test.mjs",
+        "tests/eyra-stream.test.mjs"
       ],
       "user_workflow_and_remaining_acceptance": "FOUNDATION in main: EYRA tool/workflow foundations exist; durable authorized agent execution, cancellation and verified completion are not established. Next: build persisted runs with scoped approvals and audit outcomes.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "b599f84a559984dab2c69674af6a12e49938ff49",
+      "implementation_commit": "2807cefdbeb8e7c778251499ca487fb677aa3636",
       "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
       "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
@@ -1635,9 +1642,12 @@
         "tests/discovery-human-benchmark.test.mjs",
         "tests/discovery-proxy.test.mjs",
         "tests/discovery-ranking.test.mjs",
+        "tests/discovery-rate-limit.test.mjs",
         "tests/discovery-source-status.test.mjs",
         "tests/discovery-workspace-signup.test.mjs",
+        "tests/integration/discovery-quota-postgres.sql",
         "tests/scholarly-provider-backoff.test.mjs",
+        "tests/scholarly-resilience.test.mjs",
         "tests/scholarly-work-attribution.test.mjs"
       ],
       "user_workflow_and_remaining_acceptance": "PARTIAL in main: live scholarly and opportunity discovery routes exist; recommendations remain source-limited. Next: improve transparent relevance and coverage.",
@@ -2044,7 +2054,7 @@
       ],
       "user_workflow_and_remaining_acceptance": "PARTIAL in main: global EYRA command surface exists; cross-product execution tracking and verified outcomes remain incomplete. Next: expose authorized tool runs and completion evidence.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "b599f84a559984dab2c69674af6a12e49938ff49",
+      "implementation_commit": "2807cefdbeb8e7c778251499ca487fb677aa3636",
       "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
       "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
@@ -2703,8 +2713,10 @@
         "tests/discovery-human-benchmark.test.mjs",
         "tests/discovery-proxy.test.mjs",
         "tests/discovery-ranking.test.mjs",
+        "tests/discovery-rate-limit.test.mjs",
         "tests/discovery-source-status.test.mjs",
         "tests/discovery-workspace-signup.test.mjs",
+        "tests/integration/discovery-quota-postgres.sql",
         "tests/research-gap-candidate-save.test.mjs",
         "tests/research-gap-candidates.test.mjs",
         "tests/research-gap-context.test.mjs",
