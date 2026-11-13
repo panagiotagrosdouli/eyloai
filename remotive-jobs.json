@@ -1,9 +1,23 @@
 {
   "source": "Remotive",
   "source_url": "https://remotive.com/remote-jobs/api",
-  "retrieved_at": "2026-11-12T13:44:55.830Z",
+  "retrieved_at": "2026-11-13T13:05:50.422Z",
   "provider_delay_hours": 24,
   "items": [
+    {
+      "id": "remotive-2091171",
+      "title": "Customer Service Representative",
+      "organization": "ShyftOff",
+      "country": "USA",
+      "description": "ShyftOff connects independent customer service professionals with opportunities to support leading brands across industries like healthcare, financial services, insurance, retail, and technology. As an independent agent on the ShyftOff platform, you'll have opportunities to help customers answer questions, resolve issues, and deliver exceptional service, all from the comfort of your home. Compensation: $14–$20 per hour, depending on the program and applicable compensation structure. Why Join ShyftOff? Choose your own schedule: Select available shifts in 30-minute increments. Accept opportunities that fit your life, with no minimum hour commitments. 100% remote: Provide customer service from home, without a commute or traditional office schedule. Competitive earnings: Access opportunities with competitive, program-specific compensation rates disclosed before you commit. Weekly payments: Get paid weekly for completed services, subject to program terms. Multiple opportunities: Explore customer service programs across a variety of industries based on your qualifications and availability. Priority Boarding: Top-performing, reliable agents receive priority access to available shifts, hel",
+      "salary": "$14 - $20/hour",
+      "category": "Customer Service",
+      "job_type": "contract",
+      "published_at": "2026-11-11T09:11:58",
+      "deadline": "",
+      "source": "Remotive",
+      "source_url": "https://remotive.com/remote-jobs/customer-service/customer-service-representative-2091171"
+    },
     {
       "id": "remotive-2091136",
       "title": "Senior React Full-stack Developer",
@@ -185,20 +199,6 @@
       "deadline": "",
       "source": "Remotive",
       "source_url": "https://remotive.com/remote-jobs/software-development/tech-lead-full-stack-rails-engineer-2069746"
-    },
-    {
-      "id": "remotive-1680495",
-      "title": "Remote Office Assistant",
-      "organization": "Coalition Technologies",
-      "country": "Worldwide",
-      "description": "Coalition Technologies is seeking a reliable, detail-oriented, and highly organized Remote Office Assistant to support administrative, bookkeeping, billing, reporting, data entry, and internal operations tasks. This role is ideal for someone with strong communication skills, discretion, attention to detail, and a willingness to learn and grow within a fast-paced remote work environment. As an Office Assistant, you will help support daily administrative operations, assist with entry-level bookkeeping, organize client documents, support internal reporting, and help maintain accurate company records. This position offers strong growth potential for the right candidate, including opportunities for advancement within the Accounting team or other departments. We are looking for talented and diligent candidates who perform well on our skills assessments. Strong skills test performance may be considered even if a candidate does not meet every preferred experience or educational background requirement. Why Join Coalition Technologies? Coalition Technologies is committed to delivering high-quality work for our clients while providing our team with a fun, thriving, innovative, and growth-focu",
-      "salary": "$35,3k- $52k",
-      "category": "Marketing",
-      "job_type": "full_time",
-      "published_at": "2026-10-11T20:17:27",
-      "deadline": "",
-      "source": "Remotive",
-      "source_url": "https://remotive.com/remote-jobs/marketing/remote-office-assistant-1680495"
     }
   ]
 }
