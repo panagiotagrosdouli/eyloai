@@ -1,0 +1,40 @@
+✔ calendar event normalization bounds fields and stores UTC instants (4.289543ms)
+✔ calendar events require valid timezone datetimes and positive duration (0.387161ms)
+✔ calendar event recurrence and project links accept only supported values (0.404997ms)
+✔ monthly recurring event dates clamp at month end (0.304168ms)
+✔ calendar month selector returns only events in month ordered by start (8.219237ms)
+✔ calendar persists events through owner-scoped RLS and validates project ownership (8.915493ms)
+✔ calendar route is protected within the authenticated layout and repository is mapped (1.270202ms)
+✔ all-day events preserve midnight boundaries and use an exclusive end date (11.437791ms)
+✔ month/day selection separates viewer-local timed events from floating all-day dates (214.343307ms)
+✔ read-only RLS probe refuses to run without authorized credentials and expected project (28.898749ms)
+✔ read-only RLS CLI rejects live/unrelated targets and secret keys before trying authentication (114.666593ms)
+✔ read-only RLS CLI checks both fixture owners across all canonical export collections without mutating data or exposing credentials (68.913993ms)
+✔ empty or one-sided owner fixtures return inconclusive exit2 rather than a green RLS acceptance result (115.918419ms)
+✔ same authenticated identity or leaked foreign rows fail the probe (215.686728ms)
+✔ translation preserves repeated numeric citations, DOI and URL references (1.37048ms)
+✔ translation cannot silently lose, invent or alter supported references (0.487088ms)
+✔ exports all user-owned collections, including records beyond the first page (2.185131ms)
+✔ aborts on any cross-account record instead of exporting it (0.647444ms)
+✔ aborts on error or malformed response rather than generating a partial file (0.27797ms)
+✔ detects duplicate pages that could hide records (0.389044ms)
+✔ fails instead of silently truncating a full table (0.276377ms)
+✔ rejects missing session, invalid page sizes and unscoped exports (0.343246ms)
+✔ a workspace export cannot be downloaded after the browser changes user accounts (0.342495ms)
+✔ workspace download enforces total rows across all ten collections (0.29843ms)
+✔ workspace download measures actual UTF-8 byte size of row contents (0.394171ms)
+✔ workspace download limits metadata even when tables are empty (1.504228ms)
+✔ workspace download rejects invalid byte and total row ceilings (0.37942ms)
+✔ portable workspace version3 preserves canonical notes, file versions, learning and EYRA data with explicit byte exclusions (0.425617ms)
+✔ a foreign canonical EYRA message aborts export before any file can be emitted (0.248586ms)
+✔ exports all ten authored collaboration collections, directory primary key and multiple pages (0.706431ms)
+✔ RLS-visible foreign collaborative rows and missing directory identity abort the entire export (1.631515ms)
+✔ SDK export queries pin the owner, correct primary key and credential-safe projection (0.652983ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1021.087753

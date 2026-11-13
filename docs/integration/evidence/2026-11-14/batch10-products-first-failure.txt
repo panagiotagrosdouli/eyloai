@@ -1,0 +1,114 @@
+
+> eyloai@0.0.0 test:e2e:products
+> node tests/e2e-products.mjs
+
+PASS fixture: all22 product entries are discoverable in the authenticated tools hub.
+PASS fixture: Spaces authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Skills authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Interview Simulator authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Workflow Builder authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Studio authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Methodology Coach authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Research Ethics authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Conference Hub authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Smart Forms authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Spreadsheet real cell editing, saved formula, reload and evaluated aggregate.
+PASS fixture: Memory retrieves canonical source text and attribution without a model or memory table.
+PASS fixture: authenticated EYRA translation stream fixture and explicit canonical Note save. No real provider request.
+PASS fixture: a translation that drops a supplied citation fails closed before canonical Note saving.
+FIXTURE FAILURE VIEW: Personal workspace
+
+Calendar
+
+Create private events, connect them to projects, and keep deadlines visible. Reminders are saved with each event; external calendar sync is not connected.
+
+New event
+November 2026
+Sun
+Mon
+Tue
+Wed
+Thu
+Fri
+Sat
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+Events this month (0)
+
+Loading events…
+
+New event
+Title
+Description
+All-day event
+Starts
+Ends
+Reminder time
+Stored on the event; delivery is not configured.
+Repeat
+Does not repeat
+Daily
+Weekly
+Monthly
+Project
+No project
+Save event
+Home
+Discover
+EYRA
+Connect
+Careers
+ROOT WIDTH: { inner: 390, html: 390, body: 390, table: null }
+OVERFLOW ELEMENTS: []
+STATIC CACHE: []
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+false !== true
+
+    at file:///workspace/work/eyloai/tests/e2e-products.mjs:553:12 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.22.1
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

@@ -19,7 +19,7 @@ Machine-readable results and their scopes are in [verification.json](verificatio
 
 | Check | Result | Scope |
 | --- | --- | --- |
-| `npm run check` | PASS, 679 tests, 0 failed | Imports, frontend/API typecheck, ESLint, unit/API tests and Vite build |
+| `npm run check` | PASS, 688 tests, 0 failed | Imports, frontend/API typecheck, ESLint, unit/API tests and Vite build |
 | Browser regression | PASS | Actual pages and SDK calls against isolated Auth/PostgREST/Storage fixtures; auth, local analysis, catalog, Notes/Search, Files/documents, workplans, stale-write recovery and mobile viewport |
 | PostgreSQL migration/policy test | PASS | Nineteen selected migrations on disposable PostgreSQL 17.6; real SQL/RLS/triggers with synthetic Auth identity and Storage metadata schemas; two independent project-save sessions produce one success and one conflict |
 | Strict public deployment probe | FAIL | deployment-status returns HTML with HTTP200; source SHA unverified; AI/contact/billing report false. Earlier 8/8 availability smoke is historical only. |
@@ -107,4 +107,12 @@ Previous continuation (merged externally): [#405](https://github.com/panagiotagr
 
 [Actual scopes and remaining criteria](REMAINING_22_PRODUCT_CONTRACTS.md), [per-product register](batch-9-product-scopes.json), [evidence/exact commands](batch-9-all22-products.json). All22 now have implemented local flows; task Automations26 also has real user-triggered execution/history. Counts77 partial/0 without implementation/0 infrastructure-only/0 complete. The all22 browser suite includes an actual local production build and network-off encrypted Offline reload. SQL uses19 selected migrations in disposable PostgreSQL. No hosted migration/deployment or production-data/payment action occurred; release remains NO-GO.
 
-Current draft: [#407](https://github.com/panagiotagrosdouli/eyloai/pull/407). Its description records exact final-head CI and Vercel observations. The first batch9 head `13a8117` received a successful GitHub Vercel status, while connected-team deployment metadata remains inaccessible (404); preview build status is not hosted acceptance or verified staging identity.
+Previous draft (merged externally): [#407](https://github.com/panagiotagrosdouli/eyloai/pull/407). Its description records exact final-head CI and Vercel observations. The first batch9 head `13a8117` received a successful GitHub Vercel status, while connected-team deployment metadata remains inaccessible (404); preview build status is not hosted acceptance or verified staging identity.
+
+## Batch10 — privacy export and workflow integrity (2026-11-14 Europe/Athens)
+
+[Exact commands, results and updated product scopes](batch-10-workflow-polish.json). Main advanced externally to `b912d9f` after PR407 was merged; this continuation preserves it. Settings portable workspace v3 now covers40 owned/authored collections, with the directory primary key handled correctly, token secrets/digests excluded, owner validation and account revalidation. Received/shared third-party contributions and file bytes remain outside this bounded export; full personal-data access/deletion is not claimed.
+
+Translation saving now rejects missing/added/altered numeric bracket citations, DOI identifiers and URLs, including repeated counts; author/year references and translation quality still require review. Smart Forms exports saved responses to formula-safe quoted CSV with stable IDs; unsaved changes are excluded. Calendar preserves all-day dates across timezone boundaries, edits them without turning them into timed events, handles exclusive ends and shows spans in the correct month/day. [Mobile Calendar fixture](screenshots/calendar-all-day-mobile.png).
+
+688 tests, all three browser suites and19 selected migrations on disposable PostgreSQL pass. Browser transport is synthetic; the production Offline reload actually disables network. The fresh real-provider diagnostic remains **FAIL3/5** coverage, with Semantic Scholar429, and is retained with unchanged queries/gates. A cancelled/superseded CI run is never relabelled as passed; final exact-head results belong in the new draft continuation description. Counts remain77 partial /0 without implementation /0 certified complete. No hosted migration or production action; release remains NO-GO.

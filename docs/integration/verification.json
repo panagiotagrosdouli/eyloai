@@ -1,12 +1,12 @@
 {
-  "date": "2026-11-13",
-  "tested_source_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
+  "date": "2026-11-14",
+  "tested_source_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
     "npm_run_check": {
       "status": "PASS",
-      "tests": 679,
+      "tests": 688,
       "failed": 0,
       "includes": [
         "local imports",
@@ -15,8 +15,8 @@
         "Node unit/API regressions",
         "Vite production build"
       ],
-      "evidence": "evidence/2026-11-13/all22-check-formatted.txt",
-      "source_scope": "Final runtime/domain sources at 4607d2b5151d0dad07d9288500ad343d0577373e; subsequent changes are inventory/evidence only"
+      "evidence": "evidence/2026-11-14/batch10-check-final.txt",
+      "source_scope": "Runtime/domain code at 9e363e24e1b4ff7644efcd70fab1cac637ff2c51; final CI at subsequent inventory/evidence commit is recorded in continuation PR"
     },
     "browser": {
       "status": "PASS",
@@ -63,10 +63,9 @@
         "Actual production static-shell network-off reload and encrypted local snapshot unlock/lock; no plaintext source at rest",
         "Mobile root overflow checks including horizontally scrollable workbook; desktop/mobile tools hub screenshots"
       ],
-      "evidence": "evidence/2026-11-13/all22-browser-complete.txt; evidence/2026-11-13/all22-auth-browser.txt; evidence/2026-11-13/all22-learning-browser.txt",
-      "fixture_source_commit": "97ef1f37f65033812faf517f93b06aa671cd841d",
-      "fixture_blob_sha": "40763caf138437ba80f02f61f44e34db83e7f84f",
-      "source_scope": "Functional all22 production-bundle fixture run before the formatting-only commit4607d2b; final CI re-runs all three browser suites at exact final head"
+      "evidence": "evidence/2026-11-14/batch10-products-browser-final.txt; batch10-learning-browser-final.txt; batch10-auth-browser.txt",
+      "fixture_source_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
+      "source_scope": "All three suites retested after new product/export/calendar changes; synthetic Auth/PostgREST/AI transport; actual production-bundle Offline reload."
     },
     "postgres": {
       "status": "PASS",
@@ -100,10 +99,11 @@
         "User metadata/stale JWT role alone cannot grant admin; current Auth metadata/session/account ban governs administrator access",
         "Personal token owner-project scope, expiry/revocation/account-ban and service-only credential lookup",
         "Atomic workflow task creation and same-ID replay; Studio Note and conference Calendar idempotent materialization",
-        "Fixed authenticated action quotas reuse existing atomic limiter; successful replay does not consume new quota and deleting posts cannot refund it"
+        "Fixed authenticated action quotas reuse existing atomic limiter; successful replay does not consume new quota and deleting posts cannot refund it",
+        "All40 export collection RLS and owner-column read contracts; collaboration consent/role visibility remains separate from30 private-table foreign denial"
       ],
       "hosted_supabase_verified": false,
-      "evidence": "evidence/2026-11-13/all22-postgres-verified.txt",
+      "evidence": "evidence/2026-11-14/batch10-postgres.txt",
       "source_scope": "19 selected existing+proposed migrations on disposable PostgreSQL17.6; synthetic Auth identities/users/sessions, not hosted Auth/JWT/PostgREST"
     },
     "supplemental_ci": {
@@ -136,14 +136,15 @@
       "source_coverage_sufficient": 3,
       "source_covered_anchor_gates_passed": 2,
       "source_covered_anchor_gate_cases": 3,
-      "average_heuristic_anchor_coverage": 0.88,
+      "average_heuristic_anchor_coverage": 0.8,
       "observed_provider_failures": [
         "Semantic Scholar HTTP 429"
       ],
       "human_judged": false,
-      "evidence": "evidence/2026-11-13/research-live-final.txt; evidence/2026-11-13/research-live-final.json",
-      "scope": "Candidate handler through localhost with actual provider responses; strict primary-index coverage gates unchanged, co-indexing does not inflate study counts",
-      "root_cause": "Europe PMC sort fix retained. Remaining source breadth/candidate coverage and heuristic gate failures unresolved; larger bounded candidate pool did not establish acceptance."
+      "evidence": "evidence/2026-11-14/batch10-research-live.txt; evidence/2026-11-14/batch10-research-live.json",
+      "scope": "Fresh actual provider responses through unchanged local candidate discovery handler; strict5 queries and gates unchanged; no model calls",
+      "root_cause": "Europe PMC sort fix retained. Remaining source breadth/candidate coverage and heuristic gate failures unresolved; larger bounded candidate pool did not establish acceptance.",
+      "executed_at": "2026-11-13T22:27:33.378Z"
     },
     "public_release_probe": {
       "status": "FAIL",
@@ -192,72 +193,36 @@
   },
   "result_categories": {
     "IMPLEMENTED": [
-      "Canonical timer/quiz/learning workflows; manual authoring",
-      "Authenticated Responses API streaming and canonical EYRA snapshot saving",
-      "Request-scoped action opt-in, bounded context and source validation",
-      "Provider resilience and one atomic shared discovery quota",
-      "Scoped funding drafts, comparison and Research Gap literature saving",
-      "Separate staging preflight/configuration and release SHA manifests",
-      "Canonical snapshot retry identity with account-scoped recovery digest",
-      "Explicit private export and confirmed owner/version snapshot deletion",
-      "Late-response and same-project checklist conflict protection",
-      "DOI-only identity, full-title/author/year fallback, co-indexing and missing abstract provenance",
-      "Bounded candidate overfetch; one request per provider; exact query/relevance gates retained",
-      "Canonical DOI Library saver reused across discovery and Research Gaps",
-      "Literature Review project CAS, draft conflict retention and project selection persistence",
-      "Private routes remount by authenticated user ID",
-      "Portable workspace v2 covers 30 canonical collections with fail-closed ownership checks",
-      "Fourteen evidence gates and strict read-only JSON/source provenance probe",
-      "Staging-only two-account smoke refuses live/unrelated refs and inconclusive empty fixtures",
-      "Project-owned Research Journal, Experiment Lab and Publication Tracker with domain validation and bounded export",
-      "Explicit confirmed deletion and retained draft on canonical project CAS conflicts; no new schema",
-      "Exact-minor-unit research budget, allocation/variance/category comparison, bounded lines and safe saved CSV/JSON export",
-      "Canonical Notes-backed thesis chapters, saved-word counts, explicit source checks and ordered Markdown/JSON compile",
-      "Shared explicit project document CAS conflict comparison and deliberate version choice",
-      "Canonical Notes deep links fetch an owner-authorized exact ID beyond the recent limit and clear inaccessible targets",
-      "All22 previously missing products now have defined implemented local workflows; see batch-9-product-scopes.json",
-      "Teams/Connect/Community/Peer Review/Feedback additive canonical RLS contracts; no private project sharing by membership",
-      "Encrypted read-only Offline snapshots and a bounded static-only production service worker",
-      "Scoped/revocable read-only developer tokens and trusted-role/current-session administrative feedback triage",
-      "User-triggered task Automations26 now shares canonical workflow execution/recovery/history instead of infrastructure only"
+      "Portable workspace v3 covers40 owned/authored collections with correct directory key and credential-safe token metadata",
+      "Translation reference integrity guard before marking output complete or saving a canonical Note",
+      "Saved private-form CSV export with quoting and formula protection",
+      "Calendar all-day/date-span and viewer-local month/day handling"
     ],
     "EXECUTED": [
-      "679 unit/API regressions plus imports/typecheck/lint/production build",
-      "Three browser suites: legacy Auth, learning/workspace and all22 tools in a real local production build",
-      "Disposable PostgreSQL19 selected migrations and real new role/consent/replay/quota assertions",
-      "Network-disabled browser reload of encrypted Offline workspace"
+      "npm run check: PASS688 tests,0 failed, imports/typecheck/lint/build",
+      "Three browser suites PASS; products suite uses actual production bundle and real offline reload",
+      "Disposable PostgreSQL17.6: PASS19 selected migrations and40 collection contracts",
+      "Real provider diagnostic: FAIL3/5 sufficient source coverage,2/3 covered anchor gates,mean0.80; Semantic Scholar429"
     ],
     "VERIFIED": [
-      "Local fixture journeys, real SQL policies/CAS/quota and no hosted quota bypass",
-      "Europe PMC real responses after sort parameter repair",
-      "Ambiguous transport retry and deletion confirmation browser fixtures; actual concurrent snapshot SQL",
-      "Local scholarly identity/provenance unit tests and actual browser Library/protocol fixture journeys",
-      "Reproduced and fixed same-route account state leak in browser fixtures",
-      "30 canonical export table contracts in real disposable PostgreSQL",
-      "Three project research workflows with synthetic browser transport and real local PostgreSQL policies; hosted acceptance remains unverified",
-      "Exact-cent arithmetic and CSV formula protection",
-      "Canonical Notes remain unchanged by chapter edits/removal; incomplete source progress fails closed",
-      "Browser explicit version comparison before conflict retry and pending-editor save guard",
-      "Defined local scopes of all22; not full product completion",
-      "No browser token secret persisted; user/source permission predicates and role boundaries tested locally",
-      "Actual offline reload and root mobile workbook containment; bounded formula evaluation",
-      "Immediate local database admin-role/session/ban and membership revocation behavior"
+      "All22 prior workflows still pass locally; new invalid-reference translation cannot save",
+      "Actual Settings download contains40 owner-validated collections and excludes foreign collaboration rows/token material",
+      "CSV file contains saved form responses; no unsaved draft export",
+      "Calendar preserves first-of-month deadline in America/Los_Angeles through editing; unit checks also cover UTC+14 and Europe/Athens"
     ],
     "FAILED": [
-      "Historical scholarly diagnostic FAIL3/5 source coverage; not rerun in this batch",
-      "Historical public deployment provenance/configuration probe failed; not rerun in this batch"
+      "Fresh real-provider scholarly diagnostic remains3/5; queries/gates unchanged; no invented papers",
+      "Intermediate test fixture errors retained: calendar assertion ran before data loaded, and token sentinel was mistakenly seeded into non-token rows; repaired tests pass",
+      "Initial full check exposed that private isolation probe must remain private-only when export includes explicitly shared collaboration; kept strict private gates and separate consent/role SQL tests"
     ],
     "BLOCKED": [
-      "Separate explicitly verified Supabase staging and linked EYLO Vercel identity/access",
-      "Hosted Auth/JWT/Storage, new collaboration RLS and real provider acceptance",
-      "OpenAI translation/interview quality, Stripe sandbox, LiveKit media, account deletion and legal/operational/pilot acceptance",
-      "Final continuation Vercel result pending observation; current PR body records exact outcome"
+      "Separate independently verified staging and connected Vercel deployment identity/access; no remote migration or hosted acceptance",
+      "Hosted Auth/recovery/RLS/Storage/OpenAI/Stripe test/LiveKit/privacy/operational/legal/pilot acceptance"
     ],
     "NOT_IMPLEMENTED": [
-      "Full acceptance/certification of all77 products; current matrix77 partial/0 not implemented/0 infrastructure-only/0 complete",
-      "Advanced remaining criteria of each new scope listed explicitly in batch-9-product-scopes.json",
-      "Full DSAR/account deletion including new contributions, file bytes, Auth/provider records and backups",
-      "User-defined automation schedules/cancellation, public/shared forms, advanced spreadsheets, institutional collaboration and server-side repair orchestration"
+      "Full advanced completion/certification of all77 products",
+      "Full DSAR/account deletion including received/shared records, file bytes, Auth/provider records and backups",
+      "Advanced product gaps remain in batch9 register, as updated for IDs2/22/31/68/71 here"
     ]
   },
   "concurrent_branch_reconciliation": {
@@ -267,10 +232,10 @@
     "save_semantics": "Explicit immutable snapshot; existing records not overwritten; separate source metadata column; security-invoker atomic RPC with caller RLS"
   },
   "review": {
-    "prior_pr": 405,
-    "prior_pr_state": "Merged externally as68271db before this batch; upstream Vercel Hobby function consolidation preserved",
+    "prior_pr": 407,
+    "prior_pr_state": "Merged externally as b912d9f before batch10",
     "continuation_branch": "codex/eylo-platform-integration-audit",
-    "current_pr": 407
+    "current_pr": "See current draft continuation; no PR number guessed before creation"
   },
   "github_ci": {
     "commit": "03b68af93acaf3a71f52abacaa67c6e191039acb",
@@ -280,7 +245,7 @@
       "EYLO Quality Gate": 43475857912,
       "Product quality": 43475857979
     },
-    "scope": "Historical batch8 only. Batch9 final CI pending at evidence commit; current PR description records exact final results."
+    "scope": "Historical batch8 only. Batch10 current-head workflow results are recorded in the continuation PR description."
   },
   "latest_vercel_observation": {
     "commit": "13a8117b911c928acd21b5342c5a1568588cf9c7",
