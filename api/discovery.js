@@ -2,8 +2,8 @@ import { applyCors } from '../src/lib/api-cors.mjs';
 import { fetchWithScholarlyBackoff } from '../src/lib/scholarly-provider-backoff.mjs';
 import { readBoundedScholarlyResponse, ScholarlyResponseTooLargeError } from '../src/lib/discovery-response-limit.mjs';
 import { normalizeDoi } from '../src/lib/citation-verification.mjs';
-import { scholarlyResilience, providerMinimumGap } from './scholarly-resilience.mjs';
-import { consumeDiscoveryQuota } from './discovery-rate-limit.mjs';
+import { scholarlyResilience, providerMinimumGap } from '../server/scholarly-resilience.mjs';
+import { consumeDiscoveryQuota } from '../server/discovery-rate-limit.mjs';
 
 const PROVIDERS = new Set([
   'openalex_works',

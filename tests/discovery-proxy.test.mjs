@@ -1,5 +1,5 @@
 import test, { beforeEach } from 'node:test';
-import { scholarlyResilience } from '../api/scholarly-resilience.mjs';
+import { scholarlyResilience } from '../server/scholarly-resilience.mjs';
 beforeEach(() => scholarlyResilience.reset());
 
 test('Europe PMC uses its default relevance ordering instead of the failing RELEVANCE sort parameter', async () => {

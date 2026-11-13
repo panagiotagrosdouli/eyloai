@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readSupabaseApiConfig } from '../api/supabase-config.mjs';
+import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
 
 test('serverless Supabase configuration fails closed when project URL is missing', () => {
   const config = readSupabaseApiConfig({

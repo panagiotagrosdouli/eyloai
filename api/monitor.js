@@ -1,5 +1,5 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
-import { readSupabaseApiConfig } from './supabase-config.mjs';
+import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
 import { monitorWatchlistsQuery } from '../src/lib/monitor-scheduling.mjs';
 import {
   readMonitorProviderRecords, boundedOpenAlexAbstract,

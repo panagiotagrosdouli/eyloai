@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { readSupabaseApiConfig } from './supabase-config.mjs';
+import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
 const MAX_WEBHOOK_BODY_BYTES = 1024 * 1024; // Reject unusually large webhook requests before parsing.
 
 export const config = {

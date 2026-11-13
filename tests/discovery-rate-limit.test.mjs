@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import handler from '../api/discovery.js';
-import { consumeDiscoveryQuota, getTrustedDiscoveryClientIp, makeDiscoveryRateLimitSubject } from '../api/discovery-rate-limit.mjs';
+import { consumeDiscoveryQuota, getTrustedDiscoveryClientIp, makeDiscoveryRateLimitSubject } from '../server/discovery-rate-limit.mjs';
 
 function responseRecorder() {
   return {
