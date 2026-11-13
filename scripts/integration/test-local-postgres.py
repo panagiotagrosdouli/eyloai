@@ -27,6 +27,7 @@ MIGRATIONS = [
     '20261112190430_eylo_files.sql',
     '20261112200000_private_file_search.sql',
     '20261113090000_eyra_conversations.sql',
+    '20261113110000_eyra_conversation_writes.sql',
 ]
 BOOTSTRAP = '''
 create role anon nologin;
@@ -74,6 +75,8 @@ try:
         print('APPLIED locally:', name, flush=True)
     sql((ROOT / 'tests/integration/workspace-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/eyra-conversations-postgres.sql').read_text())
+    sql((ROOT / 'tests/integration/eyra-conversation-writes-postgres.sql').read_text())
+    print('PASS: PostgreSQL owner-scoped EYRA write RPCs, retries and error atomicity.', flush=True)
     print('PASS: disposable PostgreSQL EYRA owner RLS, message constraints, pagination, versioning and cascade deletion.', flush=True)
     version = subprocess.check_output([*DOCKER, 'exec', NAME, 'psql', '-U', 'postgres', '-Atc',
         "select updated_date from projects where id = '10000000-0000-0000-0000-000000000001'"], env=ENV, text=True).strip()
@@ -96,6 +99,27 @@ try:
     if sorted(outcomes) != ['0', '1']:
         raise AssertionError('Expected one successful concurrent save and one stale conflict: ' + repr(outcomes))
     print('PASS: two independent PostgreSQL sessions competing on one project version return one save and one conflict.', flush=True)
+    def concurrent_eyra_append(message_id):
+        statement = f"""
+        set role authenticated;
+        set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
+        select (public.eyra_append_message(
+          '80000000-0000-0000-0000-000000000001',
+          '{message_id}', 'user', 'Parallel append'
+        )->>'sequence_number');
+        """
+        return subprocess.check_output([*DOCKER, 'exec', '-i', NAME, 'psql', '-U', 'postgres', '-qAt', '-v', 'ON_ERROR_STOP=1'],
+            env=ENV, input=statement, text=True).strip()
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        positions = list(pool.map(concurrent_eyra_append, [
+            '90000000-0000-0000-0000-000000000005',
+            '90000000-0000-0000-0000-000000000006',
+        ]))
+    if sorted(positions) != ['2', '3']:
+        raise AssertionError('EYRA concurrent sequence allocation must be unique and monotone: ' + repr(positions))
+    print('PASS: parallel PostgreSQL sessions assigned unique contiguous EYRA message sequence numbers.', flush=True)
+
     print('PASS: PostgreSQL migration execution, two-role workspace isolation, version history, search, project links and Storage metadata policies.', flush=True)
     print('NOT VERIFIED: hosted Supabase Auth, PostgREST, Storage bytes, deployed schema, or service-role operations.', flush=True)
 finally:
