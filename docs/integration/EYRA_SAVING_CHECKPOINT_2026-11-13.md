@@ -28,3 +28,27 @@
 ## Next smallest task
 
 After confirming current CI and only after separately authorized staging has applied the reviewed migration, integrate browser conversation creation and append into the existing Command Center with stable request/message UUIDs and explicit persistence-error states. Do not claim auto-saving or page-refresh restore until tested. Keep the new PR Draft and unmerged.
+
+
+## Follow-up: Command Center user-message persistence (2026-11-13)
+
+Starting PR #400 HEAD verified: `0360657fd288d61e2be39b190d195cd1fcbabf65` (Draft, open, unmerged). Subsequent commits are on the same branch, not PR #398's merged branch.
+
+### New implementation
+
+- `src/lib/eyra-conversation-saving.mjs`: client-side transport for existing `POST /api/eyra-conversation-write`. Requests a validated Supabase user session, confirms the returned conversation ID and exact message ID/role/content/sequence before considering a message saved, and never uses server keys. Supports stable caller UUIDs and separates definitive failures from ambiguous/unconfirmed writes. Replays original IDs on retry, relying on the existing transactional RPC deduplication.
+- `src/components/eyra/EyraCommandCenter.jsx`: on submission, immediately displays the user message and independently begins saving. One conversation UUID/title is kept across that session's messages; each user message gets its own UUID before submission, retained inside the existing 30-message `sessionStorage` snapshot for later retry and session recovery. A per-message in-flight lock avoids duplicate browser calls. A verified owner ID is stored for each message and cross-account retries are blocked.
+- UI visibly distinguishes `saving`, `saved`, `failed`, `unconfirmed`, and `local-only`. Messages remain visible and retryable when unconfirmed or failed, including if the server never responds. A legacy session-only record lacking a UUID is explicitly local-only. The previous browser-session history remains intact. Clearing the Command Center resets the active conversation identifier **locally only**; this does not delete server records.
+- Current EYRA model responses, cancellation, sources, Idea Vault insight saving, and other EYLO integrations are not altered. **Assistant-response persistence is not implemented.** The Command Center does **not** load authenticated remote history yet; the existing session snapshot still supplies local history.
+
+### Test and acceptance boundaries
+
+- `tests/eyra-command-saving.test.mjs`: 7 tests for deterministic UUIDs across retries, required server confirmation, foreign-account retry rejection, no unauthenticated writes, network interruption, 4xx vs 5xx state classification, and rejecting malformed messages before transport.
+- `tests/eyra-command-saving-ui.test.mjs`: 4 source-backed component contract regressions for user-message saving hooks, in-flight locking, status/retry UI, and preservation of session history / cancellation / other EYLO paths. These are source-level UI guards, not full browser-render interaction tests.
+- Existing `tests/eyra-conversation-write.test.mjs` supplies mocked backend Auth/RPC checks, and existing disposable PostgreSQL CI checks enforce RLS, ownership, concurrent sequence allocation and retry idempotency.
+- **Check the current PR head GitHub Actions results before reporting tests passing.** No hosted Supabase Auth, staging schema or end-to-end persisted production UI acceptance is claimed.
+- Existing database schema and migrations unchanged; no hosted or production migrations and no production deployment performed.
+
+### Next smallest task
+
+In a separately authorized staging environment with the EYRA schema and write RPCs installed, validate one signed-in user's actual Command Center create+save+retry cycle and confirm it is invisible to a second user. Then, as a separate development slice, hydrate saved conversation history in the Command Center on refresh and add fully rendered component interaction tests. Keep PR #400 Draft until reviewed.
