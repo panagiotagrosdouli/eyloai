@@ -53,3 +53,33 @@ Source findings:
 Commit `e0605ade435494b9b31c570fe823b0fbb76ecc38` adds three focused regression guards for Idea semantics, browser session-only history and owner filters. These are **contract tests**, not tests of a nonexistent conversation listing API. User A/User B conversation cross-read, invalid/missing conversation IDs and unauthenticated conversation endpoint tests remain **NOT RUN / NOT IMPLEMENTED**. Existing local PostgreSQL owner-policy evidence is about existing entities, not conversations. Hosted Supabase is **NOT VERIFIED**.
 
 Next smallest task: explicitly approve a durable owner-scoped conversation persistence contract with message schema, ID semantics, versioning, retention, deletion and RLS acceptance criteria, without repurposing Ideas. Then implement read-only GET list and by-ID handlers with authenticated Supabase bearer and explicit user-id filtering, 400 invalid ID, 401 unauthenticated, and indistinguishable 404 for missing/foreign IDs; run mocked API tests and disposable PostgreSQL two-user policy tests. Keep PR Draft; do not migrate staging until separately authorized.
+
+
+## 2026-11-13 EYRA durable conversation foundation
+
+Verified starting HEAD: `aee9f370aa6a4fe1eb25dbd5ae308f8f9ec280ed`. Existing PR #398 remains Draft. No data migration has been applied to a hosted Supabase project.
+
+### Persistence contract (repository proposal; not deployed)
+
+- `supabase/migrations/20261113090000_eyra_conversations.sql` adds **only** `eyra_conversations` and `eyra_messages`, neither of which reuses Ideas or `search_history`.
+- Conversation: UUID, auth user UUID, title 1–180 characters, UTC created/updated timestamps, version starting at 1. Database trigger prohibits reassignment of id/owner/created time and advances version for optimistic compare-and-set updates.
+- Message: UUID, conversation UUID + owner UUID composite foreign key, unique positive sequence number (1–100000), role user/assistant/tool, JSONB exactly `{"text":"..."}` (1–16000 text characters, bounded byte size), and created timestamp. Append-only owner inserts; cascade deletion by parent. Unexpected provider metadata is forbidden by the content check.
+- Both tables use owner-only authenticated RLS for reads/inserts, with owner-only conversation update/delete. Only authenticated role grants are provided; service_role/public/anon grants are revoked for these tables. API endpoints use the public Supabase key + verified user bearer, **never** the service-role secret. Note: administrative credentials with PostgreSQL BYPASSRLS privileges must remain restricted to owner-approved server infrastructure.
+- Retention: no automatic TTL, purge job, archive, or silent expiry. Conversation persists until explicit owner deletion or auth-user deletion; dependent messages cascade. Account deletion is controlled by the existing auth relationship.
+- Versioned write endpoint, message append endpoint, deletion UI, quotas, moderation, encryption-at-rest review and retention-policy acceptance remain **not implemented** in this read-only slice. Database grants enable owner-writes for future reviewed functionality; the new HTTP endpoint is GET-only.
+
+### Read-only API
+
+`GET /api/eyra-conversations` lists caller-owned conversations; `GET /api/eyra-conversations?id=<uuid>` loads caller-owned conversation and a bounded message page. `page` (default 1, max 100), `limit` (default 20 for threads / 100 for messages, max 50 / 100) and stable sort (threads `updated_date desc,id desc`, messages `sequence_number asc,id asc`) are enforced. 401 missing/invalid bearer, 400 malformed ID/page/limit, and identical 404 for foreign and missing UUIDs. Responses are marked private/no-store. No write request and no OpenAI request are made.
+
+### Test scope and evidence boundary
+
+- `tests/eyra-conversation-api.test.mjs` mocks Auth/PostgREST: two-user listing, foreign/missing 404 equivalence, valid load, pagination, bad IDs, missing/invalid authentication, no service-role key and no unrelated Ideas/project access.
+- `tests/integration/eyra-conversations-postgres.sql` extends the disposable PostgreSQL fixture after existing workspace checks: actual SQL policies for two synthetic users, cross-owner insert/update/delete rejection, uniqueness and content limits, CAS version behavior, cascade deletion and Idea/project compatibility.
+- `scripts/integration/test-local-postgres.py` applies the new migration and executes the SQL fixture in the same isolated Docker container, with `--network none` and no published ports. The EYLO Quality Gate CI workflow now runs this local PostgreSQL test in its runner. CI status and result must be confirmed at the final HEAD before claiming SQL PASS.
+- This does not test hosted Supabase Auth, hosted PostgREST, deployment state, browser UI integration, live OpenAI, or verified staging credentials. **BLOCKED — LIVE OPENAI INTEGRATION NOT VERIFIED.**
+- No production deployment, remote migrations, live payments or production user data changes.
+
+### Next smallest task
+
+After authorized separate staging becomes available, apply the reviewed migration to staging, exercise authenticated read-only list/load with two disposable accounts, and verify hosted PostgreSQL RLS and deletion. Until then, keep the PR in Draft and deployment blocked.
