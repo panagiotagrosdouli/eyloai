@@ -31,7 +31,7 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 21|UniversalSearch,universal-search|notes,projects,life_tasks,life_goals,calendar_events,study_flashcard_decks,saved_papers,ideas| |universal-search
 22||||
 23|ResearchKnowledgeGraph,research-knowledge-graph|saved_papers,saved_researchers,projects|discovery|research-knowledge-graph
-24|EyraCommandCenter,eyra-project-tools,eyra-stream,eyra-conversation|projects,saved_papers,ideas,notes,life_tasks|eyra|eyra-project-tools,eyra-boundaries,eyra-stream
+24|EyraCommandCenter,eyra-project-tools,eyra-stream,eyra-conversation,eyra-history|projects,saved_papers,ideas,notes,life_tasks,eyra_conversations,eyra_messages|eyra|eyra-project-tools,eyra-boundaries,eyra-stream
 25||||
 26|monitoring-service|watchlists,monitoring_discoveries,notifications|monitor|monitor,scheduled-monitoring
 27|OpportunityRadar,monitoring-service|watchlists,monitoring_discoveries,notifications|monitor|monitor,private-radar
@@ -107,7 +107,7 @@ def main():
     suite = verification.get('local_checks', {}).get('npm_run_check', {})
     workflow_evidence = {
         **{i: 'Manual timer/quiz/course browser persistence fixtures and actual PostgreSQL RPC/policy checks' for i in (8, 11, 75)},
-        24: 'Authenticated streaming and canonical Idea save/restore browser fixtures; SSE/API permission tests; live OpenAI not executed',
+        24: 'Authenticated streaming and canonical EYRA snapshot save/restore browser fixtures; SSE/API permission tests; live OpenAI not executed',
         47: 'Research Gap provider-shaped browser fixtures and canonical literature identity SQL checks; live retrieval diagnostic remains FAIL',
         **{i: 'Files/document create, version, reload, download/export and exact-link browser fixtures; local PostgreSQL metadata policies' for i in (16, 17, 18)},
         **{i: 'Project workplan subset: browser persistence/conflict fixtures and independent local PostgreSQL compare-and-set sessions' for i in (54, 55, 74)},

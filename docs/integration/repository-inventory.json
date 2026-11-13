@@ -1,5 +1,5 @@
 {
-  "source_commit": "7cb7b2d74671d188d8c494f8e3e428bfb5685256",
+  "source_commit": "c02ae9769caddc56e688a80cdd8a20d8ab752ac2",
   "files": [
     {
       "path": ".github/workflows/build.yml",
@@ -14,7 +14,7 @@
     {
       "path": ".github/workflows/eylo-quality.yml",
       "kind": "ci_workflow",
-      "blob_sha": "b52a55d5f7be0bc855ed153e9a1bcde8897e72fe"
+      "blob_sha": "a572c9ee497c8f0d7cb320f7ef8a2de10d982da6"
     },
     {
       "path": ".github/workflows/normalize-base44.yml",
@@ -77,9 +77,14 @@
       "blob_sha": "7741be903627f1a1e9007ef1d05b8c5b21ac4929"
     },
     {
+      "path": "api/eyra-conversations.js",
+      "kind": "serverless_api",
+      "blob_sha": "5661fa90e7aaa21897682bcfad9a2aa9831c923c"
+    },
+    {
       "path": "api/eyra.js",
       "kind": "serverless_api",
-      "blob_sha": "3db5dfede1d0ce8fa73df667a8ccb05b0735a1fb"
+      "blob_sha": "d3447b6e5ef94f16bba986cceceb46377d764574"
     },
     {
       "path": "api/general-jobs.js",
@@ -244,7 +249,7 @@
     {
       "path": "src/components/eyra/EyraCommandCenter.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "c100ef464d399cdfda1e24bb423aecf5f52dd03f"
+      "blob_sha": "d7280fa641f8698f2f66bc34e2417bfc0b8ec320"
     },
     {
       "path": "src/components/eyra/EyraDailyBriefing.jsx",
@@ -625,6 +630,11 @@
       "path": "src/lib/eyra-engine.js",
       "kind": "frontend_or_client_source",
       "blob_sha": "beb377f4c455730716996b4db23fa45ef935c5db"
+    },
+    {
+      "path": "src/lib/eyra-history.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "aea59ac37cd86fb7d2028abdb6441d04cfa12903"
     },
     {
       "path": "src/lib/eyra-intelligence.js",
@@ -1467,9 +1477,19 @@
       "blob_sha": "6ed9d36d92371a93a7c438ad87371d7fb806ce5a"
     },
     {
+      "path": "supabase/migrations/20261113090000_eyra_conversations.sql",
+      "kind": "migration",
+      "blob_sha": "854651ecb01401b7907bbd0bf9a97cccfd38ca59"
+    },
+    {
       "path": "supabase/migrations/20261113113010_shared_discovery_quota.sql",
       "kind": "migration",
       "blob_sha": "a0866d0554b9a46f53deb82e0041ca3994bf07e2"
+    },
+    {
+      "path": "supabase/migrations/20261113114924_eyra_conversation_snapshots.sql",
+      "kind": "migration",
+      "blob_sha": "b5d390c28e3424128937feedd1285c57913a94f2"
     },
     {
       "path": "tests/activity-history.test.mjs",
@@ -1619,7 +1639,7 @@
     {
       "path": "tests/e2e-learning-integration.mjs",
       "kind": "automated_test",
-      "blob_sha": "80efe2245baa49d7177b170dff4a17fe265ab2fd"
+      "blob_sha": "fade1c37935add6413e0006f9628b7fe6afdb0f0"
     },
     {
       "path": "tests/e2e-native-meetings.mjs",
@@ -1702,6 +1722,16 @@
       "blob_sha": "2b84aa75bf88a6eba07e48101b4c6539034a5479"
     },
     {
+      "path": "tests/eyra-conversation-api.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "c503895d814ec24e531ab7b6e89a8289d4fed650"
+    },
+    {
+      "path": "tests/eyra-conversation-contract.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "850eb33afc488c40fb713b1e1e4a12cdc42eaaf4"
+    },
+    {
       "path": "tests/eyra-engine-concurrency.test.mjs",
       "kind": "automated_test",
       "blob_sha": "dfbdf118037f6d9fda7f318f7f8c128da7c131d1"
@@ -1715,6 +1745,11 @@
       "path": "tests/eyra-project-tools.test.mjs",
       "kind": "automated_test",
       "blob_sha": "a73752c6c1c2b1bca2be9d031c7a3b6f0c2b57ea"
+    },
+    {
+      "path": "tests/eyra-provider-boundaries.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "fc1b7c5cef4f146403ce47c4046e97eb41f499a1"
     },
     {
       "path": "tests/eyra-request-safety.test.mjs",
@@ -1837,6 +1872,11 @@
       "blob_sha": "c80c930cdd6b04e5dd8dda90c3da60afbd8948be"
     },
     {
+      "path": "tests/integration/eyra-conversations-postgres.sql",
+      "kind": "automated_test",
+      "blob_sha": "859b63596048bdb27742c0642be5b2ecc6621e8d"
+    },
+    {
       "path": "tests/integration/funding-postgres.sql",
       "kind": "automated_test",
       "blob_sha": "5bf9f1e4d57b48f39110e2cd8fc2279c7a375ed9"
@@ -1844,7 +1884,7 @@
     {
       "path": "tests/integration/learning-time-postgres.sql",
       "kind": "automated_test",
-      "blob_sha": "e09fa5315eaa97e4a9c53372491900afae9f2ad6"
+      "blob_sha": "23f9eb19a1e3e6ece6277000d3a4867a0b347a93"
     },
     {
       "path": "tests/integration/workspace-postgres.sql",

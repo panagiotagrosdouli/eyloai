@@ -1,12 +1,12 @@
 {
   "date": "2026-11-13",
-  "tested_source_commit": "7cb7b2d74671d188d8c494f8e3e428bfb5685256",
+  "tested_source_commit": "c02ae9769caddc56e688a80cdd8a20d8ab752ac2",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
     "npm_run_check": {
       "status": "PASS",
-      "tests": 597,
+      "tests": 609,
       "failed": 0,
       "includes": [
         "local imports",
@@ -15,7 +15,7 @@
         "Node unit/API regressions",
         "Vite production build"
       ],
-      "evidence": "evidence/2026-11-13/final-check-complete.txt"
+      "evidence": "evidence/2026-11-13/merged-check.txt"
     },
     "browser": {
       "status": "PASS",
@@ -33,17 +33,17 @@
         "manual timer start/reload/stop/export",
         "manual quiz creation/grading/reload",
         "manual course creation/assessment/progress/reload/mobile",
-        "authenticated EYRA streaming, explicit save to canonical Ideas, clear/restore without model call",
+        "authenticated EYRA streaming, explicit save to canonical EYRA conversations/messages, clear/restore without model call",
         "official funding comparison and immutable source facts",
         "two project-scoped grant drafts, switching and reload",
         "Research Gap real-provider-shaped fixtures, source coverage and canonical literature saving"
       ],
-      "evidence": "evidence/2026-11-13/final-auth-browser.txt; evidence/2026-11-13/final-eyra-learning-screenshots.txt"
+      "evidence": "evidence/2026-11-13/final-auth-browser.txt; evidence/2026-11-13/merged-learning-browser.txt"
     },
     "postgres": {
       "status": "PASS",
       "database": "disposable PostgreSQL 17.6; no network or published ports",
-      "migrations_executed": 14,
+      "migrations_executed": 16,
       "scope": "real PostgreSQL SQL/RLS/triggers with synthetic auth.uid identities and Storage metadata schema",
       "assertions": [
         "owner/outsider isolation across ten tables",
@@ -55,13 +55,13 @@
         "two independent database sessions: one update, one conflict",
         "canonical task/timer links and single running timer",
         "database-side quiz grading and course progress RPCs",
-        "canonical saved conversation owner isolation",
+        "canonical EYRA owner/message isolation and atomic snapshot rollback",
         "atomic quota under independent concurrent sessions",
         "project-scoped grant draft isolation and stale-write rejection",
         "duplicate source ID and normalized DOI rejection"
       ],
       "hosted_supabase_verified": false,
-      "evidence": "evidence/2026-11-13/funding-postgres-final.txt"
+      "evidence": "evidence/2026-11-13/merged-postgres.txt"
     },
     "supplemental_ci": {
       "status": "PASS",
@@ -138,16 +138,16 @@
   "result_categories": {
     "IMPLEMENTED": [
       "Canonical timer/quiz/learning workflows; manual authoring",
-      "Authenticated Responses API streaming and canonical Idea conversation saving",
+      "Authenticated Responses API streaming and canonical EYRA snapshot saving",
       "Request-scoped action opt-in, bounded context and source validation",
       "Provider resilience and one atomic shared discovery quota",
       "Scoped funding drafts, comparison and Research Gap literature saving",
       "Separate staging preflight/configuration and release SHA manifests"
     ],
     "EXECUTED": [
-      "597 unit/API tests plus typecheck/lint/import checks/build",
+      "609 unit/API tests plus typecheck/lint/import checks/build",
       "Both isolated browser suites",
-      "14 selected migrations and SQL acceptance checks on disposable PostgreSQL 17.6",
+      "16 selected migrations and SQL acceptance checks on disposable PostgreSQL 17.6",
       "Five-query live scholarly diagnostic through candidate handler"
     ],
     "VERIFIED": [
@@ -166,5 +166,11 @@
       "Full acceptance across all 77 products",
       "Remaining historical PR behavior reviews and unimplemented product workflows"
     ]
+  },
+  "concurrent_branch_reconciliation": {
+    "preserved_remote_head": "002281a",
+    "merge_commit": "195d99d",
+    "final_contract": "canonical eyra_conversations/messages; no chat records written to Ideas",
+    "save_semantics": "Explicit immutable snapshot; existing records not overwritten; separate source metadata column; security-invoker atomic RPC with caller RLS"
   }
 }
