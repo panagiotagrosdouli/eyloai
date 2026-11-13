@@ -131,3 +131,10 @@ set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
 delete from eyra_conversations where id='60000000-0000-4000-8000-000000000020' and version=1;
 select pg_temp.eyra_assert((select count(*)=0 from eyra_messages where conversation_id='60000000-0000-4000-8000-000000000020'), 'owner deletion cascades snapshot sources/messages');
 reset role;
+
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
+select public.save_eyra_conversation_snapshot('Optional sources','[{"role":"user","text":"No external sources"}]','60000000-0000-4000-8000-000000000022');
+select public.save_eyra_conversation_snapshot('Optional sources','[{"role":"user","text":"No external sources"}]','60000000-0000-4000-8000-000000000022');
+select pg_temp.eyra_assert((select count(*)=1 from eyra_messages where conversation_id='60000000-0000-4000-8000-000000000022'), 'optional sources default normalizes identically on retry');
+reset role;

@@ -10,6 +10,7 @@ declare
   text_size bigint := 0;
   created boolean;
   existing_messages jsonb;
+  expected_messages jsonb;
 begin
   if auth.uid() is null then raise exception 'Authentication required' using errcode = '42501'; end if;
   if jsonb_typeof(p_messages) is distinct from 'array' or jsonb_array_length(p_messages) not between 1 and 30
@@ -24,7 +25,9 @@ begin
     if not found then raise exception 'Snapshot unavailable' using errcode='42501'; end if;
     select jsonb_agg(jsonb_build_object('role',role,'text',content->>'text','sources',sources) order by sequence_number)
     into existing_messages from public.eyra_messages where conversation_id=p_snapshot_id and user_id=auth.uid();
-    if thread.title is distinct from p_title or existing_messages is distinct from p_messages then
+    select jsonb_agg(jsonb_build_object('role',value->>'role','text',value->>'text','sources',coalesce(value->'sources','[]'::jsonb)) order by ordinality)
+    into expected_messages from jsonb_array_elements(p_messages) with ordinality;
+    if thread.title is distinct from p_title or existing_messages is distinct from expected_messages then
       raise exception 'Snapshot ID conflicts with existing content' using errcode='23505';
     end if;
     return thread;
