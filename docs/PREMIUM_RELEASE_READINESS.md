@@ -30,3 +30,7 @@
 | Pilot | Recorded feedback and task-completion observations from real research users |
 
 A green GitHub Actions build alone is **not** release acceptance. Do not mark any untested gate as complete.
+
+## Current candidate target
+
+The market candidate uses independently verified Vercel staging and separate Supabase staging. Pages deployment notes above describe a static frontend only and cannot satisfy hosted API acceptance. The current evidence-compatible gate is `npm run release:readiness`; its default NO-GO is intentional while hosted/human evidence and owner-controlled infrastructure are missing. No production promotion or live payment activation follows automatically from a passing check.

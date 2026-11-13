@@ -24,7 +24,8 @@
     "test:greeting": "node scripts/test-local-greeting.mjs",
     "test:services": "node scripts/test-service-server-keys.mjs",
     "test:e2e:meetings": "node tests/e2e-native-meetings.mjs",
-    "test:e2e:project-concurrency": "node tests/e2e-supabase-project-concurrency.mjs"
+    "test:e2e:project-concurrency": "node tests/e2e-supabase-project-concurrency.mjs",
+    "release:readiness": "node scripts/check-release-readiness.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
