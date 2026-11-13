@@ -199,6 +199,7 @@ try {
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
   await page.getByText(answer, { exact: true }).waitFor();
   assert.equal(aiCalls, 1, 'restoring a saved conversation does not call a model');
+  await page.getByText('saved', { exact: true }).waitFor();
   await capture(page, 'eyra-conversation-mobile');
   await page.setViewportSize({ width: 1365, height: 900 });
   await capture(page, 'eyra-conversation-wide');
