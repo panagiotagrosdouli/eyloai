@@ -60,7 +60,7 @@ export function eyraPersistenceStatus(error) {
 export async function saveEyraUserMessage(message, {
   getSession,
   fetchImpl,
-  onIdentity = () => {},
+  onIdentity = (ownerId) => { void ownerId; },
 }) {
   if (message?.role !== 'user' || !isUuid(message.id) || !isUuid(message.conversationId)
       || typeof message.content !== 'string'
