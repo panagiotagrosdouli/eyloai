@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-13",
+  "source_commit": "848484b1642e3fbd3b3477d50e6ff32c93f2f02f",
+  "implemented": [
+    "canonical Life-linked Time Tracker",
+    "private quizzes and database-graded attempts",
+    "courses, lessons, saved progress and quiz assessments",
+    "manual authoring and editable previews without AI",
+    "focus-trapped authoring dialogs"
+  ],
+  "executed": {
+    "check": "PASS: 544 unit/API tests, imports, typecheck, lint, build",
+    "browser": "PASS: isolated fixture timer start/reload/stop/export, manual quiz/save/grade/reload, course/assessment-link/progress/reload/mobile; zero AI calls",
+    "postgres": "PASS: 11 selected migrations, actual timer uniqueness and owner-link checks, grading RPCs and course-assessment progress, outsider isolation and independent project CAS sessions"
+  },
+  "verified_scope": [
+    "local application and fixtures",
+    "actual disposable PostgreSQL SQL/RLS/triggers"
+  ],
+  "failed_and_fixed": [
+    "PR #391 lesson-progress ON CONFLICT ambiguity, fixed with named constraint"
+  ],
+  "blocked": [
+    "hosted staging identity/access",
+    "live OpenAI credential and authenticated provider verification"
+  ],
+  "not_implemented": [
+    "full learning assessment integrity/author-publishing model",
+    "complete 77-product acceptance"
+  ],
+  "remote_migrations_applied": false
+}

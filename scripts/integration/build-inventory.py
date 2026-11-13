@@ -15,10 +15,10 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 5||||
 6|Notifications|notifications||scheduled-monitoring
 7|Home,PersonalizedDashboard|projects,notes,life_tasks,calendar_events,study_flashcard_decks,activity_events||
-8|Learn,LearningWorkspace|||learn,learning-workspace
+8|Learn,LearningWorkspace|learning_courses,learning_lessons,learning_lesson_progress,learning_enrollments|eyra|learn,learning-workspace
 9|StudyPlanner|notes,calendar_events||notes-workspace
 10|Flashcards|study_flashcard_decks||flashcards-workspace
-11|QuizGenerator,LearningWorkspace|||quiz,learning-workspace
+11|QuizGenerator,LearningWorkspace|quizzes,quiz_questions,quiz_attempts|eyra|quiz,learning-workspace
 12||||
 13|PublicCareers,FutureMe|profiles|general-jobs,euraxess|careers-api,general-career
 14|Profile,cv-extraction|profiles||profile-merge
@@ -82,7 +82,7 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 72|ResearchDataLab,research-data|||research-data
 73|ResearchDataLab,research-catalog|||research-catalog
 74|ProjectTemplates|projects||project
-75|TimeTracker,time-tracker|time_entries||time-tracker
+75|TimeTracker,time-tracker|time_entries,life_tasks,projects||time-tracker
 76||||
 77|InstitutionAdmin|profiles|admin-analytics|analytics'''
 

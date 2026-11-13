@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "baseline_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-  "inventory_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+  "inventory_commit": "848484b1642e3fbd3b3477d50e6ff32c93f2f02f",
   "scope": "Integration candidate branch, not current main or deployed product",
   "intended_eylo_supabase_ref": "kbzjngpzxpniaumlupaa",
   "live_access": "Owner identified this ref; connector permission denied. Repository guards it as live EYLO. Separate staging identity remains required.",
@@ -41,7 +41,8 @@
         "supabase/migrations/20261112161818_eylo_life_tasks.sql",
         "supabase/migrations/20261112163010_eylo_life_goals_milestones.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -136,7 +137,8 @@
       "migration_files": [
         "supabase/migrations/20261112154425_private_notes.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -299,7 +301,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -327,30 +330,54 @@
     {
       "id": 8,
       "name": "EYLO Learn",
-      "status": "PR-only",
+      "status": "Partially implemented",
       "tracker_statement": "NOT_STARTED on main; learning workspace implementation is PR-only in #391/#393. Next: select one learning data contract, then integrate and test lessons, assessment, and progress as a complete workflow.",
-      "source_files": [],
-      "frontend_routes": [],
-      "backend_apis": [],
-      "supabase_entities": [],
-      "migration_files": [],
-      "authentication": "Not implemented on baseline",
+      "source_files": [
+        "src/lib/learn-data.mjs",
+        "src/pages/Learn.jsx"
+      ],
+      "frontend_routes": [
+        {
+          "path": "/learn",
+          "source": "src/pages/Learn.jsx"
+        }
+      ],
+      "backend_apis": [
+        "api/eyra.js"
+      ],
+      "supabase_entities": [
+        "learning_courses",
+        "learning_lessons",
+        "learning_lesson_progress",
+        "learning_enrollments"
+      ],
+      "migration_files": [
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
+      ],
+      "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
         393,
         391
       ],
-      "automated_test_files": [],
+      "automated_test_files": [
+        "tests/integration/learning-time-postgres.sql",
+        "tests/learn-data.test.mjs"
+      ],
       "user_workflow_and_remaining_acceptance": "NOT_STARTED on main; learning workspace implementation is PR-only in #391/#393. Next: select one learning data contract, then integrate and test lessons, assessment, and progress as a complete workflow.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": null,
-      "automated_test_status": "No dedicated test evidence mapped",
-      "automated_test_source_commit": null,
+      "implementation_commit": "848484b1642e3fbd3b3477d50e6ff32c93f2f02f",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
-      "deployment_dependencies": [],
+      "deployment_dependencies": [
+        "Verified EYLO Supabase project and reviewed migrations",
+        "Configured serverless API/providers: api/eyra.js"
+      ],
       "known_blockers": [
-        "Acceptance criteria and full product workflow still incomplete"
+        "Acceptance criteria and full product workflow still incomplete",
+        "Authorized staging access and test accounts missing"
       ]
     },
     {
@@ -376,7 +403,8 @@
         "supabase/migrations/20261112154425_private_notes.sql",
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -451,30 +479,51 @@
     {
       "id": 11,
       "name": "EYLO Quiz Generator",
-      "status": "PR-only",
+      "status": "Partially implemented",
       "tracker_statement": "NOT_STARTED on main; quiz implementation is PR-only in #391/#393. Next: resolve the shared learning schema, then integrate manual authoring, grading, saved attempts, and review.",
-      "source_files": [],
-      "frontend_routes": [],
-      "backend_apis": [],
-      "supabase_entities": [],
-      "migration_files": [],
-      "authentication": "Not implemented on baseline",
+      "source_files": [
+        "src/pages/QuizGenerator.jsx"
+      ],
+      "frontend_routes": [
+        {
+          "path": "/quiz-generator",
+          "source": "src/pages/QuizGenerator.jsx"
+        }
+      ],
+      "backend_apis": [
+        "api/eyra.js"
+      ],
+      "supabase_entities": [
+        "quizzes",
+        "quiz_questions",
+        "quiz_attempts"
+      ],
+      "migration_files": [
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
+      ],
+      "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
         393,
         391
       ],
-      "automated_test_files": [],
+      "automated_test_files": [
+        "tests/quiz-data.test.mjs"
+      ],
       "user_workflow_and_remaining_acceptance": "NOT_STARTED on main; quiz implementation is PR-only in #391/#393. Next: resolve the shared learning schema, then integrate manual authoring, grading, saved attempts, and review.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": null,
-      "automated_test_status": "No dedicated test evidence mapped",
-      "automated_test_source_commit": null,
+      "implementation_commit": "848484b1642e3fbd3b3477d50e6ff32c93f2f02f",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
-      "deployment_dependencies": [],
+      "deployment_dependencies": [
+        "Verified EYLO Supabase project and reviewed migrations",
+        "Configured serverless API/providers: api/eyra.js"
+      ],
       "known_blockers": [
-        "Acceptance criteria and full product workflow still incomplete"
+        "Acceptance criteria and full product workflow still incomplete",
+        "Authorized staging access and test accounts missing"
       ]
     },
     {
@@ -825,7 +874,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -912,7 +962,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -998,7 +1049,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -1050,7 +1102,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -1357,7 +1410,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -1760,7 +1814,8 @@
       "migration_files": [
         "supabase/migrations/20261112154425_private_notes.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -1867,7 +1922,7 @@
       ],
       "user_workflow_and_remaining_acceptance": "PARTIAL in main: shared keyboard/focus/label patterns and baseline checks exist; WCAG 2.2 AA is not verified. Next: audit representative desktop and mobile journeys.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "157e691e90fa8d27656f12982659d9f2606773fc",
+      "implementation_commit": "848484b1642e3fbd3b3477d50e6ff32c93f2f02f",
       "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
       "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
@@ -1972,7 +2027,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2035,7 +2091,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2091,7 +2148,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -2155,7 +2213,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2217,7 +2276,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2333,7 +2393,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2405,7 +2466,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2477,7 +2539,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -2537,7 +2600,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2622,7 +2686,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2775,7 +2840,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -3223,7 +3289,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261112190430_eylo_files.sql"
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -3260,29 +3327,60 @@
     {
       "id": 75,
       "name": "Time Tracker",
-      "status": "PR-only",
+      "status": "Partially implemented",
       "tracker_statement": "NOT_STARTED on main; implementation proposal is PR-only in #391. Next: review shared entity contracts, then integrate persisted entries and export.",
-      "source_files": [],
-      "frontend_routes": [],
+      "source_files": [
+        "src/lib/time-tracker-data.mjs",
+        "src/pages/TimeTracker.jsx"
+      ],
+      "frontend_routes": [
+        {
+          "path": "/time-tracker",
+          "source": "src/pages/TimeTracker.jsx"
+        }
+      ],
       "backend_apis": [],
-      "supabase_entities": [],
-      "migration_files": [],
-      "authentication": "Not implemented on baseline",
+      "supabase_entities": [
+        "time_entries",
+        "life_tasks",
+        "projects"
+      ],
+      "migration_files": [
+        "supabase/migrations/20260803_eylo_core_entities.sql",
+        "supabase/migrations/20260817090000_operational_services.sql",
+        "supabase/migrations/20260817090500_security_hardening.sql",
+        "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
+        "supabase/migrations/20261112154425_private_notes.sql",
+        "supabase/migrations/20261112161818_eylo_life_tasks.sql",
+        "supabase/migrations/20261112163010_eylo_life_goals_milestones.sql",
+        "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
+        "supabase/migrations/20261112173500_eylo_calendar_events.sql",
+        "supabase/migrations/20261112181000_eylo_activity_history.sql",
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261112190430_eylo_files.sql",
+        "supabase/migrations/20261113062923_canonical_learning_time.sql"
+      ],
+      "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
         391
       ],
-      "automated_test_files": [],
+      "automated_test_files": [
+        "tests/time-tracker-data.test.mjs"
+      ],
       "user_workflow_and_remaining_acceptance": "NOT_STARTED on main; implementation proposal is PR-only in #391. Next: review shared entity contracts, then integrate persisted entries and export.",
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": null,
-      "automated_test_status": "No dedicated test evidence mapped",
-      "automated_test_source_commit": null,
+      "implementation_commit": "848484b1642e3fbd3b3477d50e6ff32c93f2f02f",
+      "automated_test_status": "Combined suite PASS: 531 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
-      "deployment_dependencies": [],
+      "deployment_dependencies": [
+        "Verified EYLO Supabase project and reviewed migrations"
+      ],
       "known_blockers": [
-        "Acceptance criteria and full product workflow still incomplete"
+        "Acceptance criteria and full product workflow still incomplete",
+        "Authorized staging access and test accounts missing"
       ]
     },
     {
