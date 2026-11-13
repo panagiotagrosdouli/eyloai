@@ -18,7 +18,9 @@ begin
     raise exception 'Invalid conversation snapshot' using errcode = '22023';
   end if;
   insert into public.eyra_conversations(id,user_id,title) values(p_snapshot_id,auth.uid(),p_title)
-  on conflict (id) do nothing returning * into thread;
+  -- The parent has both primary-key and composite owner/FK unique constraints.
+  -- Concurrent speculative inserts may collide with either index.
+  on conflict do nothing returning * into thread;
   created := found;
   if not created then
     select * into thread from public.eyra_conversations where id=p_snapshot_id and user_id=auth.uid() for update;

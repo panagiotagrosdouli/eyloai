@@ -115,17 +115,22 @@ try:
     print('PASS: two independent PostgreSQL quota sessions allow exactly one request at a limit of one.', flush=True)
     def concurrent_snapshot(_request):
         statement = """
-        set role authenticated;
-        set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
+        begin;
+        set local role authenticated;
+        set local request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
         select (public.save_eyra_conversation_snapshot('Concurrent retry','[{"role":"user","text":"One snapshot","sources":[]}]','60000000-0000-4000-8000-000000000021')).id;
+        select pg_sleep(0.3);
+        commit;
         """
         return subprocess.check_output([*DOCKER, 'exec', '-i', NAME, 'psql', '-U', 'postgres', '-qAt', '-v', 'ON_ERROR_STOP=1'], env=ENV, input=statement, text=True).strip()
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        snapshot_outcomes = list(pool.map(concurrent_snapshot, [1, 2]))
-    if snapshot_outcomes != ['60000000-0000-4000-8000-000000000021'] * 2:
-        raise AssertionError('Concurrent snapshot retries did not return the same identity: ' + repr(snapshot_outcomes))
-    sql("do $$ begin if (select count(*) from eyra_messages where conversation_id='60000000-0000-4000-8000-000000000021') != 1 then raise exception 'Duplicate snapshot messages'; end if; end $$;")
-    print('PASS: two independent PostgreSQL snapshot retries return the same ID and persist exactly one message.', flush=True)
+    for _race_round in range(3):
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            snapshot_outcomes = list(pool.map(concurrent_snapshot, [1, 2]))
+        if snapshot_outcomes != ['60000000-0000-4000-8000-000000000021'] * 2:
+            raise AssertionError('Concurrent snapshot retries did not return the same identity: ' + repr(snapshot_outcomes))
+        sql("do $$ begin if (select count(*) from eyra_messages where conversation_id='60000000-0000-4000-8000-000000000021') != 1 then raise exception 'Duplicate snapshot messages'; end if; end $$;")
+        sql("delete from eyra_conversations where id='60000000-0000-4000-8000-000000000021';")
+    print('PASS: two independent PostgreSQL snapshot retries return the same ID and persist exactly one message (three overlapping transaction rounds).', flush=True)
     print('PASS: PostgreSQL migration execution, two-role workspace isolation, version history, search, project links and Storage metadata policies.', flush=True)
     print('NOT VERIFIED: hosted Supabase Auth, PostgREST, Storage bytes, deployed schema, or service-role operations.', flush=True)
 finally:
