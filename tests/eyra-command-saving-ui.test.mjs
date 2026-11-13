@@ -39,9 +39,9 @@ test('visible statuses, retry action and local-only copy remain available', () =
 });
 
 test('legacy local history, cancellation and other EYLO product flows are preserved', () => {
-  assert.match(source, /return Array\\.isArray\\(parsed\\) && parsed\\.length/);
-  assert.match(source, /message\\.persistence === 'saving'/);
-  assert.match(source, /\\{ \\.\\.\\.message, persistence: 'unconfirmed' \\}/);
+  assert.match(source, /return Array\.isArray\(parsed\) && parsed\.length/);
+  assert.match(source, /message\.persistence === 'saving'/);
+  assert.match(source, /\{ \.\.\.message, persistence: 'unconfirmed' \}/);
   assert.match(source, /messages\.slice\(-30\)/);
   assert.match(source, /activeRequestRef\.current\.abort\(\)/);
   assert.match(source, /if \(controller\.signal\.aborted\) return/);
