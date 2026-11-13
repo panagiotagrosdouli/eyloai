@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-13",
+  "tested_source_commit": "784d1e5999b18bfb05bfba2f3c3e13748df508d8",
+  "base_main": "633de25",
+  "IMPLEMENTED": [
+    "Stable snapshot UUID and SHA-256 retry fingerprint in account-scoped tab recovery; transactional owner-RLS snapshot replay rejects conflicting content",
+    "Explicit export and version-checked confirmed deletion on canonical EYRA tables; cascade cleanup and tab clear",
+    "Stale history response invalidation and history/write interaction guards",
+    "Read API includes stored source attribution",
+    "Reproducibility checklist uses project CAS, retains unsaved draft after conflict and ignores obsolete save responses",
+    "Browser regression harness owns its Vite child on an ephemeral port, avoiding inherited npx servers"
+  ],
+  "EXECUTED": {
+    "npm run check": "PASS: 611 tests, 0 failed, imports/typecheck/lint/build",
+    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:auth": "PASS: existing auth/workspace/funding fixture journeys",
+    "EYLO_E2E_ARTIFACT_DIR=/workspace/work/continuation/screenshots PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:learning": "PASS: manual learning, streamed EYRA, ambiguous save retry/export/confirmation/delete/reload, delayed history clear, checklist conflict",
+    "python scripts/integration/test-local-postgres.py": "PASS: 17 selected migrations, actual RLS/CAS/cascade/idempotency and independent concurrent sessions"
+  },
+  "VERIFIED": [
+    "Synthetic authenticated browser fixtures, actual disposable PostgreSQL 17.6; no hosted acceptance"
+  ],
+  "FAILED": [
+    "Initial new test harness variable collision and early assertion timing corrected",
+    "Initial migration signature replacement corrected before acceptance",
+    "Checklist save response exposed an existing effect that erased success state; same-project draft/confirmation preserved",
+    "Historical live retrieval diagnostic still FAIL at 4/5; not rerun for this unchanged retrieval code"
+  ],
+  "BLOCKED": [
+    "Separate authorized Supabase staging",
+    "Vercel project/deployment identity and build quota",
+    "Live OpenAI/Stripe/LiveKit/hosted account deletion acceptance"
+  ],
+  "NOT_IMPLEMENTED": [
+    "Remaining 77-product workflows and full acceptance",
+    "Unmerged PR400 automatic user-message writer: reviewed but not merged; current explicit snapshot path retains user-controlled save semantics, shares canonical tables and does not introduce another store"
+  ],
+  "remote_migrations_applied": false,
+  "production_writes": false
+}

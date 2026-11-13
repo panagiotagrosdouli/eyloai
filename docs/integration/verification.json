@@ -1,12 +1,12 @@
 {
   "date": "2026-11-13",
-  "tested_source_commit": "19ee90bee2c20a7816fa113bc6f2368498569f28",
+  "tested_source_commit": "784d1e5999b18bfb05bfba2f3c3e13748df508d8",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
     "npm_run_check": {
       "status": "PASS",
-      "tests": 609,
+      "tests": 611,
       "failed": 0,
       "includes": [
         "local imports",
@@ -15,7 +15,7 @@
         "Node unit/API regressions",
         "Vite production build"
       ],
-      "evidence": "evidence/2026-11-13/snapshot-final-check.txt"
+      "evidence": "evidence/2026-11-13/privacy-check-final.txt"
     },
     "browser": {
       "status": "PASS",
@@ -36,14 +36,19 @@
         "authenticated EYRA streaming, explicit save to canonical EYRA conversations/messages, clear/restore without model call",
         "official funding comparison and immutable source facts",
         "two project-scoped grant drafts, switching and reload",
-        "Research Gap real-provider-shaped fixtures, source coverage and canonical literature saving"
+        "Research Gap real-provider-shaped fixtures, source coverage and canonical literature saving",
+        "ambiguous snapshot write: same UUID retry, no duplicate record",
+        "private JSON export with source attribution, no model call",
+        "cancelled deletion makes no write; confirmed owner-version delete cascades and clears tab history",
+        "late history response cannot repopulate a cleared tab",
+        "reproducibility checklist save/reload and conflict preserves local draft"
       ],
-      "evidence": "evidence/2026-11-13/final-auth-browser.txt; evidence/2026-11-13/saved-label-browser.txt"
+      "evidence": "evidence/2026-11-13/privacy-browser-final.txt; evidence/2026-11-13/privacy-auth-browser.txt"
     },
     "postgres": {
       "status": "PASS",
       "database": "disposable PostgreSQL 17.6; no network or published ports",
-      "migrations_executed": 16,
+      "migrations_executed": 17,
       "scope": "real PostgreSQL SQL/RLS/triggers with synthetic auth.uid identities and Storage metadata schema",
       "assertions": [
         "owner/outsider isolation across ten tables",
@@ -58,10 +63,13 @@
         "canonical EYRA owner/message isolation and atomic snapshot rollback",
         "atomic quota under independent concurrent sessions",
         "project-scoped grant draft isolation and stale-write rejection",
-        "duplicate source ID and normalized DOI rejection"
+        "duplicate source ID and normalized DOI rejection",
+        "idempotent snapshot retry and conflicting identity rejection",
+        "stale-version and outsider snapshot deletion rejected",
+        "two independent sessions save the same snapshot UUID and create one message"
       ],
       "hosted_supabase_verified": false,
-      "evidence": "evidence/2026-11-13/merged-postgres.txt"
+      "evidence": "evidence/2026-11-13/privacy-postgres-final.txt"
     },
     "supplemental_ci": {
       "status": "PASS",
@@ -142,17 +150,21 @@
       "Request-scoped action opt-in, bounded context and source validation",
       "Provider resilience and one atomic shared discovery quota",
       "Scoped funding drafts, comparison and Research Gap literature saving",
-      "Separate staging preflight/configuration and release SHA manifests"
+      "Separate staging preflight/configuration and release SHA manifests",
+      "Canonical snapshot retry identity with account-scoped recovery digest",
+      "Explicit private export and confirmed owner/version snapshot deletion",
+      "Late-response and same-project checklist conflict protection"
     ],
     "EXECUTED": [
-      "609 unit/API tests plus typecheck/lint/import checks/build",
+      "611 unit/API tests plus typecheck/lint/import checks/build",
       "Both isolated browser suites",
-      "16 selected migrations and SQL acceptance checks on disposable PostgreSQL 17.6",
+      "17 selected migrations and SQL acceptance checks on disposable PostgreSQL 17.6",
       "Five-query live scholarly diagnostic through candidate handler"
     ],
     "VERIFIED": [
       "Local fixture journeys, real SQL policies/CAS/quota and no hosted quota bypass",
-      "Europe PMC real responses after sort parameter repair"
+      "Europe PMC real responses after sort parameter repair",
+      "Ambiguous transport retry and deletion confirmation browser fixtures; actual concurrent snapshot SQL"
     ],
     "FAILED": [
       "Live scholarly diagnostic: sufficient coverage 4/5; heuristic gates 3/4; overall FAIL",
@@ -175,10 +187,10 @@
     "save_semantics": "Explicit immutable snapshot; existing records not overwritten; separate source metadata column; security-invoker atomic RPC with caller RLS"
   },
   "review": {
-    "current_draft_pr": 401,
-    "prior_pr": 398,
-    "prior_pr_state": "Merged externally before continuation push",
-    "prior_merge_commit": "83a647f9d07d147c1d212996c852ef122f48b296",
+    "current_draft_pr": null,
+    "prior_pr": 401,
+    "prior_pr_state": "Merged externally before this continuation",
+    "prior_merge_commit": "633de25",
     "production_deployment_verified": false
   },
   "github_ci": {
