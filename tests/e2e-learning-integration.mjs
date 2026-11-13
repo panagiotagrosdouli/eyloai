@@ -121,6 +121,7 @@ try {
       }
     }
     const single = request.headers().accept?.includes('application/vnd.pgrst.object+json');
+    if (single && !rows.length) return route.fulfill({ status: 406, headers, contentType: 'application/json', body: JSON.stringify({ code: 'PGRST116', message: 'No matching owner row' }) });
     return json(route, single ? rows[0] : rows.slice(Number(url.searchParams.get('offset')) || 0, (Number(url.searchParams.get('offset')) || 0) + (Number(url.searchParams.get('limit')) || rows.length)));
   });
   await page.goto(`${origin}/login`);
@@ -369,6 +370,18 @@ try {
   assert.equal(provenanceSaved.data.summary_source, 'Crossref');
   await capture(page, 'scholarly-provenance-mobile');
   console.log('PASS fixture: scholarly duplicate records render one publication with retained provider/abstract attribution and save canonical DOI/provenance to the Library while AI is unavailable.');
+
+  for (let index = 0; index < 100; index++) tables.projects.push({ id: `10000000-0000-4000-8000-${String(index + 100).padStart(12, '0')}`, user_id: user.id, data: { title: `Recent fixture project ${index}` }, updated_date: now() });
+  const olderProjectId = '10000000-0000-4000-8000-000000000999';
+  tables.projects.push({ id: olderProjectId, user_id: user.id, data: { title: 'Authorized project beyond recent cap' }, updated_date: now() });
+  await page.goto(`${origin}/literature-review?project_id=${olderProjectId}`);
+  await page.getByLabel('Select literature review project').waitFor();
+  assert.equal(await page.getByLabel('Select literature review project').inputValue(), olderProjectId);
+  assert.equal(await page.getByLabel('Research question').inputValue(), '');
+  await page.goto(`${origin}/literature-review?project_id=10000000-0000-4000-8000-000000000998`);
+  await page.getByText('Could not load the requested private project and saved papers. Check access and your connection, then retry.').waitFor();
+  assert.equal(await page.getByLabel('Select literature review project').count(), 0, 'a missing/foreign requested ID never substitutes another owned project');
+  console.log('PASS fixture: protocol deep links load an authorized exact project beyond the recent cap and fail closed for missing owner-scoped targets.');
   console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.');
 } finally {
   if (browser) await browser.close();

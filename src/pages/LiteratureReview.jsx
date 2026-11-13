@@ -48,17 +48,29 @@ export default function LiteratureReview() {
     Promise.all([
       base44.entities.Project.list('-updated_date', 100),
       base44.entities.SavedPaper.list('-created_date', 100),
-    ]).then(([projectRows, paperRows]) => {
+    ]).then(async ([projectRows, paperRows]) => {
       if (!active || loadEpochRef.current !== epoch) return;
-      setProjects(projectRows);
+      let authorizedProjects = projectRows;
+      if (preferredProjectId && !projectRows.some(project => project.id === preferredProjectId)) {
+        // The recent list is a navigation cap, never authority to substitute a
+        // different target for an explicit project URL.
+        const exact = await base44.entities.Project.get(preferredProjectId);
+        if (!exact || exact.id !== preferredProjectId) throw new Error('Requested project unavailable.');
+        authorizedProjects = [exact, ...projectRows];
+      }
+      if (!active || loadEpochRef.current !== epoch) return;
+      setProjects(authorizedProjects);
       setPapers(paperRows);
       setProjectId(current => {
-        if (current && projectRows.some(project => project.id === current)) return current;
-        if (preferredProjectId && projectRows.some(project => project.id === preferredProjectId)) return preferredProjectId;
-        return projectRows[0]?.id || '';
+        if (preferredProjectId && authorizedProjects.some(project => project.id === preferredProjectId)) return preferredProjectId;
+        if (current && authorizedProjects.some(project => project.id === current)) return current;
+        return authorizedProjects[0]?.id || '';
       });
     }).catch(() => {
-      if (active) setError('Could not load your private projects and saved papers. Check your connection and retry.');
+      if (active) {
+        setProjects([]); setPapers([]); setProjectId('');
+        setError('Could not load the requested private project and saved papers. Check access and your connection, then retry.');
+      }
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; loadEpochRef.current += 1; selectionEpochRef.current += 1; };
   }, [attempt, preferredProjectId]);
@@ -208,12 +220,12 @@ export default function LiteratureReview() {
       {hasUnsavedChanges && !loading && <p role="status" className="mb-3 text-xs font-medium text-amber-600 dark:text-amber-400">Unsaved protocol changes — save before leaving this page.</p>}
       {message && <p role="status" className="mb-4 rounded-xl border border-border bg-secondary/40 p-3 text-sm">{message}</p>}
 
-      {!loading && !projects.length ? (
+      {!loading && !error && !projects.length ? (
         <section className="rounded-xl border border-dashed border-border p-6">
           <p className="text-sm text-muted-foreground">Create a private research project to attach your review protocol.</p>
           <Link to="/projects" className="mt-3 inline-block text-sm font-semibold text-primary underline">Open projects</Link>
         </section>
-      ) : !loading && (
+      ) : !loading && projects.length > 0 && (
         <fieldset disabled={saving} aria-label="Literature review editor" aria-busy={saving} className="min-w-0 border-0 p-0">
           <label className="mb-5 block text-sm font-medium">
             Research project
