@@ -96,3 +96,18 @@ select pg_temp.eyra_assert((select count(*) = 1 from projects where data->>'titl
 
 reset role;
 select pg_temp.eyra_assert((select count(*) = 0 from eyra_messages where conversation_id = '60000000-0000-0000-0000-000000000001'), 'cascade persisted');
+
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
+select public.save_eyra_conversation_snapshot('Explicit snapshot','[{"role":"user","text":"Plan methods","sources":[]},{"role":"assistant","text":"Review [P1]","sources":[{"id":"P1","url":"https://doi.org/10.1234/test","title":"Supplied source"}]}]');
+select pg_temp.eyra_assert((select count(*) = 2 from eyra_messages m join eyra_conversations c on c.id=m.conversation_id where c.title='Explicit snapshot'), 'snapshot persisted atomically');
+do $$ begin
+  begin
+    perform public.save_eyra_conversation_snapshot('Invalid snapshot','[{"role":"tool","text":"bad"}]');
+    raise exception 'Invalid snapshot unexpectedly succeeded';
+  exception when invalid_parameter_value then null; end;
+end $$;
+select pg_temp.eyra_assert((select count(*) = 0 from eyra_conversations where title='Invalid snapshot'), 'failed snapshot rolls back parent');
+set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000002';
+select pg_temp.eyra_assert((select count(*)=0 from eyra_conversations where title='Explicit snapshot'), 'outsider cannot read snapshot');
+reset role;

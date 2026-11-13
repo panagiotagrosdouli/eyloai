@@ -19,6 +19,8 @@ import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
 import { useAuth } from '@/lib/AuthContext';
 import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conversation.mjs';
 
+import { listEyraConversations, saveEyraConversation, loadEyraConversation } from '@/lib/eyra-history';
+
 // EYRA modes change the analysis lens; evidence rules stay identical.
 const MODES = [
   { id: 'research', label: 'Research', icon: BookOpen, prompt: 'Research analyst: synthesize retrieved literature, methods, limitations, competing explanations, and defensible gaps.' },
@@ -395,7 +397,7 @@ export default function EyraCommandCenter({ open, onClose }) {
   useEffect(() => {
     if (!open || !user?.id) return undefined;
     let live = true;
-    base44.entities.Idea.filter({ source: 'eyra_conversation' }, '-updated_date', 20)
+    listEyraConversations()
       .then(rows => { if (live) setSavedConversations(rows); })
       .catch(() => { if (live) setActionError('Saved conversations could not be loaded. You can continue this conversation in this tab.'); });
     return () => { live = false; };
@@ -666,10 +668,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
       const conversationMessages = normalizeEyraConversation(messages);
       const firstQuestion = conversationMessages.find(message => message.role === 'user')?.content;
       if (!firstQuestion) throw new Error('Send a message before saving a conversation.');
-      const payload = { title: `EYRA · ${firstQuestion.slice(0, 100)}`, description: 'Private saved EYRA conversation; source records are historical retrieval metadata.', source: 'eyra_conversation', category: 'eyra_conversation', conversation_messages: conversationMessages };
-      const saved = remoteConversation
-        ? await base44.entities.Idea.updateIfUnchanged(remoteConversation.id, payload, remoteConversation.updated_date)
-        : await base44.entities.Idea.create(payload);
+      const saved = await saveEyraConversation(`EYRA · ${firstQuestion.slice(0, 100)}`, conversationMessages);
       if (ownerRef.current !== owner) return;
       setRemoteConversation(saved); setSavedConversations(items => [saved, ...items.filter(item => item.id !== saved.id)].slice(0, 20));
     } catch (error) { if (ownerRef.current === owner) setActionError(error?.message || 'Conversation was not saved.'); }
@@ -680,10 +679,9 @@ Answer the user's latest request. Cite every externally verifiable claim with th
     const owner = user?.id;
     if (!id || loading) return;
     try {
-      const saved = await base44.entities.Idea.get(id);
+      const saved = await loadEyraConversation(id);
       if (ownerRef.current !== owner) return;
-      if (saved.source !== 'eyra_conversation') throw new Error('This record is not a saved EYRA conversation.');
-      setMessages(normalizeEyraConversation(saved.conversation_messages)); setRemoteConversation(saved); setActionError('');
+      setMessages(saved.messages); setRemoteConversation(saved); setActionError('');
     } catch (error) { if (ownerRef.current === owner) setActionError(error?.message || 'Conversation could not be opened.'); }
   };
 
@@ -847,7 +845,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
           {/* Input */}
           <div className="relative z-10 shrink-0 border-t border-border bg-card px-4 py-3">
             <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-              <button type="button" onClick={() => void saveConversation()} disabled={loading || savingConversation} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation'}</button>
+              <button type="button" onClick={() => void saveConversation()} disabled={loading || savingConversation} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
               <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={loading} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
               <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => setAllowWorkspaceActions(event.target.checked)} />Allow project and Library actions for this request</label>
             </div>

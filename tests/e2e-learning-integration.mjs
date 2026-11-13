@@ -18,7 +18,7 @@ const tables = {
   life_tasks: [{ id: '40000000-0000-0000-0000-000000000001', user_id: user.id, data: { title: 'Review canonical task', status: 'todo' }, updated_date: now() }],
   time_entries: [], quizzes: [], quiz_questions: [], quiz_attempts: [], learning_courses: [], learning_lessons: [], learning_lesson_progress: [], learning_enrollments: [],
   notifications: [], watchlists: [], monitoring_discoveries: [], profiles: [],
-  ideas: [], study_flashcard_decks: [], saved_papers: [], saved_researchers: [], saved_opportunities: [], search_history: [],
+  eyra_conversations: [], eyra_messages: [], ideas: [], study_flashcard_decks: [], saved_papers: [], saved_researchers: [], saved_opportunities: [], search_history: [],
 };
 let aiCalls = 0;
 const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS' };
@@ -30,6 +30,12 @@ async function capture(page, name) {
 }
 
 function rpc(name, args) {
+  if (name === 'save_eyra_conversation_snapshot') {
+    const thread = { id: randomUUID(), user_id: user.id, title: args.p_title, version: 1, updated_date: now() };
+    tables.eyra_conversations.push(thread);
+    args.p_messages.forEach((m, index) => tables.eyra_messages.push({ id: randomUUID(), user_id: user.id, conversation_id: thread.id, sequence_number: index + 1, role: m.role, content: { text: m.text }, sources: m.sources, created_date: now() }));
+    return thread;
+  }
   if (name === 'create_quiz') {
     const quiz = { id: randomUUID(), user_id: user.id, title: args.p_title, subject: args.p_subject, source_note_id: args.p_source_note_id, revision: 1, created_at: now(), updated_at: now() };
     tables.quizzes.push(quiz);
@@ -182,21 +188,21 @@ try {
   await page.getByLabel('Message EYRA').fill('Explain how to plan my next task');
   await page.getByLabel('Message EYRA').press('Enter');
   await page.getByText(answer, { exact: true }).waitFor();
-  await page.getByRole('button', { name: 'Save conversation', exact: true }).click();
+  await page.getByRole('button', { name: 'Save conversation snapshot', exact: true }).click();
   await page.getByRole('option', { name: /EYRA · Explain how to plan/ }).waitFor({ state: 'attached' });
-  assert.equal(tables.ideas.length, 1);
-  assert.equal(tables.ideas[0].data.source, 'eyra_conversation');
-  assert.equal(tables.ideas[0].data.conversation_messages.at(-1).content, answer);
+  assert.equal(tables.ideas.length, 0, 'chat history never enters Idea Vault');
+  assert.equal(tables.eyra_conversations.length, 1);
+  assert.equal(tables.eyra_messages.at(-1).content.text, answer);
   page.once('dialog', dialog => dialog.accept());
   await page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
   await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
-  await page.getByLabel('Saved EYRA conversation').selectOption(tables.ideas[0].id);
+  await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
   await page.getByText(answer, { exact: true }).waitFor();
   assert.equal(aiCalls, 1, 'restoring a saved conversation does not call a model');
   await capture(page, 'eyra-conversation-mobile');
   await page.setViewportSize({ width: 1365, height: 900 });
   await capture(page, 'eyra-conversation-wide');
-  console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical Idea conversation save/restore.');
+  console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.');
 } finally {
   if (browser) await browser.close();
   server.kill('SIGTERM');

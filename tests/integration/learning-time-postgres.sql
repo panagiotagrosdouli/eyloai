@@ -3,7 +3,6 @@ create function pg_temp.check_learning(ok boolean, message text) returns void la
 begin if ok is distinct from true then raise exception 'Learning assertion failed: %', message; end if; end $$;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
-insert into ideas(user_id, data) values(auth.uid(), '{"title":"EYRA conversation", "source":"eyra_conversation", "conversation_messages":[{"role":"user","content":"Private planning"}]}');
 insert into time_entries (user_id, description, project_id, life_task_id, started_at)
 values (auth.uid(), 'Canonical task timer', '10000000-0000-0000-0000-000000000001', (select id from life_tasks limit 1), now() - interval '1 hour');
 do $$ begin

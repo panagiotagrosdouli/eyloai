@@ -31,6 +31,7 @@ MIGRATIONS = [
     '20261113062923_canonical_learning_time.sql',
     '20261113113010_shared_discovery_quota.sql',
     '20261113090000_eyra_conversations.sql',
+    '20261113114924_eyra_conversation_snapshots.sql',
 ]
 BOOTSTRAP = '''
 create role anon nologin;
