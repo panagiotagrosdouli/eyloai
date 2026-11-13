@@ -26,6 +26,7 @@ MIGRATIONS = [
     '20261112183722_universal_workspace_search.sql',
     '20261112190430_eylo_files.sql',
     '20261112200000_private_file_search.sql',
+    '20261113090000_eyra_conversations.sql',
 ]
 BOOTSTRAP = '''
 create role anon nologin;
@@ -72,6 +73,8 @@ try:
         sql((ROOT / 'supabase/migrations' / name).read_text())
         print('APPLIED locally:', name, flush=True)
     sql((ROOT / 'tests/integration/workspace-postgres.sql').read_text())
+    sql((ROOT / 'tests/integration/eyra-conversations-postgres.sql').read_text())
+    print('PASS: disposable PostgreSQL EYRA owner RLS, message constraints, pagination, versioning and cascade deletion.', flush=True)
     version = subprocess.check_output([*DOCKER, 'exec', NAME, 'psql', '-U', 'postgres', '-Atc',
         "select updated_date from projects where id = '10000000-0000-0000-0000-000000000001'"], env=ENV, text=True).strip()
 
