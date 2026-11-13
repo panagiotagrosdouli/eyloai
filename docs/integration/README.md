@@ -6,7 +6,7 @@ Baseline main: `7bf956a72d42f251c77cde7276dcb050cebd1a35`.
 
 ## Inventory and decisions
 
-- [77-product candidate matrix](product-matrix.json): 49 partially implemented, 27 not implemented, 1 infrastructure only. **Zero products are certified complete.** Status is for this integration candidate; [the baseline matrix](baseline-product-matrix.json) preserves main's earlier evidence.
+- [77-product candidate matrix](product-matrix.json): 52 partially implemented, 24 not implemented, 1 infrastructure only. **Zero products are certified complete.** Status is for this integration candidate; [the baseline matrix](baseline-product-matrix.json) preserves main's earlier evidence.
 - [65 open PR heads and merge-base comparisons](open-pr-comparison.json), including patch-equivalent commit counts and migration paths. This snapshot predates this integration PR and is not a full behavior/security review of every historical PR.
 - [Migration/table overlap](pr-migration-overlap.json) against the exact baseline; [Tracked source/API/migration/test/CI inventory](repository-inventory.json).
 - [Canonical models, integration choices and remaining batches](INTEGRATION_DECISIONS.md).
@@ -19,7 +19,7 @@ Machine-readable results and their scopes are in [verification.json](verificatio
 
 | Check | Result | Scope |
 | --- | --- | --- |
-| `npm run check` | PASS, 635 tests, 0 failed | Imports, frontend/API typecheck, ESLint, unit/API tests and Vite build |
+| `npm run check` | PASS, 640 tests, 0 failed | Imports, frontend/API typecheck, ESLint, unit/API tests and Vite build |
 | Browser regression | PASS | Actual pages and SDK calls against isolated Auth/PostgREST/Storage fixtures; auth, local analysis, catalog, Notes/Search, Files/documents, workplans, stale-write recovery and mobile viewport |
 | PostgreSQL migration/policy test | PASS | Eighteen selected migrations on disposable PostgreSQL 17.6; real SQL/RLS/triggers with synthetic Auth identity and Storage metadata schemas; two independent project-save sessions produce one success and one conflict |
 | Strict public deployment probe | FAIL | deployment-status returns HTML with HTTP200; source SHA unverified; AI/contact/billing report false. Earlier 8/8 availability smoke is historical only. |
@@ -92,3 +92,7 @@ Browser follow-up6367187 separately verifies a synthetic foreign-owner row and a
 ## Market acceptance continuation — draft PR #404
 
 [Batch6](batch-6-market-readiness.json) records the same-route account isolation regression and fix, canonical workspace export v2, guarded staging isolation probe and 14-gate acceptance evidence validator. Both fixture browser suites pass; all30 canonical export tables have owner-readable contracts with RLS enabled in disposable PostgreSQL. Empty scopes do not establish isolation. `npm run release:readiness` intentionally returns NO-GO/exit1 until real, reviewed acceptance exists. See [owner steps](../release/MARKET_READINESS_RUNBOOK.md). No hosted/provider/legal/operational acceptance is inferred from these local checks.
+
+## Batch7 — project research workflows
+
+[Evidence and exact commands](batch-7-project-research-workspaces.json), [contract and limits](RESEARCH_RECORDS_CONTRACT.md). Products60/66/69 now have implemented local workflows with canonical project storage, owner/version saves, retained drafts, validated statuses, private export and confirmed deletion. Both fixture browser suites and18-migration disposable PostgreSQL suite pass. No schema added. Totals:52 partial,24 not implemented,1 infrastructure only; zero certified complete. Hosted and production acceptance remain unverified.

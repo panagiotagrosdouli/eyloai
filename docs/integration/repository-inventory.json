@@ -1,5 +1,5 @@
 {
-  "source_commit": "cc3547e620da2bc0ef702287d999cd33153b4a6e",
+  "source_commit": "4a044bceae97a87ac483d5b2985798ad941b8f1c",
   "files": [
     {
       "path": ".github/workflows/build.yml",
@@ -124,7 +124,7 @@
     {
       "path": "src/App.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "24fd79165aab6ffc753f7cd45334b0f1ee2064ba"
+      "blob_sha": "cc5dbb599ec594ff3933710bd766446681aaa8af"
     },
     {
       "path": "src/api/base44Client.js",
@@ -927,6 +927,11 @@
       "blob_sha": "51747534daf1d871c3d19fc4292c3025b40caad2"
     },
     {
+      "path": "src/lib/research-records.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "76650aa57ac0de6c6de6e5b7b85fc36d5cacb1b6"
+    },
+    {
       "path": "src/lib/researcher-query-plan.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "deff698cce4c76cec32a38c866bffe39cf4e226f"
@@ -1224,7 +1229,12 @@
     {
       "path": "src/pages/ProjectDetail.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "0948ef4d426a31b24f737a9bf924336432bc9511"
+      "blob_sha": "8ba7c6ebe16289804bc2633ad224f9352b139d6c"
+    },
+    {
+      "path": "src/pages/ProjectResearchRecords.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ae2614ceed01878b798c2e4cc77153f064775de9"
     },
     {
       "path": "src/pages/Projects.jsx",
@@ -1674,7 +1684,7 @@
     {
       "path": "tests/e2e-learning-integration.mjs",
       "kind": "automated_test",
-      "blob_sha": "f274bd97dc2a1238c22f856854d087e3f5fe10c3"
+      "blob_sha": "fd8c0f5b3299602aef0837bc6605525101eb56c7"
     },
     {
       "path": "tests/e2e-native-meetings.mjs",
@@ -1930,6 +1940,11 @@
       "path": "tests/integration/learning-time-postgres.sql",
       "kind": "automated_test",
       "blob_sha": "23f9eb19a1e3e6ece6277000d3a4867a0b347a93"
+    },
+    {
+      "path": "tests/integration/research-records-postgres.sql",
+      "kind": "automated_test",
+      "blob_sha": "410c19b46c865a36c650cbf0ad6422926f196065"
     },
     {
       "path": "tests/integration/workspace-postgres.sql",
@@ -2205,6 +2220,11 @@
       "path": "tests/research-provenance.test.mjs",
       "kind": "automated_test",
       "blob_sha": "029771089deae3258e3e0b17d7c70c917135bee3"
+    },
+    {
+      "path": "tests/research-records.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "0a45f2b4e5c0f287b10f0087972efbe6e8aebd29"
     },
     {
       "path": "tests/research-workflow-reliability.test.mjs",
