@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { BookOpen, Download, RefreshCw, Save } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
@@ -24,8 +24,11 @@ const FIELD_LABELS = [
 ];
 
 export default function LiteratureReview() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const preferredProjectId = searchParams.get('project_id') || '';
+  const selectionEpochRef = useRef(0);
+  const loadEpochRef = useRef(0);
+  const activeProjectRef = useRef('');
   const [projects, setProjects] = useState([]);
   const [papers, setPapers] = useState([]);
   const [projectId, setProjectId] = useState('');
@@ -37,6 +40,8 @@ export default function LiteratureReview() {
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    const epoch = ++loadEpochRef.current;
+    selectionEpochRef.current += 1;
     let active = true;
     setLoading(true);
     setError('');
@@ -44,7 +49,7 @@ export default function LiteratureReview() {
       base44.entities.Project.list('-updated_date', 100),
       base44.entities.SavedPaper.list('-created_date', 100),
     ]).then(([projectRows, paperRows]) => {
-      if (!active) return;
+      if (!active || loadEpochRef.current !== epoch) return;
       setProjects(projectRows);
       setPapers(paperRows);
       setProjectId(current => {
@@ -55,10 +60,12 @@ export default function LiteratureReview() {
     }).catch(() => {
       if (active) setError('Could not load your private projects and saved papers. Check your connection and retry.');
     }).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+    return () => { active = false; loadEpochRef.current += 1; selectionEpochRef.current += 1; };
   }, [attempt, preferredProjectId]);
 
+  activeProjectRef.current = projectId;
   const selectedProject = projects.find(project => project.id === projectId);
+  useEffect(() => { selectionEpochRef.current += 1; setSaving(false); setMessage(''); }, [projectId]);
   const savedProtocol = selectedProject?.review_protocol || emptyReviewProtocol();
   const hasUnsavedChanges = Boolean(selectedProject && hasUnsavedReviewChanges(protocol, savedProtocol));
 
@@ -130,16 +137,18 @@ export default function LiteratureReview() {
     if (!checked) return;
     setSaving(true);
     setMessage('');
+    const target = selectedProject;
+    const epoch = selectionEpochRef.current;
     try {
       const next = { ...checked, updated_at: new Date().toISOString() };
-      await base44.entities.Project.update(selectedProject.id, { review_protocol: next });
-      setProjects(current => current.map(project => project.id === selectedProject.id
-        ? { ...project, review_protocol: next } : project));
+      const saved = await base44.entities.Project.updateIfUnchanged(target.id, { review_protocol: next }, target.updated_date);
+      if (activeProjectRef.current !== target.id || selectionEpochRef.current !== epoch) return;
+      setProjects(current => current.map(project => project.id === target.id ? saved : project));
       setMessage('Protocol saved privately in this research project.');
-    } catch {
-      setError('The protocol could not be saved. Your changes remain in this editor; retry after the connection recovers.');
+    } catch (failure) {
+      if (activeProjectRef.current === target.id && selectionEpochRef.current === epoch) setError(failure?.message || 'The protocol could not be saved. Your changes remain in this editor. Reload before retrying.');
     } finally {
-      setSaving(false);
+      if (activeProjectRef.current === target.id && selectionEpochRef.current === epoch) setSaving(false);
     }
   };
 
@@ -205,11 +214,16 @@ export default function LiteratureReview() {
           <Link to="/projects" className="mt-3 inline-block text-sm font-semibold text-primary underline">Open projects</Link>
         </section>
       ) : !loading && (
-        <>
+        <fieldset disabled={saving} aria-label="Literature review editor" aria-busy={saving} className="min-w-0 border-0 p-0">
           <label className="mb-5 block text-sm font-medium">
             Research project
             <select disabled={saving} aria-label="Select literature review project" value={projectId}
-              onChange={event => { if (!confirmDiscard()) return; setProjectId(event.target.value); setError(''); setMessage(''); }}
+              onChange={event => {
+                if (!confirmDiscard()) return;
+                const nextProjectId = event.target.value;
+                setProjectId(nextProjectId); setError(''); setMessage('');
+                setSearchParams(current => { const next = new URLSearchParams(current); next.set('project_id', nextProjectId); return next; }, { replace: true });
+              }}
               className="mt-2 block min-h-11 w-full max-w-xl rounded-lg border border-border bg-card px-3">
               {projects.map(project => <option key={project.id} value={project.id}>{project.title}</option>)}
             </select>
@@ -290,7 +304,7 @@ export default function LiteratureReview() {
                     ) : (
                       <div className="mt-3 grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-start">
                         <label className="text-xs font-medium">Decision
-                          <select value={record.decision} onChange={event => updateScreening(String(paper.id), { decision: event.target.value })}
+                          <select aria-label={`Screening decision for ${paper.title}`} value={record.decision} onChange={event => updateScreening(String(paper.id), { decision: event.target.value })}
                             className="mt-1 block min-h-10 rounded-lg border border-border bg-background px-2">
                             <option value="undecided">Undecided</option>
                             <option value="include">Include</option>
@@ -329,7 +343,7 @@ export default function LiteratureReview() {
               <RefreshCw size={15} aria-hidden="true" />Reload saved records
             </button>
           </div>
-        </>
+        </fieldset>
       )}
     </main>
   );

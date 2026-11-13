@@ -245,7 +245,7 @@ export async function runEyraDiscovery(input, onProgress, options = {}) {
 async function generateEvidenceBasedAnalysis(profile, papers, researchers, institutions, signal) {
   const query = profile.topic;
   const paperContext = papers.slice(0, 12).map((p, i) =>
-    `[P${i+1}] "${p.title}" by ${p.authors || 'Unknown'} (${p.year || 'n/a'}) — ${p.cited_by_count || 0} citations — Index: ${p.source_index || p.source} — Category: ${p.discovery_category} — Record: ${p.url || 'No source URL'}\nAbstract: ${p.summary?.slice(0, 240) || 'No abstract'}`
+    `[P${i+1}] "${p.title}" by ${p.authors || 'Unknown'} (${p.year || 'n/a'}) — ${p.cited_by_count || 0} citations — Index: ${p.source_index || p.source} — Co-indexed by: ${(p.indexed_by || []).join(', ') || 'not supplied'} (one publication, not independent studies) — Abstract source: ${p.summary_source || 'not supplied'} — Metadata conflict: ${p.metadata_conflict ? 'YES; verify the original before relying on it' : 'not detected; not independent verification'} — Category: ${p.discovery_category} — Record: ${p.url || 'No source URL'}\nAbstract: ${p.summary?.slice(0, 240) || 'No abstract'}`
   ).join('\n\n');
 
   const researcherContext = researchers.slice(0, 6).map((r, i) =>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { saveScholarlyPaper } from '@/lib/research-gap-literature-save.mjs';
 import { motion } from 'framer-motion';
 import {
   FileText, Users, Building2, TrendingUp, DollarSign,
@@ -57,6 +58,16 @@ export default function DiscoveryResults({ results, onNewSearch }) {
   const navigate = useNavigate();
 
   const saveOrAttach = async (entityName, matchKey, matchValue, payload, project = null) => {
+    if (entityName === 'SavedPaper') {
+      try {
+        const record = await saveScholarlyPaper({ entities: base44.entities, paper: { ...payload, id: payload.source_id }, project });
+        return { record, linked: Boolean(project && record.project_id === project.id), conflict: false };
+      } catch (error) {
+        if (error?.code === 'PAPER_PROJECT_CONFLICT') return { record: error.record, linked: false, conflict: true };
+        throw error;
+      }
+    }
+
     const withProject = project
       ? { ...payload, project_id: project.id, project_title: project.title || '' }
       : payload;
@@ -91,6 +102,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         year: paper.year,
         source: paper.source,
         source_index: paper.source_index || paper.source,
+        indexed_by: paper.indexed_by || [], source_records: paper.source_records || [], summary_source: paper.summary_source || '', metadata_conflict: Boolean(paper.metadata_conflict),
         cited_by_count: paper.cited_by_count,
         authorships: paper.authorships || [],
         openalex_topics: paper.openalex_topics || [],
@@ -193,6 +205,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
             year: paper.year,
             source: paper.source,
             source_index: paper.source_index || paper.source,
+            indexed_by: paper.indexed_by || [], source_records: paper.source_records || [], summary_source: paper.summary_source || '', metadata_conflict: Boolean(paper.metadata_conflict),
             cited_by_count: paper.cited_by_count,
             open_access: paper.open_access,
             url: paper.url,
@@ -919,6 +932,9 @@ function PaperCard({ paper, onSave, projectId, rank }) {
           </div>
           <h4 className="font-semibold text-sm leading-snug mb-1.5 text-foreground">{paper.title}</h4>
           {paper.authors && <p className="text-xs text-muted-foreground mb-2">{paper.authors}</p>}
+          {paper.indexed_by?.length > 1 && <p className="mb-1 text-[10px] text-muted-foreground">Indexed by {paper.indexed_by.join(', ')} · one publication, not independent studies.</p>}
+          {paper.summary_source && paper.summary_source !== paper.source_index && <p className="mb-1 text-[10px] text-muted-foreground">Abstract metadata from {paper.summary_source}.</p>}
+          {paper.metadata_conflict && <p className="mb-1 text-[10px] text-amber-700 dark:text-amber-300">Provider titles conflict for this DOI. Check the original record before relying on it.</p>}
           {paper.summary && <p className="text-xs text-muted-foreground/80 leading-relaxed line-clamp-2">{paper.summary}</p>}
           <PaperSummary paper={paper} projectId={projectId} />
           <button type="button" onClick={() => navigate(`/search?q=${encodeURIComponent(paper.title || '')}`)} className="mt-2 text-[11px] font-medium text-muted-foreground hover:text-primary">Find similar papers</button>
