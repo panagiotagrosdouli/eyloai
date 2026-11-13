@@ -5,6 +5,8 @@ import { FREE_MONTHLY_AI_ACTIONS } from '../src/lib/eyra-usage-policy.mjs';
 import { matchesEyraResponseSchema } from '../src/lib/eyra-structured-contract.mjs';
 
 const MAX_PROMPT_LENGTH = 24_000;
+// Bound provider spending and prevent unexpectedly large responses on every model turn.
+const MAX_OUTPUT_TOKENS = 4_096;
 const MAX_SCHEMA_LENGTH = 32_000;
 const MAX_SCHEMA_DEPTH = 8;
 const PLAN_LIMITS = { free: FREE_MONTHLY_AI_ACTIONS, pro: null, founder: null, institution: null };
@@ -450,7 +452,7 @@ export default async function handler(request, response) {
     }
 
     const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) return response.status(503).json({ error: 'EYRA AI is not configured.' });
+    if (!apiKey) return response.status(503).json({ error: 'EYRA AI is not configured.', code: 'OPENAI_NOT_CONFIGURED' });
 
     // Reject malformed input rather than silently coercing objects and arrays
     // into unusable prompts (which could otherwise consume an EYRA action).
@@ -518,6 +520,7 @@ export default async function handler(request, response) {
       instructions: EYRA_INSTRUCTIONS,
       input: prompt,
       store: false,
+      max_output_tokens: MAX_OUTPUT_TOKENS,
       ...(request.body?.enable_project_tools === true ? { tools: PROJECT_TOOLS, tool_choice: 'auto' } : {}),
     };
 
@@ -553,7 +556,19 @@ export default async function handler(request, response) {
       console.error('OpenAI request failed', { status: openAiResponse.status, requestId });
       await releaseUsage(reservation);
       reservation = null;
-      return response.status(502).json({ error: 'EYRA could not complete this request.' });
+      if (openAiResponse.status === 429) {
+        return response.status(503).json({
+          error: 'EYRA provider is rate limited. Please try again later.',
+          code: 'OPENAI_RATE_LIMITED',
+        });
+      }
+      if (openAiResponse.status === 401 || openAiResponse.status === 403) {
+        return response.status(503).json({
+          error: 'EYRA provider configuration requires attention.',
+          code: 'OPENAI_AUTH_FAILED',
+        });
+      }
+      return response.status(502).json({ error: 'EYRA could not complete this request.', code: 'OPENAI_UPSTREAM_ERROR' });
     }
 
     let result = await openAiResponse.json();
@@ -612,6 +627,7 @@ export default async function handler(request, response) {
           tools: PROJECT_TOOLS,
           tool_choice: 'auto',
           store: false,
+          max_output_tokens: MAX_OUTPUT_TOKENS,
         }),
         signal: AbortSignal.timeout(60_000),
       });
