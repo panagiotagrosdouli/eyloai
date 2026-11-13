@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   collectWorkspaceExport, WORKSPACE_EXPORT_TABLES, assertWorkspaceExportOwner,
-  MAX_WORKSPACE_EXPORT_BYTES, WorkspaceExportSizeError,
+  MAX_WORKSPACE_EXPORT_BYTES, WorkspaceExportSizeError, fetchWorkspaceExportPage,
 } from '../src/lib/workspace-export.mjs';
 
 const owner = '00000000-0000-4000-8000-000000000001';
@@ -130,7 +130,7 @@ test('workspace download rejects invalid byte and total row ceilings', async () 
   assert.equal(MAX_WORKSPACE_EXPORT_BYTES, 50 * 1024 * 1024);
 });
 
-test('portable workspace version2 preserves canonical notes, file versions, learning and EYRA data with explicit byte exclusions', async () => {
+test('portable workspace version3 preserves canonical notes, file versions, learning and EYRA data with explicit byte exclusions', async () => {
   const data = {
     notes: [{ ...row('notes', 1), data: { title: 'Private note', content: 'Owner material' }, version: 2 }],
     note_versions: [{ ...row('note_versions', 1), snapshot: { content: 'Earlier owner material' } }],
@@ -141,7 +141,7 @@ test('portable workspace version2 preserves canonical notes, file versions, lear
   };
   const fetcher = makeFetcher(data);
   const result = await collectWorkspaceExport({ userId: owner, fetchPage: fetcher.fetchPage });
-  assert.equal(result.version, 2);
+  assert.equal(result.version, 3);
   for (const [table, rows] of Object.entries(data)) assert.deepEqual(result.collections[table], rows);
   assert.ok(result.limitations.some(value => value.includes('uploaded file bytes are not')));
   assert.ok(fetcher.calls.every(call => WORKSPACE_EXPORT_TABLES.includes(call.table)));
@@ -149,4 +149,42 @@ test('portable workspace version2 preserves canonical notes, file versions, lear
 test('a foreign canonical EYRA message aborts export before any file can be emitted', async () => {
   const fetcher = makeFetcher({ eyra_messages: [{ ...row('eyra_messages', 1, 'other-owner'), content: { text: 'Private other account' } }] });
   await assert.rejects(collectWorkspaceExport({ userId: owner, fetchPage: fetcher.fetchPage }), /ownership/);
+});
+
+
+test('exports all ten authored collaboration collections, directory primary key and multiple pages', async () => {
+  const tables = WORKSPACE_EXPORT_TABLES.filter(table => table.startsWith('eylo_') && !['eylo_files', 'eylo_file_versions'].includes(table));
+  assert.equal(tables.length, 10);
+  const data = Object.fromEntries(tables.map(table => [table, [1, 2, 3].map(i => row(table, i))]));
+  data.eylo_directory = [{ user_id: owner, display_name: 'My profile', visible: false }];
+  data.eylo_api_tokens[0].token_hash = 'never-export-digest';
+  data.eylo_api_tokens[0].raw_token = 'never-export-credential';
+  const result = await collectWorkspaceExport({userId: owner, pageSize: 2, fetchPage: makeFetcher(data).fetchPage});
+  for (const table of tables) assert.equal(result.collections[table].length, data[table].length);
+  assert.equal(result.collections.eylo_directory[0].id, undefined);
+  assert.equal(JSON.stringify(result).includes('never-export'), false);
+  assert.ok(result.limitations.some(value => value.includes('incoming invitations')));
+});
+
+test('RLS-visible foreign collaborative rows and missing directory identity abort the entire export', async () => {
+  for (const table of ['eylo_teams','eylo_team_invites','eylo_connections','eylo_community_posts','eylo_peer_submissions','eylo_peer_reviews','eylo_feedback','eylo_api_tokens','eylo_team_members','eylo_directory']) {
+    const data = {[table]: [{id: 'foreign', user_id: 'another-owner'}]};
+    await assert.rejects(collectWorkspaceExport({userId: owner, fetchPage: makeFetcher(data).fetchPage}), /ownership/);
+  }
+  await assert.rejects(collectWorkspaceExport({userId: owner,fetchPage: makeFetcher({eylo_directory:[{id:'fake-id'}]}).fetchPage}), /ownership/);
+});
+
+test('SDK export queries pin the owner, correct primary key and credential-safe projection', async () => {
+  const calls = [];
+  const query = {};
+  for (const method of ['from','select','eq','order','range']) query[method] = (...args) => {calls.push([method,...args]); return query;};
+  for (const table of WORKSPACE_EXPORT_TABLES) {
+    calls.length = 0;
+    fetchWorkspaceExportPage(query, table, {userId:owner,offset:200,limit:200});
+    assert.deepEqual(calls[2], ['eq','user_id',owner]);
+    assert.deepEqual(calls[3], ['order',table === 'eylo_directory' ? 'user_id':'id',{ascending:true}]);
+    assert.deepEqual(calls[4], ['range',200,399]);
+    if(table === 'eylo_api_tokens') assert.equal(calls[1][1].includes('token_hash'),false);
+  }
+  assert.throws(()=>fetchWorkspaceExportPage(query,'auth.users',{userId:owner,offset:0,limit:1}),/Unknown/);
 });

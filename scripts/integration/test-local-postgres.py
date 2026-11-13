@@ -99,6 +99,9 @@ try:
         "import { WORKSPACE_EXPORT_TABLES } from './src/lib/workspace-export.mjs'; process.stdout.write(JSON.stringify(WORKSPACE_EXPORT_TABLES));"], cwd=ROOT, text=True))
     if any(not isinstance(table, str) or not table.isidentifier() for table in export_tables):
         raise AssertionError('Export registry contains an invalid table identifier')
+    private_tables = json.loads(subprocess.check_output(['node', '--input-type=module', '-e',
+        "import { PRIVATE_WORKSPACE_EXPORT_TABLES } from './src/lib/workspace-export.mjs'; process.stdout.write(JSON.stringify(PRIVATE_WORKSPACE_EXPORT_TABLES));"], cwd=ROOT, text=True))
+    private_list = ','.join("'" + table + "'" for table in private_tables)
     export_list = ','.join("'" + table + "'" for table in export_tables)
     sql("""
     set role authenticated;
@@ -107,14 +110,16 @@ try:
       foreach target in array array[""" + export_list + """] loop
         select relrowsecurity into secured from pg_class where oid=('public.'||target)::regclass;
         if secured is distinct from true then raise exception 'Export table lacks RLS: %', target; end if;
-        execute format('select * from public.%I where user_id=auth.uid() order by id limit 1',target);
-        execute format('select count(*) from public.%I where user_id is distinct from auth.uid()',target) into exposed;
-        if exposed != 0 then raise exception 'Foreign rows exposed in export collection: %',target; end if;
+        execute format('select * from public.%I where user_id=auth.uid() order by %I limit 1',target,case when target='eylo_directory' then 'user_id' else 'id' end);
+        if target = any(array[""" + private_list + """]) then
+          execute format('select count(*) from public.%I where user_id is distinct from auth.uid()',target) into exposed;
+          if exposed != 0 then raise exception 'Foreign rows exposed in private export collection: %',target; end if;
+        end if;
       end loop;
     end $$;
     reset role;
     """)
-    print(f'PASS: all {len(export_tables)} canonical export collections exist, have RLS enabled and permit authenticated owner reads; empty scopes do not establish isolation.', flush=True)
+    print(f'PASS: all {len(export_tables)} export collections exist with RLS and authenticated owner-scoped reads; private-table foreign denial and collaboration-specific permissions tested separately; empty scopes do not establish isolation.', flush=True)
     print('PASS: disposable PostgreSQL EYRA owner RLS, message constraints, pagination, versioning and cascade deletion.', flush=True)
     version = subprocess.check_output([*DOCKER, 'exec', NAME, 'psql', '-U', 'postgres', '-Atc',
         "select updated_date from projects where id = '10000000-0000-0000-0000-000000000001'"], env=ENV, text=True).strip()

@@ -1,7 +1,7 @@
 // Read-only owner-isolation smoke check. Run only with two explicitly authorized disposable accounts.
 // Credentials must be provided through protected environment variables, never committed.
 import { verifyStagingConfig } from './verify-staging-config.mjs';
-import { WORKSPACE_EXPORT_TABLES } from '../src/lib/workspace-export.mjs';
+import { PRIVATE_WORKSPACE_EXPORT_TABLES } from '../src/lib/workspace-export.mjs';
 const suppliedUrl = process.env.EYLO_RLS_SUPABASE_URL;
 const apiKey = process.env.EYLO_RLS_PUBLISHABLE_KEY;
 const accounts = [
@@ -44,7 +44,9 @@ async function rows(identity, table, userId) {
 
 const [a, b] = await Promise.all(accounts.map(signIn));
 if (a.userId === b.userId) throw new Error('Two distinct disposable accounts are required.');
-const tables = ['profiles', ...WORKSPACE_EXPORT_TABLES];
+// Collaboration permits deliberate sharing; its consent/role-specific tests
+// must run separately. Universal cross-owner denial applies to private tables.
+const tables = ['profiles', ...PRIVATE_WORKSPACE_EXPORT_TABLES];
 let checked = 0;
 let inconclusive = 0;
 for (const table of tables) {

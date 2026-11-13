@@ -369,3 +369,21 @@ export function previewWorkbenchRecord(tool, row, projectNames = {}) {
     );
   return "";
 }
+
+/** Exports only the persisted form record supplied by the caller. */
+export function formResponsesCsv(record) {
+  validateWorkbenchRecord('forms', record);
+  const fields = parseFormDefinition(record.definition);
+  const cell = value => {
+    const text = String(value ?? '');
+    const safe = /^[\s]*[=+@-]/u.test(text) || /^[\t\r\n]/u.test(text) ? "'" + text : text;
+    return '"' + safe.replaceAll('"', '""') + '"';
+  };
+  return [
+    ['Response ID', ...fields.map(field => field.label)],
+    ...record.responses.map(response => {
+      const answers = validateFormAnswers(record.definition, response.answers);
+      return [response.id, ...fields.map(field => answers[field.id])];
+    }),
+  ].map(row => row.map(cell).join(',')).join('\r\n') + '\r\n';
+}

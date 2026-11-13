@@ -1,3 +1,4 @@
+import { assertTranslationReferences } from "@/lib/translation-references.mjs";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -424,6 +425,7 @@ function Translate() {
       });
       if (state.alive.current) {
         setOutput(String(result));
+        assertTranslationReferences(request.text, String(result));
         setSource(request);
         noteIdentity.current = crypto.randomUUID();
       }
@@ -433,7 +435,9 @@ function Translate() {
       <p className="text-sm">
         EYRA translation uses your authenticated AI budget. Review the output
         before saving or sharing. A failed or cancelled stream cannot be saved
-        as completed.
+        as completed. Numeric citations, DOI identifiers and URLs must remain
+        unchanged before saving. This check does not verify translation quality
+        or author/year references; review these yourself.
       </p>
       <Status state={state} />
       <label className="block text-sm">
@@ -512,6 +516,7 @@ function Translate() {
           )
             return;
           void state.act(async () => {
+            assertTranslationReferences(source.text, output);
             const { data, error } = await requireSupabase().rpc(
               "save_authored_tool_note",
               {

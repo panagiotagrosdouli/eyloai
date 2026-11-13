@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { eventsForMonth, nextEventStart, normalizeCalendarEvent } from '../src/lib/calendar-domain.mjs';
+import { eventsForMonth, nextEventStart, normalizeCalendarEvent, eventOccursOnDay, calendarEventLabel } from '../src/lib/calendar-domain.mjs';
 import { readFile } from 'node:fs/promises';
 
 const event = (patch = {}) => ({ title: 'Exam review', start_at: '2026-11-12T10:00:00Z', end_at: '2026-11-12T11:00:00Z', recurrence: 'none', ...patch });
@@ -52,4 +52,32 @@ test('calendar route is protected within the authenticated layout and repository
   assert.match(ui, /updateIfUnchanged/);
   assert.match(ui, /no external calendar sync is not connected|external calendar sync is not connected/i);
   assert.match(ui, /Add next occurrence/);
+});
+
+
+test('all-day events preserve midnight boundaries and use an exclusive end date', () => {
+  const value=normalizeCalendarEvent(event({all_day:true,start_at:'2026-11-01T00:00:00Z',end_at:'2026-11-03T00:00:00Z'}));
+  assert.equal(value.all_day,true);
+  assert.equal(eventOccursOnDay(value,2026,10,1),true);
+  assert.equal(eventOccursOnDay(value,2026,10,2),true);
+  assert.equal(eventOccursOnDay(value,2026,10,3),false);
+  assert.match(calendarEventLabel(value,'en-US'),/Nov 1, 2026 – Nov 2, 2026 · All day/);
+  assert.throws(()=>normalizeCalendarEvent(event({all_day:true})),/midnight boundaries/);
+});
+
+test('month/day selection separates viewer-local timed events from floating all-day dates', async () => {
+  const {spawnSync}=await import('node:child_process');
+  const moduleUrl = new URL('../src/lib/calendar-domain.mjs',import.meta.url).href;
+  for(const zone of ['America/Los_Angeles','Pacific/Kiritimati','Europe/Athens']) {
+    const code = `import assert from 'node:assert/strict';import {eventsForMonth,eventOccursOnDay,calendarEventLabel} from ${JSON.stringify(moduleUrl)};
+      const allDay={all_day:true,start_at:'2026-11-01T00:00:00Z',end_at:'2026-11-02T00:00:00Z'};
+      assert.equal(eventsForMonth([allDay],2026,9).length,0);
+      assert.equal(eventsForMonth([allDay],2026,10).length,1);
+      assert.equal(eventOccursOnDay(allDay,2026,10,1),true);
+      assert.equal(calendarEventLabel(allDay,'en-US'),'Nov 1, 2026 · All day');
+      const timed={start_at:'2026-11-01T00:00:00Z',end_at:'2026-11-01T01:00:00Z'};
+      assert.equal(eventOccursOnDay(timed,2026,9,31),${JSON.stringify(zone==='America/Los_Angeles')});`;
+    const child=spawnSync(process.execPath,['--input-type=module','-e',code],{env:{...process.env,TZ:zone},encoding:'utf8'});
+    assert.equal(child.status,0,child.stderr);
+  }
 });
