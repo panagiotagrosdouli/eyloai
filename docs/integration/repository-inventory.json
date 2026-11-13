@@ -1,5 +1,5 @@
 {
-  "source_commit": "f7a2a1824b40204f7b0715b7dfc8a3ed4ae61130",
+  "source_commit": "63671871726786cebfb33f867dbc3fcc0609c2cc",
   "files": [
     {
       "path": ".github/workflows/build.yml",
@@ -1159,7 +1159,7 @@
     {
       "path": "src/pages/LiteratureReview.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "4f2c80abed4f2cf93e670b194797b1873a8b146d"
+      "blob_sha": "b6de1f71bf144f86ebeb2ba2226cc45ec44a1c67"
     },
     {
       "path": "src/pages/Login.jsx",
@@ -1659,7 +1659,7 @@
     {
       "path": "tests/e2e-learning-integration.mjs",
       "kind": "automated_test",
-      "blob_sha": "457409366efcd28da695fbf26f51733b71e1c0c2"
+      "blob_sha": "d0e04eac9654feae04e102da19ace20f73525137"
     },
     {
       "path": "tests/e2e-native-meetings.mjs",

@@ -1,6 +1,6 @@
 {
   "date": "2026-11-13",
-  "tested_source_commit": "c842cc543a8500e489ae4593dbee62b76d42223d",
+  "tested_source_commit": "63671871726786cebfb33f867dbc3fcc0609c2cc",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
@@ -16,7 +16,7 @@
         "Vite production build"
       ],
       "evidence": "evidence/2026-11-13/research-check-exact-project.txt",
-      "source_scope": "Current application/test sources at c842cc543a8500e489ae4593dbee62b76d42223d"
+      "source_scope": "Application and unit-test sources unchanged from c842cc5; test-only followup6367187 adds explicit foreign/missing browser fixture cases"
     },
     "browser": {
       "status": "PASS",
@@ -45,9 +45,12 @@
         "reproducibility checklist save/reload and conflict preserves local draft",
         "Literature Review protocol/screening persistence, project selection reload, conflicts and private export",
         "One scholarly publication retains co-indexing and abstract-donor attribution; canonical Library save while AI is unavailable",
-        "Exact protocol project deep link beyond recent100; missing/foreign owner-scoped target fails closed instead of selecting another owned project"
+        "Exact protocol project deep link beyond recent100; missing/foreign owner-scoped target fails closed instead of selecting another owned project",
+        "Distinct foreign-user fixture row and nonexistent ID both produce the same protocol load error; this proves client owner filtering, not hosted RLS"
       ],
-      "evidence": "evidence/2026-11-13/research-browser-exact-project.txt; evidence/2026-11-13/research-auth-browser.txt"
+      "evidence": "evidence/2026-11-13/research-browser-owner-boundary.txt; evidence/2026-11-13/research-auth-browser.txt",
+      "fixture_source_commit": "63671871726786cebfb33f867dbc3fcc0609c2cc",
+      "fixture_blob_sha": "d0e04eac9654feae04e102da19ace20f73525137"
     },
     "postgres": {
       "status": "PASS",

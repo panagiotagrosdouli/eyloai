@@ -51,5 +51,11 @@
       "evidence/2026-11-13/research-check-exact-project.txt",
       "evidence/2026-11-13/research-browser-exact-project.txt"
     ]
+  },
+  "owner_boundary_browser_followup": {
+    "commit": "63671871726786cebfb33f867dbc3fcc0609c2cc",
+    "result": "PASS: distinct foreign-owner and missing targets fail closed with the same error; exact authorized target beyond recent100 succeeds",
+    "scope": "Synthetic owner-filtered PostgREST; no hosted two-account or RLS claim",
+    "evidence": "evidence/2026-11-13/research-browser-owner-boundary.txt"
   }
 }
