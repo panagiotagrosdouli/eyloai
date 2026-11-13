@@ -270,7 +270,7 @@
     "prior_pr": 405,
     "prior_pr_state": "Merged externally as68271db before this batch; upstream Vercel Hobby function consolidation preserved",
     "continuation_branch": "codex/eylo-platform-integration-audit",
-    "current_pr": null
+    "current_pr": 407
   },
   "github_ci": {
     "commit": "03b68af93acaf3a71f52abacaa67c6e191039acb",
@@ -283,11 +283,11 @@
     "scope": "Historical batch8 only. Batch9 final CI pending at evidence commit; current PR description records exact final results."
   },
   "latest_vercel_observation": {
-    "commit": "adc5b38b72a87e381776c4349a27271bea35312b",
-    "status": "FAIL",
-    "deployment_id": "dpl_BYosDMvVkgFhLFpugKdK9ALUkkp3",
-    "metadata_and_logs": "Both404 in explicitly scoped connected team",
-    "cause": "UNVERIFIED. GitHub status reports deployment failure; previous build-rate-limit is historical and not assumed to explain this failure."
+    "commit": "13a8117b911c928acd21b5342c5a1568588cf9c7",
+    "status": "SUCCESS (GitHub status only)",
+    "target_url": "https://vercel.com/panagiotagrosdoulis-projects/eyloai/C3DAf8m42P9L97i9VhAjnTHSTBeu",
+    "metadata": "404 under explicitly connected team; project and commit-filtered deployment lists empty",
+    "scope": "Build-status observation only; deployed source/environment identity and hosted acceptance unverified. Current final-head status is recorded in PR407."
   },
   "ci_failure_and_repair": {
     "failed_head": "de485c1",
