@@ -26,3 +26,5 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Validate imports, types, lint, tests and production build
         run: npm run check
+      - name: Verify workspace and EYRA RLS in disposable PostgreSQL
+        run: python3 scripts/integration/test-local-postgres.py

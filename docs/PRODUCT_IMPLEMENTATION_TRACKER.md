@@ -4,10 +4,18 @@ This tracker preserves the requested 77-product inventory and reflects the curre
 
 ## Current release evidence
 
-- Current `main`: `baedf30b06616ba09641e140bae2ff7cc8098c6b` (includes merged PR #396: personalized dashboard and the Notes/Life/Calendar/Flashcards/Search/Activity foundation from #388).
+- Audited `main`: `7bf956a72d42f251c77cde7276dcb050cebd1a35` (includes merged PR #396 and Decision Workspace #397).
 - Dashboard, research modules, saved projects, and learning records still require authorized staging verification and representative cross-user checks.
-- Decision Workspace: `PARTIAL`, proposed in draft PR #397. Frontend: `src/pages/ProjectDecisions.jsx`; route and project-list entry point: `src/App.jsx`, `src/pages/Projects.jsx`. Persistence: existing `projects.data.decision_records`, saved with `Project.updateIfUnchanged`; authorization inherits existing Project RLS and owner filter. No migration. Tests: domain validation unit tests plus 491 passing repository tests on the base; GitHub Actions build/import/verify/browser regressions passed on PR head `db61f36`. Staging, direct two-account RLS, and product-specific browser persistence remain unverified. Next: authorize staging/test accounts, exercise create/edit/delete/reload/concurrent conflict, then compare the route at desktop/mobile sizes.
-- PR #397 is draft and mergeable. Vercel Preview failed; connected Vercel access returned 403 during deployment inspection. No preview or production verification is claimed.
+- Decision Workspace: `PARTIAL` in main via merged PR #397. Frontend: `src/pages/ProjectDecisions.jsx`; route and project-list entry point: `src/App.jsx`, `src/pages/Projects.jsx`. Persistence: existing `projects.data.decision_records`, saved with `Project.updateIfUnchanged`; authorization inherits existing Project RLS and owner filter. No migration. Tests: domain validation unit tests plus 491 passing repository tests on the base; GitHub Actions build/import/verify/browser regressions passed on PR head `db61f36`. Staging, direct two-account RLS, and product-specific browser persistence remain unverified. Next: authorize staging/test accounts, exercise create/edit/delete/reload/concurrent conflict, then compare the route at desktop/mobile sizes.
+- #397 is merged into this audited main. Its earlier PR verification notes above are historical; live staging and production acceptance remain unverified.
+
+## Integration candidate (not main or a release)
+
+Branch `codex/eylo-platform-integration-audit` adds the reviewed Files/Create/Document Editor work from #395, structured project workplans from #392, and metadata-only local Data Catalog/comparisons from #387. All remain partial products pending their full acceptance criteria. The branch preserves main's canonical Notes/Life/Calendar/Flashcards contracts rather than adding the competing schemas from #391/#393.
+
+Machine-readable registers: [current integration matrix](integration/product-matrix.json), [baseline matrix](integration/baseline-product-matrix.json), [65 open PR comparisons](integration/open-pr-comparison.json), and [migration overlap](integration/pr-migration-overlap.json). [Integration decisions](integration/INTEGRATION_DECISIONS.md) distinguish source inventory, local PostgreSQL policy tests, browser fixtures, live HTTP checks and remaining release gates.
+
+The owner identified EYLO project `kbzjngpzxpniaumlupaa`; the connected Supabase account denied access, and the repository protects that live ref from staging writes. No remote migrations were applied. A separate authorized staging project and test accounts are still needed. No production promotion or live payments were enabled.
 
 ## Status definitions
 

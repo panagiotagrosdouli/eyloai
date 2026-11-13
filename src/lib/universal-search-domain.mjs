@@ -7,6 +7,7 @@ const SOURCE_CONFIG = Object.freeze({
   CalendarEvent: { label: 'Calendar', href: item => `/calendar?focus=${encodeURIComponent(item.id)}`, fields: ['title', 'description', 'project_title'] },
   SavedPaper: { label: 'Saved research', href: item => `/library?focus=${encodeURIComponent(item.id)}`, fields: ['title', 'abstract', 'authors', 'doi'] },
   Idea: { label: 'Ideas', href: item => `/ideas?focus=${encodeURIComponent(item.id)}`, fields: ['title', 'description', 'content'] },
+  EyloFile: { label: 'EYLO Files', href: item => `/files?focus=${encodeURIComponent(item.id)}`, fields: ['name', 'description'] },
 });
 
 export const UNIVERSAL_SEARCH_PAGE_SIZE = 20;
@@ -51,12 +52,18 @@ export async function searchSourcePage({ rpc, source, query, page = 1, pageSize 
   }
   const requestedPage = Math.max(1, Math.min(10000, Math.floor(Number(page) || 1)));
   const requestedSize = Math.max(1, Math.min(50, Math.floor(Number(pageSize) || UNIVERSAL_SEARCH_PAGE_SIZE)));
-  const { data, error } = await rpc('search_workspace_records', {
+  const rpcName = source === 'EyloFile' ? 'search_private_files' : 'search_workspace_records';
+  const args = source === 'EyloFile' ? {
+    p_query: term,
+    p_page: requestedPage,
+    p_page_size: requestedSize,
+  } : {
     p_source: source,
     p_query: term,
     p_page: requestedPage,
     p_page_size: requestedSize,
-  }, signal);
+  };
+  const { data, error } = await rpc(rpcName, args, signal);
   if (error) throw Object.assign(new Error(error.message || 'Workspace search failed.'), { code: error.code || 'SEARCH_FAILED' });
   return normalizeSearchPage(data, source);
 }

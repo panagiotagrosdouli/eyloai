@@ -32,7 +32,7 @@ test('CSV parser enforces byte, row and column bounds', () => {
 
 test('summaries count blank cells and calculate reproducible sample statistics', () => {
   const dataset = parseResearchCsv('score,label\n1,alpha\n2,\n3,beta\n,alpha\n');
-  const [score, label] = summarizeResearchData(dataset);
+  const [score, label] = summarizeResearchData(dataset, { minimumCellSize: 1 });
   assert.equal(score.type, 'numeric');
   assert.equal(score.missing, 1);
   assert.equal(score.distinct, 3);
@@ -63,7 +63,7 @@ test('chart rows are numeric, skip blanks and obey the requested cap', () => {
 });
 
 test('summary CSV quotes cells, protects formulas and retains negative numeric results', () => {
-  const summary = summarizeResearchData(parseResearchCsv('metric,=danger,"A ""quote"""\n-4,2,x\n-2,3,y'));
+  const summary = summarizeResearchData(parseResearchCsv('metric,=danger,"A ""quote"""\n-4,2,x\n-2,3,y'), { minimumCellSize: 1 });
   const csv = exportResearchDataSummaryCsv(summary);
   assert.match(csv, /"'=danger"/);
   assert.match(csv, /"A ""quote"""/);

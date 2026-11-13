@@ -1,0 +1,793 @@
+
+> eyloai@0.0.0 check
+> npm run check:imports && npm run typecheck && npm run lint && npm run test && npm run build
+
+
+> eyloai@0.0.0 check:imports
+> node scripts/check-local-imports.mjs
+
+All local imports resolve.
+
+> eyloai@0.0.0 typecheck
+> tsc -p ./jsconfig.json && tsc -p ./jsconfig.api.json
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice
+
+> eyloai@0.0.0 lint
+> eslint . --quiet
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice
+
+> eyloai@0.0.0 test
+> node --test tests/*.test.mjs
+
+✔ activity history migration records minimal metadata for core workspace tables (9.674549ms)
+✔ activity history is owner-readable and supports explicit owner-controlled clearing (3.255708ms)
+✔ activity history route is protected and maps a read-only event repository (4.06891ms)
+✔ disabled Analytics rejects authorized calls without accessing Supabase (2.528715ms)
+✔ enabled Analytics without explicit Supabase config fails closed without network access (0.410416ms)
+✔ missing or invalid authentication never makes a database call (0.374363ms)
+✔ invalid Supabase URL fails closed without network access (0.247546ms)
+✔ explicitly configured analytics delegates to same-user Supabase RPC and retains no-store (1.994956ms)
+✔ malformed successful RPC responses are rejected rather than displayed (0.394343ms)
+✔ upstream permission failures are not treated as empty analytics (0.466559ms)
+✔ only the public EYLO origin receives CORS permission (2.24777ms)
+✔ an authorization preflight from GitHub Pages is accepted (0.407311ms)
+✔ untrusted origins cannot pass the contact origin check or preflight (0.275137ms)
+✔ same-origin preview deployments remain usable without broad Vercel wildcards (1.474227ms)
+✔ parses arXiv Atom entries in Node and decodes XML entities (3.775786ms)
+✔ returns no entries for a valid Atom feed with no papers (0.187297ms)
+✔ magic link login does not implicitly register a new user (4.060396ms)
+✔ auth operation results are accepted only for the current mounted generation (1.716876ms)
+✔ app paths respect a GitHub Pages base path (0.882183ms)
+✔ app paths stay rooted on a custom-domain deployment (0.224531ms)
+✔ stripAppBase removes only the configured path prefix (0.147318ms)
+✔ safe redirects accept known workspace and Labs destinations (1.530771ms)
+✔ safe redirects reject external, protocol-relative and malformed destinations (0.227386ms)
+✔ auth errors map sensitive provider messages to stable product errors (0.647556ms)
+✔ expired session restoration keeps public sign-in routes available (8.785796ms)
+✔ protected routes expose a retry when session restoration fails (1.745037ms)
+✔ provider rate-limit codes map to an actionable retry message (0.293133ms)
+✔ Supabase gateway fallback keeps the same bounded request timeout (1.714723ms)
+✔ signed-in public entry routes redirect into the authenticated workspace (0.913409ms)
+✔ authentication distinguishes service configuration, network, and email delivery failures (0.42664ms)
+✔ incomplete and mismatched sign-in payloads cannot authorize navigation (1.944953ms)
+✔ billing endpoint does not log upstream private customer details (2.242702ms)
+✔ billing never exposes private responses in caches (4.997712ms)
+✔ billing rejects attacker Host and constructs Stripe URLs from trusted origin (1.536329ms)
+✔ calendar event normalization bounds fields and stores UTC instants (2.182012ms)
+✔ calendar events require valid timezone datetimes and positive duration (1.359328ms)
+✔ calendar event recurrence and project links accept only supported values (0.384348ms)
+✔ monthly recurring event dates clamp at month end (0.217421ms)
+✔ calendar month selector returns only events in month ordered by start (7.98258ms)
+✔ calendar persists events through owner-scoped RLS and validates project ownership (12.380905ms)
+✔ calendar route is protected within the authenticated layout and repository is mapped (1.455119ms)
+✔ capability flags fail closed when optional services are absent (7.301072ms)
+✔ contact is available only when all email delivery settings are present (5.687009ms)
+✔ billing requires every secret, price and server-side Supabase credential (0.676479ms)
+✔ AI availability requires both the model key and server-side quota controls (0.752871ms)
+✔ non-GET requests reject without being cached (0.827252ms)
+✔ institution analytics stays disabled unless explicitly enabled after verification (0.664731ms)
+✔ browser Remotive snapshots keep only safe source-linked roles (1.101376ms)
+✔ browser Remotive snapshots reject malformed or unusable data (0.997794ms)
+✔ career search excludes weak description-only hits and ranks exact role titles first (2.994493ms)
+✔ multi-term research job searches require both concepts and match AI as a word (0.69726ms)
+✔ all job sources use the same relevance filter before display (0.230851ms)
+✔ multi-term career searches can broaden the source query while retaining the full local query (0.218433ms)
+✔ career results continue to sort by local CV overlap when a CV is available (0.295807ms)
+✔ EYRA ranking cannot change official challenge fields, eligibility or source URLs (0.842965ms)
+✔ unknown, malformed and duplicate AI ranking entries cannot change official results (0.70379ms)
+✔ saving keys identify official records consistently between challenges and library (0.249849ms)
+✔ BibTeX exports available metadata without inventing fields (3.714426ms)
+✔ RIS exports authors separately and terminates each record (0.398278ms)
+✔ empty results export no invented references (0.186766ms)
+✔ internal Library record IDs are never invented as public reference URLs (0.218693ms)
+✔ unsafe URLs and invalid DOIs are omitted from reference-manager exports (0.339611ms)
+✔ valid HTTPS DOI and publication URL remain usable in bibliography exports (0.435654ms)
+✔ BibTeX escapes all TeX syntax characters without corrupting introduced commands (0.199345ms)
+✔ Unicode multiple authors, diacritics and missing optional fields survive both formats (0.381243ms)
+✔ records with duplicate titles still receive distinct citation keys (0.796126ms)
+✔ private, local, signed and auth-bearing URLs are never exported as public sources (1.00868ms)
+✔ large collections have one distinct well-delimited bibliography record per item (15.486943ms)
+✔ DOI normalization accepts resolver links and DOI prefixes without guessing malformed identifiers (2.644576ms)
+✔ matching DOI, title, year and first author surname are verified against Crossref (4.580214ms)
+✔ Crossref retraction notices are surfaced with their source, related DOI, and date (0.597372ms)
+✔ other Crossref update notices are not mislabelled as retractions (0.220505ms)
+✔ disagreements and missing fields remain visible as partial verification (0.809626ms)
+✔ an absent or mismatching DOI is unverified and never treated as a match (0.147858ms)
+✔ verification requests only the exact DOI proxy and handles missing records and provider failures (43.413022ms)
+✔ verification with no DOI performs no network request (0.189049ms)
+✔ Crossref client requests and preserves record type for local development (82.621274ms)
+✔ live retrieval can target the deployed proxy without falling back to direct providers (2.015216ms)
+✔ decision validation requires a real question, supported state and valid evidence sources (1.988497ms)
+✔ decision validation rejects overlong and oversized lists instead of silently truncating saves (0.675828ms)
+✔ normalization keeps only supported fields, bounded rows, and valid source links are retained (3.036714ms)
+✔ release identity reports an explicit deployed SHA but no secrets (1.312338ms)
+✔ release identity is explicit about missing or malformed SHA (0.308506ms)
+✔ deployment provenance is read-only (0.154398ms)
+✔ precision@5 divides by five even when fewer records were returned (1.109829ms)
+✔ graded nDCG equals one for ideal ranking and decreases for inversions (0.338951ms)
+✔ canonical DOI normalizes resolver URLs without losing version suffix (1.432326ms)
+✔ evaluation refuses unjudged returned records instead of counting them as irrelevant (0.766031ms)
+✔ evaluation detects duplicate judgments and wrong grades (0.329547ms)
+✔ evaluation computes precision, normalized gain and duplicate rate (0.321295ms)
+✔ summary reports mean values without treating missing cases as success (0.192174ms)
+✔ discovery proxy rejects unknown providers before fetching upstream (1.712259ms)
+✔ discovery proxy bounds provider limits and emits cache/source headers (36.605132ms)
+✔ OpenAlex proxy uses a server-side API key without returning it to the browser (12.278103ms)
+✔ Semantic Scholar proxy sends an optional server-side API key in its header only (1.101096ms)
+✔ Crossref proxy requests the work type needed to exclude non-paper records (2.306967ms)
+✔ Crossref proxy performs exact DOI lookups through its fixed provider host (1.303475ms)
+✔ exact DOI lookup rejects malformed identifiers and non-Crossref providers without fetching (0.332161ms)
+✔ discovery proxy rejects overlong research queries (0.434812ms)
+✔ discovery proxy only accepts GET (0.167397ms)
+✔ discovery proxy never caches upstream errors or provider rate limits (3.105237ms)
+✔ discovery proxy gives uncached 502 when a research source is unreachable (0.6092ms)
+✔ discovery proxy preserves Greek topic queries when searching researchers (0.644692ms)
+✔ discovery proxy rejects malformed paging and country filters without upstream calls (0.247375ms)
+✔ scholarly byte reader accepts a small valid provider response (0.279533ms)
+✔ discovery proxy rejects oversized Content-Length without returning provider content (0.681848ms)
+✔ discovery proxy refuses oversized chunked responses even with a fake small length header (5.895637ms)
+✔ proxy does not reflect upstream HTML media types into its own origin (1.404554ms)
+✔ HTML challenges disguised as JSON are not cached as scholarly results (0.410456ms)
+✔ arXiv proxy still returns Atom XML content type with nosniff protection (0.599505ms)
+✔ does not collapse distinct DOI suffixes into a guessed version family (3.58859ms)
+✔ deduplicates identical DOIs after URL, prefix, case, and encoding normalization (0.329647ms)
+✔ filters table, figure and supplementary child records (0.236389ms)
+✔ filters known Crossref non-paper records but keeps articles and preprints (0.33178ms)
+✔ excludes future-dated and invalid publication records (0.273794ms)
+✔ enforces the selected two-year and five-year discovery windows (1.165431ms)
+✔ promotes review literature as a start-here record for beginners (0.388263ms)
+✔ uses Greek query terms and ignores accent differences when ranking papers (0.863255ms)
+✔ rejects records that negate the lead research concept (0.326062ms)
+✔ paper-index availability excludes researcher and institution endpoints (0.739703ms)
+✔ paper-index availability fails closed for missing or aggregate-only status (0.14252ms)
+✔ provider failures preserve HTTP status for accurate source messaging (0.263469ms)
+✔ saving public research preserves its idea through email confirmation and opens a new project (1.761021ms)
+✔ workspace signup links safely bound long ideas and support empty searches (0.350548ms)
+✔ version-aware update requires a previously loaded database timestamp (1.120004ms)
+✔ zero-row update is a conflict rather than a successful data save (3.853902ms)
+✔ the repository implements a conditional update under owner and updated_date predicates (0.494921ms)
+✔ stale human reviews surface conflicts rather than overwriting another tab (0.418729ms)
+✔ entity list and filter queries require the authenticated owner (0.876955ms)
+✔ entity read, update, and delete queries require the authenticated owner (0.343788ms)
+✔ entity creation derives owner from validated session, not caller payload (0.134709ms)
+✔ entity writes keep every application field in the JSONB data column (1.380859ms)
+✔ entity rows restore JSONB fields and database timestamps (0.179806ms)
+✔ empty and malformed JSONB data does not break entity reads (0.172385ms)
+✔ entity filters target JSONB data instead of nonexistent table columns (1.214434ms)
+✔ EURAXESS parser accepts its current id-based result wrapper (3.227027ms)
+✔ EURAXESS parser still accepts the previous class-based result wrapper (1.181034ms)
+✔ matrix rows contain only selected saved papers and their manual notes (0.924856ms)
+✔ matrix gracefully handles empty saved-paper data (0.546788ms)
+✔ CSV export preserves quotes and escapes spreadsheet formulas (0.424287ms)
+✔ selects only paper-cited claims for semantic review (1.776304ms)
+✔ accepts a model-assessed claim only with an exact excerpt from its cited abstract (1.099784ms)
+✔ does not trust invented quotations, uncited sources, or non-supported verdicts (0.268016ms)
+✔ rejects unsupported source text and fails closed when review is missing (0.158935ms)
+✔ allows trend with a source-matching excerpt but never claims scientific proof (0.305511ms)
+✔ does not accept excerpts from paper titles when no abstract supports them (0.172224ms)
+✔ rejects a quote that is trivially short (0.159876ms)
+✔ accepts a literal supported excerpt beyond the first 240 abstract characters (0.150252ms)
+✔ EYLO Files validates bounded supported files and sanitizes storage names (2.123215ms)
+✔ upload persists a private file and reload restores its version history (7.811307ms)
+✔ new versions preserve prior content and can be individually downloaded (0.744389ms)
+✔ an exact document remains retrievable outside the recent 500-file listing and is owner scoped (1.084182ms)
+✔ user scoping and sign-in are required for retrieval and deletion (0.543042ms)
+✔ remove deletes all stored versions before metadata and returns an empty library (0.48719ms)
+EYRA auth rejected { reason: 'supabase_user_rejected', status: 401 }
+✔ EYRA does not expose the AI endpoint through GET requests (1.183148ms)
+✔ EYRA rejects missing authentication without external network calls (0.157523ms)
+✔ EYRA rejects an empty bearer token without calling Supabase or OpenAI (0.288786ms)
+✔ EYRA does not reach OpenAI when Supabase rejects a session (1.304447ms)
+✔ personal EYRA cache keys are isolated by user (0.998415ms)
+✔ personal EYRA cache keys change when context changes (0.159505ms)
+✔ personal EYRA cache keys are isolated by namespace and UTC day (0.116902ms)
+✔ personal EYRA cache keys reject an absent user identity (0.317268ms)
+✔ aborting an EYRA search cancels the upstream request (2.936737ms)
+✔ status UI does not treat service secrets as a verified live AI invocation (0.92812ms)
+✔ only sources explicitly referenced in answer appear as citations (1.959454ms)
+✔ invented model citation IDs must not be treated as retrieved evidence (0.246064ms)
+✔ no reference is never silently assigned to every retrieved source (0.13543ms)
+✔ external citations reject unsafe link schemes and embedded credentials (1.199732ms)
+✔ EYRA starts evidence analysis before waiting for Grants.gov (0.739052ms)
+✔ EYRA does not leak raw upstream exception messages into server logs (2.063768ms)
+✔ explicit project request uses the authenticated RLS route and reports the verified record (189.839244ms)
+✔ project tool mode refuses a create tool call without explicit user intent (4.961708ms)
+✔ explicit paper-save request verifies DOI metadata and persists the Crossref record (3.812691ms)
+EYRA generation did not complete {
+  status: 'incomplete',
+  reason: 'max_output_tokens',
+  responseId: 'resp_incomplete'
+}
+✔ EYRA does not silently truncate oversized research instructions (20.703958ms)
+✔ unauthenticated EYRA errors are explicitly private and uncached (0.201388ms)
+✔ EYRA rejects a partial OpenAI generation even when it contains text (2.974924ms)
+✔ EYRA records a failed quota refund when rollback RPC returns HTTP error (5.406915ms)
+✔ quota rollback errors include action ID for operator reconciliation (0.516022ms)
+✔ EYRA rejects malformed prompts and schemas before making an AI request (1.724497ms)
+✔ EYRA reports invalid nested response schemas as 400 before reserving quota (1.038384ms)
+✔ research companion always clears loading and offers a visible retry after failure (7.699882ms)
+✔ EYRA user can stop an active request from keyboard-accessible interface (1.592753ms)
+✔ late retrieval or model output cannot create an answer after user cancelled (0.164203ms)
+EYRA structured response failed the requested schema { responseId: 'mock_ai_response' }
+✔ malformed scientific schema result never reaches UI and releases quota (29.224452ms)
+✔ complete scientific evidence schema is accepted (0.905668ms)
+✔ missing or invented scientific evidence is rejected (0.263229ms)
+✔ unknown, invalid or overly deep shapes fail closed (0.182379ms)
+EYRA function error { type: 'upstream_timeout', error_class: 'TimeoutError' }
+✔ EYRA returns a retryable 504 when authentication upstream times out (3.000415ms)
+✔ the authenticated command center opts into only the bounded project and library action path (1.648246ms)
+✔ persisted action IDs survive invalid source-citation model prose (0.154979ms)
+✔ action status is tied to server-confirmed outcomes, not model predictions (0.147759ms)
+EYRA auth rejected { reason: 'supabase_user_rejected', status: 401 }
+✔ EYRA bounds both Supabase authentication and model requests (4.864972ms)
+✔ EYRA fails closed when per-user usage controls are not configured (0.571284ms)
+✔ EYRA does not call the AI model after failed authentication (1.300612ms)
+✔ free and early-access monthly AI quota is shared by browser and server (0.943415ms)
+✔ flashcard and deck normalization enforce bounded valid content and unique IDs (1.850095ms)
+✔ due queues include unscheduled cards and dates through today (6.879569ms)
+✔ spaced repetition schedules intervals, adjusts ease and retries missed recall (0.502573ms)
+✔ flashcard decks enforce owner RLS, owned project links and bounded nested cards (0.293123ms)
+✔ Flashcards UI persists decks and answers through conflict-safe authorized writes (0.201418ms)
+✔ Grants.gov refuses to authenticate against an implicit Supabase project (2.321902ms)
+✔ Grants.gov auth uses the explicitly configured public Supabase project (23.231229ms)
+✔ funding API merges verified EU calls with Grants.gov records (27.755999ms)
+✔ human review persists evidence and rationale without rewriting its provenance (1.385128ms)
+✔ substantive review decisions require a researcher-provided rationale (0.733344ms)
+✔ stale index or changed candidate never updates the wrong research question (1.41374ms)
+✔ removal is explicit and scoped to project owner repository (0.669499ms)
+✔ missing project cannot be reviewed or deleted (0.191593ms)
+✔ general listings remove HTML and encoded markup from descriptions (2.62528ms)
+✔ general listings disclose a provider failure while serving the available feed (1.208176ms)
+✔ general listings return an error when every provider fails (0.445148ms)
+✔ DCG discounts later ranked findings (0.85916ms)
+✔ an entirely judged good ranking has full scores (0.277129ms)
+✔ unjudged papers must not silently count as irrelevant (1.091754ms)
+✔ repeated retrieved ids are recorded as duplicates (0.140628ms)
+✔ invalid relevance grades are rejected (0.364058ms)
+✔ Idea Vault bounds loading and exposes a retry after provider failure (0.82517ms)
+✔ Idea Vault persists edits and confirms destructive deletes (0.174338ms)
+✔ Idea Vault does not report failed saves as successful (0.12152ms)
+✔ authenticated Library exports filtered saved papers, not unrequested unfiltered records (0.776063ms)
+✔ citation export is disabled on failed collection loads and warns metadata is unverified (0.171603ms)
+✔ Life task normalization validates fields and preserves allowed states (2.317325ms)
+✔ overdue excludes completed tasks and task ordering prioritizes due date and urgency (6.595231ms)
+✔ recurring tasks calculate daily, weekly and month-end dates without overflow (0.220595ms)
+✔ habit streaks derive from consecutive saved check-in dates (0.46846ms)
+✔ goal milestones are validated and progress reflects completed milestones only (1.523896ms)
+✔ Life task data is private, owner validated and linked only to owned projects (0.403184ms)
+✔ goal and milestone persistence is owner scoped and validates bounded milestone data (0.214045ms)
+✔ Life workspace supports real saved CRUD, status updates and protected navigation (0.635637ms)
+✔ reports documentation status without implying PRISMA certification (1.179068ms)
+✔ warns of incomplete database coverage and undocumented exclusion reasons (0.336826ms)
+✔ empty or undecided screening is not treated as completed decisions (0.194857ms)
+✔ review protocol normalizes and accepts a reproducible, human-reviewed screening log (6.763629ms)
+✔ protocol cannot be saved without a question, search, inclusion and exclusion criteria (0.44802ms)
+✔ cross-account or unsaved paper identifiers are rejected instead of persisted (0.206965ms)
+✔ duplicate decisions and exclusion without human explanation fail validation (0.274044ms)
+✔ invalid calendar dates and oversized screening sets are rejected (0.615077ms)
+✔ JSON export includes only authorized saved-paper snapshots, not invented source metadata (0.48841ms)
+✔ external source links reject executable schemes, embedded credentials and relative URLs (0.347091ms)
+✔ dirty-state check preserves incomplete user edits and ignores server save timestamps (0.406959ms)
+✔ screening reorder does not imply unsaved changes; changed decisions do (7.832785ms)
+✔ CSV screening log exports only verified snapshot rows with Excel-safe formula escaping (0.691609ms)
+✔ CSV also neutralizes leading whitespace or tab before spreadsheet formulas (0.185023ms)
+✔ meeting links accept HTTPS URLs and reject unsafe schemes or embedded credentials (1.14012ms)
+✔ meeting cards use keyboard-operable controls and keep meeting links outside the details button (0.472016ms)
+✔ new meeting flows create native rooms and historical external links remain available (4.572529ms)
+Deprecation warning: value provided is not in a recognized RFC2822 or ISO format. moment construction falls back to js Date(), which is not reliable across all browsers and versions. Non RFC2822/ISO date formats are discouraged. Please refer to http://momentjs.com/guides/#/warnings/js-date/ for more info.
+Arguments:
+[0] _isAMomentObject: true, _isUTC: false, _useUTC: false, _l: undefined, _i: not-a-date, _f: undefined, _strict: undefined, _locale: [object Object]
+Error
+    at hooks.createFromInputFallback (/workspace/work/eyloai/node_modules/moment/moment.js:326:25)
+    at configFromString (/workspace/work/eyloai/node_modules/moment/moment.js:2748:19)
+    at configFromInput (/workspace/work/eyloai/node_modules/moment/moment.js:3260:13)
+    at prepareConfig (/workspace/work/eyloai/node_modules/moment/moment.js:3243:13)
+    at createFromConfig (/workspace/work/eyloai/node_modules/moment/moment.js:3210:44)
+    at createLocalOrUTC (/workspace/work/eyloai/node_modules/moment/moment.js:3304:16)
+    at createLocal (/workspace/work/eyloai/node_modules/moment/moment.js:3308:16)
+    at hooks (/workspace/work/eyloai/node_modules/moment/moment.js:16:29)
+    at file:///workspace/work/eyloai/src/lib/meeting-plans.mjs:7:20
+    at Array.filter (<anonymous>)
+✔ upcoming meeting plans exclude invalid and past dates and sort the next three chronologically (5.506066ms)
+✔ upcoming meeting plans tolerate missing collections (0.214686ms)
+✔ meeting API fails closed when LiveKit is not configured (2.154295ms)
+✔ meeting API rejects unauthenticated users before reading meeting membership (2.752978ms)
+✔ a different authenticated account cannot join without accepted membership (2.496519ms)
+✔ meeting E2E accepts only explicitly pinned HTTPS preview hostnames (0.8484ms)
+✔ meeting E2E refuses a missing or mismatched host authorization (0.452536ms)
+✔ meeting E2E refuses live EYLO, insecure origins and embedded credentials (0.404776ms)
+✔ the deployed Supabase Edge scheduler validates provider bodies before reading records (0.726701ms)
+✔ scheduled watchlists record provider failures and reset the counter after success (0.23775ms)
+✔ well-formed provider responses distinguish zero results from provider failure (25.700871ms)
+✔ provider JSON must contain results array and correct response semantics (2.439025ms)
+✔ HTML challenge and invalid or scalar JSON never count as empty results (0.838005ms)
+✔ declared oversized provider bodies reject before parsing (0.476703ms)
+✔ streamed oversized provider bodies reject even without Content-Length (1.116386ms)
+✔ records exceeding the requested per-page cap reject rather than expand work (0.416964ms)
+✔ inverted abstracts cannot allocate sparse arrays using arbitrary source offsets (1.979218ms)
+✔ research monitoring retries a transient 429 and succeeds (25.141046ms)
+✔ research monitoring does not retry permanent 4xx failures (0.402604ms)
+✔ research monitoring bounds repeated upstream 5xx errors (0.410385ms)
+✔ research monitoring retries a transient connection failure (0.291169ms)
+✔ research monitoring reports repeated network failures (0.865365ms)
+✔ inactive JSON watchlists are filtered before the 30-row cap (1.168222ms)
+✔ legacy watchlists missing active flag stay eligible; deterministic oldest-first ordering (0.479937ms)
+✔ watchlist schema auto-updates ordering column on PATCH so processed rows rotate (0.294604ms)
+Watchlist monitoring failed {
+  watchlistId: 'watchlist-1',
+  reason: 'The monitored research provider returned an unusable response.'
+}
+Watchlist monitoring failed {
+  watchlistId: 'watchlist-1',
+  reason: 'The monitored research provider returned an unusable response.'
+}
+Watchlist monitoring failed {
+  watchlistId: 'watchlist-1',
+  reason: 'The monitored research provider returned an unusable response.'
+}
+✔ invalid OpenAlex 200 JSON fails the run rather than recording zero matches (28.998642ms)
+✔ invalid Grants.gov success JSON fails the funding watchlist (1.312755ms)
+✔ oversized OpenAlex body returns retryable 503 with zero discoveries (1.336149ms)
+✔ legitimate empty source results remain a successful monitored check (1.728077ms)
+✔ safe OpenAlex abstract decoding is used when inserting a new discovery (1.213939ms)
+✔ note normalization trims the title, bounds content and normalizes project links (2.1097ms)
+✔ note tags are bounded, case-insensitively deduplicated and searchable as exact tags (0.421101ms)
+✔ Markdown export preserves note text and includes tags and project provenance (0.278521ms)
+✔ database migration enforces private notes, owned project links, full text and bounded history (1.370534ms)
+✔ authenticated Notes repository uses the private search RPC and owner-scoped version reads (0.484344ms)
+✔ Notes page exposes saved CRUD, project links, full-text search, history and export (0.22361ms)
+✔ GitHub Pages builds from Vite output and verifies deployed release (1.830728ms)
+✔ Client router and brand assets respect /eyloai/ project hosting (3.624191ms)
+✔ Pages publication cannot silently claim the deleted Vercel domain (3.083815ms)
+✔ Public research discovery remains discipline-neutral (0.743787ms)
+✔ Corporate sections are separate routes from public EYLO AI discovery (0.405759ms)
+✔ Pages deploy uses the public Supabase configuration without empty GitHub Secret overrides (0.200606ms)
+✔ Static Pages discovery does not call missing same-origin server functions (0.309826ms)
+✔ GitHub Pages routes API calls through the production Vercel backend (0.304169ms)
+✔ Account and recovery links preserve GitHub Pages routing base (0.991642ms)
+✔ Public professor finder is accessible without authentication and does not fabricate bookings (0.337167ms)
+✔ Supabase email redirects are documented for the GitHub Pages project path (0.21018ms)
+✔ Public researcher outreach never claims mail app opening sends a message (0.132696ms)
+✔ paper summary save updates the existing library record (0.974226ms)
+✔ paper summary save creates a record when lookup succeeds with no match (0.788572ms)
+✔ paper summary save does not create a duplicate when lookup fails (1.484038ms)
+✔ paper summary save attaches an unlinked record but preserves another project association (0.290669ms)
+✔ new summary records can be created directly in the selected project (0.297008ms)
+✔ paper summaries use the accessible abstract and leave missing evidence explicit (1.773834ms)
+✔ short, standard, and detailed modes set distinct output-length guidance (0.689607ms)
+✔ summary prompt rejects records without accessible abstract text and bounds source size (0.154658ms)
+✔ unknown summary mode uses standard guidance (0.13609ms)
+✔ full-text summaries are labeled as full-text based and remain source bounded (0.218863ms)
+✔ paper questions are grounded in the abstract and never invent passage citations (0.213054ms)
+✔ paper question context includes user questions only and bounds prompt inputs (0.20336ms)
+✔ paper Q&A displays a quote only when a substantial excerpt exactly matches the abstract (0.154949ms)
+✔ paper Q&A labels full-text evidence without fabricating passage numbers (0.222258ms)
+✔ claim checking prompt scopes the verdict to accessible source support and distinguishes abstract limits (0.377516ms)
+✔ claim verdict requires an exact substantial quote for supported outcomes (0.229228ms)
+✔ same account preserves its Radar workspace cache (0.913206ms)
+✔ switching accounts invalidates all Radar caches before new session can render them (0.162199ms)
+✔ legacy unowned cache and logout cannot leak watchlists to next user (0.139376ms)
+✔ late responses cannot write after the owner was replaced (0.15601ms)
+✔ switching accounts clears cached private research (0.750716ms)
+✔ signed out and invalidated sessions purge private cache (0.149721ms)
+✔ a saved workspace profile wins over outdated authentication metadata (1.640788ms)
+✔ legacy users can still obtain profile values from auth metadata (0.135259ms)
+✔ an explicitly cleared persisted name is not restored from stale auth metadata (0.161909ms)
+✔ an authentication metadata success cannot mask an unpersisted canonical profile (1.131557ms)
+✔ confirmed profile row permits compatibility auth metadata fallback (0.254395ms)
+✔ non-overlapping local and remote changes can be prepared without erasing either (2.985962ms)
+✔ overlapping field edits require explicit researcher choice, never silently overwrite (0.873177ms)
+✔ matching edits do not count as conflicts and unmodified fields use latest database state (0.268656ms)
+✔ cross-project reconciliation is refused and no field is silently copied (0.144473ms)
+✔ Project Detail preserves local edits and does not save on preparation (0.744988ms)
+✔ manual per-field choices and comparison are surfaced as accessible controls (0.194617ms)
+✔ project ID changes invalidate earlier in-flight reads (0.918583ms)
+✔ previous project records are removed before fetching a different project (0.188568ms)
+✔ a stale wrong-ID response is rejected and never displayed as a different project (0.141219ms)
+✔ project detail requests only its own linked evidence from the database (0.705019ms)
+✔ project detail does not query arbitrary library top-100 records (0.210771ms)
+✔ project EYRA declines to invent a sourced report without any evidence (1.043448ms)
+✔ project EYRA identifies partially unavailable live research sources (0.14232ms)
+✔ workspace-only EYRA analysis is not labelled as verified live research (0.178564ms)
+✔ EYRA cannot present OpenAlex authors as verified professors or supervisors (0.926075ms)
+✔ project research report accepts IDs grounded in the exact retrieved evidence set (0.970991ms)
+✔ invented or out-of-range source IDs cannot enter saved research analysis (1.130185ms)
+✔ a sourced claim cannot be saved when the model omits all source IDs (0.191192ms)
+✔ workspace-only draft may lack live source IDs but cannot invent one (0.178924ms)
+✔ Project Detail validates citations before the persisted project write (0.419218ms)
+✔ project error recovery allows retry when a project cannot be loaded (0.864003ms)
+✔ partial library-source outages provide a retry action (0.183811ms)
+✔ plan template uses existing milestones without inventing dates or scientific results (1.64228ms)
+✔ existing human tasks are not repeated in generated draft (0.330377ms)
+✔ accepted, edited plan is appended explicitly without replacing or duplicating tasks (1.137947ms)
+✔ empty drafts do not alter existing tasks, long milestone lines are bounded (0.29834ms)
+✔ project planner only adds reviewed draft tasks after user acceptance (0.782273ms)
+✔ planner explicitly distinguishes local draft from persisted project save (0.329045ms)
+✔ project task parser reads plain, numbered, and checkbox list lines (1.406263ms)
+✔ toggling a project task preserves surrounding lines and checkbox state (0.285721ms)
+✔ out of range task indexes leave the project task text unchanged (0.163662ms)
+✔ core human-authored project fields use versioned saves (0.78052ms)
+✔ EYRA report cannot overwrite a project edited during an external model call (0.189379ms)
+✔ project failures remain visible and do not silently retry over a conflict (0.152355ms)
+✔ workplan normalization preserves valid user fields and discards malformed rows safely (2.134236ms)
+✔ workplan accepts valid dependencies, but rejects missing references and cycles (0.612473ms)
+✔ progress reflects only completed tasks and prerequisites reflect dependency status (1.066021ms)
+✔ workplan rejects empty titles, duplicate identifiers and more than 100 tasks (0.462982ms)
+✔ project load errors are tracked separately from project creation errors (1.158778ms)
+✔ project empty state does not misrepresent a failed creation as a failed list (0.263728ms)
+✔ labels common scholarly record types without claiming peer review (0.740381ms)
+✔ does not infer a record type when provider metadata is missing or unknown (0.132826ms)
+✔ Remotive snapshots keep source links and normalize HTML descriptions (1.558397ms)
+✔ Remotive snapshots reject untrusted links and empty unusable responses (0.740431ms)
+✔ Remotive snapshots cap descriptions and accept only HTTPS source URLs (1.160961ms)
+✔ human-authored review requires a materials reference (1.445951ms)
+✔ documented and not-applicable methods require human-provided source location or explanation (0.324869ms)
+✔ no AI quality score or reproducibility verdict follows from documented sections (0.999082ms)
+✔ unknown checklist fields and invalid status values are rejected instead of persisted (0.183661ms)
+✔ SHA-256 matches a known vector for exact original bytes (9.753742ms)
+✔ SHA-256 does not silently claim success in an unsupported browser context (0.92941ms)
+✔ reproducibility manifest is bounded and does not contain raw dataset rows (0.473989ms)
+✔ Data Lab computes provenance locally and exports no raw CSV values (0.430214ms)
+✔ late fingerprint promises cannot repopulate an intentionally cleared dataset (0.288004ms)
+✔ quality audit runs on loaded browser-local dataset only (0.940336ms)
+✔ quality JSON export omits the raw dataset and stays on device (0.411336ms)
+✔ calculates exact missingness, complete cases and descriptive percentages (1.64818ms)
+✔ recognizes blank and whitespace-only cells without interpreting numeric zero as missing (0.173876ms)
+✔ flags all-missing or constant columns but makes no statistical inferences (0.214816ms)
+✔ handles empty and malformed input without division by zero (0.842652ms)
+✔ CSV parser handles BOM, CRLF, escaped quotes and line breaks inside quoted values (1.495885ms)
+✔ CSV parser rejects malformed rows, duplicate headers and unclosed quotes (0.51589ms)
+✔ CSV parser enforces byte, row and column bounds (0.224621ms)
+✔ summaries count blank cells and calculate reproducible sample statistics (0.73303ms)
+✔ all-missing columns are identified without inventing a text or numeric type (0.183651ms)
+✔ chart rows are numeric, skip blanks and obey the requested cap (0.280613ms)
+✔ summary CSV quotes cells, protects formulas and retains negative numeric results (0.430124ms)
+✔ researcher email validation accepts common institutional addresses (0.928619ms)
+✔ researcher email validation rejects incomplete and whitespace-containing addresses (0.179655ms)
+✔ research email drafts preserve real line breaks for mailto bodies (0.204542ms)
+✔ research email drafts without a subject remain intact (0.65828ms)
+✔ candidate preserves source identities, counterevidence and uncertainty (1.326275ms)
+✔ rejects fake source IDs and unsupported hypotheses rather than inventing provenance (0.67841ms)
+✔ persists candidate to existing user-owned project and deduplicates repeated saves (1.319205ms)
+✔ refuses missing/unowned projects and cannot overwrite an existing candidate list at its cap (0.424416ms)
+✔ maps only retrieved context and counterevidence IDs to source records (1.504258ms)
+✔ omits candidates with no question or no retrieved context (0.13543ms)
+✔ handles missing candidate and paper arrays (0.190811ms)
+✔ evidence context is stable when selected paper order changes (0.774131ms)
+✔ evidence context changes when the project or selected evidence changes (0.159565ms)
+✔ evidence context excludes duplicate and missing paper IDs (0.11522ms)
+✔ saving candidates requires explicit existing project selection and current evidence (0.807961ms)
+✔ saved candidate appears in Project Evidence with supporting and contrary sources (1.039092ms)
+✔ gap source cards do not link unsafe URLs as executable browser hrefs (0.215377ms)
+✔ graph uses stable OpenAlex IDs, project records and researcher-authored method notes (1.944396ms)
+✔ citation edges require a matching saved OpenAlex work and shared-topic links are marked inferred (0.483953ms)
+✔ shared-topic inference stays bounded for large saved collections (6.475254ms)
+✔ same display names do not merge distinct source authors and researchers match only exact OpenAlex IDs (0.445397ms)
+✔ graph filtering keeps only visible endpoints and related navigation uses recorded links (0.977621ms)
+✔ OpenAlex work metadata retains bounded authorship, indexed topics and reference IDs (31.117895ms)
+✔ Knowledge Graph is routed behind authentication and available in the workspace tools menu (0.760101ms)
+✔ landscape provider failures do not discard valid results from other sources (1.110727ms)
+✔ landscape does not claim no literature when all providers fail (0.151002ms)
+✔ never outputs uncited or invented literature-gap claims (1.316981ms)
+✔ rejects missing and invalid citations even if another citation is valid (0.143331ms)
+✔ rejects gaps without retrieved literature and handles malformed input (0.104945ms)
+✔ only first twelve supplied context papers can be cited (0.869582ms)
+✔ filters EYRA findings and trends with missing or out-of-range evidence citations (0.615016ms)
+✔ researcher search cancels superseded and unmounted OpenAlex requests (5.404305ms)
+✔ funding source and EYRA ranking have bounded, user-visible failures (1.322559ms)
+✔ promise timeout returns early and clears its timer when the source is faster (5.839798ms)
+✔ promise timeout aborts its pending source when the deadline expires (5.785207ms)
+✔ discovers real paper authors when a multiword OpenAlex author search is empty (30.739217ms)
+✔ excludes corporate and consortium author records from researcher profiles (6.603182ms)
+✔ uses structured scientific searches without claiming researchers (1.345238ms)
+✔ falls back safely when EYRA gives malformed output (0.158454ms)
+✔ limits generated searches and explanation length (0.126206ms)
+✔ saves a verified OpenAlex researcher to the user Library and selected project (1.675906ms)
+✔ links an existing Library record to a project without duplicating it (0.261577ms)
+✔ does not move a researcher already linked to a different project (0.190612ms)
+✔ requires a stable OpenAlex identity before saving (0.77132ms)
+✔ read-only RLS probe refuses to run without authorized credentials and expected project (40.609974ms)
+Watchlist monitoring failed { watchlistId: 'watch-failed', reason: 'OpenAlex failed: 400' }
+Could not persist watchlist failure status { watchlistId: 'watch-failed', status: null }
+✔ Vercel schedules real server-side monitoring without an open browser (1.750517ms)
+✔ scheduled monitor refuses unauthenticated invocations (0.591023ms)
+✔ monitoring releases an in-run deduplication key after a failed database insert (0.335275ms)
+✔ monitoring reports partial failures instead of silently claiming full success (0.213085ms)
+✔ monitoring handles overlapping-worker database uniqueness conflicts (0.166817ms)
+✔ database migration enforces a unique source ID per account (0.267185ms)
+✔ scheduler gets retryable HTTP status when any watchlist fails (0.244671ms)
+✔ monitoring reports the specific failed watchlist and excludes inactive ones from checked (27.699118ms)
+✔ monitoring retains failure state and clears consecutive failures after success (0.33846ms)
+✔ old disabled watchlists cannot starve 66 active watchlists over three bounded runs (16.417358ms)
+✔ does not hammer providers when 429 lacks a permitted short Retry-After (25.51474ms)
+✔ retries transient 503 once only when provider explicitly permits a brief delay (0.547159ms)
+✔ never retries a nonretryable response or invalid Retry-After (0.394684ms)
+✔ does not retry after caller aborts (0.531205ms)
+✔ OpenAlex work results retain verified author IDs and PMC identifiers (26.836183ms)
+✔ workspace status probes its own deployed SHA without caching or exposing credentials (0.803227ms)
+✔ workspace differentiates a Git revision from actual provider operation (0.130432ms)
+✔ Stripe webhook rejects oversized raw payloads before signature processing (1.724968ms)
+✔ Stripe webhook still rejects untrusted signatures on ordinary payloads (0.279794ms)
+✔ Stripe webhook accepts valid signed small events without database updates (0.912298ms)
+✔ a correctly signed but malformed JSON event fails with 400, not a retryable 500 (0.349526ms)
+✔ malformed Stripe signature header types fail authentication cleanly (1.080566ms)
+✔ signed array or null events are rejected before entitlement processing (0.445578ms)
+✔ serverless Supabase configuration fails closed when project URL is missing (0.916785ms)
+✔ serverless Supabase configuration rejects non-Supabase and unsafe URLs (0.21603ms)
+✔ serverless Supabase configuration accepts an explicit project and separates public/server keys (0.135931ms)
+✔ missing Supabase values fail closed without project fallbacks (1.265921ms)
+✔ explicit valid Supabase configuration is accepted (0.159246ms)
+✔ invalid Supabase URLs are rejected (0.127298ms)
+✔ PhD candidate scoring uses profile interest and explicit matching country code (1.31282ms)
+✔ missing affiliation or different country is never presented as verified location match (0.131254ms)
+✔ researcher search exposes profile matching with source limitations (0.404918ms)
+✔ EYLO uses native video for new calls and retains external links only as a fallback (0.328776ms)
+✔ CV matching uses uploaded local text without claiming verified supervision (0.284751ms)
+✔ CV matching accepts common country names and ISO codes (0.349967ms)
+✔ researcher CV entry permits safe paste of text copied from PDF or DOCX (0.833011ms)
+✔ local CV document parser accepts supported file types and enforces limits (1.112534ms)
+✔ PhD discovery carries research context into an explicitly unconfirmed meeting plan (0.324759ms)
+✔ meeting invitation drafts require a verified email and do not imply acceptance (0.255548ms)
+✔ PhD invitation status requires an explicit user-managed acceptance record (0.301756ms)
+✔ calendar proposal is tentative and contains meeting details without invented RSVP (1.617991ms)
+✔ accepted supervisor meetings require a user-recorded confirmation reference (0.227035ms)
+✔ robotics PhD discovery shows evidenced companies without inventing a doctoral place (1.08266ms)
+✔ worldwide researcher discovery supports paging and six-hour refresh without claiming all professors (0.264161ms)
+✔ worldwide scholar refresh catches up after browser tab resumes without repeated active requests (0.498767ms)
+✔ author discovery requests server-cached worldwide pages for six hours (0.21673ms)
+✔ worldwide PhD author search can filter by institution country without implying faculty verification (0.294025ms)
+✔ topic searches can show named OpenAlex paper authors without inventing professor titles (0.272663ms)
+✔ EYLO uses one blue/navy brand palette for all application surfaces (1.155137ms)
+✔ Default blue preference keeps theme-aware colors without inline overrides (0.195889ms)
+✔ Corporate landing and public discovery share EYLO blue/navy while signed-in theme tokens remain intact (0.339222ms)
+✔ workspace search searches supported private records across sources (8.471557ms)
+✔ workspace search ranks exact and title matches ahead of body-only matches (0.316578ms)
+✔ workspace search returns safe route targets and snippets from matches (0.244712ms)
+✔ workspace search paginates result sets and clamps invalid page sizes (0.259484ms)
+✔ server search sends bounded page parameters and normalizes results into individual deep links (0.490615ms)
+✔ server search bounds requests and rejects invalid providers, malformed responses and errors (0.677231ms)
+✔ private file search uses its bounded metadata RPC and opens the exact file (0.239554ms)
+✔ private file search migration enforces authenticated owner scope, bounded pages and metadata-only indexing (0.378619ms)
+✔ exports all user-owned collections, including records beyond the first page (2.879635ms)
+✔ aborts on any cross-account record instead of exporting it (0.655118ms)
+✔ aborts on error or malformed response rather than generating a partial file (0.278141ms)
+✔ detects duplicate pages that could hide records (0.235668ms)
+✔ fails instead of silently truncating a full table (0.286083ms)
+✔ rejects missing session, invalid page sizes and unscoped exports (0.305912ms)
+✔ a workspace export cannot be downloaded after the browser changes user accounts (0.41996ms)
+✔ workspace download enforces total rows across all ten collections (0.356747ms)
+✔ workspace download measures actual UTF-8 byte size of row contents (0.272463ms)
+✔ workspace download limits metadata even when tables are empty (0.880371ms)
+✔ workspace download rejects invalid byte and total row ceilings (0.538966ms)
+ℹ tests 503
+ℹ suites 0
+ℹ pass 503
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9189.156963
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice
+
+> eyloai@0.0.0 build
+> npm run check:imports && vite build
+
+
+> eyloai@0.0.0 check:imports
+> node scripts/check-local-imports.mjs
+
+All local imports resolve.
+vite v6.4.5 building for production...
+transforming...
+node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 3229 modules transformed.
+rendering chunks...
+[plugin vite:reporter]
+(!) /workspace/work/eyloai/src/lib/supabaseClient.js is dynamically imported by /workspace/work/eyloai/src/lib/AuthContext.jsx but also statically imported by /workspace/work/eyloai/src/components/meetings/MeetingRoom.jsx, /workspace/work/eyloai/src/lib/billing.js, /workspace/work/eyloai/src/lib/eyra-intelligence.js, /workspace/work/eyloai/src/lib/eyra-monitor.js, /workspace/work/eyloai/src/lib/monitoring-service.js, /workspace/work/eyloai/src/lib/protected-api.js, /workspace/work/eyloai/src/lib/second-brain.js, /workspace/work/eyloai/src/lib/supabase/auth.js, /workspace/work/eyloai/src/pages/DocumentEditor.jsx, /workspace/work/eyloai/src/pages/EyloFiles.jsx, /workspace/work/eyloai/src/pages/Meetings.jsx, /workspace/work/eyloai/src/pages/Settings.jsx, /workspace/work/eyloai/src/services/supabase-entities.js, /workspace/work/eyloai/src/services/universal-search.js, dynamic import will not move module into another chunk.
+
+[plugin vite:reporter]
+(!) /workspace/work/eyloai/src/lib/supabase/auth.js is dynamically imported by /workspace/work/eyloai/src/lib/AuthContext.jsx but also statically imported by /workspace/work/eyloai/src/pages/AuthCallback.jsx, dynamic import will not move module into another chunk.
+
+computing gzip size...
+dist/index.html                                       2.29 kB │ gzip:   0.93 kB
+dist/assets/index-EaOJ6lTe.css                      107.29 kB │ gzip:  20.02 kB
+dist/assets/api-url-tGFngulw.js                       0.18 kB │ gzip:   0.16 kB
+dist/assets/promise-timeout-wOjY0hQY.js               0.18 kB │ gzip:   0.16 kB
+dist/assets/use-toast-DiG8UChk.js                     0.26 kB │ gzip:   0.21 kB
+dist/assets/workspaceSignup-x8MvJmso.js               0.30 kB │ gzip:   0.21 kB
+dist/assets/EyraBadge-BTqYcO7r.js                     0.32 kB │ gzip:   0.25 kB
+dist/assets/check-Cn2TvOzT.js                         0.33 kB │ gzip:   0.27 kB
+dist/assets/chevron-down-DnZ41CaQ.js                  0.33 kB │ gzip:   0.26 kB
+dist/assets/chevron-up-CgC2SleR.js                    0.33 kB │ gzip:   0.27 kB
+dist/assets/chevron-left-C5fYR6Gz.js                  0.34 kB │ gzip:   0.27 kB
+dist/assets/chevron-right-BWZkYVQt.js                 0.34 kB │ gzip:   0.27 kB
+dist/assets/circle-DTvtvJ1N.js                        0.34 kB │ gzip:   0.26 kB
+dist/assets/plus-CWUozkW-.js                          0.36 kB │ gzip:   0.28 kB
+dist/assets/x-PloZx9B2.js                             0.36 kB │ gzip:   0.28 kB
+dist/assets/code-B5S0DlD3.js                          0.37 kB │ gzip:   0.28 kB
+dist/assets/arrow-right-C3qOQxhB.js                   0.37 kB │ gzip:   0.29 kB
+dist/assets/arrow-up-right-eWMCoDCN.js                0.37 kB │ gzip:   0.29 kB
+dist/assets/clock-3-BeZJczvl.js                       0.37 kB │ gzip:   0.29 kB
+dist/assets/search-DMxvAJNK.js                        0.37 kB │ gzip:   0.29 kB
+dist/assets/clock-CvKzCX_E.js                         0.37 kB │ gzip:   0.29 kB
+dist/assets/trending-up-3KDZIh4m.js                   0.38 kB │ gzip:   0.30 kB
+dist/assets/menu-BU0_nG72.js                          0.39 kB │ gzip:   0.28 kB
+dist/assets/flame-DCkqHtLh.js                         0.40 kB │ gzip:   0.31 kB
+dist/assets/rotate-ccw-YJO5B0pR.js                    0.41 kB │ gzip:   0.31 kB
+dist/assets/circle-check-CUj0Fteu.js                  0.42 kB │ gzip:   0.31 kB
+dist/assets/protected-api-C9iUq-qG.js                 0.42 kB │ gzip:   0.30 kB
+dist/assets/dollar-sign-BJ2L3mok.js                   0.42 kB │ gzip:   0.32 kB
+dist/assets/briefcase-DJNJdQv2.js                     0.43 kB │ gzip:   0.32 kB
+dist/assets/target-CL7ag7CO.js                        0.43 kB │ gzip:   0.29 kB
+dist/assets/bookmark-B0PgRN9s.js                      0.44 kB │ gzip:   0.32 kB
+dist/assets/mic-D3CtUKt6.js                           0.44 kB │ gzip:   0.33 kB
+dist/assets/upload-Dzfgur_N.js                        0.44 kB │ gzip:   0.32 kB
+dist/assets/chart-no-axes-column-BCR92PKJ.js          0.44 kB │ gzip:   0.31 kB
+dist/assets/copy-CoA5xikL.js                          0.44 kB │ gzip:   0.33 kB
+dist/assets/download-C1qEoZRJ.js                      0.44 kB │ gzip:   0.32 kB
+dist/assets/activity--gVX_Z8i.js                      0.44 kB │ gzip:   0.32 kB
+dist/assets/globe-CuvpDpSU.js                         0.45 kB │ gzip:   0.32 kB
+dist/assets/compass-BrWjTssm.js                       0.45 kB │ gzip:   0.33 kB
+dist/assets/video-g2MzMpha.js                         0.45 kB │ gzip:   0.34 kB
+dist/assets/external-link-Bl4ejtH3.js                 0.46 kB │ gzip:   0.33 kB
+dist/assets/pen-9e65f1TN.js                           0.46 kB │ gzip:   0.34 kB
+dist/assets/square-check-big-Cg0LE0zw.js              0.46 kB │ gzip:   0.33 kB
+dist/assets/calendar-CqIRyBh2.js                      0.46 kB │ gzip:   0.33 kB
+dist/assets/rotate-ccw-clock-Bai_jxCo.js              0.47 kB │ gzip:   0.34 kB
+dist/assets/award-CzR1C11b.js                         0.47 kB │ gzip:   0.35 kB
+dist/assets/circle-alert-DI26Bmgu.js                  0.48 kB │ gzip:   0.32 kB
+dist/assets/shield-CuNfg0Ww.js                        0.48 kB │ gzip:   0.35 kB
+dist/assets/zap-ChmHR0Hb.js                           0.48 kB │ gzip:   0.34 kB
+dist/assets/chart-column-BP-5qYHN.js                  0.48 kB │ gzip:   0.33 kB
+dist/assets/eyra-citation-ids-CHgC5C67.js             0.49 kB │ gzip:   0.32 kB
+dist/assets/lightbulb-wlphkE9G.js                     0.49 kB │ gzip:   0.35 kB
+dist/assets/book-open-CqkbcGk6.js                     0.49 kB │ gzip:   0.35 kB
+dist/assets/send-CGXH9FXf.js                          0.50 kB │ gzip:   0.36 kB
+dist/assets/bell-C_KoiT__.js                          0.50 kB │ gzip:   0.36 kB
+dist/assets/triangle-alert-yrnV8Za5.js                0.50 kB │ gzip:   0.35 kB
+dist/assets/folder-open-IzqfwjeD.js                   0.50 kB │ gzip:   0.35 kB
+dist/assets/flask-conical-BVcnbr6Y.js                 0.50 kB │ gzip:   0.35 kB
+dist/assets/users-BFdgNwn-.js                         0.51 kB │ gzip:   0.35 kB
+dist/assets/refresh-cw-DpbRPaWS.js                    0.53 kB │ gzip:   0.35 kB
+dist/assets/tag-5fDLWq0C.js                           0.53 kB │ gzip:   0.37 kB
+dist/assets/save-s3Pnxd3d.js                          0.53 kB │ gzip:   0.35 kB
+dist/assets/graduation-cap-BaJwaYo2.js                0.54 kB │ gzip:   0.37 kB
+dist/assets/trash-DYBTB94a.js                         0.55 kB │ gzip:   0.35 kB
+dist/assets/folder-kanban-DVuG18ia.js                 0.55 kB │ gzip:   0.37 kB
+dist/assets/crown-BfQXQxlj.js                         0.57 kB │ gzip:   0.38 kB
+dist/assets/file-plus-corner-9Y2h5uZi.js              0.58 kB │ gzip:   0.38 kB
+dist/assets/funding-api-MuWOJLKA.js                   0.58 kB │ gzip:   0.42 kB
+dist/assets/file-text-CaoeJLe7.js                     0.59 kB │ gzip:   0.38 kB
+dist/assets/volume-2-DcjNSxrw.js                      0.60 kB │ gzip:   0.40 kB
+dist/assets/mic-off-DIjdyxpA.js                       0.60 kB │ gzip:   0.38 kB
+dist/assets/building-complex-NLiG_sYL.js              0.62 kB │ gzip:   0.38 kB
+dist/assets/layers-Bz8cbkaf.js                        0.65 kB │ gzip:   0.38 kB
+dist/assets/rocket-C1gjG3Lz.js                        0.66 kB │ gzip:   0.43 kB
+dist/assets/star-Duj22Daq.js                          0.68 kB │ gzip:   0.43 kB
+dist/assets/notebook-pen-D59nYeHk.js                  0.68 kB │ gzip:   0.41 kB
+dist/assets/calendar-days-CF85XseM.js                 0.70 kB │ gzip:   0.39 kB
+dist/assets/trophy-CdzZfMN1.js                        0.71 kB │ gzip:   0.42 kB
+dist/assets/sparkles-DjcSSWJ3.js                      0.72 kB │ gzip:   0.42 kB
+dist/assets/brain-manCz7u4.js                         0.78 kB │ gzip:   0.44 kB
+dist/assets/capabilities-je4NVnFu.js                  1.17 kB │ gzip:   0.59 kB
+dist/assets/local-greeting-DHRMs2QD.js                1.57 kB │ gzip:   0.89 kB
+dist/assets/billing-8mtIIAZM.js                       1.73 kB │ gzip:   0.78 kB
+dist/assets/base44Client-DbwRbDwo.js                  1.76 kB │ gzip:   0.92 kB
+dist/assets/cv-extraction-BvXrepxo.js                 1.80 kB │ gzip:   0.97 kB
+dist/assets/VoiceSearchButton-Bxt6vrmk.js             1.99 kB │ gzip:   1.01 kB
+dist/assets/PlanGate-DHCqxiWc.js                      2.22 kB │ gzip:   1.04 kB
+dist/assets/CapabilityGate-DlL8nCe9.js                2.57 kB │ gzip:   1.21 kB
+dist/assets/citation-export-BRHuwiJZ.js               2.71 kB │ gzip:   1.41 kB
+dist/assets/InstitutionAdmin-ighgfdca.js              2.87 kB │ gzip:   1.10 kB
+dist/assets/second-brain-BiZsewIs.js                  2.92 kB │ gzip:   1.24 kB
+dist/assets/Notifications-CQIdam2u.js                 4.09 kB │ gzip:   1.71 kB
+dist/assets/literature-review-protocol-CeNxLVLX.js    4.11 kB │ gzip:   1.72 kB
+dist/assets/ServiceStatus-CshxBBLk.js                 4.94 kB │ gzip:   2.10 kB
+dist/assets/ActivityHistory-BFWO3zcR.js               4.98 kB │ gzip:   1.95 kB
+dist/assets/index-BJ4bAweG.js                         5.19 kB │ gzip:   2.43 kB
+dist/assets/Contact-Sj9dt-mp.js                       5.52 kB │ gzip:   2.07 kB
+dist/assets/VoiceAssistant-DKZb9iik.js                6.21 kB │ gzip:   2.60 kB
+dist/assets/life-domain-BPcMRWUe.js                   6.31 kB │ gzip:   2.14 kB
+dist/assets/eylo-files-Uui3yrT8.js                    6.78 kB │ gzip:   2.26 kB
+dist/assets/monitoring-service-mcE4tIBx.js            7.00 kB │ gzip:   2.85 kB
+dist/assets/Pricing-CXUOdAj4.js                       7.14 kB │ gzip:   2.84 kB
+dist/assets/supabase-entities-ztFn3tFk.js             7.21 kB │ gzip:   2.72 kB
+dist/assets/CompanyPage-CdPhGmkb.js                   7.28 kB │ gzip:   2.72 kB
+dist/assets/GuidedSearch-B7YALUf3.js                  7.82 kB │ gzip:   2.71 kB
+dist/assets/UniversalSearch-DSjW5fkL.js               8.64 kB │ gzip:   3.15 kB
+dist/assets/DocumentEditor-Bs7maGh9.js                9.57 kB │ gzip:   3.46 kB
+dist/assets/Meetings-C7R27S_x.js                     10.51 kB │ gzip:   3.87 kB
+dist/assets/Habits-njnRT4up.js                       10.94 kB │ gzip:   3.50 kB
+dist/assets/Profile-1HLOQPTF.js                      11.19 kB │ gzip:   3.63 kB
+dist/assets/GrantBuilder-BkNMrSI5.js                 11.75 kB │ gzip:   3.62 kB
+dist/assets/PageNotFound-J-zc5nOL.js                 12.09 kB │ gzip:   4.43 kB
+dist/assets/PublicResearchers-DAg6vHBo.js            12.35 kB │ gzip:   4.76 kB
+dist/assets/FutureSimulator-DNJlTCwa.js              12.51 kB │ gzip:   3.98 kB
+dist/assets/EyloFiles-B3DkqAw_.js                    12.72 kB │ gzip:   4.11 kB
+dist/assets/Challenges-VLTODGwL.js                   13.02 kB │ gzip:   4.41 kB
+dist/assets/ImpactPredictor-DmOhbALc.js              13.35 kB │ gzip:   4.30 kB
+dist/assets/Landing-Awi8AZY7.js                      13.37 kB │ gzip:   4.04 kB
+dist/assets/IdeaVault-BHod6OaF.js                    13.45 kB │ gzip:   4.63 kB
+dist/assets/LifeGoals-DK0DZlWM.js                    13.59 kB │ gzip:   4.17 kB
+dist/assets/Calendar-CSygjVUb.js                     13.84 kB │ gzip:   4.49 kB
+dist/assets/eyra-engine-NkIwfwvf.js                  14.08 kB │ gzip:   5.49 kB
+dist/assets/LiteratureReview-CHOtOWkx.js             14.15 kB │ gzip:   4.70 kB
+dist/assets/History-_7iMceVh.js                      14.42 kB │ gzip:   4.05 kB
+dist/assets/ExecutiveBriefing-BPmSzvkr.js            14.91 kB │ gzip:   4.50 kB
+dist/assets/Opportunities-DG6c4mmr.js                14.98 kB │ gzip:   5.14 kB
+dist/assets/StudyPlanner-CYPZcKAf.js                 15.71 kB │ gzip:   4.56 kB
+dist/assets/ResearchGaps-Bmhg3Jk2.js                 15.76 kB │ gzip:   5.32 kB
+dist/assets/Life-9Vhpbkvh.js                         16.84 kB │ gzip:   4.76 kB
+dist/assets/DreamTeam-WDy1-d7D.js                    17.55 kB │ gzip:   5.45 kB
+dist/assets/Notes-DcqC01id.js                        17.72 kB │ gzip:   5.96 kB
+dist/assets/Flashcards-QOvdn1KK.js                   17.88 kB │ gzip:   5.55 kB
+dist/assets/ResearchBattlefield-AiGf7Y_Y.js          20.61 kB │ gzip:   6.06 kB
+dist/assets/PublicCareers-9JWBcG3f.js                21.01 kB │ gzip:   6.95 kB
+dist/assets/eyra-api-Bz-QHiBP.js                     21.21 kB │ gzip:   7.49 kB
+dist/assets/Projects-dHhcj-a1.js                     21.40 kB │ gzip:   7.34 kB
+dist/assets/PaperSummary-D8Zcodw7.js                 22.29 kB │ gzip:   6.86 kB
+dist/assets/ProjectDecisions-DP__XK8M.js             22.80 kB │ gzip:   6.49 kB
+dist/assets/OpportunityRadar-BtgJLuhq.js             23.03 kB │ gzip:   7.47 kB
+dist/assets/ResearchDataLab-CqCYJWih.js              24.10 kB │ gzip:   8.04 kB
+dist/assets/ResearchKnowledgeGraph-AZkyQtCz.js       25.52 kB │ gzip:   8.13 kB
+dist/assets/Settings-D-_4z8Hm.js                     26.10 kB │ gzip:   7.88 kB
+dist/assets/PublicDiscovery-alpmeVPw.js              26.23 kB │ gzip:   8.09 kB
+dist/assets/Library-DGWNYzGO.js                      28.01 kB │ gzip:   8.46 kB
+dist/assets/Researchers-D9X6GfZ-.js                  29.35 kB │ gzip:   9.95 kB
+dist/assets/purify.es-CAi2OJFm.js                    30.47 kB │ gzip:  11.73 kB
+dist/assets/MeetingDetail-IIWNC-2I.js                34.01 kB │ gzip:   9.28 kB
+dist/assets/FutureMe-CDsUnhIy.js                     35.27 kB │ gzip:   8.52 kB
+dist/assets/ForYou-b2rVC9p5.js                       44.05 kB │ gzip:  11.65 kB
+dist/assets/moment-BKcQHhSN.js                       62.86 kB │ gzip:  20.31 kB
+dist/assets/Home-DWXY5SoJ.js                         82.36 kB │ gzip:  19.68 kB
+dist/assets/ProjectDetail-BimcBy_d.js                88.73 kB │ gzip:  23.67 kB
+dist/assets/AppLayout-CpAP8dx9.js                   105.56 kB │ gzip:  35.06 kB
+dist/assets/index-Ugz8D74f.js                       118.23 kB │ gzip:  36.44 kB
+dist/assets/proxy-CGw8wpXb.js                       138.10 kB │ gzip:  46.39 kB
+dist/assets/index.es-DUp83er4.js                    160.16 kB │ gzip:  53.76 kB
+dist/assets/html2canvas.esm-QH1iLAAe.js             202.38 kB │ gzip:  48.04 kB
+dist/assets/supabase-vendor-_Ts6dIFp.js             227.52 kB │ gzip:  59.12 kB
+dist/assets/PitchDeckBuilder-PMTNuNPi.js            398.65 kB │ gzip: 131.89 kB
+dist/assets/index-cwo6SUqq.js                       478.60 kB │ gzip: 151.42 kB
+dist/assets/MeetingRoom-c7nPFcLG.js                 593.45 kB │ gzip: 156.18 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 17.63s
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

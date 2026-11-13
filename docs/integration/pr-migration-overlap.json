@@ -1,0 +1,573 @@
+{
+  "baseline_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
+  "pull_requests": [
+    {
+      "number": 395,
+      "head_sha": "16b122885bfc13d34c77daa6bd8f419f9f156725",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20261112190430_eylo_files.sql",
+          "creates_tables": [
+            "eylo_files",
+            "eylo_file_versions"
+          ],
+          "existing_table_overlap": {}
+        },
+        {
+          "path": "supabase/migrations/20261112200000_private_file_search.sql",
+          "creates_tables": [],
+          "existing_table_overlap": {}
+        }
+      ]
+    },
+    {
+      "number": 393,
+      "head_sha": "d49b746124367aa1546b318efacfd638b204a735",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20261112100000_learning_workspace.sql",
+          "creates_tables": [
+            "learning_records",
+            "learning_record_versions"
+          ],
+          "existing_table_overlap": {}
+        }
+      ]
+    },
+    {
+      "number": 392,
+      "head_sha": "dae914c82926b32be619704572ff733505ea650f",
+      "migrations": []
+    },
+    {
+      "number": 391,
+      "head_sha": "c5696f45905cff81b2510ce01c4f59555ec5d3a6",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20261112090000_eylo_notes.sql",
+          "creates_tables": [
+            "notes",
+            "note_versions"
+          ],
+          "existing_table_overlap": {
+            "notes": [
+              "supabase/migrations/20261112154425_private_notes.sql"
+            ],
+            "note_versions": [
+              "supabase/migrations/20261112154425_private_notes.sql"
+            ]
+          }
+        },
+        {
+          "path": "supabase/migrations/20261112100000_eylo_calendar.sql",
+          "creates_tables": [
+            "calendar_events"
+          ],
+          "existing_table_overlap": {
+            "calendar_events": [
+              "supabase/migrations/20261112173500_eylo_calendar_events.sql"
+            ]
+          }
+        },
+        {
+          "path": "supabase/migrations/20261112120000_eylo_life.sql",
+          "creates_tables": [
+            "life_items",
+            "habit_checkins"
+          ],
+          "existing_table_overlap": {}
+        },
+        {
+          "path": "supabase/migrations/20261112130000_eylo_time_tracker.sql",
+          "creates_tables": [
+            "time_entries"
+          ],
+          "existing_table_overlap": {}
+        },
+        {
+          "path": "supabase/migrations/20261112140000_eylo_flashcards.sql",
+          "creates_tables": [
+            "flashcard_decks",
+            "flashcards",
+            "flashcard_reviews"
+          ],
+          "existing_table_overlap": {}
+        },
+        {
+          "path": "supabase/migrations/20261112150000_eylo_quizzes.sql",
+          "creates_tables": [
+            "quizzes",
+            "quiz_questions",
+            "quiz_attempts"
+          ],
+          "existing_table_overlap": {}
+        },
+        {
+          "path": "supabase/migrations/20261112160000_eylo_learn.sql",
+          "creates_tables": [
+            "learning_courses",
+            "learning_lessons",
+            "learning_enrollments",
+            "learning_lesson_progress"
+          ],
+          "existing_table_overlap": {}
+        }
+      ]
+    },
+    {
+      "number": 390,
+      "head_sha": "949c6cd87774ef7f556fafdd5775999d1da01569",
+      "migrations": []
+    },
+    {
+      "number": 389,
+      "head_sha": "60ffae364755edd6af9468443123350ca62c21da",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20261112_shared_discovery_rate_limit.sql",
+          "creates_tables": [
+            "discovery_rate_limits"
+          ],
+          "existing_table_overlap": {}
+        }
+      ]
+    },
+    {
+      "number": 388,
+      "head_sha": "2462d81c840e3bcb7ae199b282d16bad06b45166",
+      "migrations": []
+    },
+    {
+      "number": 387,
+      "head_sha": "4926b9ff8586eaa59bf7ec8588320be161d6f562",
+      "migrations": []
+    },
+    {
+      "number": 386,
+      "head_sha": "3e1569a04409a76b79512cda1c6d17a863c96e28",
+      "migrations": []
+    },
+    {
+      "number": 384,
+      "head_sha": "033675836ced7a5eb9d1fb86827359c1fe976996",
+      "migrations": []
+    },
+    {
+      "number": 382,
+      "head_sha": "fd5cb57ff346e0717e15de4751338209b00eb030",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20261112063310_discovery_rate_limits.sql",
+          "creates_tables": [
+            "private"
+          ],
+          "existing_table_overlap": {}
+        }
+      ]
+    },
+    {
+      "number": 379,
+      "head_sha": "9b8b9df2132817cb1c047c7904bcd38aecb98356",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20261112090000_project_scoped_grant_applications.sql",
+          "creates_tables": [
+            "grant_applications"
+          ],
+          "existing_table_overlap": {}
+        },
+        {
+          "path": "supabase/migrations/20261112091000_saved_paper_identity_uniqueness.sql",
+          "creates_tables": [],
+          "existing_table_overlap": {}
+        }
+      ]
+    },
+    {
+      "number": 378,
+      "head_sha": "55f424d264b476f367483247a122fad5d803b37f",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20261112090000_project_scoped_grant_applications.sql",
+          "creates_tables": [
+            "grant_applications"
+          ],
+          "existing_table_overlap": {}
+        }
+      ]
+    },
+    {
+      "number": 376,
+      "head_sha": "7ce5fc34536e9b4897e7d62502a0cdfb1c086dce",
+      "migrations": []
+    },
+    {
+      "number": 374,
+      "head_sha": "ee2e3728d16032a28fbb5fac43c25c4a83c33917",
+      "migrations": []
+    },
+    {
+      "number": 333,
+      "head_sha": "71d569eabfb3549b7a8a41bc8dabc62124d5a4f7",
+      "migrations": []
+    },
+    {
+      "number": 332,
+      "head_sha": "28ed431dc05064c5b677fbc10446d3a55f164338",
+      "migrations": []
+    },
+    {
+      "number": 331,
+      "head_sha": "641e8ec6d2b40a035f215fb4eb7a656390546e49",
+      "migrations": []
+    },
+    {
+      "number": 330,
+      "head_sha": "de1c29c589afa215d2738d29e85b4bc3bfdbbe2d",
+      "migrations": []
+    },
+    {
+      "number": 329,
+      "head_sha": "da84503dfdbef2670cca2c446eb626e7e67a6c18",
+      "migrations": []
+    },
+    {
+      "number": 328,
+      "head_sha": "c5a40b58d5b6748e441440706236c48d4454f97e",
+      "migrations": []
+    },
+    {
+      "number": 327,
+      "head_sha": "f1602100e89d19102fe253ca13e2c5aa0cec0e60",
+      "migrations": []
+    },
+    {
+      "number": 326,
+      "head_sha": "8ff17a59f2f6c1b5f7621b667f10e2b9240a0e60",
+      "migrations": []
+    },
+    {
+      "number": 325,
+      "head_sha": "6d4703616acf3e96a2f7da82e1ea9b9c570c6d8e",
+      "migrations": []
+    },
+    {
+      "number": 324,
+      "head_sha": "b4b89613da6db56060b52e9f3920860d9e9509f2",
+      "migrations": []
+    },
+    {
+      "number": 323,
+      "head_sha": "8d73f60bffe2840f9f8a0e398f51624d61001260",
+      "migrations": []
+    },
+    {
+      "number": 322,
+      "head_sha": "f27f6320e345db97a93ca8c7c7ead55f5c8c7671",
+      "migrations": []
+    },
+    {
+      "number": 321,
+      "head_sha": "fb452e58474708485d368dabc1acffa36996c627",
+      "migrations": []
+    },
+    {
+      "number": 320,
+      "head_sha": "74d7154ade466b91301c48318589d49103548699",
+      "migrations": []
+    },
+    {
+      "number": 319,
+      "head_sha": "2c219d179f1ae617d957654f669ecec34cb70d46",
+      "migrations": []
+    },
+    {
+      "number": 318,
+      "head_sha": "2c06b58be06b28ac245ea1d8f85455e471ed2bde",
+      "migrations": []
+    },
+    {
+      "number": 317,
+      "head_sha": "cbda4808f934d462eece9fe48b851b9f815cbeaf",
+      "migrations": []
+    },
+    {
+      "number": 315,
+      "head_sha": "1f6f9e1a844128af816d49f9036dcfc970bc3f1c",
+      "migrations": []
+    },
+    {
+      "number": 311,
+      "head_sha": "52481abbb17a56cbf24f19ec9c2798294d0d6216",
+      "migrations": []
+    },
+    {
+      "number": 310,
+      "head_sha": "777dcca7b2aff5e04513584b00585097974e82ee",
+      "migrations": []
+    },
+    {
+      "number": 294,
+      "head_sha": "57586db8af8a8aab2be629872a27cedd8ab6e6c3",
+      "migrations": []
+    },
+    {
+      "number": 292,
+      "head_sha": "4ef91056da36456a47e719abc94814eba6d3beb0",
+      "migrations": []
+    },
+    {
+      "number": 289,
+      "head_sha": "0e41eb154a151413fa5bd54f602f25ea41f7e2c1",
+      "migrations": []
+    },
+    {
+      "number": 210,
+      "head_sha": "26847193eb2bde2a8451564dcdd61f6e9e402902",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20261107120000_collaboration_posts.sql",
+          "creates_tables": [
+            "collaboration_posts"
+          ],
+          "existing_table_overlap": {}
+        }
+      ]
+    },
+    {
+      "number": 209,
+      "head_sha": "dcd5c08cf03f8828ef53f38ba3585c64711a3eee",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20261107000000_account_deletion_request_intake.sql",
+          "creates_tables": [
+            "account_deletion_requests"
+          ],
+          "existing_table_overlap": {}
+        }
+      ]
+    },
+    {
+      "number": 204,
+      "head_sha": "588356f7c99b32f3b2c1a595d4cdb518cd3e0613",
+      "migrations": []
+    },
+    {
+      "number": 203,
+      "head_sha": "f65e1df4bb13f0c9ff232c2fb568d5aa23d8330c",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20260817090000_operational_services.sql",
+          "creates_tables": [
+            "public",
+            "institution_memberships"
+          ],
+          "existing_table_overlap": {
+            "public": [
+              "supabase/migrations/20260803_eylo_core_entities.sql",
+              "supabase/migrations/20260803_eylo_monitoring_entities.sql",
+              "supabase/migrations/20260817090000_operational_services.sql"
+            ],
+            "institution_memberships": [
+              "supabase/migrations/20260817090000_operational_services.sql"
+            ]
+          }
+        },
+        {
+          "path": "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
+          "creates_tables": [],
+          "existing_table_overlap": {}
+        },
+        {
+          "path": "supabase/migrations/20260817090700_analytics_smoke_verification.sql",
+          "creates_tables": [],
+          "existing_table_overlap": {}
+        }
+      ]
+    },
+    {
+      "number": 201,
+      "head_sha": "90bc651d17937f5b8b441ef0a28b3e309a841cad",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20260817090000_operational_services.sql",
+          "creates_tables": [
+            "public",
+            "institution_memberships"
+          ],
+          "existing_table_overlap": {
+            "public": [
+              "supabase/migrations/20260803_eylo_core_entities.sql",
+              "supabase/migrations/20260803_eylo_monitoring_entities.sql",
+              "supabase/migrations/20260817090000_operational_services.sql"
+            ],
+            "institution_memberships": [
+              "supabase/migrations/20260817090000_operational_services.sql"
+            ]
+          }
+        },
+        {
+          "path": "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
+          "creates_tables": [],
+          "existing_table_overlap": {}
+        },
+        {
+          "path": "supabase/migrations/20260817090700_analytics_smoke_verification.sql",
+          "creates_tables": [],
+          "existing_table_overlap": {}
+        }
+      ]
+    },
+    {
+      "number": 200,
+      "head_sha": "00a77d8b078098c294817af5f536913e9203b5f8",
+      "migrations": []
+    },
+    {
+      "number": 199,
+      "head_sha": "505d017dd8cea8a4b19a334f24351cff6e9c6515",
+      "migrations": []
+    },
+    {
+      "number": 197,
+      "head_sha": "ee2a9b26960a533f8dfdab0691f54be37b9b8be0",
+      "migrations": []
+    },
+    {
+      "number": 194,
+      "head_sha": "8774c3717f77f25c04f8e37a2b274cf52c8f1417",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20260817090000_operational_services.sql",
+          "creates_tables": [
+            "public",
+            "institution_memberships"
+          ],
+          "existing_table_overlap": {
+            "public": [
+              "supabase/migrations/20260803_eylo_core_entities.sql",
+              "supabase/migrations/20260803_eylo_monitoring_entities.sql",
+              "supabase/migrations/20260817090000_operational_services.sql"
+            ],
+            "institution_memberships": [
+              "supabase/migrations/20260817090000_operational_services.sql"
+            ]
+          }
+        },
+        {
+          "path": "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
+          "creates_tables": [],
+          "existing_table_overlap": {}
+        },
+        {
+          "path": "supabase/migrations/20260817090700_analytics_smoke_verification.sql",
+          "creates_tables": [],
+          "existing_table_overlap": {}
+        },
+        {
+          "path": "supabase/migrations/20261031105539_fix_analytics_profiles_and_service_role_grants.sql",
+          "creates_tables": [],
+          "existing_table_overlap": {}
+        }
+      ]
+    },
+    {
+      "number": 142,
+      "head_sha": "aecd337ea8181c94449154faaac6919ffd23d63a",
+      "migrations": []
+    },
+    {
+      "number": 141,
+      "head_sha": "7269df44dfd31da71b23deb17e88fc1c24fb811a",
+      "migrations": []
+    },
+    {
+      "number": 135,
+      "head_sha": "e037fcd69a42fa357b7bebfa7822739c441ad46e",
+      "migrations": []
+    },
+    {
+      "number": 131,
+      "head_sha": "94c6f8bca0ad817ae51c49ead9e1b004371d009e",
+      "migrations": []
+    },
+    {
+      "number": 130,
+      "head_sha": "9c483a7b0272f24b0ce8c19dfeed065a91ad5c43",
+      "migrations": []
+    },
+    {
+      "number": 127,
+      "head_sha": "2d724e849c60eddea53256352b3ccd9f6035b825",
+      "migrations": []
+    },
+    {
+      "number": 117,
+      "head_sha": "ed3370063bfc40d0e7cf151cfe673aadefcf93bd",
+      "migrations": [
+        {
+          "path": "supabase/migrations/20261016000100_platform_owners.sql",
+          "creates_tables": [
+            "platform_owners"
+          ],
+          "existing_table_overlap": {}
+        }
+      ]
+    },
+    {
+      "number": 114,
+      "head_sha": "254ec59721fbabab5111e7c1d7fff59823c5c7ad",
+      "migrations": []
+    },
+    {
+      "number": 112,
+      "head_sha": "4e15db41aa705fbb444e08429d18dd771725ed14",
+      "migrations": []
+    },
+    {
+      "number": 102,
+      "head_sha": "19d136632941287b44d576de86632e134bfacb39",
+      "migrations": []
+    },
+    {
+      "number": 100,
+      "head_sha": "ab44325959ba64679f48f635409a3d745828123b",
+      "migrations": []
+    },
+    {
+      "number": 94,
+      "head_sha": "b0b20ec954920a8aa958d29b79e8e446fd48df40",
+      "migrations": []
+    },
+    {
+      "number": 93,
+      "head_sha": "220a186f59c750ab9947bf8570b2ab9d34c3eac5",
+      "migrations": []
+    },
+    {
+      "number": 92,
+      "head_sha": "a59ed27b0a53fe34fa8f89613824d0f78cdcc967",
+      "migrations": []
+    },
+    {
+      "number": 91,
+      "head_sha": "46f314875dc44dd7c6a76006821f680e58bc85ea",
+      "migrations": []
+    },
+    {
+      "number": 90,
+      "head_sha": "ee0a8e86444d254c0296c007a9e95fbe56f009e3",
+      "migrations": []
+    },
+    {
+      "number": 89,
+      "head_sha": "cf7f756377a002aa9328ecf23643789198f917c2",
+      "migrations": []
+    },
+    {
+      "number": 86,
+      "head_sha": "fff5cfe3ad0d2549957f8baf4571e5e5feaa5de4",
+      "migrations": []
+    }
+  ]
+}

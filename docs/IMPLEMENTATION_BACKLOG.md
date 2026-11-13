@@ -47,7 +47,8 @@
 
 ### 5. AI Research Project Planner — partial
 
-- [ ] Extend Projects beyond milestones/ideas into tasks, dependencies, deliverables and progress.
+- [x] Add a structured, project-scoped workplan with researcher-set tasks, deliverables, target dates, status, prerequisite links and deterministic completion progress.
+- [x] Reject missing task titles, duplicate IDs, dangling dependencies and dependency cycles; retain explicit save and optimistic version checks.
 - [ ] Generate a reviewable draft plan from project context; require user acceptance before saving.
 - [ ] Link accepted plan items to EYRA, evidence, grants and monitoring.
 - [ ] Test ownership, persistence, editing, deletion and failure recovery.
@@ -119,6 +120,7 @@
 
 ## Work recorded
 
+- **2026-11-12:** Project Timeline now includes structured workplan records stored in the owner-scoped project's JSON data. Researchers can add and edit tasks, deliverables, target dates, status and one prerequisite; progress is derived from completed tasks. Task relationships are validated for unique IDs, valid references and cycles. Edits require explicit save using the project's optimistic updated-date check, and conflict errors preserve the local draft. Added helper coverage and a browser workflow using an isolated PostgREST fixture for task creation, persistence and reload; live Supabase authorization/concurrency remains unverified.
 - **2026-11-10:** Research Landscape now labels model output as candidate questions, includes retrieved abstract excerpts in the model context, requires exact paper IDs, drops candidates without a matching retrieved context record, links context and counterevidence records, and explains that retrieved papers do not establish a research gap. Added unit coverage for source-ID validation.
 - **2026-11-10:** Project Evidence adds a source-linked, editable matrix for linked papers; notes are stored on the project and exported as CSV with spreadsheet formula escaping. Missing notes are shown as unrecorded rather than inferred.
 - **2026-11-10:** Research Data Lab adds private, in-browser CSV preview, validation, missingness and numeric summaries, an accessible row chart, reproducible analysis steps, and formula-safe summary export. Dataset contents are not uploaded, persisted, or sent to AI.

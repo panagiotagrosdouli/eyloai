@@ -25,6 +25,7 @@ import { validateProjectEyraReport } from '@/lib/project-eyra-provenance.mjs';
 import { parseProjectTasks, toggleProjectTask } from '@/lib/project-tasks';
 import { buildProjectPlanDraft, acceptProjectPlanDraft } from '@/lib/project-plan-draft.mjs';
 import { exportEvidenceMatrixCsv, getEvidenceMatrixRows, NOTE_FIELDS } from '@/lib/evidence-matrix.mjs';
+import { canStartWorkplanTask, getWorkplanProgress, normalizeWorkplan, validateWorkplan } from '@/lib/project-workplan.mjs';
 
 const TABS = [
   { key: 'overview', label: 'Overview', icon: Target },
@@ -67,6 +68,13 @@ export default function ProjectDetail() {
   const loadGenerationRef = useRef(0);
   const [plannerDraft, setPlannerDraft] = useState('');
   const [plannerNotice, setPlannerNotice] = useState('');
+  const [workplanItems, setWorkplanItems] = useState([]);
+  const [workplanTitle, setWorkplanTitle] = useState('');
+  const [workplanDeliverable, setWorkplanDeliverable] = useState('');
+  const [workplanDueDate, setWorkplanDueDate] = useState('');
+  const [workplanDependency, setWorkplanDependency] = useState('');
+  const [workplanError, setWorkplanError] = useState('');
+  const [savingWorkplan, setSavingWorkplan] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -90,6 +98,13 @@ export default function ProjectDetail() {
     setLoadError('');
     setPlannerDraft('');
     setPlannerNotice('');
+    setWorkplanItems([]);
+    setWorkplanTitle('');
+    setWorkplanDeliverable('');
+    setWorkplanDueDate('');
+    setWorkplanDependency('');
+    setWorkplanError('');
+    setSavingWorkplan(false);
     const [projectResult, papersResult, researchersResult, opportunitiesResult, meetingsResult] = await Promise.allSettled([
       base44.entities.Project.get(id),
       // Query the links in Postgres, rather than fetching an arbitrary top 100
@@ -115,6 +130,7 @@ export default function ProjectDetail() {
     const opportunities = opportunitiesResult.status === 'fulfilled' ? opportunitiesResult.value : [];
     const mtgs = meetingsResult.status === 'fulfilled' ? meetingsResult.value : [];
     setProject(data);
+    setWorkplanItems(normalizeWorkplan(data.plan_items));
     setSavedPapers(papers.filter(item => item.project_id === id));
     const linkedPapers = papers.filter(item => item.project_id === id);
     const savedMatrix = data.evidence_matrix && typeof data.evidence_matrix === 'object' ? data.evidence_matrix : {};
@@ -197,6 +213,68 @@ export default function ProjectDetail() {
       toast({ title: 'Could not update task', description: error?.message || 'Please try again.', variant: 'destructive' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const addWorkplanTask = () => {
+    const title = workplanTitle.trim();
+    if (!title) return;
+    if (workplanItems.length >= 100) {
+      setWorkplanError('A project can contain at most 100 workplan tasks.');
+      return;
+    }
+    const id = globalThis.crypto?.randomUUID?.() || `task-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const next = normalizeWorkplan([...workplanItems, {
+      id, title, deliverable: workplanDeliverable, due_date: workplanDueDate,
+      status: 'todo', depends_on: workplanDependency ? [workplanDependency] : [],
+    }]);
+    const validation = validateWorkplan(next);
+    if (!validation.valid) {
+      setWorkplanError(validation.message);
+      return;
+    }
+    setWorkplanItems(validation.items);
+    setWorkplanTitle(''); setWorkplanDeliverable(''); setWorkplanDueDate(''); setWorkplanDependency(''); setWorkplanError('');
+  };
+
+  const updateWorkplanItem = (taskId, patch) => {
+    const current = workplanItems.find(item => item.id === taskId);
+    if (patch.status && patch.status !== 'done' && workplanItems.some(item => item.depends_on.includes(taskId) && ['in_progress', 'done'].includes(item.status))) {
+      setWorkplanError('Move dependent tasks back to To do before reopening this prerequisite.');
+      return;
+    }
+    if (patch.depends_on && current?.status !== 'todo' && !patch.depends_on.every(dependencyId => workplanItems.find(item => item.id === dependencyId)?.status === 'done')) {
+      setWorkplanError('Move this task back to To do before changing it to an incomplete prerequisite.');
+      return;
+    }
+    setWorkplanItems(previous => previous.map(item => item.id === taskId ? { ...item, ...patch } : item));
+    setWorkplanError('');
+  };
+
+  const saveWorkplan = async () => {
+    if (!project || savingWorkplan) return;
+    const generation = loadGenerationRef.current;
+    const projectId = id;
+    const validation = validateWorkplan(workplanItems);
+    if (!validation.valid) {
+      setWorkplanError(validation.message);
+      return;
+    }
+    setSavingWorkplan(true);
+    setWorkplanError('');
+    try {
+      const saved = await base44.entities.Project.updateIfUnchanged(projectId, { plan_items: validation.items }, project.updated_date);
+      if (loadGenerationRef.current !== generation) return;
+      setProject(previous => ({ ...previous, ...saved }));
+      setWorkplanItems(normalizeWorkplan(saved.plan_items));
+      toast({ title: 'Workplan saved' });
+    } catch (error) {
+      if (loadGenerationRef.current !== generation) return;
+      setWorkplanError(error?.code === 'ENTITY_CONFLICT'
+        ? 'This project changed in another session. Your workplan edits are still here; reload the project before saving again.'
+        : error?.message || 'Workplan could not be saved. Your edits are still here.');
+    } finally {
+      if (loadGenerationRef.current === generation) setSavingWorkplan(false);
     }
   };
 
@@ -416,8 +494,8 @@ Rules:
       </Link>
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div className="flex-1">
+      <div className="mb-6 flex min-w-0 flex-col items-start justify-between gap-4 sm:flex-row">
+        <div className="min-w-0 w-full sm:flex-1">
           <input
             type="text"
             value={editing.title}
@@ -425,7 +503,7 @@ Rules:
             className="w-full text-2xl sm:text-3xl font-heading font-bold bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground"
             placeholder="Project title"
           />
-          <div className="flex items-center gap-3 mt-2">
+          <div className="mt-2 flex flex-wrap items-center gap-3">
             <select
               value={editing.status}
               onChange={e => setEditing(prev => ({ ...prev, status: e.target.value }))}
@@ -440,7 +518,7 @@ Rules:
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
           <button
             onClick={runEyraAnalysis}
             disabled={analyzing}
@@ -774,6 +852,110 @@ Rules:
               </div>
             )}
             {plannerNotice && <p role="status" className="mt-2 text-xs text-muted-foreground">{plannerNotice}</p>}
+          </section>
+          <section className="rounded-xl border border-border bg-card p-4 sm:p-5" aria-labelledby="structured-workplan-title">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 id="structured-workplan-title" className="text-base font-semibold">Project workplan</h2>
+                <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
+                  Track researcher-defined tasks, deliverables, dates and prerequisites. Dates and task content come from you; EYLO does not estimate duration or scientific completion.
+                </p>
+              </div>
+              {(() => {
+                const progress = getWorkplanProgress(workplanItems);
+                return <div className="min-w-28 text-right" aria-label={`${progress.done} of ${progress.total} workplan tasks complete`}>
+                  <span className="text-sm font-semibold tabular-nums">{progress.percent}%</span>
+                  <p className="text-[11px] text-muted-foreground">{progress.done}/{progress.total} complete</p>
+                </div>;
+              })()}
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label htmlFor="workplan-new-title" className="mb-1 block text-xs font-medium">Task</label>
+                <input id="workplan-new-title" disabled={savingWorkplan} value={workplanTitle} onChange={event => setWorkplanTitle(event.target.value)} maxLength={500}
+                  placeholder="Describe a project task" className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+              </div>
+              <div>
+                <label htmlFor="workplan-new-deliverable" className="mb-1 block text-xs font-medium">Deliverable (optional)</label>
+                <input id="workplan-new-deliverable" disabled={savingWorkplan} value={workplanDeliverable} onChange={event => setWorkplanDeliverable(event.target.value)} maxLength={500}
+                  placeholder="What will this task produce?" className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+              </div>
+              <div>
+                <label htmlFor="workplan-new-date" className="mb-1 block text-xs font-medium">Target date (optional)</label>
+                <input id="workplan-new-date" type="date" disabled={savingWorkplan} value={workplanDueDate} onChange={event => setWorkplanDueDate(event.target.value)}
+                  className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+              </div>
+              <div className="sm:col-span-2">
+                <label htmlFor="workplan-new-dependency" className="mb-1 block text-xs font-medium">Depends on (optional)</label>
+                <select id="workplan-new-dependency" disabled={savingWorkplan} value={workplanDependency} onChange={event => setWorkplanDependency(event.target.value)}
+                  className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm">
+                  <option value="">No prerequisite</option>
+                  {workplanItems.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
+                </select>
+              </div>
+              <button type="button" onClick={addWorkplanTask} disabled={savingWorkplan || !workplanTitle.trim() || workplanItems.length >= 100}
+                className="min-h-10 justify-self-start rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary disabled:opacity-50">Add task</button>
+            </div>
+
+            {workplanError && <p role="alert" className="mt-3 rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-200">{workplanError}</p>}
+            {workplanItems.length ? <ol className="mt-4 space-y-3">
+              {workplanItems.map(item => {
+                const ready = canStartWorkplanTask(item, workplanItems);
+                const hasDependents = workplanItems.some(candidate => candidate.depends_on.includes(item.id));
+                return <li key={item.id} className="rounded-lg border border-border p-3 sm:p-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <label htmlFor={`workplan-title-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Task</label>
+                      <input id={`workplan-title-${item.id}`} disabled={savingWorkplan} value={item.title} maxLength={500} onChange={event => updateWorkplanItem(item.id, { title: event.target.value })}
+                        className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+                    </div>
+                    <div>
+                      <label htmlFor={`workplan-status-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Status</label>
+                      <select id={`workplan-status-${item.id}`} disabled={savingWorkplan} value={item.status} onChange={event => {
+                        if (['in_progress', 'done'].includes(event.target.value) && !ready) {
+                          setWorkplanError('Complete the prerequisite task before moving this task forward.');
+                          return;
+                        }
+                        updateWorkplanItem(item.id, { status: event.target.value });
+                      }}
+                        className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm">
+                        <option value="todo">To do</option><option value="in_progress" disabled={!ready}>In progress</option><option value="blocked">Blocked</option><option value="done" disabled={!ready}>Done</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor={`workplan-date-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Target date</label>
+                      <input id={`workplan-date-${item.id}`} type="date" disabled={savingWorkplan} value={item.due_date} onChange={event => updateWorkplanItem(item.id, { due_date: event.target.value })}
+                        className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+                    </div>
+                    <div>
+                      <label htmlFor={`workplan-deliverable-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Deliverable</label>
+                      <input id={`workplan-deliverable-${item.id}`} disabled={savingWorkplan} value={item.deliverable} maxLength={500} onChange={event => updateWorkplanItem(item.id, { deliverable: event.target.value })}
+                        className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+                    </div>
+                    <div>
+                      <label htmlFor={`workplan-dependency-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Depends on</label>
+                      <select id={`workplan-dependency-${item.id}`} disabled={savingWorkplan} value={item.depends_on[0] || ''} onChange={event => updateWorkplanItem(item.id, { depends_on: event.target.value ? [event.target.value] : [] })}
+                        className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm">
+                        <option value="">No prerequisite</option>
+                        {workplanItems.filter(candidate => candidate.id !== item.id).map(candidate => <option key={candidate.id} value={candidate.id}>{candidate.title}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[11px] text-muted-foreground">{ready ? 'Prerequisites complete' : 'Waiting for prerequisite task'}</span>
+                    <button type="button" disabled={savingWorkplan || hasDependents} title={hasDependents ? 'Remove dependent tasks first' : 'Remove task'}
+                      onClick={() => setWorkplanItems(previous => previous.filter(candidate => candidate.id !== item.id))}
+                      className="min-h-9 rounded-md border border-border px-2 text-xs text-muted-foreground hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40">Remove task</button>
+                  </div>
+                </li>;
+              })}
+            </ol> : <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-xs text-muted-foreground">No structured tasks yet. Add tasks you have reviewed for this project.</p>}
+            <button type="button" onClick={saveWorkplan} disabled={savingWorkplan || !project}
+              className="mt-4 min-h-10 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground disabled:opacity-50">
+              {savingWorkplan ? 'Saving workplan…' : 'Save workplan'}
+            </button>
+            <p role="status" className="mt-2 text-[11px] text-muted-foreground">Workplan edits are saved to this project only after you choose Save workplan.</p>
           </section>
           <div className="space-y-5">
           <div>

@@ -1,0 +1,45 @@
+# EYLO integration decisions — 2026-11-12
+
+Baseline: `7bf956a72d42f251c77cde7276dcb050cebd1a35`. All 65 open PRs were enumerated through GitHub, their exact heads obtained, and their merge-base file diffs and migration declarations inventoried locally. This is an inventory and focused integration review, not a complete security review of every historical PR.
+
+## Canonical contracts
+
+- Keep the Notes/Life/Calendar/Study/Flashcards contracts already on main: `notes`/`note_versions`, `life_tasks`, `life_goals`, `study_flashcard_decks`, `calendar_events`, and metadata-only `activity_events`. Preserve the existing owner-filtered entity facade, optimistic `updated_date` writes and bounded workspace-search RPC.
+- #388's feature implementation is already present through the merged dashboard foundation; its latest remaining merge-base diff is browser-test synchronization. Do not reapply its migrations.
+- #391 introduces separate Notes, Calendar, Life, Flashcards, Quiz and Learn models. Its `time_entries.life_item_id` depends on `life_items`, while main uses `life_tasks`. Whole-branch integration would create competing sources of truth. Preserve that branch; port the distinct timer, quiz and course workflows only after adapting links and tests to the canonical model.
+- #393 uses polymorphic `learning_records` plus a second note-version table for notes, tasks, goals, habits, decks and quizzes. Main already provides those records in dedicated tables. Do not add a parallel learning database. Reuse its learning UX and deterministic revision/scoring logic selectively when implementing the remaining course/quiz journey. Its HTML sanitizer also needs security review before reuse (text-node serialization must remain escaped).
+- #395 uses dedicated private file metadata/version tables and Supabase Storage; it does not replace Notes. Its separate metadata-search RPC avoids replacing the canonical workspace-search migration. Integrate with explicit corrections for the create route and retrieval beyond the 500-file recent list. Two SQL files are repository proposals only; no database application is authorized until the intended staging identity is verified.
+- #392 uses `projects.data.plan_items` and the existing compare-and-set interface. Keep it separate from `projects.data.decision_records` already merged through #397; no new project table or migration is needed.
+- #387's catalog is opt-in browser-local metadata scoped by account. Preserve its no-raw-data storage rule; it is not hosted file storage. Its descriptive comparisons do not prove significance or causality.
+
+## Other overlapping candidates
+
+- Funding #374 → #376 → #378 → #379 is a stack. The later branches already contain earlier funding-ranking/comparison work. Review the cumulative patch rather than merging four copies. Both #378 and #379 include the same project-grant migration; apply it once only after staging review.
+- Discovery #382 and #389 propose distinct rate-limit stores and API contracts. Select one shared atomic design after comparing fail-closed behavior, trusted client identity and deployment dependencies; do not install both limiters.
+- #384 changes production routing and readiness across APIs. Keep it as a separate reviewed integration batch; public HTTP availability alone cannot validate those configuration gates.
+- Older Research OS/security/UX stacks (#331/#333, #203, #89–#94 and related fixes) have substantial main-only history. An open PR is not proof that all its work is absent. The machine register records ancestry, patch-equivalent commits, exact changed files and shared migration tables. Remaining patches require behavior-level comparison before adoption; no historical whole-branch merge is approved by this inventory.
+
+## Live verification boundary
+
+Fresh connector checks expose only Supabase project `supabase-cyan-car` (`umzrggayitzfgrrofjnw`), previously identified as unrelated, and a Vercel Hobby team with no linked projects. The owner supplied `kbzjngpzxpniaumlupaa` as EYLO's intended project. Direct `get_project` returned permission denied. The existing `tests/e2e-supabase-project-concurrency.mjs` specifically identifies that ref as live EYLO and refuses staging writes to it; that guard remains intact. A separate authorized staging project is still needed. Vercel deployment lookup for the public hostname returned 404 in the connected team. No remote SQL, migrations, account creation, deployment, billing change or production writes were made.
+
+The public URL passed 8/8 HTTP smoke checks using the environment proxy. Its manifest returns release label `2026-08-10-guided-discovery-eyra-resilience`; the reviewed Git SHA was not established. This is current availability evidence, not deployment-integrity or authenticated acceptance evidence.
+
+Unblocked local work includes source integration, deterministic tests, browser fixtures, static checks and build verification. Live registration/recovery, real persistence and two-account RLS, Storage cleanup, scholarly quality judgments, authenticated EYRA, LiveKit media and Stripe sandbox lifecycle remain unverified. Never mark all 77 products complete from these checks.
+
+## Completed local integration batch
+
+1. `a617ced` integrates #395 with create-route correction, exact-ID retrieval outside the recent-file cap, account-scoped document drafts and stale-result guards. Browser fixtures were corrected to honor PostgREST singular responses and extract uploaded file bytes from multipart requests; hidden version options are checked as attached rather than visible.
+2. `2a8ec2b` ports the reviewed #392 workplan patch onto the canonical project record. The combined browser suite preserves the existing Notes, Files and search cases and checks competing workplan sessions without discarding the losing draft.
+3. `45f16d5` ports #387's local metadata catalog, descriptive comparisons and disclosure controls. All existing tests are retained. The workplan UI also permits an explicit Blocked state while a prerequisite is unfinished, matching domain validation.
+4. Follow-up recovery hardening retains immutable version metadata and bytes when a later file-details update fails, with a test for that partial commit. The operation reports that the version was stored and requires reload/verification before retrying.
+
+`scripts/integration/test-local-postgres.py` runs ten selected migrations on a disposable PostgreSQL 17.6 container with no network or published ports. Minimal local Auth identity and Storage metadata schemas replace the hosted services. The SQL checks real policy/trigger execution, owner and outsider visibility, owner-only associations, historical note snapshots, bounded search and stale compare-and-set rejection. Two independent database sessions competing on one project version produce one successful save and one conflict. This is stronger than an in-memory fixture, but does not verify Supabase Auth, PostgREST, Storage bytes or the deployed schema. The script removes only its own randomly named container.
+
+## Next integration batches
+
+- Adapt #391's distinct Time Tracker, Quiz and Learn workflows to the selected main contracts; do not install its competing Notes/Life/Flashcards migrations or #393's duplicate record store. Retain the unintegrated branch work for review.
+- Review the funding stack cumulatively, preserving official source fields and applying each unique migration once.
+- Select one discovery limiter after API and migration review. Current live retrieval diagnostics fail: 2/5 queries have sufficient source coverage; Europe PMC returned 503 and Semantic Scholar 429. These are recorded experimental observations, not scientific relevance judgments.
+- Review #384 as a separate operational change, then run the remaining historical PR comparisons at behavior level. The 65-PR inventory does not authorize blind merges.
+- Complete every unimplemented product's workflow specification and acceptance criteria. The current register explicitly retains incomplete and unimplemented products; no 77-product completion is claimed.

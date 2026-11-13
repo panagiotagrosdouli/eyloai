@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { createHash } from 'node:crypto';
-import { readFile as readDataLabDownload } from 'node:fs/promises';
+import { mkdir, readFile as readDataLabDownload } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { parseResearchCsv } from '../src/lib/research-data.mjs';
 
 const baseUrl = 'http://127.0.0.1:4173';
 const server = spawn('npx', ['vite', '--host', '127.0.0.1', '--port', '4173', '--strictPort'], {
@@ -16,6 +17,13 @@ const server = spawn('npx', ['vite', '--host', '127.0.0.1', '--port', '4173', '-
 });
 
 let browser;
+
+async function captureFixturePage(page, name) {
+  const directory = process.env.EYLO_E2E_ARTIFACT_DIR;
+  if (!directory) return;
+  await mkdir(directory, { recursive: true });
+  await page.screenshot({ path: `${directory}/${name}.png`, fullPage: true });
+}
 
 async function waitForServer() {
   const deadline = Date.now() + 30_000;
@@ -185,13 +193,37 @@ try {
     buffer: originalCsv,
   });
   await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor();
+  await dataLab.getByRole('row', { name: /score numeric — — —/ }).waitFor();
+  assert.match(await dataLab.locator('[role="note"]').first().innerText(), /aggregate-only export is not guaranteed to be anonymous/i);
+  await dataLab.getByLabel('Minimum disclosure cell size').selectOption('1');
   await dataLab.getByRole('row', { name: /score numeric 3 1 2 1.5/ }).waitFor();
   await dataLab.getByRole('img', { name: 'Bar chart of score by row number' }).waitFor();
   const summaryDownload = dataLab.waitForEvent('download');
   await dataLab.getByRole('button', { name: 'Export summary CSV' }).click();
-  assert.equal((await summaryDownload).suggestedFilename(), 'research-data-summary.csv');
+  const summaryFile = await summaryDownload;
+  assert.equal(summaryFile.suggestedFilename(), 'research-data-summary.csv');
+  const summaryCsv = await readDataLabDownload(await summaryFile.path(), 'utf8');
+  const parsedSummary = parseResearchCsv(summaryCsv);
+  assert.equal(parsedSummary.headers.includes('Disclosure'), true);
+  assert.ok(parsedSummary.rows.every(row => row.length === parsedSummary.headers.length));
+  assert.equal(summaryCsv.includes(canary), false, 'summary export must not contain raw source text');
   await dataLab.getByText('Local file identity (SHA-256)').waitFor();
   await dataLab.getByText(digestOf(originalCsv), { exact: true }).waitFor();
+  await dataLab.getByRole('button', { name: 'Save metadata to Data Catalog' }).click();
+  await dataLab.getByRole('status').filter({ hasText: 'Dataset metadata saved in this browser.' }).waitFor();
+  assert.equal(await dataLab.getByRole('listitem').filter({ hasText: digestOf(originalCsv) }).count(), 1,
+    'saved metadata must appear in the Data Catalog list');
+  const catalogStorage = await dataLab.evaluate(() => localStorage.getItem('eylo.research-data-catalog.v1:eylo-e2e-user'));
+  assert.ok(catalogStorage.includes(digestOf(originalCsv)));
+  assert.equal(catalogStorage.includes(canary), false, 'the catalog must never persist raw CSV values');
+  const catalogDownloadPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export catalog metadata' }).click();
+  const catalogDownload = await catalogDownloadPromise;
+  assert.equal(catalogDownload.suggestedFilename(), 'eylo-local-research-catalog.json');
+  const exportedCatalog = JSON.parse(await readDataLabDownload(await catalogDownload.path(), 'utf8'));
+  assert.equal(exportedCatalog.rawDataIncluded, false);
+  assert.equal(exportedCatalog.anonymityGuaranteed, false);
+  assert.equal(JSON.stringify(exportedCatalog).includes(canary), false);
 
   const qualityPromise = dataLab.waitForEvent('download');
   await dataLab.getByRole('button', { name: 'Export quality JSON' }).click();
@@ -211,13 +243,77 @@ try {
   });
   await dataLab.getByText(digestOf(modifiedCsv), { exact: true }).waitFor();
   assert.notEqual(digestOf(modifiedCsv), digestOf(originalCsv));
-  assert.equal(await dataLab.getByText(digestOf(originalCsv), { exact: true }).count(), 0,
-    'Replacing a file must not expose the previous fingerprint');
+  assert.equal(await dataLab.getByRole('listitem').filter({ hasText: digestOf(originalCsv) }).count(), 1,
+    'Replacing the active file must not silently erase its separately saved catalog metadata');
+  await dataLab.getByRole('button', { name: 'Remove study.csv from catalog' }).click();
+  assert.equal(await dataLab.getByRole('listitem').filter({ hasText: digestOf(originalCsv) }).count(), 0,
+    'Removing a catalog entry must remove its saved fingerprint');
+  await dataLab.getByRole('button', { name: 'Save metadata to Data Catalog' }).click();
+  await dataLab.getByRole('button', { name: 'Clear catalog' }).click();
+  await dataLab.getByRole('button', { name: 'Confirm clear catalog' }).click();
+  assert.equal(await dataLab.evaluate(() => localStorage.getItem('eylo.research-data-catalog.v1:eylo-e2e-user')), null,
+    'Clear catalog must remove the browser-local metadata');
 
   await dataLab.getByRole('button', { name: 'Clear data' }).click();
   await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor({ state: 'detached' });
   assert.equal(await dataLab.getByText('Local file identity (SHA-256)').count(), 0,
     'Clear must remove the fingerprint');
+
+  await dataLab.locator('input[type="file"]').setInputFiles({
+    name: 'relationship.csv', mimeType: 'text/csv',
+    buffer: Buffer.from('hours,score\n1,2\n2,4\n3,6\n,8\n'),
+  });
+  await dataLab.getByLabel('Minimum disclosure cell size').selectOption('1');
+  const comparisonStatus = dataLab.getByRole('status').filter({ hasText: 'Pearson correlation, r' });
+  await comparisonStatus.waitFor();
+  const comparisonText = await comparisonStatus.innerText();
+  assert.match(comparisonText, /Pearson correlation, r\s+1/);
+  assert.match(comparisonText, /Complete pairs used\s+3/);
+  assert.match(comparisonText, /Rows skipped for blanks or non-numeric cells\s+1/);
+  await dataLab.getByRole('img', { name: 'Scatter plot of hours against score using a sample of 3 complete rows' }).waitFor();
+  const comparisonDownloadPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export comparison CSV' }).click();
+  const comparisonDownload = await comparisonDownloadPromise;
+  assert.equal(comparisonDownload.suggestedFilename(), 'research-variable-comparison.csv');
+  const comparisonCsv = await readDataLabDownload(await comparisonDownload.path(), 'utf8');
+  assert.match(comparisonCsv, /Pearson correlation \(r\)/);
+  assert.match(comparisonCsv, /Complete pairs used/);
+  assert.equal(comparisonCsv.includes(canary), false, 'comparison export must not include private source values');
+  await dataLab.locator('input[type="file"]').setInputFiles({
+    name: 'grouped-study.csv', mimeType: 'text/csv',
+    buffer: Buffer.from('group,score\ncontrol,1\ncontrol,3\ntreatment,5\ntreatment,7\nrare,987654321\n,9\n'),
+  });
+  await dataLab.getByLabel('Minimum disclosure cell size').selectOption('5');
+  await dataLab.getByText('Small groups below k=5 are omitted without showing their labels, counts, or numeric summaries.').waitFor();
+  const suppressedExportPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export comparison CSV' }).click();
+  const suppressedExport = await suppressedExportPromise;
+  const suppressedCsv = await readDataLabDownload(await suppressedExport.path(), 'utf8');
+  assert.equal(suppressedCsv.includes('control'), false);
+  assert.equal(suppressedCsv.includes('treatment'), false);
+  assert.equal(suppressedCsv.includes('rare'), false);
+  assert.equal(suppressedCsv.includes('987654321'), false, 'the suppressed singleton value must not be exported');
+  await dataLab.getByLabel('Minimum disclosure cell size').selectOption('1');
+  await dataLab.getByText('Observed categories', { exact: true }).waitFor();
+  await dataLab.getByRole('row', { name: /control 2 2 2 1\.4142 1 3/ }).waitFor();
+  await dataLab.getByRole('row', { name: /treatment 2 6 6 1\.4142 5 7/ }).waitFor();
+  await dataLab.setViewportSize({ width: 375, height: 812 });
+  assert.equal(await dataLab.getByLabel('Comparison variable 1').isVisible(), true);
+  assert.equal(await dataLab.getByLabel('Comparison variable 2').isVisible(), true);
+  await captureFixturePage(dataLab, 'data-comparison-mobile');
+  await dataLab.getByRole('button', { name: 'Export comparison CSV' }).scrollIntoViewIfNeeded();
+  assert.equal(await dataLab.getByRole('button', { name: 'Export comparison CSV' }).isVisible(), true);
+  const groupedExportPromise = dataLab.waitForEvent('download');
+  await dataLab.getByRole('button', { name: 'Export comparison CSV' }).click();
+  const groupedExport = await groupedExportPromise;
+  const groupedCsv = await readDataLabDownload(await groupedExport.path(), 'utf8');
+  assert.match(groupedCsv, /"Category","Count","Mean","Median","Sample SD","Minimum","Maximum"/);
+  assert.match(groupedCsv, /"control","2","2","2"/);
+  const parsedGrouped = parseResearchCsv(groupedCsv);
+  assert.ok(parsedGrouped.rows.every(row => row.length === parsedGrouped.headers.length));
+  assert.equal(groupedCsv.includes(canary), false, 'grouped export must not contain the unrelated raw source text');
+  await dataLab.setViewportSize({ width: 1365, height: 900 });
+  await dataLab.getByRole('button', { name: 'Clear data' }).click();
 
   await dataLab.locator('input[type="file"]').setInputFiles({
     name: 'oversized.csv', mimeType: 'text/csv',
@@ -567,6 +663,18 @@ try {
         : [];
     await route.fulfill({ status: 200, headers, body: JSON.stringify({ total: args.p_source === 'Project' ? 21 : args.p_source === 'Note' ? 1 : 0, page: args.p_page, page_size: args.p_page_size, items }) });
   });
+  await dataLab.route('**/rest/v1/rpc/search_private_files', async route => {
+    const request = route.request();
+    const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'content-type': 'application/json' };
+    if (request.method() === 'OPTIONS') { await route.fulfill({ status: 204, headers }); return; }
+    const args = request.postDataJSON();
+    assert.equal(args.p_query, 'climate');
+    assert.ok(args.p_page_size <= 50);
+    await route.fulfill({ status: 200, headers, body: JSON.stringify({
+      total: 1, page: args.p_page, page_size: args.p_page_size,
+      items: [{ id: 'file-1', title: 'Climate protocol.md', snippet: 'Source screening workflow', score: 0.7, updated_date: '2026-11-12T00:00:00Z' }],
+    }) });
+  });
   await dataLab.route('**/rest/v1/notes**', async route => {
     const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'content-type': 'application/json' };
     if (route.request().method() === 'OPTIONS') { await route.fulfill({ status: 204, headers }); return; }
@@ -586,8 +694,11 @@ try {
   await dataLab.getByRole('alert').getByText('Partial results:', { exact: false }).waitFor();
   await dataLab.getByRole('link', { name: 'Climate note' }).waitFor();
   await dataLab.getByRole('link', { name: 'Climate project 1' }).waitFor();
+  const fileSearchResult = dataLab.getByRole('link', { name: 'Climate protocol.md' });
+  await fileSearchResult.waitFor();
+  assert.equal(await fileSearchResult.getAttribute('href'), '/files?focus=file-1');
   assert.equal(await dataLab.getByText('Page 1 of 2').isVisible(), true);
-  assert.ok(searchRpcCalls >= 8, 'one bounded server search call is made per source');
+  assert.ok(searchRpcCalls >= 8, 'one bounded server search call is made per workspace source');
   await dataLab.getByRole('region', { name: 'Projects search results' }).getByRole('button', { name: 'Next' }).click();
   await dataLab.getByRole('link', { name: 'Climate project 2' }).waitFor();
   await dataLab.getByRole('link', { name: 'Climate note' }).click();
@@ -597,6 +708,287 @@ try {
   await dataLab.waitForFunction(() => document.querySelector('#note-title')?.value === 'Climate note');
   assert.equal(await dataLab.getByLabel('Note title').inputValue(), 'Climate note', 'record deep link should open the exact saved note');
   console.log('Universal Search rendered paginated results, partial source coverage and opened the exact note from an RPC-shaped response.');
+
+  // EYLO Files browser workflow uses isolated PostgREST and Storage fixtures;
+  // it exercises the real page and SDK calls without touching a live project.
+  const filesPage = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await filesPage.route('https://eylo-auth-test.supabase.co/auth/v1/token?grant_type=password', route => sendAuthJson(route, {
+    access_token: 'eylo-files-e2e-access-token', token_type: 'bearer', expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: 'eylo-files-e2e-refresh-token', user: testUser,
+  }));
+  await filesPage.route('https://eylo-auth-test.supabase.co/auth/v1/user**', route => sendAuthJson(route, testUser));
+  const fileRows = [];
+  const versionRows = [];
+  const storedObjects = new Map();
+  await filesPage.route('https://eylo-auth-test.supabase.co/rest/v1/**', async route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: {
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+      'access-control-allow-headers': '*',
+    } });
+    const table = url.pathname.split('/').at(-1);
+    if (table === 'projects') return sendAuthJson(route, [{ id: 'file-project-1', user_id: testUser.id, data: { title: 'File project' } }]);
+    if (table === 'eylo_files') {
+      const id = url.searchParams.get('id')?.replace('eq.', '');
+      if (request.method() === 'GET') {
+        const rows = fileRows.filter(row => (!id || row.id === id) && row.user_id === testUser.id);
+        return sendAuthJson(route, request.headers().accept?.includes('application/vnd.pgrst.object+json') ? rows[0] : rows);
+      }
+      if (request.method() === 'POST') {
+        const row = { ...request.postDataJSON(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+        fileRows.push(row); return sendAuthJson(route, row);
+      }
+      if (request.method() === 'PATCH') {
+        const row = fileRows.find(item => item.id === id);
+        if (!row) return sendAuthJson(route, []);
+        Object.assign(row, request.postDataJSON(), { updated_at: new Date().toISOString() });
+        return sendAuthJson(route, row);
+      }
+      if (request.method() === 'DELETE') {
+        const index = fileRows.findIndex(item => item.id === id);
+        const removed = index >= 0 ? fileRows.splice(index, 1) : [];
+        return sendAuthJson(route, removed);
+      }
+    }
+    if (table === 'eylo_file_versions') {
+      if (request.method() === 'GET') {
+        const ids = (url.searchParams.get('file_id') || '').match(/\((.*)\)/)?.[1]?.replaceAll('"', '').split(',') || [];
+        const fileId = url.searchParams.get('file_id')?.replace('eq.', '');
+        const versionId = url.searchParams.get('id')?.replace('eq.', '');
+        const matchingRows = versionRows.filter(row => (ids.includes(row.file_id) || row.file_id === fileId) && (!versionId || row.id === versionId) && row.user_id === testUser.id)
+          .sort((left, right) => right.version_number - left.version_number);
+        const limit = Number(url.searchParams.get('limit')) || matchingRows.length;
+        return sendAuthJson(route, request.headers().accept?.includes('application/vnd.pgrst.object+json') ? matchingRows[0] : matchingRows.slice(0, limit));
+      }
+      if (request.method() === 'POST') {
+        const row = { ...request.postDataJSON(), created_at: new Date().toISOString() };
+        versionRows.push(row); return sendAuthJson(route, row);
+      }
+    }
+    // The authenticated application shell also loads a private watchlist summary.
+    // Keep this test fixture isolated and do not mistake that unrelated GET for
+    // an EYLO Files request; other unexpected write operations still fail.
+    if (['watchlists', 'monitoring_discoveries', 'notifications'].includes(table) && request.method() === 'GET') return sendAuthJson(route, []);
+    throw new Error(`Unexpected EYLO Files database request ${request.method()} ${url.pathname}`);
+  });
+  await filesPage.route('https://eylo-auth-test.supabase.co/rest/v1/rpc/search_private_files', async route => {
+    const request = route.request();
+    const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'content-type': 'application/json' };
+    if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
+    const args = request.postDataJSON();
+    assert.equal(args.p_query, 'protocol');
+    assert.ok(args.p_page_size <= 50);
+    const file = fileRows.find(row => row.name.toLocaleLowerCase().includes(args.p_query));
+    return route.fulfill({ status: 200, headers, body: JSON.stringify({
+      total: file ? 1 : 0, page: args.p_page, page_size: args.p_page_size,
+      items: file ? [{ id: file.id, title: file.name, snippet: file.description, score: 0.7, updated_date: file.updated_at }] : [],
+    }) });
+  });
+  await filesPage.route('https://eylo-auth-test.supabase.co/storage/v1/**', async route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: {
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'GET, POST, DELETE, OPTIONS',
+      'access-control-allow-headers': '*',
+    } });
+    if (request.method() === 'POST' && url.pathname.includes('/object/eylo-files/')) {
+      const path = decodeURIComponent(url.pathname.split('/object/eylo-files/')[1]);
+      const form = await new Response(request.postDataBuffer(), { headers: { 'content-type': request.headers()['content-type'] } }).formData();
+      const uploadedFile = [...form.values()].find(value => typeof value !== 'string');
+      assert.ok(uploadedFile, 'the upload must include file bytes');
+      storedObjects.set(path, Buffer.from(await uploadedFile.arrayBuffer()));
+      return sendAuthJson(route, { Key: path });
+    }
+    if (request.method() === 'GET' && url.pathname.includes('/object/')) {
+      const path = decodeURIComponent(url.pathname.split('/object/').at(-1).replace(/^authenticated\//, '').replace(/^eylo-files\//, ''));
+      const bytes = storedObjects.get(path);
+      if (!bytes) return route.fulfill({ status: 404, body: 'Not found' });
+      return route.fulfill({ status: 200, body: bytes, headers: { 'content-type': 'text/plain' } });
+    }
+    if (request.method() === 'DELETE' && url.pathname.endsWith('/object/eylo-files')) {
+      for (const path of request.postDataJSON().prefixes) storedObjects.delete(path);
+      return sendAuthJson(route, []);
+    }
+    throw new Error(`Unexpected EYLO Files storage request ${request.method()} ${url.pathname}`);
+  });
+  await filesPage.goto(`${baseUrl}/login`);
+  await filesPage.getByLabel('Email address').fill(testUser.email);
+  await filesPage.getByLabel('Password').fill('Test-password-123');
+  await filesPage.getByRole('button', { name: 'Continue with password' }).click();
+  await filesPage.getByRole('heading', { name: 'Continue your research' }).waitFor({ state: 'detached' });
+  await filesPage.goto(`${baseUrl}/files`);
+  await filesPage.getByRole('heading', { name: 'EYLO Files' }).waitFor();
+  await filesPage.locator('input[type="file"]').setInputFiles({ name: 'protocol.txt', mimeType: 'text/plain', buffer: Buffer.from('version one') });
+  await filesPage.getByText('protocol.txt', { exact: true }).waitFor();
+  assert.equal(fileRows.length, 1);
+  assert.equal(versionRows.length, 1);
+  assert.equal(storedObjects.size, 1);
+  await filesPage.getByLabel('File note').fill('Methods protocol');
+  await filesPage.getByLabel('Link protocol.txt to a project').selectOption('file-project-1');
+  await filesPage.getByRole('button', { name: 'Save details' }).click();
+  await filesPage.getByText('Open linked project').waitFor();
+  await filesPage.getByRole('button', { name: 'Upload new version' }).click();
+  await filesPage.locator('input[type="file"]').setInputFiles({ name: 'protocol.txt', mimeType: 'text/plain', buffer: Buffer.from('version two') });
+  await filesPage.getByText('New file version saved').waitFor({ timeout: 8000 });
+  assert.equal(versionRows.length, 2, 'the browser submitted and persisted the second version row');
+  await filesPage.getByText('Version 2 · latest').waitFor({ timeout: 8000 });
+  assert.equal(versionRows.length, 2, 'each upload is stored as a separate immutable version');
+  assert.equal(storedObjects.size, 2, 'the earlier object remains available after a replacement upload');
+  const savedFileId = fileRows[0].id;
+  await filesPage.goto(`${baseUrl}/workspace/search`);
+  await filesPage.getByRole('heading', { name: 'Search your workspace' }).waitFor();
+  await filesPage.getByLabel('Filter by source').selectOption('EyloFile');
+  await filesPage.getByRole('searchbox', { name: 'Search your records' }).fill('protocol');
+  await filesPage.getByRole('link', { name: 'protocol.txt' }).click();
+  assert.equal(new URL(filesPage.url()).pathname, '/files');
+  assert.equal(new URL(filesPage.url()).searchParams.get('focus'), savedFileId);
+  await filesPage.getByRole('heading', { name: 'EYLO Files' }).waitFor();
+  const focusedFileCard = filesPage.locator(`#eylo-file-${savedFileId}`);
+  try {
+    await focusedFileCard.waitFor({ timeout: 8000 });
+  } catch (cause) {
+    console.log('EYLO FILE FOCUS DIAGNOSTIC', JSON.stringify({ fileRows, url: filesPage.url(), body: (await filesPage.locator('body').innerText()).slice(-1800) }));
+    throw cause;
+  }
+  assert.match(await focusedFileCard.getAttribute('class'), /border-primary/, 'search deep link focuses the exact private file');
+  await filesPage.reload();
+  await filesPage.getByText('Methods protocol').waitFor();
+  assert.equal(await filesPage.getByLabel('Link protocol.txt to a project').inputValue(), 'file-project-1');
+  const versionDownload = filesPage.waitForEvent('download');
+  await filesPage.getByRole('button', { name: 'Download' }).first().click();
+  assert.equal((await versionDownload).suggestedFilename(), 'protocol.txt');
+  await filesPage.getByRole('link', { name: 'Create a document' }).first().click();
+  await filesPage.getByRole('heading', { name: 'Document Editor' }).waitFor();
+  const editor = filesPage.getByLabel('Document text (Markdown)');
+  await editor.fill('# Proposal\n\nA source-linked research plan.');
+  await filesPage.getByRole('button', { name: 'Save version' }).click();
+  await filesPage.getByRole('heading', { name: 'Document Editor' }).waitFor();
+  await filesPage.getByText('All changes saved').waitFor();
+  const markdownPath = new URL(filesPage.url()).pathname;
+  assert.match(markdownPath, /^\/documents\/[\da-f-]+$/i);
+  assert.equal(fileRows.length, 2);
+  const editorBody = filesPage.getByLabel('Document text (Markdown)');
+  await editorBody.fill('# Proposal\n\nRevised with a verified citation.');
+  await filesPage.getByRole('button', { name: 'Save version' }).click();
+  await filesPage.getByRole('option', { name: /Version 2 ·/ }).waitFor({ state: 'attached' });
+  await filesPage.getByText('All changes saved').waitFor();
+  await filesPage.reload();
+  await filesPage.getByText('All changes saved').waitFor();
+  assert.equal(await filesPage.getByLabel('Document text (Markdown)').inputValue(), '# Proposal\n\nRevised with a verified citation.');
+  const markdownExport = filesPage.waitForEvent('download');
+  await filesPage.getByRole('button', { name: 'Export Markdown' }).click();
+  assert.equal((await markdownExport).suggestedFilename(), 'Untitled research note.md');
+  await captureFixturePage(filesPage, 'document-editor-mobile');
+  await filesPage.setViewportSize({ width: 1365, height: 900 });
+  await captureFixturePage(filesPage, 'document-editor-wide');
+  console.log('EYLO Files browser workflow passed against isolated PostgREST and Storage fixtures.');
+  // Exercise structured workplan creation, dependency/progress UI, optimistic
+  // persistence and reload against a provider-shaped PostgREST fixture.
+  const workplanId = 'workplan-e2e-1';
+  let workplanData = { title: 'Workplan E2E project', goal: 'Verify project task persistence', status: 'active', plan_items: [] };
+  let workplanVersion = '2026-11-12T00:00:00.000Z';
+  const workplanRow = () => ({
+    id: workplanId, user_id: testUser.id, created_at: '2026-11-11T00:00:00.000Z', updated_at: workplanVersion,
+    data: workplanData,
+  });
+  let workplanWrites = 0;
+  const workplanPostgrestFixture = async route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const table = url.pathname.split('/').at(-1);
+    if (table !== 'projects') {
+      await route.fallback();
+      return;
+    }
+    if (request.method() === 'OPTIONS') {
+      await route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' } });
+      return;
+    }
+    const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'content-type': 'application/json' };
+    if (request.method() === 'GET') {
+      if (url.searchParams.get('id') === `eq.${workplanId}`) {
+        await route.fulfill({ status: 200, headers, body: JSON.stringify(workplanRow()) });
+      } else {
+        await route.fulfill({ status: 200, headers, body: JSON.stringify([workplanRow()]) });
+      }
+      return;
+    }
+    if (request.method() === 'PATCH') {
+      assert.equal(url.searchParams.get('id'), `eq.${workplanId}`);
+      assert.equal(url.searchParams.get('user_id'), `eq.${testUser.id}`, 'every update must remain owner-scoped');
+      const expectedVersion = url.searchParams.get('updated_date')?.replace(/^eq\./, '');
+      assert.ok(expectedVersion, 'every workplan update must carry its loaded version');
+      if (expectedVersion !== workplanVersion) {
+        await route.fulfill({ status: 200, headers, body: '[]' });
+        return;
+      }
+      const body = request.postDataJSON();
+      workplanData = { ...workplanData, ...(body.data || {}) };
+      workplanVersion = new Date(Date.parse(workplanVersion) + 1000).toISOString();
+      workplanWrites += 1;
+      await route.fulfill({ status: 200, headers, body: JSON.stringify(workplanRow()) });
+      return;
+    }
+    throw new Error(`Unexpected workplan request: ${request.method()} ${request.url()}`);
+  };
+  await dataLab.route('**/rest/v1/**', workplanPostgrestFixture);
+  await dataLab.goto(`${baseUrl}/projects/${workplanId}`);
+  const workplanProjectTitle = dataLab.getByPlaceholder('Project title');
+  await workplanProjectTitle.waitFor();
+  assert.equal(await workplanProjectTitle.inputValue(), 'Workplan E2E project');
+  await dataLab.getByRole('button', { name: 'Timeline' }).click();
+  await dataLab.locator('#workplan-new-title').fill('Approve protocol');
+  await dataLab.getByLabel('Deliverable (optional)').fill('Approved protocol document');
+  await dataLab.getByLabel('Target date (optional)').fill('2026-12-01');
+  await dataLab.getByRole('button', { name: 'Add task' }).click();
+  await dataLab.locator('#workplan-new-title').fill('Collect data');
+  await dataLab.getByLabel('Deliverable (optional)').fill('De-identified dataset');
+  await dataLab.getByLabel('Depends on (optional)').selectOption({ label: 'Approve protocol' });
+  await dataLab.getByRole('button', { name: 'Add task' }).click();
+  await dataLab.getByLabel('Status', { exact: true }).first().selectOption('done');
+  await dataLab.getByText('50%', { exact: true }).waitFor();
+  await dataLab.getByRole('button', { name: 'Save workplan' }).click();
+  await dataLab.getByText('Workplan saved').waitFor();
+  assert.equal(workplanWrites, 1);
+  assert.equal(workplanData.plan_items.length, 2);
+  assert.deepEqual(workplanData.plan_items[1].depends_on, [workplanData.plan_items[0].id]);
+  await dataLab.reload();
+  await dataLab.getByRole('button', { name: 'Timeline' }).click();
+  await dataLab.getByLabel('Task', { exact: true }).nth(2).waitFor();
+  assert.equal(await dataLab.getByLabel('Deliverable', { exact: true }).nth(1).inputValue(), 'De-identified dataset');
+  assert.equal(await dataLab.getByLabel('Target date', { exact: true }).first().inputValue(), '2026-12-01');
+  assert.equal(workplanWrites, 1, 'reopening the project reads the saved plan without creating a duplicate write');
+
+  // Two separately authenticated browser sessions load one version. Session A
+  // commits; session B's stale compare-and-set must conflict and keep its draft.
+  const peerStorage = await dataLab.evaluate(() => Object.fromEntries(Object.entries(localStorage)));
+  const peerSession = await browser.newPage();
+  await peerSession.addInitScript(storage => { for (const [key, value] of Object.entries(storage)) localStorage.setItem(key, value); }, peerStorage);
+  await peerSession.route('**/auth/v1/user**', route => sendAuthJson(route, testUser));
+  await peerSession.route('**/rest/v1/**', workplanPostgrestFixture);
+  await peerSession.goto(`${baseUrl}/projects/${workplanId}`);
+  await peerSession.getByPlaceholder('Project title').waitFor();
+  await peerSession.getByRole('button', { name: 'Timeline' }).click();
+  await dataLab.getByLabel('Deliverable', { exact: true }).nth(1).fill('Session A committed deliverable');
+  await peerSession.getByLabel('Deliverable', { exact: true }).nth(1).fill('Session B recoverable draft');
+  await dataLab.getByRole('button', { name: 'Save workplan' }).click();
+  await dataLab.getByText('Workplan saved').waitFor();
+  await peerSession.getByRole('button', { name: 'Save workplan' }).click();
+  await peerSession.getByRole('alert').getByText('This project changed in another session.', { exact: false }).waitFor();
+  assert.equal(await peerSession.getByLabel('Deliverable', { exact: true }).nth(1).inputValue(), 'Session B recoverable draft');
+  assert.equal(workplanData.plan_items[1].deliverable, 'Session A committed deliverable');
+  assert.equal(workplanWrites, 2, 'the stale session must not produce a second server write');
+  await peerSession.close();
+  console.log('Structured project workplan persistence and reload passed against isolated PostgREST fixtures.');
+  await captureFixturePage(dataLab, 'project-workplan-wide');
+  await dataLab.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await dataLab.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true,
+    'project header and workplan must fit the mobile viewport');
+  await captureFixturePage(dataLab, 'project-workplan-mobile');
+  await dataLab.setViewportSize({ width: 1365, height: 900 });
 
   // Verify sign-out actually invalidates the session and protects private routes.
   await dataLab.route('**/auth/v1/logout**', route => route.fulfill({

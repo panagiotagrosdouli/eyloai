@@ -1,0 +1,35 @@
+
+> eyloai@0.0.0 test:eyra-auth
+> node scripts/test-eyra-auth-config.mjs
+
+EYRA authentication configuration regression test passed.
+
+> eyloai@0.0.0 test:greeting
+> node scripts/test-local-greeting.mjs
+
+Local-time greeting regression test passed.
+
+> eyloai@0.0.0 test:retrieval
+> node scripts/test-partial-retrieval.mjs
+
+Partial-source retrieval test passed.
+
+> eyloai@0.0.0 test:services
+> node scripts/test-service-server-keys.mjs
+
+Modern Supabase server-key regression tests passed.
+
+> eyloai@0.0.0 benchmark:relevance
+> node scripts/benchmark-relevance.mjs
+
+┌─────────┬─────────────────────────────────────────────────────────────────┬──────────┬────────────────┬─────────────────────┬────────┐
+│ (index) │ query                                                           │ returned │ precision_at_5 │ represented_sources │ passed │
+├─────────┼─────────────────────────────────────────────────────────────────┼──────────┼────────────────┼─────────────────────┼────────┤
+│ 0       │ 'robotics for independent ageing'                               │ 5        │ 1              │ 4                   │ true   │
+│ 1       │ 'AI for early cancer detection'                                 │ 5        │ 1              │ 4                   │ true   │
+│ 2       │ 'climate adaptation for coastal cities'                         │ 5        │ 1              │ 4                   │ true   │
+│ 3       │ 'trustworthy AI in higher education'                            │ 5        │ 1              │ 4                   │ true   │
+│ 4       │ 'uncertainty-aware trajectory prediction vulnerable road users' │ 5        │ 1              │ 4                   │ true   │
+└─────────┴─────────────────────────────────────────────────────────────────┴──────────┴────────────────┴─────────────────────┴────────┘
+Deterministic ranking cases passed: 5/5
+DOI suffix preservation regression: passed
