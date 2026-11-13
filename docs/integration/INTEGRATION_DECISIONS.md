@@ -89,3 +89,7 @@ Exact-project follow-up `c842cc5`: the recent100 list is navigation, not permiss
 ## Batch7 — Research Journal, Experiment Lab, Publication Tracker
 
 Source `4a044bceae97a87ac483d5b2985798ad941b8f1c` implements distinct project-owned workflows for products66/60/69 using existing projects.data and owner/version CAS, with no duplicate Notes tables, AI memory or new migrations. See RESEARCH_RECORDS_CONTRACT.md and batch-7-project-research-workspaces.json. Full local check640 tests, both browser fixture suites and18 selected PostgreSQL migrations/policies verify the local scope. These three move from not implemented to partial; totals52 partial/24 not implemented/1 infrastructure, zero certified complete. No hosted acceptance or production promotion is claimed.
+
+## Batch8 — budget and thesis
+
+Started from externally merged #404 / main0f9a5e5. Source `1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42` adds Research Budget70 and Thesis Studio59 using existing project JSON and canonical Notes. No schema, migrations, payment flow or AI memory store added. Shared version conflict UI requires explicit comparison/choice; canonical Note IDs are not restricted to newly generated UUID versions. Exact Notes deep links cover older saved sources and fail closed for foreign targets. Local649 tests/static/build, both browser suites and18-migration PostgreSQL suite PASS; see batch-8-budget-thesis.json. Totals54 partial/22 not implemented/1 infrastructure; zero complete. Hosted verification remains blocked, not replaced by fixture results.
