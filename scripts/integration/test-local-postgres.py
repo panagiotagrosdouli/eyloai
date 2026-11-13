@@ -30,6 +30,7 @@ MIGRATIONS = [
     '20261112091000_saved_paper_identity_uniqueness.sql',
     '20261113062923_canonical_learning_time.sql',
     '20261113113010_shared_discovery_quota.sql',
+    '20261113090000_eyra_conversations.sql',
 ]
 BOOTSTRAP = '''
 create role anon nologin;
@@ -79,6 +80,8 @@ try:
     sql((ROOT / 'tests/integration/learning-time-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/discovery-quota-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/funding-postgres.sql').read_text())
+    sql((ROOT / 'tests/integration/eyra-conversations-postgres.sql').read_text())
+    print('PASS: disposable PostgreSQL EYRA owner RLS, message constraints, pagination, versioning and cascade deletion.', flush=True)
     version = subprocess.check_output([*DOCKER, 'exec', NAME, 'psql', '-U', 'postgres', '-Atc',
         "select updated_date from projects where id = '10000000-0000-0000-0000-000000000001'"], env=ENV, text=True).strip()
 
