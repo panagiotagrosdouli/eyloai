@@ -1,5 +1,5 @@
 {
-  "source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+  "source_commit": "7cb7b2d74671d188d8c494f8e3e428bfb5685256",
   "files": [
     {
       "path": ".github/workflows/build.yml",
@@ -29,7 +29,7 @@
     {
       "path": ".github/workflows/quality.yml",
       "kind": "ci_workflow",
-      "blob_sha": "ef08954dea7901592a65d4266de24219df416c54"
+      "blob_sha": "e02a4ff579f3c91e040b2fb931e2ee3dee9c64cd"
     },
     {
       "path": ".github/workflows/remotive-jobs.yml",
@@ -62,9 +62,14 @@
       "blob_sha": "8ec7a672a57d06275a5d9f4b4755a56e1dfb581b"
     },
     {
+      "path": "api/discovery-rate-limit.mjs",
+      "kind": "serverless_api",
+      "blob_sha": "1f805c8859c27ce81a61702d5fb64a5f426126e9"
+    },
+    {
       "path": "api/discovery.js",
       "kind": "serverless_api",
-      "blob_sha": "466a08b41884d0ccd745bd62df8a76bc3fda1da8"
+      "blob_sha": "c79e717fa86f3084d696f98dd45ecf693e13d68b"
     },
     {
       "path": "api/euraxess.js",
@@ -74,7 +79,7 @@
     {
       "path": "api/eyra.js",
       "kind": "serverless_api",
-      "blob_sha": "d6ec132e2c0c998693ab7bff052c36250af27887"
+      "blob_sha": "3db5dfede1d0ce8fa73df667a8ccb05b0735a1fb"
     },
     {
       "path": "api/general-jobs.js",
@@ -94,7 +99,12 @@
     {
       "path": "api/opportunities.js",
       "kind": "serverless_api",
-      "blob_sha": "40fbdc13d5a08e96c2cfe631d40a436be400009a"
+      "blob_sha": "c168dd5c94663852f85282d8c1116add12a80949"
+    },
+    {
+      "path": "api/scholarly-resilience.mjs",
+      "kind": "serverless_api",
+      "blob_sha": "4868dc23385bd6794e1c15ecc15cd0a194761c22"
     },
     {
       "path": "api/stripe-webhook.js",
@@ -109,7 +119,7 @@
     {
       "path": "src/App.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "2982e0a73d8ee765a934712e17b7c08d51af38e6"
+      "blob_sha": "24fd79165aab6ffc753f7cd45334b0f1ee2064ba"
     },
     {
       "path": "src/api/base44Client.js",
@@ -234,7 +244,7 @@
     {
       "path": "src/components/eyra/EyraCommandCenter.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "b114d87dfdbe8a2c3c569901b604c706105a308f"
+      "blob_sha": "c100ef464d399cdfda1e24bb423aecf5f52dd03f"
     },
     {
       "path": "src/components/eyra/EyraDailyBriefing.jsx",
@@ -304,7 +314,7 @@
     {
       "path": "src/components/layout/AppLayout.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "c706d55ffa9a914cf1862449927fca222d6ce6e4"
+      "blob_sha": "14e58539ec8032de38d32234bffeb902659ee806"
     },
     {
       "path": "src/components/layout/GlobalCommandCenter.jsx",
@@ -412,6 +422,11 @@
       "blob_sha": "e56bf2c198e699e42a8d6a77f6f9bc5aabb7bfed"
     },
     {
+      "path": "src/components/ui/dialog.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "13c918f8d57537ef3560dcb0308bf73a146f1c90"
+    },
+    {
       "path": "src/components/ui/input-otp.jsx",
       "kind": "frontend_or_client_source",
       "blob_sha": "dfc8ecd3d34fcdad7826a3b20232b014ad32a71d"
@@ -444,7 +459,7 @@
     {
       "path": "src/lib/AuthContext.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "a51e23d9b1203c726f1c316cfa3074452c3fbf6d"
+      "blob_sha": "6a294d29a6f57ec3782925cdeae1e5cee2dfcd99"
     },
     {
       "path": "src/lib/PageNotFound.jsx",
@@ -589,7 +604,7 @@
     {
       "path": "src/lib/eyra-api.js",
       "kind": "frontend_or_client_source",
-      "blob_sha": "084a129970f30ca1ba2ac2112e74c29fa2fed415"
+      "blob_sha": "f57eb89228cb8ae94e8e58f0c6ea24d5da8a01d3"
     },
     {
       "path": "src/lib/eyra-cache-key.mjs",
@@ -602,6 +617,11 @@
       "blob_sha": "6a87bf9afbdb35bf3865ba75069a43e59fe39171"
     },
     {
+      "path": "src/lib/eyra-conversation.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "e2c37f50366d11df650086341352ef42a92064b4"
+    },
+    {
       "path": "src/lib/eyra-engine.js",
       "kind": "frontend_or_client_source",
       "blob_sha": "beb377f4c455730716996b4db23fa45ef935c5db"
@@ -609,12 +629,17 @@
     {
       "path": "src/lib/eyra-intelligence.js",
       "kind": "frontend_or_client_source",
-      "blob_sha": "2d54cbd977bf735372928f7fa6d511d79f839ecf"
+      "blob_sha": "1da1a52c243e66481633d276077a8149f2fc8885"
     },
     {
       "path": "src/lib/eyra-monitor.js",
       "kind": "frontend_or_client_source",
       "blob_sha": "1776cdfc65bef9a36da81e63333a0ee043d0ab85"
+    },
+    {
+      "path": "src/lib/eyra-stream.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "6daa643843777c61646ec1870c3c9308d162c56e"
     },
     {
       "path": "src/lib/eyra-structured-contract.mjs",
@@ -634,7 +659,17 @@
     {
       "path": "src/lib/funding-api.js",
       "kind": "frontend_or_client_source",
-      "blob_sha": "ea0e65a43d56931a6c17bb56d773295d5b04ef15"
+      "blob_sha": "334af288ec6acb278131c99173e4cb8479083b26"
+    },
+    {
+      "path": "src/lib/funding-comparison.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "4fb5918829524826463ab1566f29f6f3acd489ff"
+    },
+    {
+      "path": "src/lib/funding-ranking.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "06ef8f74fed1a623a57e3ac9dea041f8e2e8e41a"
     },
     {
       "path": "src/lib/gap-candidate-review.mjs",
@@ -642,9 +677,29 @@
       "blob_sha": "aa35676aae5820dfcf381b55a1fa1a9e803a8f07"
     },
     {
+      "path": "src/lib/grant-applications-repository.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ad6854484697ae65b5af16c728d29063ff9dfca9"
+    },
+    {
+      "path": "src/lib/grant-applications.js",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "5afc2f6a78f675ff797a74ccd92fd2a921144af5"
+    },
+    {
+      "path": "src/lib/grant-draft-context.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "bb9ef15f4206ddb8e11290a7329aaaf432a482e2"
+    },
+    {
       "path": "src/lib/industry-research-labs.js",
       "kind": "frontend_or_client_source",
       "blob_sha": "9207a5f5ba7362a0382ce87ff428aef80aa202ec"
+    },
+    {
+      "path": "src/lib/learn-data.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "7871c2d48a60921ee9bf51a7470eaff8cd680c10"
     },
     {
       "path": "src/lib/life-domain.mjs",
@@ -777,6 +832,11 @@
       "blob_sha": "a7f26a59d1e07c1e721ca6f7b4a6c2d9816e9e79"
     },
     {
+      "path": "src/lib/quiz-data.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "873f2456d35e62f65188e43b17236e9a8784e61a"
+    },
+    {
       "path": "src/lib/reproducibility-review.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "96d40e3c1bd812b2eaf17737dd06be3d0bf653cc"
@@ -822,6 +882,16 @@
       "blob_sha": "336f6c3743dea80db67e5d7ee7aedc2768e29512"
     },
     {
+      "path": "src/lib/research-gap-coverage.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ab28054a9958da6b44271c135b83fc5baf24e2b6"
+    },
+    {
+      "path": "src/lib/research-gap-literature-save.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "9e8c78078555e8a869d8dbc6b2ef4b6e9fec8eb1"
+    },
+    {
       "path": "src/lib/research-knowledge-graph.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "61a4bad49e3fb440aecdef585c8d04918e59c009"
@@ -844,12 +914,12 @@
     {
       "path": "src/lib/scholarly-provider-backoff.mjs",
       "kind": "frontend_or_client_source",
-      "blob_sha": "27671bdeca7f0ed9ef5b95b72188cf4e01e6d769"
+      "blob_sha": "eaee13688a1717ff20c7a7e1345a04cccd93bb04"
     },
     {
       "path": "src/lib/second-brain.js",
       "kind": "frontend_or_client_source",
-      "blob_sha": "b7ee8994765bcb497d621fa97b34aba43dbed93f"
+      "blob_sha": "f97d6a46b4f7fce9522de558ef74ec2b2693d1de"
     },
     {
       "path": "src/lib/supabase/auth.js",
@@ -882,6 +952,11 @@
       "blob_sha": "06a0116733434c6b7ca7260b66b86c5d8267928a"
     },
     {
+      "path": "src/lib/time-tracker-data.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "4b3abcef913a95b260d83d9e48b7995e8326bd17"
+    },
+    {
       "path": "src/lib/universal-search-domain.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "547a2bb654eaa9323551fe35fea2c5d7066c33ad"
@@ -900,6 +975,11 @@
       "path": "src/lib/workspace-export.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "9036fa5551df7e6d9275b1b07cb9de79357fa002"
+    },
+    {
+      "path": "src/lib/zoned-time.mjs",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "6285a0394c28c8ce5670e030f6ebacf37283de78"
     },
     {
       "path": "src/main.jsx",
@@ -999,7 +1079,7 @@
     {
       "path": "src/pages/GrantBuilder.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "59913e8fd3e1a48028fa9b05ec7a3931944527a1"
+      "blob_sha": "7f8a5f42575924879b150c756154b63e1b5d486e"
     },
     {
       "path": "src/pages/Habits.jsx",
@@ -1035,6 +1115,11 @@
       "path": "src/pages/Landing.jsx",
       "kind": "frontend_or_client_source",
       "blob_sha": "5e6376635068ed897bebfe5fb06bf76095a4d11f"
+    },
+    {
+      "path": "src/pages/Learn.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "a279f8fc37303f28d6b5d2320cde92e19ba78d4e"
     },
     {
       "path": "src/pages/Library.jsx",
@@ -1079,7 +1164,7 @@
     {
       "path": "src/pages/Opportunities.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "7ea10a919b75db59095d8d92fd83f3a45384415b"
+      "blob_sha": "525ad94b62a5c54e508db73a069960cb5e4f1605"
     },
     {
       "path": "src/pages/OpportunityRadar.jsx",
@@ -1132,6 +1217,11 @@
       "blob_sha": "f02d8e3091872b01fa8113553e4f374512e4f4ba"
     },
     {
+      "path": "src/pages/QuizGenerator.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "23bb7f24af0017dbb4de41ecde632c0acbed40c8"
+    },
+    {
       "path": "src/pages/Register.jsx",
       "kind": "frontend_or_client_source",
       "blob_sha": "ba6c265f2f5d6368edd1bc0cade76c6b666f5f54"
@@ -1144,12 +1234,12 @@
     {
       "path": "src/pages/ResearchDataLab.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "656e032159db1af5ff65e9b7ad7cc89382b753ae"
+      "blob_sha": "1e3f6e62cf9652633b86e7763b2dc2b3708d31f7"
     },
     {
       "path": "src/pages/ResearchGaps.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "f5aa73dbe9d932234acd3bbbc35a540fb3209258"
+      "blob_sha": "8b683fe1a57d2520b86624053622fb8c3a55d577"
     },
     {
       "path": "src/pages/ResearchKnowledgeGraph.jsx",
@@ -1175,6 +1265,11 @@
       "path": "src/pages/StudyPlanner.jsx",
       "kind": "frontend_or_client_source",
       "blob_sha": "1f11b0f93af2bd1bc449a0f70d2e29c62f4d336f"
+    },
+    {
+      "path": "src/pages/TimeTracker.jsx",
+      "kind": "frontend_or_client_source",
+      "blob_sha": "ddef054e37fcfebd992889fd0109b110d30a61d2"
     },
     {
       "path": "src/pages/UniversalSearch.jsx",
@@ -1312,6 +1407,16 @@
       "blob_sha": "8333d16e83ed7a18cefc728a41e84d3d73e45c9a"
     },
     {
+      "path": "supabase/migrations/20261112090000_project_scoped_grant_applications.sql",
+      "kind": "migration",
+      "blob_sha": "4872006ddbfa70e17cb99954f1e5944f7b00bbd9"
+    },
+    {
+      "path": "supabase/migrations/20261112091000_saved_paper_identity_uniqueness.sql",
+      "kind": "migration",
+      "blob_sha": "a16680b2f880b5a8ca92a3c63a6995bdbe189854"
+    },
+    {
       "path": "supabase/migrations/20261112154425_private_notes.sql",
       "kind": "migration",
       "blob_sha": "b6b8eeccc659b8fcea876de5b56863d6e7867dc9"
@@ -1355,6 +1460,16 @@
       "path": "supabase/migrations/20261112200000_private_file_search.sql",
       "kind": "migration",
       "blob_sha": "3982c4ab8b12ebed3472819281a69ee76a245927"
+    },
+    {
+      "path": "supabase/migrations/20261113062923_canonical_learning_time.sql",
+      "kind": "migration",
+      "blob_sha": "6ed9d36d92371a93a7c438ad87371d7fb806ce5a"
+    },
+    {
+      "path": "supabase/migrations/20261113113010_shared_discovery_quota.sql",
+      "kind": "migration",
+      "blob_sha": "a0866d0554b9a46f53deb82e0041ca3994bf07e2"
     },
     {
       "path": "tests/activity-history.test.mjs",
@@ -1462,14 +1577,24 @@
       "blob_sha": "4b0295ac14fe8ef98d8a72ab9ccf94a3ea019a52"
     },
     {
+      "path": "tests/discovery-proxy-boundary.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "c400b907ceeb47bb3ac94d3201fd91feede58794"
+    },
+    {
       "path": "tests/discovery-proxy.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "a18eda798ac329ef6532d255e51f4b60469e8826"
+      "blob_sha": "303f28cd6bfb2451b56a1648bb5d679b6457c66f"
     },
     {
       "path": "tests/discovery-ranking.test.mjs",
       "kind": "automated_test",
       "blob_sha": "0475436f9e355e11d57b1bbaf9f359af5699c612"
+    },
+    {
+      "path": "tests/discovery-rate-limit.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "55b7adf273440eaa57e842a8c4c180e6253bb3be"
     },
     {
       "path": "tests/discovery-source-status.test.mjs",
@@ -1484,7 +1609,17 @@
     {
       "path": "tests/e2e-auth.mjs",
       "kind": "automated_test",
-      "blob_sha": "445c0d447549b05be846d07fbc953661724f8e52"
+      "blob_sha": "b037b9314d9cff08ec7c4703016268fecd678387"
+    },
+    {
+      "path": "tests/e2e-learn.mjs",
+      "kind": "automated_test",
+      "blob_sha": "a20fd4315bd768cf2a64e839a9dba47b7e240cbf"
+    },
+    {
+      "path": "tests/e2e-learning-integration.mjs",
+      "kind": "automated_test",
+      "blob_sha": "80efe2245baa49d7177b170dff4a17fe265ab2fd"
     },
     {
       "path": "tests/e2e-native-meetings.mjs",
@@ -1492,9 +1627,19 @@
       "blob_sha": "8484ecd73e63dbc21d359b104b18a51ec28743ef"
     },
     {
+      "path": "tests/e2e-quiz-generator.mjs",
+      "kind": "automated_test",
+      "blob_sha": "1668b635b191df55a1adedf39450ee8c30bb0bb5"
+    },
+    {
       "path": "tests/e2e-supabase-project-concurrency.mjs",
       "kind": "automated_test",
       "blob_sha": "d0dbe66db5081d451ef465647e1fb9eb037f8baa"
+    },
+    {
+      "path": "tests/e2e-time-tracker.mjs",
+      "kind": "automated_test",
+      "blob_sha": "0a930ec16ab8eb225af7537814dc48576e65c780"
     },
     {
       "path": "tests/entity-optimistic-version.test.mjs",
@@ -1569,7 +1714,7 @@
     {
       "path": "tests/eyra-project-tools.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "35297825ff4be24aacd33cb578553066d28b0735"
+      "blob_sha": "a73752c6c1c2b1bca2be9d031c7a3b6f0c2b57ea"
     },
     {
       "path": "tests/eyra-request-safety.test.mjs",
@@ -1585,6 +1730,16 @@
       "path": "tests/eyra-stop-generation-ui.test.mjs",
       "kind": "automated_test",
       "blob_sha": "491d1227060060575d46d1ee3beac82a9afd72cc"
+    },
+    {
+      "path": "tests/eyra-stream-api.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "4812817affdf4f885e8c52564e404b55095e3faf"
+    },
+    {
+      "path": "tests/eyra-stream.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "5bf493f3cebfff9b58a87cf980bda7abf4f3b7b2"
     },
     {
       "path": "tests/eyra-structured-api.test.mjs",
@@ -1604,7 +1759,7 @@
     {
       "path": "tests/eyra-tool-action-ui.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "e4df64d6d836d7bb06f6906d5d384aa3c9f7d58c"
+      "blob_sha": "702599ed40e885d6ab966ac4ed0ccd2d2564129f"
     },
     {
       "path": "tests/eyra-upstream-timeouts.test.mjs",
@@ -1627,9 +1782,24 @@
       "blob_sha": "0bd4815ca175fb0611c653a21e5566e12090aa64"
     },
     {
+      "path": "tests/funding-comparison-provider.integration.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "14a6c8855fcdb47c1905c6bd433818c409cf5aef"
+    },
+    {
+      "path": "tests/funding-comparison.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "a8410c3e94b50967054ce5a9e9b181ccd8042568"
+    },
+    {
       "path": "tests/funding-eu-source.test.mjs",
       "kind": "automated_test",
       "blob_sha": "10e84267e99a08cb9f2dbbb73467571711385389"
+    },
+    {
+      "path": "tests/funding-ranking-integrity.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "428261f16a3edd3d6789f93f22758cc192fec6b6"
     },
     {
       "path": "tests/gap-candidate-review.test.mjs",
@@ -1642,6 +1812,16 @@
       "blob_sha": "d092d2cdfae66e350d8e1e1e582ba50c3eef5fde"
     },
     {
+      "path": "tests/grant-applications-isolation.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "e47c65c64298f0bedc73e0c4ed9bd42104a5de7b"
+    },
+    {
+      "path": "tests/grant-draft-project-context.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "3e238a41fd2629748dbcfa00b01e8cd7b298db13"
+    },
+    {
       "path": "tests/human-evaluation.test.mjs",
       "kind": "automated_test",
       "blob_sha": "79463b182a801930f6de5131b98e2d3bbf3c96f3"
@@ -1652,9 +1832,29 @@
       "blob_sha": "e2c5df7d43df79d416284497f32d1328a90afd17"
     },
     {
+      "path": "tests/integration/discovery-quota-postgres.sql",
+      "kind": "automated_test",
+      "blob_sha": "c80c930cdd6b04e5dd8dda90c3da60afbd8948be"
+    },
+    {
+      "path": "tests/integration/funding-postgres.sql",
+      "kind": "automated_test",
+      "blob_sha": "5bf9f1e4d57b48f39110e2cd8fc2279c7a375ed9"
+    },
+    {
+      "path": "tests/integration/learning-time-postgres.sql",
+      "kind": "automated_test",
+      "blob_sha": "e09fa5315eaa97e4a9c53372491900afae9f2ad6"
+    },
+    {
       "path": "tests/integration/workspace-postgres.sql",
       "kind": "automated_test",
       "blob_sha": "aa1970a1ba7915472153c47d7f8fa5311df69e34"
+    },
+    {
+      "path": "tests/learn-data.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "6ab09eecc550c4591927c549fab0d04dc7957d9e"
     },
     {
       "path": "tests/library-reference-export-ui.test.mjs",
@@ -1822,6 +2022,16 @@
       "blob_sha": "36c8954fefe7073d36785614c79e493d36ab243a"
     },
     {
+      "path": "tests/quiz-data.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "c6bcad23014628b35ae0e1c13ba46b7de315cff2"
+    },
+    {
+      "path": "tests/release-stamp.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "d63c59dab3a61a118968bc83d9e2d63c80a302ba"
+    },
+    {
       "path": "tests/remotive-career-snapshot.test.mjs",
       "kind": "automated_test",
       "blob_sha": "508c2449d8b20c9dff9af80ca680c84c1b830328"
@@ -1882,6 +2092,11 @@
       "blob_sha": "7aa66698f9452b6cc704a5a572c99de47f2a5eed"
     },
     {
+      "path": "tests/research-gap-live-search.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "a78d125dfb366b2876171f9669f400401091f510"
+    },
+    {
       "path": "tests/research-gap-project-flow.test.mjs",
       "kind": "automated_test",
       "blob_sha": "b66f2f069fb6f89cd561bf5beda3bb48b574d56d"
@@ -1937,6 +2152,11 @@
       "blob_sha": "8053e3b7585876b46e5ac0f5a10c8cb7aaebbd80"
     },
     {
+      "path": "tests/scholarly-resilience.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "03a3f628c08e91bd4b7b4ed6bcc0b4c71e26dd4c"
+    },
+    {
       "path": "tests/scholarly-work-attribution.test.mjs",
       "kind": "automated_test",
       "blob_sha": "e89ad04fde7797cd82c1085823179b2951c30a03"
@@ -1945,6 +2165,11 @@
       "path": "tests/service-status-deployment.test.mjs",
       "kind": "automated_test",
       "blob_sha": "f0505408006eca2a42be99785939e7b78767906f"
+    },
+    {
+      "path": "tests/staging-config.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "b37a3dbf9f288c68b82b5a505d43a249301be584"
     },
     {
       "path": "tests/stripe-webhook-size.test.mjs",
@@ -1967,6 +2192,11 @@
       "blob_sha": "3bec6d9ef6133bfdb8db82a16c783eb8948b6503"
     },
     {
+      "path": "tests/time-tracker-data.test.mjs",
+      "kind": "automated_test",
+      "blob_sha": "3084afefa2cfe21601348270e36a2fae379d54f3"
+    },
+    {
       "path": "tests/unified-academic-colors.test.mjs",
       "kind": "automated_test",
       "blob_sha": "be8bd48f6bbd8f70216a036b927d8a94adebc5bf"
@@ -1985,12 +2215,13 @@
   "npm_scripts": {
     "dev": "vite",
     "check:imports": "node scripts/check-local-imports.mjs",
-    "build": "npm run check:imports && vite build",
+    "build": "npm run check:imports && vite build && node scripts/stamp-release.mjs",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json && tsc -p ./jsconfig.api.json",
     "test": "node --test tests/*.test.mjs",
     "test:e2e:auth": "node tests/e2e-auth.mjs",
+    "test:e2e:learning": "node tests/e2e-learning-integration.mjs",
     "check": "npm run check:imports && npm run typecheck && npm run lint && npm run test && npm run build",
     "preview": "vite preview",
     "normalize:base44": "node scripts/normalize-base44-paths.mjs",
