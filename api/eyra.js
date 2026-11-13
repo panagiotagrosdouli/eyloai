@@ -3,6 +3,7 @@ import { readSupabaseApiConfig } from './supabase-config.mjs';
 import crypto from 'node:crypto';
 import { FREE_MONTHLY_AI_ACTIONS } from '../src/lib/eyra-usage-policy.mjs';
 import { matchesEyraResponseSchema } from '../src/lib/eyra-structured-contract.mjs';
+import { relayEyraResponse } from '../src/lib/eyra-stream.mjs';
 
 const MAX_PROMPT_LENGTH = 24_000;
 const MAX_SCHEMA_LENGTH = 32_000;
@@ -442,6 +443,9 @@ export default async function handler(request, response) {
   }
 
   let reservation = null;
+  let streamTimer;
+  let streamController;
+  const stopStream = () => { if (!response.writableEnded) streamController?.abort(); };
 
   try {
     const identity = await authenticate(request.headers.authorization);
@@ -474,6 +478,9 @@ export default async function handler(request, response) {
     identity.explicitPaperSave = userExplicitlyRequestedPaperSave(toolIntent);
 
     const requestedSchema = request.body?.response_json_schema;
+    const stream = request.body?.stream === true;
+    if (request.body?.stream !== undefined && typeof request.body.stream !== 'boolean') return response.status(400).json({ error: 'Streaming must be a boolean.' });
+    if (stream && (request.body?.enable_project_tools === true || requestedSchema)) return response.status(400).json({ error: 'Streaming is available for text conversations without record-modifying tools or structured output.', code: 'INVALID_STREAM_MODE' });
     let responseSchema;
 
     if (requestedSchema !== undefined && requestedSchema !== null) {
@@ -518,6 +525,8 @@ export default async function handler(request, response) {
       instructions: EYRA_INSTRUCTIONS,
       input: prompt,
       store: false,
+      max_output_tokens: 4096,
+      ...(stream ? { stream: true } : {}),
       ...(request.body?.enable_project_tools === true ? { tools: PROJECT_TOOLS, tool_choice: 'auto' } : {}),
     };
 
@@ -538,6 +547,11 @@ export default async function handler(request, response) {
       };
     }
 
+    if (stream) {
+      streamController = new AbortController();
+      streamTimer = setTimeout(() => streamController.abort(), 60_000);
+      response.on?.('close', stopStream);
+    }
     const openAiResponse = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       headers: {
@@ -545,7 +559,7 @@ export default async function handler(request, response) {
         'content-type': 'application/json',
       },
       body: JSON.stringify(requestBody),
-      signal: AbortSignal.timeout(60_000),
+      signal: stream ? streamController.signal : AbortSignal.timeout(60_000),
     });
 
     if (!openAiResponse.ok) {
@@ -554,6 +568,23 @@ export default async function handler(request, response) {
       await releaseUsage(reservation);
       reservation = null;
       return response.status(502).json({ error: 'EYRA could not complete this request.' });
+    }
+
+    if (stream) {
+      response.status(200);
+      response.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+      response.setHeader('X-Accel-Buffering', 'no');
+      response.setHeader('X-Content-Type-Options', 'nosniff');
+      const send = value => { if (!response.destroyed) response.write(`data: ${JSON.stringify(value)}\n\n`); };
+      try {
+        const final = await relayEyraResponse(openAiResponse.body, delta => send({ type: 'delta', delta }));
+        send({ type: 'done', ...final });
+      } catch {
+        await releaseUsage(reservation); reservation = null;
+        send({ type: 'error', error: 'EYRA did not complete the response. The draft was not saved.', code: 'EYRA_INCOMPLETE' });
+      }
+      response.end();
+      return;
     }
 
     let result = await openAiResponse.json();
@@ -578,6 +609,9 @@ export default async function handler(request, response) {
     for (let round = 0; round < 3; round += 1) {
       const calls = (result.output || []).filter((item) => item.type === 'function_call');
       if (!calls.length) break;
+      if (calls.length + actionResults.length > 8) {
+        return response.status(502).json({ error: 'EYRA reached its workspace action budget. Check any confirmed actions before retrying.', code: 'TOOL_BUDGET_EXCEEDED', actions: actionResults });
+      }
       if (request.body?.enable_project_tools !== true) {
         return response.status(502).json({ error: 'EYRA requested a tool that is not enabled.', code: 'TOOL_NOT_ENABLED' });
       }
@@ -612,6 +646,7 @@ export default async function handler(request, response) {
           tools: PROJECT_TOOLS,
           tool_choice: 'auto',
           store: false,
+          max_output_tokens: 4096,
         }),
         signal: AbortSignal.timeout(60_000),
       });
@@ -720,5 +755,8 @@ export default async function handler(request, response) {
       });
     }
     return response.status(500).json({ error: 'EYRA is temporarily unavailable.' });
+  } finally {
+    if (streamTimer) clearTimeout(streamTimer);
+    response.off?.('close', stopStream);
   }
 }

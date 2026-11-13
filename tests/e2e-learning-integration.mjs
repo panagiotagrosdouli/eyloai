@@ -17,6 +17,7 @@ const tables = {
   life_tasks: [{ id: '40000000-0000-0000-0000-000000000001', user_id: user.id, data: { title: 'Review canonical task', status: 'todo' }, updated_date: now() }],
   time_entries: [], quizzes: [], quiz_questions: [], quiz_attempts: [], learning_courses: [], learning_lessons: [], learning_lesson_progress: [], learning_enrollments: [],
   notifications: [], watchlists: [], monitoring_discoveries: [], profiles: [],
+  ideas: [], study_flashcard_decks: [], saved_papers: [], saved_researchers: [], saved_opportunities: [], search_history: [],
 };
 let aiCalls = 0;
 const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS' };
@@ -81,7 +82,7 @@ try {
     const table = url.pathname.split('/').at(-1);
     assert.ok(table in tables, `Unknown table: ${table}`);
     const filters = [...url.searchParams].filter(([key, value]) => value.startsWith('eq.') || value === 'is.null');
-    const matching = row => filters.every(([key, value]) => value === 'is.null' ? row[key] == null : String(row[key]) === value.slice(3));
+    const matching = row => filters.every(([key, value]) => { const current = key.startsWith('data->>') ? row.data?.[key.slice(7)] : row[key]; return value === 'is.null' ? current == null : String(current) === value.slice(3); });
     let rows = tables[table].filter(matching);
     if (request.method() !== 'GET') {
       if (request.method() === 'POST') {
@@ -155,6 +156,37 @@ try {
   assert.equal(aiCalls, 0, 'manual lesson creation must not invoke AI');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
   console.log('PASS fixture: manual course, linked quiz, saved lesson progress, reload and mobile viewport.');
+
+  await page.route('**/api/capabilities', route => json(route, { ai: true, billing: false, contact: false, scheduled_monitoring: false, institution_analytics: false }));
+  const answer = 'Use your saved task to plan the next step.';
+  await page.route('**/api/eyra', async route => {
+    aiCalls++;
+    const payload = route.request().postDataJSON();
+    assert.equal(payload.stream, true);
+    assert.equal(payload.enable_project_tools, undefined, 'workspace writes are disabled until the user opts in');
+    assert.match(payload.prompt, /Review canonical task/);
+    await route.fulfill({ status: 200, headers: { 'content-type': 'text/event-stream' }, body: `data: ${JSON.stringify({ type: 'delta', delta: answer })}\n\ndata: ${JSON.stringify({ type: 'done', text: answer, response_id: 'fixture-response' })}\n\n` });
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'Ask EYRA', exact: true }).click();
+  await page.getByText('Workspace context ready · sources attached when retrieved').waitFor();
+  await page.getByRole('button', { name: 'Strategy', exact: true }).click();
+  assert.equal(await page.getByRole('checkbox', { name: 'Allow project and Library actions for this request' }).isChecked(), false);
+  await page.getByLabel('Message EYRA').fill('Explain how to plan my next task');
+  await page.getByLabel('Message EYRA').press('Enter');
+  await page.getByText(answer, { exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Save conversation', exact: true }).click();
+  await page.getByRole('option', { name: /EYRA · Explain how to plan/ }).waitFor({ state: 'attached' });
+  assert.equal(tables.ideas.length, 1);
+  assert.equal(tables.ideas[0].data.source, 'eyra_conversation');
+  assert.equal(tables.ideas[0].data.conversation_messages.at(-1).content, answer);
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
+  await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
+  await page.getByLabel('Saved EYRA conversation').selectOption(tables.ideas[0].id);
+  await page.getByText(answer, { exact: true }).waitFor();
+  assert.equal(aiCalls, 1, 'restoring a saved conversation does not call a model');
+  console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical Idea conversation save/restore.');
 } finally {
   if (browser) await browser.close();
   server.kill('SIGTERM');
