@@ -36,10 +36,30 @@ Unblocked local work includes source integration, deterministic tests, browser f
 
 `scripts/integration/test-local-postgres.py` runs ten selected migrations on a disposable PostgreSQL 17.6 container with no network or published ports. Minimal local Auth identity and Storage metadata schemas replace the hosted services. The SQL checks real policy/trigger execution, owner and outsider visibility, owner-only associations, historical note snapshots, bounded search and stale compare-and-set rejection. Two independent database sessions competing on one project version produce one successful save and one conflict. This is stronger than an in-memory fixture, but does not verify Supabase Auth, PostgREST, Storage bytes or the deployed schema. The script removes only its own randomly named container.
 
-## Next integration batches
+## Original next-batch plan (superseded by continuation below)
 
 - Adapt #391's distinct Time Tracker, Quiz and Learn workflows to the selected main contracts; do not install its competing Notes/Life/Flashcards migrations or #393's duplicate record store. Retain the unintegrated branch work for review.
 - Review the funding stack cumulatively, preserving official source fields and applying each unique migration once.
 - Select one discovery limiter after API and migration review. Current live retrieval diagnostics fail: 2/5 queries have sufficient source coverage; Europe PMC returned 503 and Semantic Scholar 429. These are recorded experimental observations, not scientific relevance judgments.
 - Review #384 as a separate operational change, then run the remaining historical PR comparisons at behavior level. The 65-PR inventory does not authorize blind merges.
 - Complete every unimplemented product's workflow specification and acceptance criteria. The current register explicitly retains incomplete and unimplemented products; no 77-product completion is claimed.
+
+## Verified continuation — 2026-11-13
+
+- `848484b`: adapted #391 timer/quiz/course workflows to canonical Notes/LifeTask; no competing Notes, Life, Calendar or Flashcard schema. Distinct #393 manual authoring behavior is included through those canonical workflows. Actual PostgreSQL exposed and corrected an ambiguous course-progress conflict target.
+- `d38ad59`: removed Europe PMC's unsupported sort parameter after direct sorted requests returned 503 and unsorted requests returned 200. Added bounded provider retries/cache/cooldown/circuit behavior. Selected only #389's shared atomic quota, correcting its SQL CURRENT_TIME collision and saturating denied counters. #382 is not installed. Provider resilience is per runtime; quota is database atomic. Live candidate diagnostic now covers 4/5 queries, still FAIL overall; no invented replacement papers.
+- `2807cef`: authenticated Responses API streaming and explicit saved conversations use canonical Ideas. Per-request record-action opt-in defaults off; server permissions remain authoritative. Source IDs and final stream completion are validated. Existing Notes/Life/Flashcard context is retrieved through canonical contracts. No separate memory database.
+- `6c91aa9`: separate staging preflight and release SHA stamping subset of #384. No billing/contact-stack import, project provisioning, hosted migration or production promotion.
+- `7cb7b2d`: integrates the cumulative funding stack (#374/#376/#378/#379) once: immutable official facts, comparison, project-scoped CAS drafts and Research Gap coverage/literature saving. Two unique proposed migrations are included once. Duplicate normalized DOI preflight fails without deleting legacy records. Actual SQL verifies scope, stale saves and identity uniqueness. Incorporates #387's precise Data Lab disclosure; #395's newer create-route correction is already equivalent to the existing integration fix.
+
+Final local evidence at `19ee90b`: 609 tests plus imports/typecheck/lint/build, both browser fixture suites, sixteen selected PostgreSQL migrations/policies/RPCs and independent concurrent sessions. Exact commands/output are linked from verification.json. This is not the full historical migration chain or hosted Supabase acceptance. Live OpenAI, Stripe test payments, LiveKit media, hosted two-account/storage/deletion and independent human relevance acceptance remain NOT RUN. Separate staging and verified deployment identity remain release blockers; Continuation PR #401 stays draft; #398 was already merged externally.
+
+Remaining work includes full specifications and acceptance for the 27 unimplemented products, incomplete criteria on the 49 partial products, other historical PR behavior reviews, source-coverage/relevance failures, and configured hosted acceptance. This continuation does not complete the 77-product mission.
+
+## Concurrent branch reconciliation
+
+The remote advanced from `604e629` to `002281a` during this local batch. Merge `195d99d` preserves all thirteen remote commits, including the canonical `eyra_conversations` / `eyra_messages` proposal, owner-scoped read API, provider error classification and PostgreSQL CI job. The final UI uses that canonical conversation contract; **the earlier local Idea-based conversation approach is superseded and not shipped**. Existing Idea Vault semantics remain dedicated to user ideas.
+
+An additive migration extends canonical messages with bounded historical source attribution and a security-invoker atomic snapshot RPC. Each explicit Save creates a new immutable conversation snapshot; existing snapshots/messages are not rewritten. The browser lists and restores owner-filtered canonical records; raw provider diagnostics and credentials are never persisted. No staging schema was applied. Historical batch evidence mentioning Idea conversations describes an intermediate local implementation, not final behavior.
+
+Current review: [draft continuation #401](https://github.com/panagiotagrosdouli/eyloai/pull/401), same integration branch. GitHub reports #398 was already merged externally at `002281a` / merge `83a647f` on 2026-11-13 07:56 UTC. The integration session did not merge it. New continuation changes are not part of that merged PR; #401 contains the remaining diff against main. No duplicate open PR existed for this branch when #401 was created.

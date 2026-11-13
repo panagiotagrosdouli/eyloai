@@ -1,12 +1,12 @@
 {
-  "date": "2026-11-12",
-  "tested_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+  "date": "2026-11-13",
+  "tested_source_commit": "19ee90bee2c20a7816fa113bc6f2368498569f28",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
     "npm_run_check": {
       "status": "PASS",
-      "tests": 531,
+      "tests": 609,
       "failed": 0,
       "includes": [
         "local imports",
@@ -15,7 +15,7 @@
         "Node unit/API regressions",
         "Vite production build"
       ],
-      "evidence": "evidence/combined-check.txt"
+      "evidence": "evidence/2026-11-13/snapshot-final-check.txt"
     },
     "browser": {
       "status": "PASS",
@@ -29,14 +29,21 @@
         "file upload/version/download and document create/edit/reload/export",
         "project workplan creation/reload and stale-write draft retention",
         "mobile project viewport overflow",
-        "logout route protection"
+        "logout route protection",
+        "manual timer start/reload/stop/export",
+        "manual quiz creation/grading/reload",
+        "manual course creation/assessment/progress/reload/mobile",
+        "authenticated EYRA streaming, explicit save to canonical EYRA conversations/messages, clear/restore without model call",
+        "official funding comparison and immutable source facts",
+        "two project-scoped grant drafts, switching and reload",
+        "Research Gap real-provider-shaped fixtures, source coverage and canonical literature saving"
       ],
-      "evidence": "evidence/browser-fixtures.txt"
+      "evidence": "evidence/2026-11-13/final-auth-browser.txt; evidence/2026-11-13/saved-label-browser.txt"
     },
     "postgres": {
       "status": "PASS",
       "database": "disposable PostgreSQL 17.6; no network or published ports",
-      "migrations_executed": 10,
+      "migrations_executed": 16,
       "scope": "real PostgreSQL SQL/RLS/triggers with synthetic auth.uid identities and Storage metadata schema",
       "assertions": [
         "owner/outsider isolation across ten tables",
@@ -45,10 +52,16 @@
         "cross-owner project association rejection",
         "Storage metadata owner scope",
         "compare-and-set stale version rejection",
-        "two independent database sessions: one update, one conflict"
+        "two independent database sessions: one update, one conflict",
+        "canonical task/timer links and single running timer",
+        "database-side quiz grading and course progress RPCs",
+        "canonical EYRA owner/message isolation and atomic snapshot rollback",
+        "atomic quota under independent concurrent sessions",
+        "project-scoped grant draft isolation and stale-write rejection",
+        "duplicate source ID and normalized DOI rejection"
       ],
       "hosted_supabase_verified": false,
-      "evidence": "evidence/postgres-workspace.txt"
+      "evidence": "evidence/2026-11-13/merged-postgres.txt"
     },
     "supplemental_ci": {
       "status": "PASS",
@@ -60,7 +73,7 @@
         "deterministic ranking 5/5 and DOI suffix preservation"
       ],
       "scope": "deterministic fixtures; not live provider or human relevance verification",
-      "evidence": "evidence/supplemental-ci.txt"
+      "evidence": "evidence/2026-11-13/final-supplemental.txt"
     }
   },
   "live_checks": {
@@ -70,21 +83,23 @@
       "total": 8,
       "deployed_commit_verified": false,
       "reported_release": "2026-08-10-guided-discovery-eyra-resilience",
-      "evidence": "evidence/public-smoke.txt"
+      "evidence": "evidence/public-smoke.txt",
+      "date": "2026-11-12 (historical; not rerun for this candidate)"
     },
     "retrieval_diagnostic": {
       "status": "FAIL",
       "queries": 5,
-      "source_coverage_sufficient": 2,
-      "source_covered_anchor_gates_passed": 1,
-      "source_covered_anchor_gate_cases": 2,
-      "average_heuristic_anchor_coverage": 0.7,
+      "source_coverage_sufficient": 4,
+      "source_covered_anchor_gates_passed": 3,
+      "source_covered_anchor_gate_cases": 4,
+      "average_heuristic_anchor_coverage": 0.85,
       "observed_provider_failures": [
-        "Europe PMC HTTP 503",
-        "Semantic Scholar HTTP 429"
+        "Semantic Scholar intermittent HTTP 429"
       ],
       "human_judged": false,
-      "evidence": "evidence/live-retrieval.txt"
+      "evidence": "evidence/2026-11-13/candidate-live-retrieval-fixed.txt",
+      "scope": "Candidate API handler via localhost HTTP bridge; real provider responses; not hosted deployment",
+      "root_cause": "Europe PMC unsupported sort=RELEVANCE caused 503; removing it returned real records. Overall diagnostic still FAIL."
     }
   },
   "external_blockers": [
@@ -119,5 +134,67 @@
     "remote_migrations": false,
     "live_payments": false,
     "production_data_writes": false
+  },
+  "result_categories": {
+    "IMPLEMENTED": [
+      "Canonical timer/quiz/learning workflows; manual authoring",
+      "Authenticated Responses API streaming and canonical EYRA snapshot saving",
+      "Request-scoped action opt-in, bounded context and source validation",
+      "Provider resilience and one atomic shared discovery quota",
+      "Scoped funding drafts, comparison and Research Gap literature saving",
+      "Separate staging preflight/configuration and release SHA manifests"
+    ],
+    "EXECUTED": [
+      "609 unit/API tests plus typecheck/lint/import checks/build",
+      "Both isolated browser suites",
+      "16 selected migrations and SQL acceptance checks on disposable PostgreSQL 17.6",
+      "Five-query live scholarly diagnostic through candidate handler"
+    ],
+    "VERIFIED": [
+      "Local fixture journeys, real SQL policies/CAS/quota and no hosted quota bypass",
+      "Europe PMC real responses after sort parameter repair"
+    ],
+    "FAILED": [
+      "Live scholarly diagnostic: sufficient coverage 4/5; heuristic gates 3/4; overall FAIL",
+      "Latest Vercel preview failed; current cause inaccessible, not inferred from previous rate limit"
+    ],
+    "BLOCKED": [
+      "Separate authorized Supabase staging and Vercel identity/access",
+      "Hosted Auth/Storage/two-account acceptance",
+      "Live authenticated OpenAI, Stripe sandbox, LiveKit media and deletion acceptance"
+    ],
+    "NOT_IMPLEMENTED": [
+      "Full acceptance across all 77 products",
+      "Remaining historical PR behavior reviews and unimplemented product workflows"
+    ]
+  },
+  "concurrent_branch_reconciliation": {
+    "preserved_remote_head": "002281a",
+    "merge_commit": "195d99d",
+    "final_contract": "canonical eyra_conversations/messages; no chat records written to Ideas",
+    "save_semantics": "Explicit immutable snapshot; existing records not overwritten; separate source metadata column; security-invoker atomic RPC with caller RLS"
+  },
+  "review": {
+    "current_draft_pr": 401,
+    "prior_pr": 398,
+    "prior_pr_state": "Merged externally before continuation push",
+    "prior_merge_commit": "83a647f9d07d147c1d212996c852ef122f48b296",
+    "production_deployment_verified": false
+  },
+  "github_ci": {
+    "commit": "493a33be24ad3c70df2caced934a07f4eeae7fa1",
+    "status": "PASS",
+    "runs": {
+      "Build": 43421003793,
+      "EYLO Quality Gate": 43421003801,
+      "Product quality": 43421003936
+    },
+    "scope": "Full checks including fixture browsers and disposable PostgreSQL; before final saved-history label correction, separately rerun locally"
+  },
+  "latest_vercel_observation": {
+    "commit": "493a33be24ad3c70df2caced934a07f4eeae7fa1",
+    "status": "FAIL",
+    "deployment_id": "dpl_71qdfqfvxmqV7jeusSuBRMEkkRNF",
+    "cause": "UNVERIFIED; deployment API and build logs unavailable to connected team. Earlier build-rate-limit evidence is historical, not proof of current failure cause."
   }
 }

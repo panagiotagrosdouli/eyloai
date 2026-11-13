@@ -1,4 +1,19 @@
-import test from 'node:test';
+import test, { beforeEach } from 'node:test';
+import { scholarlyResilience } from '../api/scholarly-resilience.mjs';
+beforeEach(() => scholarlyResilience.reset());
+
+test('Europe PMC uses its default relevance ordering instead of the failing RELEVANCE sort parameter', async () => {
+  const previous = globalThis.fetch;
+  let requested;
+  globalThis.fetch = async url => { requested = new URL(url); return new Response('{"resultList":{"result":[]}}', { headers: { 'content-type': 'application/json' } }); };
+  try {
+    const response = createResponse();
+    await handler({ method: 'GET', query: { provider: 'europe_pmc', q: 'robotics for independent ageing', limit: '12' } }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(requested.searchParams.has('sort'), false);
+    assert.equal(requested.searchParams.get('query'), 'robotics for independent ageing');
+  } finally { globalThis.fetch = previous; }
+});
 import assert from 'node:assert/strict';
 
 import handler from '../api/discovery.js';

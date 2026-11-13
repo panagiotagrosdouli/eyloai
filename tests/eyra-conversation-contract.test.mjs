@@ -18,11 +18,14 @@ test('canonical Ideas records retain their dedicated product semantics', () => {
   assert.match(ideas, /monitoringStore\.addWatchlist/);
 });
 
-test('EYRA browser session messages are not misrepresented as server-backed history', () => {
-  assert.match(commandCenter, /sessionStorage\.getItem\('eyra_command_conversation_v2'\)/);
-  assert.match(commandCenter, /sessionStorage\.setItem\('eyra_command_conversation_v2'/);
-  assert.match(commandCenter, /messages\.slice\(-30\)/);
-  assert.doesNotMatch(entities, /Conversation:\s*\{\s*table:/);
+test('EYRA uses account-scoped session state and the canonical conversation contract', () => {
+  assert.match(commandCenter, /eyraConversationKey\(user\?\.id\)/);
+  assert.match(commandCenter, /saveEyraConversation/);
+  assert.doesNotMatch(commandCenter, /source: 'eyra_conversation'/);
+  const history = read('../src/lib/eyra-history.js');
+  assert.match(history, /from\('eyra_conversations'\)/);
+  assert.match(history, /save_eyra_conversation_snapshot/);
+  assert.doesNotMatch(history, /Idea/);
 });
 
 test('canonical entity reads remain owner-filtered and do not authorize conversation reads', () => {

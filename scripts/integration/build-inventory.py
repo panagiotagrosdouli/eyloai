@@ -15,10 +15,10 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 5||||
 6|Notifications|notifications||scheduled-monitoring
 7|Home,PersonalizedDashboard|projects,notes,life_tasks,calendar_events,study_flashcard_decks,activity_events||
-8|Learn,LearningWorkspace|||learn,learning-workspace
+8|Learn,LearningWorkspace|learning_courses,learning_lessons,learning_lesson_progress,learning_enrollments|eyra|learn,learning-workspace
 9|StudyPlanner|notes,calendar_events||notes-workspace
 10|Flashcards|study_flashcard_decks||flashcards-workspace
-11|QuizGenerator,LearningWorkspace|||quiz,learning-workspace
+11|QuizGenerator,LearningWorkspace|quizzes,quiz_questions,quiz_attempts|eyra|quiz,learning-workspace
 12||||
 13|PublicCareers,FutureMe|profiles|general-jobs,euraxess|careers-api,general-career
 14|Profile,cv-extraction|profiles||profile-merge
@@ -31,7 +31,7 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 21|UniversalSearch,universal-search|notes,projects,life_tasks,life_goals,calendar_events,study_flashcard_decks,saved_papers,ideas| |universal-search
 22||||
 23|ResearchKnowledgeGraph,research-knowledge-graph|saved_papers,saved_researchers,projects|discovery|research-knowledge-graph
-24|EyraCommandCenter,eyra-project-tools|projects,saved_papers|eyra|eyra-project-tools,eyra-boundaries
+24|EyraCommandCenter,eyra-project-tools,eyra-stream,eyra-conversation,eyra-history|projects,saved_papers,ideas,notes,life_tasks,eyra_conversations,eyra_messages|eyra|eyra-project-tools,eyra-boundaries,eyra-stream
 25||||
 26|monitoring-service|watchlists,monitoring_discoveries,notifications|monitor|monitor,scheduled-monitoring
 27|OpportunityRadar,monitoring-service|watchlists,monitoring_discoveries,notifications|monitor|monitor,private-radar
@@ -82,7 +82,7 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 72|ResearchDataLab,research-data|||research-data
 73|ResearchDataLab,research-catalog|||research-catalog
 74|ProjectTemplates|projects||project
-75|TimeTracker,time-tracker|time_entries||time-tracker
+75|TimeTracker,time-tracker|time_entries,life_tasks,projects||time-tracker
 76||||
 77|InstitutionAdmin|profiles|admin-analytics|analytics'''
 
@@ -106,6 +106,10 @@ def main():
     verification = json.loads(verification_path.read_text()) if verification_path.exists() else {}
     suite = verification.get('local_checks', {}).get('npm_run_check', {})
     workflow_evidence = {
+        **{i: 'Manual timer/quiz/course browser persistence fixtures and actual PostgreSQL RPC/policy checks' for i in (8, 11, 75)},
+        24: 'Authenticated streaming and canonical EYRA snapshot save/restore browser fixtures; SSE/API permission tests; live OpenAI not executed',
+        47: 'Authenticated EYRA streaming and canonical conversation browser fixtures; live OpenAI not executed',
+        58: 'Research Gap provider-shaped browser fixtures and canonical literature identity SQL checks; live retrieval diagnostic remains FAIL',
         **{i: 'Files/document create, version, reload, download/export and exact-link browser fixtures; local PostgreSQL metadata policies' for i in (16, 17, 18)},
         **{i: 'Project workplan subset: browser persistence/conflict fixtures and independent local PostgreSQL compare-and-set sessions' for i in (54, 55, 74)},
         **{i: 'Local Data Lab/catalog subset: browser analysis, export, disclosure and account-scoped metadata fixtures' for i in (65, 72, 73)},
@@ -128,6 +132,8 @@ def main():
             status = 'Not implemented'
         elif i == 73 and not any('research-catalog' in p for p in files):
             status = 'PR-only'
+        elif i == 24 and files:
+            status = 'Partially implemented'
         elif 'FOUNDATION' in declared:
             status = 'Infrastructure only'
         else:

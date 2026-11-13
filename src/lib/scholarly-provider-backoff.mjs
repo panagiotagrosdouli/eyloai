@@ -25,11 +25,21 @@ export async function fetchWithScholarlyBackoff(url, options = {}, dependencies 
     const abort = () => { clearTimeout(timer); signal?.removeEventListener('abort', abort); reject(signal.reason || new DOMException('Aborted', 'AbortError')); };
     signal?.addEventListener('abort', abort, { once: true });
   }));
-  const response = await request(url, options);
-  const delay = scholarlyRetryDelay(response);
+  let response = await request(url, options);
+  const attempts = Math.max(1, Math.min(3, Number(dependencies.maxAttempts) || 2));
+  for (let attempt = 1; attempt < attempts; attempt++) {
+  const permitted = scholarlyRetryDelay(response);
+  // Only explicit server-side opt-in retries an unheaded transient outage.
+  // Unheaded 429s are never retried; a long Retry-After is never shortened.
+  const delay = permitted ?? (dependencies.retryWithoutHeader === true
+    && [502, 503, 504].includes(response.status) && !response.headers?.get?.('retry-after')
+    ? Math.min(1500, Math.max(250, Number(dependencies.baseDelayMs) || 500) * (2 ** (attempt - 1))) : null);
   if (delay === null) return response;
+  await response.body?.cancel?.().catch(() => {});
   if (options.signal?.aborted) throw options.signal.reason || new DOMException('Aborted', 'AbortError');
   await sleep(delay, options.signal);
   if (options.signal?.aborted) throw options.signal.reason || new DOMException('Aborted', 'AbortError');
-  return request(url, options);
+  response = await request(url, options);
+  }
+  return response;
 }

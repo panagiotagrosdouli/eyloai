@@ -1,0 +1,169 @@
+NOTICE:  policy "Users manage own rows" for relation "public.projects" does not exist, skipping
+NOTICE:  trigger "projects_set_updated_date" for relation "public.projects" does not exist, skipping
+NOTICE:  policy "Users manage own rows" for relation "public.ideas" does not exist, skipping
+NOTICE:  trigger "ideas_set_updated_date" for relation "public.ideas" does not exist, skipping
+NOTICE:  policy "Users manage own rows" for relation "public.meetings" does not exist, skipping
+NOTICE:  trigger "meetings_set_updated_date" for relation "public.meetings" does not exist, skipping
+NOTICE:  policy "Users manage own rows" for relation "public.saved_papers" does not exist, skipping
+NOTICE:  trigger "saved_papers_set_updated_date" for relation "public.saved_papers" does not exist, skipping
+NOTICE:  policy "Users manage own rows" for relation "public.saved_researchers" does not exist, skipping
+NOTICE:  trigger "saved_researchers_set_updated_date" for relation "public.saved_researchers" does not exist, skipping
+NOTICE:  policy "Users manage own rows" for relation "public.saved_opportunities" does not exist, skipping
+NOTICE:  trigger "saved_opportunities_set_updated_date" for relation "public.saved_opportunities" does not exist, skipping
+NOTICE:  policy "Users manage own rows" for relation "public.search_history" does not exist, skipping
+NOTICE:  trigger "search_history_set_updated_date" for relation "public.search_history" does not exist, skipping
+NOTICE:  policy "Users manage own profile" for relation "public.profiles" does not exist, skipping
+NOTICE:  trigger "profiles_set_updated_date" for relation "public.profiles" does not exist, skipping
+APPLIED locally: 20260803_eylo_core_entities.sql
+NOTICE:  policy "Users manage own rows" for relation "public.notes" does not exist, skipping
+NOTICE:  policy "Users read own note versions" for relation "public.note_versions" does not exist, skipping
+NOTICE:  trigger "notes_capture_version" for relation "public.notes" does not exist, skipping
+NOTICE:  trigger "projects_unlink_deleted_notes" for relation "public.projects" does not exist, skipping
+APPLIED locally: 20261112154425_private_notes.sql
+NOTICE:  schema "private" already exists, skipping
+NOTICE:  policy "Users manage own rows" for relation "public.life_tasks" does not exist, skipping
+NOTICE:  trigger "life_tasks_validate" for relation "public.life_tasks" does not exist, skipping
+NOTICE:  trigger "projects_unlink_deleted_life_tasks" for relation "public.projects" does not exist, skipping
+APPLIED locally: 20261112161818_eylo_life_tasks.sql
+NOTICE:  schema "private" already exists, skipping
+NOTICE:  policy "Users manage own rows" for relation "public.life_goals" does not exist, skipping
+NOTICE:  trigger "life_goals_validate" for relation "public.life_goals" does not exist, skipping
+NOTICE:  trigger "projects_unlink_deleted_life_goals" for relation "public.projects" does not exist, skipping
+APPLIED locally: 20261112163010_eylo_life_goals_milestones.sql
+NOTICE:  schema "private" already exists, skipping
+NOTICE:  policy "Users manage own rows" for relation "public.study_flashcard_decks" does not exist, skipping
+NOTICE:  trigger "study_flashcard_decks_validate" for relation "public.study_flashcard_decks" does not exist, skipping
+NOTICE:  trigger "projects_unlink_deleted_flashcard_decks" for relation "public.projects" does not exist, skipping
+APPLIED locally: 20261112165449_eylo_study_flashcards.sql
+NOTICE:  policy "Users manage own rows" for relation "public.calendar_events" does not exist, skipping
+NOTICE:  trigger "validate_calendar_event" for relation "public.calendar_events" does not exist, skipping
+APPLIED locally: 20261112173500_eylo_calendar_events.sql
+NOTICE:  policy "Users read own activity" for relation "public.activity_events" does not exist, skipping
+NOTICE:  policy "Users clear own activity" for relation "public.activity_events" does not exist, skipping
+NOTICE:  trigger "capture_activity_notes" for relation "public.notes" does not exist, skipping
+NOTICE:  trigger "capture_activity_life_tasks" for relation "public.life_tasks" does not exist, skipping
+NOTICE:  trigger "capture_activity_life_goals" for relation "public.life_goals" does not exist, skipping
+NOTICE:  trigger "capture_activity_flashcards" for relation "public.study_flashcard_decks" does not exist, skipping
+NOTICE:  trigger "capture_activity_calendar_events" for relation "public.calendar_events" does not exist, skipping
+NOTICE:  trigger "capture_activity_projects" for relation "public.projects" does not exist, skipping
+APPLIED locally: 20261112181000_eylo_activity_history.sql
+APPLIED locally: 20261112183722_universal_workspace_search.sql
+NOTICE:  policy "Users manage own EYLO files" for relation "public.eylo_files" does not exist, skipping
+NOTICE:  policy "Users read own EYLO file versions" for relation "public.eylo_file_versions" does not exist, skipping
+NOTICE:  policy "Users add own EYLO file versions" for relation "public.eylo_file_versions" does not exist, skipping
+NOTICE:  trigger "eylo_files_set_updated_at" for relation "public.eylo_files" does not exist, skipping
+NOTICE:  policy "EYLO file owner can read objects" for relation "storage.objects" does not exist, skipping
+NOTICE:  policy "EYLO file owner can upload objects" for relation "storage.objects" does not exist, skipping
+NOTICE:  policy "EYLO file owner can delete objects" for relation "storage.objects" does not exist, skipping
+APPLIED locally: 20261112190430_eylo_files.sql
+APPLIED locally: 20261112200000_private_file_search.sql
+NOTICE:  policy "Users manage own time entries" for relation "public.time_entries" does not exist, skipping
+NOTICE:  trigger "time_entries_set_updated_at" for relation "public.time_entries" does not exist, skipping
+NOTICE:  policy "Users manage own quizzes" for relation "public.quizzes" does not exist, skipping
+NOTICE:  policy "Users manage own quiz questions" for relation "public.quiz_questions" does not exist, skipping
+NOTICE:  policy "Users read own quiz attempts" for relation "public.quiz_attempts" does not exist, skipping
+NOTICE:  policy "Users save own quiz attempts" for relation "public.quiz_attempts" does not exist, skipping
+NOTICE:  trigger "quizzes_touch_updated_at" for relation "public.quizzes" does not exist, skipping
+NOTICE:  trigger "quiz_attempts_grade_before_insert" for relation "public.quiz_attempts" does not exist, skipping
+NOTICE:  policy "Users manage own learning courses" for relation "public.learning_courses" does not exist, skipping
+NOTICE:  trigger "learning_courses_touch_updated_at" for relation "public.learning_courses" does not exist, skipping
+NOTICE:  policy "Users manage own learning lessons" for relation "public.learning_lessons" does not exist, skipping
+NOTICE:  policy "Users manage own learning enrollments" for relation "public.learning_enrollments" does not exist, skipping
+NOTICE:  policy "Users manage own lesson progress" for relation "public.learning_lesson_progress" does not exist, skipping
+NOTICE:  trigger "quiz_attempts_sync_learning_progress" for relation "public.quiz_attempts" does not exist, skipping
+APPLIED locally: 20261113062923_canonical_learning_time.sql
+APPLIED locally: 20261113113010_shared_discovery_quota.sql
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ check_learning
+----------------
+
+(1 row)
+
+ check_quota
+-------------
+
+(1 row)
+
+ check_quota
+-------------
+
+(1 row)
+
+ check_quota
+-------------
+
+(1 row)
+
+ check_quota
+-------------
+
+(1 row)
+
+ check_quota
+-------------
+
+(1 row)
+
+PASS: two independent PostgreSQL sessions competing on one project version return one save and one conflict.
+PASS: two independent PostgreSQL quota sessions allow exactly one request at a limit of one.
+PASS: PostgreSQL migration execution, two-role workspace isolation, version history, search, project links and Storage metadata policies.
+NOT VERIFIED: hosted Supabase Auth, PostgREST, Storage bytes, deployed schema, or service-role operations.

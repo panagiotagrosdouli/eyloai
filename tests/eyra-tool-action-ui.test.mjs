@@ -4,8 +4,10 @@ import { readFileSync } from 'node:fs';
 
 const source = readFileSync(new URL('../src/components/eyra/EyraCommandCenter.jsx', import.meta.url), 'utf8');
 
-test('the authenticated command center opts into only the bounded project and library action path', () => {
-  assert.match(source, /enable_project_tools: true/);
+test('the authenticated command center requires per-request opt-in for the bounded project and library action path', () => {
+  assert.match(source, /enable_project_tools: allowWorkspaceActions/);
+  assert.match(source, /\[allowWorkspaceActions, setAllowWorkspaceActions\] = useState\(false\)/);
+  assert.match(source, /Allow project and Library actions for this request/);
   assert.match(source, /tool_intent: content/);
   assert.match(source, /signal: controller\.signal/);
 });

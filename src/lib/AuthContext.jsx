@@ -19,6 +19,10 @@ function clearPrivateSessionData() {
   try {
     window.sessionStorage.removeItem('eyra_command_conversation');
     window.sessionStorage.removeItem('eyra_command_conversation_v2');
+    for (let index = window.sessionStorage.length - 1; index >= 0; index--) {
+      const key = window.sessionStorage.key(index);
+      if (key?.startsWith('eyra:conversation:v3:')) window.sessionStorage.removeItem(key);
+    }
   } catch {
     // Some browsers restrict storage access.
   }

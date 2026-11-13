@@ -1,0 +1,123 @@
+{
+  "date": "2026-11-12",
+  "tested_source_commit": "f49e643db0c44043a79d0744c5d9606ac459de90",
+  "release_decision": "NO-GO",
+  "all_77_complete": false,
+  "local_checks": {
+    "npm_run_check": {
+      "status": "PASS",
+      "tests": 531,
+      "failed": 0,
+      "includes": [
+        "local imports",
+        "frontend and API typecheck",
+        "ESLint",
+        "Node unit/API regressions",
+        "Vite production build"
+      ],
+      "evidence": "evidence/combined-check.txt"
+    },
+    "browser": {
+      "status": "PASS",
+      "scope": "isolated Auth/PostgREST/Storage fixtures; actual React pages and Supabase SDK calls",
+      "journeys": [
+        "authentication and mobile registration",
+        "local Data Lab analysis/export/disclosure and account-scoped metadata catalog",
+        "keyboard meeting-card access",
+        "Library project link persistence",
+        "Universal Search exact-note/file deep links",
+        "file upload/version/download and document create/edit/reload/export",
+        "project workplan creation/reload and stale-write draft retention",
+        "mobile project viewport overflow",
+        "logout route protection"
+      ],
+      "evidence": "evidence/browser-fixtures.txt"
+    },
+    "postgres": {
+      "status": "PASS",
+      "database": "disposable PostgreSQL 17.6; no network or published ports",
+      "migrations_executed": 10,
+      "scope": "real PostgreSQL SQL/RLS/triggers with synthetic auth.uid identities and Storage metadata schema",
+      "assertions": [
+        "owner/outsider isolation across ten tables",
+        "note snapshot history",
+        "workspace and file search owner scope",
+        "cross-owner project association rejection",
+        "Storage metadata owner scope",
+        "compare-and-set stale version rejection",
+        "two independent database sessions: one update, one conflict"
+      ],
+      "hosted_supabase_verified": false,
+      "evidence": "evidence/postgres-workspace.txt"
+    },
+    "supplemental_ci": {
+      "status": "PASS",
+      "checks": [
+        "authenticated EYRA routing",
+        "local-time greetings",
+        "partial source resilience",
+        "server credential boundaries",
+        "deterministic ranking 5/5 and DOI suffix preservation"
+      ],
+      "scope": "deterministic fixtures; not live provider or human relevance verification",
+      "evidence": "evidence/supplemental-ci.txt"
+    }
+  },
+  "live_checks": {
+    "public_http_smoke": {
+      "status": "PASS",
+      "passed": 8,
+      "total": 8,
+      "deployed_commit_verified": false,
+      "reported_release": "2026-08-10-guided-discovery-eyra-resilience",
+      "evidence": "evidence/public-smoke.txt"
+    },
+    "retrieval_diagnostic": {
+      "status": "FAIL",
+      "queries": 5,
+      "source_coverage_sufficient": 2,
+      "source_covered_anchor_gates_passed": 1,
+      "source_covered_anchor_gate_cases": 2,
+      "average_heuristic_anchor_coverage": 0.7,
+      "observed_provider_failures": [
+        "Europe PMC HTTP 503",
+        "Semantic Scholar HTTP 429"
+      ],
+      "human_judged": false,
+      "evidence": "evidence/live-retrieval.txt"
+    }
+  },
+  "external_blockers": [
+    {
+      "service": "Supabase",
+      "intended_ref": "kbzjngpzxpniaumlupaa",
+      "owner_identified": true,
+      "access": "get_project explicitly denied permission",
+      "environment": "repository protects this live ref from staging writes; separate authorized staging required",
+      "unrelated_ref_not_used": "umzrggayitzfgrrofjnw"
+    },
+    {
+      "service": "Vercel",
+      "connected_team_id": "team_IUkyJtLhpTRBaUikmCSYHBDn",
+      "access": "no linked projects; lookup of eyloai.vercel.app returned 404 in connected team",
+      "deployed_git_sha": "UNVERIFIED"
+    },
+    {
+      "service": "Provider acceptance",
+      "not_run": [
+        "hosted Supabase Auth/recovery/persistence/RLS/Storage byte access",
+        "authenticated OpenAI EYRA requests",
+        "LiveKit two-user media",
+        "Stripe sandbox checkout/webhook/entitlements",
+        "account deletion",
+        "independent human retrieval judgments"
+      ]
+    }
+  ],
+  "remote_mutations": {
+    "production_deployment": false,
+    "remote_migrations": false,
+    "live_payments": false,
+    "production_data_writes": false
+  }
+}

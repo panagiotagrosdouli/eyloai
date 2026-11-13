@@ -36,6 +36,9 @@ const TOOL_GROUPS = [
     description: 'Research work that stays connected to projects',
     items: [
       { label: 'EYLO Files', path: '/files', icon: File, desc: 'Private project files with version history' },
+      { label: 'Time Tracker', path: '/time-tracker', icon: Clock3, desc: 'Track project work and Life tasks' },
+      { label: 'Learn', path: '/learn', icon: GraduationCap, desc: 'Author lessons and follow saved learning paths' },
+      { label: 'Quiz Generator', path: '/quiz-generator', icon: BookOpen, desc: 'Author or review quizzes and save attempts' },
       { label: 'EYLO Create', path: '/documents/new', icon: FilePlus2, desc: 'Create and version Markdown research documents' },
       { label: 'Library', path: '/library', icon: BookOpen, desc: 'Papers and people you have saved' },
       { label: 'Life', path: '/life', icon: ListTodo, desc: 'Private tasks, priorities, due dates and project links' },

@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import { chromium } from 'playwright';
+import { validateMeetingsStagingTarget } from '../src/lib/meetings-e2e-target.mjs';
+
+const required = ['EYLO_E2E_BASE_URL', 'EYLO_E2E_ALLOWED_HOST', 'EYLO_E2E_HOST_EMAIL', 'EYLO_E2E_HOST_PASSWORD'];
+const missing = required.filter(name => !process.env[name]);
+if (missing.length) throw new Error(`Missing staging settings: ${missing.join(', ')}`);
+if (process.env.EYLO_E2E_CONFIRM_DATA_MUTATION !== 'YES') throw new Error('Set EYLO_E2E_CONFIRM_DATA_MUTATION=YES to generate, save, attempt, and delete a staging quiz.');
+const target = validateMeetingsStagingTarget(process.env.EYLO_E2E_BASE_URL, process.env.EYLO_E2E_ALLOWED_HOST);
+const account = { email: process.env.EYLO_E2E_HOST_EMAIL, password: process.env.EYLO_E2E_HOST_PASSWORD };
+const timeout = Number(process.env.EYLO_E2E_TIMEOUT_MS || 90_000);
+const marker = `EYLO quiz e2e ${Date.now()}`;
+const source = `The scientific method begins with a research question and a review of relevant evidence. Researchers state a hypothesis before collecting observations. An experimental design specifies independent and dependent variables, a comparison condition, and a measurement plan. Researchers document exclusions, missing data, and analysis decisions so that other investigators can evaluate and reproduce the work. Random assignment can reduce confounding, while blinding can reduce measurement bias. Results should be interpreted with uncertainty and limitations.`;
+const browser = await chromium.launch({ headless: process.env.EYLO_E2E_HEADLESS !== 'false' });
+const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+const page = await context.newPage(); page.setDefaultTimeout(timeout);
+try {
+  await page.goto(new URL('/login?from=%2Fquiz-generator', target.origin).href);
+  await page.getByLabel('Email address').fill(account.email);
+  await page.getByLabel('Password').fill(account.password);
+  await page.getByRole('button', { name: 'Continue with password' }).click();
+  await page.getByRole('heading', { name: 'Continue your research' }).waitFor({ state: 'detached', timeout });
+  await page.goto(new URL('/quiz-generator', target.origin).href);
+  await page.getByRole('heading', { name: 'EYLO Quiz Generator' }).waitFor();
+  await page.getByLabel('Quiz title').fill(marker);
+  await page.getByLabel('Subject').fill('Research methods');
+  await page.getByLabel('Study material').fill(source);
+  await page.getByLabel(/I understand the selected note or pasted study material/).check();
+  await page.getByRole('button', { name: 'Generate quiz questions' }).click();
+  await page.getByRole('heading', { name: 'Review before saving' }).waitFor({ timeout });
+  assert.equal(await page.locator('ol.max-h-72 > li').count(), 3);
+  await page.getByRole('button', { name: 'Save quiz' }).click();
+  await page.getByRole('status').getByText('Quiz and questions saved.').waitFor();
+  await page.reload();
+  await page.getByRole('heading', { name: marker }).waitFor();
+  const fields = page.locator('fieldset');
+  const count = await fields.count();
+  assert.equal(count, 3);
+  await page.getByRole('button', { name: 'Start quiz' }).click();
+  for (let index = 0; index < count; index += 1) await fields.nth(index).locator('input[type="radio"]').first().check();
+  await page.getByRole('button', { name: 'Submit for grading' }).click();
+  await page.getByRole('heading', { name: /Saved result:/ }).waitFor();
+  await page.reload();
+  await page.getByRole('heading', { name: /Saved result:/ }).waitFor();
+  const result = (await page.getByRole('heading', { name: /Saved result:/ }).innerText()).match(/\d+\/3/);
+  assert.ok(result, 'saved server-scored result contains the expected question count');
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: `Delete quiz ${marker}` }).click();
+  await page.getByRole('status').getByText('Quiz and its attempts deleted.').waitFor();
+  console.log(JSON.stringify({ result: 'PASS', target: target.origin, mobile: true, realAiGeneration: true, savedReloaded: true, gradingPersisted: true, deletion: true }));
+} finally {
+  await context.close();
+  await browser.close();
+}

@@ -22,6 +22,9 @@ export async function buildUserProfile() {
     ['opportunities', base44.entities.SavedOpportunity.list('-created_date', 20), []],
     ['searches', base44.entities.SearchHistory.list('-created_date', 20), []],
     ['ideas', base44.entities.Idea.list('-created_date', 10), []],
+    ['notes', base44.entities.Note.list('-updated_date', 10), []],
+    ['tasks', base44.entities.LifeTask.list('-updated_date', 20), []],
+    ['decks', base44.entities.FlashcardDeck.list('-updated_date', 10), []],
   ];
   const settled = await Promise.allSettled(requests.map(([, request]) => request));
   const values = settled.map((result, index) => (
@@ -32,7 +35,7 @@ export async function buildUserProfile() {
       ? [{ source: requests[index][0], message: result.reason?.message || 'Temporarily unavailable' }]
       : []
   ));
-  const [user, projects, papers, researchers, opportunities, searches, ideas] = values;
+  const [user, projects, papers, researchers, opportunities, searches, ideas, notes, tasks, decks] = values;
 
   // Derive top research topics from searches + paper titles
   const searchTerms = searches.map(s => s.query).filter(Boolean);
@@ -58,6 +61,7 @@ export async function buildUserProfile() {
     opportunities,
     searches,
     ideas,
+    notes, tasks, decks,
     stats: {
       papers: papers.length,
       researchers: researchers.length,
@@ -76,7 +80,7 @@ export async function buildUserProfile() {
 }
 
 function buildContextString(profile) {
-  const { user, activeProjects, papers, researchers, opportunities, searches, ideas } = profile;
+  const { user, activeProjects, papers, researchers, opportunities, searches, ideas, notes = [], tasks = [], decks = [] } = profile;
   
   const lines = [
     `USER PROFILE`,
@@ -91,6 +95,12 @@ function buildContextString(profile) {
     `ACTIVE PROJECTS (${activeProjects.length}):`,
     ...activeProjects.map(p => `- "${p.title}" [${p.status}]: ${p.goal}`),
     activeProjects.length === 0 ? '- No active projects yet' : '',
+    'PRIVATE NOTES (user-authored, not independently verified):',
+    ...notes.map(note => `- ${String(note.title || '').slice(0, 200)}: ${String(note.content || '').slice(0, 1500)}`),
+    'LIFE AND STUDY TASKS (user-authored):',
+    ...tasks.map(task => `- ${String(task.title || '').slice(0, 160)} [${task.status || 'todo'}] due ${task.due_date || 'not set'}`),
+    'FLASHCARD COLLECTIONS:',
+    ...decks.map(deck => `- ${String(deck.title || '').slice(0, 120)} (${Array.isArray(deck.cards) ? deck.cards.length : 0} cards)`),
     ``,
     `RECENT SEARCHES (${searches.length} total, last 10):`,
     ...searches.slice(0, 10).map(s => `- "${s.query}"`),

@@ -29,6 +29,9 @@ const Library = lazy(() => import('@/pages/Library'));
 const EyloFiles = lazy(() => import('@/pages/EyloFiles'));
 const DocumentEditor = lazy(() => import('@/pages/DocumentEditor'));
 const Notes = lazy(() => import('@/pages/Notes'));
+const TimeTracker = lazy(() => import('@/pages/TimeTracker'));
+const QuizGenerator = lazy(() => import('@/pages/QuizGenerator'));
+const Learn = lazy(() => import('@/pages/Learn'));
 const Life = lazy(() => import('@/pages/Life'));
 const LifeGoals = lazy(() => import('@/pages/LifeGoals'));
 const StudyPlanner = lazy(() => import('@/pages/StudyPlanner'));
@@ -114,6 +117,9 @@ const AuthenticatedApp = () => {
           <Route path="/documents/new" element={<DocumentEditor />} />
           <Route path="/documents/:id" element={<DocumentEditor />} />
           <Route path="/notes" element={<Notes />} />
+          <Route path="/time-tracker" element={<TimeTracker />} />
+          <Route path="/quiz-generator" element={<QuizGenerator />} />
+          <Route path="/learn" element={<Learn />} />
           <Route path="/life" element={<Life />} />
           <Route path="/life/goals" element={<LifeGoals />} />
           <Route path="/study-planner" element={<StudyPlanner />} />

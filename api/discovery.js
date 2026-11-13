@@ -2,6 +2,8 @@ import { applyCors } from '../src/lib/api-cors.mjs';
 import { fetchWithScholarlyBackoff } from '../src/lib/scholarly-provider-backoff.mjs';
 import { readBoundedScholarlyResponse, ScholarlyResponseTooLargeError } from '../src/lib/discovery-response-limit.mjs';
 import { normalizeDoi } from '../src/lib/citation-verification.mjs';
+import { scholarlyResilience, providerMinimumGap } from './scholarly-resilience.mjs';
+import { consumeDiscoveryQuota } from './discovery-rate-limit.mjs';
 
 const PROVIDERS = new Set([
   'openalex_works',
@@ -96,7 +98,6 @@ function buildProviderUrl(provider, query, limit, sort, page = 1, country = '', 
       query,
       format: 'json',
       pageSize: String(limit),
-      sort: 'RELEVANCE',
     });
     return `https://www.ebi.ac.uk/europepmc/webservices/rest/search?${params}`;
   }
@@ -168,10 +169,29 @@ export default async function handler(request, response) {
   const url = buildProviderUrl(provider, query, limit, sort, page, provider === 'openalex_authors' ? country : '', exactDoi);
   if (!url) return response.status(400).json({ error: 'Provider configuration is invalid.' });
 
+  // Hosted Vercel traffic requires the one shared atomic quota. Local read-only
+  // provider diagnostics do not impersonate a deployed quota service.
+  if (process.env.VERCEL === '1') {
+    const quota = await consumeDiscoveryQuota(request);
+    if (quota.status !== 'available') {
+      response.setHeader('Cache-Control', 'no-store');
+      return response.status(503).json({ error: 'Scholarly discovery quota service is unavailable.', code: 'DISCOVERY_RATE_LIMIT_UNAVAILABLE' });
+    }
+    if (!quota.allowed) {
+      response.setHeader('Cache-Control', 'no-store');
+      response.setHeader('Retry-After', String(Math.max(1, quota.retryAfterSeconds)));
+      response.setHeader('X-RateLimit-Limit', String(quota.limit));
+      response.setHeader('X-RateLimit-Remaining', '0');
+      return response.status(429).json({ error: 'Research request limit reached. Retry after the indicated delay.', code: 'DISCOVERY_RATE_LIMITED' });
+    }
+  }
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
 
   try {
+    const outcome = await scholarlyResilience.execute(provider,
+      JSON.stringify([provider, query, limit, sort, page, country, exactDoi]), async () => {
     const upstream = await fetchWithScholarlyBackoff(url, {
       signal: controller.signal,
       headers: {
@@ -179,7 +199,7 @@ export default async function handler(request, response) {
         'user-agent': 'EYLO scholarly discovery proxy',
         ...providerHeaders(provider),
       },
-    });
+    }, { retryWithoutHeader: true, baseDelayMs: providerMinimumGap(provider), maxAttempts: 3 });
 
     const body = await readBoundedScholarlyResponse(upstream);
     // A source outage or bot challenge can answer HTTP 200 with an HTML page.
@@ -188,14 +208,18 @@ export default async function handler(request, response) {
     const htmlContent = /text\/html/i.test(providerContentType)
       || /^\s*(?:<!doctype\s+html|<html\b|<head\b|<body\b|<script\b)/i.test(body.toString('utf8', 0, 512));
     if (upstream.ok && htmlContent) {
+      return { status: 502, body: Buffer.from(JSON.stringify({ error: 'Scholarly source returned an invalid response.', code: 'INVALID_SOURCE_RESPONSE' })), invalid: true, cacheable: false };
+    }
+    return { status: upstream.status, body, retryAfter: upstream.headers.get('retry-after'), cacheable: upstream.ok };
+    }, { signal: controller.signal });
+    if (outcome.invalid) {
       response.setHeader('Cache-Control', 'no-store');
       response.setHeader('X-Content-Type-Options', 'nosniff');
-      return response.status(502).json({
-        error: 'Scholarly source returned an invalid response.',
-        code: 'INVALID_SOURCE_RESPONSE',
-      });
+      return response.status(502).json(JSON.parse(outcome.body.toString()));
     }
-    response.status(upstream.status);
+    response.status(outcome.status);
+    if (outcome.retryAfter) response.setHeader('Retry-After', outcome.retryAfter);
+    response.setHeader('X-EYLO-Cache', outcome.cache);
     // A compromised provider must never turn this same-origin endpoint into
     // an HTML/JavaScript page. Return only the expected scholarly media type.
     response.setHeader('X-Content-Type-Options', 'nosniff');
@@ -206,10 +230,10 @@ export default async function handler(request, response) {
     // rate limit must never poison the shared cache for subsequent researchers.
     response.setHeader(
       'Cache-Control',
-      upstream.ok ? (provider === 'openalex_authors' ? 'public, s-maxage=21600, stale-while-revalidate=600' : 'public, s-maxage=300, stale-while-revalidate=600') : 'no-store',
+      outcome.status === 200 ? (provider === 'openalex_authors' ? 'public, s-maxage=21600, stale-while-revalidate=600' : 'public, s-maxage=300, stale-while-revalidate=600') : 'no-store',
     );
     response.setHeader('X-EYLO-Source', provider);
-    return response.send(body);
+    return response.send(outcome.body);
   } catch (error) {
     response.setHeader('Cache-Control', 'no-store');
     const timedOut = error?.name === 'AbortError' || error?.name === 'TimeoutError';
