@@ -217,7 +217,12 @@ function loadConversation() {
   try {
     const saved = sessionStorage.getItem('eyra_command_conversation_v2');
     const parsed = saved ? JSON.parse(saved) : null;
-    return Array.isArray(parsed) && parsed.length ? parsed : [createWelcomeMessage()];
+    // A browser refresh interrupts an in-flight save. The outcome is unknown,
+    // so restore it as unconfirmed and allow an idempotent retry.
+    return Array.isArray(parsed) && parsed.length
+      ? parsed.map(message => message.role === 'user' && message.persistence === 'saving'
+        ? { ...message, persistence: 'unconfirmed' } : message)
+      : [createWelcomeMessage()];
   } catch {
     return [createWelcomeMessage()];
   }
