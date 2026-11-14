@@ -105,3 +105,9 @@ test('authentication distinguishes service configuration, network, and email del
   const delivery = mapSupabaseError({ message: 'Error sending confirmation email', status: 400 });
   assert.equal(delivery.code, AppErrorCode.EMAIL_SEND_FAILED);
 });
+
+
+test('authentication preserves current product and privacy destinations, including section anchors', () => {
+ for(const path of ['/account-deletion','/account-deletion#receipt','/tools/forms','/collaboration/peer-review','/automations','/calendar','/notes?focus=exact-note','/files','/documents/new','/life/goals','/study','/learn','/quiz-generator','/time-tracker','/offline']) assert.equal(getSafeRedirect(path),path);
+ for(const path of ['/tools-evil','//tools.evil.example','/account-deletion-evil','/tools/../../login','https://evil.example/tools']) assert.equal(getSafeRedirect(path),'/home');
+});

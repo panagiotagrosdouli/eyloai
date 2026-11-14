@@ -439,9 +439,10 @@ export default function Settings() {
                   {exportingWorkspace ? 'Preparing your workspace…' : 'Download saved workspace'}
                 </button>
               </div>
+              <Link to="/account-deletion" className="block rounded-xl border border-destructive/30 p-4 text-sm font-semibold text-destructive">Review permanent account deletion</Link>
               <div className="rounded-xl border border-border bg-secondary/20 p-4 text-xs leading-6 text-muted-foreground">
                 Device preferences are stored in this browser. Exporting a workspace does not delete any data.
-                EYLO does not yet provide verified self-service account deletion or a complete personal-data access and portability workflow.
+                A verified full personal-data access and portability workflow remains unavailable. Account deletion requires identity verification and may be unavailable until your environment is enabled.
               </div>
             </div>
           </div>

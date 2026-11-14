@@ -21,6 +21,20 @@ const ALLOWED_PREFIXES = [
   '/history',
   '/profile',
   '/settings',
+  '/account-deletion',
+  '/tools',
+  '/collaboration',
+  '/automations',
+  '/calendar',
+  '/notes',
+  '/files',
+  '/documents',
+  '/life',
+  '/study',
+  '/learn',
+  '/quiz-generator',
+  '/time-tracker',
+  '/offline',
   '/ideas',
   '/meetings',
   '/radar',
@@ -54,7 +68,7 @@ export function getSafeRedirect(
   const decoded = decodeCandidate(candidate.trim());
   if (!decoded) return fallback;
   if (!decoded.startsWith('/') || decoded.startsWith('//')) return fallback;
-  // Authentication must enter the private workspace, not bounce back to the public landing.
+  // Authentication must return to a known application workflow, not the public landing.
   // Keep genuine deep links (projects, library, research tools) intact.
   if (decoded === '/' || decoded.startsWith('/?') || decoded.startsWith('/#')) return fallback;
   if (/^[\s]*javascript:/i.test(decoded)) return fallback;
@@ -66,7 +80,7 @@ export function getSafeRedirect(
 
     const path = `${parsed.pathname}${parsed.search}${parsed.hash}`;
     const allowed = ALLOWED_PREFIXES.some((prefix) =>
-      prefix === '/' ? path === '/' : path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(`${prefix}?`),
+      prefix === '/' ? parsed.pathname === '/' : parsed.pathname === prefix || parsed.pathname.startsWith(`${prefix}/`),
     );
 
     return allowed ? path : fallback;

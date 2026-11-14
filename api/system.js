@@ -1,3 +1,4 @@
+import accountDeletion from '../server/account-deletion.js';
 // Consolidate small endpoints to stay within the Vercel Hobby function limit.
 // Keep each handler's own CORS, HTTP method and authorization behavior.
 import capabilities from '../server/capabilities.js';
@@ -8,6 +9,7 @@ import {adminOperations,developerRead} from '../server/product-api.js';
 
 const handlers = Object.freeze({
   capabilities,
+  'account-deletion': accountDeletion,
   'admin-operations':adminOperations,
   developer:developerRead,
   contact,

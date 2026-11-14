@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "baseline_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-  "inventory_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+  "inventory_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
   "scope": "Integration candidate branch, not current main or deployed product",
   "intended_eylo_supabase_ref": "kbzjngpzxpniaumlupaa",
   "live_access": "Owner identified this ref; connector permission denied. Repository guards it as live EYLO. Separate staging identity remains required.",
@@ -43,7 +43,8 @@
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -57,8 +58,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "511ba98ccfe5d474b5a72f7eeaed933eaafc7588",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -93,7 +94,8 @@
         "supabase/migrations/20261112173500_eylo_calendar_events.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -107,8 +109,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: 689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -146,7 +148,8 @@
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -160,8 +163,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -217,7 +220,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -232,8 +236,8 @@
       "workflow_project_path": "/projects/:id/workbench/spaces",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -290,7 +294,8 @@
         "supabase/migrations/20261113090000_eyra_conversations.sql",
         "supabase/migrations/20261113114924_eyra_conversation_snapshots.sql",
         "supabase/migrations/20261113120556_eyra_snapshot_retry_identity.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -305,8 +310,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -339,7 +344,8 @@
       ],
       "migration_files": [
         "supabase/migrations/20260803_eylo_monitoring_entities.sql",
-        "supabase/migrations/20260817090000_operational_services.sql"
+        "supabase/migrations/20260817090000_operational_services.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -353,8 +359,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "9f96f560f345ca4b367ba534b2d09c9beeea44ae",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -409,7 +415,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -461,7 +468,8 @@
         "learning_enrollments"
       ],
       "migration_files": [
-        "supabase/migrations/20261113062923_canonical_learning_time.sql"
+        "supabase/migrations/20261113062923_canonical_learning_time.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -477,8 +485,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "848484b1642e3fbd3b3477d50e6ff32c93f2f02f",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Manual timer/quiz/course browser persistence fixtures and actual PostgreSQL RPC/policy checks. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -517,7 +525,8 @@
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -531,8 +540,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "55f46921be983ae64e74581349f38b75c43990cc",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -566,7 +575,8 @@
       "migration_files": [
         "supabase/migrations/20261112165449_eylo_study_flashcards.sql",
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -580,8 +590,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "0d8f6948afbfcf962b70e3615e962d744cc0f7cc",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -616,7 +626,8 @@
         "quiz_attempts"
       ],
       "migration_files": [
-        "supabase/migrations/20261113062923_canonical_learning_time.sql"
+        "supabase/migrations/20261113062923_canonical_learning_time.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -631,8 +642,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "848484b1642e3fbd3b3477d50e6ff32c93f2f02f",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Manual timer/quiz/course browser persistence fixtures and actual PostgreSQL RPC/policy checks. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -689,7 +700,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -704,8 +716,8 @@
       "workflow_project_path": "/projects/:id/workbench/skills",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -758,7 +770,8 @@
         "supabase/migrations/20260817090000_operational_services.sql",
         "supabase/migrations/20260817090500_security_hardening.sql",
         "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
-        "supabase/migrations/20260817090700_analytics_smoke_verification.sql"
+        "supabase/migrations/20260817090700_analytics_smoke_verification.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -771,8 +784,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "4cd54257a825ee9a295f096415a48aaeb0bae3b7",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -810,7 +823,8 @@
         "supabase/migrations/20260817090000_operational_services.sql",
         "supabase/migrations/20260817090500_security_hardening.sql",
         "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
-        "supabase/migrations/20260817090700_analytics_smoke_verification.sql"
+        "supabase/migrations/20260817090700_analytics_smoke_verification.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -824,8 +838,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "4fffd9fac4803a22e62b9b0d44f59d1be5011f3a",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -883,7 +897,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -898,8 +913,8 @@
       "workflow_project_path": "/projects/:id/workbench/interview",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -935,7 +950,8 @@
       ],
       "migration_files": [
         "supabase/migrations/20261112190430_eylo_files.sql",
-        "supabase/migrations/20261112200000_private_file_search.sql"
+        "supabase/migrations/20261112200000_private_file_search.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -949,8 +965,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "63f67c0d7fdebbdd238d1e55f705625d30abf575",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Files/document create, version, reload, download/export and exact-link browser fixtures; local PostgreSQL metadata policies. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -987,7 +1003,8 @@
       ],
       "migration_files": [
         "supabase/migrations/20261112190430_eylo_files.sql",
-        "supabase/migrations/20261112200000_private_file_search.sql"
+        "supabase/migrations/20261112200000_private_file_search.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -1001,8 +1018,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "a617ced27c91451d85e9b86f0eb4e2bd23876318",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Files/document create, version, reload, download/export and exact-link browser fixtures; local PostgreSQL metadata policies. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1039,7 +1056,8 @@
       ],
       "migration_files": [
         "supabase/migrations/20261112190430_eylo_files.sql",
-        "supabase/migrations/20261112200000_private_file_search.sql"
+        "supabase/migrations/20261112200000_private_file_search.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -1053,8 +1071,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "a617ced27c91451d85e9b86f0eb4e2bd23876318",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Files/document create, version, reload, download/export and exact-link browser fixtures; local PostgreSQL metadata policies. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1101,7 +1119,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -1165,7 +1184,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -1180,8 +1200,8 @@
       "workflow_project_path": "/projects/:id/spreadsheet",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1236,7 +1256,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -1250,8 +1271,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "824127409bbb3415a5c72341a6d5d0f807307492",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1296,7 +1317,8 @@
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -1312,8 +1334,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: 689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1365,7 +1387,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -1377,8 +1400,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "d83205120f94c9cf4ae06ef8359830eade96660a",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1434,7 +1457,8 @@
         "supabase/migrations/20261113090000_eyra_conversations.sql",
         "supabase/migrations/20261113114924_eyra_conversation_snapshots.sql",
         "supabase/migrations/20261113120556_eyra_snapshot_retry_identity.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -1455,8 +1479,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "f7a2a1824b40204f7b0715b7dfc8a3ed4ae61130",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Authenticated streaming and canonical EYRA snapshot save/restore browser fixtures; SSE/API permission tests; live OpenAI not executed. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1514,7 +1538,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -1529,8 +1554,8 @@
       "workflow_project_path": "/projects/:id/workbench/workflows",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1595,7 +1620,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -1610,8 +1636,8 @@
       "workflow_project_path": "/projects/:id/workbench/workflows",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Workflow browser/action fixtures and real PostgreSQL execution/replay/quota tests; hosted scheduling acceptance unverified. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1652,7 +1678,8 @@
         "supabase/migrations/20260817090000_operational_services.sql",
         "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
         "supabase/migrations/20260817091000_scheduled_monitoring.sql",
-        "supabase/migrations/20261017090000_monitoring_discovery_uniqueness.sql"
+        "supabase/migrations/20261017090000_monitoring_discovery_uniqueness.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -1671,8 +1698,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "9e60c9217d0518fd3b820f5a6e871a20ea23d875",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1746,8 +1773,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "85b1560fd2a4787e53e83afb3ec2d0d791909333",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1785,8 +1812,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "eb95aa32093cc64dbe437f9adc18c707be5677e4",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -1803,16 +1830,24 @@
       "status": "Partially implemented",
       "tracker_statement": "PARTIAL in main: bibliography, local CSV and workspace JSON exports exist; format coverage and integrity remain incomplete. Next: validate supported DOCX/PDF/PPTX/XLSX exports and formula-safe handling.",
       "source_files": [
+        "src/lib/auth/privateBrowserData.mjs",
         "src/lib/workspace-export.mjs",
+        "src/pages/AccountDeletion.jsx",
         "src/pages/Settings.jsx"
       ],
       "frontend_routes": [
+        {
+          "path": "/account-deletion",
+          "source": "src/pages/AccountDeletion.jsx"
+        },
         {
           "path": "/settings",
           "source": "src/pages/Settings.jsx"
         }
       ],
-      "backend_apis": [],
+      "backend_apis": [
+        "api/system.js"
+      ],
       "supabase_entities": [
         "profiles",
         "projects",
@@ -1881,7 +1916,8 @@
         "supabase/migrations/20261113090000_eyra_conversations.sql",
         "supabase/migrations/20261113114924_eyra_conversation_snapshots.sql",
         "supabase/migrations/20261113120556_eyra_snapshot_retry_identity.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -1892,21 +1928,25 @@
         94
       ],
       "automated_test_files": [
+        "tests/account-deletion-api.test.mjs",
         "tests/citation-export.test.mjs",
+        "tests/e2e-products.mjs",
+        "tests/private-browser-deletion.test.mjs",
         "tests/workspace-export.test.mjs"
       ],
-      "user_workflow_and_remaining_acceptance": "Settings portable workspace v3 paginates40 collections, including authored collaboration data and own memberships; uses directory user_id primary key, validates owner and revalidates account before download. Token metadata only; digest/raw secret excluded by projection and sanitization. Remaining: Full personal-data response/deletion, received/shared contributions, file bytes, Auth/provider records and backups. Export is bounded and not a cross-table snapshot.",
+      "user_workflow_and_remaining_acceptance": "Settings portable workspace v3 paginates40 collections, including authored collaboration data and own memberships; uses directory user_id primary key, validates owner and revalidates account before download. Token metadata only; digest/raw secret excluded by projection and sanitization. Settings now links the implemented reauthenticated, leased/receipt-resumable isolated-staging deletion flow; confirmed same-owner deletion clears owned browser catalogs/drafts. Remaining: Hosted file-byte/Auth/privacy acceptance, MFA/passwordless and billing lifecycle, full DSAR/processor/log/backup retention review; no production activation.",
       "workflow_entry_path": "/settings",
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
-      "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
-      "integration_test_status": "Partial local verification: 689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance. Remaining product criteria unverified.",
+      "implementation_commit": "cec7a26e4c8ea1831426804df1ec7599786faf45",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
+      "integration_test_status": "Partial local verification: 706 tests, browser fixtures and actual disposable PostgreSQL21 selected migrations; scholarly5/5 uses real public providers; hosted Supabase/Storage/Auth deletion not executed. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
-        "Verified EYLO Supabase project and reviewed migrations"
+        "Verified EYLO Supabase project and reviewed migrations",
+        "Configured serverless API/providers: api/system.js"
       ],
       "known_blockers": [
         "Acceptance criteria and full product workflow still incomplete",
@@ -1944,7 +1984,8 @@
         "eylo_team_invites"
       ],
       "migration_files": [
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -1959,8 +2000,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2000,7 +2041,8 @@
         "supabase/migrations/20260817090000_operational_services.sql",
         "supabase/migrations/20260817090500_security_hardening.sql",
         "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
-        "supabase/migrations/20261110_native_video_meetings.sql"
+        "supabase/migrations/20261110_native_video_meetings.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2020,8 +2062,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "3e9cac90bc49044079024cd10b078159ded09c0e",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2064,7 +2106,8 @@
         "eylo_connections"
       ],
       "migration_files": [
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -2079,8 +2122,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2121,7 +2164,8 @@
         "eylo_community_posts"
       ],
       "migration_files": [
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -2136,8 +2180,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2155,6 +2199,8 @@
       "status": "Partially implemented",
       "tracker_statement": "PARTIAL in main: live scholarly and opportunity discovery routes exist; recommendations remain source-limited. Next: improve transparent relevance and coverage.",
       "source_files": [
+        "src/lib/eyra-api.js",
+        "src/lib/scholarly-query.mjs",
         "src/pages/ForYou.jsx",
         "src/pages/Home.jsx",
         "src/pages/PublicDiscovery.jsx"
@@ -2190,12 +2236,14 @@
         "supabase/migrations/20260817090500_security_hardening.sql",
         "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
         "supabase/migrations/20261112091000_saved_paper_identity_uniqueness.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
         386,
         382,
+        112,
         94,
         93,
         90,
@@ -2213,18 +2261,19 @@
         "tests/discovery-workspace-signup.test.mjs",
         "tests/integration/discovery-quota-postgres.sql",
         "tests/scholarly-provider-backoff.test.mjs",
+        "tests/scholarly-query.test.mjs",
         "tests/scholarly-record-identity.test.mjs",
         "tests/scholarly-resilience.test.mjs",
         "tests/scholarly-work-attribution.test.mjs"
       ],
-      "user_workflow_and_remaining_acceptance": "PARTIAL in main: live scholarly and opportunity discovery routes exist; recommendations remain source-limited. Next: improve transparent relevance and coverage.",
-      "workflow_entry_path": null,
+      "user_workflow_and_remaining_acceptance": "Real-provider scholarly retrieval uses provider-native Boolean queries, Europe PMC core abstracts and bibliographic Crossref terms, retains bounded supplied context and preserves original-query ranking/DOI deduplication gates. Three actual-provider runs pass5/5 source coverage and5/5 anchors, mean0.94;50 returned metadata/provenance records retained. Remaining: Human relevance/citation assessment, hosted quota/deployment acceptance and long-term provider health; Semantic Scholar429 remains explicitly unavailable.",
+      "workflow_entry_path": "/discover",
       "workflow_project_path": null,
-      "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "01f4d22b11220265ff44bca2ccb89c40c09223af",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
-      "integration_test_status": "Not independently verified per product",
+      "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
+      "implementation_commit": "de2b03900a2520de3210f4fce1f172646f761ec4",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
+      "integration_test_status": "Partial local verification: 706 tests, browser fixtures and actual disposable PostgreSQL21 selected migrations; scholarly5/5 uses real public providers; hosted Supabase/Storage/Auth deletion not executed. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -2281,7 +2330,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -2296,8 +2346,8 @@
       "workflow_project_path": "/projects/:id/workbench/studio",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2328,7 +2378,8 @@
         "activity_events"
       ],
       "migration_files": [
-        "supabase/migrations/20261112181000_eylo_activity_history.sql"
+        "supabase/migrations/20261112181000_eylo_activity_history.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -2340,8 +2391,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "aafb9d70dd619f292979918eb7afb6a0c1027021",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2380,7 +2431,8 @@
         "eylo_feedback"
       ],
       "migration_files": [
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -2395,8 +2447,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2436,8 +2488,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "ee4c66d68e2bedb6dca398263c5c8d4d9323e22b",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2472,7 +2524,8 @@
         "supabase/migrations/20261112181000_eylo_activity_history.sql",
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2486,8 +2539,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2540,7 +2593,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -2555,8 +2609,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2605,7 +2659,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -2615,14 +2670,14 @@
         "tests/integration/complete-products-postgres.sql",
         "tests/product-api.test.mjs"
       ],
-      "user_workflow_and_remaining_acceptance": "Opt-in AES-GCM encrypted read-only snapshots with PBKDF2, passphrase not persisted, owner/account boundary cleanup, bounded static-only service-worker cache and tested production offline reload. Remaining: Offline writes, sync/conflict queue, cross-device keys and complete backup/recovery.",
+      "user_workflow_and_remaining_acceptance": "Opt-in AES-GCM encrypted read-only snapshots with PBKDF2, passphrase not persisted, owner/account boundary cleanup, bounded static-only service-worker cache and tested production offline reload. Confirmed same-owner account deletion clears its local vault and browser session; cache-owner boundaries isolate old unowned derived caches. Remaining: Hosted privacy acceptance, offline writes/sync/conflicts and cross-device key/backup recovery.",
       "workflow_entry_path": "/offline",
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
-      "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
+      "integration_test_status": "Partial local verification: 706 tests, browser fixtures and actual disposable PostgreSQL21 selected migrations; scholarly5/5 uses real public providers; hosted Supabase/Storage/Auth deletion not executed. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -2666,8 +2721,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "97ef1f37f65033812faf517f93b06aa671cd841d",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2694,7 +2749,8 @@
         "supabase/migrations/20260817090000_operational_services.sql",
         "supabase/migrations/20260817090500_security_hardening.sql",
         "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
-        "supabase/migrations/20260817090700_analytics_smoke_verification.sql"
+        "supabase/migrations/20260817090700_analytics_smoke_verification.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -2746,7 +2802,8 @@
         "eylo_feedback"
       ],
       "migration_files": [
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -2761,8 +2818,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2807,7 +2864,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2826,8 +2884,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "f7a2a1824b40204f7b0715b7dfc8a3ed4ae61130",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Authenticated EYRA streaming and canonical conversation browser fixtures; live OpenAI not executed. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2876,7 +2934,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -2895,8 +2954,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -2937,7 +2996,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -2949,8 +3009,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "784d1e5999b18bfb05bfba2f3c3e13748df508d8",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Checklist save/reload and stale-write draft retention browser fixtures; project CAS independently tested on disposable PostgreSQL. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3006,7 +3066,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -3024,8 +3085,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "00beec020f22ffe06f1cba39ac75e6beba6e19df",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3073,7 +3134,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -3093,8 +3155,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3150,7 +3212,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -3165,8 +3228,8 @@
       "workflow_project_path": "/projects/:id/workbench/methodology",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3209,7 +3272,8 @@
         "eylo_connections"
       ],
       "migration_files": [
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -3219,14 +3283,14 @@
         "tests/integration/complete-products-postgres.sql",
         "tests/product-api.test.mjs"
       ],
-      "user_workflow_and_remaining_acceptance": "Explicit manuscript snapshots shared only to accepted connections, reviewer-only drafts, submitted review visibility, final-review immutability and version checks. Remaining: Blind/multi-round review, inline annotation and pinned document versions.",
+      "user_workflow_and_remaining_acceptance": "Explicit manuscript snapshots shared only to accepted connections, reviewer-only drafts, submitted review visibility, final-review immutability and version checks. Reviewer deletion now detaches the reviewer rather than cascading into another author manuscript; actual disposable SQL verifies preservation. Remaining: Hosted consent/revocation/deletion acceptance, blind/multi-round review, inline annotations and pinned versions.",
       "workflow_entry_path": "/collaboration/peer-review",
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
-      "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
+      "integration_test_status": "Partial local verification: 706 tests, browser fixtures and actual disposable PostgreSQL21 selected migrations; scholarly5/5 uses real public providers; hosted Supabase/Storage/Auth deletion not executed. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
       "deployment_dependencies": [
@@ -3272,7 +3336,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -3303,8 +3368,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Project workplan subset: browser persistence/conflict fixtures and independent local PostgreSQL compare-and-set sessions. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3350,7 +3415,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -3381,8 +3447,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Project workplan subset: browser persistence/conflict fixtures and independent local PostgreSQL compare-and-set sessions. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3428,7 +3494,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -3440,8 +3507,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "3b40488e706728773a4282d27c203e2738f640a6",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3493,7 +3560,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -3524,8 +3592,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3587,7 +3655,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -3622,8 +3691,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "f7a2a1824b40204f7b0715b7dfc8a3ed4ae61130",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Scholarly provider-shaped browser normalization/provenance and canonical DOI Library save; Research Gap fixtures; current real-provider diagnostic FAIL at 3/5 coverage. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3672,7 +3741,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -3685,8 +3755,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "97ef1f37f65033812faf517f93b06aa671cd841d",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Canonical Note chapter ordering/word-count/compile fixtures, source-loss save rejection, exact Notes deep links beyond1000, foreign target rejection; real local PostgreSQL project/Note RLS and CAS. Hosted acceptance unverified. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3732,7 +3802,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -3746,8 +3817,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "4a044bceae97a87ac483d5b2985798ad941b8f1c",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Project-owned research record browser create/reload, owner-filtered CAS and retained draft, export, search, mobile and confirmed deletion; actual PostgreSQL owner/outsider and stale-save checks. Hosted Supabase unverified. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3799,7 +3870,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -3814,8 +3886,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3866,7 +3938,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -3882,8 +3955,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "c842cc543a8500e489ae4593dbee62b76d42223d",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Review protocol and screening browser persistence, CAS conflicts, project-switch confirmation, reload and source-bound JSON export fixtures. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3923,7 +3996,8 @@
         "supabase/migrations/20260817090500_security_hardening.sql",
         "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
         "supabase/migrations/20261112091000_saved_paper_identity_uniqueness.sql",
-        "supabase/migrations/20261112183722_universal_workspace_search.sql"
+        "supabase/migrations/20261112183722_universal_workspace_search.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -3935,8 +4009,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "d83205120f94c9cf4ae06ef8359830eade96660a",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -3992,7 +4066,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -4007,8 +4082,8 @@
       "workflow_project_path": "/projects/:id/workbench/ethics",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -4056,8 +4131,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "2fa3e7679ac352b73205b995f496848bc6cb5c92",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Local Data Lab/catalog subset: browser analysis, export, disclosure and account-scoped metadata fixtures. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -4100,7 +4175,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -4114,8 +4190,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "4a044bceae97a87ac483d5b2985798ad941b8f1c",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Project-owned research record browser create/reload, owner-filtered CAS and retained draft, export, search, mobile and confirmed deletion; actual PostgreSQL owner/outsider and stale-save checks. Hosted Supabase unverified. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -4161,7 +4237,8 @@
         "supabase/migrations/20260817090000_operational_services.sql",
         "supabase/migrations/20260817090500_security_hardening.sql",
         "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
-        "supabase/migrations/20261110_native_video_meetings.sql"
+        "supabase/migrations/20261110_native_video_meetings.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -4178,8 +4255,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "3e9cac90bc49044079024cd10b078159ded09c0e",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -4237,7 +4314,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -4252,8 +4330,8 @@
       "workflow_project_path": "/projects/:id/workbench/conferences",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: 689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -4299,7 +4377,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -4313,8 +4392,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "4a044bceae97a87ac483d5b2985798ad941b8f1c",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Project-owned research record browser create/reload, owner-filtered CAS and retained draft, export, search, mobile and confirmed deletion; actual PostgreSQL owner/outsider and stale-save checks. Hosted Supabase unverified. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -4361,7 +4440,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -4374,8 +4454,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "97ef1f37f65033812faf517f93b06aa671cd841d",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Exact-cent arithmetic, formula-safe CSV, pending-draft save guard, explicit conflict choice, persistence/removal/mobile browser fixtures; real local PostgreSQL document RLS/CAS. Hosted acceptance unverified. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -4430,7 +4510,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -4445,8 +4526,8 @@
       "workflow_project_path": "/projects/:id/workbench/forms",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: 689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -4494,8 +4575,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "2fa3e7679ac352b73205b995f496848bc6cb5c92",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Local Data Lab/catalog subset: browser analysis, export, disclosure and account-scoped metadata fixtures. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -4534,8 +4615,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "7cb7b2d74671d188d8c494f8e3e428bfb5685256",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Local Data Lab/catalog subset: browser analysis, export, disclosure and account-scoped metadata fixtures. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -4572,7 +4653,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -4596,8 +4678,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "55a00ff0d935dd849a1546c7464d38f613cfa0ca",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Project workplan subset: browser persistence/conflict fixtures and independent local PostgreSQL compare-and-set sessions. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -4645,7 +4727,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [
@@ -4659,8 +4742,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "848484b1642e3fbd3b3477d50e6ff32c93f2f02f",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Manual timer/quiz/course browser persistence fixtures and actual PostgreSQL RPC/policy checks. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -4715,7 +4798,8 @@
         "supabase/migrations/20261112183722_universal_workspace_search.sql",
         "supabase/migrations/20261112190430_eylo_files.sql",
         "supabase/migrations/20261113062923_canonical_learning_time.sql",
-        "supabase/migrations/20261113180517_complete_workspace_products.sql"
+        "supabase/migrations/20261113180517_complete_workspace_products.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -4730,8 +4814,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",
@@ -4769,7 +4853,8 @@
         "supabase/migrations/20260817090000_operational_services.sql",
         "supabase/migrations/20260817090500_security_hardening.sql",
         "supabase/migrations/20260817090600_analytics_rpc_boundary.sql",
-        "supabase/migrations/20260817090700_analytics_smoke_verification.sql"
+        "supabase/migrations/20260817090700_analytics_smoke_verification.sql",
+        "supabase/migrations/20261114063216_account_deletion_lifecycle.sql"
       ],
       "authentication": "Supabase authenticated owner scope; live RLS unverified",
       "open_prs": [],
@@ -4781,8 +4866,8 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "836ae95d4511b46f01a89d2d3c6ee4266cbaea78",
-      "automated_test_status": "Combined suite PASS: 689 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+      "automated_test_status": "Combined suite PASS: 706 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "NOT_RUN: deployment identity not verified",

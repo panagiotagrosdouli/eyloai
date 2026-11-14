@@ -1,3 +1,4 @@
+import { buildScholarlyQuery } from '../src/lib/scholarly-query.mjs';
 import { applyCors } from '../src/lib/api-cors.mjs';
 import { fetchWithScholarlyBackoff } from '../src/lib/scholarly-provider-backoff.mjs';
 import { readBoundedScholarlyResponse, ScholarlyResponseTooLargeError } from '../src/lib/discovery-response-limit.mjs';
@@ -84,7 +85,7 @@ function buildProviderUrl(provider, query, limit, sort, page = 1, country = '', 
 
   if (provider === 'arxiv') {
     const params = new URLSearchParams({
-      search_query: `all:${query}`,
+      search_query: buildScholarlyQuery('arxiv', query),
       start: '0',
       max_results: String(limit),
       sortBy: sort === 'recent' ? 'submittedDate' : 'relevance',
@@ -95,8 +96,9 @@ function buildProviderUrl(provider, query, limit, sort, page = 1, country = '', 
 
   if (provider === 'europe_pmc') {
     const params = new URLSearchParams({
-      query,
+      query: buildScholarlyQuery('europe_pmc', query),
       format: 'json',
+      resultType: 'core',
       pageSize: String(limit),
     });
     return `https://www.ebi.ac.uk/europepmc/webservices/rest/search?${params}`;
@@ -108,7 +110,7 @@ function buildProviderUrl(provider, query, limit, sort, page = 1, country = '', 
       return `https://api.crossref.org/works/${path}`;
     }
     const params = new URLSearchParams({
-      query,
+      'query.bibliographic': buildScholarlyQuery('crossref', query),
       rows: String(limit),
       select: 'DOI,title,author,abstract,published,container-title,type,is-referenced-by-count,URL',
     });

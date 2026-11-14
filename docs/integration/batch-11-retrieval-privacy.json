@@ -1,0 +1,149 @@
+{
+  "date": "2026-11-14",
+  "tested_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
+  "starts_from": "879e29f (PR408 merged externally)",
+  "decision": "NO-GO",
+  "source_scope": "Final706-test combined check and targeted26 security tests cover runtime33628cb; browser journeys cover owned-cleanup implementation before the final server-only progress/activation guard. Final exact-head CI reruns all suites. SQL21-migration evidence is actual local PostgreSQL, not hosted services.",
+  "matrix": {
+    "partial": 77,
+    "not_implemented": 0,
+    "infrastructure_only": 0,
+    "complete": 0
+  },
+  "product_scope_updates": [
+    {
+      "id": 36,
+      "entry_path": "/discover",
+      "project_path": null,
+      "implemented_scope": "Real-provider scholarly retrieval uses provider-native Boolean queries, Europe PMC core abstracts and bibliographic Crossref terms, retains bounded supplied context and preserves original-query ranking/DOI deduplication gates. Three actual-provider runs pass5/5 source coverage and5/5 anchors, mean0.94;50 returned metadata/provenance records retained.",
+      "remaining": "Human relevance/citation assessment, hosted quota/deployment acceptance and long-term provider health; Semantic Scholar429 remains explicitly unavailable.",
+      "local_scope_verified": true,
+      "verification_scope": "706 tests, browser fixtures and actual disposable PostgreSQL21 selected migrations; scholarly5/5 uses real public providers; hosted Supabase/Storage/Auth deletion not executed"
+    },
+    {
+      "id": 31,
+      "entry_path": "/settings",
+      "project_path": null,
+      "implemented_scope": "Settings portable workspace v3 paginates40 collections, including authored collaboration data and own memberships; uses directory user_id primary key, validates owner and revalidates account before download. Token metadata only; digest/raw secret excluded by projection and sanitization. Settings now links the implemented reauthenticated, leased/receipt-resumable isolated-staging deletion flow; confirmed same-owner deletion clears owned browser catalogs/drafts.",
+      "remaining": "Hosted file-byte/Auth/privacy acceptance, MFA/passwordless and billing lifecycle, full DSAR/processor/log/backup retention review; no production activation.",
+      "local_scope_verified": true,
+      "verification_scope": "706 tests, browser fixtures and actual disposable PostgreSQL21 selected migrations; scholarly5/5 uses real public providers; hosted Supabase/Storage/Auth deletion not executed"
+    },
+    {
+      "id": 53,
+      "entry_path": "/collaboration/peer-review",
+      "project_path": null,
+      "implemented_scope": "Explicit manuscript snapshots shared only to accepted connections, reviewer-only drafts, submitted review visibility, final-review immutability and version checks. Reviewer deletion now detaches the reviewer rather than cascading into another author manuscript; actual disposable SQL verifies preservation.",
+      "remaining": "Hosted consent/revocation/deletion acceptance, blind/multi-round review, inline annotations and pinned versions.",
+      "local_scope_verified": true,
+      "verification_scope": "706 tests, browser fixtures and actual disposable PostgreSQL21 selected migrations; scholarly5/5 uses real public providers; hosted Supabase/Storage/Auth deletion not executed"
+    },
+    {
+      "id": 43,
+      "entry_path": "/offline",
+      "project_path": null,
+      "implemented_scope": "Opt-in AES-GCM encrypted read-only snapshots with PBKDF2, passphrase not persisted, owner/account boundary cleanup, bounded static-only service-worker cache and tested production offline reload. Confirmed same-owner account deletion clears its local vault and browser session; cache-owner boundaries isolate old unowned derived caches.",
+      "remaining": "Hosted privacy acceptance, offline writes/sync/conflicts and cross-device key/backup recovery.",
+      "local_scope_verified": true,
+      "verification_scope": "706 tests, browser fixtures and actual disposable PostgreSQL21 selected migrations; scholarly5/5 uses real public providers; hosted Supabase/Storage/Auth deletion not executed"
+    }
+  ],
+  "categories": {
+    "IMPLEMENTED": [
+      "Provider-native multi-concept retrieval, core abstracts and retained supplied context; original ranking/DOI gates unchanged, diagnostic strengthened to require all5 cases",
+      "Reauthenticated/explicitly confirmed password free-account staging deletion with private receipts, leased jobs, old-token lockdown, Storage-before-Auth and verified completion",
+      "Other-author manuscript preservation when reviewer is deleted",
+      "Owner-local catalog/draft/Offline cleanup and legacy private-cache ownership boundaries",
+      "Known new product/privacy routes survive safe sign-in redirects"
+    ],
+    "EXECUTED": [
+      "npm run check: PASS706 tests,0 failed, imports/typecheck/lint/production build",
+      "All three local browser suites PASS; all22 workflows, actual offline reload, deletion consent/cancellation/receipt/retry/completion/cache cleanup",
+      "Disposable PostgreSQL17.6: PASS21 selected migrations with43 owner-table deletion/lock contracts and40 export collections",
+      "Three real public-provider diagnostics: PASS5/5 coverage,5/5 anchors, mean0.94; latest artifact retains50 metadata/provenance records"
+    ],
+    "VERIFIED": [
+      "Automated real source coverage, without invented papers or weaker ranking gates; primary-index counts do not inflate co-indexing",
+      "Actual local SQL service-only ACLs, stale JWT/privileged upload metadata denial, leases, Storage ordering, Auth cascades and other-account persistence",
+      "Synthetic HTTP tests verify actual endpoint orchestration, HMAC job binding, password/MFA/billing gates, quotas, failure recovery and ambiguous Auth404 replay",
+      "Actual React/browser confirms consent and retry without duplicate initiation, local owner-data cleanup and preserved other-owner catalog/drafts"
+    ],
+    "FAILED": [
+      "Semantic Scholar continues HTTP429; transparent degraded source, not failure of the now5/5 aggregate diagnostic",
+      "Earlier fixture failures retained: invalid pre-accepted connection seed, missing per-session SQL assertion helper, anonymous Offline-to-privacy navigation and initially absent safe privacy redirect; corrected without weakening policies"
+    ],
+    "BLOCKED": [
+      "Separate independently verified EYLO staging and linked Vercel identity/access: fresh tools still expose only unrelated Supabase and no EYLO project",
+      "Actual hosted JWT/password/Storage bytes/in-flight upload/Auth hard-delete/advisors and two-account acceptance",
+      "Human scholarly evaluation, authenticated OpenAI, Stripe sandbox/LiveKit/operational/legal/pilot release acceptance"
+    ],
+    "NOT_IMPLEMENTED": [
+      "Production activation and full advanced acceptance of all77 products; matrix remains77 partial/0 without implementation/0 certified complete",
+      "Automated MFA/passwordless/billing-linked deletion; any configured Stripe secret/webhook keeps this candidate disabled",
+      "Full processor/log/backup erasure and complete DSAR; completed receipt metadata retention requires owner review",
+      "Erasure of prior exports/downloads/browser data on other devices and automatic deployment of a managed recovery worker"
+    ]
+  },
+  "commands": {
+    "npm run check": "PASS706",
+    "node --test tests/account-deletion-api.test.mjs tests/private-browser-deletion.test.mjs tests/scholarly-query.test.mjs tests/auth-security.test.mjs": "PASS26",
+    "python scripts/integration/test-local-postgres.py": "PASS21 selected migrations and new actual SQL lifecycle/ACL/Storage metadata/cascade assertions",
+    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:auth": "PASS synthetic transport; regression after new cache-owner boundary",
+    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:learning": "PASS synthetic transport; canonical regression suite",
+    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium EYLO_E2E_ARTIFACT_DIR=/workspace/work/continuation/batch11-cleanup-screenshots npm run test:e2e:products": "PASS production bundle, all22+privacy UI fixtures, actual network-disabled Offline reload",
+    "NODE_USE_ENV_PROXY=1 EYLO_RETRIEVAL_REPORT_PATH=/workspace/work/continuation/batch11-retrieval-provenance.json node scripts/benchmark-local-discovery.mjs": "PASS5/5; real public-provider metadata, no OpenAI call",
+    "SUPABASE_HOME=/workspace/work/supabase-cli node /workspace/work/npm-cache/_npx/aa8e5c70f9d8d161/node_modules/supabase/dist/supabase.js migration new account_deletion_lifecycle": "Created proposal20261114063216_account_deletion_lifecycle.sql; no remote execution"
+  },
+  "real_retrieval": {
+    "coverage_sufficient": 5,
+    "queries": 5,
+    "anchor_gates_passed": 5,
+    "mean_anchor_coverage": 0.94,
+    "metadata_records": 50,
+    "human_judged": false,
+    "semantic_scholar": "HTTP429 explicitly unavailable",
+    "executions": [
+      "2026-11-14T06:31:53.142Z",
+      "2026-11-14T06:53:14.592Z",
+      "2026-11-14T07:02:09.605Z"
+    ]
+  },
+  "evidence": [
+    "evidence/2026-11-14/batch11-check-release.txt",
+    "evidence/2026-11-14/batch11-final-security-units.txt",
+    "evidence/2026-11-14/batch11-postgres-final.txt",
+    "evidence/2026-11-14/batch11-auth-cleanup.txt",
+    "evidence/2026-11-14/batch11-learning-release.txt",
+    "evidence/2026-11-14/batch11-products-cleanup.txt",
+    "evidence/2026-11-14/batch11-retrieval-first.txt",
+    "evidence/2026-11-14/batch11-retrieval-first.json",
+    "evidence/2026-11-14/batch11-retrieval-final.txt",
+    "evidence/2026-11-14/batch11-retrieval-final.json",
+    "evidence/2026-11-14/batch11-retrieval-provenance.txt",
+    "evidence/2026-11-14/batch11-retrieval-provenance.json",
+    "evidence/2026-11-14/batch11-postgres-deletion.txt",
+    "evidence/2026-11-14/batch11-postgres-deletion-retest.txt",
+    "evidence/2026-11-14/batch11-products-first.txt",
+    "evidence/2026-11-14/batch11-products-final.txt",
+    "evidence/2026-11-14/batch11-check-first.txt"
+  ],
+  "migration_proposal": "20261114063216_account_deletion_lifecycle.sql",
+  "migration_review": "Fixed search_path, service-only privileged RPC ACLs, private lifecycle table with RLS/no direct grants, restrictive canonical/Storage policies and volatile owner-lock trigger verified locally. Hosted Supabase advisors NOT_RUN: intended staging unavailable.",
+  "compatibility_limits": [
+    "Unknown legacy Future Me/twin/mission/pitch private cached values, including old cached goals, are discarded on initial/changed Auth ownership; canonical records and explicitly owned other-account catalogs/drafts are preserved",
+    "Minimal completed job receipt ID/status/timestamps/counters remain after user_id is cleared; legal retention/anonymity is not certified",
+    "Browser receipt import never signs out an unrelated currently signed-in account; prior downloaded files/other-device caches remain outside remote erasure"
+  ],
+  "access_observation": {
+    "supabase": "Only unrelated umzrggayitzfgrrofjnw listed; never used",
+    "vercel": "EYLO project search empty in explicit connected team",
+    "staging_identity_verified": false
+  },
+  "remote_mutations": {
+    "remote_migrations": false,
+    "production_data_writes": false,
+    "manual_deployment": false,
+    "production_promotion": false,
+    "live_payments": false
+  }
+}

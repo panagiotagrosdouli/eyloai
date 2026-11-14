@@ -1,3 +1,4 @@
+import { bindLegacyPrivateCacheOwner, clearLegacyPrivateCaches } from '@/lib/auth/privateBrowserData.mjs';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { appPath, stripAppBase } from '@/lib/auth/routePaths';
 import { environment } from '@/lib/config/env';
@@ -11,6 +12,7 @@ import { AppErrorCode, createAppError, mapSupabaseError } from '@/lib/supabase/e
 const AuthContext = createContext(null);
 
 function clearPrivateSessionData() {
+  try { clearLegacyPrivateCaches(window.localStorage); } catch { /* Restricted browser storage. */ }
   queryClientInstance.clear();
   try {
     clearRadarBrowserCache(window.localStorage);
@@ -31,6 +33,7 @@ function clearPrivateSessionData() {
 }
 
 function setPrivateRadarCacheOwner(userId) {
+  try { bindLegacyPrivateCacheOwner(window.localStorage, userId); } catch { /* Restricted browser storage. */ }
   try {
     bindRadarBrowserCache(window.localStorage, userId);
   } catch {

@@ -19,6 +19,7 @@ IMAGE = 'postgres:17.6-bookworm'
 MIGRATIONS = [
     '20260803_eylo_core_entities.sql',
     '20260803_eylo_monitoring_entities.sql',
+    '20260811053718_production_billing_entitlements.sql',
     '20261112154425_private_notes.sql',
     '20261112161818_eylo_life_tasks.sql',
     '20261112163010_eylo_life_goals_milestones.sql',
@@ -36,6 +37,7 @@ MIGRATIONS = [
     '20261113114924_eyra_conversation_snapshots.sql',
     '20261113120556_eyra_snapshot_retry_identity.sql',
     '20261113180517_complete_workspace_products.sql',
+    '20261114063216_account_deletion_lifecycle.sql',
 ]
 BOOTSTRAP = '''
 create role anon nologin;
@@ -52,7 +54,7 @@ grant execute on function auth.jwt() to authenticated,service_role;
 grant execute on function auth.uid() to anon, authenticated, service_role;
 create schema storage;
 create table storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
-create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text references storage.buckets(id), name text);
+create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text references storage.buckets(id), name text, owner_id text);
 alter table storage.objects enable row level security;
 grant usage on schema storage to authenticated;
 grant select, insert, delete on storage.objects to authenticated;
@@ -95,6 +97,8 @@ try:
     print('PASS: research budget and thesis canonical project/Note persistence, unrelated-data preservation, stale-save rejection and outsider isolation.', flush=True)
     sql((ROOT / 'tests/integration/complete-products-postgres.sql').read_text())
     print('PASS: new product canonical actions/replays, team consent/role revocation, peer review privacy, feedback trusted-role checks, personal token scopes and publishing budgets.', flush=True)
+    sql((ROOT / 'tests/integration/account-deletion-postgres.sql').read_text())
+    print('PASS: private deletion lifecycle, stale-token lockdown, service-only leases, Storage ordering, Auth cascades and other-author manuscript preservation; no hosted file bytes.', flush=True)
     export_tables = json.loads(subprocess.check_output(['node', '--input-type=module', '-e',
         "import { WORKSPACE_EXPORT_TABLES } from './src/lib/workspace-export.mjs'; process.stdout.write(JSON.stringify(WORKSPACE_EXPORT_TABLES));"], cwd=ROOT, text=True))
     if any(not isinstance(table, str) or not table.isidentifier() for table in export_tables):
@@ -169,6 +173,6 @@ try:
         sql("delete from eyra_conversations where id='60000000-0000-4000-8000-000000000021';")
     print('PASS: two independent PostgreSQL snapshot retries return the same ID and persist exactly one message (three overlapping transaction rounds).', flush=True)
     print('PASS: PostgreSQL migration execution, two-role workspace isolation, version history, search, project links and Storage metadata policies.', flush=True)
-    print('NOT VERIFIED: hosted Supabase Auth, PostgREST, Storage bytes, deployed schema, or service-role operations.', flush=True)
+    print('NOT VERIFIED: hosted Supabase Auth, PostgREST, Storage bytes, deployed schema, or hosted service-role operations.', flush=True)
 finally:
     subprocess.run([*DOCKER, 'rm', '-f', NAME], env=ENV, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

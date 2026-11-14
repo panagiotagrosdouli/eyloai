@@ -6,6 +6,10 @@
   "installCommand": "npm ci --no-audit --no-fund",
   "rewrites": [
     {
+      "source": "/api/account-deletion",
+      "destination": "/api/system?endpoint=account-deletion"
+    },
+    {
       "source": "/api/capabilities",
       "destination": "/api/system?endpoint=capabilities"
     },
@@ -34,6 +38,9 @@
   "functions": {
     "api/discovery.js": {
       "maxDuration": 20
+    },
+    "api/system.js": {
+      "maxDuration": 30
     }
   }
 }

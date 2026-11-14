@@ -71,6 +71,7 @@ const ExecutiveBriefing = lazy(() => import('@/pages/ExecutiveBriefing'));
 const ForYou = lazy(() => import('@/pages/ForYou'));
 const IdeaVault = lazy(() => import('@/pages/IdeaVault'));
 const Settings = lazy(() => import('@/pages/Settings'));
+const AccountDeletion = lazy(() => import('@/pages/AccountDeletion'));
 const Notifications = lazy(() => import('@/pages/Notifications'));
 const VoiceAssistant = lazy(() => import('@/pages/VoiceAssistant'));
 const PitchDeckBuilder = lazy(() => import('@/pages/PitchDeckBuilder'));
@@ -115,6 +116,7 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
 
+      <Route path="/account-deletion" element={<AccountDeletion />} />
       <Route path="/offline" element={<OfflineWorkspace />} />
         <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>

@@ -1,3 +1,4 @@
+import { buildScholarlyQuery } from '../src/lib/scholarly-query.mjs';
 import test, { beforeEach } from 'node:test';
 import { scholarlyResilience } from '../server/scholarly-resilience.mjs';
 beforeEach(() => scholarlyResilience.reset());
@@ -11,7 +12,8 @@ test('Europe PMC uses its default relevance ordering instead of the failing RELE
     await handler({ method: 'GET', query: { provider: 'europe_pmc', q: 'robotics for independent ageing', limit: '12' } }, response);
     assert.equal(response.statusCode, 200);
     assert.equal(requested.searchParams.has('sort'), false);
-    assert.equal(requested.searchParams.get('query'), 'robotics for independent ageing');
+    assert.equal(requested.searchParams.get('query'), buildScholarlyQuery('europe_pmc','robotics for independent ageing'));
+    assert.equal(requested.searchParams.get('resultType'),'core');
   } finally { globalThis.fetch = previous; }
 });
 import assert from 'node:assert/strict';
