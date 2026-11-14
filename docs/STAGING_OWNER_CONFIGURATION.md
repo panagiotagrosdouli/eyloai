@@ -25,6 +25,10 @@ The connected team is `team_IUkyJtLhpTRBaUikmCSYHBDn`, slug `panagiotagrosdoulis
 
 Status: configuration and guards prepared; **hosted staging provisioning/access, migrations and live acceptance BLOCKED** pending owner-controlled access and identity confirmation. The current continuation must remain draft until blockers are resolved.
 
+## Current migration-plan guard (2026-11-14)
+
+`npm run db:review-plan` verifies all28 SQL source hashes and explicitly lists the21 files replayed in disposable PostgreSQL plus7 exclusions. The local runner now invokes this guard before starting a database. This is not permission or a ready-to-push remote migration plan. The legacy scheduler contains a live EYLO URL and must not run in staging; duplicate legacy version20260803/native-schema assumptions require target-history reconciliation. Follow the current [owner runbook](release/MARKET_READINESS_RUNBOOK.md) and never substitute a blanket push or a competing schema for that review.
+
 ## Batch9 staging activation checklist
 
 Review `supabase/migrations/20261113180517_complete_workspace_products.sql` alongside the existing migration history; it is a proposal, not remotely applied. The disposable runner executes19 selected migrations, not the full historical chain. The new collaboration tables require hosted two-account RLS/consent/revocation tests. Team membership deliberately grants no private project/file access.

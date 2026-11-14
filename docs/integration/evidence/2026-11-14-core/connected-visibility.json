@@ -1,0 +1,36 @@
+{
+  "observed_at_utc": "2026-11-14 12:34:06 UTC",
+  "scope": "read-only connected-resource visibility; no credentials or mutations",
+  "supabase": {
+    "projects": [
+      {
+        "id": "umzrggayitzfgrrofjnw",
+        "ref": "umzrggayitzfgrrofjnw",
+        "organization_id": "vercel_icfg_88UsAVWCUhHRElsk4lAxTDCa",
+        "organization_slug": "vercel_icfg_88UsAVWCUhHRElsk4lAxTDCa",
+        "name": "supabase-cyan-car",
+        "region": "us-east-1",
+        "status": "ACTIVE_HEALTHY",
+        "database": {
+          "host": "db.umzrggayitzfgrrofjnw.supabase.co",
+          "version": "17.6.1.155",
+          "postgres_engine": "17",
+          "release_channel": "ga"
+        },
+        "created_at": "2026-08-05T05:40:31.218009Z"
+      }
+    ]
+  },
+  "vercel": {
+    "teams": [
+      {
+        "id": "team_IUkyJtLhpTRBaUikmCSYHBDn",
+        "name": "panagiotagrosdouli's projects",
+        "slug": "panagiotagrosdoulis-projects",
+        "plan": "hobby",
+        "linkedProjects": [],
+        "originConnections": []
+      }
+    ]
+  }
+}

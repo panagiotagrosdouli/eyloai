@@ -1,0 +1,49 @@
+
+> eyloai@0.0.0 db:review-plan
+> node scripts/review-migration-plan.mjs
+
+{
+  "local_plan_verified": true,
+  "remote_application_authorized": false,
+  "remote_history_verified": false,
+  "selected_count": 21,
+  "excluded_count": 7,
+  "issues": [],
+  "history_risks": [
+    "Legacy timestamp requires history reconciliation: 20260803_eylo_core_entities.sql",
+    "Legacy timestamp requires history reconciliation: 20260803_eylo_monitoring_entities.sql",
+    "Legacy timestamp requires history reconciliation: 20261110_native_video_meetings.sql",
+    "Shared legacy version 20260803: 20260803_eylo_core_entities.sql, 20260803_eylo_monitoring_entities.sql"
+  ],
+  "excluded": [
+    {
+      "name": "20260817090000_operational_services.sql",
+      "reason": "Legacy native-column production schema; not the canonical fresh JSONB replay baseline. Requires actual schema/history reconciliation."
+    },
+    {
+      "name": "20260817090500_security_hardening.sql",
+      "reason": "Legacy helpers/native tables must be reconciled with the intended hosted schema before applying."
+    },
+    {
+      "name": "20260817090600_analytics_rpc_boundary.sql",
+      "reason": "Legacy profile/native analytics contract differs from the canonical fresh profile user_id/data shape."
+    },
+    {
+      "name": "20260817090700_analytics_smoke_verification.sql",
+      "reason": "Smoke query depends on the legacy native analytics/schema contract and real workspace records."
+    },
+    {
+      "name": "20260817091000_scheduled_monitoring.sql",
+      "reason": "Opt-in pg_cron/pg_net/Vault side effects include a hardcoded live EYLO URL. Never replay into staging blindly."
+    },
+    {
+      "name": "20261017090000_monitoring_discovery_uniqueness.sql",
+      "reason": "Legacy monitoring data uniqueness precondition needs explicit duplicate/history review; do not delete historical records automatically."
+    },
+    {
+      "name": "20261110_native_video_meetings.sql",
+      "reason": "Native media/invitation schema is outside the21-migration local replay and requires separate hosted media acceptance."
+    }
+  ],
+  "note": "A verified local replay is not a remote migration plan. Reconcile the existing hosted schema/history and review side effects in independently authorized staging. Never push all historical SQL blindly."
+}

@@ -1,0 +1,49 @@
+{
+  "executed_at": "2026-11-14T11:46:32.651Z",
+  "scope": "one-readonly-hosted-query",
+  "target": "https://eyloai.vercel.app",
+  "papers": 0,
+  "source_status": [
+    {
+      "id": "openalex",
+      "label": "OpenAlex",
+      "status": "unavailable",
+      "count": 0,
+      "error_status": 503,
+      "error_code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE"
+    },
+    {
+      "id": "arxiv",
+      "label": "arXiv",
+      "status": "unavailable",
+      "count": 0,
+      "error_status": 503,
+      "error_code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE"
+    },
+    {
+      "id": "europe_pmc",
+      "label": "Europe PMC",
+      "status": "unavailable",
+      "count": 0,
+      "error_status": 503,
+      "error_code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE"
+    },
+    {
+      "id": "crossref",
+      "label": "Crossref",
+      "status": "unavailable",
+      "count": 0,
+      "error_status": 503,
+      "error_code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE"
+    },
+    {
+      "id": "semantic_scholar",
+      "label": "Semantic Scholar",
+      "status": "unavailable",
+      "count": 0,
+      "error_status": 503,
+      "error_code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE"
+    }
+  ],
+  "provider_health_evaluated": false
+}

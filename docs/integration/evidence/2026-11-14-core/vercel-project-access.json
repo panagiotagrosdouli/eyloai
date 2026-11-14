@@ -1,0 +1,7 @@
+{
+  "scope": "read-only explicit known EYLO project/team lookup",
+  "project": "prj_yiujFufSKIRnlmZUr9WG7jgf7qKL",
+  "team": "team_IUkyJtLhpTRBaUikmCSYHBDn",
+  "status": 404,
+  "interpretation": "The scoped connector cannot resolve this project. This does not prove deletion or grant configuration access. Public source provenance is recorded separately."
+}
