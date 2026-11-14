@@ -2,8 +2,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, BookOpen, Compass, GraduationCap, Users } from 'lucide-react';
 
 const pages = [
-  { slug: '', label: 'About EYLO', title: 'Research should feel connected.', eyebrow: 'THE COMPANY', intro: 'EYLO is building a more approachable way to discover scientific evidence, explore the people behind it and find meaningful next steps.' },
-  { slug: 'what-we-do', label: 'What we do', title: 'From questions to clarity.', eyebrow: 'WHAT WE DO', intro: 'A connected research experience for exploring scholarly sources, researchers and opportunities without losing the context behind the question.' },
+  { slug: '', label: 'About EYLO', title: 'Research should feel connected.', eyebrow: 'THE COMPANY', intro: 'EYLO brings scientific discovery, AI-assisted thinking and a private research workspace together, helping students, academics and researchers move from a question to a meaningful next step.' },
+  { slug: 'what-we-do', label: 'What we do', title: 'From questions to clarity.', eyebrow: 'WHAT WE DO', intro: 'Discover source-linked scholarship, work through questions with EYRA and organize sources, notes, projects and next steps without losing the thread of your research.' },
   { slug: 'vision', label: 'Our vision', title: 'Make knowledge easier to navigate.', eyebrow: 'OUR VISION', intro: 'We believe that trustworthy access to knowledge and clear research workflows can help more people develop meaningful ideas.' },
   { slug: 'careers', label: 'Careers', title: 'Build something meaningful.', eyebrow: 'CAREERS & COLLABORATION', intro: 'EYLO welcomes conversations with people interested in research technology, academic collaboration, product design and responsible AI.' },
 ];
