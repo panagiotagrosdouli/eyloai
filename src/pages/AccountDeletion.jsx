@@ -1,3 +1,4 @@
+import { clearDeletedOwnerBrowserData } from "@/lib/auth/privateBrowserData.mjs";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
@@ -6,6 +7,8 @@ import { clearOfflineVaults } from "@/lib/offline-vault.mjs";
 import { downloadWorkspace } from "@/components/projects/ProjectDocumentWorkspace";
 const CONFIRM = "DELETE MY EYLO ACCOUNT";
 const messages = {
+  DELETION_PROGRESS_RATE_LIMITED:
+    "Too many progress requests. Keep your receipt and wait one minute before continuing.",
   BILLING_REVIEW_REQUIRED:
     "A billing account is linked. Contact support to resolve billing and retention before account deletion.",
   REAUTHENTICATION_FAILED:
@@ -93,11 +96,21 @@ export default function AccountDeletion() {
         setPhase(result.phase);
         if (result.phase === "complete") {
           if (owner.current && currentUser.current?.id === owner.current) {
+            let cacheCleanupFailed = false;
             try {
+              clearDeletedOwnerBrowserData(
+                window.localStorage,
+                window.sessionStorage,
+                owner.current,
+              );
               clearOfflineVaults(window.localStorage);
+            } catch {
+              cacheCleanupFailed = true;
+            }
+            try {
               const { error: signoutError } =
                 await requireSupabase().auth.signOut({ scope: "local" });
-              if (signoutError && alive.current)
+              if ((signoutError || cacheCleanupFailed) && alive.current)
                 setLocalWarning(
                   "The account was deleted, but this browser could not confirm local sign-out. Sign out before sharing this device.",
                 );

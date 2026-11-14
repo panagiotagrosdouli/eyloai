@@ -294,13 +294,11 @@ export default async function accountDeletion(req, res) {
           p_id: crypto.randomUUID(),
         });
         if (!uuid(job?.id)) throw new DeletionError("DELETION_UNCONFIRMED");
-        return res
-          .status(202)
-          .json({
-            id: job.id,
-            phase: job.phase,
-            receipt_token: deletionReceipt(job.id),
-          });
+        return res.status(202).json({
+          id: job.id,
+          phase: job.phase,
+          receipt_token: deletionReceipt(job.id),
+        });
       } finally {
         // Remove the temporary reauthentication session even if billing/schema
         // checks reject the request. Never return/store its access/refresh token.
@@ -333,6 +331,18 @@ export default async function accountDeletion(req, res) {
       if (!id) return res.status(200).json({ phase: "idle" });
       if (!uuid(id)) throw new DeletionError("INVALID_DELETION_JOB");
     } else return res.status(400).json({ error: "INVALID_ACTION" });
+    const progressBudget = await rpc(config, "consume_discovery_rate_limit", {
+      p_subject_hash: crypto
+        .createHmac("sha256", process.env.EYLO_PRIVACY_WORKER_SECRET)
+        .update("eylo-deletion-progress:" + id)
+        .digest("hex"),
+      p_limit: 30,
+      p_window_seconds: 60,
+    });
+    if (!Array.isArray(progressBudget) || progressBudget[0]?.allowed !== true) {
+      res.setHeader("Retry-After", "60");
+      return res.status(429).json({ error: "DELETION_PROGRESS_RATE_LIMITED" });
+    }
     const result = await runBatch(config, id);
     return res.status(result.phase === "complete" ? 200 : 202).json(result);
   } catch (error) {

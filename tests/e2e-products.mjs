@@ -796,6 +796,13 @@ try {
     await page.waitForURL(url=>url.pathname==="/account-deletion");
     await page.getByLabel("Current password",{exact:true}).waitFor();
     await page.evaluate(({key,value})=>localStorage.setItem(key,value),{key:"eylo:offline:v1:"+user.id,value:ciphertext});
+    await page.evaluate(({owner,other})=>{
+      localStorage.setItem('eylo.research-data-catalog.v1:'+owner,'private catalog canary');
+      localStorage.setItem('eylo.research-data-catalog.v1:'+other,'other catalog retained');
+      sessionStorage.setItem('eylo:notes:draft:'+owner+':new','private draft canary');
+      sessionStorage.setItem('eylo:notes:draft:'+other+':new','other draft retained');
+      localStorage.setItem('eyra_future_me_goal','private derived goal canary');
+    },{owner:user.id,other:ownerB});
     await page.getByRole("heading",{name:"Delete your EYLO account",exact:true}).waitFor();
     const deletionButton=page.getByRole("button",{name:"Confirm permanent account deletion",exact:true});
     assert.equal(await deletionButton.isDisabled(),true);
@@ -814,6 +821,8 @@ try {
     await page.getByRole("heading",{name:"Account deletion confirmed",exact:true}).waitFor();
     await page.waitForFunction(()=>!Object.keys(localStorage).some(key=>key.startsWith("eylo:offline:v1:")));
     assert.equal(deletionBegins,1);assert.equal(deletionResumes,3);
+    const localDeletionCleanup=await page.evaluate(({owner,other})=>({catalog:localStorage.getItem('eylo.research-data-catalog.v1:'+owner),draft:sessionStorage.getItem('eylo:notes:draft:'+owner+':new'),legacy:localStorage.getItem('eyra_future_me_goal'),otherCatalog:localStorage.getItem('eylo.research-data-catalog.v1:'+other),otherDraft:sessionStorage.getItem('eylo:notes:draft:'+other+':new')}),{owner:user.id,other:ownerB});
+    assert.deepEqual(localDeletionCleanup,{catalog:null,draft:null,legacy:null,otherCatalog:'other catalog retained',otherDraft:'other draft retained'});
     await capture("account-deletion-complete-mobile");
     console.log("PASS fixture: deletion typed confirmation and cancelled confirmation, fresh Auth, private receipt download, interrupted retry without duplicate begin, confirmed completion and local offline/session cleanup. Actual hosted deletion is not exercised.");
   }

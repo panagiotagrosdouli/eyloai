@@ -371,3 +371,19 @@ test("invalid Storage paths never trigger byte or Auth deletion", () =>
       false,
     );
   }));
+
+test("receipt progress consumes a bounded per-job quota before claiming a worker lease", () =>
+  setup(async ({ state, call }) => {
+    state.budget = false;
+    const res = await call({
+      action: "resume",
+      receipt_token: deletionReceipt(id),
+    });
+    assert.equal(res.statusCode, 429);
+    assert.equal(res.body.error, "DELETION_PROGRESS_RATE_LIMITED");
+    assert.equal(
+      state.calls.some((c) => c.path.endsWith("claim_account_deletion")),
+      false,
+    );
+    assert.equal(state.authDeleted, false);
+  }));
