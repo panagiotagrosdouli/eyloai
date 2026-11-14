@@ -172,7 +172,12 @@ export default function PublicDiscovery() {
       setSourceStatus(nextSourceStatus);
       setData(nextData);
       if (!totalRecords) {
-        if (availablePaperIndexCount === PAPER_INDEX_SOURCE_IDS.length) {
+        const paperStatuses = nextSourceStatus.filter(source => PAPER_INDEX_SOURCE_IDS.includes(source.id));
+        if (paperStatuses.length === PAPER_INDEX_SOURCE_IDS.length && paperStatuses.every(source => 'error_code' in source && source.error_code === 'DISCOVERY_RATE_LIMIT_UNAVAILABLE')) {
+          setError('EYLO’s research connection is temporarily unavailable. Please try again later. This does not establish that the scholarly sources themselves are unavailable.');
+        } else if (paperStatuses.length === PAPER_INDEX_SOURCE_IDS.length && paperStatuses.every(source => 'error_code' in source && source.error_code === 'DISCOVERY_RATE_LIMITED')) {
+          setError('EYLO’s search request limit has been reached. Please wait before retrying.');
+        } else if (availablePaperIndexCount === PAPER_INDEX_SOURCE_IDS.length) {
           setError('No strong live records matched this exact framing. Add a method, application, population or date range.');
         } else if (availablePaperIndexCount > 0) {
           setError(`No records came back from the ${availablePaperIndexCount} of ${PAPER_INDEX_SOURCE_IDS.length} paper indexes that responded. Other indexes were unavailable, so this does not establish that no literature exists.`);

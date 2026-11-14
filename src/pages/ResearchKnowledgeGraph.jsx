@@ -2,14 +2,19 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom';
 import { AlertTriangle, BookOpen, CircleHelp, Minus, Plus, RefreshCw, RotateCcw, Search } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { loadResearchGraphCollections } from '@/lib/research-graph-collections.mjs';
 import {
   buildResearchKnowledgeGraph,
   filterResearchKnowledgeGraph,
   getRelatedKnowledgeNodes,
+  selectResearchGraphNodes,
 } from '@/lib/research-knowledge-graph.mjs';
 
 const NODE_TYPES = [
   ['project', 'Projects'],
+  ['note', 'Notes'],
+  ['task', 'Tasks'],
   ['paper', 'Publications'],
   ['researcher', 'Researchers'],
   ['author', 'Publication authors'],
@@ -20,6 +25,8 @@ const NODE_TYPES = [
 
 const TYPE_COLORS = {
   project: '#1d5f91',
+  note: '#65769c',
+  task: '#367d82',
   paper: '#3479ad',
   researcher: '#58815d',
   author: '#4c8b78',
@@ -40,7 +47,7 @@ function graphLayout(nodes) {
   }
   const positions = new Map();
   const innerTypes = ['project'];
-  const paperTypes = ['paper'];
+  const paperTypes = ['paper', 'note', 'task'];
   const authorTypes = ['author', 'researcher'];
   const outerTypes = ['institution', 'topic', 'methodology'];
   const layers = [
@@ -111,7 +118,12 @@ function EdgeLine({ edge, positions }) {
 }
 
 export default function ResearchKnowledgeGraph() {
-  const [graph, setGraph] = useState({ nodes: [], edges: [], coverage: { papers: 0, researchers: 0, projects: 0, authorshipRecords: 0, citationLinks: 0, inferredTopicLinks: 0 } });
+  const { user } = useAuth();
+  return <PrivateResearchKnowledgeGraph key={user?.id || 'signed-out'} ownerId={user?.id || ''} />;
+}
+
+function PrivateResearchKnowledgeGraph({ ownerId }) {
+  const [graph, setGraph] = useState(() => buildResearchKnowledgeGraph());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [partialNotice, setPartialNotice] = useState('');
@@ -122,42 +134,42 @@ export default function ResearchKnowledgeGraph() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const svgRef = useRef(null);
   const dragRef = useRef(null);
+  const generation = useRef(0);
 
   const loadGraph = useCallback(async () => {
+    const request = ++generation.current;
     setLoading(true);
     setLoadError('');
     setPartialNotice('');
-    const results = await Promise.allSettled([
-      base44.entities.SavedPaper.list('-created_date', 250),
-      base44.entities.SavedResearcher.list('-created_date', 250),
-      base44.entities.Project.list('-updated_date', 250),
-    ]);
-    const failures = results.filter(result => result.status === 'rejected');
-    if (failures.length === results.length) {
-      setLoadError('Your saved research could not be loaded. Retry when your connection is available.');
-      setLoading(false);
-      return;
-    }
-    setPartialNotice(failures.length ? 'Some saved collections could not be loaded. This graph covers only records that were available.' : 'Graph coverage is limited to your saved library and projects. Relationships are shown only when source IDs or saved project links support them.');
-    setGraph(buildResearchKnowledgeGraph({
-      papers: results[0].status === 'fulfilled' ? results[0].value : [],
-      researchers: results[1].status === 'fulfilled' ? results[1].value : [],
-      projects: results[2].status === 'fulfilled' ? results[2].value : [],
-    }));
+    setGraph(buildResearchKnowledgeGraph());
     setSelectedNode(null);
-    setLoading(false);
-  }, []);
+    try {
+      const result = await loadResearchGraphCollections({ entities: base44.entities, ownerId });
+      if (generation.current !== request) return;
+      if (result.allUnavailable) throw new Error('Unavailable graph');
+      const labels = { papers: 'publications', researchers: 'researchers', projects: 'projects', notes: 'Notes', tasks: 'tasks' };
+      const messages = ['Coverage is limited to your saved library, projects, active Notes and tasks. Only explicit saved links connect workspace records.'];
+      if (result.unavailable.length) messages.push(`Unavailable collections: ${result.unavailable.map(name => labels[name]).join(', ')}. Use Refresh graph to retry.`);
+      if (result.truncated.length) messages.push(`Showing at most 250 recent records per collection; more exist in ${result.truncated.map(name => labels[name]).join(', ')}.`);
+      setPartialNotice(messages.join(' '));
+      setGraph(buildResearchKnowledgeGraph(result.collections));
+    } catch {
+      if (generation.current === request) setLoadError('Your saved research could not be loaded. Retry when your connection is available.');
+    } finally {
+      if (generation.current === request) setLoading(false);
+    }
+  }, [ownerId]);
 
-  useEffect(() => { void loadGraph(); }, [loadGraph]);
+  useEffect(() => { void loadGraph(); return () => { generation.current += 1; }; }, [loadGraph]);
 
   const filtered = useMemo(() => filterResearchKnowledgeGraph(graph, { query, types }), [graph, query, types]);
-  const drawnNodes = useMemo(() => filtered.nodes.slice(0, MAX_DRAWN_NODES), [filtered.nodes]);
+  const drawnNodes = useMemo(() => selectResearchGraphNodes(filtered.nodes, MAX_DRAWN_NODES), [filtered.nodes]);
   const drawnIds = useMemo(() => new Set(drawnNodes.map(node => node.id)), [drawnNodes]);
   const drawnEdges = useMemo(() => filtered.edges.filter(edge => drawnIds.has(edge.from) && drawnIds.has(edge.to)), [filtered.edges, drawnIds]);
   const positions = useMemo(() => graphLayout(drawnNodes), [drawnNodes]);
   const selected = selectedNode ? graph.nodes.find(node => node.id === selectedNode.id) || null : null;
   const related = selected ? getRelatedKnowledgeNodes(graph, selected.id) : [];
-  const hasSources = graph.nodes.some(node => node.type === 'paper' || node.type === 'researcher');
+  const hasSources = graph.nodes.length > 0;
 
   const changeType = (type, checked) => {
     setTypes(current => {
@@ -196,7 +208,7 @@ export default function ResearchKnowledgeGraph() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Research workspace</p>
           <h1 className="eylo-page-heading mt-2">Knowledge Graph</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Explore source-linked publications, authors, institutions, topics and projects from your saved research.</p>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Connect your saved publications, researchers, projects, Notes and tasks. Inspect the recorded source or workspace link behind each relationship.</p>
         </div>
         <button type="button" onClick={loadGraph} disabled={loading} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-foreground hover:border-primary/30 disabled:opacity-50">
           <RefreshCw size={15} aria-hidden="true" className={loading ? 'animate-spin' : ''} /> Refresh graph
@@ -224,6 +236,8 @@ export default function ResearchKnowledgeGraph() {
             <div className="rounded-xl border border-border bg-card px-4 py-3"><p className="text-xs text-muted-foreground">Saved publications</p><p className="mt-1 text-xl font-semibold tabular-nums">{graph.coverage.papers}</p></div>
             <div className="rounded-xl border border-border bg-card px-4 py-3"><p className="text-xs text-muted-foreground">Saved researchers</p><p className="mt-1 text-xl font-semibold tabular-nums">{graph.coverage.researchers}</p></div>
             <div className="rounded-xl border border-border bg-card px-4 py-3"><p className="text-xs text-muted-foreground">Projects</p><p className="mt-1 text-xl font-semibold tabular-nums">{graph.coverage.projects}</p></div>
+            <div className="rounded-xl border border-border bg-card px-4 py-3"><p className="text-xs text-muted-foreground">Active Notes</p><p className="mt-1 text-xl font-semibold tabular-nums">{graph.coverage.notes || 0}</p></div>
+            <div className="rounded-xl border border-border bg-card px-4 py-3"><p className="text-xs text-muted-foreground">Tasks</p><p className="mt-1 text-xl font-semibold tabular-nums">{graph.coverage.tasks || 0}</p></div>
           </div>
 
           <section className="eylo-surface mb-4 p-4 sm:p-5" aria-label="Knowledge graph filters">
@@ -266,10 +280,10 @@ export default function ResearchKnowledgeGraph() {
                 </g>
               </svg>
             </div>
-            {drawnNodes.length < filtered.nodes.length && <p className="border-t border-border px-4 py-2 text-xs text-muted-foreground">Showing the first {drawnNodes.length} of {filtered.nodes.length} matching nodes. Add a filter to explore more.</p>}
+            {drawnNodes.length < filtered.nodes.length && <p className="border-t border-border px-4 py-2 text-xs text-muted-foreground">Showing {drawnNodes.length} of {filtered.nodes.length} matching nodes, balanced across record types. Add a filter to explore more.</p>}
             <div className="flex flex-wrap gap-x-4 gap-y-2 border-t border-border px-4 py-3 text-[11px] text-muted-foreground" aria-label="Graph legend">
               {NODE_TYPES.map(([type, label]) => <span key={type} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: TYPE_COLORS[type] }} />{label}</span>)}
-              <span className="inline-flex items-center gap-1.5"><span className="w-5 border-t border-slate-400" />Source-backed</span>
+              <span className="inline-flex items-center gap-1.5"><span className="w-5 border-t border-slate-400" />Recorded link</span>
               <span className="inline-flex items-center gap-1.5"><span className="w-5 border-t border-dashed border-amber-600" />Inferred topic similarity</span>
             </div>
           </section>
@@ -293,6 +307,7 @@ export default function ResearchKnowledgeGraph() {
                 <p className="mt-3 flex items-start gap-2 text-xs leading-5 text-muted-foreground"><CircleHelp size={14} aria-hidden="true" className="mt-0.5 shrink-0" />{selected.provenance}</p>
                 {selected.source_url && <a href={selected.source_url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-9 items-center rounded-lg border border-border px-3 text-xs font-semibold text-primary hover:bg-secondary">Open source record</a>}
                 {selected.type === 'project' && <Link to={`/projects/${encodeURIComponent(selected.entity_id)}`} className="mt-3 inline-flex min-h-9 items-center rounded-lg border border-border px-3 text-xs font-semibold text-primary hover:bg-secondary">Open project</Link>}
+                {selected.href && <Link to={selected.href} className="mt-3 inline-flex min-h-9 items-center rounded-lg border border-border px-3 text-xs font-semibold text-primary hover:bg-secondary">{selected.type === 'note' ? 'Open note' : 'Open task'}</Link>}
                 <h3 className="mt-5 border-t border-border pt-4 text-xs font-semibold">Related records <span className="text-muted-foreground">({related.length})</span></h3>
                 {related.length ? <ul className="mt-2 space-y-1">{related.slice(0, 12).map(({ node, edge }) => <li key={`${edge.id}:${node.id}`}><button type="button" onClick={() => setSelectedNode(node)} className="flex min-h-9 w-full items-center justify-between gap-3 rounded-lg px-2 text-left text-xs hover:bg-secondary"><span className="min-w-0"><span className="block truncate font-medium text-foreground">{node.label}</span><span className={edge.inferred ? 'text-amber-700' : 'text-muted-foreground'}>{edge.label}</span></span><span className="shrink-0 text-muted-foreground">Explore</span></button></li>)}</ul> : <p className="mt-2 text-xs text-muted-foreground">No recorded links for this node.</p>}
               </> : <div className="py-6 text-center"><AlertTriangle size={19} className="mx-auto text-muted-foreground" aria-hidden="true" /><h2 id="selected-node-title" className="mt-3 text-sm font-semibold">Select a node</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">Inspect its source, project link and related records here.</p></div>}
@@ -301,7 +316,7 @@ export default function ResearchKnowledgeGraph() {
 
           <section className="mt-4 rounded-xl border border-border bg-card p-4" aria-labelledby="graph-limits-title">
             <h2 id="graph-limits-title" className="text-xs font-semibold">Coverage and interpretation</h2>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">This is a view of your saved collection, not a comprehensive map of a research field. Citation links appear only when OpenAlex reference IDs connect papers saved in your Library. Dashed amber links are inferred from shared OpenAlex topics and do not indicate citation, agreement, or evidence strength. Unsupported metadata is left unconnected.</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">This is a view of your saved collection, not a comprehensive map of a research field. Citation links appear only when OpenAlex reference IDs connect papers saved in your Library. Dashed amber links are inferred from shared OpenAlex topics and do not indicate citation, agreement, or evidence strength. Notes and task links reflect stored project associations, not scientific citations or verified progress. Unsupported metadata is left unconnected.</p>
           </section>
         </>
       )}

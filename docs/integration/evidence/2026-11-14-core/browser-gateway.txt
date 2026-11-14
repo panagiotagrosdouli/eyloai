@@ -1,0 +1,10 @@
+
+> eyloai@0.0.0 test:e2e:discovery-gateway
+> node tests/e2e-discovery-gateway.mjs
+
+PASS: actual root production bundle on mobile390 distinguishes EYLO gateway503, partial source results and shared429; raw errors stay private; no direct-provider fallback. HTTP transport is synthetic, not hosted/provider acceptance.
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

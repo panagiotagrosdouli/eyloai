@@ -1,0 +1,13 @@
+✔ actual migration manifest accounts for all28 files while authorizing only local21 replay (2.52329ms)
+✔ legacy duplicate version IDs and nonstandard timestamps require reconciliation rather than silent renaming (0.601928ms)
+✔ changed SQL and new unreviewed files fail manifest verification (0.90191ms)
+✔ even a newly pinned scheduler cannot be silently added to local canonical replay (0.688074ms)
+✔ duplicate/traversal replay entries and remote approval flags fail closed (1.440613ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 104.250062

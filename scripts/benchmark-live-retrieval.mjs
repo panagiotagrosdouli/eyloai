@@ -98,6 +98,8 @@ for (const testCase of CASES) {
     unavailable_source_status: result.source_status
       .filter(source => source.status === 'unavailable')
       .map(source => source.error_status ? `${source.label} HTTP ${source.error_status}` : `${source.label} no HTTP status`),
+    gateway_errors: result.source_status.filter(source => source.error_code).map(source => ({ source: source.label, code: source.error_code, status: source.error_status })),
+    provider_health_evaluated: !result.source_status.every(source => source.error_code === 'DISCOVERY_RATE_LIMIT_UNAVAILABLE' || source.error_code === 'DISCOVERY_RATE_LIMITED'),
     top_result: top[0]?.title || 'No live record',
     source_coverage_sufficient: sourceCoverageSufficient,
     coverage_warning: !sourceCoverageSufficient,

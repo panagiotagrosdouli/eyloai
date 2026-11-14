@@ -87,8 +87,11 @@ async function assertCreateAllowed(table, user) {
 
 function entityRepository({ table }) {
   return {
-    async list(sort = '-created_date', limit = 100) {
+    async list(sort = '-created_date', limit = 100, expectedOwnerId = null) {
       const user = await currentUser();
+      if (expectedOwnerId && user.id !== expectedOwnerId) {
+        throw Object.assign(new Error('The signed-in account changed. Reload this workspace.'), { code: 'ENTITY_OWNER_CHANGED' });
+      }
       const descending = sort.startsWith('-');
       const column = descending ? sort.slice(1) : sort;
       // Date columns are indexed/available in Postgres. Sorting after LIMIT
@@ -99,6 +102,9 @@ function entityRepository({ table }) {
       }
       const { data, error } = await query.limit(Math.max(limit || 100, 1));
       if (error) throw error;
+      if (expectedOwnerId && (data || []).some(row => row?.user_id !== expectedOwnerId)) {
+        throw Object.assign(new Error('This collection could not be verified for the signed-in account.'), { code: 'ENTITY_OWNER_MISMATCH' });
+      }
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
     },
     async filter(filters = {}, sort = '-created_date', limit = 100) {

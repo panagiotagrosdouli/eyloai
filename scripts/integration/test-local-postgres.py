@@ -16,29 +16,13 @@ DOCKER = ['docker', '--host=unix:///var/run/docker.sock']
 ENV = {k: v for k, v in os.environ.items() if k not in ('DOCKER_HOST', 'DOCKER_CONTEXT', 'DOCKER_TLS', 'DOCKER_TLS_VERIFY', 'DOCKER_CERT_PATH')}
 NAME = 'eylo-sql-test-' + uuid.uuid4().hex[:10]
 IMAGE = 'postgres:17.6-bookworm'
-MIGRATIONS = [
-    '20260803_eylo_core_entities.sql',
-    '20260803_eylo_monitoring_entities.sql',
-    '20260811053718_production_billing_entitlements.sql',
-    '20261112154425_private_notes.sql',
-    '20261112161818_eylo_life_tasks.sql',
-    '20261112163010_eylo_life_goals_milestones.sql',
-    '20261112165449_eylo_study_flashcards.sql',
-    '20261112173500_eylo_calendar_events.sql',
-    '20261112181000_eylo_activity_history.sql',
-    '20261112183722_universal_workspace_search.sql',
-    '20261112190430_eylo_files.sql',
-    '20261112200000_private_file_search.sql',
-    '20261112090000_project_scoped_grant_applications.sql',
-    '20261112091000_saved_paper_identity_uniqueness.sql',
-    '20261113062923_canonical_learning_time.sql',
-    '20261113113010_shared_discovery_quota.sql',
-    '20261113090000_eyra_conversations.sql',
-    '20261113114924_eyra_conversation_snapshots.sql',
-    '20261113120556_eyra_snapshot_retry_identity.sql',
-    '20261113180517_complete_workspace_products.sql',
-    '20261114063216_account_deletion_lifecycle.sql',
-]
+# One reviewed manifest drives the actual local replay and read-only safety audit.
+MIGRATIONS = json.loads((ROOT / 'supabase/migration-review-plan.json').read_text())['canonical_local_order']
+PLAN_REVIEW = json.loads(subprocess.check_output(
+    ['node', str(ROOT / 'scripts/review-migration-plan.mjs')], cwd=ROOT, text=True,
+))
+if not PLAN_REVIEW['local_plan_verified'] or PLAN_REVIEW['remote_application_authorized']:
+    raise RuntimeError('Canonical local migration plan was not verified; no database was started.')
 BOOTSTRAP = '''
 create role anon nologin;
 create role authenticated nologin;

@@ -1,4 +1,12 @@
-# EYLO integration evidence — 2026-11-13
+# EYLO integration evidence — current audit2026-11-14
+
+## Current continuation: batch12
+
+[Exact scopes/commands](batch-12-core-acceptance.json), [current77-product tracker](../PRODUCT_IMPLEMENTATION_TRACKER.md), [checkpoint](CORE_CHECKPOINT_2026-11-14.md), [66 open heads at audit time](open-pr-current.json) and [current source inventory](repository-inventory-current.json) supersede earlier counts and deployment observations. Main3854e98 includes externally merged public day/night/Premium. The pending core candidate adds canonical Notes/tasks to the graph, safe gateway error attribution, saved-record Project Intelligence and a guarded28-file migration review/21-file local replay.
+
+724 tests/static/build, five browser suites and real disposable PostgreSQL checks pass. Real public providers pass5/5 unchanged source/anchor gates locally; the deployed proxy fails0/5 at EYLO's unavailable quota service. Public source provenance matches main, but optional capabilities and hosted acceptance remain blocked.77 products have partial implementation; zero have complete acceptance. Both dependency audits report zero known advisories. No agent production promotion, remote migration, production-data write or live payment occurred.
+
+Earlier sections below preserve chronological evidence; old3/5 results, schema counts, source SHAs and deployment failures are historical, not current acceptance.
 
 These are incremental reviewed integration batches, not completion of all 77 products or production acceptance.
 

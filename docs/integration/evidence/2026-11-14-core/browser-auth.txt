@@ -1,0 +1,21 @@
+
+> eyloai@0.0.0 test:e2e:auth
+> node tests/e2e-auth.mjs
+
+Ideas error state detail: Ideas could not be loaded. Please retry.
+Browser checks passed: auth, mobile registration, private CSV analysis, keyboard meeting access, and Idea Vault recovery/CRUD against an isolated test double.
+Knowledge Graph connected canonical Notes/tasks to exact editor links and refused a foreign-owner collection while retaining available publications. Browser transport is isolated fixtures, not hosted RLS.
+Library recovery and persisted project link passed against isolated PostgREST fixtures.
+Universal Search rendered paginated results, partial source coverage and opened the exact note from an RPC-shaped response.
+EYLO Files browser workflow passed against isolated PostgREST and Storage fixtures.
+Recorded Project Intelligence uses the saved workplan, excludes retained unsaved edits, opens its source and fits mobile; no AI or project mutation is required. Fixture transport only.
+Structured project workplan persistence and reload passed against isolated PostgREST fixtures.
+Funding ranking and comparison passed with authenticated browser fixtures; provider calls and production persistence were not exercised.
+Grant Builder project isolation passed with authenticated PostgREST fixtures; live RLS and concurrent database writes were not exercised.
+Research Gap Finder browser flow passed with provider-shaped fixtures and isolated authenticated persistence; live providers and production RLS were not exercised.
+Browser checks passed: auth, mobile registration, local CSV analysis, keyboard meeting access and source graph navigation.
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

@@ -41,6 +41,9 @@ jobs:
       - name: Run core regression tests
         run: npm test
 
+      - name: Review canonical local migration manifest and legacy exclusions
+        run: npm run db:review-plan
+
       - name: Protect authenticated EYRA routing
         run: npm run test:eyra-auth
 
@@ -58,6 +61,9 @@ jobs:
 
       - name: Verify the public company landing on the GitHub Pages base path
         run: npm run test:e2e:landing
+
+      - name: Verify hosted discovery gateway error attribution
+        run: npm run test:e2e:discovery-gateway
 
       - name: Test local-time greeting states
         run: npm run test:greeting

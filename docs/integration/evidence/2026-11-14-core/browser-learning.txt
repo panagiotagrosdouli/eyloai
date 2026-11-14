@@ -1,0 +1,29 @@
+
+> eyloai@0.0.0 test:e2e:learning
+> node tests/e2e-learning-integration.mjs
+
+PASS fixture: canonical task timer start, reload, stop and export.
+PASS fixture: manual quiz creation, saved attempt, grading response and reload.
+PASS fixture: manual course, linked quiz, saved lesson progress, reload and mobile viewport.
+PASS fixture: delayed history response cannot repopulate a cleared conversation.
+PASS fixture: ambiguous snapshot save retries the same UUID, private export and confirmed cascade deletion; cancelled deletion leaves records unchanged.
+PASS fixture: reproducibility checklist save/reload and stale-write rejection preserve both the winning record and unsaved draft.
+PASS fixture: Literature Review protocol/screening save/reload, CAS conflict draft retention, cancelled/confirmed project switching, private export and mobile viewport.
+PASS fixture: scholarly duplicate records render one publication with retained provider/abstract attribution and save canonical DOI/provenance to the Library while AI is unavailable.
+PASS fixture: protocol deep links load an authorized exact project beyond the recent cap and fail closed for distinct foreign-owner and missing IDs; synthetic PostgREST, not hosted RLS.
+PASS fixture: Research Journal create/reload, owner-filtered CAS conflict and draft recovery, portable export, search, mobile and cancelled/confirmed deletion.
+PASS fixture: Experiment Lab create/reload, owner-filtered CAS conflict and draft recovery, portable export, search, mobile and cancelled/confirmed deletion.
+PASS fixture: Publication Tracker create/reload, owner-filtered CAS conflict and draft recovery, portable export, search, mobile and cancelled/confirmed deletion.
+PASS fixture: foreign project research workspace fails closed without carrying another project draft. Hosted RLS remains unverified.
+PASS fixture: Research Budget exact decimals, formula-safe CSV, pending-editor save guard, persistence, explicit conflict comparison, unrelated-data preservation, mobile and confirmed removal.
+PASS fixture: Thesis Studio ordered chapters, canonical note word counts, saved-content compile/provenance, reload, mobile, missing-note save rejection and cancelled/confirmed chapter removal without deleting Notes.
+PASS fixture: exact thesis/Notes links beyond recent1000; foreign note query change clears the old editor and fails closed; foreign project Budget/Thesis cannot write. Hosted authorization remains unverified.
+PASS fixture: Settings downloads owner-validated portable workspace v3 with40 collections and excludes token material/foreign contributions; including canonical notes, learning and timer records; file bytes explicitly excluded.
+PASS fixture: a same-route authenticated account switch removes old private component state before the delayed new-owner query resolves.
+PASS fixture: same-route Knowledge Graph account switch clears old nodes while new-owner queries are delayed; bounded Notes coverage is disclosed. This is not hosted two-user RLS acceptance.
+PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

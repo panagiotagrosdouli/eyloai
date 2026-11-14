@@ -1,4 +1,5 @@
 import { buildScholarlyQuery } from './scholarly-query.mjs';
+import { discoveryGatewayError } from './discovery-gateway-error.mjs';
 // EYRA Discovery Engine — Real Data Sources
 // OpenAlex, arXiv, Crossref, Europe PMC
 
@@ -65,7 +66,7 @@ async function fetchResearchSource(provider, query, limit, sort, directUrl, opti
     || (typeof window !== 'undefined' && !import.meta.env?.DEV && !staticPagesHost);
 
   if (shouldUseProxy) {
-      return fetchWithTimeout(proxyUrl(
+      const response = await fetchWithTimeout(proxyUrl(
         provider,
         query,
         limit,
@@ -74,6 +75,12 @@ async function fetchResearchSource(provider, query, limit, sort, directUrl, opti
         options.country || '',
         proxyBaseUrl,
       ), options);
+      if (!response.ok) {
+        const gatewayError = await discoveryGatewayError(response);
+        if (gatewayError.code) throw gatewayError;
+        // Keep each provider's existing HTTP error contract for upstream errors.
+      }
+      return response;
       // Hosted errors must remain visible. A direct retry would bypass shared
       // quotas, throttling and circuit breakers. Local/static modes remain direct.
   }
@@ -658,6 +665,7 @@ export async function searchAllPapersWithStatus(query, options = {}) {
     status: result.status === 'fulfilled' ? 'available' : 'unavailable',
     count: result.status === 'fulfilled' ? result.value.length : 0,
     error_status: result.status === 'rejected' ? httpStatusFromError(result.reason) : null,
+    error_code: result.status === 'rejected' && ['DISCOVERY_RATE_LIMIT_UNAVAILABLE', 'DISCOVERY_RATE_LIMITED'].includes(result.reason?.code) ? result.reason.code : null,
   }));
   const sources = settled.map((result, sourceIndex) => result.status === 'fulfilled'
     ? result.value.map((item, itemIndex) => ({

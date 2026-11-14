@@ -1,0 +1,273 @@
+{
+  "date": "2026-11-14",
+  "tested_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
+  "release_decision": "NO-GO",
+  "all_77_complete": false,
+  "local_checks": {
+    "npm_run_check": {
+      "status": "PASS",
+      "tests": 706,
+      "failed": 0,
+      "includes": [
+        "local imports",
+        "frontend and API typecheck",
+        "ESLint",
+        "Node unit/API regressions",
+        "Vite production build"
+      ],
+      "evidence": "evidence/2026-11-14/batch11-check-release.txt",
+      "source_scope": "Final706-test combined check and targeted26 security tests cover runtime33628cb; browser journeys cover owned-cleanup implementation before the final server-only progress/activation guard. Final exact-head CI reruns all suites. SQL21-migration evidence is actual local PostgreSQL, not hosted services."
+    },
+    "browser": {
+      "status": "PASS",
+      "scope": "isolated Auth/PostgREST/Storage fixtures; actual React pages and Supabase SDK calls",
+      "journeys": [
+        "authentication and mobile registration",
+        "local Data Lab analysis/export/disclosure and account-scoped metadata catalog",
+        "keyboard meeting-card access",
+        "Library project link persistence",
+        "Universal Search exact-note/file deep links",
+        "file upload/version/download and document create/edit/reload/export",
+        "project workplan creation/reload and stale-write draft retention",
+        "mobile project viewport overflow",
+        "logout route protection",
+        "manual timer start/reload/stop/export",
+        "manual quiz creation/grading/reload",
+        "manual course creation/assessment/progress/reload/mobile",
+        "authenticated EYRA streaming, explicit save to canonical EYRA conversations/messages, clear/restore without model call",
+        "official funding comparison and immutable source facts",
+        "two project-scoped grant drafts, switching and reload",
+        "Research Gap real-provider-shaped fixtures, source coverage and canonical literature saving",
+        "ambiguous snapshot write: same UUID retry, no duplicate record",
+        "private JSON export with source attribution, no model call",
+        "cancelled deletion makes no write; confirmed owner-version delete cascades and clears tab history",
+        "late history response cannot repopulate a cleared tab",
+        "reproducibility checklist save/reload and conflict preserves local draft",
+        "Literature Review protocol/screening persistence, project selection reload, conflicts and private export",
+        "One scholarly publication retains co-indexing and abstract-donor attribution; canonical Library save while AI is unavailable",
+        "Exact protocol project deep link beyond recent100; missing/foreign owner-scoped target fails closed instead of selecting another owned project",
+        "Distinct foreign-user fixture row and nonexistent ID both produce the same protocol load error; this proves client owner filtering, not hosted RLS",
+        "Portable workspace v2 export across canonical collections",
+        "Same-route account switch clears old private page state before delayed new-owner data",
+        "Research Journal, Experiment Lab and Publication Tracker create/reload, CAS conflict draft retention, reviewed retry, scoped export, search, mobile and confirmed deletion",
+        "Foreign project research records fail closed and never substitute another owned project",
+        "Research Budget exact decimals, category totals, formula-safe CSV, pending-draft save guard, persistence, explicit conflict choice, unrelated-data preservation, mobile and confirmed removal",
+        "Thesis Studio chapter ordering, canonical saved-note word counts, Markdown/JSON source compilation, reload, mobile, missing-source save rejection and confirmed chapter removal without deleting Notes",
+        "Exact Thesis/Notes IDs beyond1000 recent notes; foreign query changes clear the old editor, foreign project Budget/Thesis cannot save",
+        "All22 tools discoverable; nine project tools author/save/reload and domain previews",
+        "Memory canonical retrieval without a model call; spreadsheet edit/formula/CSV source behavior",
+        "Translate authenticated SSE fixture plus explicit reviewed idempotent Note saving; no real OpenAI call",
+        "Connect directory consent, team creation/invites, deliberate community posts/replies, feedback receipts, peer snapshot sharing",
+        "Unauthorized Admin Operations denied; source-bound Business Intelligence explicitly identifies missing budget",
+        "Personal API token secret generated client-side, only digest/scopes persisted, explicit revocation",
+        "Actual production static-shell network-off reload and encrypted local snapshot unlock/lock; no plaintext source at rest",
+        "Mobile root overflow checks including horizontally scrollable workbook; desktop/mobile tools hub screenshots",
+        "Private deletion typed/cancelled confirmation, receipt download, interrupted retry, completed response/local cleanup, preserved other-owner catalog/drafts; synthetic transport only"
+      ],
+      "evidence": "evidence/2026-11-14/batch11-products-cleanup.txt; evidence/2026-11-14/batch11-auth-cleanup.txt; evidence/2026-11-14/batch11-learning-release.txt",
+      "fixture_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
+      "source_scope": "Final706-test combined check and targeted26 security tests cover runtime33628cb; browser journeys cover owned-cleanup implementation before the final server-only progress/activation guard. Final exact-head CI reruns all suites. SQL21-migration evidence is actual local PostgreSQL, not hosted services."
+    },
+    "postgres": {
+      "status": "PASS",
+      "database": "disposable PostgreSQL 17.6; no network or published ports",
+      "migrations_executed": 21,
+      "scope": "real PostgreSQL SQL/RLS/triggers with synthetic auth.uid identities and Storage metadata schema",
+      "assertions": [
+        "owner/outsider isolation across ten tables",
+        "note snapshot history",
+        "workspace and file search owner scope",
+        "cross-owner project association rejection",
+        "Storage metadata owner scope",
+        "compare-and-set stale version rejection",
+        "two independent database sessions: one update, one conflict",
+        "canonical task/timer links and single running timer",
+        "database-side quiz grading and course progress RPCs",
+        "canonical EYRA owner/message isolation and atomic snapshot rollback",
+        "atomic quota under independent concurrent sessions",
+        "project-scoped grant draft isolation and stale-write rejection",
+        "duplicate source ID and normalized DOI rejection",
+        "idempotent snapshot retry and conflicting identity rejection",
+        "stale-version and outsider snapshot deletion rejected",
+        "two independent sessions save the same snapshot UUID and create one message",
+        "exact retries normalize omitted optional sources to the stored empty array",
+        "three overlapping transaction rounds cover both parent unique indexes during concurrent same-ID replay",
+        "All 30 canonical export collections exist with RLS enabled and authenticated SELECT grants; no foreign fixture rows visible",
+        "Research Journal/Experiment Lab/Publication Tracker JSON roundtrip, unrelated data preservation, stale save rejection, outsider read/update/delete denial",
+        "Research Budget and Thesis document roundtrip; exact decimals retained as strings, canonical Note owner visibility, stale CAS and outsider read/update/delete denial",
+        "Single-use team invitation acceptance, owner/admin/member roles and removed-member invite replay denial",
+        "Peer manuscript visibility restricted to author/reviewer; reviewer draft hidden from author until final immutable submission",
+        "User metadata/stale JWT role alone cannot grant admin; current Auth metadata/session/account ban governs administrator access",
+        "Personal token owner-project scope, expiry/revocation/account-ban and service-only credential lookup",
+        "Atomic workflow task creation and same-ID replay; Studio Note and conference Calendar idempotent materialization",
+        "Fixed authenticated action quotas reuse existing atomic limiter; successful replay does not consume new quota and deleting posts cannot refund it",
+        "All40 export collection RLS and owner-column read contracts; collaboration consent/role visibility remains separate from30 private-table foreign denial",
+        "Service-only deletion RPC ACLs and leased private job; no direct private table grants",
+        "Old JWT and personal-token lock, late privileged/signed Storage metadata denial, Auth hard-delete cascade, detached reviewer preserves other author content",
+        "43 selected owner tables checked before completion; owned/orphan Storage metadata cleanup precedes Auth removal; minimal receipt detaches user_id"
+      ],
+      "hosted_supabase_verified": false,
+      "evidence": "evidence/2026-11-14/batch11-postgres-final.txt",
+      "source_scope": "19 selected existing+proposed migrations on disposable PostgreSQL17.6; synthetic Auth identities/users/sessions, not hosted Auth/JWT/PostgREST"
+    },
+    "supplemental_ci": {
+      "status": "PASS",
+      "checks": [
+        "authenticated EYRA routing",
+        "local-time greetings",
+        "partial source resilience",
+        "server credential boundaries",
+        "deterministic ranking 5/5 and DOI suffix preservation"
+      ],
+      "scope": "deterministic fixtures; not live provider or human relevance verification",
+      "evidence": "evidence/2026-11-13/final-supplemental.txt"
+    }
+  },
+  "live_checks": {
+    "public_http_smoke": {
+      "status": "PASS",
+      "passed": 8,
+      "total": 8,
+      "deployed_commit_verified": false,
+      "reported_release": "2026-08-10-guided-discovery-eyra-resilience",
+      "evidence": "evidence/public-smoke.txt",
+      "date": "2026-11-12 (historical; not rerun for this candidate)",
+      "scope": "Historical status-only smoke; superseded by strict public_release_probe failure, not current readiness"
+    },
+    "retrieval_diagnostic": {
+      "status": "PASS",
+      "queries": 5,
+      "source_coverage_sufficient": 5,
+      "source_covered_anchor_gates_passed": 5,
+      "source_covered_anchor_gate_cases": 5,
+      "average_heuristic_anchor_coverage": 0.94,
+      "observed_provider_failures": [
+        "Semantic Scholar HTTP429"
+      ],
+      "human_judged": false,
+      "evidence": "evidence/2026-11-14/batch11-retrieval-provenance.txt; evidence/2026-11-14/batch11-retrieval-provenance.json",
+      "scope": "Actual public-provider responses through local candidate handler, not hosted deployment;50 source metadata/provenance records; all five coverage cases now required, original rank/dedupe/anchor thresholds unchanged",
+      "root_cause": "arXiv unscoped multi-word queries, Europe PMC lite records missing abstracts and insufficient retained supplied context; provider-native retrieval/core abstracts/bibliographic terms repair actual breadth. Semantic Scholar rate limit remains explicit."
+    },
+    "public_release_probe": {
+      "status": "FAIL",
+      "scope": "public-readonly; no authenticated access or writes",
+      "evidence": "evidence/2026-11-13/market-public-target-probe-final.txt",
+      "observations": [
+        "deployment-status returns HTML with HTTP200",
+        "manifest and server source SHA unverified",
+        "ai, contact and billing reported false"
+      ],
+      "expected_commit_at_execution": "8874b0305b81322a2116ebf44dd516fa5c6c7692"
+    }
+  },
+  "external_blockers": [
+    {
+      "service": "Supabase",
+      "intended_ref": "kbzjngpzxpniaumlupaa",
+      "owner_identified": true,
+      "access": "get_project explicitly denied permission",
+      "environment": "repository protects this live ref from staging writes; separate authorized staging required",
+      "unrelated_ref_not_used": "umzrggayitzfgrrofjnw"
+    },
+    {
+      "service": "Vercel",
+      "connected_team_id": "team_IUkyJtLhpTRBaUikmCSYHBDn",
+      "access": "no linked projects; lookup of eyloai.vercel.app returned 404 in connected team",
+      "deployed_git_sha": "UNVERIFIED"
+    },
+    {
+      "service": "Provider acceptance",
+      "not_run": [
+        "hosted Supabase Auth/recovery/persistence/RLS/Storage byte access",
+        "authenticated OpenAI EYRA requests",
+        "LiveKit two-user media",
+        "Stripe sandbox checkout/webhook/entitlements",
+        "account deletion",
+        "independent human retrieval judgments"
+      ]
+    }
+  ],
+  "remote_mutations": {
+    "production_deployment": false,
+    "remote_migrations": false,
+    "live_payments": false,
+    "production_data_writes": false
+  },
+  "result_categories": {
+    "IMPLEMENTED": [
+      "Provider-native multi-concept retrieval, core abstracts and retained supplied context; original ranking/DOI gates unchanged, diagnostic strengthened to require all5 cases",
+      "Reauthenticated/explicitly confirmed password free-account staging deletion with private receipts, leased jobs, old-token lockdown, Storage-before-Auth and verified completion",
+      "Other-author manuscript preservation when reviewer is deleted",
+      "Owner-local catalog/draft/Offline cleanup and legacy private-cache ownership boundaries",
+      "Known new product/privacy routes survive safe sign-in redirects"
+    ],
+    "EXECUTED": [
+      "npm run check: PASS706 tests,0 failed, imports/typecheck/lint/production build",
+      "All three local browser suites PASS; all22 workflows, actual offline reload, deletion consent/cancellation/receipt/retry/completion/cache cleanup",
+      "Disposable PostgreSQL17.6: PASS21 selected migrations with43 owner-table deletion/lock contracts and40 export collections",
+      "Three real public-provider diagnostics: PASS5/5 coverage,5/5 anchors, mean0.94; latest artifact retains50 metadata/provenance records"
+    ],
+    "VERIFIED": [
+      "Automated real source coverage, without invented papers or weaker ranking gates; primary-index counts do not inflate co-indexing",
+      "Actual local SQL service-only ACLs, stale JWT/privileged upload metadata denial, leases, Storage ordering, Auth cascades and other-account persistence",
+      "Synthetic HTTP tests verify actual endpoint orchestration, HMAC job binding, password/MFA/billing gates, quotas, failure recovery and ambiguous Auth404 replay",
+      "Actual React/browser confirms consent and retry without duplicate initiation, local owner-data cleanup and preserved other-owner catalog/drafts"
+    ],
+    "FAILED": [
+      "Semantic Scholar continues HTTP429; transparent degraded source, not failure of the now5/5 aggregate diagnostic",
+      "Earlier fixture failures retained: invalid pre-accepted connection seed, missing per-session SQL assertion helper, anonymous Offline-to-privacy navigation and initially absent safe privacy redirect; corrected without weakening policies"
+    ],
+    "BLOCKED": [
+      "Separate independently verified EYLO staging and linked Vercel identity/access: fresh tools still expose only unrelated Supabase and no EYLO project",
+      "Actual hosted JWT/password/Storage bytes/in-flight upload/Auth hard-delete/advisors and two-account acceptance",
+      "Human scholarly evaluation, authenticated OpenAI, Stripe sandbox/LiveKit/operational/legal/pilot release acceptance"
+    ],
+    "NOT_IMPLEMENTED": [
+      "Production activation and full advanced acceptance of all77 products; matrix remains77 partial/0 without implementation/0 certified complete",
+      "Automated MFA/passwordless/billing-linked deletion; any configured Stripe secret/webhook keeps this candidate disabled",
+      "Full processor/log/backup erasure and complete DSAR; completed receipt metadata retention requires owner review",
+      "Erasure of prior exports/downloads/browser data on other devices and automatic deployment of a managed recovery worker"
+    ]
+  },
+  "concurrent_branch_reconciliation": {
+    "preserved_remote_head": "002281a",
+    "merge_commit": "195d99d",
+    "final_contract": "canonical eyra_conversations/messages; no chat records written to Ideas",
+    "save_semantics": "Explicit immutable snapshot; existing records not overwritten; separate source metadata column; security-invoker atomic RPC with caller RLS"
+  },
+  "review": {
+    "prior_pr": 408,
+    "prior_pr_state": "Merged externally as879e29f before batch11",
+    "continuation_branch": "codex/eylo-platform-integration-audit",
+    "current_pr": "See new draft continuation; not guessed before creation"
+  },
+  "github_ci": {
+    "commit": "51ee3271d4f09f237d3c12cdbf353bf95a0ed6aa",
+    "status": "PASS (historical batch10)",
+    "runs": {
+      "Build": 43521212099,
+      "EYLO Quality Gate": 43521212096,
+      "Product quality": 43521212164
+    },
+    "scope": "Historical batch10 final CI. Current batch11 exact-head results are recorded in the draft PR body."
+  },
+  "latest_vercel_observation": {
+    "commit": "13a8117b911c928acd21b5342c5a1568588cf9c7",
+    "status": "SUCCESS (GitHub status only)",
+    "target_url": "https://vercel.com/panagiotagrosdoulis-projects/eyloai/C3DAf8m42P9L97i9VhAjnTHSTBeu",
+    "metadata": "404 under explicitly connected team; project and commit-filtered deployment lists empty",
+    "scope": "Build-status observation only; deployed source/environment identity and hosted acceptance unverified. Current final-head status is recorded in PR407."
+  },
+  "ci_failure_and_repair": {
+    "failed_head": "de485c1",
+    "run_id": 43424465089,
+    "job_id": 131882353387,
+    "cause": "Concurrent speculative inserts collided with composite eyra_conversations_id_user_id_key, outside explicit primary-key ON CONFLICT target",
+    "repair_commit": "05241b7",
+    "repair": "ON CONFLICT DO NOTHING covers both unique indexes; caller-owner lookup and exact content comparison remain required",
+    "local_retest": "PASS: 17 migrations and three overlapping transaction rounds",
+    "evidence": "evidence/2026-11-13/ci-snapshot-race-failure.txt",
+    "final_ci": "Prior batch verified PASS at 822c5fc (Quality Gate run43424978674); this batch final CI not yet run at evidence recording time"
+  }
+}
