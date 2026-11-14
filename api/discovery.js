@@ -174,7 +174,9 @@ export default async function handler(request, response) {
   // Hosted Vercel traffic requires the one shared atomic quota. Local read-only
   // provider diagnostics do not impersonate a deployed quota service.
   if (process.env.VERCEL === '1') {
-    const quota = await consumeDiscoveryQuota(request);
+    const quota = await consumeDiscoveryQuota(request, {
+      onUnavailable: diagnostic => console.warn('EYLO_DISCOVERY_QUOTA_UNAVAILABLE', diagnostic),
+    });
     if (quota.status !== 'available') {
       response.setHeader('Cache-Control', 'no-store');
       return response.status(503).json({ error: 'Scholarly discovery quota service is unavailable.', code: 'DISCOVERY_RATE_LIMIT_UNAVAILABLE' });

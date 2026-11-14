@@ -41,15 +41,23 @@ export async function consumeDiscoveryQuota(request, {
   fetchImpl = globalThis.fetch,
   limit = DISCOVERY_RATE_LIMIT.limit,
   windowSeconds = DISCOVERY_RATE_LIMIT.windowSeconds,
+  onUnavailable = (_diagnostic) => {},
 } = {}) {
+  // Only fixed classifications and HTTP status reach operator logs. Never pass
+  // IPs, hashes, keys, request URLs, response bodies or exception messages.
+  const unavailable = (reason, httpStatus = null) => {
+    try { onUnavailable({ reason, http_status: httpStatus }); } catch { /* Logging must not bypass the quota guard. */ }
+    return { status: 'unavailable' };
+  };
   const config = readSupabaseApiConfig(env);
   const projectUrl = config.url;
   const serviceRoleKey = config.serverKey;
-  if (!config.hasServerConfig || typeof fetchImpl !== 'function') return { status: 'unavailable' };
+  if (!config.hasServerConfig) return unavailable('missing_server_configuration');
+  if (typeof fetchImpl !== 'function') return unavailable('fetch_unavailable');
 
   const ip = getTrustedDiscoveryClientIp(request, env);
   const subjectHash = makeDiscoveryRateLimitSubject(ip, serviceRoleKey);
-  if (!subjectHash) return { status: 'unavailable' };
+  if (!subjectHash) return unavailable('missing_trusted_client_ip');
 
   try {
     const result = await fetchImpl(`${projectUrl}/rest/v1/rpc/consume_discovery_rate_limit`, {
@@ -67,12 +75,22 @@ export async function consumeDiscoveryQuota(request, {
       }),
       signal: AbortSignal.timeout(3_000),
     });
-    if (!result.ok) return { status: 'unavailable' };
-    const body = await result.json();
+    if (!result.ok) {
+      const reason = result.status === 401 || result.status === 403 ? 'rpc_access_denied'
+        : result.status === 404 ? 'rpc_not_found' : 'rpc_http_error';
+      await result.body?.cancel().catch(() => {});
+      return unavailable(reason, result.status);
+    }
+    let body;
+    try { body = await result.json(); }
+    catch (error) {
+      return unavailable(error?.name === 'TimeoutError' || error?.name === 'AbortError'
+        ? 'rpc_timeout' : 'invalid_rpc_response');
+    }
     const record = Array.isArray(body) ? body[0] : body;
     if (typeof record?.allowed !== 'boolean'
       || !Number.isInteger(record.remaining)
-      || !Number.isInteger(record.retry_after_seconds)) return { status: 'unavailable' };
+      || !Number.isInteger(record.retry_after_seconds)) return unavailable('invalid_rpc_response');
     return {
       status: 'available',
       allowed: record.allowed,
@@ -80,7 +98,8 @@ export async function consumeDiscoveryQuota(request, {
       remaining: Math.max(0, Math.min(limit, record.remaining)),
       retryAfterSeconds: Math.max(0, record.retry_after_seconds),
     };
-  } catch {
-    return { status: 'unavailable' };
+  } catch (error) {
+    return unavailable(error?.name === 'TimeoutError' || error?.name === 'AbortError'
+      ? 'rpc_timeout' : 'rpc_network_error');
   }
 }

@@ -19,6 +19,19 @@ All settings must target the intended Vercel environment and belong to the same 
 
 This is the application's durable quota guard failing before provider retrieval. It is not proof of a scholarly provider outage. Check server configuration first, then inspect database logs, API access and migration history on the independently identified target.
 
+Server logs emit `EYLO_DISCOVERY_QUOTA_UNAVAILABLE` with a fixed `reason` and an optional `http_status`. These fields contain no keys, client IPs, query text, RPC body or upstream exception messages. The public response remains the same generic 503.
+
+| Reason | Check |
+| --- | --- |
+| `missing_server_configuration` | Intended Supabase URL and private server key; run `npm run config:check` in the securely configured server environment. |
+| `missing_trusted_client_ip` | Trusted Vercel forwarding metadata; never substitute a browser-supplied identity. |
+| `rpc_access_denied` | Server key belongs to the intended project and has the required service-only RPC access. |
+| `rpc_not_found` | Reviewed quota migration, exposed schema and RPC schema cache. A 404 alone does not establish that a migration is missing. |
+| `rpc_http_error` | Supabase API availability and sanitized database logs for the recorded HTTP status. |
+| `invalid_rpc_response` | RPC returns the expected boolean/integer fields as JSON. |
+| `rpc_timeout` / `rpc_network_error` | Database/API connectivity and latency. |
+| `fetch_unavailable` | Supported server runtime with native fetch. |
+
 The existing `supabase/migrations/20261113113010_shared_discovery_quota.sql` defines `consume_discovery_rate_limit(text, integer, integer)` and service-role-only execution. Do not create a competing quota table or disable the guard. Reconcile the reviewed migration with target history and verify in separate staging before any production schema change. A malformed RPC result, RPC timeout, unavailable database or missing trusted client IP also fails closed; inspect sanitized server/database logs to distinguish them. Configuration presence alone does not prove the RPC works.
 
 `npm run release:probe -- https://your-reviewed-host.example` now checks the release manifest, server provenance, capability flags and one actual OpenAlex query. It reports quota failures even if all configuration booleans are true. This is a public GET smoke check that consumes normal quota, not a scientific relevance evaluation, Auth/RLS test or release authorization.
