@@ -1,0 +1,43 @@
+##[group]Run npm run test:e2e:products
+2026-11-13T22:36:16.3366473Z [36;1mnpm run test:e2e:products[0m
+2026-11-13T22:36:16.3408116Z shell: /usr/bin/bash -e {0}
+2026-11-13T22:36:16.3408280Z ##[endgroup]
+2026-11-13T22:36:16.4069593Z
+2026-11-13T22:36:16.4070248Z > eyloai@0.0.0 test:e2e:products
+2026-11-13T22:36:16.4070659Z > node tests/e2e-products.mjs
+2026-11-13T22:36:16.4070812Z
+2026-11-13T22:36:44.8190295Z FIXTURE FAILURE VIEW: Explore evidence
+2026-11-13T22:36:44.8190558Z Continue your research
+2026-11-13T22:36:44.8190677Z
+2026-11-13T22:36:44.8190899Z Return to your saved evidence, project decisions and EYRA context.
+2026-11-13T22:36:44.8191594Z
+2026-11-13T22:36:44.8191950Z Use your password or request a one-time sign-in link. You will return to the page that sent you here.
+2026-11-13T22:36:44.8192273Z
+2026-11-13T22:36:44.8192361Z Email address
+2026-11-13T22:36:44.8192542Z Password
+2026-11-13T22:36:44.8192748Z Forgot password?
+2026-11-13T22:36:44.8193021Z Continue with password
+2026-11-13T22:36:44.8193169Z OR
+2026-11-13T22:36:44.8193312Z Email me a secure sign-in link
+2026-11-13T22:36:44.8193499Z New to EYLO? Create a private workspace
+2026-11-13T22:36:44.8211158Z ROOT WIDTH: { inner: 390, html: 390, body: 390, table: null }
+2026-11-13T22:36:44.8222778Z OVERFLOW ELEMENTS: []
+2026-11-13T22:36:44.8243327Z STATIC CACHE: []
+2026-11-13T22:36:44.8451876Z node:internal/modules/run_main:107
+2026-11-13T22:36:44.8452433Z     triggerUncaughtException(
+2026-11-13T22:36:44.8452890Z     ^
+2026-11-13T22:36:44.8453014Z
+2026-11-13T22:36:44.8453190Z locator.waitFor: Timeout 20000ms exceeded.
+2026-11-13T22:36:44.8453529Z Call log:
+2026-11-13T22:36:44.8453911Z   - waiting for getByRole('heading', { name: 'EYLO tools', exact: true }) to be visible
+2026-11-13T22:36:44.8454216Z
+2026-11-13T22:36:44.8454466Z     at /home/runner/work/eyloai/eyloai/tests/e2e-products.mjs:311:6 {
+2026-11-13T22:36:44.8454862Z   log: [
+2026-11-13T22:36:44.8455291Z     "  - waiting for getByRole('heading', { name: 'EYLO tools', exact: true }) to be visible"
+2026-11-13T22:36:44.8455675Z   ],
+2026-11-13T22:36:44.8455852Z   name: 'TimeoutError'
+2026-11-13T22:36:44.8456044Z }
+2026-11-13T22:36:44.8456139Z
+2026-11-13T22:36:44.8456221Z Node.js v24.22.2
+2026-11-13T22:36:44.8718033Z ##[error]Process completed with exit code 1.
+2026-11-13T22:36:44.8843004Z

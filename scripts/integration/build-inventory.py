@@ -29,7 +29,7 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 19|PitchDeckBuilder|projects|eyra|
 20|ProductTools,PersonalTools,product-utilities,product-registry|projects||complete-products,product-api,e2e-products
 21|UniversalSearch,universal-search|notes,projects,life_tasks,life_goals,calendar_events,study_flashcard_decks,saved_papers,ideas| |universal-search
-22|ProductTools,PersonalTools,product-registry|notes|eyra|complete-products,product-api,e2e-products
+22|ProductTools,PersonalTools,product-registry,translation-references|notes|eyra|complete-products,product-api,e2e-products,translation-references
 23|ResearchKnowledgeGraph,research-knowledge-graph|saved_papers,saved_researchers,projects|discovery|research-knowledge-graph
 24|EyraCommandCenter,eyra-project-tools,eyra-stream,eyra-conversation,eyra-history|projects,saved_papers,ideas,notes,life_tasks,eyra_conversations,eyra_messages|eyra|eyra-project-tools,eyra-boundaries,eyra-stream
 25|ProductTools,ProductWorkbench,product-workbench,product-operation-recovery|projects,life_tasks||complete-products,product-api,e2e-products
@@ -107,6 +107,11 @@ def main():
     suite = verification.get('local_checks', {}).get('npm_run_check', {})
     scope_path=ROOT/'docs/integration/batch-9-product-scopes.json'
     scopes={row['id']:row for row in json.loads(scope_path.read_text())['products']} if scope_path.exists() else {}
+    polish_path=ROOT/'docs/integration/batch-10-workflow-polish.json'
+    if polish_path.exists():
+        scopes.update({row['id']:row for row in json.loads(polish_path.read_text())['product_scope_updates']})
+    export_tables=json.loads(subprocess.check_output(['node','--input-type=module','-e',
+        "import {WORKSPACE_EXPORT_TABLES} from './src/lib/workspace-export.mjs'; process.stdout.write(JSON.stringify(WORKSPACE_EXPORT_TABLES));"],cwd=ROOT,text=True))
     workflow_evidence = {
         **{i: 'Manual timer/quiz/course browser persistence fixtures and actual PostgreSQL RPC/policy checks' for i in (8, 11, 75)},
         **{i: 'Project-owned research record browser create/reload, owner-filtered CAS and retained draft, export, search, mobile and confirmed deletion; actual PostgreSQL owner/outsider and stale-save checks. Hosted Supabase unverified' for i in (60, 66, 69)},
@@ -128,7 +133,7 @@ def main():
         name, declared = rows[i]
         stems = list(filter(None, stems.split(',')))
         files = [p for p in tracked if p.startswith('src/') and any(Path(p).stem.lower().startswith(s.lower()) for s in stems)]
-        tables = [s.strip() for s in tables.split(',') if s.strip()]
+        tables = ['profiles',*export_tables] if i==31 else [s.strip() for s in tables.split(',') if s.strip()]
         migrations = [p for p in tracked if p.startswith('supabase/migrations/') and any(re.search(r'\b' + re.escape(t) + r'\b', (ROOT / p).read_text()) for t in tables)] if files else []
         tests = [p for p in tracked if p.startswith('tests/') and any(Path(p).stem.startswith(s) for s in test_stems.split(',') if s)] if files else []
         endpoints = [f'api/{a.strip()}.js' for a in apis.split(',') if a.strip() and f'api/{a.strip()}.js' in tracked] if files else []
@@ -175,7 +180,7 @@ def main():
     assert [p['id'] for p in products] == list(range(1, 78))
     result = {'schema_version': 1, 'baseline_commit': BASE, 'inventory_commit': git('rev-parse', 'HEAD'), 'scope': 'Integration candidate branch, not current main or deployed product', 'intended_eylo_supabase_ref': 'kbzjngpzxpniaumlupaa', 'live_access': 'Owner identified this ref; connector permission denied. Repository guards it as live EYLO. Separate staging identity remains required.', 'inventory_method': 'Explicit tracker ID mapping to tracked source files, route declarations, table references in migrations, tests, and all 65 open PR diffs. Related source presence is not implementation verification. Shared surfaces may support several partial products. See verification.json for subsequent combined-suite results; those do not establish per-product acceptance.', 'products': products}
     (ROOT / 'docs/integration/product-matrix.json').write_text(json.dumps(result, indent=2) + '\n')
-    print(f'Inventoried {len(products)} products against {len(prs)} open PRs')
+    print(f'Inventoried {len(products)} products against {len(prs)} historical PR snapshots')
 
 if __name__ == '__main__':
     main()

@@ -157,6 +157,7 @@ try {
       : {}),
   });
   const context = await browser.newContext({
+    timezoneId: "America/Los_Angeles",
     viewport: { width: 390, height: 844 },
   });
   page = await context.newPage();
@@ -304,6 +305,9 @@ try {
   await page.getByLabel("Email address").fill(user.email);
   await page.getByLabel("Password").fill("Fixture-password-123");
   await page.getByRole("button", { name: "Continue with password" }).click();
+  // Wait for the actual authenticated navigation; click completion does not
+  // wait for asynchronous Supabase sign-in/session persistence.
+  await page.waitForURL(url => url.pathname !== "/login");
   await page.goto(host + "/tools");
   await page
     .getByRole("heading", { name: "EYLO tools", exact: true })
@@ -452,6 +456,13 @@ try {
             .length,
           1,
         );
+        const csvEvent = page.waitForEvent("download");
+        await page.getByRole("button", {name:"Export saved responses CSV"}).click();
+        const csvDownload = await csvEvent, csvStream = await csvDownload.createReadStream();
+        let csvText = ""; for await (const chunk of csvStream) csvText += chunk;
+        assert.ok(csvDownload.suggestedFilename().endsWith("-responses.csv"));
+        assert.ok(csvText.includes('"Private form response","2"'));
+
       }
       assert.ok(
         await page.evaluate(
@@ -530,6 +541,30 @@ try {
     console.log(
       "PASS fixture: authenticated EYRA translation stream fixture and explicit canonical Note save. No real provider request.",
     );
+    await page.getByLabel("Text to translate").fill("Supplied source with citation [1]");
+    await page.getByRole("button", {name:"Translate with EYRA",exact:true}).click();
+    await page.getByRole("alert").filter({hasText:"Translation reference check failed"}).waitFor();
+    assert.equal(await page.getByRole("button", {name:"Save reviewed translation to Notes"}).isDisabled(),true);
+    assert.equal(tables.notes.filter(n=>n.data.title === "Translation to Greek").length,1);
+    console.log("PASS fixture: a translation that drops a supplied citation fails closed before canonical Note saving.");
+    const viewerMonth = await page.evaluate(() => `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,"0")}`);
+    const firstDate = viewerMonth + "-01";
+    const endDate = viewerMonth + "-02";
+    const deadline = {id:randomUUID(),user_id:user.id,updated_date:now(),data:{title:"Floating conference deadline",description:"Supplied official deadline",all_day:true,start_at:firstDate+"T00:00:00.000Z",end_at:endDate+"T00:00:00.000Z",reminder_at:null,recurrence:"none",project_id:null}};
+    tables.calendar_events.push(deadline);
+    await page.goto(host+"/calendar?focus="+deadline.id);
+    await page.waitForFunction(expected => document.querySelector('input[type="date"]')?.value === expected, firstDate);
+    assert.equal(await page.getByLabel("All-day event",{exact:true}).isChecked(),true);
+    assert.equal(await page.getByLabel("Starts",{exact:true}).inputValue(),firstDate);
+    assert.equal(await page.getByRole("button",{name:"1, 1 events",exact:true}).count(),1);
+    await page.getByLabel("Title",{exact:true}).fill("Reviewed floating deadline");
+    await page.getByRole("button",{name:"Save event",exact:true}).click();
+    await page.getByText("Event saved.",{exact:true}).waitFor();
+    assert.equal(deadline.data.all_day,true);
+    assert.equal(deadline.data.start_at,firstDate+"T00:00:00.000Z");
+    assert.equal(deadline.data.end_at,endDate+"T00:00:00.000Z");
+    await capture("calendar-all-day-mobile");
+    console.log("PASS fixture: conference all-day date at UTC month boundary stays on day1 and survives Calendar editing in America/Los_Angeles.");
     await page.goto(host + "/tools/self-healing");
     await page
       .getByRole("button", {

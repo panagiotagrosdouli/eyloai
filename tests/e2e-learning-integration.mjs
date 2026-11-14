@@ -579,6 +579,14 @@ try {
   }
   console.log('PASS fixture: exact thesis/Notes links beyond recent1000; foreign note query change clears the old editor and fails closed; foreign project Budget/Thesis cannot write. Hosted authorization remains unverified.');
   await page.setViewportSize({ width: 390, height: 844 });
+  const contributionTables = WORKSPACE_EXPORT_TABLES.filter(table => table.startsWith('eylo_') && !['eylo_files','eylo_file_versions'].includes(table));
+  for (const table of contributionTables) tables[table] = [
+    {id: randomUUID(),user_id:user.id,display_name:'Owned contribution',name:'Owner record'},
+    {id: randomUUID(),user_id:'00000000-0000-0000-0000-000000000002',display_name:'Foreign collaboration data'},
+  ];
+  delete tables.eylo_directory[0].id;
+  tables.eylo_api_tokens[0].token_hash='digest-never-export';
+  tables.eylo_api_tokens[0].raw_token='secret-never-export';
   await page.goto(`${origin}/settings`);
   await page.getByLabel('Settings section').selectOption('privacy');
   const workspaceDownloadEvent = page.waitForEvent('download');
@@ -587,7 +595,7 @@ try {
   const workspaceStream = await workspaceDownload.createReadStream(); let workspaceJson = '';
   for await (const chunk of workspaceStream) workspaceJson += chunk;
   const workspaceExport = JSON.parse(workspaceJson);
-  assert.equal(workspaceExport.version, 2);
+  assert.equal(workspaceExport.version, 3);
   assert.equal(workspaceExport.account.user_id, user.id);
   assert.equal(workspaceExport.collections.notes[0].data.title, 'Canonical note');
   assert.equal(workspaceExport.collections.learning_courses.length, 1);
@@ -595,7 +603,11 @@ try {
   assert.equal(workspaceExport.collections.time_entries.length, 1);
   assert.ok(workspaceExport.collections.projects.every(row => row.user_id === user.id));
   assert.ok(Object.keys(workspaceExport.collections).includes('eyra_messages'));
-  console.log('PASS fixture: Settings downloads owner-validated portable workspace v2 including canonical notes, learning and timer records; file bytes explicitly excluded.');
+  assert.equal(Object.keys(workspaceExport.collections).length,40);
+  for(const table of contributionTables) {assert.equal(workspaceExport.collections[table].length,1); assert.equal(workspaceExport.collections[table][0].user_id,user.id);}
+  assert.equal(workspaceJson.includes('never-export'),false);
+  assert.equal(workspaceJson.includes('Foreign collaboration data'),false);
+  console.log('PASS fixture: Settings downloads owner-validated portable workspace v3 with40 collections and excludes token material/foreign contributions; including canonical notes, learning and timer records; file bytes explicitly excluded.');
   const privateATitle = 'Account A confidential fixture paper';
   const privateBTitle = 'Account B confidential fixture paper';
   const ownerB = { ...user, id: '00000000-0000-0000-0000-000000000002', email: 'second-fixture@example.org' };

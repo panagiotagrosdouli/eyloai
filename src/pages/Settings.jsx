@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { loadPreferences, savePreferences } from '@/lib/preferences';
-import { collectWorkspaceExport, assertWorkspaceExportOwner } from '@/lib/workspace-export.mjs';
+import { collectWorkspaceExport, assertWorkspaceExportOwner, fetchWorkspaceExportPage } from '@/lib/workspace-export.mjs';
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 
 const SECTIONS = [
@@ -135,12 +135,7 @@ export default function Settings() {
         email: session.user.email || '',
         userMetadata: session.user.user_metadata || null,
         profile: profileResponse.data || null,
-        fetchPage: async (table, { offset, limit, userId: owner }) =>
-          client.from(table)
-            .select('*')
-            .eq('user_id', owner)
-            .order('id', { ascending: true })
-            .range(offset, offset + limit - 1),
+        fetchPage: (table, page) => fetchWorkspaceExportPage(client, table, page),
       });
       // A shared browser can switch accounts while this potentially long
       // export is collecting pages. Revalidate the current server-confirmed

@@ -1,5 +1,7 @@
 # Batch9 — implementation of all22 previously missing products
 
+Historical batch9 scope. [Batch10 updates](batch-10-workflow-polish.json) supersede the export, Translation, Conference Calendar and Forms CSV gaps below; remaining advanced/hosted criteria are still open.
+
 This batch implements a defined, working local scope for each of the22 products that had no implementation. The shared task-workflow engine also gives Automations26 a real user-triggered flow and confirmed history, beyond scheduled-monitoring infrastructure. All77 entries are now **partially implemented**, zero have no implementation, and **zero are certified complete or production-ready**. This is not a claim that all advanced product capabilities or hosted acceptance criteria are finished.
 
 The machine-readable register is [batch-9-product-scopes.json](batch-9-product-scopes.json). It records each entry path, actual implemented scope, evidence and remaining criteria. The tools hub is `/tools`; all paths except the separately encrypted Offline viewer require the existing authenticated route boundary.

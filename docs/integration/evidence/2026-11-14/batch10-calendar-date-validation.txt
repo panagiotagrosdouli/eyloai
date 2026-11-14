@@ -1,0 +1,18 @@
+✔ calendar event normalization bounds fields and stores UTC instants (3.80638ms)
+✔ calendar events require valid timezone datetimes and positive duration (0.505244ms)
+✔ calendar event recurrence and project links accept only supported values (0.385906ms)
+✔ monthly recurring event dates clamp at month end (0.289573ms)
+✔ calendar month selector returns only events in month ordered by start (8.424513ms)
+✔ calendar persists events through owner-scoped RLS and validates project ownership (9.898912ms)
+✔ calendar route is protected within the authenticated layout and repository is mapped (1.327481ms)
+✔ all-day events preserve midnight boundaries and use an exclusive end date (12.110543ms)
+✔ month/day selection separates viewer-local timed events from floating all-day dates (216.0207ms)
+✔ Calendar rejects impossible dates instead of silently moving deadlines to another month (0.496841ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 330.934812

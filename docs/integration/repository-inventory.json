@@ -1,5 +1,5 @@
 {
-  "source_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
+  "source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
   "files": [
     {
       "path": ".github/workflows/build.yml",
@@ -389,7 +389,7 @@
     {
       "path": "src/components/products/PersonalTools.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "7d9660d8b7fca75879026418de1d1f44fa2d1ff5"
+      "blob_sha": "e9c238eda7b0e65e9cd775ff725c1098f96e3a98"
     },
     {
       "path": "src/components/projects/GapCandidateReviewItem.jsx",
@@ -554,7 +554,7 @@
     {
       "path": "src/lib/calendar-domain.mjs",
       "kind": "frontend_or_client_source",
-      "blob_sha": "7669874c5e2e389237d7cb98b568603fb1753eca"
+      "blob_sha": "cc1af2ea0c6f2449ebeaf4d506f033450baf6b6e"
     },
     {
       "path": "src/lib/capabilities.js",
@@ -844,7 +844,7 @@
     {
       "path": "src/lib/product-workbench.mjs",
       "kind": "frontend_or_client_source",
-      "blob_sha": "8ef5eca023b04eff2215a960ff4fbfad57a333e9"
+      "blob_sha": "6ca1ad6002034d2cf96ef35362faad605c44e699"
     },
     {
       "path": "src/lib/profile-merge.mjs",
@@ -1047,6 +1047,11 @@
       "blob_sha": "4b3abcef913a95b260d83d9e48b7995e8326bd17"
     },
     {
+      "path": "src/lib/translation-references.mjs",
+      "kind": "frontend_source",
+      "blob_sha": "1b84011aad016c92527c95a9c8858e45054aca64"
+    },
+    {
       "path": "src/lib/universal-search-domain.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "547a2bb654eaa9323551fe35fea2c5d7066c33ad"
@@ -1064,7 +1069,7 @@
     {
       "path": "src/lib/workspace-export.mjs",
       "kind": "frontend_or_client_source",
-      "blob_sha": "36a104e7ad2b821dc9651644da69182a55560c7f"
+      "blob_sha": "fe9a58ce0fd383797e6e6ad91355a0178b4573d5"
     },
     {
       "path": "src/lib/zoned-time.mjs",
@@ -1089,7 +1094,7 @@
     {
       "path": "src/pages/Calendar.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "a1f05f00602bbd6203edb5d6d37fcd3241aee555"
+      "blob_sha": "8bb477b8bb84210ce8918abaa5d27f82458b8b8a"
     },
     {
       "path": "src/pages/Careers.jsx",
@@ -1289,7 +1294,7 @@
     {
       "path": "src/pages/ProductWorkbench.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "b3207a8688c7789d5bef72ee7a6e47db79892d89"
+      "blob_sha": "81c02ccebe39166e19beb44da2b257eea0f2be5b"
     },
     {
       "path": "src/pages/Profile.jsx",
@@ -1379,7 +1384,7 @@
     {
       "path": "src/pages/Settings.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "8631ede3d0c697fe5f577e49fccd849f5b3fb25a"
+      "blob_sha": "66bce43bc0ab46f4d0062700d1b0dab16db3c008"
     },
     {
       "path": "src/pages/StudyPlanner.jsx",
@@ -1629,7 +1634,7 @@
     {
       "path": "tests/calendar-workspace.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "579cdc639096eb71f3b86f230ad05f2ad7199989"
+      "blob_sha": "8a78e0faa015ca650c943cb74f2720657a9b163a"
     },
     {
       "path": "tests/capabilities.test.mjs",
@@ -1734,7 +1739,7 @@
     {
       "path": "tests/e2e-learning-integration.mjs",
       "kind": "automated_test",
-      "blob_sha": "fec5e0f5325ad6b1ecf516dbbec537ea492de86f"
+      "blob_sha": "35bd67b356916860e5ce160deb8e84e98f74074e"
     },
     {
       "path": "tests/e2e-native-meetings.mjs",
@@ -1744,7 +1749,7 @@
     {
       "path": "tests/e2e-products.mjs",
       "kind": "automated_test",
-      "blob_sha": "16497b3307bf6e4df8b885cc284b411c03e5c6a2"
+      "blob_sha": "4c6afd9d36e4c96adc94e39cb215e846a2726a4e"
     },
     {
       "path": "tests/e2e-quiz-generator.mjs",
@@ -1915,6 +1920,11 @@
       "path": "tests/flashcards-workspace.test.mjs",
       "kind": "automated_test",
       "blob_sha": "b1365aa1e937402e48d58b3f418c9a82bd42e834"
+    },
+    {
+      "path": "tests/form-responses-csv.test.mjs",
+      "kind": "test",
+      "blob_sha": "426d01a5760727726f240477f533c8fffbe213e7"
     },
     {
       "path": "tests/funding-auth-config.test.mjs",
@@ -2397,6 +2407,11 @@
       "blob_sha": "3084afefa2cfe21601348270e36a2fae379d54f3"
     },
     {
+      "path": "tests/translation-references.test.mjs",
+      "kind": "test",
+      "blob_sha": "c84c2604184e07c2d5317f43ed0513d3afe9705f"
+    },
+    {
       "path": "tests/unified-academic-colors.test.mjs",
       "kind": "automated_test",
       "blob_sha": "be8bd48f6bbd8f70216a036b927d8a94adebc5bf"
@@ -2409,7 +2424,7 @@
     {
       "path": "tests/workspace-export.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "63907fd13697079cef6f45f537e709cb33ba9db5"
+      "blob_sha": "1364b1215cd096845d92e7805cd85233bab85a7b"
     }
   ],
   "npm_scripts": {

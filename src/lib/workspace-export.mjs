@@ -14,7 +14,7 @@ export class WorkspaceExportSizeError extends Error {
   }
 }
 
-export const WORKSPACE_EXPORT_TABLES = Object.freeze([
+export const PRIVATE_WORKSPACE_EXPORT_TABLES = Object.freeze([
   'projects', 'ideas', 'meetings', 'saved_papers', 'saved_researchers',
   'saved_opportunities', 'search_history', 'watchlists',
   'monitoring_discoveries', 'notifications',
@@ -24,6 +24,33 @@ export const WORKSPACE_EXPORT_TABLES = Object.freeze([
   'learning_courses', 'learning_lessons', 'learning_enrollments', 'learning_lesson_progress',
   'eylo_files', 'eylo_file_versions', 'eyra_conversations', 'eyra_messages', 'grant_applications',
 ]);
+
+export const WORKSPACE_EXPORT_TABLES = Object.freeze([
+  ...PRIVATE_WORKSPACE_EXPORT_TABLES,
+  'eylo_directory', 'eylo_teams', 'eylo_team_invites', 'eylo_team_members',
+  'eylo_connections', 'eylo_community_posts', 'eylo_peer_submissions',
+  'eylo_peer_reviews', 'eylo_feedback', 'eylo_api_tokens',
+]);
+
+/** Scope is authored/owned rows only, including the caller's own memberships.
+ * Incoming invitations, another author's manuscript and other members' records
+ * are deliberately excluded even when RLS makes them visible in collaboration.
+ */
+export function workspaceExportQuery(table) {
+  if (!WORKSPACE_EXPORT_TABLES.includes(table)) throw new Error('Unknown workspace export collection.');
+  return {
+    key: table === 'eylo_directory' ? 'user_id' : 'id',
+    columns: table === 'eylo_api_tokens'
+      ? 'id,user_id,name,project_ids,expires_at,revoked_at,created_date,updated_date'
+      : '*',
+  };
+}
+
+export function fetchWorkspaceExportPage(client, table, { userId, offset, limit }) {
+  const { key, columns } = workspaceExportQuery(table);
+  return client.from(table).select(columns).eq('user_id', userId)
+    .order(key, { ascending: true }).range(offset, offset + limit - 1);
+}
 
 export async function collectWorkspaceExport({
   userId, email = '', userMetadata = null, profile = null, fetchPage,
@@ -51,6 +78,7 @@ export async function collectWorkspaceExport({
   const collections = {};
   const totals = {};
   for (const table of WORKSPACE_EXPORT_TABLES) {
+    const { key } = workspaceExportQuery(table);
     const results = [];
     const seen = new Set();
     let offset = 0;
@@ -60,20 +88,26 @@ export async function collectWorkspaceExport({
       if (!Array.isArray(data)) throw new Error(`Cannot export ${table}: invalid database response.`);
       if (data.length > pageSize) throw new Error(`Cannot export ${table}: unexpected page length.`);
       for (const row of data) {
-        if (!row || row.user_id !== userId || typeof row.id !== 'string' || !row.id) {
+        if (!row || row.user_id !== userId || typeof row[key] !== 'string' || !row[key]) {
           throw new Error(`Cannot export ${table}: row ownership or identifier validation failed.`);
         }
-        if (seen.has(row.id)) throw new Error(`Cannot export ${table}: unstable pagination returned a duplicate.`);
-        seen.add(row.id);
+        if (seen.has(row[key])) throw new Error(`Cannot export ${table}: unstable pagination returned a duplicate.`);
+        seen.add(row[key]);
         totalRows += 1;
         if (totalRows > maxTotalRows) {
           throw new WorkspaceExportSizeError();
         }
-        estimatedBytes += encodedLength(row);
+        // Never emit credential material, even if a faulty transport ignores
+        // the explicit safe column projection on the database read.
+        const exportedRow = table === 'eylo_api_tokens'
+          ? Object.fromEntries(workspaceExportQuery(table).columns.split(',')
+            .filter(column => Object.hasOwn(row, column)).map(column => [column, row[column]]))
+          : row;
+        estimatedBytes += encodedLength(exportedRow);
         if (estimatedBytes > maxExportBytes) {
           throw new WorkspaceExportSizeError();
         }
-        results.push(row);
+        results.push(exportedRow);
       }
       if (results.length > maxRowsPerTable) throw new Error(`Cannot export ${table}: safety limit exceeded.`);
       if (data.length < pageSize) break;
@@ -94,13 +128,15 @@ export async function collectWorkspaceExport({
 
   const result = {
     format: 'eylo-workspace-json',
-    version: 2,
+    version: 3,
     exported_at: exportedAt(),
     scope: 'authenticated-workspace-only',
     limitations: [
       'Not a complete personal-data access or portability response.',
       'Excludes billing, Supabase Auth internal records, provider logs, operational logs and backups.',
       'File and document metadata/version records are included; uploaded file bytes are not. Download file contents separately from Files.',
+      'Collaboration includes only your authored rows and own membership records; incoming invitations, shared manuscripts and other users’ contributions are excluded.',
+      'API token lifecycle metadata is included; raw credentials and token digests are excluded.',
       'Data can change during the export; this is not a database transaction snapshot.',
     ],
     account: { user_id: userId, email, user_metadata: userMetadata },

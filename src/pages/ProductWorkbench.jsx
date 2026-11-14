@@ -18,6 +18,7 @@ import {
   WORKBENCH_TOOLS,
   createWorkbenchRecord,
   parseFormDefinition,
+  formResponsesCsv,
   PRACTICE_QUESTIONS,
   previewWorkbenchRecord,
   readWorkbench,
@@ -559,6 +560,22 @@ function Editor({
                 }}
               >
                 Clear pending operation after review
+              </button>
+            )}
+            {tool === "forms" && (
+              <button
+                className={button}
+                disabled={busy || Boolean(row)}
+                onClick={() => {
+                  try {
+                    const saved = readWorkbench(project, "forms").records.find(item => item.id === record.id);
+                    if (!saved) throw new Error("Save this form before exporting responses.");
+                    downloadWorkspace(formResponsesCsv(saved), `eylo-form-${record.id}-responses.csv`, "text/csv;charset=utf-8");
+                    setNotice("Exported the saved form responses; unsaved draft changes are excluded.");
+                  } catch (failure) { setError(failure.message); }
+                }}
+              >
+                Export saved responses CSV
               </button>
             )}
             {tool === "forms" && (
