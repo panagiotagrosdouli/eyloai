@@ -123,4 +123,6 @@ Project Intelligence now derives a saved-record summary from canonical workplan,
 
 All28 SQL files are pinned in a reviewed local replay manifest;21 are actually exercised in disposable PostgreSQL. Seven legacy/side-effect files remain excluded. The live-target scheduler and shared legacy timestamp20260803 prevent treating a local pass as a blanket remote push. The runner verifies the manifest before database startup; no SQL/history was rewritten or remotely applied.66 open PR heads were captured;4 changed/new heads were compared and62 unchanged heads reuse the historical inventory. No whole-branch import was approved.
 
-724 tests/static/build, five fixture browser suites, actual disposable SQL and both dependency advisory scans pass. Hosted private acceptance, human relevance/legal/operational/pilot gates and advanced scopes remain open. Counts77 partial/0 fully accepted; release NO-GO.
+727 tests/static/build, five fixture browser suites, actual disposable SQL and both dependency advisory scans pass. Hosted private acceptance, human relevance/legal/operational/pilot gates and advanced scopes remain open. Counts77 partial/0 fully accepted; release NO-GO.
+
+PR413 was externally merged as main861aa94 after all three workflows passed. The additional exact-task fix starts from that main and remains a separate draft: no production readiness or hosted authorization follows from the external merge.

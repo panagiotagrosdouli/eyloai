@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarDays, Check, Circle, Clock3, Plus, Save, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { isOverdueLifeTask, nextLifeTaskDate, normalizeLifeTask, sortLifeTasks } from '@/lib/life-domain.mjs';
+import { loadExactLifeTask, TASK_TARGET_ERROR } from '@/lib/life-task-target.mjs';
 
 const EMPTY_TASK = { title: '', description: '', status: 'todo', priority: 'normal', recurrence: 'none', area: 'personal', kind: 'task', course: '', syllabus_item: '', due_date: '', project_id: '' };
 const copyTask = task => ({ ...EMPTY_TASK, ...(task || {}), due_date: task?.due_date || '', project_id: task?.project_id || '' });
@@ -25,7 +26,11 @@ function localDateString(date = new Date()) {
 export default function Life() {
   const { user } = useAuth();
   const ownerRef = useRef(user?.id || null);
-  const focusedTaskRef = useRef(false);
+  const [params] = useSearchParams();
+  const focusId = params.get('focus') || '';
+  const focusedTaskRef = useRef('');
+  const focusGeneration = useRef(0);
+  const [loadingTarget, setLoadingTarget] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -56,7 +61,9 @@ export default function Life() {
 
   useEffect(() => {
     ownerRef.current = user?.id || null;
-    focusedTaskRef.current = false;
+    focusedTaskRef.current = '';
+    focusGeneration.current += 1;
+    setLoadingTarget(false);
     setTasks([]);
     setProjects([]);
     setSelected(null);
@@ -83,6 +90,9 @@ export default function Life() {
   }), [tasks, filter]);
 
   const resetEditor = () => {
+    if (saving) return;
+    focusGeneration.current += 1;
+    setLoadingTarget(false);
     setSelected(null);
     setEditor(EMPTY_TASK);
     setBaseline(EMPTY_TASK);
@@ -91,7 +101,10 @@ export default function Life() {
   };
 
   const chooseTask = task => {
+    if (saving) return;
     if (dirty && !window.confirm('Discard unsaved changes?')) return;
+    focusGeneration.current += 1;
+    setLoadingTarget(false);
     const next = copyTask(task);
     setSelected(task);
     setEditor(next);
@@ -102,15 +115,33 @@ export default function Life() {
   const chooseTaskRef = useRef(chooseTask);
   chooseTaskRef.current = chooseTask;
   useEffect(() => {
-    const focusId = new URLSearchParams(window.location.search).get('focus');
-    const match = focusId && !focusedTaskRef.current ? tasks.find(task => String(task.id) === focusId) : null;
-    if (match) { focusedTaskRef.current = true; chooseTaskRef.current(match); }
-  }, [tasks]);
+    if (!focusId) { focusedTaskRef.current = ''; if (loadingTarget) { focusGeneration.current += 1; setLoadingTarget(false); setNotice(''); } return; }
+    if (loading || saving || !user?.id || focusedTaskRef.current === focusId) return;
+    focusedTaskRef.current = focusId;
+    const match = tasks.find(task => String(task.id) === focusId);
+    if (match) { chooseTaskRef.current(match); return; }
+    if (dirty && !window.confirm('Discard unsaved changes to open the requested task?')) return;
+    const ownerId = ownerRef.current, generation = ++focusGeneration.current;
+    let cancelled = false;
+    setSelected(null); setEditor(EMPTY_TASK); setBaseline(EMPTY_TASK);
+    setError(''); setNotice('Loading the requested private task…'); setLoadingTarget(true);
+    void loadExactLifeTask({ repository: base44.entities.LifeTask, id: focusId, ownerId }).then(task => {
+      if (cancelled || generation !== focusGeneration.current || ownerId !== ownerRef.current) return;
+      setTasks(current => current.some(item => item.id === task.id) ? current : sortLifeTasks([task, ...current]));
+      chooseTaskRef.current(task);
+    }).catch(() => {
+      if (cancelled || generation !== focusGeneration.current || ownerId !== ownerRef.current) return;
+      focusedTaskRef.current = ''; setNotice(''); setError(TASK_TARGET_ERROR);
+    }).finally(() => { if (!cancelled && ownerId === ownerRef.current) setLoadingTarget(false); });
+    return () => { cancelled = true; if (focusedTaskRef.current === focusId) focusedTaskRef.current = ''; };
+    // Target/owner/reload drive retrieval; typing and insertion must not cancel it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusId, loading, saving, user?.id]);
 
   const saveTask = async event => {
     event.preventDefault();
     const ownerId = ownerRef.current;
-    if (!ownerId) return;
+    if (!ownerId || loadingTarget || saving) return;
     setSaving(true);
     setError('');
     setNotice('');
@@ -247,6 +278,7 @@ export default function Life() {
 
         <section className="rounded-xl border border-border bg-card p-4 sm:p-5" aria-label="Task editor">
           <form onSubmit={saveTask}>
+            <fieldset disabled={saving || loadingTarget} className="min-w-0">
             <div className="mb-4 flex items-center justify-between gap-2"><h2 className="text-sm font-semibold">{selected ? 'Edit task' : 'New task'}</h2><div className="flex gap-2">{selected && <button type="button" onClick={() => void deleteTask()} aria-label="Delete task" className="grid min-h-9 w-9 place-items-center rounded-lg border border-destructive/30 text-destructive hover:bg-destructive/5"><Trash2 size={15} /></button>}<button type="submit" disabled={saving || (!dirty && Boolean(selected))} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50"><Save size={14} aria-hidden="true" />{saving ? 'Saving…' : 'Save task'}</button></div></div>
             <label htmlFor="life-task-title" className="mb-1.5 block text-xs font-medium text-muted-foreground">Task title</label>
             <input id="life-task-title" required maxLength={160} value={editor.title} onChange={event => setEditor(current => ({ ...current, title: event.target.value }))} placeholder="What needs to get done?" className="mb-4 min-h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground" />
@@ -263,6 +295,7 @@ export default function Life() {
               <label className="text-xs font-medium text-muted-foreground">Project link<select value={editor.project_id} onChange={event => setEditor(current => ({ ...current, project_id: event.target.value }))} className="mt-1.5 min-h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"><option value="">No project</option>{projects.map(project => <option key={project.id} value={project.id}>{project.title || 'Untitled project'}</option>)}</select></label>
             </div>
             <p className="mt-4 text-[11px] text-muted-foreground">Private to your account. Save uses a conflict check to protect edits made in another tab.</p>
+            </fieldset>
           </form>
         </section>
       </div>

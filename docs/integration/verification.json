@@ -1,12 +1,12 @@
 {
   "date": "2026-11-14",
-  "tested_source_commit": "697aa8f79873a7305fb777a3e59a17d86f76d548",
+  "tested_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
     "npm_run_check": {
       "status": "PASS",
-      "tests": 724,
+      "tests": 727,
       "failed": 0,
       "includes": [
         "imports",
@@ -90,7 +90,7 @@
       "Pinned all28 migration files in a shared review manifest: actual local21 replay only;7 legacy/side-effect exclusions and duplicate legacy timestamps require reconciliation. CLI never authorizes or executes remote SQL."
     ],
     "TESTED": [
-      "724 Node regressions/static/build",
+      "727 Node regressions/static/build",
       "Five local browser suites",
       "21 selected migrations on actual disposable PostgreSQL",
       "Production and complete dependency advisory scans"

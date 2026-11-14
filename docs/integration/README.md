@@ -2,9 +2,11 @@
 
 ## Current continuation: batch12
 
-[Exact scopes/commands](batch-12-core-acceptance.json), [current77-product tracker](../PRODUCT_IMPLEMENTATION_TRACKER.md), [checkpoint](CORE_CHECKPOINT_2026-11-14.md), [66 open heads at audit time](open-pr-current.json) and [current source inventory](repository-inventory-current.json) supersede earlier counts and deployment observations. Main3854e98 includes externally merged public day/night/Premium. The pending core candidate adds canonical Notes/tasks to the graph, safe gateway error attribution, saved-record Project Intelligence and a guarded28-file migration review/21-file local replay.
+[Exact scopes/commands](batch-12-core-acceptance.json), [current77-product tracker](../PRODUCT_IMPLEMENTATION_TRACKER.md), [checkpoint](CORE_CHECKPOINT_2026-11-14.md), [66 open heads at audit time](open-pr-current.json) and [current source inventory](repository-inventory-current.json) supersede earlier counts and deployment observations. Main861aa94 includes externally merged PR412/413; these were external actions. The integrated core batch adds canonical Notes/tasks to the graph, safe gateway error attribution, saved-record Project Intelligence and a guarded28-file migration review/21-file local replay.
 
-724 tests/static/build, five browser suites and real disposable PostgreSQL checks pass. Real public providers pass5/5 unchanged source/anchor gates locally; the deployed proxy fails0/5 at EYLO's unavailable quota service. Public source provenance matches main, but optional capabilities and hosted acceptance remain blocked.77 products have partial implementation; zero have complete acceptance. Both dependency audits report zero known advisories. No agent production promotion, remote migration, production-data write or live payment occurred.
+727 tests/static/build, five browser suites and real disposable PostgreSQL checks pass. Real public providers pass5/5 unchanged source/anchor gates locally; the deployed proxy fails0/5 at EYLO's unavailable quota service. Public source provenance matches main, but optional capabilities and hosted acceptance remain blocked.77 products have partial implementation; zero have complete acceptance. Both dependency audits report zero known advisories. No agent production promotion, remote migration, production-data write or live payment occurred.
+
+The additional exact-task candidate retrieves older authorized Life tasks beyond the recent1000 cap and rejects foreign/missing targets on same-route navigation. It remains separate from hosted acceptance.
 
 Earlier sections below preserve chronological evidence; old3/5 results, schema counts, source SHAs and deployment failures are historical, not current acceptance.
 

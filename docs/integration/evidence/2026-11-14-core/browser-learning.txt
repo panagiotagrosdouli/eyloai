@@ -21,6 +21,7 @@ PASS fixture: exact thesis/Notes links beyond recent1000; foreign note query cha
 PASS fixture: Settings downloads owner-validated portable workspace v3 with40 collections and excludes token material/foreign contributions; including canonical notes, learning and timer records; file bytes explicitly excluded.
 PASS fixture: a same-route authenticated account switch removes old private component state before the delayed new-owner query resolves.
 PASS fixture: same-route Knowledge Graph account switch clears old nodes while new-owner queries are delayed; bounded Notes coverage is disclosed. This is not hosted two-user RLS acceptance.
+PASS fixture: exact Life task beyond recent1000 opens; same-route foreign/missing targets clear the editor and fail closed without a substitute or mutation. Hosted RLS remains unverified.
 PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.
 npm notice
 npm notice New major version of npm available! 11.9.0 -> 12.2.2

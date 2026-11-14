@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 BASE = '7bf956a72d42f251c77cde7276dcb050cebd1a35'
 # IDs are the authoritative tracker IDs. Empty mappings mean no dedicated workflow found.
 # Related implementation is evidence to inspect, not proof of a complete product.
-MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
+MAP = '''1|Life,LifeGoals,Habits,life-task-target|life_tasks,life_goals||life-workspace,life-task-target
 2|Calendar|calendar_events||calendar-workspace
 3|Notes|notes,note_versions||notes-workspace
 4|ProductTools,ProductWorkbench,product-workbench,product-registry|projects||complete-products,product-api,e2e-products
@@ -28,7 +28,7 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 18|DocumentEditor|eylo_files,eylo_file_versions||eylo-files
 19|PitchDeckBuilder|projects|eyra|
 20|ProductTools,PersonalTools,product-utilities,product-registry|projects||complete-products,product-api,e2e-products
-21|UniversalSearch,universal-search|notes,projects,life_tasks,life_goals,calendar_events,study_flashcard_decks,saved_papers,ideas| |universal-search
+21|UniversalSearch,universal-search,life-task-target|notes,projects,life_tasks,life_goals,calendar_events,study_flashcard_decks,saved_papers,ideas| |universal-search
 22|ProductTools,PersonalTools,product-registry,translation-references|notes|eyra|complete-products,product-api,e2e-products,translation-references
 23|ResearchKnowledgeGraph,research-knowledge-graph,research-graph-collections|saved_papers,saved_researchers,projects,notes,life_tasks|discovery|research-knowledge-graph
 24|EyraCommandCenter,eyra-project-tools,eyra-stream,eyra-conversation,eyra-history|projects,saved_papers,ideas,notes,life_tasks,eyra_conversations,eyra_messages|eyra|eyra-project-tools,eyra-boundaries,eyra-stream

@@ -667,6 +667,31 @@ try {
     await page.getByText(/Showing at most 250 recent records per collection/).waitFor();
     console.log('PASS fixture: same-route Knowledge Graph account switch clears old nodes while new-owner queries are delayed; bounded Notes coverage is disclosed. This is not hosted two-user RLS acceptance.');
   } finally { releaseGraphOwnerQuery(); }
+  const oldTaskId = '40000000-0000-4000-8000-000000009999';
+  const foreignTaskId = '40000000-0000-4000-8000-000000009998';
+  tables.life_tasks = [
+    ...Array.from({ length: 1000 }, (_, i) => ({ id: `41000000-0000-4000-8000-${String(i).padStart(12, '0')}`, user_id: user.id, data: { title: `Recent task ${i}`, status: 'todo' }, updated_date: now() })),
+    { id: oldTaskId, user_id: user.id, data: { title: 'Authorized older exact task', status: 'todo' }, updated_date: '2001-01-01T00:00:00Z' },
+    { id: foreignTaskId, user_id: ownerB.id, data: { title: 'Foreign confidential task', status: 'todo' }, updated_date: '2001-01-01T00:00:00Z' },
+  ];
+  await page.goto(`${origin}/life?focus=${oldTaskId}`);
+  await page.waitForFunction(() => document.querySelector('#life-task-title')?.value === 'Authorized older exact task');
+  const beforeTasks = tables.life_tasks.length;
+  await page.evaluate(target => { history.pushState(null, '', target); dispatchEvent(new PopStateEvent('popstate')); }, `/life?focus=${foreignTaskId}`);
+  await page.getByRole('alert').filter({ hasText: 'The requested private task could not be loaded' }).waitFor();
+  assert.equal(await page.getByLabel('Task title', { exact: true }).inputValue(), '');
+  assert.equal(await page.getByText('Foreign confidential task', { exact: true }).count(), 0);
+  await page.evaluate(() => { history.pushState(null, '', '/life?focus=40000000-0000-4000-8000-000000009997'); dispatchEvent(new PopStateEvent('popstate')); });
+  await page.getByRole('alert').filter({ hasText: 'The requested private task could not be loaded' }).waitFor();
+  assert.equal(await page.getByLabel('Task title', { exact: true }).inputValue(), '');
+  assert.equal(tables.life_tasks.length, beforeTasks, 'opening or refusing an exact target never creates a task');
+  await page.evaluate(() => { history.pushState(null, '', '/life'); dispatchEvent(new PopStateEvent('popstate')); });
+  await page.getByRole('button', { name: 'New task', exact: true }).click();
+  await page.getByLabel('Task title', { exact: true }).fill('Created after refused target');
+  await page.getByRole('button', { name: 'Save task', exact: true }).click();
+  await page.getByText('Task saved.', { exact: true }).waitFor();
+  assert.equal(tables.life_tasks.length, beforeTasks + 1);
+  console.log('PASS fixture: exact Life task beyond recent1000 opens; same-route foreign/missing targets clear the editor and fail closed without a substitute or mutation. Hosted RLS remains unverified.');
   console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.');
 } finally {
   if (browser) await browser.close();

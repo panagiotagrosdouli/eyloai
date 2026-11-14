@@ -147,10 +147,12 @@ function entityRepository({ table }) {
       if (error) throw error;
       return data || [];
     },
-    async get(entityId) {
+    async get(entityId, expectedOwnerId = null) {
       const user = await currentUser();
+      if (expectedOwnerId && user.id !== expectedOwnerId) throw Object.assign(new Error('The signed-in account changed.'), { code: 'ENTITY_OWNER_CHANGED' });
       const { data, error } = await requireSupabase().from(table).select('*').eq('id', entityId).eq('user_id', user.id).single();
       if (error) throw error;
+      if (expectedOwnerId && data?.user_id !== expectedOwnerId) throw Object.assign(new Error('The record owner could not be verified.'), { code: 'ENTITY_OWNER_MISMATCH' });
       return rowToEntity(data);
     },
     async create(payload) {

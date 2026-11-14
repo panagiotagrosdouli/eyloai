@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "source_commit": "697aa8f79873a7305fb777a3e59a17d86f76d548",
-  "audited_main_commit": "3854e9816f11f432fea9758d1650dcc50c858f5e",
+  "source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+  "audited_main_commit": "861aa94d573274998d96aba667a74379356c20f1",
   "scope": "Tracked source/API/migration/test/workflow/config content inventory; not proof of workflow acceptance or absence of defects. Credential/env files are excluded.",
   "counts": {
-    "source_files": 282,
+    "source_files": 283,
     "api_handlers": 12,
     "server_files": 8,
     "migration_sql_files": 28,
     "selected_local_migrations": 21,
     "excluded_migrations": 7,
-    "tests": 179,
+    "tests": 180,
     "workflows": 7
   },
   "files": [
@@ -651,6 +651,10 @@
       "sha256": "24d53e18bec9df2e160e5d8155aeea3231616c5b1f0c048580eddc0f59dd3280"
     },
     {
+      "path": "src/lib/life-task-target.mjs",
+      "sha256": "65af4300a9bc69cd3d55219e5a5f11494821f1907c1289cca4f3d4285ba4f850"
+    },
+    {
       "path": "src/lib/literature-review-methods-audit.mjs",
       "sha256": "f4be83ba4803dd208f020cffdb401bba46f19de330af40fe55f708749dceb353"
     },
@@ -1056,7 +1060,7 @@
     },
     {
       "path": "src/pages/Life.jsx",
-      "sha256": "62e84e4c9532e0d6c02d5e2064f6a3a3d28fa3831d3e0b7525d99d9cd93717c3"
+      "sha256": "a69106bdd0e884f5995e8df56bf8be80e7adb048f8e66bfece170627206aeff7"
     },
     {
       "path": "src/pages/LifeGoals.jsx",
@@ -1240,7 +1244,7 @@
     },
     {
       "path": "src/services/supabase-entities.js",
-      "sha256": "5fbdadf548bfa7274bb1f6ada980b2278224ab0a3a100586f0c846bd9bdd3a28"
+      "sha256": "036a7763a39d25596135d8aa6d811facaddd367c613d1c2a4850ebe0e8889b69"
     },
     {
       "path": "src/services/universal-search.js",
@@ -1520,7 +1524,7 @@
     },
     {
       "path": "tests/e2e-learning-integration.mjs",
-      "sha256": "68dc4ca4a964f84aed91d7cb90e85677e00403a0a0fbf898258da2f86a3fe118"
+      "sha256": "2152f9c9be3b4d0035cbad7b1e206d50be1e9ca713e528b9413565a95960b128"
     },
     {
       "path": "tests/e2e-native-meetings.mjs",
@@ -1761,6 +1765,10 @@
     {
       "path": "tests/library-reference-export-ui.test.mjs",
       "sha256": "10536b247bfe0f623be12c718222dca26f17772eb7e2a0758c89dd8cf09ad746"
+    },
+    {
+      "path": "tests/life-task-target.test.mjs",
+      "sha256": "868db8ab37e9ea593f8c39d75942bf0c47a79a0b66322dde47d16f3f9665af0c"
     },
     {
       "path": "tests/life-workspace.test.mjs",
