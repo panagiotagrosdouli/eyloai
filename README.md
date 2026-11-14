@@ -116,6 +116,8 @@ npm run build
 
 GitHub Actions and Vercel preview deployments run the production build for proposed changes.
 
+For server configuration failures, see [production troubleshooting](docs/PRODUCTION_TROUBLESHOOTING.md). `npm run config:check` reports missing variable names without printing secrets; it checks the environment where it runs. `npm run release:probe -- https://eyloai.vercel.app` checks deployment identity, capability flags and one actual scholarly query, including discovery quota failures.
+
 ## Known limitations
 
 - Discovery is a relevance aid, not a systematic-review protocol.

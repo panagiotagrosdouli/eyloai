@@ -8,6 +8,11 @@ function fetcher(overrides = {}) {
     assert.equal(options.method, undefined, 'probe only performs public GET requests');
     assert.equal(options.headers.authorization, undefined);
     if (overrides[url.pathname]) return overrides[url.pathname]();
+    if (url.pathname === '/api/discovery') {
+      assert.equal(url.searchParams.get('provider'), 'openalex_works');
+      assert.equal(url.searchParams.get('limit'), '1');
+      return Response.json({ results: [{ id: 'https://openalex.org/W123', title: 'Climate adaptation' }] });
+    }
     return Response.json(url.pathname === '/release.json' ? { git_commit: commit } : url.pathname === '/api/deployment-status' ? { deployment_sha: commit, provenance_verified: true, environment: 'preview' } : flags);
   };
 }
@@ -16,6 +21,25 @@ test('matching public provenance only passes a read-only probe, never market rea
   assert.equal(result.decision, 'PROBE_PASSED');
   assert.equal(result.market_readiness_proven, false);
   assert.equal(result.production_authorized, false);
+});
+
+test('green provenance and capability flags cannot hide a discovery quota outage', async () => {
+  const result = await probeReleaseTarget({ baseUrl: 'https://preview.example.org', expectedCommit: commit,
+    fetcher: fetcher({ '/api/discovery': () => Response.json({ code: 'DISCOVERY_RATE_LIMIT_UNAVAILABLE', error: 'never reflect internal provider detail' }, { status: 503 }) }) });
+  assert.equal(result.identity_verified, true);
+  assert.equal(result.discovery_available, false);
+  assert.equal(result.decision, 'PROBE_FAILED');
+  assert.ok(result.issues.some(issue => issue.includes('DISCOVERY_RATE_LIMIT_UNAVAILABLE')));
+  assert.ok(!JSON.stringify(result).includes('never reflect'));
+});
+
+test('discovery HTTP200 error, empty results and SPA fallback cannot satisfy smoke retrieval', async () => {
+  for (const response of [Response.json({ error: 'unavailable' }), Response.json({ results: [] }), new Response('<html>fallback</html>')]) {
+    const result = await probeReleaseTarget({ baseUrl: 'https://preview.example.org', expectedCommit: commit,
+      fetcher: fetcher({ '/api/discovery': () => response }) });
+    assert.equal(result.discovery_available, false);
+    assert.equal(result.decision, 'PROBE_FAILED');
+  }
 });
 test('HTTP200 HTML SPA fallback is an API failure, not evidence of a working backend', async () => {
   const result = await probeReleaseTarget({ baseUrl: 'https://preview.example.org', expectedCommit: commit,
