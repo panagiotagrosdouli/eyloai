@@ -1,0 +1,10 @@
+
+> eyloai@0.0.0 test:e2e:landing
+> node tests/e2e-company-landing.mjs
+
+PASS: production GitHub Pages company landing, responsive320/390/768/1440 layouts, keyboard tabs/menu/FAQ/skip link, source anchors, real company/contact/register/discovery routes and base-aware brand assets. No Auth submission or contact message.
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

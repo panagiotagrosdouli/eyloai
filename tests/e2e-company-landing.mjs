@@ -182,6 +182,48 @@ try {
   assert.equal(await question.evaluate((el) => el.parentElement.open), true);
   await page.keyboard.press("Enter");
   assert.equal(await question.evaluate((el) => el.parentElement.open), false);
+  const startingPoints = page.getByRole("group", {
+    name: "Choose your research starting point",
+  });
+  for (const [label, title, query] of [
+    [
+      "A literature review",
+      "Give your reading a direction.",
+      "sleep and learning",
+    ],
+    [
+      "A new research topic",
+      "Find a way into something new.",
+      "urban heat adaptation",
+    ],
+    [
+      "A project plan",
+      "Give a promising idea a next step.",
+      "digital tools language learning",
+    ],
+  ]) {
+    const choice = startingPoints.getByRole("button", {
+      name: label,
+      exact: true,
+    });
+    await choice.focus();
+    await page.keyboard.press("Enter");
+    await page.getByRole("heading", { name: title, exact: true }).waitFor();
+    assert.equal(await choice.getAttribute("aria-pressed"), "true");
+    assert.equal(
+      await startingPoints.locator('[aria-pressed="true"]').count(),
+      1,
+    );
+    const href = await page
+      .locator("#starting-point-detail a")
+      .getAttribute("href");
+    const target = new URL(href, base);
+    assert.equal(target.pathname, "/eyloai/discover");
+    assert.equal(target.searchParams.get("q"), query);
+  }
+  await startingPoints
+    .getByRole("button", { name: "A literature review", exact: true })
+    .click();
   assert.equal(authRequests, 0, "public company landing never calls Auth");
   await screenshot(page, "company-landing-desktop");
   for (const width of [768, 390, 320]) {
@@ -228,6 +270,19 @@ try {
           () => document.documentElement.scrollWidth <= innerWidth + 1,
         ),
         "preview " + tab + " fits " + width,
+      );
+    }
+    for (const name of [
+      "A project plan",
+      "A new research topic",
+      "A literature review",
+    ]) {
+      await startingPoints.getByRole("button", { name, exact: true }).click();
+      assert.ok(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth + 1,
+        ),
+        "starting point fits " + width,
       );
     }
     if (width === 390) {

@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import LandingPreview from "@/components/marketing/LandingPreview";
+import ResearchStartingPoints from "@/components/marketing/ResearchStartingPoints";
 import "./landing.css";
 
 const audiences = [
@@ -237,7 +238,7 @@ export default function Landing() {
                   className="h-1.5 w-1.5 rounded-full bg-[#24AAF3]"
                   aria-hidden="true"
                 />{" "}
-                Discovery. Intelligence. Progress.
+                For the questions you want to take further.
               </p>
               <h1 className="max-w-[660px] text-[clamp(2.8rem,5.25vw,5.7rem)] font-bold leading-[1.04] tracking-[-.068em]">
                 A better way to
@@ -248,24 +249,23 @@ export default function Landing() {
                 </span>
               </h1>
               <p className="mt-7 max-w-[540px] text-lg leading-[1.7] text-[#526E82] sm:text-xl">
-                EYLO connects scientific discovery, AI assistance and your
-                research workspace—so a good question can become a meaningful
-                next step.
+                Find relevant research. Think it through with EYRA. Turn what
+                you discover into notes, projects and a clear next step—all in
+                one connected workspace.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/discover" className={primary}>
-                  Explore EYLO <ArrowRight size={17} aria-hidden="true" />
+                  Start exploring <ArrowRight size={17} aria-hidden="true" />
                 </Link>
                 <a
-                  href="#how-it-works"
+                  href="#start-here"
                   className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-[#D9E3EC] px-5 text-sm font-semibold transition hover:bg-[#F4F8FB]"
                 >
-                  See how it works <ArrowDownIcon />
+                  Find my starting point <ArrowDownIcon />
                 </a>
               </div>
               <p className="mt-4 text-xs leading-5 text-[#526E82]">
-                Explore research without an account. Sign in to make it your
-                workspace.
+                Your first discovery starts with a question. No account needed.
               </p>
               <div className="mt-9 flex flex-wrap gap-x-5 gap-y-3 border-t border-[#E4ECF2] pt-6 text-xs font-medium text-[#3B5467]">
                 {audiences.map(({ label, icon: Icon }) => (
@@ -298,6 +298,7 @@ export default function Landing() {
             </ul>
           </div>
         </section>
+        <ResearchStartingPoints />
         <section
           id="features"
           tabIndex={-1}
@@ -635,12 +636,13 @@ export default function Landing() {
             <div>
               <p className={tag}>A place for your next idea</p>
               <h2 className="mt-4 max-w-2xl text-[clamp(2rem,3.8vw,3.6rem)] font-bold leading-[1.12] tracking-[-.055em]">
-                Start exploring.
+                Your next idea
                 <br />
-                See where it takes you.
+                deserves a starting point.
               </h2>
               <p className="mt-5 max-w-lg text-sm leading-7 text-[#526E82]">
-                Start with discovery. Build your workspace when you’re ready.
+                Bring the question you keep coming back to. Find the evidence,
+                connect your thinking and decide what comes next.
               </p>
             </div>
             <div className="flex flex-col items-start gap-4">
