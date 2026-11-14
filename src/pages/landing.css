@@ -1,4 +1,91 @@
-/* Public company presentation; authenticated application themes stay separate. */
+/* One public palette, paired with the existing saved application theme. */
+.eylo-company {
+  --company-surface: #ffffff;
+  --company-soft: #fafcfe;
+  --company-tint: #eaf5fb;
+  --company-border: #d9e6ef;
+  --company-ink: #172a40;
+  --company-muted: #526e82;
+  --company-action: #172a40;
+  --company-on-action: #ffffff;
+  --company-action-hover: #25496c;
+  --company-error: #9f251c;
+  --company-error-bg: #fff1ef;
+  --company-success: #166044;
+  --company-success-bg: #edf9f2;
+  color-scheme: light;
+}
+:root.dark .eylo-company {
+  --company-surface: #101d2c;
+  --company-soft: #152638;
+  --company-tint: #1c354a;
+  --company-border: #365167;
+  --company-ink: #e9f2fb;
+  --company-muted: #b3c7d9;
+  --company-action: #98d7ff;
+  --company-on-action: #12283c;
+  --company-action-hover: #c2e8ff;
+  --company-error: #ffb7ad;
+  --company-error-bg: #3a2229;
+  --company-success: #a4e8c6;
+  --company-success-bg: #19372f;
+  color-scheme: dark;
+}
+:root.dark .eylo-company .company-brand {
+  content: url("../../public/brand/eylo-dark.svg");
+}
+:root.dark .eylo-public-discovery {
+  --background: 213 47% 12%;
+  --foreground: 210 69% 95%;
+  --card: 212 45% 15%;
+  --card-foreground: 210 69% 95%;
+  --muted: 212 45% 15%;
+  --muted-foreground: 208 33% 78%;
+  --primary: 203 100% 80%;
+  --border: 207 31% 31%;
+  --input: 207 31% 31%;
+}
+.eylo-company .company-primary {
+  background: var(--company-action);
+  color: var(--company-on-action);
+}
+.eylo-company .company-primary:hover {
+  background: var(--company-action-hover);
+}
+/* Auth forms share the palette; authentication handlers remain unchanged. */
+.eylo-company-auth :is(input, textarea, select),
+.eylo-company-auth .bg-white {
+  background: var(--company-surface);
+  color: var(--company-ink);
+  border-color: var(--company-border);
+}
+.eylo-company-auth :is(.text-slate-900, .text-slate-800, .text-slate-700) {
+  color: var(--company-ink);
+}
+.eylo-company-auth :is(.text-slate-600, .text-slate-500) {
+  color: var(--company-muted);
+}
+.eylo-company-auth .bg-slate-50 {
+  background: var(--company-tint);
+  color: var(--company-ink);
+  border-color: var(--company-border);
+}
+.eylo-company-auth [role="alert"] {
+  background: var(--company-error-bg);
+  color: var(--company-error);
+  border-color: var(--company-error);
+}
+.eylo-company-auth [role="status"] {
+  background: var(--company-success-bg);
+  color: var(--company-success);
+  border-color: var(--company-success);
+}
+.eylo-company-auth svg {
+  color: inherit;
+}
+:root.dark .eylo-company-auth a {
+  color: var(--company-ink);
+}
 .eylo-company a,
 .eylo-company button,
 .eylo-company summary {
@@ -12,7 +99,7 @@
   outline-offset: 4px;
 }
 .eylo-company nav a:hover {
-  color: #172a40;
+  color: var(--company-ink);
 }
 .eylo-company summary::-webkit-details-marker {
   display: none;

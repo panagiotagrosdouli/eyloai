@@ -64,6 +64,7 @@ const FutureMe = lazy(() => import('@/pages/FutureMe'));
 const ResearchBattlefield = lazy(() => import('@/pages/ResearchBattlefield'));
 const DreamTeam = lazy(() => import('@/pages/DreamTeam'));
 const ImpactPredictor = lazy(() => import('@/pages/ImpactPredictor'));
+const PublicPlans = lazy(() => import('@/components/marketing/PublicPlans'));
 const Pricing = lazy(() => import('@/pages/Pricing'));
 const Meetings = lazy(() => import('@/pages/Meetings'));
 const OpportunityRadar = lazy(() => import('@/pages/OpportunityRadar'));
@@ -201,6 +202,7 @@ function App() {
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<PublicEntry><Landing /></PublicEntry>} />
+              <Route path="/plans" element={<PublicPlans standalone />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/company" element={<CompanyPage />} />
               <Route path="/company/:section" element={<CompanyPage />} />

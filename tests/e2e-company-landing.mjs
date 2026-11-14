@@ -184,7 +184,105 @@ try {
   assert.equal(await question.evaluate((el) => el.parentElement.open), false);
   assert.equal(authRequests, 0, "public company landing never calls Auth");
   await screenshot(page, "company-landing-desktop");
-  for (const width of [768, 390, 320]) {
+  // Theme uses the canonical preference and survives route changes and reloads.
+  await page
+    .getByRole("button", { name: "Switch to night mode", exact: true })
+    .click();
+  assert.equal(
+    await page.evaluate(() =>
+      document.documentElement.classList.contains("dark"),
+    ),
+    true,
+  );
+  assert.equal(
+    await page.evaluate(
+      () => JSON.parse(localStorage.getItem("eylo_prefs")).theme,
+    ),
+    "dark",
+  );
+  await page.waitForFunction(
+    () =>
+      getComputedStyle(document.querySelector(".eylo-company"))
+        .backgroundColor === "rgb(16, 29, 44)",
+  );
+  assert.equal(
+    await page
+      .locator(".eylo-company")
+      .evaluate((el) => getComputedStyle(el).backgroundColor),
+    "rgb(16, 29, 44)",
+  );
+  await screenshot(page, "company-landing-night");
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Switch to day mode", exact: true })
+    .waitFor();
+  for (const route of [
+    "company",
+    "contact",
+    "plans",
+    "discover",
+    "find-researchers",
+    "login",
+    "register",
+    "forgot-password",
+  ]) {
+    await page.goto(base + route);
+    await page.getByRole("heading", { level: 1 }).first().waitFor();
+    assert.equal(
+      await page.evaluate(() =>
+        document.documentElement.classList.contains("dark"),
+      ),
+      true,
+    );
+    assert.equal(
+      await page
+        .locator(".eylo-company")
+        .first()
+        .evaluate((el) => getComputedStyle(el).backgroundColor),
+      "rgb(16, 29, 44)",
+    );
+    if (route === "plans") {
+      await page.getByText("$19", { exact: true }).waitFor();
+      await page
+        .getByText(/Paid subscriptions are not available yet/)
+        .waitFor();
+      assert.equal(
+        await page
+          .getByRole("button", { name: /checkout|buy|subscribe/i })
+          .count(),
+        0,
+      );
+      await screenshot(page, "company-plans-night");
+    }
+    if (route === "login") {
+      assert.equal(
+        await page
+          .locator(".eylo-company-auth .bg-slate-50")
+          .evaluate((el) => getComputedStyle(el).backgroundColor),
+        "rgb(28, 53, 74)",
+        "auth explanation has a legible night surface",
+      );
+      await screenshot(page, "company-login-night");
+    }
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.waitForFunction(
+      () =>
+        innerWidth === 320 &&
+        document.documentElement.scrollWidth <= innerWidth + 1,
+    );
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth + 1,
+      ),
+      route + " night layout fits 320px",
+    );
+    await page.setViewportSize({ width: 1440, height: 1000 });
+  }
+  await page.goto(base);
+  await page
+    .getByRole("button", { name: "Switch to day mode", exact: true })
+    .click();
+  for (const width of [1024, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await page.evaluate(() => window.scrollTo(0, 0));
     assert.ok(
@@ -231,6 +329,26 @@ try {
       );
     }
     if (width === 390) {
+      await page
+        .getByRole("button", { name: "Switch to night mode", exact: true })
+        .click();
+      assert.ok(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth + 1,
+        ),
+        "night layout fits mobile",
+      );
+      await screenshot(page, "company-landing-mobile-night");
+      if (process.env.EYLO_E2E_ARTIFACT_DIR)
+        await page.locator("#premium").screenshot({
+          path: path.join(
+            process.env.EYLO_E2E_ARTIFACT_DIR,
+            "premium-mobile-night.png",
+          ),
+        });
+      await page
+        .getByRole("button", { name: "Switch to day mode", exact: true })
+        .click();
       await page.evaluate(() => window.scrollTo(0, 0));
       await screenshot(page, "company-landing-mobile");
     }
@@ -282,12 +400,64 @@ try {
     .waitFor();
   assert.equal(new URL(page.url()).pathname, "/eyloai/register");
   await page.goto(base);
-  await page.getByRole("link", { name: "Enter EYLO AI", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Explore EYLO", exact: true })
+    .first()
+    .click();
   assert.equal(new URL(page.url()).pathname, "/eyloai/discover");
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "eylo_prefs",
+      JSON.stringify({
+        theme: "system",
+        language: "en",
+        notifications_browser: true,
+      }),
+    ),
+  );
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto(base);
+  await page
+    .getByRole("button", { name: "Switch to day mode", exact: true })
+    .waitFor();
+  await page.emulateMedia({ colorScheme: "light" });
+  await page
+    .getByRole("button", { name: "Switch to night mode", exact: true })
+    .waitFor();
+  await page
+    .getByRole("button", { name: "Switch to night mode", exact: true })
+    .click();
+  assert.equal(
+    await page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem("eylo_prefs")).notifications_browser,
+    ),
+    true,
+    "theme preserves other preferences",
+  );
+  const blockedStoragePage = await context.newPage();
+  blockedStoragePage.on("pageerror", (error) => errors.push(error.message));
+  await blockedStoragePage.addInitScript(() => {
+    Storage.prototype.setItem = () => {
+      throw new DOMException("Storage unavailable", "SecurityError");
+    };
+  });
+  await blockedStoragePage.goto(base);
+  await blockedStoragePage
+    .getByRole("button", { name: "Switch to day mode", exact: true })
+    .click();
+  assert.equal(
+    await blockedStoragePage.evaluate(() =>
+      document.documentElement.classList.contains("dark"),
+    ),
+    false,
+    "theme remains usable without storage",
+  );
+  await blockedStoragePage.close();
   assert.deepEqual(badAssets, [], "all brand/build assets load under /eyloai/");
   assert.deepEqual(errors, [], "no uncaught browser errors");
   console.log(
-    "PASS: production GitHub Pages company landing, responsive320/390/768/1440 layouts, keyboard tabs/menu/FAQ/skip link, source anchors, real company/contact/register/discovery routes and base-aware brand assets. No Auth submission or contact message.",
+    "PASS: production Pages company landing; day/night/system themes, persistence, preserved preferences and blocked-storage fallback; public/company/contact/plans/discovery/researcher/auth routes at mobile320; landing layouts320/390/768/1024/1440; keyboard tabs/menu/FAQ/skip link; shared planned prices and no purchase controls; base-aware assets. No Auth submission, contact message or checkout.",
   );
 } finally {
   await browser?.close();

@@ -18,7 +18,7 @@ export function applyTheme(theme) {
     root.classList.remove('light');
     root.classList.add('dark');
   }
-  localStorage.setItem('eylo_theme', theme);
+  try { localStorage.setItem('eylo_theme', theme); } catch { /* Display still works when browser storage is unavailable. */ }
 }
 
 export function initTheme() {

@@ -1,3 +1,4 @@
+import { PLAN_CATALOG } from '@/lib/plan-catalog';
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -5,68 +6,7 @@ import {
 } from 'lucide-react';
 import { getBillingStatus, openBillingPortal, startCheckout } from '@/lib/billing';
 
-const PLANS = [
-  {
-    key: 'free',
-    name: 'Free',
-    price: '$0',
-    period: 'forever',
-    icon: Sparkles,
-    features: [
-      'Public multi-source discovery',
-      '1 project workspace',
-      'Live paper and researcher discovery',
-      'Evidence library and saved records',
-      'EYRA access according to the active deployment',
-    ],
-  },
-  {
-    key: 'pro',
-    name: 'Pro',
-    price: '$19',
-    period: 'per month',
-    icon: Zap,
-    featured: true,
-    features: [
-      'Unlimited EYRA AI actions',
-      'Unlimited project workspaces',
-      'Official funding Radar and watchlists',
-      'EYRA Voice sourced assistant',
-      'Executive Briefing and Project Twin',
-      'Research Battlefield and Future Simulator',
-      'Evidence-backed Impact Assessment',
-    ],
-  },
-  {
-    key: 'founder',
-    name: 'Founder',
-    price: '$49',
-    period: 'per month',
-    icon: Rocket,
-    features: [
-      'Everything in Pro',
-      'Grant Builder and application tracker',
-      'Pitch Deck AI with PDF export',
-      'Dream Team candidate discovery',
-      'Startup planning with evidence',
-      'Funding and project execution workspace',
-    ],
-  },
-  {
-    key: 'institution',
-    name: 'Institution',
-    price: 'Custom',
-    period: 'per organization',
-    icon: Building2,
-    features: [
-      'Everything in Founder',
-      'Institution analytics dashboard',
-      'Organization-level activity metrics',
-      'Manual role and entitlement provisioning',
-      'Billing and rollout configuration',
-    ],
-  },
-];
+const PLANS = PLAN_CATALOG.map(plan => ({ ...plan, icon: { free: Sparkles, pro: Zap, founder: Rocket, institution: Building2 }[plan.key] }));
 
 export default function Pricing() {
   const [billing, setBilling] = useState(null);
@@ -105,12 +45,12 @@ export default function Pricing() {
       </header>
 
       {!billing?.billing_configured && (
-        <div className="mx-auto mt-7 max-w-3xl rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs leading-5 text-amber-200">
+        <div className="mx-auto mt-7 max-w-3xl rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs leading-5 text-amber-800 dark:text-amber-200">
           Early access is active. Prices below describe the planned tiers; paid buttons remain disabled until billing is fully configured and verifiable.
         </div>
       )}
       {notice && <div role="status" className="mx-auto mt-5 max-w-3xl rounded-xl border border-border bg-secondary/40 p-4 text-sm text-foreground">{notice}</div>}
-      {error && <div className="mx-auto mt-5 max-w-3xl rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300">{error}</div>}
+      {error && <div className="mx-auto mt-5 max-w-3xl rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-700 dark:text-red-300">{error}</div>}
 
       <section className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {PLANS.map((plan, index) => {
@@ -125,7 +65,7 @@ export default function Pricing() {
               transition={{ delay: index * 0.05 }}
               className={`relative flex flex-col rounded-2xl border bg-card p-6 ${plan.featured ? 'border-primary/50 ring-1 ring-primary/30' : 'border-border'}`}
             >
-              {plan.featured && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full eyra-gradient px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-white">Most popular</span>}
+              {plan.featured && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full eyra-gradient px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-white">Pro</span>}
               <div className={`grid h-10 w-10 place-items-center rounded-xl ${plan.featured ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}><Icon size={17} /></div>
               <h2 className="mt-4 font-heading text-lg font-bold">{plan.name}</h2>
               <div className="mt-2"><span className="text-3xl font-black">{plan.price}</span><span className="ml-2 text-[10px] text-muted-foreground">{plan.period}</span></div>
@@ -152,7 +92,7 @@ export default function Pricing() {
         })}
       </section>
 
-      {billing?.plan !== 'free' && (
+      {billing && billing.plan !== 'free' && (
         <div className="mt-8 text-center">
           <button onClick={() => openBillingPortal().catch(portalError => setError(portalError?.message || 'Billing portal could not open.'))} disabled={!billing.billing_configured} className="rounded-xl border border-border px-5 py-2.5 text-xs font-semibold disabled:opacity-40">Manage subscription in Stripe</button>
         </div>

@@ -1,0 +1,10 @@
+
+> eyloai@0.0.0 test:e2e:landing
+> node tests/e2e-company-landing.mjs
+
+PASS: production Pages company landing; day/night/system themes, persistence, preserved preferences and blocked-storage fallback; public/company/contact/plans/discovery/researcher/auth routes at mobile320; landing layouts320/390/768/1024/1440; keyboard tabs/menu/FAQ/skip link; shared planned prices and no purchase controls; base-aware assets. No Auth submission, contact message or checkout.
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

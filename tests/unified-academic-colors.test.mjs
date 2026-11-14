@@ -24,12 +24,15 @@ test('Default blue preference keeps theme-aware colors without inline overrides'
 test('Corporate landing and public discovery share EYLO blue/navy while signed-in theme tokens remain intact', () => {
   const landing = read('src/pages/Landing.jsx');
   const discovery = read('src/pages/PublicDiscovery.jsx');
-  assert.match(landing, /#FAFCFE/);
-  assert.match(landing, /#172A40/);
+  const companyPalette = read('src/pages/landing.css');
+  assert.match(companyPalette, /--company-soft: #fafcfe/);
+  assert.match(companyPalette, /--company-ink: #172a40/);
+  assert.match(companyPalette, /:root\.dark \.eylo-company/);
+  assert.match(landing, /var\(--company-surface\)/);
   assert.match(landing, /#24AAF3/);
   assert.match(landing, /brand\/eylo-light\.svg/);
   assert.match(landing, /Enter EYLO AI/);
-  assert.match(discovery, /#172A40/);
+  assert.match(discovery, /var\(--company-ink\)/);
   assert.match(discovery, /eylo-public-discovery/);
   assert.match(discovery, /BrandLogo/);
 });
