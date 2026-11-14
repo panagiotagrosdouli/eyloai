@@ -27,7 +27,8 @@
     "test:e2e:project-concurrency": "node tests/e2e-supabase-project-concurrency.mjs",
     "release:readiness": "node scripts/check-release-readiness.mjs",
     "release:probe": "node scripts/probe-release-target.mjs",
-    "test:e2e:products": "node tests/e2e-products.mjs"
+    "test:e2e:products": "node tests/e2e-products.mjs",
+    "test:e2e:landing": "node tests/e2e-company-landing.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

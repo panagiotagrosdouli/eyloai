@@ -1,0 +1,32 @@
+/* Public company presentation; authenticated application themes stay separate. */
+.eylo-company a,
+.eylo-company button,
+.eylo-company summary {
+  -webkit-tap-highlight-color: transparent;
+}
+.eylo-company a:focus-visible,
+.eylo-company button:focus-visible,
+.eylo-company summary:focus-visible,
+.eylo-company [role="tabpanel"]:focus-visible {
+  outline: 2px solid #237eb5;
+  outline-offset: 4px;
+}
+.eylo-company nav a:hover {
+  color: #172a40;
+}
+.eylo-company summary::-webkit-details-marker {
+  display: none;
+}
+.eylo-company main:focus {
+  outline: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .eylo-company *,
+  .eylo-company *::before,
+  .eylo-company *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
