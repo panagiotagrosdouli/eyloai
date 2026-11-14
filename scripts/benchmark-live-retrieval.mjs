@@ -67,6 +67,7 @@ function matchesCase(paper, testCase) {
 }
 
 const rows = [];
+const retrievedRecords = [];
 for (const testCase of CASES) {
   const result = await searchAllPapersWithStatus(testCase.query, {
     level: 'researcher',
@@ -83,6 +84,7 @@ for (const testCase of CASES) {
     && result.available_source_count >= 3
     && representedSources.size >= 2;
 
+  retrievedRecords.push({query:testCase.query,papers:top.map(paper=>({id:paper.id,doi:paper.doi||'',title:paper.title,authors:paper.authors,year:paper.year,url:paper.url,primary_index:paper.source_index,indexed_by:paper.indexed_by,source_records:paper.source_records,summary_source:paper.summary_source,query_coverage:paper.query_coverage}))});
   rows.push({
     query: testCase.query,
     records: top.length,
@@ -103,7 +105,7 @@ for (const testCase of CASES) {
   });
 }
 
-if (process.env.EYLO_RETRIEVAL_REPORT_PATH) await writeFile(process.env.EYLO_RETRIEVAL_REPORT_PATH, JSON.stringify({ executed_at: new Date().toISOString(), proxy_target: parsedBaseUrl.origin, human_judged: false, cases: rows }, null, 2) + '\n');
+if (process.env.EYLO_RETRIEVAL_REPORT_PATH) await writeFile(process.env.EYLO_RETRIEVAL_REPORT_PATH, JSON.stringify({ executed_at: new Date().toISOString(), proxy_target: parsedBaseUrl.origin, human_judged: false, cases: rows, retrieved_records: retrievedRecords }, null, 2) + '\n');
 console.table(rows);
 const sourceCoveredRows = rows.filter(row => row.source_coverage_sufficient);
 const averageAnchorCoverage = sourceCoveredRows.length
@@ -119,7 +121,7 @@ console.log(`Source coverage warnings: ${coverageWarnings.length}/${rows.length}
 console.log(`Proxy target: ${parsedBaseUrl.origin}`);
 console.log('This automated anchor diagnostic is not a human-judged relevance benchmark.');
 
-if (sourceCoveredRows.length < 2 || failedCases.length || averageAnchorCoverage < MIN_AVERAGE_ANCHOR_COVERAGE) {
+if (sourceCoveredRows.length !== CASES.length || failedCases.length || averageAnchorCoverage < MIN_AVERAGE_ANCHOR_COVERAGE) {
   console.error('Live discovery anchor diagnostic failed. Review ranking or source coverage before release.');
   process.exitCode = 1;
 }

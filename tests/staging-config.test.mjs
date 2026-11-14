@@ -18,4 +18,4 @@ test('staging deployment configuration has no production Supabase rewrite or aut
   assert.equal(fallback.test('/api/eyra'),false);assert.equal(fallback.test('/projects/p1'),true);
 });
 
-test('staging routes consolidated APIs before the guarded SPA fallback',()=>{const config=JSON.parse(readFileSync(new URL('../vercel.staging.json',import.meta.url),'utf8'));for(const endpoint of ['capabilities','contact','deployment-status','admin-operations','developer'])assert.ok(config.rewrites.some(rule=>rule.source==='/api/'+endpoint&&rule.destination==='/api/system?endpoint='+endpoint));});
+test('staging routes consolidated APIs before the guarded SPA fallback',()=>{const config=JSON.parse(readFileSync(new URL('../vercel.staging.json',import.meta.url),'utf8'));for(const endpoint of ['capabilities','contact','deployment-status','admin-operations','developer','account-deletion'])assert.ok(config.rewrites.some(rule=>rule.source==='/api/'+endpoint&&rule.destination==='/api/system?endpoint='+endpoint));});

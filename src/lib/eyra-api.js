@@ -1,3 +1,4 @@
+import { buildScholarlyQuery } from './scholarly-query.mjs';
 // EYRA Discovery Engine — Real Data Sources
 // OpenAlex, arXiv, Crossref, Europe PMC
 
@@ -276,7 +277,7 @@ export async function searchOpenAlexInstitutions(query, limit = 6, strictOptions
 export async function searchArxiv(query, limit = 5, sort = 'relevance', strictOptions = {}) {
   try {
     const sortBy = sort === 'recent' ? 'submittedDate' : 'relevance';
-    const directUrl = `https://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(query)}&start=0&max_results=${limit}&sortBy=${sortBy}&sortOrder=descending`;
+    const directUrl = `https://export.arxiv.org/api/query?search_query=${encodeURIComponent(buildScholarlyQuery('arxiv', query))}&start=0&max_results=${limit}&sortBy=${sortBy}&sortOrder=descending`;
     const res = await fetchResearchSource('arxiv', query, limit, sort, directUrl, strictOptions);
     if (!res.ok) throw new Error(`arXiv request failed: ${res.status}`);
     const text = await res.text();
@@ -288,7 +289,7 @@ export async function searchArxiv(query, limit = 5, sort = 'relevance', strictOp
         id: entry.id,
         title: entry.title,
         authors: entry.authors.slice(0, 4).join(', '),
-        summary: entry.summary.slice(0, 400),
+        summary: entry.summary.slice(0, 4000),
         year,
         url: entry.id,
         type: 'preprint',
@@ -305,7 +306,7 @@ export async function searchArxiv(query, limit = 5, sort = 'relevance', strictOp
 
 export async function searchEuropePMC(query, limit = 5, strictOptions = {}) {
   try {
-    const directUrl = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(query)}&format=json&pageSize=${limit}`;
+    const directUrl = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(buildScholarlyQuery('europe_pmc', query))}&format=json&resultType=core&pageSize=${limit}`;
     const res = await fetchResearchSource('europe_pmc', query, limit, 'relevance', directUrl, strictOptions);
     if (!res.ok) throw new Error(`Europe PMC request failed: ${res.status}`);
     const data = await res.json();
@@ -317,7 +318,7 @@ export async function searchEuropePMC(query, limit = 5, strictOptions = {}) {
         doi: r.doi || '',
         title: r.title || 'Untitled',
         authors: r.authorString || '',
-        summary: (r.abstractText || '').slice(0, 400),
+        summary: (r.abstractText || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 4000),
         year,
         url: r.doi ? `https://doi.org/${r.doi}` : `https://europepmc.org/article/${r.source}/${r.id}`,
         type: r.pubType || r.pubTypeList?.pubType?.[0] || '',
@@ -335,7 +336,7 @@ export async function searchEuropePMC(query, limit = 5, strictOptions = {}) {
 export async function searchCrossref(query, limit = 5, sort = 'relevance', strictOptions = {}) {
   try {
     const params = new URLSearchParams({
-      query,
+      'query.bibliographic': buildScholarlyQuery('crossref', query),
       rows: String(limit),
       select: 'DOI,title,author,abstract,published,container-title,type,is-referenced-by-count,URL',
     });
@@ -363,7 +364,7 @@ export async function searchCrossref(query, limit = 5, sort = 'relevance', stric
         doi: work.DOI || '',
         title: work.title?.[0] || 'Untitled',
         authors,
-        summary: abstract.slice(0, 400),
+        summary: abstract.slice(0, 4000),
         year,
         url: work.DOI ? `https://doi.org/${work.DOI}` : work.URL,
         type: work.type || '',

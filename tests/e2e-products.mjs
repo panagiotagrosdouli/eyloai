@@ -189,6 +189,21 @@ try {
   await context.route("**/api/admin-operations", (route) =>
     json(route, { error: "Administrator permission required." }, 403),
   );
+  let deletionBegins = 0, deletionResumes = 0;
+  const deletionReceipt = "eylo_delete_d0000000-0000-4000-8000-000000000010_" + "f".repeat(64);
+  await context.route("**/api/account-deletion", route => {
+    const request=route.request();
+    if(request.method()==="GET")return json(route,{available:true,scope:"fixture-only"});
+    const body=request.postDataJSON();
+    if(body.action==="begin") {
+      assert.equal(body.password,"Fixture-deletion-password");assert.equal(body.confirmation,"DELETE MY EYLO ACCOUNT");
+      assert.ok(request.headers().authorization.startsWith("Bearer "));
+      deletionBegins++;return json(route,{id:"d0000000-0000-4000-8000-000000000010",phase:"queued",receipt_token:deletionReceipt},202);
+    }
+    assert.equal(body.action,"resume");assert.equal(body.receipt_token,deletionReceipt);deletionResumes++;
+    if(deletionResumes===1)return json(route,{error:"fixture_interruption"},503);
+    return json(route,{phase:deletionResumes===2?"storage":"complete"},deletionResumes===2?202:200);
+  });
   await context.route("**/api/eyra", (route) => {
     aiCalls++;
     return route.fulfill({
@@ -769,6 +784,38 @@ try {
       ),
       fullPage: true,
     });
+  }
+  if (!process.env.EYLO_COLLAB_ONLY) {
+    await context.setOffline(false);
+    // The Offline proof deliberately removed Auth credentials. Sign in again
+    // through the actual login flow before testing password reauthentication.
+    await page.goto(host+"/login?from=%2Faccount-deletion");
+    await page.getByLabel("Email address").fill(user.email);
+    await page.getByLabel("Password",{exact:true}).fill("Fixture-password-123");
+    await page.getByRole("button",{name:"Continue with password",exact:true}).click();
+    await page.waitForURL(url=>url.pathname==="/account-deletion");
+    await page.getByLabel("Current password",{exact:true}).waitFor();
+    await page.evaluate(({key,value})=>localStorage.setItem(key,value),{key:"eylo:offline:v1:"+user.id,value:ciphertext});
+    await page.getByRole("heading",{name:"Delete your EYLO account",exact:true}).waitFor();
+    const deletionButton=page.getByRole("button",{name:"Confirm permanent account deletion",exact:true});
+    assert.equal(await deletionButton.isDisabled(),true);
+    await page.getByLabel("Current password",{exact:true}).fill("Fixture-deletion-password");
+    await page.getByLabel("Type DELETE MY EYLO ACCOUNT",{exact:true}).fill("DELETE MY EYLO ACCOUNT");
+    await page.getByLabel("I understand that deletion is permanent and saved files will be removed.",{exact:true}).check();
+    page.once("dialog",dialog=>dialog.dismiss());await deletionButton.click();assert.equal(deletionBegins,0);
+    page.once("dialog",dialog=>dialog.accept());await deletionButton.click();
+    await page.getByRole("region",{name:"Deletion progress"}).waitFor();assert.equal(deletionBegins,1);
+    const receiptDownloadEvent=page.waitForEvent("download");await page.getByRole("button",{name:"Download private deletion receipt",exact:true}).click();
+    const receiptDownload=await receiptDownloadEvent,receiptStream=await receiptDownload.createReadStream();let receiptText="";for await(const chunk of receiptStream)receiptText+=chunk;
+    assert.equal(JSON.parse(receiptText).receipt_token,deletionReceipt);assert.equal(receiptText.includes("password"),false);
+    await page.getByRole("button",{name:"Continue confirmed deletion",exact:true}).click();
+    await page.getByRole("alert").filter({hasText:"Deletion is not confirmed"}).waitFor();
+    await page.getByRole("button",{name:"Continue confirmed deletion",exact:true}).click();
+    await page.getByRole("heading",{name:"Account deletion confirmed",exact:true}).waitFor();
+    await page.waitForFunction(()=>!Object.keys(localStorage).some(key=>key.startsWith("eylo:offline:v1:")));
+    assert.equal(deletionBegins,1);assert.equal(deletionResumes,3);
+    await capture("account-deletion-complete-mobile");
+    console.log("PASS fixture: deletion typed confirmation and cancelled confirmation, fresh Auth, private receipt download, interrupted retry without duplicate begin, confirmed completion and local offline/session cleanup. Actual hosted deletion is not exercised.");
   }
   console.log(
     process.env.EYLO_COLLAB_ONLY
