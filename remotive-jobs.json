@@ -1,9 +1,37 @@
 {
   "source": "Remotive",
   "source_url": "https://remotive.com/remote-jobs/api",
-  "retrieved_at": "2026-11-13T13:05:50.422Z",
+  "retrieved_at": "2026-11-14T12:10:16.472Z",
   "provider_delay_hours": 24,
   "items": [
+    {
+      "id": "remotive-1680495",
+      "title": "Remote Office Assistant",
+      "organization": "Coalition Technologies",
+      "country": "Worldwide",
+      "description": "Coalition Technologies is seeking a reliable, detail-oriented, and highly organized Remote Office Assistant to support administrative, bookkeeping, billing, reporting, data entry, and internal operations tasks. This role is ideal for someone with strong communication skills, discretion, attention to detail, and a willingness to learn and grow within a fast-paced remote work environment. As an Office Assistant, you will help support daily administrative operations, assist with entry-level bookkeeping, organize client documents, support internal reporting, and help maintain accurate company records. This position offers strong growth potential for the right candidate, including opportunities for advancement within the Accounting team or other departments. We are looking for talented and diligent candidates who perform well on our skills assessments. Strong skills test performance may be considered even if a candidate does not meet every preferred experience or educational background requirement. Why Join Coalition Technologies? Coalition Technologies is committed to delivering high-quality work for our clients while providing our team with a fun, thriving, innovative, and growth-focu",
+      "salary": "$35,3k- $52k",
+      "category": "Marketing",
+      "job_type": "full_time",
+      "published_at": "2026-11-11T20:17:48",
+      "deadline": "",
+      "source": "Remotive",
+      "source_url": "https://remotive.com/remote-jobs/marketing/remote-office-assistant-1680495"
+    },
+    {
+      "id": "remotive-2091137",
+      "title": "Senior Data Engineer",
+      "organization": "Lemon.io",
+      "country": "LATAM, Europe, USA, Canada, APAC",
+      "description": "Lemon.io helps companies in the US and Europe hire experienced engineers, from funded startups to teams like Klarna, Retool, and Pinterest. We’ve been doing this since 2015, and more than 1,500 companies have hired engineers through us. New roles for Senior React Full-stack Engineers come in all the time, and several are open right now. Two ways to work with clients Contract: most roles are contract-based. You join the client’s team and work as part of it. Direct hire: some clients hire engineers full-time, and we support you through the process. Because companies trust our vetting, applying through Lemon.io is often a shortcut. You get to the client faster than going through their full hiring process on your own. What you get Competitive rate, based on your seniority and skills We find the projects. No client hunting or rate negotiations. We match you manually based on your skills and preferences. Flexible schedule. Work async or with a small overlap with the team’s hours. No micromanagement, no screen trackers Direct work with clients, most of them with technical backgrounds Ongoing support from your application through every project, plus a community of engineers from 75+ countr",
+      "salary": "",
+      "category": "Data and Analytics",
+      "job_type": "full_time",
+      "published_at": "2026-11-11T18:39:59",
+      "deadline": "",
+      "source": "Remotive",
+      "source_url": "https://remotive.com/remote-jobs/data/senior-data-engineer-2091137"
+    },
     {
       "id": "remotive-2091171",
       "title": "Customer Service Representative",
