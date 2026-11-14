@@ -68,6 +68,57 @@ test('fails closed on database error or malformed RPC output', async () => {
   assert.deepEqual(malformed, { status: 'unavailable' });
 });
 
+test('quota diagnostics classify failures without disclosing request, credentials or upstream content', async () => {
+  const request = { headers: { 'x-vercel-forwarded-for': '203.0.113.12' } };
+  const privateMessage = 'private upstream body, token and query must never be logged';
+  const cases = [
+    { env: {}, reason: 'missing_server_configuration' },
+    { request: { headers: {} }, reason: 'missing_trusted_client_ip' },
+    { fetchImpl: null, reason: 'fetch_unavailable' },
+    ...[401, 403, 404, 500, 503].map(status => ({
+      fetchImpl: async () => new Response(privateMessage, { status }),
+      reason: status === 401 || status === 403 ? 'rpc_access_denied' : status === 404 ? 'rpc_not_found' : 'rpc_http_error',
+      httpStatus: status,
+    })),
+    { fetchImpl: async () => new Response(privateMessage), reason: 'invalid_rpc_response' },
+    { fetchImpl: async () => Response.json({ allowed: true, remaining: '119', retry_after_seconds: 0 }), reason: 'invalid_rpc_response' },
+    { fetchImpl: async () => { throw new DOMException(privateMessage, 'TimeoutError'); }, reason: 'rpc_timeout' },
+    { fetchImpl: async () => { throw new DOMException(privateMessage, 'AbortError'); }, reason: 'rpc_timeout' },
+    { fetchImpl: async () => { throw new Error(privateMessage); }, reason: 'rpc_network_error' },
+  ];
+  for (const entry of cases) {
+    const diagnostics = [];
+    const result = await consumeDiscoveryQuota(entry.request ?? request, {
+      env: entry.env ?? vercelEnv,
+      fetchImpl: 'fetchImpl' in entry ? entry.fetchImpl : async () => { throw new Error('must not fetch'); },
+      onUnavailable: diagnostic => diagnostics.push(diagnostic),
+    });
+    assert.deepEqual(result, { status: 'unavailable' });
+    assert.deepEqual(diagnostics, [{ reason: entry.reason, http_status: entry.httpStatus ?? null }]);
+    for (const secret of [privateMessage, vercelEnv.SUPABASE_SERVICE_ROLE_KEY, vercelEnv.VITE_SUPABASE_URL, '203.0.113.12']) {
+      assert.ok(!JSON.stringify(diagnostics).includes(secret));
+    }
+  }
+});
+
+test('diagnostic sink failure cannot bypass quota enforcement and success emits no failure log', async () => {
+  const request = { headers: { 'x-vercel-forwarded-for': '203.0.113.12' } };
+  assert.deepEqual(await consumeDiscoveryQuota(request, {
+    env: {}, onUnavailable: () => { throw new Error('logger failed'); },
+  }), { status: 'unavailable' });
+  const diagnostics = [];
+  for (const allowed of [true, false]) {
+    const result = await consumeDiscoveryQuota(request, {
+      env: vercelEnv,
+      fetchImpl: async () => Response.json([{ allowed, remaining: allowed ? 119 : 0, retry_after_seconds: 37 }]),
+      onUnavailable: diagnostic => diagnostics.push(diagnostic),
+    });
+    assert.equal(result.status, 'available');
+    assert.equal(result.allowed, allowed);
+  }
+  assert.deepEqual(diagnostics, []);
+});
+
 test('uses shared RPC before provider access and returns Retry-After when exhausted', async (t) => {
   const oldEnv = Object.fromEntries(['VERCEL', 'VITE_SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'].map(key => [key, process.env[key]]));
   process.env.VERCEL = '1';
@@ -112,8 +163,12 @@ test('Vercel fails closed before provider access when server credentials are mis
   delete process.env.SUPABASE_SERVICE_ROLE_KEY;
   let fetches = 0;
   const originalFetch = globalThis.fetch;
+  const originalWarn = console.warn;
+  const warnings = [];
+  console.warn = (...args) => warnings.push(args);
   globalThis.fetch = async () => { fetches += 1; throw new Error('must not query source without limiter'); };
   t.after(() => {
+    console.warn = originalWarn;
     globalThis.fetch = originalFetch;
     if (originalVercel === undefined) delete process.env.VERCEL; else process.env.VERCEL = originalVercel;
     if (originalUrl === undefined) delete process.env.VITE_SUPABASE_URL; else process.env.VITE_SUPABASE_URL = originalUrl;
@@ -125,6 +180,8 @@ test('Vercel fails closed before provider access when server credentials are mis
     query: { provider: 'openalex_works', q: 'reproducible science' } }, response);
   assert.equal(response.statusCode, 503);
   assert.equal(response.payload.code, 'DISCOVERY_RATE_LIMIT_UNAVAILABLE');
+  assert.deepEqual(response.payload, { error: 'Scholarly discovery quota service is unavailable.', code: 'DISCOVERY_RATE_LIMIT_UNAVAILABLE' });
+  assert.deepEqual(warnings, [['EYLO_DISCOVERY_QUOTA_UNAVAILABLE', { reason: 'missing_server_configuration', http_status: null }]]);
   assert.equal(fetches, 0);
 });
 
