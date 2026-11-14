@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
-  "audited_main_commit": "861aa94d573274998d96aba667a74379356c20f1",
+  "source_commit": "f48e8430d49085384aa1b8a25565806329134090",
+  "audited_main_commit": "efbb07251ffced13ff3fabf6d1ee83eabad3129a",
   "scope": "Tracked source/API/migration/test/workflow/config content inventory; not proof of workflow acceptance or absence of defects. Credential/env files are excluded.",
   "counts": {
-    "source_files": 283,
+    "source_files": 284,
     "api_handlers": 12,
     "server_files": 8,
     "migration_sql_files": 28,
     "selected_local_migrations": 21,
     "excluded_migrations": 7,
-    "tests": 180,
+    "tests": 181,
     "workflows": 7
   },
   "files": [
@@ -903,8 +903,12 @@
       "sha256": "d2f5afbb1c467dba0bef72f2f6ac1c9793b14266fd4d282c235810cbf6a52f53"
     },
     {
+      "path": "src/lib/thesis-note-source.mjs",
+      "sha256": "483814cc96f1631fe128b87905c168210518f547d821abf91e5e51346a133fbe"
+    },
+    {
       "path": "src/lib/thesis-outline.mjs",
-      "sha256": "e2733390def25a2b2c6d68037ffd24e31e37c5317ee94ae93de1bb3ed5f7a064"
+      "sha256": "01e64dfd294f2a19c8eb2bec5d1fce309a3e1533089dfe4af257cbd6258db4ba"
     },
     {
       "path": "src/lib/time-tracker-data.mjs",
@@ -1192,7 +1196,7 @@
     },
     {
       "path": "src/pages/ThesisStudio.jsx",
-      "sha256": "ec70c71bcb632a3156418b0068c63809d13f82ef3010d6eacd4f10d435269792"
+      "sha256": "e374cf41d7a24575aec80cd8d9a7aaff46c889e90a8cf4c9f9fe86fe00d4936d"
     },
     {
       "path": "src/pages/TimeTracker.jsx",
@@ -1244,7 +1248,7 @@
     },
     {
       "path": "src/services/supabase-entities.js",
-      "sha256": "036a7763a39d25596135d8aa6d811facaddd367c613d1c2a4850ebe0e8889b69"
+      "sha256": "09d8dbf52a6bd0c54e50bd187f2ab57a3e3e2df1a942b000bbe6f169e8e0e2a6"
     },
     {
       "path": "src/services/universal-search.js",
@@ -1524,7 +1528,7 @@
     },
     {
       "path": "tests/e2e-learning-integration.mjs",
-      "sha256": "2152f9c9be3b4d0035cbad7b1e206d50be1e9ca713e528b9413565a95960b128"
+      "sha256": "ab1347ee94e29ee08409a23a10a7cd0762ee9176c3991d8f7ffaedc2b107f207"
     },
     {
       "path": "tests/e2e-native-meetings.mjs",
@@ -2073,6 +2077,10 @@
     {
       "path": "tests/system-api-routing.test.mjs",
       "sha256": "6f4f54ead47905473ce453f81db476d4be7165b2089b893178190046b89837e1"
+    },
+    {
+      "path": "tests/thesis-note-source.test.mjs",
+      "sha256": "b53a3c98db33e383720eb336e4ce30d21b690ce27079c9a4660a7d959958803e"
     },
     {
       "path": "tests/thesis-outline.test.mjs",

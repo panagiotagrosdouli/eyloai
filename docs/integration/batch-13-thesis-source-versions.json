@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "timezone": "Europe/Athens",
+  "audited_main_commit": "efbb07251ffced13ff3fabf6d1ee83eabad3129a",
+  "source_commit": "f48e8430d49085384aa1b8a25565806329134090",
+  "decision": "NO-GO",
+  "matrix": {
+    "partial": 77,
+    "fully_accepted": 0
+  },
+  "product_scope_updates": [
+    {
+      "id": 59,
+      "entry_path": "/projects",
+      "project_path": "/projects/:id/thesis",
+      "implemented_scope": "Canonical Notes-backed ordered chapter outlines now optionally pin an exact saved Note version. Compilation reads the exact owner-scoped canonical history row, preserves version/archive provenance, rejects pruned/deleted/foreign/moved sources without substituting latest content, and supports explicit repinning. Legacy unpinned chapters follow latest saved content.",
+      "remaining": "Hosted owner/isolation/persistence/history-retention acceptance, durable retention beyond the canonical last50 versions, real academic workflow acceptance and publication-grade document formatting.",
+      "local_scope_verified": true,
+      "verification_scope": "732 combined unit/API tests and production build; new source-pin regressions and full Learning browser with synthetic transport. Existing21-migration PostgreSQL evidence is historical unchanged-schema evidence, not a new hosted test."
+    }
+  ],
+  "commands": {
+    "npm run check": "PASS732/732; imports/typecheck/lint/build",
+    "node --test tests/thesis-note-source.test.mjs tests/thesis-outline.test.mjs": "PASS10/10",
+    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:learning": "PASS full fixture suite; synthetic Auth/PostgREST/AI, not hosted RLS",
+    "EYLO_RETRIEVAL_REPORT_PATH=/workspace/work/continuation/thesis-pin-hosted-retrieval.json node --use-env-proxy --use-system-ca scripts/benchmark-live-retrieval.mjs": "FAIL0/5; actual public hosted responses;503 quota outage",
+    "npm run release:readiness": "EXPECTED NO-GO/exit1; exact source commitf48e8430d49085384aa1b8a25565806329134090",
+    "public probe": "Read-only probeReleaseTarget with explicit expected mainefbb07251ffced13ff3fabf6d1ee83eabad3129a; identity match, capability requirements FAIL"
+  },
+  "categories": {
+    "IMPLEMENTED": [
+      "Optional per-chapter exact Note-version pins with canonical history; no competing store, schema or SQL changes.",
+      "Bounded single-row version retrieval with expected account, raw owner, note and version checks.",
+      "Markdown and version2 JSON exports preserve exact source version; original save time is unknown for archived snapshots and is not fabricated.",
+      "Explicit repin recovery; current Note access and matching project remain required before historical content can load."
+    ],
+    "EXECUTED": [
+      "npm run check:732/732 tests, imports/typecheck/ESLint and production build PASS.",
+      "Full Learning browser fixture suite PASS, including later Note edits, exact pinned exports, foreign/pruned history refusal and explicit repin.",
+      "Read-only public deployment probe against mainefbb07251ffced13ff3fabf6d1ee83eabad3129a: source identity matches; optional capability gate FAIL.",
+      "Unchanged real hosted five-query retrieval FAIL0/5 with gateway503; provider health not evaluated.",
+      "release:readiness returns expected NO-GO/exit1."
+    ],
+    "VERIFIED": [
+      "Bounded local fixture behavior only for the new private source-version flow.",
+      "Public frontend/server provenance matches independently compared mainefbb07251ffced13ff3fabf6d1ee83eabad3129a."
+    ],
+    "FAILED": [
+      "Hosted scholarly proxy0/5:503 DISCOVERY_RATE_LIMIT_UNAVAILABLE.",
+      "Public capability probe: AI/contact/billing/scheduled monitoring/institution analytics false."
+    ],
+    "BLOCKED": [
+      "Only unrelated Supabase project umzrggayitzfgrrofjnw and no Vercel linked projects visible; no independently verified separate EYLO staging.",
+      "Hosted Auth, two-user RLS, Storage bytes, private version history, OpenAI, Stripe sandbox, LiveKit media, privacy/deletion and recovery acceptance.",
+      "Human scientific relevance, legal/controller/support and pilot sign-off."
+    ],
+    "NOT_IMPLEMENTED": [
+      "Complete advanced scope and full acceptance for all77 products.",
+      "Permanent thesis source retention beyond canonical last50 historical versions; publication-grade formatting.",
+      "Durable cancellable agents/outcome audit, general Smart Import mapping/rollback, append-only evidence/contradictions, offline writes/sync."
+    ]
+  },
+  "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
+  "remote_mutations": {
+    "migrations": false,
+    "production_data": false,
+    "live_payments": false,
+    "agent_promotions": false
+  },
+  "external_merges": [
+    "PR414 merged externally as mainefbb07251ffced13ff3fabf6d1ee83eabad3129a; source branch starts there."
+  ],
+  "evidence_directory": "evidence/2026-11-14-thesis"
+}
