@@ -96,7 +96,7 @@ export function applyPreferences(preferences = loadPreferences()) {
 
 export function savePreferences(patch) {
   const preferences = normalize({ ...loadPreferences(), ...patch });
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences)); } catch { /* Keep this session usable when persistence is unavailable. */ }
   applyPreferences(preferences);
   window.dispatchEvent(new CustomEvent(EVENT, { detail: preferences }));
   return preferences;

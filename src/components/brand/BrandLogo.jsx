@@ -40,7 +40,7 @@ export default function BrandLogo({
         aria-hidden={decorative ? 'true' : undefined}
         loading={priority ? 'eager' : 'lazy'}
         fetchPriority={priority ? 'high' : 'auto'}
-        className={`absolute inset-0 h-full w-full object-center ${normalizedBrand === 'eyra' ? 'object-cover' : 'object-contain'}`}
+        className={`${normalizedBrand === 'eylo' ? 'company-brand' : ''} absolute inset-0 h-full w-full object-center ${normalizedBrand === 'eyra' ? 'object-cover' : 'object-contain'}`}
       />
     </span>
   );
