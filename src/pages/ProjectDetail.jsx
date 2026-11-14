@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import ProjectMeetings from '@/components/meetings/ProjectMeetings';
 import ProjectConflictRecovery from '@/components/projects/ProjectConflictRecovery';
+import RecordedProjectSignals from '@/components/projects/RecordedProjectSignals';
 import { projectEditableValues } from '@/lib/project-conflict-recovery.mjs';
 import GapCandidateReviewItem from '@/components/projects/GapCandidateReviewItem';
 import { reviewSavedGapCandidate, removeSavedGapCandidate } from '@/lib/gap-candidate-review.mjs';
@@ -1017,6 +1018,7 @@ Rules:
       {/* Intelligence — EYRA Analysis + Digital Twin combined */}
       {activeTab === 'intelligence' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+          <RecordedProjectSignals project={project} onOpenWorkplan={() => setActiveTab('timeline')} />
 
           {/* EYRA Analysis */}
           <div>
