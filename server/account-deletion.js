@@ -9,6 +9,11 @@ const CONFIRM = "DELETE MY EYLO ACCOUNT";
 export function deletionAvailable(env = process.env) {
   return (
     env.EYLO_PRIVACY_DELETION_ENABLED === "true" &&
+    // This candidate only handles isolated free-account staging. Do not allow
+    // deletion alongside in-flight checkout/webhook activity before the full
+    // billing cancellation/retention lifecycle is implemented and accepted.
+    !env.STRIPE_SECRET_KEY &&
+    !env.STRIPE_WEBHOOK_SECRET &&
     verifyStagingConfig(env).ok &&
     String(env.EYLO_PRIVACY_WORKER_SECRET || "").length >= 32 &&
     readSupabaseApiConfig(env).hasServerConfig

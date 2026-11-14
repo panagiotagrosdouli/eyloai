@@ -13,6 +13,8 @@ const env = {
   EYLO_PRIVACY_DELETION_ENABLED: "true",
   EYLO_PRIVACY_WORKER_SECRET: "worker-fixture-secret-only-".repeat(2),
   VERCEL_ENV: "preview",
+  STRIPE_SECRET_KEY: "",
+  STRIPE_WEBHOOK_SECRET: "",
 };
 function response() {
   return {
@@ -182,6 +184,8 @@ const begin = {
 test("deletion stays disabled for production, forbidden refs, unconfirmed staging and missing worker secret before any network", async () => {
   for (const patch of [
     { VERCEL_ENV: "production" },
+    { STRIPE_SECRET_KEY: "sk_test_fixture_not_real" },
+    { STRIPE_WEBHOOK_SECRET: "whsec_fixture_not_real" },
     { EYLO_ENVIRONMENT: "production" },
     { EYLO_STAGING_CONFIRMED_REF: "" },
     { EYLO_PRIVACY_WORKER_SECRET: "" },
