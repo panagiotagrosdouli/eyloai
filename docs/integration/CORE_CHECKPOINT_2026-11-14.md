@@ -1,6 +1,6 @@
 # Core acceptance continuation checkpoint
 
-Start from the latest actual main; do not reset the platform or import whole historical branches. Main3854e98 includes the externally merged day/night/Premium change from PR412. Core work is isolated on `codex/eylo-core-acceptance-continuation` and must stay draft until the relevant hosted release gates pass.
+Start from the latest actual main; do not reset the platform or import whole historical branches. Main861aa94 includes externally merged PR412 and PR413. Their merges were not performed by this agent. The additional exact-task work is isolated on `codex/eylo-exact-task-acceptance` and must stay draft until the relevant hosted release gates pass.
 
 ## Implemented in this continuation
 
@@ -9,11 +9,13 @@ Start from the latest actual main; do not reset the platform or import whole his
 3. Project Intelligence displays deterministic saved workplan, experiment/publication and budget signals, separately from EYRA interpretation. It excludes unsaved edits, never mutates the project, preserves its source version, links the canonical source workspaces and reports invalid modules rather than fabricating zeros. It does not verify scientific success, publication decisions or accounting records.
 4. A pinned28-file migration manifest now drives the actual21-file local SQL replay and a read-only review command. Seven legacy/side-effect migrations are excluded explicitly, including a cron targeting live EYLO. Shared legacy version20260803/nonstandard timestamps require hosted history reconciliation. Changed/new SQL or a scheduler added to local replay fails the guard. No remote SQL is executed or authorized by this tool.
 
+5. Life exact task links retrieve authorized records beyond the recent1000 cap, handle same-route query changes, reject foreign/missing IDs without a substitute task and recover normal creation after refusal. Expected-owner checks inspect the raw row before flattening.
+
 ## Current evidence
 
 See [batch12 exact commands/categories](batch-12-core-acceptance.json) and [all77 matrix](product-matrix.json). Scoped local tests are not per-product completion. The current count remains77 partial implementations, zero fully accepted products.
 
-- 724 tests/imports/typecheck/lint/production build pass.
+- 727 tests/imports/typecheck/lint/production build pass.
 - Five local browser suites pass (Auth, canonical learning, all22 bounded product scopes, public Pages/theme, production gateway attribution). HTTP/Auth/Storage/AI transport is fixture-based; the network-off production shell test actually disables network.
 - 21 selected migrations execute on actual disposable PostgreSQL, including roles, concurrent CAS/quota/snapshot behavior and deletion lifecycle checks. No hosted migration ran.
 - Two fresh local-handler diagnostics use real public providers and pass5/5 unchanged source/anchor gates, mean0.94. Semantic Scholar429 is disclosed; no human relevance sign-off exists.

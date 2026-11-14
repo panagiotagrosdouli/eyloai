@@ -1,0 +1,11 @@
+✔ exact task lookup retains its identity and expected owner instead of substituting a recent task (3.541066ms)
+✔ malformed targets and missing identity cannot make a repository request (0.910344ms)
+✔ foreign/missing/mismatched records and private upstream errors use the same closed error (4.404912ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 242.900641

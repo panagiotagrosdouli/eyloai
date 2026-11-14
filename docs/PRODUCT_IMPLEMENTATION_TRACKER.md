@@ -1,13 +1,13 @@
 # EYLO Product Implementation Tracker
 
-Current audit: **2026-11-14 (Europe/Athens)**. Main advanced externally to `3854e9816f11f432fea9758d1650dcc50c858f5e` through PR412. The pending core candidate is `codex/eylo-core-acceptance-continuation`, runtime source `697aa8f79873a7305fb777a3e59a17d86f76d548`. Candidate graph/gateway/Project Intelligence changes are not claimed deployed.
+Current audit: **2026-11-14 (Europe/Athens)**. Main advanced externally to `861aa94d573274998d96aba667a74379356c20f1` through PR413 after PR412. The additional exact-task candidate is `codex/eylo-exact-task-acceptance`, runtime source `1aa9f76914ab924a95e7723327e57f16836ea331`. External merges and green CI do not establish hosted product acceptance.
 
 **77 partial implementations; zero fully accepted products.** Related source files, a passing combined suite or an interface alone do not establish completion. The old2026-11-12 baseline is retained in Git and [baseline matrix](integration/baseline-product-matrix.json); it must not be used as the current implementation count.
 
 ## Current evidence and decision
 
 - **IMPLEMENTED:** canonical Notes/tasks in the source-backed Knowledge Graph, expected-owner collection validation and exact editor links; correct gateway-versus-provider error attribution; deterministic saved-record Project Intelligence. The selected public day/night/Premium design is on main via externally merged PR412.
-- **TESTED:**724 Node tests, imports/typecheck/lint/build, five bounded browser suites,21 selected migrations on real disposable PostgreSQL and zero known dependency advisories in both production/full audits. Local/browser transport is fixture-based except explicitly noted real SQL/provider/network-off checks.
+- **TESTED:**727 Node tests, imports/typecheck/lint/build, five bounded browser suites,21 selected migrations on real disposable PostgreSQL and zero known dependency advisories in both production/full audits. Local/browser transport is fixture-based except explicitly noted real SQL/provider/network-off checks.
 - **VERIFIED:** fresh real-provider local-handler runs pass5/5 source/anchor gates, mean0.94. These are automated heuristics, not human relevance judgments. Public browser/server provenance matches main3854e98; the published public theme/plans were observed read-only.
 - **FAILED:** hosted scholarly proxy coverage0/5, HTTP503 `DISCOVERY_RATE_LIMIT_UNAVAILABLE`. That failed run does not evaluate upstream provider health. The release validator remains NO-GO/exit1 as expected.
 - **BLOCKED:** no independently verified separate EYLO staging or hosted test users; connected Supabase exposes only an unrelated database; the Vercel connector lists no linked EYLO project. AI/contact/billing/scheduled-monitoring/institution capabilities report false. Hosted Auth/Storage/OpenAI/Stripe/LiveKit/privacy, human relevance/legal/operations/pilot acceptance remain open.

@@ -2,8 +2,8 @@
   "schema_version": 1,
   "date": "2026-11-14",
   "timezone": "Europe/Athens",
-  "audited_main_commit": "3854e9816f11f432fea9758d1650dcc50c858f5e",
-  "source_commit": "697aa8f79873a7305fb777a3e59a17d86f76d548",
+  "audited_main_commit": "861aa94d573274998d96aba667a74379356c20f1",
+  "source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
   "decision": "NO-GO",
   "matrix": {
     "partial": 77,
@@ -15,10 +15,10 @@
       "id": 1,
       "entry_path": "/life",
       "project_path": null,
-      "implemented_scope": "Canonical Life tasks support the existing owner-scoped workflow; graph task nodes now open the exact saved task editor without a competing task store.",
+      "implemented_scope": "Canonical Life tasks support the existing owner-scoped workflow; graph task nodes now open the exact saved task editor without a competing task store. Exact Life task links now retrieve authorized older records beyond the recent1000 cap; foreign/missing targets clear the editor on same-route navigation and cannot create substitute tasks.",
       "remaining": "Full recurrence/goals/habits acceptance, hosted cross-account persistence and representative user workflows.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 3,
@@ -27,7 +27,7 @@
       "implemented_scope": "Canonical Notes editing/version storage is reused by exact graph deep links; active Notes use explicit project links and archived Notes are omitted from the graph.",
       "remaining": "Hosted persistence/version restoration/conflict acceptance and complete Notes product criteria.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 8,
@@ -36,7 +36,7 @@
       "implemented_scope": "Canonical courses, manually authored lessons, quiz links, enrollment and saved progress are integrated; fixture browser and PostgreSQL checks pass.",
       "remaining": "Hosted course/progress/assessment isolation, real AI generation and full learning acceptance.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 11,
@@ -45,7 +45,7 @@
       "implemented_scope": "Canonical quiz authoring, saved questions, attempts and server grading integrate with courses and manual workflows; browser and SQL checks pass.",
       "remaining": "Hosted attempts/permission acceptance, actual AI generation and complete quiz product criteria.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 16,
@@ -54,7 +54,7 @@
       "implemented_scope": "Existing private Files and Markdown Document Editor workflows are integrated on current main: upload/version metadata, project links, exact file reads, saved draft/version workflows and canonical file search; fixture browser and PostgreSQL checks pass.",
       "remaining": "Hosted Storage bytes/authorization/quota, recovery and full product acceptance. Latest PR395 tree comparison does not replace main exact-ID and generation safeguards.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 17,
@@ -63,7 +63,7 @@
       "implemented_scope": "Existing private Files and Markdown Document Editor workflows are integrated on current main: upload/version metadata, project links, exact file reads, saved draft/version workflows and canonical file search; fixture browser and PostgreSQL checks pass.",
       "remaining": "Hosted Storage bytes/authorization/quota, recovery and full product acceptance. Latest PR395 tree comparison does not replace main exact-ID and generation safeguards.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 18,
@@ -72,25 +72,25 @@
       "implemented_scope": "Existing private Files and Markdown Document Editor workflows are integrated on current main: upload/version metadata, project links, exact file reads, saved draft/version workflows and canonical file search; fixture browser and PostgreSQL checks pass.",
       "remaining": "Hosted Storage bytes/authorization/quota, recovery and full product acceptance. Latest PR395 tree comparison does not replace main exact-ID and generation safeguards.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 21,
       "entry_path": "/workspace/search",
       "project_path": null,
-      "implemented_scope": "Canonical permission-aware paginated search covers9 record types including private Files, with exact record links and partial-failure reporting; fixture regression passes.",
+      "implemented_scope": "Canonical permission-aware paginated search covers9 record types including private Files, with exact record links and partial-failure reporting; fixture regression passes. Exact Life task links now retrieve authorized older records beyond the recent1000 cap; foreign/missing targets clear the editor on same-route navigation and cannot create substitute tasks.",
       "remaining": "Hosted RPC authorization, scale and additional product-source coverage.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 23,
       "entry_path": "/knowledge-graph",
       "project_path": null,
-      "implemented_scope": "Source-backed graph now joins canonical active Notes/tasks to owned project IDs, opens exact editors, reads five expected-owner collections, discloses250-record caps/partial failures and balances its120-node canvas. Foreign raw-owner collections fail closed; same-route two-account fixture clears old nodes before delayed results.",
+      "implemented_scope": "Source-backed graph now joins canonical active Notes/tasks to owned project IDs, opens exact editors, reads five expected-owner collections, discloses250-record caps/partial failures and balances its120-node canvas. Foreign raw-owner collections fail closed; same-route two-account fixture clears old nodes before delayed results. Exact Life task links now retrieve authorized older records beyond the recent1000 cap; foreign/missing targets clear the editor on same-route navigation and cannot create substitute tasks.",
       "remaining": "Hosted two-account RLS, full cross-product entity coverage, graph scale and human relationship/provenance acceptance.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 24,
@@ -99,7 +99,7 @@
       "implemented_scope": "Authenticated EYRA streaming, user context, explicit authorized tools and canonical immutable conversation snapshots remain integrated and pass fixture/API tests.",
       "remaining": "Durable multi-step agent runs, cancellation/outcome audit, actual hosted OpenAI execution and complete Agent acceptance.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 36,
@@ -108,7 +108,7 @@
       "implemented_scope": "Provider-native retrieval retains DOI/provenance and passes real public-provider5/5 source and anchor gates through the local candidate handler. Gateway quota outages/shared429 are now identified separately from provider outages with bounded safe-body parsing and no direct hosted fallback.",
       "remaining": "Hosted proxy currently returns503 DISCOVERY_RATE_LIMIT_UNAVAILABLE; server credentials/RPC/trusted-IP setup must be verified in authorized staging. Human relevance/citation review and provider health remain open; Semantic Scholar429 is disclosed.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 44,
@@ -117,7 +117,7 @@
       "implemented_scope": "Current main includes the selected shared public day/night design, canonical preferences, keyboard controls, storage-denial behavior and responsive public/Auth layouts; local browser and read-only published-theme checks pass.",
       "remaining": "Full accessibility conformance audit, screen-reader/manual testing and acceptance across authenticated product surfaces.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 47,
@@ -126,7 +126,7 @@
       "implemented_scope": "The existing authenticated EYRA command surface uses canonical context/tools and explicit saved conversation snapshots.",
       "remaining": "Durable execution tracking, cancellation/completion evidence and real hosted AI acceptance.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 54,
@@ -135,7 +135,7 @@
       "implemented_scope": "Project EYRA tab now provides a deterministic saved-record summary for workplan completion/overdue/blocked tasks, experiments, self-reported publications and integer-cent budgets. Source workspaces are linked; malformed modules are reported independently; unsaved edits are retained but excluded.",
       "remaining": "Hosted project acceptance, user assessment of risk/progress interpretation, full project intelligence scope and actual source-grounded AI acceptance. No scientific success score is claimed.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 58,
@@ -144,7 +144,7 @@
       "implemented_scope": "Current scholarly integration preserves source identities, abstracts and explicit unavailable-source reporting; two fresh real-provider runs pass5/5 unchanged heuristic gates, while hosted proxy failure is separately retained.",
       "remaining": "Hosted quota/backend acceptance, independent human relevance/citation review and representative end-to-end research workflows.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 75,
@@ -153,7 +153,7 @@
       "implemented_scope": "Canonical project/Life task timer start, reload, stop and CSV export are integrated with persisted entries; browser and PostgreSQL checks pass.",
       "remaining": "Hosted concurrent timer/account isolation and representative work-session acceptance.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     },
     {
       "id": 73,
@@ -162,13 +162,13 @@
       "implemented_scope": "Existing Data Lab parses bounded local CSV files, produces deterministic summaries/comparisons and retains an account-scoped metadata-only browser catalog. Actual local browser fixtures pass; raw datasets are not silently uploaded.",
       "remaining": "Canonical hosted dataset/file integration, secure cloud metadata persistence, data governance/provenance and full Data Catalog acceptance. The local metadata catalog is not a server-side data repository.",
       "local_scope_verified": true,
-      "verification_scope": "724 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
+      "verification_scope": "727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed."
     }
   ],
   "commands": {
-    "npm run check": "PASS724 tests,0 failed; imports,typecheck,lint,production build",
+    "npm run check": "PASS727 tests,0 failed; imports,typecheck,lint,production build",
     "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:auth": "PASS fixture transport; Graph->Notes/task and raw foreign-owner refusal; saved Project Intelligence excluding unsaved edits",
-    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:learning": "PASS fixtures; same-route delayed account switch and explicit graph collection cap",
+    "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:learning": "PASS fixtures; same-route delayed account switch and explicit graph collection cap; exact older task, foreign/missing target refusal and subsequent normal creation",
     "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:products": "PASS all22 bounded product workflows; real network-off production-shell reload, synthetic persistence/AI/Auth",
     "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:landing": "PASS production Pages bundle, day/night/system/storage-denial/public/Auth responsiveness",
     "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e:discovery-gateway": "PASS root production bundle; gateway503, partial results/shared429; no direct fallback; synthetic transport",
@@ -187,10 +187,11 @@
       "Canonical Notes/tasks in the source-backed graph with exact editor links, caps and expected-owner validation",
       "Safe gateway error attribution without bypassing quotas",
       "Saved-record Project Intelligence with independent validation and source links",
-      "Pinned all28 migration files in a shared review manifest: actual local21 replay only;7 legacy/side-effect exclusions and duplicate legacy timestamps require reconciliation. CLI never authorizes or executes remote SQL."
+      "Pinned all28 migration files in a shared review manifest: actual local21 replay only;7 legacy/side-effect exclusions and duplicate legacy timestamps require reconciliation. CLI never authorizes or executes remote SQL.",
+      "Life resolves the exact expected-owner task beyond the recent1000 cap; same-route foreign/missing targets clear the editor and fail closed; normal creation recovers after refusal."
     ],
     "TESTED": [
-      "724 Node regressions/static/build",
+      "727 Node regressions/static/build",
       "Five local browser suites",
       "21 selected migrations on actual disposable PostgreSQL",
       "Production and complete dependency advisory scans"
@@ -237,5 +238,10 @@
     "remote_application_authorized": false,
     "shared_legacy_version": "20260803",
     "hardcoded_live_cron_excluded": "20260817091000_scheduled_monitoring.sql"
+  },
+  "publication_history": {
+    "pr_412": "Externally merged; public theme verified read-only at main3854e98.",
+    "pr_413": "Externally merged to main861aa94 while the additional exact-task checks ran. All three PR workflows passed; this is not hosted product acceptance.",
+    "remaining_candidate": "codex/eylo-exact-task-acceptance; keep draft until release blockers resolved"
   }
 }
