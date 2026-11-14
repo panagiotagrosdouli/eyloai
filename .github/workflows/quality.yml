@@ -59,6 +59,9 @@ jobs:
       - name: Verify the public company landing on the GitHub Pages base path
         run: npm run test:e2e:landing
 
+      - name: Verify hosted discovery gateway error attribution
+        run: npm run test:e2e:discovery-gateway
+
       - name: Test local-time greeting states
         run: npm run test:greeting
 

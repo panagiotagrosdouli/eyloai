@@ -641,6 +641,32 @@ try {
     assert.equal(await page.getByText(privateATitle, { exact: true }).count(), 0);
     console.log('PASS fixture: a same-route authenticated account switch removes old private component state before the delayed new-owner query resolves.');
   } finally { releaseOwnerQuery(); }
+  for (let i = 0; i < 251; i += 1) tables.notes.push({ id: `31000000-0000-4000-8000-${String(i).padStart(12, '0')}`, user_id: user.id, data: { title: `Graph coverage note ${i}`, content: '', project_id: planningProject.id }, updated_date: now() });
+  await page.goto(`${origin}/knowledge-graph`);
+  const graphB = page.getByRole('button', { name: `Explore graph node: ${privateBTitle} (Publications)`, exact: true });
+  await graphB.waitFor();
+  let markGraphOwnerQuery, releaseGraphOwnerQuery;
+  const graphOwnerStarted = new Promise(resolve => { markGraphOwnerQuery = resolve; });
+  const graphOwnerGate = new Promise(resolve => { releaseGraphOwnerQuery = resolve; });
+  await page.route(`${supabaseUrl}/rest/v1/saved_papers**`, async route => {
+    if (new URL(route.request().url()).searchParams.get('user_id') === `eq.${user.id}`) { markGraphOwnerQuery(); await graphOwnerGate; }
+    await route.fallback();
+  });
+  fixtureUser = user;
+  try {
+    await page.evaluate(async email => {
+      const { supabase } = await import('/src/lib/supabaseClient.js');
+      const result = await supabase.auth.signInWithPassword({ email, password: 'Fixture-password-123' });
+      if (result.error) throw result.error;
+    }, user.email);
+    await Promise.race([graphOwnerStarted, new Promise((_, reject) => setTimeout(() => reject(new Error('New graph owner did not request its collection')), 5000))]);
+    assert.equal(await graphB.count(), 0, 'previous account graph disappears before the new query resolves');
+    releaseGraphOwnerQuery();
+    await page.getByRole('button', { name: `Explore graph node: ${privateATitle} (Publications)`, exact: true }).waitFor();
+    assert.equal(await graphB.count(), 0);
+    await page.getByText(/Showing at most 250 recent records per collection/).waitFor();
+    console.log('PASS fixture: same-route Knowledge Graph account switch clears old nodes while new-owner queries are delayed; bounded Notes coverage is disclosed. This is not hosted two-user RLS acceptance.');
+  } finally { releaseGraphOwnerQuery(); }
   console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.');
 } finally {
   if (browser) await browser.close();

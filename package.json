@@ -28,7 +28,8 @@
     "release:readiness": "node scripts/check-release-readiness.mjs",
     "release:probe": "node scripts/probe-release-target.mjs",
     "test:e2e:products": "node tests/e2e-products.mjs",
-    "test:e2e:landing": "node tests/e2e-company-landing.mjs"
+    "test:e2e:landing": "node tests/e2e-company-landing.mjs",
+    "test:e2e:discovery-gateway": "node tests/e2e-discovery-gateway.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

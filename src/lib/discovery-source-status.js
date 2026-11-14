@@ -16,6 +16,7 @@ export function countAvailablePaperIndexes(sourceStatuses = []) {
 }
 
 export function httpStatusFromError(error) {
+  if (Number.isInteger(error?.status) && error.status >= 400 && error.status <= 599) return error.status;
   const message = error instanceof Error ? error.message : String(error || '');
   const match = message.match(/\b([45]\d{2})\b/);
   return match ? Number(match[1]) : null;
@@ -23,6 +24,8 @@ export function httpStatusFromError(error) {
 
 export function formatUnavailableSource(source) {
   const label = String(source?.label || 'Research source');
+  if (source?.error_code === 'DISCOVERY_RATE_LIMIT_UNAVAILABLE') return `${label} could not be reached through EYLO’s research connection`;
+  if (source?.error_code === 'DISCOVERY_RATE_LIMITED') return `${label} was not requested because EYLO’s search limit was reached`;
   const status = Number(source?.error_status);
   if (status === 429) return `${label} is rate limited (HTTP 429)`;
   if (status >= 500 && status <= 599) return `${label} is temporarily unavailable (HTTP ${status})`;
