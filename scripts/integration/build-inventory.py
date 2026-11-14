@@ -30,7 +30,7 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 20|ProductTools,PersonalTools,product-utilities,product-registry|projects||complete-products,product-api,e2e-products
 21|UniversalSearch,universal-search|notes,projects,life_tasks,life_goals,calendar_events,study_flashcard_decks,saved_papers,ideas| |universal-search
 22|ProductTools,PersonalTools,product-registry,translation-references|notes|eyra|complete-products,product-api,e2e-products,translation-references
-23|ResearchKnowledgeGraph,research-knowledge-graph|saved_papers,saved_researchers,projects|discovery|research-knowledge-graph
+23|ResearchKnowledgeGraph,research-knowledge-graph,research-graph-collections|saved_papers,saved_researchers,projects,notes,life_tasks|discovery|research-knowledge-graph
 24|EyraCommandCenter,eyra-project-tools,eyra-stream,eyra-conversation,eyra-history|projects,saved_papers,ideas,notes,life_tasks,eyra_conversations,eyra_messages|eyra|eyra-project-tools,eyra-boundaries,eyra-stream
 25|ProductTools,ProductWorkbench,product-workbench,product-operation-recovery|projects,life_tasks||complete-products,product-api,e2e-products
 26|ProductTools,ProductWorkbench,product-workbench,product-operation-recovery,monitoring-service|projects,life_tasks,watchlists,monitoring_discoveries|monitor|complete-products,product-api,e2e-products
@@ -61,7 +61,7 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 51|ProjectDetail|projects|eyra|project-eyra
 52|ProductTools,ProductWorkbench,product-workbench|projects||complete-products,product-api,e2e-products
 53|CollaborationTools,ProductTools,product-registry|eylo_peer_submissions,eylo_peer_reviews,eylo_connections||complete-products,product-api,e2e-products
-54|ProjectDetail|projects|eyra|project
+54|ProjectDetail,RecordedProjectSignals,project-recorded-signals|projects|eyra|project
 55|ProjectDetail|projects||project
 56|ProjectDecisions,decision-workspace|projects||decision-workspace
 57|ProjectDetail,PitchDeckBuilder|projects|eyra|project
@@ -91,9 +91,21 @@ def git(*args):
 
 def main():
     tracked = git('ls-files').splitlines()
-    prs = json.loads((ROOT / 'docs/integration/open-pr-comparison.json').read_text())
+    current_pr_path = ROOT / 'docs/integration/open-pr-current.json'
+    current_prs = json.loads(current_pr_path.read_text()) if current_pr_path.exists() else None
+    prs = current_prs['pull_requests'] if current_prs else json.loads((ROOT / 'docs/integration/open-pr-comparison.json').read_text())
     tracker = (ROOT / 'docs/PRODUCT_IMPLEMENTATION_TRACKER.md').read_text()
-    rows = {int(i): (name.strip(), status.strip()) for i, name, status in re.findall(r'^\| (\d+) \| ([^|]+) \| ([^|]+) \|', tracker, re.M)}
+    rows = {}
+    for line in tracker.splitlines():
+        cells = [cell.strip() for cell in line.strip().strip('|').split('|')]
+        if len(cells) < 3 or not cells[0].isdigit():
+            continue
+        # Current tracker separates status and scope. Older snapshots used one
+        # combined third cell; preserve both formats without losing criteria.
+        declared = f'{cells[2]}: {cells[3]}' if len(cells) >= 4 else cells[2]
+        if int(cells[0]) in rows:
+            raise ValueError(f'Duplicate product tracker ID: {cells[0]}')
+        rows[int(cells[0])] = (cells[1], declared)
     app = (ROOT / 'src/App.jsx').read_text()
     imports = dict(re.findall(r"const (\w+) = lazy\(\(\) => import\('([^']+)'\)\)", app))
     route_map = []
@@ -113,6 +125,9 @@ def main():
     privacy_path=ROOT/'docs/integration/batch-11-retrieval-privacy.json'
     if privacy_path.exists():
         scopes.update({row['id']:row for row in json.loads(privacy_path.read_text())['product_scope_updates']})
+    continuation_path=ROOT/'docs/integration/batch-12-core-acceptance.json'
+    continuation=json.loads(continuation_path.read_text()) if continuation_path.exists() else {}
+    scopes.update({row['id']:row for row in continuation.get('product_scope_updates',[])})
     export_tables=json.loads(subprocess.check_output(['node','--input-type=module','-e',
         "import {WORKSPACE_EXPORT_TABLES} from './src/lib/workspace-export.mjs'; process.stdout.write(JSON.stringify(WORKSPACE_EXPORT_TABLES));"],cwd=ROOT,text=True))
     workflow_evidence = {
@@ -175,15 +190,15 @@ def main():
             'automated_test_source_commit': verification.get('tested_source_commit', BASE) if tests else None,
             'integration_test_status': ('Partial local verification: ' + workflow_evidence[i] + '. Remaining product criteria unverified.') if i in workflow_evidence else 'Not independently verified per product',
             'staging_verification': 'NOT_RUN: intended EYLO staging is not connected',
-            'production_verification': 'NOT_RUN: deployment identity not verified',
+            'production_verification': continuation.get('production_verification', 'NOT_RUN: deployment identity not verified'),
             'deployment_dependencies': (['Verified EYLO Supabase project and reviewed migrations'] if files and tables else []) + (['Configured serverless API/providers: ' + ', '.join(endpoints)] if endpoints else []),
             'known_blockers': ['Acceptance criteria and full product workflow still incomplete'] + (['Authorized staging access and test accounts missing'] if files and tables else []),
         })
     assert sorted(rows) == list(range(1, 78))
     assert [p['id'] for p in products] == list(range(1, 78))
-    result = {'schema_version': 1, 'baseline_commit': BASE, 'inventory_commit': git('rev-parse', 'HEAD'), 'scope': 'Integration candidate branch, not current main or deployed product', 'intended_eylo_supabase_ref': 'kbzjngpzxpniaumlupaa', 'live_access': 'Owner identified this ref; connector permission denied. Repository guards it as live EYLO. Separate staging identity remains required.', 'inventory_method': 'Explicit tracker ID mapping to tracked source files, route declarations, table references in migrations, tests, and all 65 open PR diffs. Related source presence is not implementation verification. Shared surfaces may support several partial products. See verification.json for subsequent combined-suite results; those do not establish per-product acceptance.', 'products': products}
+    result = {'schema_version': 1, 'baseline_commit': BASE, 'audited_main_commit': continuation.get('audited_main_commit', BASE), 'inventory_commit': git('rev-parse', 'HEAD'), 'scope': 'Integration candidate branch, not a claim of complete main or deployed product acceptance', 'intended_eylo_supabase_ref': 'kbzjngpzxpniaumlupaa', 'live_access': 'Owner identified this ref as live EYLO; unrelated connected project is forbidden for staging. Separate staging identity and access remain required.', 'inventory_method': f'Explicit tracker ID mapping to tracked source files, route declarations, table references, tests and {len(prs)} current PR heads. Changed/new heads use current tree comparisons; unchanged heads reuse historical patch inventory. Related file presence and a combined passing suite are not full per-product acceptance. See verification.json and batch-12-core-acceptance.json for bounded execution evidence.', 'products': products}
     (ROOT / 'docs/integration/product-matrix.json').write_text(json.dumps(result, indent=2) + '\n')
-    print(f'Inventoried {len(products)} products against {len(prs)} historical PR snapshots')
+    print(f'Inventoried {len(products)} products against {len(prs)} PR snapshots; no product acceptance inferred')
 
 if __name__ == '__main__':
     main()

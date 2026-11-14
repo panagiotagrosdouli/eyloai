@@ -29,7 +29,8 @@
     "release:probe": "node scripts/probe-release-target.mjs",
     "test:e2e:products": "node tests/e2e-products.mjs",
     "test:e2e:landing": "node tests/e2e-company-landing.mjs",
-    "test:e2e:discovery-gateway": "node tests/e2e-discovery-gateway.mjs"
+    "test:e2e:discovery-gateway": "node tests/e2e-discovery-gateway.mjs",
+    "db:review-plan": "node scripts/review-migration-plan.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

@@ -1,0 +1,198 @@
+{
+  "version": 1,
+  "scope": "disposable-canonical-test-replay-only",
+  "remote_application_authorized": false,
+  "canonical_local_order": [
+    "20260803_eylo_core_entities.sql",
+    "20260803_eylo_monitoring_entities.sql",
+    "20260811053718_production_billing_entitlements.sql",
+    "20261112154425_private_notes.sql",
+    "20261112161818_eylo_life_tasks.sql",
+    "20261112163010_eylo_life_goals_milestones.sql",
+    "20261112165449_eylo_study_flashcards.sql",
+    "20261112173500_eylo_calendar_events.sql",
+    "20261112181000_eylo_activity_history.sql",
+    "20261112183722_universal_workspace_search.sql",
+    "20261112190430_eylo_files.sql",
+    "20261112200000_private_file_search.sql",
+    "20261112090000_project_scoped_grant_applications.sql",
+    "20261112091000_saved_paper_identity_uniqueness.sql",
+    "20261113062923_canonical_learning_time.sql",
+    "20261113113010_shared_discovery_quota.sql",
+    "20261113090000_eyra_conversations.sql",
+    "20261113114924_eyra_conversation_snapshots.sql",
+    "20261113120556_eyra_snapshot_retry_identity.sql",
+    "20261113180517_complete_workspace_products.sql",
+    "20261114063216_account_deletion_lifecycle.sql"
+  ],
+  "files": [
+    {
+      "name": "20260803_eylo_core_entities.sql",
+      "sha256": "3cc91296fe106545fe4ef162056e62db3b00ddb66aac8953a2354f9254e57db8",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20260803_eylo_monitoring_entities.sql",
+      "sha256": "63f916fbce887d4b6ede42b4a75a9d9811da308a44e33bbc23cdff8eba4bdd4f",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20260811053718_production_billing_entitlements.sql",
+      "sha256": "b0cb8ba1aab4cb3a2edd260b08dabcd72d914f58c9883465ea1e5863242445b9",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20260817090000_operational_services.sql",
+      "sha256": "8e3a9340fada7b6b97c12a35e143ea19814f6d7e12999da78c69fb48e1cbeaec",
+      "classification": "excluded-pending-review",
+      "reason": "Legacy native-column production schema; not the canonical fresh JSONB replay baseline. Requires actual schema/history reconciliation."
+    },
+    {
+      "name": "20260817090500_security_hardening.sql",
+      "sha256": "844c13e1aa5ec8ead2b9aafc3784952509b4f89865ea94b02e0abfac2c56e0d6",
+      "classification": "excluded-pending-review",
+      "reason": "Legacy helpers/native tables must be reconciled with the intended hosted schema before applying."
+    },
+    {
+      "name": "20260817090600_analytics_rpc_boundary.sql",
+      "sha256": "f61919db035e4367d5186af5b244816bdc61930c0c72ca423b1bee13c5eafebe",
+      "classification": "excluded-pending-review",
+      "reason": "Legacy profile/native analytics contract differs from the canonical fresh profile user_id/data shape."
+    },
+    {
+      "name": "20260817090700_analytics_smoke_verification.sql",
+      "sha256": "322ce8bb4e8f4f91c10e5effcd3a813bbb48edb05f13d356cda2cfae9ae64cd0",
+      "classification": "excluded-pending-review",
+      "reason": "Smoke query depends on the legacy native analytics/schema contract and real workspace records."
+    },
+    {
+      "name": "20260817091000_scheduled_monitoring.sql",
+      "sha256": "17436d3ce12dc1018e1513d16af9270b8fad119415f641b38cb83cc5f2077c8b",
+      "classification": "excluded-pending-review",
+      "reason": "Opt-in pg_cron/pg_net/Vault side effects include a hardcoded live EYLO URL. Never replay into staging blindly."
+    },
+    {
+      "name": "20261017090000_monitoring_discovery_uniqueness.sql",
+      "sha256": "6c896f22458bf207ef9ab4d02585bde40fcd22d6339b201871bb560bdd644941",
+      "classification": "excluded-pending-review",
+      "reason": "Legacy monitoring data uniqueness precondition needs explicit duplicate/history review; do not delete historical records automatically."
+    },
+    {
+      "name": "20261110_native_video_meetings.sql",
+      "sha256": "36bf1d7df1925f8dddc4a8791db385181ae5686e28e2b8a8d310908421cbfced",
+      "classification": "excluded-pending-review",
+      "reason": "Native media/invitation schema is outside the21-migration local replay and requires separate hosted media acceptance."
+    },
+    {
+      "name": "20261112090000_project_scoped_grant_applications.sql",
+      "sha256": "b92b4bf50228901eb46ff96bdad35f5905860b20e898991e798e1499554f02ea",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261112091000_saved_paper_identity_uniqueness.sql",
+      "sha256": "baab983127765e150456b404e6b29facb6bcd54ca1921db8f61abd5180f701c8",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261112154425_private_notes.sql",
+      "sha256": "a0882563ab83cfb2f7a7ec8737f0f594ebe69b771fbf2aea6a2cecf0699f6fa2",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261112161818_eylo_life_tasks.sql",
+      "sha256": "ab17d5cb7eeaac3b0982ee3ef03adc94544b7176a35e8bc5bb9ffb7461580a71",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261112163010_eylo_life_goals_milestones.sql",
+      "sha256": "3139e27218ef22c6ffd922572292c12131a229c9ed1b01d69910f231e1095897",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261112165449_eylo_study_flashcards.sql",
+      "sha256": "a9ced160b97bc401077cb3c1ffcf73385967480eff814c6c1c03a2c5efbc2560",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261112173500_eylo_calendar_events.sql",
+      "sha256": "0af888dae3fd7237fd4e95b8230fe8844313e8ae03d743b4eb7be827786bc703",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261112181000_eylo_activity_history.sql",
+      "sha256": "b3011694afd09cd2f8d852bf6ea027eb01630ca7f922a1203b12a690420dae4c",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261112183722_universal_workspace_search.sql",
+      "sha256": "74c9eba963b8b433e0fabe486103fd92a68bdd595479a6fd436808e14c74d30b",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261112190430_eylo_files.sql",
+      "sha256": "a696cb755e270a04aabb0a7271dc708e84a978de0ca6de49c2e283b0e2332225",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261112200000_private_file_search.sql",
+      "sha256": "3a0c0f4867a9799ed60ffef9d6597b9c28e8a20dfbc811f4c4846b26299713fc",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261113062923_canonical_learning_time.sql",
+      "sha256": "1b79e4f07b03267558d68d4459da2546cd1a7d8d7d5734b88e49869a7186dee1",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261113090000_eyra_conversations.sql",
+      "sha256": "8ec0bb81df8733471037609a93413e597c34aad2c7ab61c90eb7613fc9bb62cb",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261113113010_shared_discovery_quota.sql",
+      "sha256": "9d3116719d0f4afc42a4c9dde9f9a2b5c28d8f71921c547be00bf3e984fd6249",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261113114924_eyra_conversation_snapshots.sql",
+      "sha256": "e58b684da4e47de4bdf786bee7935b5ced70807a95c6a3161b828ac8c5c82a8a",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261113120556_eyra_snapshot_retry_identity.sql",
+      "sha256": "9a2eb1b5d9b6ddc025d7816a3edcf9350e022d4669c2d87a7a7460eb5599da42",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261113180517_complete_workspace_products.sql",
+      "sha256": "708bbb6e369930543c6b49d4dd2e0609ea37382c1335ee38d3f93f46462772ab",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261114063216_account_deletion_lifecycle.sql",
+      "sha256": "00def41bb5e691757d1045db902ce40fe7ea0caa1d1f6c1dc7d4cde931410fbe",
+      "classification": "canonical-local-replay",
+      "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    }
+  ]
+}

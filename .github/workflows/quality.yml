@@ -41,6 +41,9 @@ jobs:
       - name: Run core regression tests
         run: npm test
 
+      - name: Review canonical local migration manifest and legacy exclusions
+        run: npm run db:review-plan
+
       - name: Protect authenticated EYRA routing
         run: npm run test:eyra-auth
 

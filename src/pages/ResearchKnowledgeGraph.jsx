@@ -283,7 +283,7 @@ function PrivateResearchKnowledgeGraph({ ownerId }) {
             {drawnNodes.length < filtered.nodes.length && <p className="border-t border-border px-4 py-2 text-xs text-muted-foreground">Showing {drawnNodes.length} of {filtered.nodes.length} matching nodes, balanced across record types. Add a filter to explore more.</p>}
             <div className="flex flex-wrap gap-x-4 gap-y-2 border-t border-border px-4 py-3 text-[11px] text-muted-foreground" aria-label="Graph legend">
               {NODE_TYPES.map(([type, label]) => <span key={type} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: TYPE_COLORS[type] }} />{label}</span>)}
-              <span className="inline-flex items-center gap-1.5"><span className="w-5 border-t border-slate-400" />Source-backed</span>
+              <span className="inline-flex items-center gap-1.5"><span className="w-5 border-t border-slate-400" />Recorded link</span>
               <span className="inline-flex items-center gap-1.5"><span className="w-5 border-t border-dashed border-amber-600" />Inferred topic similarity</span>
             </div>
           </section>
@@ -316,7 +316,7 @@ function PrivateResearchKnowledgeGraph({ ownerId }) {
 
           <section className="mt-4 rounded-xl border border-border bg-card p-4" aria-labelledby="graph-limits-title">
             <h2 id="graph-limits-title" className="text-xs font-semibold">Coverage and interpretation</h2>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">This is a view of your saved collection, not a comprehensive map of a research field. Citation links appear only when OpenAlex reference IDs connect papers saved in your Library. Dashed amber links are inferred from shared OpenAlex topics and do not indicate citation, agreement, or evidence strength. Unsupported metadata is left unconnected.</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">This is a view of your saved collection, not a comprehensive map of a research field. Citation links appear only when OpenAlex reference IDs connect papers saved in your Library. Dashed amber links are inferred from shared OpenAlex topics and do not indicate citation, agreement, or evidence strength. Notes and task links reflect stored project associations, not scientific citations or verified progress. Unsupported metadata is left unconnected.</p>
           </section>
         </>
       )}
