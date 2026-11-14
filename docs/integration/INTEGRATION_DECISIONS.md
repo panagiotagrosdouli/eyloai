@@ -126,3 +126,7 @@ All28 SQL files are pinned in a reviewed local replay manifest;21 are actually e
 727 tests/static/build, five fixture browser suites, actual disposable SQL and both dependency advisory scans pass. Hosted private acceptance, human relevance/legal/operational/pilot gates and advanced scopes remain open. Counts77 partial/0 fully accepted; release NO-GO.
 
 PR413 was externally merged as main861aa94 after all three workflows passed. The additional exact-task fix starts from that main and remains a separate draft: no production readiness or hosted authorization follows from the external merge.
+
+## Batch13: canonical thesis source versions
+
+Main advanced externally through PR414 to `efbb07251ffced13ff3fabf6d1ee83eabad3129a`. Candidate runtime `f48e8430d49085384aa1b8a25565806329134090` adds optional exact Note-version pins within the existing chapter JSON contract. Existing version history is reused with a bounded single-row read and expected-owner checks. Missing/pruned/foreign sources never follow latest. Pins are not permanent retention: canonical history retains50 revisions; original archive rows do not provide original save timestamps. Markdown/version2 JSON preserve that uncertainty.732 combined tests/static/build and full Learning fixtures pass; no SQL changed. Hosted proxy still0/5 quota503; public identity matches main but AI/contact/billing are false. All77 remain partial/zero fully accepted; keep this continuation draft.

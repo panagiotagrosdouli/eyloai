@@ -1,6 +1,10 @@
 # EYLO integration evidence — current audit2026-11-14
 
-## Current continuation: batch12
+## Current continuation: batch13
+
+[Source-version scope/commands](batch-13-thesis-source-versions.json) and [checkpoint](THESIS_SOURCE_VERSION_CHECKPOINT.md) supersede older status. Main `efbb07251ffced13ff3fabf6d1ee83eabad3129a` includes externally merged PR414; the source-pin candidate remains separate.732 tests/static/build and the full Learning browser fixture suite pass. Source pins use exact canonical Note history and explicitly fail when that retained version is unavailable; no SQL/schema changes occurred. Prior local SQL/other browser/provider successes remain bounded historical evidence. Fresh hosted discovery still fails0/5 at the quota service, and public AI/contact/billing capabilities remain false despite matching public source identity. Release remains NO-GO;77 products remain partial, zero fully accepted.
+
+## Previous continuation: batch12
 
 [Exact scopes/commands](batch-12-core-acceptance.json), [current77-product tracker](../PRODUCT_IMPLEMENTATION_TRACKER.md), [checkpoint](CORE_CHECKPOINT_2026-11-14.md), [66 open heads at audit time](open-pr-current.json) and [current source inventory](repository-inventory-current.json) supersede earlier counts and deployment observations. Main861aa94 includes externally merged PR412/413; these were external actions. The integrated core batch adds canonical Notes/tasks to the graph, safe gateway error attribution, saved-record Project Intelligence and a guarded28-file migration review/21-file local replay.
 

@@ -66,7 +66,7 @@ MAP = '''1|Life,LifeGoals,Habits,life-task-target|life_tasks,life_goals||life-wo
 56|ProjectDecisions,decision-workspace|projects||decision-workspace
 57|ProjectDetail,PitchDeckBuilder|projects|eyra|project
 58|Home,ResearchGaps,DiscoveryResults,scholarly-record-identity|projects,saved_papers|discovery,eyra|research-gap,discovery,scholarly-record-identity
-59|ThesisStudio,thesis-outline,ProjectDocumentWorkspace|projects,notes||thesis-outline,e2e-learning-integration
+59|ThesisStudio,thesis-outline,thesis-note-source,ProjectDocumentWorkspace|projects,notes,note_versions||thesis-outline,thesis-note-source,e2e-learning-integration
 60|ProjectResearchRecords,research-records|projects||research-records,e2e-learning-integration
 61|ProductTools,PersonalTools,product-utilities|projects,time_entries||complete-products,product-api,e2e-products
 62|LiteratureReview,literature-review|projects,saved_papers|discovery|literature-review
@@ -128,6 +128,11 @@ def main():
     continuation_path=ROOT/'docs/integration/batch-12-core-acceptance.json'
     continuation=json.loads(continuation_path.read_text()) if continuation_path.exists() else {}
     scopes.update({row['id']:row for row in continuation.get('product_scope_updates',[])})
+    latest_path=ROOT/'docs/integration/batch-13-thesis-source-versions.json'
+    if latest_path.exists():
+        latest=json.loads(latest_path.read_text())
+        scopes.update({row['id']:row for row in latest.get('product_scope_updates',[])})
+        continuation={**continuation, **latest}
     export_tables=json.loads(subprocess.check_output(['node','--input-type=module','-e',
         "import {WORKSPACE_EXPORT_TABLES} from './src/lib/workspace-export.mjs'; process.stdout.write(JSON.stringify(WORKSPACE_EXPORT_TABLES));"],cwd=ROOT,text=True))
     workflow_evidence = {
@@ -196,7 +201,7 @@ def main():
         })
     assert sorted(rows) == list(range(1, 78))
     assert [p['id'] for p in products] == list(range(1, 78))
-    result = {'schema_version': 1, 'baseline_commit': BASE, 'audited_main_commit': continuation.get('audited_main_commit', BASE), 'inventory_commit': git('rev-parse', 'HEAD'), 'scope': 'Integration candidate branch, not a claim of complete main or deployed product acceptance', 'intended_eylo_supabase_ref': 'kbzjngpzxpniaumlupaa', 'live_access': 'Owner identified this ref as live EYLO; unrelated connected project is forbidden for staging. Separate staging identity and access remain required.', 'inventory_method': f'Explicit tracker ID mapping to tracked source files, route declarations, table references, tests and {len(prs)} current PR heads. Changed/new heads use current tree comparisons; unchanged heads reuse historical patch inventory. Related file presence and a combined passing suite are not full per-product acceptance. See verification.json and batch-12-core-acceptance.json for bounded execution evidence.', 'products': products}
+    result = {'schema_version': 1, 'baseline_commit': BASE, 'audited_main_commit': continuation.get('audited_main_commit', BASE), 'inventory_commit': git('rev-parse', 'HEAD'), 'scope': 'Integration candidate branch, not a claim of complete main or deployed product acceptance', 'intended_eylo_supabase_ref': 'kbzjngpzxpniaumlupaa', 'live_access': 'Owner identified this ref as live EYLO; unrelated connected project is forbidden for staging. Separate staging identity and access remain required.', 'inventory_method': f'Explicit tracker ID mapping to tracked source files, route declarations, table references, tests and {len(prs)} current PR heads. Changed/new heads use current tree comparisons; unchanged heads reuse historical patch inventory. Related file presence and a combined passing suite are not full per-product acceptance. See verification.json, batch-12-core-acceptance.json and batch-13-thesis-source-versions.json for bounded execution evidence.', 'products': products}
     (ROOT / 'docs/integration/product-matrix.json').write_text(json.dumps(result, indent=2) + '\n')
     print(f'Inventoried {len(products)} products against {len(prs)} PR snapshots; no product acceptance inferred')
 

@@ -1,0 +1,253 @@
+
+> eyloai@0.0.0 release:readiness
+> node scripts/check-release-readiness.mjs
+
+{
+  "schema_version": 1,
+  "scope": "research-workspace-v1",
+  "commit": "f48e8430d49085384aa1b8a25565806329134090",
+  "evaluated_at": "2026-11-14T13:10:51.911Z",
+  "decision": "NO-GO",
+  "production_authorized": false,
+  "note": "Report compatibility is not independent proof of execution. Review the referenced artifacts. Production promotion and live payments require separate explicit owner authorization.",
+  "identity_issues": [
+    "Evidence must identify the exact reviewed source commit.",
+    "A separate authorized staging database is required; live and unrelated refs are forbidden.",
+    "Owner confirmation and independent connector identity verification are required.",
+    "Exact Vercel team and project identities are missing.",
+    "Preview deployment, server provenance and browser manifest must match the reviewed commit."
+  ],
+  "checks": [
+    {
+      "id": "ci",
+      "required_scope": "ci",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: imports_types_lint_tests_build.",
+        "Unverified: all_required_workflows."
+      ]
+    },
+    {
+      "id": "auth",
+      "required_scope": "hosted-staging",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: registration_login_logout.",
+        "Unverified: password_recovery.",
+        "Unverified: session_expiry.",
+        "Hosted report targets different or unspecified infrastructure."
+      ]
+    },
+    {
+      "id": "isolation",
+      "required_scope": "hosted-staging",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: foreign_read_denied.",
+        "Unverified: foreign_update_denied.",
+        "Unverified: foreign_delete_denied.",
+        "Unverified: persistence_after_login.",
+        "Unverified: account_switch_clears_private_ui.",
+        "Hosted report targets different or unspecified infrastructure.",
+        "Two distinct disposable test-account identities are required."
+      ]
+    },
+    {
+      "id": "files",
+      "required_scope": "hosted-staging",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: upload_download_versions.",
+        "Unverified: foreign_storage_access_denied.",
+        "Unverified: metadata_and_bytes_consistent.",
+        "Hosted report targets different or unspecified infrastructure."
+      ]
+    },
+    {
+      "id": "projects",
+      "required_scope": "hosted-staging",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: workplans_persist.",
+        "Unverified: stale_writes_rejected.",
+        "Unverified: exact_project_scope.",
+        "Hosted report targets different or unspecified infrastructure."
+      ]
+    },
+    {
+      "id": "eyra",
+      "required_scope": "hosted-staging",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: authenticated_responses_api.",
+        "Unverified: stream_completion_and_cancel.",
+        "Unverified: private_history_and_export.",
+        "Unverified: explicit_write_permission.",
+        "Unverified: destructive_confirmation.",
+        "Unverified: provider_failures_and_budgets.",
+        "Hosted report targets different or unspecified infrastructure."
+      ]
+    },
+    {
+      "id": "research",
+      "required_scope": "live-and-human",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: real_sources_only.",
+        "Unverified: partial_source_disclosure.",
+        "Unverified: human_relevance_review.",
+        "All five or more research queries require sufficient source coverage and independent human relevance review."
+      ]
+    },
+    {
+      "id": "funding",
+      "required_scope": "hosted-staging",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: official_source_fidelity.",
+        "Unverified: project_scoped_drafts.",
+        "Hosted report targets different or unspecified infrastructure."
+      ]
+    },
+    {
+      "id": "stripe",
+      "required_scope": "hosted-staging",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: test_checkout_webhook_entitlements.",
+        "Unverified: renewal_cancel_failed_payment.",
+        "Unverified: duplicate_event_safety.",
+        "Hosted report targets different or unspecified infrastructure.",
+        "Stripe acceptance must use test mode; live payments are not authorized by this gate."
+      ]
+    },
+    {
+      "id": "livekit",
+      "required_scope": "hosted-staging",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: two_user_media.",
+        "Unverified: unauthorized_join_denied.",
+        "Unverified: reconnection_and_leave.",
+        "Hosted report targets different or unspecified infrastructure.",
+        "Two distinct disposable test-account identities are required."
+      ]
+    },
+    {
+      "id": "privacy",
+      "required_scope": "hosted-staging",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: owner_export.",
+        "Unverified: reauthenticated_deletion.",
+        "Unverified: sessions_revoked.",
+        "Unverified: records_and_storage_removed.",
+        "Unverified: other_account_unchanged.",
+        "Hosted report targets different or unspecified infrastructure.",
+        "Two distinct disposable test-account identities are required."
+      ]
+    },
+    {
+      "id": "ux",
+      "required_scope": "hosted-staging",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: desktop_mobile.",
+        "Unverified: keyboard_accessibility.",
+        "Unverified: navigation_loading_empty_error_states.",
+        "Hosted report targets different or unspecified infrastructure."
+      ]
+    },
+    {
+      "id": "operations",
+      "required_scope": "hosted-staging",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: backup_restore.",
+        "Unverified: alerts_and_support_delivery.",
+        "Unverified: incident_runbook_review.",
+        "Hosted report targets different or unspecified infrastructure."
+      ]
+    },
+    {
+      "id": "legal_pilot",
+      "required_scope": "human-review",
+      "status": "BLOCKED",
+      "reasons": [
+        "Successful acceptance evidence not recorded.",
+        "Report belongs to another source commit.",
+        "Report is missing, stale or dated in the future.",
+        "A sanitized acceptance artifact or exact CI run reference is required.",
+        "An accountable reviewer must inspect the evidence.",
+        "Unverified: controller_identified.",
+        "Unverified: terms_privacy_retention_reviewed.",
+        "Unverified: external_pilot_feedback."
+      ]
+    }
+  ]
+}

@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_commit": "7bf956a72d42f251c77cde7276dcb050cebd1a35",
-  "audited_main_commit": "861aa94d573274998d96aba667a74379356c20f1",
-  "inventory_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+  "audited_main_commit": "efbb07251ffced13ff3fabf6d1ee83eabad3129a",
+  "inventory_commit": "f48e8430d49085384aa1b8a25565806329134090",
   "scope": "Integration candidate branch, not a claim of complete main or deployed product acceptance",
   "intended_eylo_supabase_ref": "kbzjngpzxpniaumlupaa",
   "live_access": "Owner identified this ref as live EYLO; unrelated connected project is forbidden for staging. Separate staging identity and access remain required.",
-  "inventory_method": "Explicit tracker ID mapping to tracked source files, route declarations, table references, tests and 66 current PR heads. Changed/new heads use current tree comparisons; unchanged heads reuse historical patch inventory. Related file presence and a combined passing suite are not full per-product acceptance. See verification.json and batch-12-core-acceptance.json for bounded execution evidence.",
+  "inventory_method": "Explicit tracker ID mapping to tracked source files, route declarations, table references, tests and 66 current PR heads. Changed/new heads use current tree comparisons; unchanged heads reuse historical patch inventory. Related file presence and a combined passing suite are not full per-product acceptance. See verification.json, batch-12-core-acceptance.json and batch-13-thesis-source-versions.json for bounded execution evidence.",
   "products": [
     {
       "id": 1,
@@ -61,11 +61,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -112,11 +112,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -166,11 +166,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -239,11 +239,11 @@
       "workflow_project_path": "/projects/:id/workbench/spaces",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -313,11 +313,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -362,11 +362,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "9f96f560f345ca4b367ba534b2d09c9beeea44ae",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -437,7 +437,7 @@
       "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -488,11 +488,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "848484b1642e3fbd3b3477d50e6ff32c93f2f02f",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/eyra.js"
@@ -543,11 +543,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "55f46921be983ae64e74581349f38b75c43990cc",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -593,11 +593,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "0d8f6948afbfcf962b70e3615e962d744cc0f7cc",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -645,11 +645,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "848484b1642e3fbd3b3477d50e6ff32c93f2f02f",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/eyra.js"
@@ -719,11 +719,11 @@
       "workflow_project_path": "/projects/:id/workbench/skills",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -787,11 +787,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "738ca9da764daadfb879fd6b6576c90fc6f872a3",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/general-jobs.js, api/euraxess.js"
@@ -841,11 +841,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "4fffd9fac4803a22e62b9b0d44f59d1be5011f3a",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -916,11 +916,11 @@
       "workflow_project_path": "/projects/:id/workbench/interview",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/eyra.js"
@@ -968,11 +968,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "63f67c0d7fdebbdd238d1e55f705625d30abf575",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -1021,11 +1021,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "a617ced27c91451d85e9b86f0eb4e2bd23876318",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -1074,11 +1074,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "a617ced27c91451d85e9b86f0eb4e2bd23876318",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -1137,7 +1137,7 @@
       "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/eyra.js"
@@ -1203,11 +1203,11 @@
       "workflow_project_path": "/projects/:id/spreadsheet",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -1275,11 +1275,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -1338,11 +1338,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/eyra.js"
@@ -1407,11 +1407,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "697aa8f79873a7305fb777a3e59a17d86f76d548",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/discovery.js"
@@ -1487,11 +1487,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "f7a2a1824b40204f7b0715b7dfc8a3ed4ae61130",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/eyra.js"
@@ -1562,11 +1562,11 @@
       "workflow_project_path": "/projects/:id/workbench/workflows",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -1644,11 +1644,11 @@
       "workflow_project_path": "/projects/:id/workbench/workflows",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Workflow browser/action fixtures and real PostgreSQL execution/replay/quota tests; hosted scheduling acceptance unverified. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/monitor.js"
@@ -1706,11 +1706,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "9e60c9217d0518fd3b820f5a6e871a20ea23d875",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/monitor.js"
@@ -1751,7 +1751,7 @@
       "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Configured serverless API/providers: api/eyra.js"
       ],
@@ -1781,11 +1781,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "85b1560fd2a4787e53e83afb3ec2d0d791909333",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [],
       "known_blockers": [
         "Acceptance criteria and full product workflow still incomplete"
@@ -1820,11 +1820,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "eb95aa32093cc64dbe437f9adc18c707be5677e4",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Configured serverless API/providers: api/eyra.js"
       ],
@@ -1947,11 +1947,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "cec7a26e4c8ea1831426804df1ec7599786faf45",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 706 tests, browser fixtures and actual disposable PostgreSQL21 selected migrations; scholarly5/5 uses real public providers; hosted Supabase/Storage/Auth deletion not executed. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/system.js"
@@ -2008,11 +2008,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -2070,11 +2070,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "3e9cac90bc49044079024cd10b078159ded09c0e",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/meeting-room.js"
@@ -2130,11 +2130,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -2188,11 +2188,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -2280,11 +2280,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9c743252c34081989e146992f94f59f83eb92493",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/discovery.js, api/opportunities.js"
@@ -2355,11 +2355,11 @@
       "workflow_project_path": "/projects/:id/workbench/studio",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -2400,11 +2400,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "aafb9d70dd619f292979918eb7afb6a0c1027021",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Canonical workspace table policies/triggers exercised on local PostgreSQL with synthetic auth identities. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -2456,11 +2456,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/system.js"
@@ -2497,11 +2497,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "ee4c66d68e2bedb6dca398263c5c8d4d9323e22b",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [],
       "known_blockers": [
         "Acceptance criteria and full product workflow still incomplete"
@@ -2548,11 +2548,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "1c4a094a768cdf0a18ec8f8f0e821a4f57d92a42",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -2618,11 +2618,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/system.js"
@@ -2684,11 +2684,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 706 tests, browser fixtures and actual disposable PostgreSQL21 selected migrations; scholarly5/5 uses real public providers; hosted Supabase/Storage/Auth deletion not executed. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -2730,11 +2730,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "97ef1f37f65033812faf517f93b06aa671cd841d",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [],
       "known_blockers": [
         "Acceptance criteria and full product workflow still incomplete"
@@ -2773,7 +2773,7 @@
       "automated_test_source_commit": null,
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -2827,11 +2827,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -2894,11 +2894,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "f7a2a1824b40204f7b0715b7dfc8a3ed4ae61130",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/eyra.js"
@@ -2964,11 +2964,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "96c5efbfc4c1f51a7e935e60969c23fc04aff56e",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -3019,11 +3019,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "784d1e5999b18bfb05bfba2f3c3e13748df508d8",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Checklist save/reload and stale-write draft retention browser fixtures; project CAS independently tested on disposable PostgreSQL. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -3095,11 +3095,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "00beec020f22ffe06f1cba39ac75e6beba6e19df",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/discovery.js, api/eyra.js"
@@ -3165,11 +3165,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "96c5efbfc4c1f51a7e935e60969c23fc04aff56e",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/eyra.js"
@@ -3238,11 +3238,11 @@
       "workflow_project_path": "/projects/:id/workbench/methodology",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -3298,11 +3298,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "4607d2b5151d0dad07d9288500ad343d0577373e",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 706 tests, browser fixtures and actual disposable PostgreSQL21 selected migrations; scholarly5/5 uses real public providers; hosted Supabase/Storage/Auth deletion not executed. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -3381,11 +3381,11 @@
       "workflow_project_path": "/projects/:id",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "96c5efbfc4c1f51a7e935e60969c23fc04aff56e",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/eyra.js"
@@ -3461,11 +3461,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "96c5efbfc4c1f51a7e935e60969c23fc04aff56e",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Project workplan subset: browser persistence/conflict fixtures and independent local PostgreSQL compare-and-set sessions. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -3521,11 +3521,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "3b40488e706728773a4282d27c203e2738f640a6",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -3607,11 +3607,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "96c5efbfc4c1f51a7e935e60969c23fc04aff56e",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/eyra.js"
@@ -3707,11 +3707,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "f7a2a1824b40204f7b0715b7dfc8a3ed4ae61130",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/discovery.js, api/eyra.js"
@@ -3725,9 +3725,10 @@
       "id": 59,
       "name": "Thesis Studio",
       "status": "Partially implemented",
-      "tracker_statement": "PARTIAL: Canonical Notes-backed chapter outline, saved-note word counts, explicit conflict choice, ordered Markdown/JSON compile and exact note links. Local browser/SQL verified. Remaining: hosted acceptance, source-version pinning, academic workflow and publication-grade document formatting.",
+      "tracker_statement": "PARTIAL: Canonical Notes-backed ordered chapter outlines now optionally pin an exact saved Note version. Compilation reads the exact owner-scoped canonical history row, preserves version/archive provenance, rejects pruned/deleted/foreign/moved sources without substituting latest content, and supports explicit repinning. Legacy unpinned chapters follow latest saved content. Remaining: Hosted owner/isolation/persistence/history-retention acceptance, durable retention beyond the canonical last50 versions, real academic workflow acceptance and publication-grade document formatting.",
       "source_files": [
         "src/components/projects/ProjectDocumentWorkspace.jsx",
+        "src/lib/thesis-note-source.mjs",
         "src/lib/thesis-outline.mjs",
         "src/pages/ThesisStudio.jsx"
       ],
@@ -3740,7 +3741,8 @@
       "backend_apis": [],
       "supabase_entities": [
         "projects",
-        "notes"
+        "notes",
+        "note_versions"
       ],
       "migration_files": [
         "supabase/migrations/20260803_eylo_core_entities.sql",
@@ -3764,18 +3766,19 @@
       "open_prs": [],
       "automated_test_files": [
         "tests/e2e-learning-integration.mjs",
+        "tests/thesis-note-source.test.mjs",
         "tests/thesis-outline.test.mjs"
       ],
-      "user_workflow_and_remaining_acceptance": "Canonical Notes-backed chapter outline, saved-note word counts, explicit conflict choice, ordered Markdown/JSON compile and exact note links. Local browser/SQL verified. Remaining: hosted acceptance, source-version pinning, academic workflow and publication-grade document formatting.",
-      "workflow_entry_path": null,
-      "workflow_project_path": null,
-      "workflow_acceptance": "Not established; tracker statement describes remaining work",
-      "implementation_commit": "97ef1f37f65033812faf517f93b06aa671cd841d",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
-      "integration_test_status": "Partial local verification: Canonical Note chapter ordering/word-count/compile fixtures, source-loss save rejection, exact Notes deep links beyond1000, foreign target rejection; real local PostgreSQL project/Note RLS and CAS. Hosted acceptance unverified. Remaining product criteria unverified.",
+      "user_workflow_and_remaining_acceptance": "Canonical Notes-backed ordered chapter outlines now optionally pin an exact saved Note version. Compilation reads the exact owner-scoped canonical history row, preserves version/archive provenance, rejects pruned/deleted/foreign/moved sources without substituting latest content, and supports explicit repinning. Legacy unpinned chapters follow latest saved content. Remaining: Hosted owner/isolation/persistence/history-retention acceptance, durable retention beyond the canonical last50 versions, real academic workflow acceptance and publication-grade document formatting.",
+      "workflow_entry_path": "/projects",
+      "workflow_project_path": "/projects/:id/thesis",
+      "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
+      "implementation_commit": "f48e8430d49085384aa1b8a25565806329134090",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
+      "integration_test_status": "Partial local verification: 732 combined unit/API tests and production build; new source-pin regressions and full Learning browser with synthetic transport. Existing21-migration PostgreSQL evidence is historical unchanged-schema evidence, not a new hosted test.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -3833,11 +3836,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "4a044bceae97a87ac483d5b2985798ad941b8f1c",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Project-owned research record browser create/reload, owner-filtered CAS and retained draft, export, search, mobile and confirmed deletion; actual PostgreSQL owner/outsider and stale-save checks. Hosted Supabase unverified. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -3902,11 +3905,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -3971,11 +3974,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "c842cc543a8500e489ae4593dbee62b76d42223d",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Review protocol and screening browser persistence, CAS conflicts, project-switch confirmation, reload and source-bound JSON export fixtures. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/discovery.js"
@@ -4025,11 +4028,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "697aa8f79873a7305fb777a3e59a17d86f76d548",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/discovery.js"
@@ -4098,11 +4101,11 @@
       "workflow_project_path": "/projects/:id/workbench/ethics",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -4147,11 +4150,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "2fa3e7679ac352b73205b995f496848bc6cb5c92",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Local Data Lab/catalog subset: browser analysis, export, disclosure and account-scoped metadata fixtures. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [],
       "known_blockers": [
         "Acceptance criteria and full product workflow still incomplete"
@@ -4206,11 +4209,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "4a044bceae97a87ac483d5b2985798ad941b8f1c",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Project-owned research record browser create/reload, owner-filtered CAS and retained draft, export, search, mobile and confirmed deletion; actual PostgreSQL owner/outsider and stale-save checks. Hosted Supabase unverified. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -4271,11 +4274,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "3e9cac90bc49044079024cd10b078159ded09c0e",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/discovery.js, api/meeting-room.js"
@@ -4346,11 +4349,11 @@
       "workflow_project_path": "/projects/:id/workbench/conferences",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -4408,11 +4411,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "4a044bceae97a87ac483d5b2985798ad941b8f1c",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Project-owned research record browser create/reload, owner-filtered CAS and retained draft, export, search, mobile and confirmed deletion; actual PostgreSQL owner/outsider and stale-save checks. Hosted Supabase unverified. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -4470,11 +4473,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "97ef1f37f65033812faf517f93b06aa671cd841d",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Exact-cent arithmetic, formula-safe CSV, pending-draft save guard, explicit conflict choice, persistence/removal/mobile browser fixtures; real local PostgreSQL document RLS/CAS. Hosted acceptance unverified. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -4542,11 +4545,11 @@
       "workflow_project_path": "/projects/:id/workbench/forms",
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 689 unit/API tests, all three local browser suites, actual network-off reload and19 selected disposable PostgreSQL migrations; synthetic Auth/AI/PostgREST transport, not hosted acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -4591,11 +4594,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "2fa3e7679ac352b73205b995f496848bc6cb5c92",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Local Data Lab/catalog subset: browser analysis, export, disclosure and account-scoped metadata fixtures. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [],
       "known_blockers": [
         "Acceptance criteria and full product workflow still incomplete"
@@ -4631,11 +4634,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "7cb7b2d74671d188d8c494f8e3e428bfb5685256",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [],
       "known_blockers": [
         "Acceptance criteria and full product workflow still incomplete"
@@ -4695,11 +4698,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "55a00ff0d935dd849a1546c7464d38f613cfa0ca",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Project workplan subset: browser persistence/conflict fixtures and independent local PostgreSQL compare-and-set sessions. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -4759,11 +4762,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "848484b1642e3fbd3b3477d50e6ff32c93f2f02f",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations"
       ],
@@ -4831,11 +4834,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "9e363e24e1b4ff7644efcd70fab1cac637ff2c51",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Partial local verification: Actual React with synthetic Auth/PostgREST/AI transport; real disposable PostgreSQL policies/actions where applicable; not hosted/provider acceptance. Remaining product criteria unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/system.js"
@@ -4883,11 +4886,11 @@
       "workflow_project_path": null,
       "workflow_acceptance": "Not established; tracker statement describes remaining work",
       "implementation_commit": "836ae95d4511b46f01a89d2d3c6ee4266cbaea78",
-      "automated_test_status": "Combined suite PASS: 727 tests; mapped file presence is not full product acceptance",
-      "automated_test_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+      "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
+      "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
       "integration_test_status": "Not independently verified per product",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
-      "production_verification": "Product acceptance NOT_RUN. Public manifest/server provenance matches main3854e98; published public theme verified read-only. Hosted discovery is blocked by quota service503 and AI/contact/billing are false. This is not production product acceptance.",
+      "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [
         "Verified EYLO Supabase project and reviewed migrations",
         "Configured serverless API/providers: api/admin-analytics.js"

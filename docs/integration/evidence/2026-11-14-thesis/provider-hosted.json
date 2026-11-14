@@ -1,0 +1,309 @@
+{
+  "executed_at": "2026-11-14T13:10:09.673Z",
+  "proxy_target": "https://eyloai.vercel.app",
+  "human_judged": false,
+  "cases": [
+    {
+      "query": "robotics for independent ageing",
+      "records": 0,
+      "heuristic_anchor_coverage_at_10": 0,
+      "anchor_matches": 0,
+      "represented_sources": 0,
+      "available_sources": 0,
+      "unavailable_sources": 5,
+      "available_source_names": [],
+      "unavailable_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref",
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "OpenAlex HTTP 503",
+        "arXiv HTTP 503",
+        "Europe PMC HTTP 503",
+        "Crossref HTTP 503",
+        "Semantic Scholar HTTP 503"
+      ],
+      "gateway_errors": [
+        {
+          "source": "OpenAlex",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "arXiv",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Europe PMC",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Crossref",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Semantic Scholar",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        }
+      ],
+      "provider_health_evaluated": false,
+      "top_result": "No live record",
+      "source_coverage_sufficient": false,
+      "coverage_warning": true,
+      "anchor_gate_passed": null
+    },
+    {
+      "query": "AI for early cancer detection",
+      "records": 0,
+      "heuristic_anchor_coverage_at_10": 0,
+      "anchor_matches": 0,
+      "represented_sources": 0,
+      "available_sources": 0,
+      "unavailable_sources": 5,
+      "available_source_names": [],
+      "unavailable_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref",
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "OpenAlex HTTP 503",
+        "arXiv HTTP 503",
+        "Europe PMC HTTP 503",
+        "Crossref HTTP 503",
+        "Semantic Scholar HTTP 503"
+      ],
+      "gateway_errors": [
+        {
+          "source": "OpenAlex",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "arXiv",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Europe PMC",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Crossref",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Semantic Scholar",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        }
+      ],
+      "provider_health_evaluated": false,
+      "top_result": "No live record",
+      "source_coverage_sufficient": false,
+      "coverage_warning": true,
+      "anchor_gate_passed": null
+    },
+    {
+      "query": "climate adaptation for coastal cities",
+      "records": 0,
+      "heuristic_anchor_coverage_at_10": 0,
+      "anchor_matches": 0,
+      "represented_sources": 0,
+      "available_sources": 0,
+      "unavailable_sources": 5,
+      "available_source_names": [],
+      "unavailable_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref",
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "OpenAlex HTTP 503",
+        "arXiv HTTP 503",
+        "Europe PMC HTTP 503",
+        "Crossref HTTP 503",
+        "Semantic Scholar HTTP 503"
+      ],
+      "gateway_errors": [
+        {
+          "source": "OpenAlex",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "arXiv",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Europe PMC",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Crossref",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Semantic Scholar",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        }
+      ],
+      "provider_health_evaluated": false,
+      "top_result": "No live record",
+      "source_coverage_sufficient": false,
+      "coverage_warning": true,
+      "anchor_gate_passed": null
+    },
+    {
+      "query": "trustworthy AI in higher education",
+      "records": 0,
+      "heuristic_anchor_coverage_at_10": 0,
+      "anchor_matches": 0,
+      "represented_sources": 0,
+      "available_sources": 0,
+      "unavailable_sources": 5,
+      "available_source_names": [],
+      "unavailable_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref",
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "OpenAlex HTTP 503",
+        "arXiv HTTP 503",
+        "Europe PMC HTTP 503",
+        "Crossref HTTP 503",
+        "Semantic Scholar HTTP 503"
+      ],
+      "gateway_errors": [
+        {
+          "source": "OpenAlex",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "arXiv",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Europe PMC",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Crossref",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Semantic Scholar",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        }
+      ],
+      "provider_health_evaluated": false,
+      "top_result": "No live record",
+      "source_coverage_sufficient": false,
+      "coverage_warning": true,
+      "anchor_gate_passed": null
+    },
+    {
+      "query": "uncertainty-aware trajectory prediction vulnerable road users",
+      "records": 0,
+      "heuristic_anchor_coverage_at_10": 0,
+      "anchor_matches": 0,
+      "represented_sources": 0,
+      "available_sources": 0,
+      "unavailable_sources": 5,
+      "available_source_names": [],
+      "unavailable_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref",
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "OpenAlex HTTP 503",
+        "arXiv HTTP 503",
+        "Europe PMC HTTP 503",
+        "Crossref HTTP 503",
+        "Semantic Scholar HTTP 503"
+      ],
+      "gateway_errors": [
+        {
+          "source": "OpenAlex",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "arXiv",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Europe PMC",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Crossref",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        },
+        {
+          "source": "Semantic Scholar",
+          "code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+          "status": 503
+        }
+      ],
+      "provider_health_evaluated": false,
+      "top_result": "No live record",
+      "source_coverage_sufficient": false,
+      "coverage_warning": true,
+      "anchor_gate_passed": null
+    }
+  ],
+  "retrieved_records": [
+    {
+      "query": "robotics for independent ageing",
+      "papers": []
+    },
+    {
+      "query": "AI for early cancer detection",
+      "papers": []
+    },
+    {
+      "query": "climate adaptation for coastal cities",
+      "papers": []
+    },
+    {
+      "query": "trustworthy AI in higher education",
+      "papers": []
+    },
+    {
+      "query": "uncertainty-aware trajectory prediction vulnerable road users",
+      "papers": []
+    }
+  ]
+}

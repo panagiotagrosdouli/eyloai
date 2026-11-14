@@ -1,0 +1,18 @@
+✔ a pinned chapter uses the exact canonical history, never new content or snapshot metadata overrides (2.261224ms)
+✔ legacy latest chapters and current-version pins do not request history (0.280113ms)
+✔ pruned, unavailable, foreign-owner, wrong-note or cross-project history cannot fall back to latest (1.072301ms)
+✔ deleted, mismatched and moved current Notes cannot authorize historical content (0.432157ms)
+✔ outline pins require an exact positive integer version and cannot compile a mismatched source (0.431096ms)
+✔ thesis links canonical notes, counts saved content and requires real content for complete status (8.715201ms)
+✔ missing or cross-project note links cannot produce a successful compile or complete progress (0.602418ms)
+✔ outline validates IDs, targets, statuses, duplicate note usage and resource limits (0.478726ms)
+✔ compiled draft follows chapter order and exports saved Notes without inventing source content (0.367102ms)
+✔ canonical PostgreSQL note UUIDs do not require a generated UUID version nibble (0.23732ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 160.157488

@@ -1,12 +1,13 @@
 {
   "date": "2026-11-14",
-  "tested_source_commit": "1aa9f76914ab924a95e7723327e57f16836ea331",
+  "tested_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
+  "audited_main_commit": "efbb07251ffced13ff3fabf6d1ee83eabad3129a",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
     "npm_run_check": {
       "status": "PASS",
-      "tests": 727,
+      "tests": 732,
       "failed": 0,
       "includes": [
         "imports",
@@ -17,129 +18,80 @@
       ]
     },
     "browser_suites": {
-      "status": "PASS",
+      "status": "PASS_LEARNING_CURRENT_OTHER_SUITES_PREVIOUS_BATCH",
       "suites": [
-        "auth",
-        "learning",
-        "products",
-        "landing",
-        "discovery-gateway"
+        "learning"
       ],
-      "scope": "synthetic transport except actual local production network-off reload"
+      "scope": "Full Learning suite rerun with synthetic transport; other four suites have prior batch evidence and must pass current final-head CI."
     },
     "postgres": {
-      "status": "PASS",
+      "status": "PREVIOUS_BATCH_PASS_UNCHANGED_SCHEMA",
       "migrations": 21,
-      "scope": "actual disposable local SQL; not hosted Auth/PostgREST/Storage bytes"
+      "scope": "Historical actual disposable SQL, not rerun for client-only source pins; no hosted migration/query executed."
     },
     "advisories": {
       "production": 0,
-      "all_dependencies": 0
-    },
-    "migration_manifest": {
-      "source_files": 28,
-      "actual_local_replay": 21,
-      "excluded_pending_review": 7,
-      "remote_history_verified": false,
-      "remote_application_authorized": false,
-      "shared_legacy_version": "20260803",
-      "hardcoded_live_cron_excluded": "20260817091000_scheduled_monitoring.sql"
+      "all_dependencies": 0,
+      "scope": "Prior batch audit; dependencies unchanged."
     }
   },
-  "live_checks": {
-    "direct_public_providers": {
-      "status": "PASS",
-      "source_coverage": "5/5",
-      "anchor_gates": "5/5",
-      "mean": 0.94,
-      "human_judged": false,
-      "semantic_scholar": "HTTP429"
-    },
-    "hosted_proxy": {
-      "status": "FAIL",
-      "source_coverage": "0/5",
-      "reason": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
-      "provider_health_evaluated": false
-    },
-    "published_frontend": {
-      "status": "PASS_SCOPED",
-      "commit": "3854e9816f11f432fea9758d1650dcc50c858f5e",
-      "scope": "read-only public day/night/plans; no authenticated user acceptance"
-    }
+  "real_public_providers": {
+    "status": "PREVIOUS_BATCH_PASS5_OF5_LOCAL_HANDLER",
+    "scope": "Real HTTP provider metadata, automated anchors only; no independent human relevance acceptance."
   },
-  "external_blockers": [
-    "Separate authorized EYLO staging and two disposable hosted users are not connected",
-    "Connected Supabase still exposes only unrelated umzrggayitzfgrrofjnw; live kbzjngpzxpniaumlupaa is forbidden for staging",
-    "Connected Vercel Hobby team has no linked projects; public provenance does not grant configuration/ownership access",
-    "AI/contact/billing/scheduled monitoring/institution analytics not reported configured",
-    "Hosted Auth/Storage/file bytes/deletion, OpenAI, Stripe sandbox and LiveKit media, human relevance/legal/pilot acceptance",
-    "Full28-file remote migration history is not reconciled; legacy shared version20260803 and a scheduler with a hardcoded live target must not be pushed blindly."
-  ],
-  "remote_mutations": {
-    "migrations": false,
-    "production_data": false,
-    "live_payments": false,
-    "agent_promotions": false,
-    "external_owner_merge": "PR412 merged externally as3854e98 during this batch; preserved by rebase"
-  },
-  "result_categories": {
-    "IMPLEMENTED": [
-      "Canonical Notes/tasks in the source-backed graph with exact editor links, caps and expected-owner validation",
-      "Safe gateway error attribution without bypassing quotas",
-      "Saved-record Project Intelligence with independent validation and source links",
-      "Pinned all28 migration files in a shared review manifest: actual local21 replay only;7 legacy/side-effect exclusions and duplicate legacy timestamps require reconciliation. CLI never authorizes or executes remote SQL."
-    ],
-    "TESTED": [
-      "727 Node regressions/static/build",
-      "Five local browser suites",
-      "21 selected migrations on actual disposable PostgreSQL",
-      "Production and complete dependency advisory scans"
-    ],
-    "VERIFIED": [
-      "Actual public providers pass unchanged5/5 automated source/anchor gates locally; this is not human relevance acceptance",
-      "External PR412 published main3854e98; anonymous live day/night/Premium navigation observed",
-      "Five graph collections use canonical repositories; task/note links and foreign-owner refusal verified with fixture HTTP"
-    ],
-    "FAILED": [
-      "Hosted scholarly proxy0/5:503 DISCOVERY_RATE_LIMIT_UNAVAILABLE; actual upstream availability was not evaluated by that failed proxy run"
-    ],
-    "BLOCKED": [
-      "Separate authorized EYLO staging and two disposable hosted users are not connected",
-      "Connected Supabase still exposes only unrelated umzrggayitzfgrrofjnw; live kbzjngpzxpniaumlupaa is forbidden for staging",
-      "Connected Vercel Hobby team has no linked projects; public provenance does not grant configuration/ownership access",
-      "AI/contact/billing/scheduled monitoring/institution analytics not reported configured",
-      "Hosted Auth/Storage/file bytes/deletion, OpenAI, Stripe sandbox and LiveKit media, human relevance/legal/pilot acceptance",
-      "Full28-file remote migration history is not reconciled; legacy shared version20260803 and a scheduler with a hardcoded live target must not be pushed blindly."
-    ],
-    "NOT_IMPLEMENTED": [
-      "Complete advanced scope and full acceptance for all77 products",
-      "Durable cancellable agent runs with completion audit",
-      "General Smart Import preview/mapping/rollback history",
-      "Append-only claim/evidence ledger and contradictory-source review",
-      "Source-pinned thesis chapters/publication-grade formatting",
-      "Offline writes/synchronization and cross-device key recovery"
-    ]
-  },
-  "concurrent_branch_reconciliation": {
-    "started_main": "f1350a4",
-    "external_main": "3854e98",
-    "action": "Preserved externally merged PR412 by rebasing the unpushed core feature batch; no production promotion by this agent."
-  },
-  "review": {
-    "continuation_branch": "codex/eylo-core-acceptance-continuation",
-    "scope": "candidate core functionality; keep draft pending hosted release gates"
-  },
-  "github_ci": {
-    "status": "PENDING_CURRENT_PR",
-    "scope": "Exact final-head Actions results belong in the continuation PR description"
+  "hosted_retrieval": {
+    "status": "FAILED",
+    "coverage": "0/5",
+    "gateway_code": "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
+    "provider_health_evaluated": false
   },
   "latest_vercel_observation": {
     "status": "PUBLIC_SOURCE_SHA_MATCHES_MAIN",
-    "commit": "3854e9816f11f432fea9758d1650dcc50c858f5e",
+    "commit": "efbb07251ffced13ff3fabf6d1ee83eabad3129a",
     "capabilities": "AI/contact/billing/scheduled monitoring/institution analytics false",
-    "discovery": "503 quota service unavailable",
-    "scope": "Public provenance, not verified project configuration/hosted acceptance"
+    "scope": "Read-only public identity/configuration, not project access or private acceptance."
   },
-  "audited_main_commit": "3854e9816f11f432fea9758d1650dcc50c858f5e",
-  "historical_report": "evidence/2026-11-14-core/previous-verification.json"
+  "result_categories": {
+    "IMPLEMENTED": [
+      "Optional per-chapter exact Note-version pins with canonical history; no competing store, schema or SQL changes.",
+      "Bounded single-row version retrieval with expected account, raw owner, note and version checks.",
+      "Markdown and version2 JSON exports preserve exact source version; original save time is unknown for archived snapshots and is not fabricated.",
+      "Explicit repin recovery; current Note access and matching project remain required before historical content can load."
+    ],
+    "EXECUTED": [
+      "npm run check:732/732 tests, imports/typecheck/ESLint and production build PASS.",
+      "Full Learning browser fixture suite PASS, including later Note edits, exact pinned exports, foreign/pruned history refusal and explicit repin.",
+      "Read-only public deployment probe against mainefbb07251ffced13ff3fabf6d1ee83eabad3129a: source identity matches; optional capability gate FAIL.",
+      "Unchanged real hosted five-query retrieval FAIL0/5 with gateway503; provider health not evaluated.",
+      "release:readiness returns expected NO-GO/exit1."
+    ],
+    "VERIFIED": [
+      "Bounded local fixture behavior only for the new private source-version flow.",
+      "Public frontend/server provenance matches independently compared mainefbb07251ffced13ff3fabf6d1ee83eabad3129a."
+    ],
+    "FAILED": [
+      "Hosted scholarly proxy0/5:503 DISCOVERY_RATE_LIMIT_UNAVAILABLE.",
+      "Public capability probe: AI/contact/billing/scheduled monitoring/institution analytics false."
+    ],
+    "BLOCKED": [
+      "Only unrelated Supabase project umzrggayitzfgrrofjnw and no Vercel linked projects visible; no independently verified separate EYLO staging.",
+      "Hosted Auth, two-user RLS, Storage bytes, private version history, OpenAI, Stripe sandbox, LiveKit media, privacy/deletion and recovery acceptance.",
+      "Human scientific relevance, legal/controller/support and pilot sign-off."
+    ],
+    "NOT_IMPLEMENTED": [
+      "Complete advanced scope and full acceptance for all77 products.",
+      "Permanent thesis source retention beyond canonical last50 historical versions; publication-grade formatting.",
+      "Durable cancellable agents/outcome audit, general Smart Import mapping/rollback, append-only evidence/contradictions, offline writes/sync."
+    ]
+  },
+  "review": {
+    "continuation_branch": "codex/eylo-thesis-source-versions",
+    "scope": "Keep draft pending hosted release gates."
+  },
+  "github_ci": {
+    "status": "PENDING_FINAL_HEAD",
+    "scope": "Exact final-head workflow links recorded in PR description."
+  },
+  "historical_report": "evidence/2026-11-14-thesis/previous-verification.json",
+  "current_batch": "batch-13-thesis-source-versions.json"
 }

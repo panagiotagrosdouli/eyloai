@@ -147,6 +147,17 @@ function entityRepository({ table }) {
       if (error) throw error;
       return data || [];
     },
+    async getVersion(entityId, version, expectedOwnerId) {
+      if (table !== 'notes' || !Number.isInteger(version) || version < 1 || version > 2147483647 || !expectedOwnerId) throw new Error('A valid private Note version is required.');
+      const user = await currentUser();
+      if (user.id !== expectedOwnerId) throw new Error('The signed-in account changed.');
+      const { data, error } = await requireSupabase().from('note_versions')
+        .select('id,note_id,user_id,version,snapshot,created_date')
+        .eq('note_id', entityId).eq('version', version).eq('user_id', user.id).single();
+      if (error) throw error;
+      if (data?.user_id !== expectedOwnerId || data.note_id !== entityId || data.version !== version) throw new Error('The Note version could not be verified.');
+      return data;
+    },
     async get(entityId, expectedOwnerId = null) {
       const user = await currentUser();
       if (expectedOwnerId && user.id !== expectedOwnerId) throw Object.assign(new Error('The signed-in account changed.'), { code: 'ENTITY_OWNER_CHANGED' });
