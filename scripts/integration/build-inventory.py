@@ -38,12 +38,12 @@ MAP = '''1|Life,LifeGoals,Habits|life_tasks,life_goals||life-workspace
 28|VoiceAssistant||eyra|
 29|cv-extraction|||profile-merge
 30|citation-verification,evidence-verification||eyra|citation-verification,evidence-verification
-31|workspace-export,Settings|profiles,projects,saved_papers||workspace-export,citation-export
+31|workspace-export,Settings,AccountDeletion,privateBrowserData|profiles,projects,saved_papers|system|workspace-export,citation-export,account-deletion-api,private-browser-deletion,e2e-products
 32|CollaborationTools,ProductTools,product-registry|eylo_teams,eylo_team_members,eylo_team_invites||complete-products,product-api,e2e-products
 33|Meetings,MeetingRoom|meetings,meeting_participants|meeting-room|meeting,supervisor-meetings
 34|CollaborationTools,ProductTools,product-registry|eylo_directory,eylo_connections||complete-products,product-api,e2e-products
 35|CollaborationTools,ProductTools,product-registry|eylo_community_posts||complete-products,product-api,e2e-products
-36|PublicDiscovery,ForYou,Home|saved_papers|discovery,opportunities|discovery,arxiv,scholarly
+36|PublicDiscovery,ForYou,Home,eyra-api,scholarly-query|saved_papers|discovery,opportunities|discovery,arxiv,scholarly
 37|ProductTools,ProductWorkbench,product-workbench,product-operation-recovery|projects,notes||complete-products,product-api,e2e-products
 38|ActivityHistory|activity_events||activity-history
 39|ProductTools,PersonalTools,product-registry|eylo_feedback|system|complete-products,product-api,e2e-products
@@ -110,6 +110,9 @@ def main():
     polish_path=ROOT/'docs/integration/batch-10-workflow-polish.json'
     if polish_path.exists():
         scopes.update({row['id']:row for row in json.loads(polish_path.read_text())['product_scope_updates']})
+    privacy_path=ROOT/'docs/integration/batch-11-retrieval-privacy.json'
+    if privacy_path.exists():
+        scopes.update({row['id']:row for row in json.loads(privacy_path.read_text())['product_scope_updates']})
     export_tables=json.loads(subprocess.check_output(['node','--input-type=module','-e',
         "import {WORKSPACE_EXPORT_TABLES} from './src/lib/workspace-export.mjs'; process.stdout.write(JSON.stringify(WORKSPACE_EXPORT_TABLES));"],cwd=ROOT,text=True))
     workflow_evidence = {

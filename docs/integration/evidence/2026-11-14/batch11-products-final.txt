@@ -1,0 +1,205 @@
+
+> eyloai@0.0.0 test:e2e:products
+> node tests/e2e-products.mjs
+
+PASS fixture: all22 product entries are discoverable in the authenticated tools hub.
+PASS fixture: Spaces authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Skills authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Interview Simulator authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Workflow Builder authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Studio authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Methodology Coach authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Research Ethics authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Conference Hub authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Smart Forms authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Spreadsheet real cell editing, saved formula, reload and evaluated aggregate.
+PASS fixture: Memory retrieves canonical source text and attribution without a model or memory table.
+PASS fixture: authenticated EYRA translation stream fixture and explicit canonical Note save. No real provider request.
+PASS fixture: a translation that drops a supplied citation fails closed before canonical Note saving.
+PASS fixture: conference all-day date at UTC month boundary stays on day1 and survives Calendar editing in America/Los_Angeles.
+PASS fixture: read-only recovery diagnostics use actual JSON checks and report results.
+PASS fixture: Admin Operations denies an unauthorized account.
+PASS fixture: Business Intelligence reports actual loaded sources and missing budget explicitly.
+PASS fixture: Developer token issue stores only digest/scopes and revocation persists.
+PASS fixture: Connect opt-in directory and explicit connection request persistence.
+PASS fixture: Teams creation/invitation UI; actual consent/role/revocation SQL checked separately.
+PASS fixture: Community deliberate publication and threaded reply persistence.
+PASS fixture: Feedback saved receipt and status tracking.
+PASS fixture: Peer Review explicit snapshot sharing to an accepted connection; real draft privacy SQL checked separately.
+PASS fixture: production static shell survives offline reload; encrypted snapshot unlock/lock works with no plaintext-at-rest.
+FIXTURE FAILURE VIEW: EYLO · RESEARCH WORKSPACE
+Hello.
+Research,
+connected.
+
+Follow a question from papers to people, projects and the opportunities around it.
+
+Evidence first
+Sources you can open
+Your work in one place
+
+START HERE
+
+What are you working on?
+Ask EYRA
+Continue
+
+Search results link back to academic sources. AI interpretations are labeled separately from retrieved evidence.
+
+YOUR WORK
+
+Pick up where you left off
+All projects
+ACTIVE PROJECTS
+View all
+Make space for your next idea.
+
+Keep papers, people and decisions together in a project.
+
+Create project
+RECENT SEARCHES
+Search history
+
+Your searches will appear here so you can return to them quickly.
+
+SAVED PAPERS
+Open library
+
+Saved publications will appear here when you add them to your library.
+
+RESEARCH IDEAS
+Open ideas
+
+Ideas you save will be ready here when you return.
+
+MOVE IT FORWARD
+
+Research pathways
+
+Each tool takes you to a practical next step.
+
+EVIDENCE
+Explore the literature
+Search academic sources and open the original papers.
+CONNECTIONS
+Find your people
+Discover researchers through their published work.
+NEXT STEP
+Find a research role
+Compare official listings with your CV in this browser.
+FUNDING
+Find an opportunity
+Review records and follow the link to the official source.
+Open saved library
+
+Your saved work
+
+Workspace overview
+Create new
+Search my workspace
+Activity history
+Today's tasks
+0
+Open
+
+No open tasks are due today.
+
+Get started
+Calendar
+0
+Open
+
+Add your first calendar event.
+
+Get started
+Recent projects
+1
+Open
+Product fixture project
+Updated Nov 13
+Recent notes
+2
+Open
+Translation to Greek
+Edited Nov 13
+Canonical fixture note
+Edited Nov 13
+Study planner
+0
+Open
+
+Plan a study session or goal.
+
+Get started
+Flashcards
+0
+Open
+
+Create your first flashcard deck.
+
+Get started
+Saved research
+0
+Open
+
+Search your workspace
+
+Get started
+Recent activity
+0
+Open
+
+Your recorded changes will be listed here.
+
+Get started
+
+Workspace tools
+
+EYLO products
+Notes
+Life
+Study Planner
+Calendar
+Flashcards
+Universal Search
+Activity History
+Research Library
+Home
+Discover
+EYRA
+Connect
+Careers
+ROOT WIDTH: { inner: 390, html: 390, body: 390, table: null }
+OVERFLOW ELEMENTS: []
+STATIC CACHE: [
+  '/offline-shell',
+  '/assets/index-Bcsj9pAF.js',
+  '/assets/supabase-vendor-_Ts6dIFp.js',
+  '/assets/index-BjCRuqPi.css',
+  '/assets/OfflineWorkspace-B_z4Ye_t.js',
+  '/assets/ProjectDocumentWorkspace-CVyE2-y2.js',
+  '/assets/base44Client-BdlsDZbz.js',
+  '/assets/supabase-entities-jKphB_g5.js',
+  '/assets/api-url-tGFngulw.js',
+  '/assets/billing-BBeAWMJE.js'
+]
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.waitForURL: Timeout 20000ms exceeded.
+=========================== logs ===========================
+waiting for navigation until "load"
+  navigated to "http://127.0.0.1:44393/home"
+============================================================
+    at /workspace/work/eyloai/tests/e2e-products.mjs:796:16 {
+  log: [],
+  name: 'TimeoutError'
+}
+
+Node.js v24.22.1
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

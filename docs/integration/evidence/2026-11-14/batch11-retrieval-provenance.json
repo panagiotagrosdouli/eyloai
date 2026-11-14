@@ -1,0 +1,1174 @@
+{
+  "executed_at": "2026-11-14T07:02:09.605Z",
+  "proxy_target": "http://127.0.0.1:41361",
+  "human_judged": false,
+  "cases": [
+    {
+      "query": "robotics for independent ageing",
+      "records": 10,
+      "heuristic_anchor_coverage_at_10": 1,
+      "anchor_matches": 10,
+      "represented_sources": 2,
+      "available_sources": 4,
+      "unavailable_sources": 1,
+      "available_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref"
+      ],
+      "unavailable_source_names": [
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "Semantic Scholar HTTP 429"
+      ],
+      "top_result": "Social robotic application to support active and healthy ageing",
+      "source_coverage_sufficient": true,
+      "coverage_warning": false,
+      "anchor_gate_passed": true
+    },
+    {
+      "query": "AI for early cancer detection",
+      "records": 10,
+      "heuristic_anchor_coverage_at_10": 0.7,
+      "anchor_matches": 7,
+      "represented_sources": 4,
+      "available_sources": 4,
+      "unavailable_sources": 1,
+      "available_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref"
+      ],
+      "unavailable_source_names": [
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "Semantic Scholar HTTP 429"
+      ],
+      "top_result": "Healthcare’s new Frontier: AI-driven early cancer detection for improved well-being",
+      "source_coverage_sufficient": true,
+      "coverage_warning": false,
+      "anchor_gate_passed": true
+    },
+    {
+      "query": "climate adaptation for coastal cities",
+      "records": 10,
+      "heuristic_anchor_coverage_at_10": 1,
+      "anchor_matches": 10,
+      "represented_sources": 4,
+      "available_sources": 4,
+      "unavailable_sources": 1,
+      "available_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref"
+      ],
+      "unavailable_source_names": [
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "Semantic Scholar HTTP 429"
+      ],
+      "top_result": "Progress and gaps in climate change adaptation in coastal cities across the globe",
+      "source_coverage_sufficient": true,
+      "coverage_warning": false,
+      "anchor_gate_passed": true
+    },
+    {
+      "query": "trustworthy AI in higher education",
+      "records": 10,
+      "heuristic_anchor_coverage_at_10": 1,
+      "anchor_matches": 10,
+      "represented_sources": 4,
+      "available_sources": 4,
+      "unavailable_sources": 1,
+      "available_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref"
+      ],
+      "unavailable_source_names": [
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "Semantic Scholar HTTP 429"
+      ],
+      "top_result": "From ethical principles to executable governance: A policy-as-code framework for trustworthy AI in higher education",
+      "source_coverage_sufficient": true,
+      "coverage_warning": false,
+      "anchor_gate_passed": true
+    },
+    {
+      "query": "uncertainty-aware trajectory prediction vulnerable road users",
+      "records": 10,
+      "heuristic_anchor_coverage_at_10": 1,
+      "anchor_matches": 10,
+      "represented_sources": 3,
+      "available_sources": 4,
+      "unavailable_sources": 1,
+      "available_source_names": [
+        "OpenAlex",
+        "arXiv",
+        "Europe PMC",
+        "Crossref"
+      ],
+      "unavailable_source_names": [
+        "Semantic Scholar"
+      ],
+      "unavailable_source_status": [
+        "Semantic Scholar HTTP 429"
+      ],
+      "top_result": "From Camera-Based Sensing to Reasoning: A Comprehensive Review Toward Proactive Vulnerable Road User Safety",
+      "source_coverage_sufficient": true,
+      "coverage_warning": false,
+      "anchor_gate_passed": true
+    }
+  ],
+  "retrieved_records": [
+    {
+      "query": "robotics for independent ageing",
+      "papers": [
+        {
+          "id": "https://openalex.org/W3195679614",
+          "doi": "10.1109/ro-man50785.2021.9515432",
+          "title": "Social robotic application to support active and healthy ageing",
+          "authors": "Sara Cooper, Alessandro Di Fava, Óscar Villacañas, T. Silva",
+          "year": 2021,
+          "url": "https://doi.org/10.1109/ro-man50785.2021.9515432",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1109/ro-man50785.2021.9515432"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W210193345",
+          "doi": "10.1007/978-3-319-16214-0_48",
+          "title": "Robots in Assisted Living Environments as an Unobtrusive, Efficient, Reliable and Modular Solution for Independent Ageing: The RADIO Perspective",
+          "authors": "Christos Antonopoulos, Γεώργιος Κεραμίδας, Nikolaos S. Voros, Michael Hübner",
+          "year": 2015,
+          "url": "https://doi.org/10.1007/978-3-319-16214-0_48",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1007/978-3-319-16214-0_48"
+            }
+          ],
+          "summary_source": "",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W2755397109",
+          "doi": "10.1177/1460458217729729",
+          "title": "The effectiveness of various robotic technologies in assisting older adults",
+          "authors": "Majid Shishehgar, Don V. Kerr, Jacqueline Blake",
+          "year": 2017,
+          "url": "https://doi.org/10.1177/1460458217729729",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1177/1460458217729729"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W4295886726",
+          "doi": "10.1108/jsm-03-2022-0076",
+          "title": "Robotic technologies and well-being for older adults living at home",
+          "authors": "Gloria Lan Ge, Stephanie Christine Schleimer",
+          "year": 2022,
+          "url": "https://doi.org/10.1108/jsm-03-2022-0076",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1108/jsm-03-2022-0076"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W2913301016",
+          "doi": "10.3390/s19040834",
+          "title": "A Telemedicine Robot System for Assisted and Independent Living",
+          "authors": "Nataša Koceska, Sašo Koceski, Pierluigi Beomonte Zobel, Vladimir Trajkovik",
+          "year": 2019,
+          "url": "https://doi.org/10.3390/s19040834",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.3390/s19040834"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W4240367742",
+          "doi": "10.1007/978-3-319-78890-6_57",
+          "title": "Robots in Assisted Living Environments as an Unobtrusive, Efficient, Reliable and Modular Solution for Independent Ageing: The RADIO Experience",
+          "authors": "Christos Antonopoulos, Γεώργιος Κεραμίδας, Nikolaos S. Voros, Michael Huebner",
+          "year": 2018,
+          "url": "https://doi.org/10.1007/978-3-319-78890-6_57",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1007/978-3-319-78890-6_57"
+            }
+          ],
+          "summary_source": "",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W2061370872",
+          "doi": "10.1111/j.1467-9566.2009.01218.x",
+          "title": "‘But obviously not for me’: robots, laboratories and the defiant identity of elder test users",
+          "authors": "Louis Neven",
+          "year": 2010,
+          "url": "https://doi.org/10.1111/j.1467-9566.2009.01218.x",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1111/j.1467-9566.2009.01218.x"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W1970536568",
+          "doi": "10.1109/icarcv.2012.6485237",
+          "title": "Communicative robot interface for the ageing society",
+          "authors": "Tatsuya Yamazaki",
+          "year": 2012,
+          "url": "https://doi.org/10.1109/icarcv.2012.6485237",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1109/icarcv.2012.6485237"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W2045063968",
+          "doi": "10.1155/2012/538169",
+          "title": "Robotics to Enable Older Adults to Remain Living at Home",
+          "authors": "Alan J. Pearce, Brooke Adair, Kimberly Miller, Elizabeth Ozanne",
+          "year": 2012,
+          "url": "https://doi.org/10.1155/2012/538169",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1155/2012/538169"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "42651361",
+          "doi": "10.3390/healthcare14162592",
+          "title": "Generational Differences in the Acceptance of Care Robots Among Portuguese Adults: Evidence from the Almere Model, ADL and IADL Frameworks.",
+          "authors": "de Carvalho PT, Raimundo RJ, Piçarra N.",
+          "year": 2026,
+          "url": "https://doi.org/10.3390/healthcare14162592",
+          "primary_index": "Europe PMC",
+          "indexed_by": [
+            "Europe PMC"
+          ],
+          "source_records": [
+            {
+              "provider": "Europe PMC",
+              "record_url": "https://doi.org/10.3390/healthcare14162592"
+            }
+          ],
+          "summary_source": "Europe PMC",
+          "query_coverage": 1
+        }
+      ]
+    },
+    {
+      "query": "AI for early cancer detection",
+      "papers": [
+        {
+          "id": "https://openalex.org/W4389168519",
+          "doi": "10.1063/5.0177640",
+          "title": "Healthcare’s new Frontier: AI-driven early cancer detection for improved well-being",
+          "authors": "R. Deepa, S. Arunkumar, V. Jayaraj, A. Sivasamy",
+          "year": 2023,
+          "url": "https://doi.org/10.1063/5.0177640",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1063/5.0177640"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W7223052156",
+          "doi": "10.1109/iccimmr71310.2026.11731618",
+          "title": "Multimodal AI for Early Cancer Detection and Precision Treatment: A Systematic Review",
+          "authors": "Jatin Chopra, Mamta Goyal, Ashwni Goyal, Jyoti Parashar",
+          "year": 2026,
+          "url": "https://doi.org/10.1109/iccimmr71310.2026.11731618",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1109/iccimmr71310.2026.11731618"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W4388728630",
+          "doi": "10.1038/s41591-023-02625-9",
+          "title": "Prospective implementation of AI-assisted screen reading to improve early detection of breast cancer",
+          "authors": "Annie Y. Ng, Cary Oberije, Éva Ambrózay, Endre Szabó",
+          "year": 2023,
+          "url": "https://doi.org/10.1038/s41591-023-02625-9",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1038/s41591-023-02625-9"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W7217043523",
+          "doi": "10.66892/cjmhp/v1i1/1.1.01",
+          "title": "Harnessing AI for Early Cancer Detection through Imaging and Genetics",
+          "authors": "Wondimagegn Assegid, Girma Ketema",
+          "year": 2023,
+          "url": "https://doi.org/10.66892/cjmhp/v1i1/1.1.01",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.66892/cjmhp/v1i1/1.1.01"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "http://arxiv.org/abs/2203.04308v1",
+          "doi": "",
+          "title": "Breast cancer detection using artificial intelligence techniques: A systematic literature review",
+          "authors": "Ali Bou Nassif, Manar Abu Talib, Qassim Nasir, Yaman Afadar",
+          "year": 2022,
+          "url": "http://arxiv.org/abs/2203.04308v1",
+          "primary_index": "arXiv",
+          "indexed_by": [
+            "arXiv"
+          ],
+          "source_records": [
+            {
+              "provider": "arXiv",
+              "record_url": "http://arxiv.org/abs/2203.04308v1"
+            }
+          ],
+          "summary_source": "arXiv",
+          "query_coverage": 1
+        },
+        {
+          "id": "http://arxiv.org/abs/2410.14769v2",
+          "doi": "",
+          "title": "Medical Artificial Intelligence for Early Detection of Lung Cancer: A Survey",
+          "authors": "Guohui Cai, Ying Cai, Zeyu Zhang, Yuanzhouhan Cao",
+          "year": 2024,
+          "url": "http://arxiv.org/abs/2410.14769v2",
+          "primary_index": "arXiv",
+          "indexed_by": [
+            "arXiv"
+          ],
+          "source_records": [
+            {
+              "provider": "arXiv",
+              "record_url": "http://arxiv.org/abs/2410.14769v2"
+            }
+          ],
+          "summary_source": "arXiv",
+          "query_coverage": 1
+        },
+        {
+          "id": "10.58445/rars.3512",
+          "doi": "10.58445/rars.3512",
+          "title": "Revolutionizing Early Lung Cancer Detection with AI and ML Solutions",
+          "authors": "Om Gagrani",
+          "year": 2025,
+          "url": "https://doi.org/10.58445/rars.3512",
+          "primary_index": "Crossref",
+          "indexed_by": [
+            "Crossref"
+          ],
+          "source_records": [
+            {
+              "provider": "Crossref",
+              "record_url": "https://doi.org/10.58445/rars.3512"
+            }
+          ],
+          "summary_source": "",
+          "query_coverage": 1
+        },
+        {
+          "id": "42857481",
+          "doi": "10.3389/frai.2026.1943994",
+          "title": "A comprehensive study on cervical cancer diagnosis using deep learning and artificial intelligence techniques.",
+          "authors": "Kannadoss N, Rangasamy K.",
+          "year": 2026,
+          "url": "https://doi.org/10.3389/frai.2026.1943994",
+          "primary_index": "Europe PMC",
+          "indexed_by": [
+            "Europe PMC"
+          ],
+          "source_records": [
+            {
+              "provider": "Europe PMC",
+              "record_url": "https://doi.org/10.3389/frai.2026.1943994"
+            }
+          ],
+          "summary_source": "Europe PMC",
+          "query_coverage": 1
+        },
+        {
+          "id": "42798094",
+          "doi": "10.1097/md.0000000000050681",
+          "title": "Mapping the global landscape of artificial intelligence in pancreatic cancer research: A bibliometric and visualization analysis.",
+          "authors": "Rashidian P, Smerat A, Ahmar Khan M, Bansal P, Sharma C, Mansurov D, Moghimnejadhosseini S, Mojtahedzadeh A, Talebzadeh M, Amini-Salehi E.",
+          "year": 2026,
+          "url": "https://doi.org/10.1097/md.0000000000050681",
+          "primary_index": "Europe PMC",
+          "indexed_by": [
+            "Europe PMC"
+          ],
+          "source_records": [
+            {
+              "provider": "Europe PMC",
+              "record_url": "https://doi.org/10.1097/md.0000000000050681"
+            }
+          ],
+          "summary_source": "Europe PMC",
+          "query_coverage": 1
+        },
+        {
+          "id": "10.32768/abc.2023103216-219",
+          "doi": "10.32768/abc.2023103216-219",
+          "title": "Improving Early Breast Cancer Detection with Artificial Intelligence: A Promising Approach",
+          "authors": "Koel Sinha, Bhuban Ruidas",
+          "year": 2023,
+          "url": "https://doi.org/10.32768/abc.2023103216-219",
+          "primary_index": "Crossref",
+          "indexed_by": [
+            "Crossref"
+          ],
+          "source_records": [
+            {
+              "provider": "Crossref",
+              "record_url": "https://doi.org/10.32768/abc.2023103216-219"
+            }
+          ],
+          "summary_source": "Crossref",
+          "query_coverage": 1
+        }
+      ]
+    },
+    {
+      "query": "climate adaptation for coastal cities",
+      "papers": [
+        {
+          "id": "https://openalex.org/W4401882436",
+          "doi": "10.1038/s44284-024-00106-9",
+          "title": "Progress and gaps in climate change adaptation in coastal cities across the globe",
+          "authors": "Mia Wannewitz, Idowu Mopelola Ajibade, Katharine J. Mach, Alexandre Magnan",
+          "year": 2024,
+          "url": "https://doi.org/10.1038/s44284-024-00106-9",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1038/s44284-024-00106-9"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W4404667395",
+          "doi": "10.70470/medaad/2024/004",
+          "title": "Global Strategies for Climate Adaptation in Coastal Cities",
+          "authors": "Mayasa M. Abdulrahman, Yitong Niu",
+          "year": 2024,
+          "url": "https://doi.org/10.70470/medaad/2024/004",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.70470/medaad/2024/004"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W2973133973",
+          "doi": "10.1007/s11027-019-09888-z",
+          "title": "Climate change adaptation in coastal cities of developing countries: characterizing types of vulnerability and adaptation options",
+          "authors": "Tu Dam Ngoc Le",
+          "year": 2019,
+          "url": "https://doi.org/10.1007/s11027-019-09888-z",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1007/s11027-019-09888-z"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "42903515",
+          "doi": "10.1088/1748-9326/aeb0ba",
+          "title": "A systematic review of nature-based solutions for climate action in African cities.",
+          "authors": "Rule NF, McLean CT, Okem AE, Nduku PM, Bhanye J, Matiza C, Sato F, Mungenge CP, Ogunniyi OE, Pita-Vaca I, Forbes CJ, Holden P, Trisos CH, Roberts DC, Simpson NP.",
+          "year": 2026,
+          "url": "https://doi.org/10.1088/1748-9326/aeb0ba",
+          "primary_index": "Europe PMC",
+          "indexed_by": [
+            "Europe PMC"
+          ],
+          "source_records": [
+            {
+              "provider": "Europe PMC",
+              "record_url": "https://doi.org/10.1088/1748-9326/aeb0ba"
+            }
+          ],
+          "summary_source": "Europe PMC",
+          "query_coverage": 1
+        },
+        {
+          "id": "42967460",
+          "doi": "10.1016/j.jenvman.2026.131276",
+          "title": "Coastal urban flood risk under compound hazards: A systematic review and a resilience framework for disaster risk reduction.",
+          "authors": "Zhang Y, Wei N, Luo P, Zhao X, Zhang Y, Zhu Y.",
+          "year": 2026,
+          "url": "https://doi.org/10.1016/j.jenvman.2026.131276",
+          "primary_index": "Europe PMC",
+          "indexed_by": [
+            "Europe PMC"
+          ],
+          "source_records": [
+            {
+              "provider": "Europe PMC",
+              "record_url": "https://doi.org/10.1016/j.jenvman.2026.131276"
+            }
+          ],
+          "summary_source": "Europe PMC",
+          "query_coverage": 1
+        },
+        {
+          "id": "http://arxiv.org/abs/2510.26017v1",
+          "doi": "",
+          "title": "Climate Adaptation-Aware Flood Prediction for Coastal Cities Using Deep Learning",
+          "authors": "Bilal Hassan, Areg Karapetyan, Aaron Chung Hin Chow, Samer Madanat",
+          "year": 2025,
+          "url": "http://arxiv.org/abs/2510.26017v1",
+          "primary_index": "arXiv",
+          "indexed_by": [
+            "arXiv"
+          ],
+          "source_records": [
+            {
+              "provider": "arXiv",
+              "record_url": "http://arxiv.org/abs/2510.26017v1"
+            }
+          ],
+          "summary_source": "arXiv",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W2000031723",
+          "doi": "10.1080/01944363.2014.949590",
+          "title": "Barriers to Municipal Climate Adaptation: Examples From Coastal Massachusetts’ Smaller Cities and Towns",
+          "authors": "Elisabeth M. Hamin, Nicole Gurran, Ana Mesquita Emlinger",
+          "year": 2014,
+          "url": "https://doi.org/10.1080/01944363.2014.949590",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1080/01944363.2014.949590"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W2345328091",
+          "doi": "10.1177/0739456x16645167",
+          "title": "Planning for Climate Adaptation: Evaluating the Changing Patterns of Social Vulnerability and Adaptation Challenges in Three Coastal Cities",
+          "authors": "Shakil Bin Kashem, Bev Wilson, Shannon Van Zandt",
+          "year": 2016,
+          "url": "https://doi.org/10.1177/0739456x16645167",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1177/0739456x16645167"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "http://arxiv.org/abs/2012.04452v1",
+          "doi": "",
+          "title": "Hurricane-blackout-heatwave Compound Hazard Risk and Resilience in a Changing Climate",
+          "authors": "Kairui Feng, Ouyang Min, Ning Lin",
+          "year": 2020,
+          "url": "http://arxiv.org/abs/2012.04452v1",
+          "primary_index": "arXiv",
+          "indexed_by": [
+            "arXiv"
+          ],
+          "source_records": [
+            {
+              "provider": "arXiv",
+              "record_url": "http://arxiv.org/abs/2012.04452v1"
+            }
+          ],
+          "summary_source": "arXiv",
+          "query_coverage": 1
+        },
+        {
+          "id": "10.1016/j.ocecoaman.2021.105732",
+          "doi": "10.1016/j.ocecoaman.2021.105732",
+          "title": "Climate-proofing coastal cities: What is needed to go from envisioning to enacting multifunctional solutions for waterfront climate adaptation?",
+          "authors": "Sofie Storbjörk, Mattias Hjerpe",
+          "year": 2021,
+          "url": "https://doi.org/10.1016/j.ocecoaman.2021.105732",
+          "primary_index": "Crossref",
+          "indexed_by": [
+            "Crossref"
+          ],
+          "source_records": [
+            {
+              "provider": "Crossref",
+              "record_url": "https://doi.org/10.1016/j.ocecoaman.2021.105732"
+            }
+          ],
+          "summary_source": "",
+          "query_coverage": 1
+        }
+      ]
+    },
+    {
+      "query": "trustworthy AI in higher education",
+      "papers": [
+        {
+          "id": "https://openalex.org/W7152028756",
+          "doi": "10.1016/j.caeai.2026.100594",
+          "title": "From ethical principles to executable governance: A policy-as-code framework for trustworthy AI in higher education",
+          "authors": "Edmund De Leon Evangelista, Syed M. Salman Bukhari",
+          "year": 2026,
+          "url": "https://doi.org/10.1016/j.caeai.2026.100594",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex",
+            "Crossref"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1016/j.caeai.2026.100594"
+            },
+            {
+              "provider": "Crossref",
+              "record_url": "https://doi.org/10.1016/j.caeai.2026.100594"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W4411943263",
+          "doi": "10.2139/ssrn.5289104",
+          "title": "Marcos normativos para una IA ética y confiable en la educación superior: estado de la cuestión (Normative Framework for Ethical and Trustworthy AI in Higher Education: State of the Art)",
+          "authors": "María Obdulia González Fernández, Asunción Romero López, Natalia Sgreccia, María José Latorre Medina",
+          "year": 2025,
+          "url": "https://doi.org/10.2139/ssrn.5289104",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.2139/ssrn.5289104"
+            }
+          ],
+          "summary_source": "",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W4402388726",
+          "doi": "10.3102/2110380",
+          "title": "Exploring Trustworthiness of AI in Higher Education Teaching, Learning, and Assessment: A Systematic Review of the Literature",
+          "authors": "Virginia L. Byrne, Keshiyena Pieters",
+          "year": 2024,
+          "url": "https://doi.org/10.3102/2110380",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.3102/2110380"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W7164933547",
+          "doi": "10.32674/eqphhh11",
+          "title": "Policy alignment and trustworthy AI governance in higher education: A Conceptual Analysis of Malaysia’s Reform Agenda and ASEAN Governance Imperatives",
+          "authors": "Kok Ban Teoh, Wee Ling Tan",
+          "year": 2026,
+          "url": "https://doi.org/10.32674/eqphhh11",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex",
+            "Crossref"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.32674/eqphhh11"
+            },
+            {
+              "provider": "Crossref",
+              "record_url": "https://doi.org/10.32674/eqphhh11"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W7170046189",
+          "doi": "10.1109/eits70066.2026.11609605",
+          "title": "Governing Green AI in Higher Education: A Capability Framework for Sustainable and Trustworthy AI Transformation",
+          "authors": "Reyane Remache, Ghaleb Al Refae, Eric Stephany, Abdelghani Remache",
+          "year": 2026,
+          "url": "https://doi.org/10.1109/eits70066.2026.11609605",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex",
+            "Crossref"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1109/eits70066.2026.11609605"
+            },
+            {
+              "provider": "Crossref",
+              "record_url": "https://doi.org/10.1109/eits70066.2026.11609605"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W4389685081",
+          "doi": "10.1007/s10676-023-09733-7",
+          "title": "How to teach responsible AI in Higher Education: challenges and opportunities",
+          "authors": "Andrea Aler Tubella, Marçal Mora‐Cantallops, Juan Carlos Nieves",
+          "year": 2023,
+          "url": "https://doi.org/10.1007/s10676-023-09733-7",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1007/s10676-023-09733-7"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "42853348",
+          "doi": "10.1007/s44445-026-00249-6",
+          "title": "Artificial intelligence in orthodontics: clinical maturity, evidence gaps, and emerging applications-a narrative review.",
+          "authors": "Chandio K, Iftikhar L, Shehzad A, Rao I, Waseem M, Anas M, Farrukh M, Al Shalabi A, Talaat S, Sen S, Hassanein F, Elshazly T.",
+          "year": 2026,
+          "url": "https://doi.org/10.1007/s44445-026-00249-6",
+          "primary_index": "Europe PMC",
+          "indexed_by": [
+            "Europe PMC"
+          ],
+          "source_records": [
+            {
+              "provider": "Europe PMC",
+              "record_url": "https://doi.org/10.1007/s44445-026-00249-6"
+            }
+          ],
+          "summary_source": "Europe PMC",
+          "query_coverage": 1
+        },
+        {
+          "id": "http://arxiv.org/abs/2412.08666v2",
+          "doi": "",
+          "title": "Generative artificial intelligence in fifth-generation education systems: A systematic review",
+          "authors": "Sanjay Chakraborty",
+          "year": 2024,
+          "url": "http://arxiv.org/abs/2412.08666v2",
+          "primary_index": "arXiv",
+          "indexed_by": [
+            "arXiv"
+          ],
+          "source_records": [
+            {
+              "provider": "arXiv",
+              "record_url": "http://arxiv.org/abs/2412.08666v2"
+            }
+          ],
+          "summary_source": "arXiv",
+          "query_coverage": 1
+        },
+        {
+          "id": "http://arxiv.org/abs/2510.24783v1",
+          "doi": "",
+          "title": "AI & Data Competencies: Scaffolding holistic AI literacy in Higher Education",
+          "authors": "Kathleen Kennedy, Anuj Gupta",
+          "year": 2025,
+          "url": "http://arxiv.org/abs/2510.24783v1",
+          "primary_index": "arXiv",
+          "indexed_by": [
+            "arXiv"
+          ],
+          "source_records": [
+            {
+              "provider": "arXiv",
+              "record_url": "http://arxiv.org/abs/2510.24783v1"
+            }
+          ],
+          "summary_source": "arXiv",
+          "query_coverage": 1
+        },
+        {
+          "id": "10.31224/3903",
+          "doi": "10.31224/3903",
+          "title": "The Future of AI in Higher Education: Opportunities &amp; Challenges Ahead",
+          "authors": "Mirza Abdul Aleem Baig",
+          "year": 2024,
+          "url": "https://doi.org/10.31224/3903",
+          "primary_index": "Crossref",
+          "indexed_by": [
+            "Crossref"
+          ],
+          "source_records": [
+            {
+              "provider": "Crossref",
+              "record_url": "https://doi.org/10.31224/3903"
+            }
+          ],
+          "summary_source": "Crossref",
+          "query_coverage": 1
+        }
+      ]
+    },
+    {
+      "query": "uncertainty-aware trajectory prediction vulnerable road users",
+      "papers": [
+        {
+          "id": "https://openalex.org/W4414968663",
+          "doi": "10.1109/tits.2026.3707876",
+          "title": "From Camera-Based Sensing to Reasoning: A Comprehensive Review Toward Proactive Vulnerable Road User Safety",
+          "authors": "Shucheng Zhang, Yan Shi, Bingzhang Wang, Yuang Zhang",
+          "year": 2026,
+          "url": "https://doi.org/10.1109/tits.2026.3707876",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1109/tits.2026.3707876"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W4403936921",
+          "doi": "10.1109/tits.2024.3484004",
+          "title": "Predicting Mispredictions: A Model of Human Misjudgment About Vulnerable Road Users’ Trajectories",
+          "authors": "Alessandro Colombo, Matteo Depaola, Francesco Ferrise, Nicolò Dozio",
+          "year": 2024,
+          "url": "https://doi.org/10.1109/tits.2024.3484004",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.1109/tits.2024.3484004"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "https://openalex.org/W2891134537",
+          "doi": "10.48550/arxiv.1809.03916",
+          "title": "Detecting Intentions of Vulnerable Road Users Based on Collective Intelligence",
+          "authors": "Maarten Bieshaar, Günther Reitberger, Stefan Zernetsch, Bernhard Sick",
+          "year": 2018,
+          "url": "https://doi.org/10.48550/arxiv.1809.03916",
+          "primary_index": "OpenAlex",
+          "indexed_by": [
+            "OpenAlex"
+          ],
+          "source_records": [
+            {
+              "provider": "OpenAlex",
+              "record_url": "https://doi.org/10.48550/arxiv.1809.03916"
+            }
+          ],
+          "summary_source": "OpenAlex",
+          "query_coverage": 1
+        },
+        {
+          "id": "http://arxiv.org/abs/2510.03314v2",
+          "doi": "",
+          "title": "From Camera-Based Sensing to Reasoning: A Comprehensive Review Toward Proactive Vulnerable Road User Safety",
+          "authors": "Shucheng Zhang, Yan Shi, Bingzhang Wang, Yuang Zhang",
+          "year": 2025,
+          "url": "http://arxiv.org/abs/2510.03314v2",
+          "primary_index": "arXiv",
+          "indexed_by": [
+            "arXiv"
+          ],
+          "source_records": [
+            {
+              "provider": "arXiv",
+              "record_url": "http://arxiv.org/abs/2510.03314v2"
+            }
+          ],
+          "summary_source": "arXiv",
+          "query_coverage": 1
+        },
+        {
+          "id": "http://arxiv.org/abs/2510.12963v1",
+          "doi": "",
+          "title": "Trajectory-based real-time pedestrian crash prediction at intersections: A novel non-linear link function for block maxima led Bayesian GEV framework addressing heterogeneous traffic condition",
+          "authors": "Parvez Anowar, Nazmul Haque, Md Asif Raihan, Md Hadiuzzaman",
+          "year": 2025,
+          "url": "http://arxiv.org/abs/2510.12963v1",
+          "primary_index": "arXiv",
+          "indexed_by": [
+            "arXiv"
+          ],
+          "source_records": [
+            {
+              "provider": "arXiv",
+              "record_url": "http://arxiv.org/abs/2510.12963v1"
+            }
+          ],
+          "summary_source": "arXiv",
+          "query_coverage": 1
+        },
+        {
+          "id": "http://arxiv.org/abs/2610.39958v1",
+          "doi": "",
+          "title": "Observability-Aligned Evidential Masked Pretraining for Reliable VRU Motion Prediction",
+          "authors": "Shang Gao, Franz Götz-Hahn, Konrad Doll, Bernhard Sick",
+          "year": 2026,
+          "url": "http://arxiv.org/abs/2610.39958v1",
+          "primary_index": "arXiv",
+          "indexed_by": [
+            "arXiv"
+          ],
+          "source_records": [
+            {
+              "provider": "arXiv",
+              "record_url": "http://arxiv.org/abs/2610.39958v1"
+            }
+          ],
+          "summary_source": "arXiv",
+          "query_coverage": 1
+        },
+        {
+          "id": "http://arxiv.org/abs/1809.03916v1",
+          "doi": "",
+          "title": "Detecting Intentions of Vulnerable Road Users Based on Collective Intelligence",
+          "authors": "Maarten Bieshaar, Günther Reitberger, Stefan Zernetsch, Bernhard Sick",
+          "year": 2018,
+          "url": "http://arxiv.org/abs/1809.03916v1",
+          "primary_index": "arXiv",
+          "indexed_by": [
+            "arXiv"
+          ],
+          "source_records": [
+            {
+              "provider": "arXiv",
+              "record_url": "http://arxiv.org/abs/1809.03916v1"
+            }
+          ],
+          "summary_source": "arXiv",
+          "query_coverage": 1
+        },
+        {
+          "id": "http://arxiv.org/abs/1803.03577v1",
+          "doi": "",
+          "title": "Intentions of Vulnerable Road Users - Detection and Forecasting by Means of Machine Learning",
+          "authors": "Michael Goldhammer, Sebastian Köhler, Stefan Zernetsch, Konrad Doll",
+          "year": 2018,
+          "url": "http://arxiv.org/abs/1803.03577v1",
+          "primary_index": "arXiv",
+          "indexed_by": [
+            "arXiv"
+          ],
+          "source_records": [
+            {
+              "provider": "arXiv",
+              "record_url": "http://arxiv.org/abs/1803.03577v1"
+            }
+          ],
+          "summary_source": "arXiv",
+          "query_coverage": 1
+        },
+        {
+          "id": "42430459",
+          "doi": "10.1371/journal.pone.0353392",
+          "title": "Edge-intelligent safelink-V2X: A low-latency cooperative framework for real-time vulnerable road user protection.",
+          "authors": "Alanazi F, Armghan A, Al-Gburi AJA, Yousef A.",
+          "year": 2026,
+          "url": "https://doi.org/10.1371/journal.pone.0353392",
+          "primary_index": "Europe PMC",
+          "indexed_by": [
+            "Europe PMC"
+          ],
+          "source_records": [
+            {
+              "provider": "Europe PMC",
+              "record_url": "https://doi.org/10.1371/journal.pone.0353392"
+            }
+          ],
+          "summary_source": "Europe PMC",
+          "query_coverage": 0.83
+        },
+        {
+          "id": "41755169",
+          "doi": "10.3390/s26041229",
+          "title": "V2N-Based Comprehensive Safety Framework by Prediction of VRU Movement on Community Roads with Management of Route Branching at Intersections.",
+          "authors": "Watanabe K, Ito T.",
+          "year": 2026,
+          "url": "https://doi.org/10.3390/s26041229",
+          "primary_index": "Europe PMC",
+          "indexed_by": [
+            "Europe PMC"
+          ],
+          "source_records": [
+            {
+              "provider": "Europe PMC",
+              "record_url": "https://doi.org/10.3390/s26041229"
+            }
+          ],
+          "summary_source": "Europe PMC",
+          "query_coverage": 0.83
+        }
+      ]
+    }
+  ]
+}

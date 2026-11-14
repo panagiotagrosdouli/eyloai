@@ -1,5 +1,5 @@
 {
-  "source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+  "source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
   "files": [
     {
       "path": ".github/workflows/build.yml",
@@ -49,7 +49,7 @@
     {
       "path": "api/discovery.js",
       "kind": "serverless_api",
-      "blob_sha": "711812735c626c860f532554d15b73125a86a56f"
+      "blob_sha": "65e772d215e846ebc308858e60385d0dda117f3e"
     },
     {
       "path": "api/euraxess.js",
@@ -94,12 +94,17 @@
     {
       "path": "api/system.js",
       "kind": "serverless_api",
-      "blob_sha": "76a4ead6afbc579efa8e3cc5c68b79c83a79257b"
+      "blob_sha": "5b92f24b45ad0325dada90e4617e66533362d924"
     },
     {
       "path": "public/sw-offline.js",
       "kind": "static_offline_worker",
       "blob_sha": "a8d7007098ba8e5bc7c04772ea6f77b8d4dca374"
+    },
+    {
+      "path": "server/account-deletion.js",
+      "kind": "backend_helper",
+      "blob_sha": "dbc921974f244c9f1a7aed1b06caf87a9b6cb2c3"
     },
     {
       "path": "server/capabilities.js",
@@ -139,7 +144,7 @@
     {
       "path": "src/App.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "0148c6c128e809a2bd10343301c7e0f04f7e8cf4"
+      "blob_sha": "43136b1f83aba4ad964fc10b0fa2b345d945f31e"
     },
     {
       "path": "src/api/base44Client.js",
@@ -484,7 +489,7 @@
     {
       "path": "src/lib/AuthContext.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "f139e5a919000840a26eca5dd8630cd10aff9897"
+      "blob_sha": "865beb09a65429e3d7702a8701a329c686fad65f"
     },
     {
       "path": "src/lib/PageNotFound.jsx",
@@ -522,6 +527,11 @@
       "blob_sha": "fde7c426d0d2727bd4ba99df8bff2564c5e755a9"
     },
     {
+      "path": "src/lib/auth/privateBrowserData.mjs",
+      "kind": "frontend_source",
+      "blob_sha": "d977ba3b9bf826c6f696ab3d1870b5079c22aa85"
+    },
+    {
       "path": "src/lib/auth/privateRadarCache.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "bba303b0ac7600db667f37b8f4c2901f1121c69f"
@@ -539,7 +549,7 @@
     {
       "path": "src/lib/auth/safeRedirect.ts",
       "kind": "frontend_or_client_source",
-      "blob_sha": "4a792027213be78807675c2f0945688cf00b5505"
+      "blob_sha": "4be6a6499d117248bde6fed23014ad24b9a4ed7c"
     },
     {
       "path": "src/lib/auth/sessionContract.js",
@@ -634,7 +644,7 @@
     {
       "path": "src/lib/eyra-api.js",
       "kind": "frontend_or_client_source",
-      "blob_sha": "1623c9b4a65861356ee0f8088e5b82b96ce3d77a"
+      "blob_sha": "995bd30082ef75ef94ba3866889db4bcee86128b"
     },
     {
       "path": "src/lib/eyra-cache-key.mjs",
@@ -997,6 +1007,11 @@
       "blob_sha": "eaee13688a1717ff20c7a7e1345a04cccd93bb04"
     },
     {
+      "path": "src/lib/scholarly-query.mjs",
+      "kind": "frontend_source",
+      "blob_sha": "4935ab7fca324ec1399b29033925a0a2c52e03f4"
+    },
+    {
       "path": "src/lib/scholarly-record-identity.mjs",
       "kind": "frontend_or_client_source",
       "blob_sha": "bbee8830c277fde5d0eee72be4cbf2d023db53e7"
@@ -1080,6 +1095,11 @@
       "path": "src/main.jsx",
       "kind": "frontend_or_client_source",
       "blob_sha": "60f0ea2a177fb9ada404809df849dd9cb11b0b8f"
+    },
+    {
+      "path": "src/pages/AccountDeletion.jsx",
+      "kind": "frontend_source",
+      "blob_sha": "fad16e7165a694e4b8a644a0f0c422e16ee42204"
     },
     {
       "path": "src/pages/ActivityHistory.jsx",
@@ -1384,7 +1404,7 @@
     {
       "path": "src/pages/Settings.jsx",
       "kind": "frontend_or_client_source",
-      "blob_sha": "66bce43bc0ab46f4d0062700d1b0dab16db3c008"
+      "blob_sha": "a15bd1dc9ba1fd8c9733369cac9dff0ab5cbe7b6"
     },
     {
       "path": "src/pages/StudyPlanner.jsx",
@@ -1577,6 +1597,16 @@
       "blob_sha": "c5d339543de558260ad63650335498e2f7fb9640"
     },
     {
+      "path": "supabase/migrations/20261114063216_account_deletion_lifecycle.sql",
+      "kind": "migration",
+      "blob_sha": "c7cebc2681916bb88ae59907a0f17f1b3f5a27f4"
+    },
+    {
+      "path": "tests/account-deletion-api.test.mjs",
+      "kind": "test",
+      "blob_sha": "a95516d740cc8190e1f474cc87f4266850a74a60"
+    },
+    {
       "path": "tests/activity-history.test.mjs",
       "kind": "automated_test",
       "blob_sha": "329004e79dd596a19b870159a3ac0611373eb147"
@@ -1614,7 +1644,7 @@
     {
       "path": "tests/auth-security.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "8b874261f6c599e051bd672d98cec00559b70920"
+      "blob_sha": "dbd08afe50e2d0c425c0522c0b59e08636e7c7aa"
     },
     {
       "path": "tests/auth-signin-contract.test.mjs",
@@ -1704,7 +1734,7 @@
     {
       "path": "tests/discovery-proxy.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "66b601b5b0c18d7903f45b78b32fee756bb3d2ef"
+      "blob_sha": "36ffbe8d4bc33059b642abcd4354bfcf208df43a"
     },
     {
       "path": "tests/discovery-ranking.test.mjs",
@@ -1749,7 +1779,7 @@
     {
       "path": "tests/e2e-products.mjs",
       "kind": "automated_test",
-      "blob_sha": "4c6afd9d36e4c96adc94e39cb215e846a2726a4e"
+      "blob_sha": "2188e19d393bcc42873abca7450f81f4b267311f"
     },
     {
       "path": "tests/e2e-quiz-generator.mjs",
@@ -1987,6 +2017,11 @@
       "blob_sha": "e2c5df7d43df79d416284497f32d1328a90afd17"
     },
     {
+      "path": "tests/integration/account-deletion-postgres.sql",
+      "kind": "test",
+      "blob_sha": "f531cc44fa05814f1d9e15985bc751d05f27a6ef"
+    },
+    {
       "path": "tests/integration/complete-products-postgres.sql",
       "kind": "automated_test",
       "blob_sha": "9f2254b641019fc35348f2e43dac212d681c196b"
@@ -2115,6 +2150,11 @@
       "path": "tests/paper-summary.test.mjs",
       "kind": "automated_test",
       "blob_sha": "bb4f113b82b73205cd204d939800fe782e9c39ff"
+    },
+    {
+      "path": "tests/private-browser-deletion.test.mjs",
+      "kind": "test",
+      "blob_sha": "1d8553aeb6d6aaf37e90b1c3c6db726fb3f8ce5d"
     },
     {
       "path": "tests/private-radar-cache.test.mjs",
@@ -2347,6 +2387,11 @@
       "blob_sha": "8053e3b7585876b46e5ac0f5a10c8cb7aaebbd80"
     },
     {
+      "path": "tests/scholarly-query.test.mjs",
+      "kind": "test",
+      "blob_sha": "5b157f7f7d0cddd446261e13c80a75d3636e5b12"
+    },
+    {
       "path": "tests/scholarly-record-identity.test.mjs",
       "kind": "automated_test",
       "blob_sha": "b08874e298e592f4ccedfed93ee4c0db3375d3c7"
@@ -2369,7 +2414,7 @@
     {
       "path": "tests/staging-config.test.mjs",
       "kind": "automated_test",
-      "blob_sha": "52aaaf416c471787eaab8ae6521246f82f8b6d62"
+      "blob_sha": "7a2e791c957c731438ea0304493259e6ae7c04ee"
     },
     {
       "path": "tests/stripe-webhook-size.test.mjs",
@@ -2454,27 +2499,29 @@
     "test:e2e:products": "node tests/e2e-products.mjs"
   },
   "documented_environment_variable_names": [
-    "VITE_SUPABASE_URL",
-    "VITE_SUPABASE_ANON_KEY",
-    "OPENALEX_API_KEY",
-    "SEMANTIC_SCHOLAR_API_KEY",
-    "RESEARCH_CONTACT_EMAIL",
+    "APP_URL",
+    "CONTACT_TO_EMAIL",
+    "CRON_SECRET",
+    "EYLO_PRIVACY_DELETION_ENABLED",
+    "EYLO_PRIVACY_WORKER_SECRET",
+    "LIVEKIT_API_KEY",
+    "LIVEKIT_API_SECRET",
+    "LIVEKIT_URL",
     "OPENAI_API_KEY",
     "OPENAI_MODEL",
-    "SUPABASE_PUBLISHABLE_KEY",
-    "SUPABASE_SECRET_KEY",
+    "OPENALEX_API_KEY",
+    "RESEARCH_CONTACT_EMAIL",
+    "RESEND_API_KEY",
+    "RESEND_FROM_EMAIL",
+    "SEMANTIC_SCHOLAR_API_KEY",
+    "STRIPE_FOUNDER_PRICE_ID",
+    "STRIPE_PRO_PRICE_ID",
     "STRIPE_SECRET_KEY",
     "STRIPE_WEBHOOK_SECRET",
-    "STRIPE_PRO_PRICE_ID",
-    "STRIPE_FOUNDER_PRICE_ID",
-    "APP_URL",
-    "CRON_SECRET",
-    "RESEND_API_KEY",
-    "CONTACT_TO_EMAIL",
-    "RESEND_FROM_EMAIL",
-    "LIVEKIT_URL",
-    "LIVEKIT_API_KEY",
-    "LIVEKIT_API_SECRET"
+    "SUPABASE_PUBLISHABLE_KEY",
+    "SUPABASE_SECRET_KEY",
+    "VITE_SUPABASE_ANON_KEY",
+    "VITE_SUPABASE_URL"
   ],
   "note": "Variable names only; no credentials or environment values are included. Source inventory does not certify behavior."
 }

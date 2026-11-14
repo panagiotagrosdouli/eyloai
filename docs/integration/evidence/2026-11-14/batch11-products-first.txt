@@ -1,0 +1,73 @@
+
+> eyloai@0.0.0 test:e2e:products
+> node tests/e2e-products.mjs
+
+PASS fixture: all22 product entries are discoverable in the authenticated tools hub.
+PASS fixture: Spaces authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Skills authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Interview Simulator authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Workflow Builder authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Studio authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Methodology Coach authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Research Ethics authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Conference Hub authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Smart Forms authoring, explicit save/reload and product-specific preview/action.
+PASS fixture: Spreadsheet real cell editing, saved formula, reload and evaluated aggregate.
+PASS fixture: Memory retrieves canonical source text and attribution without a model or memory table.
+PASS fixture: authenticated EYRA translation stream fixture and explicit canonical Note save. No real provider request.
+PASS fixture: a translation that drops a supplied citation fails closed before canonical Note saving.
+PASS fixture: conference all-day date at UTC month boundary stays on day1 and survives Calendar editing in America/Los_Angeles.
+PASS fixture: read-only recovery diagnostics use actual JSON checks and report results.
+PASS fixture: Admin Operations denies an unauthorized account.
+PASS fixture: Business Intelligence reports actual loaded sources and missing budget explicitly.
+PASS fixture: Developer token issue stores only digest/scopes and revocation persists.
+PASS fixture: Connect opt-in directory and explicit connection request persistence.
+PASS fixture: Teams creation/invitation UI; actual consent/role/revocation SQL checked separately.
+PASS fixture: Community deliberate publication and threaded reply persistence.
+PASS fixture: Feedback saved receipt and status tracking.
+PASS fixture: Peer Review explicit snapshot sharing to an accepted connection; real draft privacy SQL checked separately.
+PASS fixture: production static shell survives offline reload; encrypted snapshot unlock/lock works with no plaintext-at-rest.
+FIXTURE FAILURE VIEW: Back to settings
+Delete your EYLO account
+
+Export anything you need first. Deletion removes your EYLO workspace, uploaded files and sign-in account. Shared collaborations may close; other users' private work stays theirs. External provider records and legally retained backups follow their separate retention policies.
+
+Sign in to request account deletion
+Continue an existing deletion
+Private deletion receipt token
+Use private deletion receipt
+ROOT WIDTH: { inner: 390, html: 390, body: 390, table: null }
+OVERFLOW ELEMENTS: []
+STATIC CACHE: [
+  '/offline-shell',
+  '/assets/index-CGru6m-A.js',
+  '/assets/index-BjCRuqPi.css',
+  '/assets/supabase-vendor-_Ts6dIFp.js',
+  '/assets/OfflineWorkspace-n7lRuB2w.js',
+  '/assets/ProjectDocumentWorkspace-CYufyYHF.js',
+  '/assets/base44Client-DgJW58Bc.js',
+  '/assets/supabase-entities-CcNmZsLr.js',
+  '/assets/billing-IDTPqe7E.js',
+  '/assets/api-url-tGFngulw.js'
+]
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.isDisabled: Timeout 20000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: 'Confirm permanent account deletion', exact: true })[22m
+
+    at /workspace/work/eyloai/tests/e2e-products.mjs:793:39 {
+  log: [
+    "  - waiting for getByRole('button', { name: 'Confirm permanent account deletion', exact: true })"
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v24.22.1
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

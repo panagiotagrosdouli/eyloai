@@ -1,0 +1,34 @@
+✔ deletion stays disabled for production, forbidden refs, unconfirmed staging and missing worker secret before any network (3.019019ms)
+✔ password reauthentication and exact confirmation are required; caller-supplied user IDs cannot redirect deletion (20.649259ms)
+✔ reauthentication uses the existing atomic quota and billing review blocks mutation while cleaning proof session (3.409945ms)
+✔ receipt-bound resumable deletion removes Storage before Auth, confirms SQL completion and tolerates exact replay (4.351952ms)
+✔ forged/cross-job receipts and worker credentials fail before touching a job (1.060753ms)
+✔ Storage failure cannot delete Auth; a lost successful Auth response can resume through 404 and SQL verification (2.982135ms)
+✔ active worker lease reports pending and cross-origin/malformed requests cannot mutate data (0.707202ms)
+✔ MFA accounts and a mismatched reauthenticated identity cannot begin deletion (1.96796ms)
+✔ invalid Storage paths never trigger byte or Auth deletion (0.850113ms)
+✔ receipt progress consumes a bounded per-job quota before claiming a worker lease (0.505445ms)
+✔ safe redirects accept known workspace and Labs destinations (1.148523ms)
+✔ safe redirects reject external, protocol-relative and malformed destinations (0.157171ms)
+✔ auth errors map sensitive provider messages to stable product errors (0.412478ms)
+✔ expired session restoration keeps public sign-in routes available (6.975961ms)
+✔ protected routes expose a retry when session restoration fails (1.686495ms)
+✔ provider rate-limit codes map to an actionable retry message (0.205172ms)
+✔ Supabase gateway fallback keeps the same bounded request timeout (1.310421ms)
+✔ signed-in public entry routes redirect into the authenticated workspace (0.749955ms)
+✔ authentication distinguishes service configuration, network, and email delivery failures (0.286392ms)
+✔ authentication preserves current product and privacy destinations, including section anchors (0.546795ms)
+✔ private legacy caches cannot migrate to another identity or retain an unknown owner (0.832978ms)
+✔ confirmed deletion clears owned local catalog/drafts without erasing another owner or device preferences (0.321523ms)
+✔ deletion cannot clear a foreign legacy-cache owner and requires a concrete identity (0.376435ms)
+✔ native arXiv fields bind every concept rather than only the leading word (1.501964ms)
+✔ provider queries retain all content concepts, escape operator punctuation and keep original queries for other providers (1.263782ms)
+✔ live diagnostic requires all five source-covered cases and retains the independent anchor gates (10.057981ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 357.520136

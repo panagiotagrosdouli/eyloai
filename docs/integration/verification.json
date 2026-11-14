@@ -1,12 +1,12 @@
 {
   "date": "2026-11-14",
-  "tested_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
+  "tested_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
   "release_decision": "NO-GO",
   "all_77_complete": false,
   "local_checks": {
     "npm_run_check": {
       "status": "PASS",
-      "tests": 689,
+      "tests": 706,
       "failed": 0,
       "includes": [
         "local imports",
@@ -15,8 +15,8 @@
         "Node unit/API regressions",
         "Vite production build"
       ],
-      "evidence": "evidence/2026-11-14/batch10-check-strict-dates.txt",
-      "source_scope": "Final runtime sources at fface77caff24c29499bf92ce6520b3e29d6252c; documentation-only follow-up final CI is in PR408"
+      "evidence": "evidence/2026-11-14/batch11-check-release.txt",
+      "source_scope": "Final706-test combined check and targeted26 security tests cover runtime33628cb; browser journeys cover owned-cleanup implementation before the final server-only progress/activation guard. Final exact-head CI reruns all suites. SQL21-migration evidence is actual local PostgreSQL, not hosted services."
     },
     "browser": {
       "status": "PASS",
@@ -61,16 +61,17 @@
         "Unauthorized Admin Operations denied; source-bound Business Intelligence explicitly identifies missing budget",
         "Personal API token secret generated client-side, only digest/scopes persisted, explicit revocation",
         "Actual production static-shell network-off reload and encrypted local snapshot unlock/lock; no plaintext source at rest",
-        "Mobile root overflow checks including horizontally scrollable workbook; desktop/mobile tools hub screenshots"
+        "Mobile root overflow checks including horizontally scrollable workbook; desktop/mobile tools hub screenshots",
+        "Private deletion typed/cancelled confirmation, receipt download, interrupted retry, completed response/local cleanup, preserved other-owner catalog/drafts; synthetic transport only"
       ],
-      "evidence": "evidence/2026-11-14/batch10-products-browser-final.txt; batch10-learning-browser-final.txt; batch10-auth-browser.txt; evidence/2026-11-14/batch10-products-strict-dates.txt",
-      "fixture_source_commit": "fface77caff24c29499bf92ce6520b3e29d6252c",
-      "source_scope": "Final689-test combined check and product browser suite include strict date validation and explicit authenticated-navigation wait. Auth/learning suites and SQL ran before this isolated Calendar/test follow-up; exact final CI is in PR408."
+      "evidence": "evidence/2026-11-14/batch11-products-cleanup.txt; evidence/2026-11-14/batch11-auth-cleanup.txt; evidence/2026-11-14/batch11-learning-release.txt",
+      "fixture_source_commit": "33628cb087be3bfb4a84d59e724fb409426ed8c4",
+      "source_scope": "Final706-test combined check and targeted26 security tests cover runtime33628cb; browser journeys cover owned-cleanup implementation before the final server-only progress/activation guard. Final exact-head CI reruns all suites. SQL21-migration evidence is actual local PostgreSQL, not hosted services."
     },
     "postgres": {
       "status": "PASS",
       "database": "disposable PostgreSQL 17.6; no network or published ports",
-      "migrations_executed": 19,
+      "migrations_executed": 21,
       "scope": "real PostgreSQL SQL/RLS/triggers with synthetic auth.uid identities and Storage metadata schema",
       "assertions": [
         "owner/outsider isolation across ten tables",
@@ -100,10 +101,13 @@
         "Personal token owner-project scope, expiry/revocation/account-ban and service-only credential lookup",
         "Atomic workflow task creation and same-ID replay; Studio Note and conference Calendar idempotent materialization",
         "Fixed authenticated action quotas reuse existing atomic limiter; successful replay does not consume new quota and deleting posts cannot refund it",
-        "All40 export collection RLS and owner-column read contracts; collaboration consent/role visibility remains separate from30 private-table foreign denial"
+        "All40 export collection RLS and owner-column read contracts; collaboration consent/role visibility remains separate from30 private-table foreign denial",
+        "Service-only deletion RPC ACLs and leased private job; no direct private table grants",
+        "Old JWT and personal-token lock, late privileged/signed Storage metadata denial, Auth hard-delete cascade, detached reviewer preserves other author content",
+        "43 selected owner tables checked before completion; owned/orphan Storage metadata cleanup precedes Auth removal; minimal receipt detaches user_id"
       ],
       "hosted_supabase_verified": false,
-      "evidence": "evidence/2026-11-14/batch10-postgres.txt",
+      "evidence": "evidence/2026-11-14/batch11-postgres-final.txt",
       "source_scope": "19 selected existing+proposed migrations on disposable PostgreSQL17.6; synthetic Auth identities/users/sessions, not hosted Auth/JWT/PostgREST"
     },
     "supplemental_ci": {
@@ -131,20 +135,19 @@
       "scope": "Historical status-only smoke; superseded by strict public_release_probe failure, not current readiness"
     },
     "retrieval_diagnostic": {
-      "status": "FAIL",
+      "status": "PASS",
       "queries": 5,
-      "source_coverage_sufficient": 3,
-      "source_covered_anchor_gates_passed": 2,
-      "source_covered_anchor_gate_cases": 3,
-      "average_heuristic_anchor_coverage": 0.8,
+      "source_coverage_sufficient": 5,
+      "source_covered_anchor_gates_passed": 5,
+      "source_covered_anchor_gate_cases": 5,
+      "average_heuristic_anchor_coverage": 0.94,
       "observed_provider_failures": [
-        "Semantic Scholar HTTP 429"
+        "Semantic Scholar HTTP429"
       ],
       "human_judged": false,
-      "evidence": "evidence/2026-11-14/batch10-research-live.txt; evidence/2026-11-14/batch10-research-live.json",
-      "scope": "Fresh actual provider responses through unchanged local candidate discovery handler; strict5 queries and gates unchanged; no model calls",
-      "root_cause": "Europe PMC sort fix retained. Remaining source breadth/candidate coverage and heuristic gate failures unresolved; larger bounded candidate pool did not establish acceptance.",
-      "executed_at": "2026-11-13T22:27:33.378Z"
+      "evidence": "evidence/2026-11-14/batch11-retrieval-provenance.txt; evidence/2026-11-14/batch11-retrieval-provenance.json",
+      "scope": "Actual public-provider responses through local candidate handler, not hosted deployment;50 source metadata/provenance records; all five coverage cases now required, original rank/dedupe/anchor thresholds unchanged",
+      "root_cause": "arXiv unscoped multi-word queries, Europe PMC lite records missing abstracts and insufficient retained supplied context; provider-native retrieval/core abstracts/bibliographic terms repair actual breadth. Semantic Scholar rate limit remains explicit."
     },
     "public_release_probe": {
       "status": "FAIL",
@@ -193,38 +196,38 @@
   },
   "result_categories": {
     "IMPLEMENTED": [
-      "Portable workspace v3 covers40 owned/authored collections with correct directory key and credential-safe token metadata",
-      "Translation reference integrity guard before marking output complete or saving a canonical Note",
-      "Saved private-form CSV export with quoting and formula protection",
-      "Calendar all-day/date-span and viewer-local month/day handling",
-      "Impossible Calendar dates rejected instead of silently normalizing; valid leap day accepted"
+      "Provider-native multi-concept retrieval, core abstracts and retained supplied context; original ranking/DOI gates unchanged, diagnostic strengthened to require all5 cases",
+      "Reauthenticated/explicitly confirmed password free-account staging deletion with private receipts, leased jobs, old-token lockdown, Storage-before-Auth and verified completion",
+      "Other-author manuscript preservation when reviewer is deleted",
+      "Owner-local catalog/draft/Offline cleanup and legacy private-cache ownership boundaries",
+      "Known new product/privacy routes survive safe sign-in redirects"
     ],
     "EXECUTED": [
-      "npm run check: PASS689 tests,0 failed, imports/typecheck/lint/build",
-      "Three browser suites PASS; products suite uses actual production bundle and real offline reload",
-      "Disposable PostgreSQL17.6: PASS19 selected migrations and40 collection contracts",
-      "Real provider diagnostic: FAIL3/5 sufficient source coverage,2/3 covered anchor gates,mean0.80; Semantic Scholar429"
+      "npm run check: PASS706 tests,0 failed, imports/typecheck/lint/production build",
+      "All three local browser suites PASS; all22 workflows, actual offline reload, deletion consent/cancellation/receipt/retry/completion/cache cleanup",
+      "Disposable PostgreSQL17.6: PASS21 selected migrations with43 owner-table deletion/lock contracts and40 export collections",
+      "Three real public-provider diagnostics: PASS5/5 coverage,5/5 anchors, mean0.94; latest artifact retains50 metadata/provenance records"
     ],
     "VERIFIED": [
-      "All22 prior workflows still pass locally; new invalid-reference translation cannot save",
-      "Actual Settings download contains40 owner-validated collections and excludes foreign collaboration rows/token material",
-      "CSV file contains saved form responses; no unsaved draft export",
-      "Calendar preserves first-of-month deadline in America/Los_Angeles through editing; unit checks also cover UTC+14 and Europe/Athens"
+      "Automated real source coverage, without invented papers or weaker ranking gates; primary-index counts do not inflate co-indexing",
+      "Actual local SQL service-only ACLs, stale JWT/privileged upload metadata denial, leases, Storage ordering, Auth cascades and other-account persistence",
+      "Synthetic HTTP tests verify actual endpoint orchestration, HMAC job binding, password/MFA/billing gates, quotas, failure recovery and ambiguous Auth404 replay",
+      "Actual React/browser confirms consent and retry without duplicate initiation, local owner-data cleanup and preserved other-owner catalog/drafts"
     ],
     "FAILED": [
-      "Fresh real-provider scholarly diagnostic remains3/5; queries/gates unchanged; no invented papers",
-      "Intermediate test fixture errors retained: calendar assertion ran before data loaded, and token sentinel was mistakenly seeded into non-token rows; repaired tests pass",
-      "Initial full check exposed that private isolation probe must remain private-only when export includes explicitly shared collaboration; kept strict private gates and separate consent/role SQL tests",
-      "Product quality run43520297627/job132212573568 failed at initial login: browser navigated to Tools before asynchronous sign-in completed. Repaired with explicit authenticated navigation wait; local all22 suite passes, final CI pending."
+      "Semantic Scholar continues HTTP429; transparent degraded source, not failure of the now5/5 aggregate diagnostic",
+      "Earlier fixture failures retained: invalid pre-accepted connection seed, missing per-session SQL assertion helper, anonymous Offline-to-privacy navigation and initially absent safe privacy redirect; corrected without weakening policies"
     ],
     "BLOCKED": [
-      "Separate independently verified staging and connected Vercel deployment identity/access; no remote migration or hosted acceptance",
-      "Hosted Auth/recovery/RLS/Storage/OpenAI/Stripe test/LiveKit/privacy/operational/legal/pilot acceptance"
+      "Separate independently verified EYLO staging and linked Vercel identity/access: fresh tools still expose only unrelated Supabase and no EYLO project",
+      "Actual hosted JWT/password/Storage bytes/in-flight upload/Auth hard-delete/advisors and two-account acceptance",
+      "Human scholarly evaluation, authenticated OpenAI, Stripe sandbox/LiveKit/operational/legal/pilot release acceptance"
     ],
     "NOT_IMPLEMENTED": [
-      "Full advanced completion/certification of all77 products",
-      "Full DSAR/account deletion including received/shared records, file bytes, Auth/provider records and backups",
-      "Advanced product gaps remain in batch9 register, as updated for IDs2/22/31/68/71 here"
+      "Production activation and full advanced acceptance of all77 products; matrix remains77 partial/0 without implementation/0 certified complete",
+      "Automated MFA/passwordless/billing-linked deletion; any configured Stripe secret/webhook keeps this candidate disabled",
+      "Full processor/log/backup erasure and complete DSAR; completed receipt metadata retention requires owner review",
+      "Erasure of prior exports/downloads/browser data on other devices and automatic deployment of a managed recovery worker"
     ]
   },
   "concurrent_branch_reconciliation": {
@@ -234,20 +237,20 @@
     "save_semantics": "Explicit immutable snapshot; existing records not overwritten; separate source metadata column; security-invoker atomic RPC with caller RLS"
   },
   "review": {
-    "prior_pr": 407,
-    "prior_pr_state": "Merged externally as b912d9f before batch10",
+    "prior_pr": 408,
+    "prior_pr_state": "Merged externally as879e29f before batch11",
     "continuation_branch": "codex/eylo-platform-integration-audit",
-    "current_pr": 408
+    "current_pr": "See new draft continuation; not guessed before creation"
   },
   "github_ci": {
-    "commit": "8503c98e48987dbc2ba5dae39be6797109664bbc",
-    "status": "FAIL (Product quality login race; repaired locally, final CI pending)",
+    "commit": "51ee3271d4f09f237d3c12cdbf353bf95a0ed6aa",
+    "status": "PASS (historical batch10)",
     "runs": {
-      "Build": 43520297672,
-      "EYLO Quality Gate": 43520297629,
-      "Product quality": 43520297627
+      "Build": 43521212099,
+      "EYLO Quality Gate": 43521212096,
+      "Product quality": 43521212164
     },
-    "scope": "Initial batch10 head; exact final repaired-head results recorded in PR408."
+    "scope": "Historical batch10 final CI. Current batch11 exact-head results are recorded in the draft PR body."
   },
   "latest_vercel_observation": {
     "commit": "13a8117b911c928acd21b5342c5a1568588cf9c7",
