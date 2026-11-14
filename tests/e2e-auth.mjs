@@ -516,6 +516,19 @@ try {
     id: 'graph-project-1', user_id: testUser.id, created_at: '2026-11-10T00:00:00.000Z', updated_at: '2026-11-10T00:00:00.000Z',
     data: { title: 'Graph project', evidence_matrix: { annotations: { 'graph-paper-1': { study_design: 'Researcher note: cohort study' } } } },
   }]));
+  const graphNoteId = '30000000-0000-4000-8000-000000000020';
+  const graphTaskId = '40000000-0000-4000-8000-000000000020';
+  let graphNoteForeign = false;
+  const graphNotesRoute = async route => {
+    const url = new URL(route.request().url());
+    if (route.request().method() === 'OPTIONS') return sendAuthJson(route, []);
+    assert.equal(url.searchParams.get('user_id'), `eq.${testUser.id}`);
+    const row = { id: graphNoteId, user_id: graphNoteForeign ? 'foreign-owner' : testUser.id, created_date: '2026-11-10T00:00:00Z', updated_date: '2026-11-10T00:00:00Z', data: { title: graphNoteForeign ? 'Other-account private graph note' : 'Graph linked reading note', content: 'A user-authored note, not a publication.', project_id: 'graph-project-1', tags: ['reading'] } };
+    return sendAuthJson(route, url.searchParams.has('id') ? row : [row]);
+  };
+  const graphTasksRoute = route => sendAuthJson(route, [{ id: graphTaskId, user_id: testUser.id, created_date: '2026-11-10T00:00:00Z', updated_date: '2026-11-10T00:00:00Z', data: { title: 'Graph linked next task', status: 'todo', project_id: 'graph-project-1' } }]);
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/notes**', graphNotesRoute);
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/life_tasks**', graphTasksRoute);
   await dataLab.goto(`${baseUrl}/knowledge-graph`);
   await dataLab.getByRole('heading', { name: 'Knowledge Graph' }).waitFor();
   const graphPaper = dataLab.getByRole('button', { name: 'Explore graph node: Graph paper one (Publications)' });
@@ -523,6 +536,23 @@ try {
   await dataLab.keyboard.press('Enter');
   await dataLab.getByRole('heading', { name: 'Graph paper one' }).waitFor();
   await dataLab.getByRole('button', { name: /Graph paper one Cites Graph paper two/ }).waitFor();
+  await dataLab.getByRole('button', { name: 'Explore graph node: Graph linked reading note (Notes)', exact: true }).click();
+  assert.equal(await dataLab.getByRole('link', { name: 'Open note', exact: true }).getAttribute('href'), '/notes?focus=' + graphNoteId);
+  await dataLab.getByRole('link', { name: 'Open note', exact: true }).click();
+  await dataLab.getByRole('heading', { name: 'Notes', exact: true }).waitFor();
+  await dataLab.waitForFunction(() => document.querySelector('#note-title')?.value === 'Graph linked reading note');
+  await dataLab.goto(`${baseUrl}/knowledge-graph`);
+  await dataLab.getByRole('button', { name: 'Explore graph node: Graph linked next task (Tasks)', exact: true }).click();
+  await dataLab.getByRole('link', { name: 'Open task', exact: true }).click();
+  await dataLab.waitForFunction(() => document.querySelector('#life-task-title')?.value === 'Graph linked next task');
+  graphNoteForeign = true;
+  await dataLab.goto(`${baseUrl}/knowledge-graph`);
+  await dataLab.getByText(/Unavailable collections: Notes/).waitFor();
+  assert.equal(await dataLab.getByText('Other-account private graph note', { exact: true }).count(), 0, 'foreign raw-owner rows never enter the graph');
+  await dataLab.getByRole('button', { name: 'Explore graph node: Graph paper one (Publications)', exact: true }).waitFor();
+  await dataLab.unroute('https://eylo-auth-test.supabase.co/rest/v1/notes**', graphNotesRoute);
+  await dataLab.unroute('https://eylo-auth-test.supabase.co/rest/v1/life_tasks**', graphTasksRoute);
+  console.log('Knowledge Graph connected canonical Notes/tasks to exact editor links and refused a foreign-owner collection while retaining available publications. Browser transport is isolated fixtures, not hosted RLS.');
 
   // Verify a Library outage is recoverable and paper/project links survive a
   // page reload. These are isolated PostgREST fixtures, not live-RLS evidence.

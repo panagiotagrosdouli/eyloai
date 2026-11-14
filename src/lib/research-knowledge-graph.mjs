@@ -39,7 +39,7 @@ function listOf(value) {
   return Array.isArray(value) ? value : [];
 }
 
-export function buildResearchKnowledgeGraph({ papers = [], researchers = [], projects = [] } = {}) {
+export function buildResearchKnowledgeGraph({ papers = [], researchers = [], projects = [], notes = [], tasks = [] } = {}) {
   const nodes = new Map();
   const edges = new Map();
   const paperNodes = new Map();
@@ -47,6 +47,8 @@ export function buildResearchKnowledgeGraph({ papers = [], researchers = [], pro
   const projectRows = listOf(projects).slice(0, MAX_SAVED_RECORDS);
   const paperRows = listOf(papers).slice(0, MAX_SAVED_RECORDS);
   const researcherRows = listOf(researchers).slice(0, MAX_SAVED_RECORDS);
+  const noteRows = listOf(notes).filter(row => !row?.archived_at && !row?.archived).slice(0, MAX_SAVED_RECORDS);
+  const taskRows = listOf(tasks).slice(0, MAX_SAVED_RECORDS);
 
   for (const project of projectRows) {
     const id = stableRecordId(project?.id);
@@ -62,6 +64,28 @@ export function buildResearchKnowledgeGraph({ papers = [], researchers = [], pro
       source_url: '',
       provenance: 'Saved project record',
     });
+  }
+
+  for (const [type, rows] of [['note', noteRows], ['task', taskRows]]) {
+    for (const record of rows) {
+      const id = stableRecordId(record?.id);
+      if (!id) continue;
+      const nodeId = `${type}:${id}`;
+      addNode(nodes, {
+        id: nodeId, entity_id: id, type,
+        label: String(record.title || (type === 'note' ? 'Untitled note' : 'Untitled task')).slice(0, 180),
+        details: type === 'note' ? listOf(record.tags).map(String).join(' · ').slice(0, 500) : String(record.status || 'Recorded task').slice(0, 120),
+        source_url: '',
+        href: `${type === 'note' ? '/notes' : '/life'}?focus=${encodeURIComponent(id)}`,
+        provenance: type === 'note' ? 'Your saved note; not an independently verified publication' : 'Your saved task; status is recorded by you',
+      });
+      const projectId = String(record.project_id || '');
+      if (projectIds.has(projectId)) addEdge(edges, {
+        from: `project:${projectId}`, to: nodeId, kind: `project-${type}`,
+        label: type === 'note' ? 'Note linked to project' : 'Task linked to project',
+        source_url: '', provenance: 'Explicit project_id on the saved EYLO record; not a citation', inferred: false,
+      });
+    }
   }
 
   for (const paper of paperRows) {
@@ -311,6 +335,8 @@ export function buildResearchKnowledgeGraph({ papers = [], researchers = [], pro
       papers: paperRows.length,
       researchers: researcherRows.length,
       projects: projectRows.length,
+      notes: [...nodes.values()].filter(node => node.type === 'note').length,
+      tasks: [...nodes.values()].filter(node => node.type === 'task').length,
       authorshipRecords: [...edges.values()].filter(edge => edge.kind === 'authorship').length,
       citationLinks: [...edges.values()].filter(edge => edge.kind === 'citation').length,
       inferredTopicLinks: [...edges.values()].filter(edge => edge.inferred).length,
@@ -329,6 +355,26 @@ export function filterResearchKnowledgeGraph(graph, { query = '', types = null }
   const visibleIds = new Set(nodes.map(node => node.id));
   const edges = listOf(graph?.edges).filter(edge => visibleIds.has(edge.from) && visibleIds.has(edge.to));
   return { nodes, edges };
+}
+
+/** Keep small record types visible when another collection fills the canvas. */
+export function selectResearchGraphNodes(nodes, limit = 120) {
+  const groups = new Map();
+  for (const node of listOf(nodes)) {
+    if (!groups.has(node.type)) groups.set(node.type, []);
+    groups.get(node.type).push(node);
+  }
+  const selected = [];
+  const maximum = Math.max(0, Math.min(120, Math.floor(Number(limit) || 0)));
+  const queues = [...groups.values()];
+  for (let index = 0; selected.length < maximum; index += 1) {
+    let added = false;
+    for (const queue of queues) {
+      if (queue[index] && selected.length < maximum) { selected.push(queue[index]); added = true; }
+    }
+    if (!added) break;
+  }
+  return selected;
 }
 
 export function getRelatedKnowledgeNodes(graph, nodeId) {

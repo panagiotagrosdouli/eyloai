@@ -5,11 +5,64 @@ import {
   buildResearchKnowledgeGraph,
   filterResearchKnowledgeGraph,
   getRelatedKnowledgeNodes,
+  selectResearchGraphNodes,
 } from '../src/lib/research-knowledge-graph.mjs';
+import { loadResearchGraphCollections } from '../src/lib/research-graph-collections.mjs';
 import { searchOpenAlexWorks } from '../src/lib/eyra-api.js';
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const openAlex = suffix => `https://openalex.org/${suffix}`;
+
+test('workspace nodes use exact canonical links and only explicit owned-project relations', () => {
+  const graph = buildResearchKnowledgeGraph({
+    projects: [{ id: 'p1', title: 'My project' }],
+    notes: [{ id: 'n/1?', title: 'My interpretation', content: 'Do not copy my full draft', tags: ['reading'], project_id: 'p1' }, { id: 'archived', archived_at: '2026-11-01' }, { id: 'orphan', title: 'My unrelated note', project_id: 'unloaded-project' }],
+    tasks: [{ id: 't1', title: 'Check the source', project_id: 'p1', status: 'pending' }, { id: '', title: 'No saved identity' }],
+  });
+  assert.equal(graph.coverage.notes, 2);
+  assert.equal(graph.coverage.tasks, 1);
+  const note = graph.nodes.find(node => node.id === 'note:n/1?');
+  assert.equal(note.href, '/notes?focus=n%2F1%3F');
+  assert.equal(note.details, 'reading');
+  assert.equal(JSON.stringify(graph).includes('Do not copy my full draft'), false);
+  assert.equal(graph.nodes.find(node => node.type === 'task').href, '/life?focus=t1');
+  assert.equal(graph.edges.filter(edge => edge.kind.startsWith('project-')).length, 2);
+  assert.ok(graph.edges.every(edge => !edge.inferred && !edge.source_url));
+  assert.equal(graph.edges.some(edge => edge.to === 'note:orphan'), false);
+  assert.match(note.provenance, /not an independently verified publication/);
+});
+
+test('bounded graph selection preserves rare record types instead of hiding them behind projects', () => {
+  const rows = [...Array.from({ length: 250 }, (_, i) => ({ id: 'p' + i, type: 'project' })), { id: 'n1', type: 'note' }, { id: 'w1', type: 'paper' }, { id: 't1', type: 'task' }];
+  const selected = selectResearchGraphNodes(rows);
+  assert.equal(selected.length, 120);
+  assert.ok(['n1', 'w1', 't1'].every(id => selected.some(node => node.id === id)));
+  assert.equal(new Set(selected.map(node => node.id)).size, 120);
+  assert.equal(selectResearchGraphNodes(rows, -10).length, 0);
+});
+
+test('graph collection reads bind the expected owner, bound coverage and report partial failure', async () => {
+  const calls = [];
+  const entities = Object.fromEntries(['SavedPaper', 'SavedResearcher', 'Project', 'Note', 'LifeTask'].map(name => [name, { list: async (...args) => { calls.push([name, ...args]); if (name === 'LifeTask') throw new Error('private upstream detail'); return Array.from({ length: name === 'Note' ? 251 : 1 }, (_, i) => ({ id: name + i })); } }]));
+  const result = await loadResearchGraphCollections({ entities, ownerId: 'owner-a' });
+  assert.equal(calls.length, 5);
+  assert.ok(calls.every(call => call[2] === 251 && call[3] === 'owner-a'));
+  assert.equal(result.collections.notes.length, 250);
+  assert.deepEqual(result.unavailable, ['tasks']);
+  assert.deepEqual(result.truncated, ['notes']);
+  assert.equal(result.allUnavailable, false);
+  assert.equal(JSON.stringify(result).includes('private upstream detail'), false);
+  await assert.rejects(loadResearchGraphCollections({ entities, ownerId: '' }), /Sign in/);
+  assert.equal(calls.length, 5, 'missing identity does not read any collections');
+});
+
+test('invalid and unavailable collections never produce fake empty-success coverage', async () => {
+  const entities = Object.fromEntries(['SavedPaper', 'SavedResearcher', 'Project', 'Note', 'LifeTask'].map(name => [name, { list: async () => name === 'Note' ? { html: 'SPA fallback' } : Promise.reject(new Error('offline')) }]));
+  const result = await loadResearchGraphCollections({ entities, ownerId: 'owner-a' });
+  assert.equal(result.allUnavailable, true);
+  assert.equal(result.unavailable.length, 5);
+  assert.ok(Object.values(result.collections).every(rows => rows.length === 0));
+});
 
 function fixture() {
   return {
