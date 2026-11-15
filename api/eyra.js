@@ -39,6 +39,18 @@ const PROJECT_TOOLS = [
   },
   {
     type: 'function',
+    name: 'research.lookup_doi',
+    description: 'Retrieve actual publication metadata from Crossref using a DOI. Metadata is not full-text evidence.',
+    parameters: {
+      type: 'object',
+      properties: { doi: { type: 'string' } },
+      required: ['doi'],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+  {
+    type: 'function',
     name: 'library.list_papers',
     description: 'List saved papers in the authenticated user’s Library when they ask what papers they saved.',
     parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
@@ -228,6 +240,40 @@ function userExplicitlyRequestedPaperSave(prompt) {
 async function executeProjectTool(name, rawArguments, identity) {
   let args;
   try { args = JSON.parse(rawArguments || '{}'); } catch { throw new Error('Invalid tool arguments.'); }
+  if (name === 'research.lookup_doi') {
+    const doi = typeof args.doi === 'string'
+      ? args.doi.trim().replace(/^https?:\\/\\/(?:dx\\.)?doi\\.org\\//i, '').replace(/^doi:\\s*/i, '').toLowerCase()
+      : '';
+    if (!/^10\\.\\d{4,9}\\/[\\-._;()/:A-Z0-9]+$/i.test(doi) || doi.length > 255) {
+      throw new Error('A valid DOI is required.');
+    }
+    const sourceResponse = await fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`, {
+      headers: { accept: 'application/json' },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!sourceResponse.ok) throw new Error('Crossref could not retrieve this DOI.');
+    const payload = await sourceResponse.json();
+    const metadata = payload?.message;
+    if (typeof metadata?.DOI !== 'string' || metadata.DOI.toLowerCase() !== doi) {
+      throw new Error('Crossref returned inconsistent DOI metadata.');
+    }
+    const title = typeof metadata.title?.[0] === 'string' ? metadata.title[0].trim() : '';
+    if (!title) throw new Error('Crossref did not provide a publication title.');
+    const dateParts = metadata.published?.['date-parts']?.[0]
+      || metadata['published-online']?.['date-parts']?.[0]
+      || metadata['published-print']?.['date-parts']?.[0];
+    return {
+      doi, title: title.slice(0, 1000),
+      authors: (Array.isArray(metadata.author) ? metadata.author : []).slice(0, 30)
+        .map(author => [author.given, author.family].filter(v => typeof v === 'string').join(' '))
+        .filter(Boolean),
+      year: Number.isInteger(dateParts?.[0]) ? dateParts[0] : null,
+      journal: String(metadata['container-title']?.[0] || '').slice(0, 300),
+      url: `https://doi.org/${doi}`,
+      source: 'Crossref',
+      evidence_level: 'bibliographic_metadata_only',
+    };
+  }
   const url = `${identity.supabaseUrl}/rest/v1/projects`;
   const headers = {
     apikey: identity.publicKey,
