@@ -44,9 +44,9 @@ export default function ResearchBattlefield() {
     try {
     // Providers fail independently: absence of a response is not evidence of zero research.
     const results = await Promise.allSettled([
-      searchOpenAlexAuthors(searchQuery, 10),
-      searchOpenAlexInstitutions(searchQuery, 6),
-      searchOpenAlexWorks(searchQuery, 8),
+      searchOpenAlexAuthors(searchQuery, 10, { throwOnError: true }),
+      searchOpenAlexInstitutions(searchQuery, 6, { throwOnError: true }),
+      searchOpenAlexWorks(searchQuery, 8, 'relevance', { throwOnError: true }),
       searchFundingOpportunities(searchQuery, 6),
     ]);
     const [researchers, institutions, papers] = results.slice(0, 3).map(result =>
