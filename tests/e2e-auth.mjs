@@ -1094,9 +1094,9 @@ try {
     ] } }) });
   });
   await dataLab.goto(`${baseUrl}/opportunities`);
-  await dataLab.getByLabel('Funding search').fill('climate');
+  await dataLab.getByRole('searchbox', { name: 'Research topic or project goal' }).fill('climate');
   const fundingResponse = dataLab.waitForResponse(response => response.url().includes('/api/opportunities'), { timeout: 10000 });
-  await dataLab.getByRole('button', { name: 'Find' }).click();
+  await dataLab.getByRole('button', { name: 'Find funding' }).click();
   const fundingSourceResponse = await fundingResponse;
   assert.equal(fundingSourceResponse.status(), 200);
   const fundingFixturePayload = await fundingSourceResponse.json();
@@ -1128,8 +1128,8 @@ try {
     'comparison follows the filtered record set');
   assert.match(await dataLab.getByRole('cell').filter({ hasText: 'Not provided by source' }).first().textContent(), /Not provided/);
   await dataLab.getByLabel('Filter by research field').fill('');
-  await dataLab.getByLabel('Funding search').fill('health');
-  await dataLab.getByRole('button', { name: 'Find' }).click();
+  await dataLab.getByRole('searchbox', { name: 'Research topic or project goal' }).fill('health');
+  await dataLab.getByRole('button', { name: 'Find funding' }).click();
   await dataLab.getByRole('heading', { name: 'Official health grant' }).waitFor();
   await dataLab.getByRole('heading', { name: 'Compare official opportunities' }).waitFor({ state: 'detached' });
   assert.equal(fundingSearchCalls, 2);
