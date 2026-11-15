@@ -241,6 +241,14 @@ try {
         .evaluate((el) => getComputedStyle(el).backgroundColor),
       "rgb(16, 29, 44)",
     );
+    if (route === "contact") {
+      await page.getByText("Message delivery is not enabled right now.").waitFor();
+      assert.equal(await page.getByRole("button", { name: "Send your message" }).isDisabled(), true);
+      const retry = page.getByRole("button", { name: "Check availability again" });
+      await retry.click();
+      await page.getByText("Message delivery is not enabled right now.").waitFor();
+      assert.equal(await page.getByRole("button", { name: "Send your message" }).isDisabled(), true);
+    }
     if (route === "plans") {
       await page.getByText("$19", { exact: true }).waitFor();
       await page
