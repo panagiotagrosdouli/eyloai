@@ -22,3 +22,11 @@ The main Command Center enables this limited registry. Other EYRA entry points r
 - There is no independent confirmation UI. A clear user request to create a project is treated as authorization for this reversible action; destructive actions are not available.
 - Non-DOI Library saves, project updates, milestones, deletion, exports, workflow persistence, idempotency keys and broader route context are not implemented.
 - Production OpenAI, Supabase RLS, billing entitlements, and deployment availability require live verification before claiming readiness.
+
+## Incremental agent safeguards (PR #457)
+
+- The stateless Responses agent now carries the complete prior tool exchanges into subsequent rounds, instead of only the latest round.
+- Duplicate provider tool call identifiers are denied inside a single request to avoid accidental repeated execution. This is **not** durable cross-request idempotency; a persistent action ledger is still required before advertising durable writes.
+- Write permission is checked against the actual user prompt, not independently against the browser-supplied `tool_intent` field.
+- A read-only `research.lookup_doi` tool validates bibliographic metadata from Crossref and labels it `bibliographic_metadata_only`. It never claims to have retrieved or interpreted full text.
+- The initial TypeScript failure was corrected; full CI and live service acceptance must still pass before merge.
