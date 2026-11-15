@@ -118,6 +118,12 @@ function ToolLink({ item, active }) {
 
 export default function AppLayout() {
   const location = useLocation();
+  // Pass only the route resource identifier. EYRA verifies owner/RLS and
+  // retrieves the actual project context server-side on every request.
+  const projectRoute = location.pathname.match(
+    /^\/projects\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})(?:\/|$)/i,
+  );
+  const eyraResourceContext = projectRoute ? { kind: 'project', id: projectRoute[1] } : null;
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
@@ -318,7 +324,7 @@ export default function AppLayout() {
 
       <main id="main-content" tabIndex={-1} className="relative z-10 min-h-[calc(100vh-4.5rem)] pb-24 lg:pb-0"><WorkspaceBreadcrumbs /><Outlet /></main>
       <GlobalCommandCenter open={commandOpen} onClose={() => setCommandOpen(false)} />
-      <EyraCommandCenter open={eyraOpen} onClose={() => setEyraOpen(false)} />
+      <EyraCommandCenter open={eyraOpen} onClose={() => setEyraOpen(false)} resourceContext={eyraResourceContext} />
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl lg:hidden" aria-label="Primary mobile navigation">
         <div className="mx-auto grid max-w-lg grid-cols-5 items-end">

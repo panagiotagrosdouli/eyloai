@@ -59,7 +59,7 @@ test('explicit project request uses the authenticated RLS route and reports the 
     const response = responseMock();
     await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' }, body: {
       prompt: 'Create a project about explainable diagnosis and add milestones.',
-      tool_intent: 'Create a project about explainable diagnosis and add milestones.', enable_project_tools: true,
+      tool_intent: 'Create a project about explainable diagnosis and add milestones.', enable_project_tools: true, write_confirmed: true,
     } }, response);
     assert.equal(response.statusCode, 200);
     assert.match(response.payload.text, /Created project Explainable diagnosis/);
@@ -143,6 +143,7 @@ test('explicit paper-save request verifies DOI metadata and persists the Crossre
       prompt: 'Save this paper to my Library.',
       tool_intent: 'Save this paper to my Library.',
       enable_project_tools: true,
+      write_confirmed: true,
     } }, response);
     assert.equal(response.statusCode, 200);
     assert.equal(response.payload.actions[0].status, 'succeeded');
@@ -152,6 +153,45 @@ test('explicit paper-save request verifies DOI metadata and persists the Crossre
     assert.equal(savedPayload.data.authors, 'Ada Researcher');
     assert.equal(savedPayload.data.year, 2024);
     assert.equal(savedPayload.data.summary, '');
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
+
+test('mismatched DOI metadata cannot be saved even when the title matches', async () => {
+  const previousFetch = globalThis.fetch;
+  let modelCalls = 0;
+  let writes = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address === 'https://api.openai.com/v1/responses') {
+      modelCalls += 1;
+      return new Response(JSON.stringify(modelCalls === 1 ? {
+        id: 'doi_mismatch_call', status: 'completed', output: [{
+          type: 'function_call', call_id: 'save_bad', name: 'library.save_paper',
+          arguments: JSON.stringify({ doi: '10.1234/expected', title: 'Matching paper title' }),
+        }],
+      } : { id: 'doi_mismatch_final', status: 'completed',
+        output: [{ content: [{ type: 'output_text', text: 'The paper was not saved.' }] }] }), { status: 200 });
+    }
+    if (address === 'https://api.crossref.org/works/10.1234%2Fexpected') {
+      return new Response(JSON.stringify({ message: { DOI: '10.1234/different',
+        title: ['Matching paper title'] } }), { status: 200 });
+    }
+    if (address.includes('/rest/v1/saved_papers?')) writes += 1;
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' }, body: {
+      prompt: 'Save this paper to my Library.', write_confirmed: true, enable_project_tools: true,
+    } }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(writes, 0);
+    assert.equal(response.payload.actions[0].status, 'failed');
+    assert.match(response.payload.actions[0].error, /different DOI/);
   } finally {
     globalThis.fetch = previousFetch;
   }
