@@ -13,6 +13,7 @@ export class EyraRunHistoryError extends Error {
   }
 }
 
+/** @param {string} method @param {{ id?: string, action?: string }} [options] */
 async function authenticatedRunRequest(method, { id, action } = {}) {
   if (id !== undefined && (typeof id !== 'string' || !UUID.test(id))) {
     throw new EyraRunHistoryError('Invalid EYRA run identifier.', 400, 'INVALID_RUN_ID');
