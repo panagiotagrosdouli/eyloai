@@ -1019,3 +1019,52 @@ test('unowned course cannot reveal lessons or learning progress', async () => {
     assert.match(response.payload.actions[0].error, /not available/);
   } finally { globalThis.fetch = oldFetch; }
 });
+
+test('oversized private search response fails closed before passing any note content to the model', async () => {
+  const previousFetch = globalThis.fetch;
+  let modelCalls = 0;
+  const oversize = JSON.stringify([{
+    id: '00000000-0000-4000-8000-000000000091',
+    data: { title: 'Research', content: 'TOPSECRET'.repeat(150000) },
+  }]);
+  globalThis.fetch = async (url, options = {}) => {
+    const parsed = new URL(String(url));
+    if (parsed.pathname === '/auth/v1/user') {
+      return new Response(JSON.stringify({ id: '00000000-0000-4000-8000-000000000001' }), { status: 200 });
+    }
+    if (parsed.pathname === '/rest/v1/rpc/reserve_eyra_usage') {
+      return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    }
+    if (parsed.pathname === '/rest/v1/notes') {
+      assert.equal(parsed.searchParams.get('limit'), '100');
+      return new Response(oversize, { status: 200 });
+    }
+    if (parsed.hostname === 'api.openai.com') {
+      modelCalls++;
+      if (modelCalls === 2) {
+        const outputs = JSON.parse(options.body).input.filter(item => item.type === 'function_call_output');
+        assert.equal(outputs.length, 1);
+        const payload = JSON.parse(outputs[0].output);
+        assert.equal(payload.ok, false);
+        assert.match(payload.error, /safety budget/);
+        assert.ok(!JSON.stringify(outputs).includes('TOPSECRET'));
+      }
+      return new Response(JSON.stringify(modelCalls === 1 ? {
+        id: 'large', status: 'completed', output: [{
+          type: 'function_call', call_id: 'large-notes', name: 'notes.search',
+          arguments: JSON.stringify({ query: 'research' }),
+        }],
+      } : { id: 'large-final', status: 'completed',
+        output: [{ content: [{ type: 'output_text', text: 'Search unavailable due to size limit.' }] }] }), { status: 200 });
+    }
+    throw new Error('Unexpected URL ' + parsed.href);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' },
+      body: { prompt: 'Search my research notes.', enable_project_tools: true } }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.payload.actions[0].status, 'failed');
+    assert.equal(modelCalls, 2);
+  } finally { globalThis.fetch = previousFetch; }
+});
