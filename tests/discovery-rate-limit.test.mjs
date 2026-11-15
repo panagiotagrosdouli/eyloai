@@ -68,6 +68,44 @@ test('fails closed on database error or malformed RPC output', async () => {
   assert.deepEqual(malformed, { status: 'unavailable' });
 });
 
+test('transient quota gateway failure retries once and recovers without skipping the shared RPC', async () => {
+  const request = { headers: { 'x-vercel-forwarded-for': '203.0.113.12' } };
+  const calls = [];
+  const result = await consumeDiscoveryQuota(request, {
+    env: vercelEnv,
+    fetchImpl: async (url, options) => {
+      calls.push({ url, method: options.method });
+      return calls.length === 1
+        ? new Response('temporary gateway failure', { status: 503 })
+        : Response.json([{ allowed: true, remaining: 118, retry_after_seconds: 60 }]);
+    },
+  });
+  assert.equal(result.status, 'available');
+  assert.equal(result.allowed, true);
+  assert.equal(calls.length, 2);
+  assert.ok(calls.every(call => call.url.endsWith('/rpc/consume_discovery_rate_limit') && call.method === 'POST'));
+});
+
+test('quota guard never retries auth, missing RPC, rate-limit, malformed output or ambiguous network failures', async () => {
+  const request = { headers: { 'x-vercel-forwarded-for': '203.0.113.12' } };
+  for (const status of [401, 403, 404, 429]) {
+    let calls = 0;
+    const result = await consumeDiscoveryQuota(request, {
+      env: vercelEnv,
+      fetchImpl: async () => { calls++; return new Response('', { status }); },
+    });
+    assert.deepEqual(result, { status: 'unavailable' });
+    assert.equal(calls, 1, `unexpected retry for HTTP ${status}`);
+  }
+  let calls = 0;
+  const result = await consumeDiscoveryQuota(request, {
+    env: vercelEnv,
+    fetchImpl: async () => { calls++; throw new Error('network unavailable'); },
+  });
+  assert.deepEqual(result, { status: 'unavailable' });
+  assert.equal(calls, 1);
+});
+
 test('quota diagnostics classify failures without disclosing request, credentials or upstream content', async () => {
   const request = { headers: { 'x-vercel-forwarded-for': '203.0.113.12' } };
   const privateMessage = 'private upstream body, token and query must never be logged';
