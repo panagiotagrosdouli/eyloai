@@ -57,10 +57,16 @@ export default function EyraHome({ onSearch }) {
   const eyraReady = !capabilitiesLoading && Boolean(capabilities?.ai);
 
   const recentSearches = (profile?.searches || []).filter(item => item.query).slice(0, 3);
+  const today = new Date();
+  const todayKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
+  const upcoming = (profile?.tasks || [])
+    .filter(task => task.due_date && task.due_date >= todayKey && task.status !== 'done')
+    .sort((a, b) => a.due_date.localeCompare(b.due_date))
+    .slice(0, 3);
 
   return (
     <div className="eylo-home min-h-[calc(100vh-4.5rem)] bg-background text-foreground">
-      <main className="mx-auto w-full max-w-7xl px-5 pb-20 pt-6 sm:px-8 sm:pt-8">
+      <div className="mx-auto w-full max-w-7xl px-5 pb-20 pt-6 sm:px-8 sm:pt-8">
         <section aria-labelledby="home-title" className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-8">
           <p className="text-sm font-medium text-primary">{greeting.greeting}</p>
           <h1 id="home-title" className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">What would you like to work on?</h1>
@@ -146,6 +152,19 @@ export default function EyraHome({ onSearch }) {
 
                 <div>
                   <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Upcoming deadlines</h3>
+                    <Link to="/calendar" className="text-xs font-semibold text-primary hover:underline">Open calendar</Link>
+                  </div>
+                  {hasSourceWarning('tasks') ? <p className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">Deadlines could not be loaded.</p>
+                    : upcoming.length ? <ul className="divide-y divide-border rounded-xl border border-border bg-card px-4">
+                      {upcoming.map(task => <li key={task.id} className="flex min-h-12 items-center justify-between gap-4 py-3 text-sm">
+                        <span className="min-w-0 truncate text-foreground">{task.title}</span><time dateTime={task.due_date} className="shrink-0 text-xs text-muted-foreground">{task.due_date}</time>
+                      </li>)}
+                    </ul> : <p className="rounded-xl border border-border/70 bg-card p-4 text-sm text-muted-foreground">No upcoming deadlines in your saved tasks.</p>}
+                </div>
+
+                <div>
+                  <div className="mb-3 flex items-center justify-between">
                     <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Recent searches</h3>
                     <Link to="/history" className="text-[11px] font-semibold text-muted-foreground hover:text-primary">Search history</Link>
                   </div>
@@ -221,7 +240,7 @@ export default function EyraHome({ onSearch }) {
 
 
         </div>
-      </main>
+      </div>
     </div>
   );
 }
