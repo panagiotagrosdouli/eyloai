@@ -19,3 +19,9 @@ Creation constraints: title is required and limited to 180 characters; descripti
 The tools use the Responses API function-call contract with strict JSON schemas. They are added only for callers that set `enable_project_tools: true`. Paper saving requires a Crossref-verifiable DOI/title pair; non-DOI records are not supported. Model-generated abstracts are not stored. Tool timeout is 15 seconds; OpenAI request timeout is 60 seconds. EYRA usage is reserved once per invocation through the existing quota RPC.
 
 Not in the active registry: any update, archive, delete, milestone CRUD, researcher/opportunity save or link, paper/project linking, export, funding action, or external communication. The new notes, tasks, and calendar actions are read-only and return bounded summaries, not full documents.
+
+## Contextual and output UX
+
+The active project route may provide a validated `resource_context` object to `/api/eyra`. The backend fetches owner-scoped records; the UI never supplies source content as privileged context. Tool actions are presented with truthfully labeled counts and metadata/full-text limitations rather than a generic success statement.
+
+All tool arguments are checked server-side against the allowlisted function schema. The newest prompt (rather than browser `tool_intent` metadata or historical dialogue) is the only source of write intent. This authorization is still not a substitute for durable idempotency or an explicit confirmation preview for consequential operations.
