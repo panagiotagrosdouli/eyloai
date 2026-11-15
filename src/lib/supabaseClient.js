@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { environment } from '@/lib/config/env';
+import { verifyUserOnce } from '@/lib/auth/sessionVerification.mjs';
 
 export const isSupabaseConfigured = environment.ok;
 export const AUTH_REQUIRED_EVENT = 'eylo:auth-required';
@@ -173,7 +174,7 @@ export async function getUsableSession({
   }
 
   if (validate) {
-    const verified = await client.auth.getUser(session.access_token);
+    const verified = await verifyUserOnce(session.access_token, token => client.auth.getUser(token));
     if (verified.error || !verified.data?.user) {
       if (verified.error && isTransientAuthError(verified.error)) throw verified.error;
       if (!forceRefresh) {
