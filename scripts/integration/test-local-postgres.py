@@ -72,6 +72,8 @@ try:
         print('APPLIED locally:', name, flush=True)
     sql((ROOT / 'tests/integration/workspace-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/learning-time-postgres.sql').read_text())
+    sql((ROOT / 'tests/integration/timer-pauses-postgres.sql').read_text())
+    print('PASS: persisted timer pause/resume/stop, revisions, stale writes, duplicate active prevention, pause validation and outsider/anonymous denial.', flush=True)
     sql((ROOT / 'tests/integration/discovery-quota-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/funding-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/eyra-conversations-postgres.sql').read_text())
@@ -158,6 +160,27 @@ try:
         sql("do $$ begin if (select count(*) from eyra_messages where conversation_id='60000000-0000-4000-8000-000000000021') != 1 then raise exception 'Duplicate snapshot messages'; end if; end $$;")
         sql("delete from eyra_conversations where id='60000000-0000-4000-8000-000000000021';")
     print('PASS: two independent PostgreSQL snapshot retries return the same ID and persist exactly one message (three overlapping transaction rounds).', flush=True)
+    def concurrent_timer_transition(_index):
+        statement = """
+        begin;
+        set local role authenticated;
+        set local request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
+        select (public.transition_time_entry('70000000-0000-4000-8000-000000000002','pause',0)).timer_revision;
+        select pg_sleep(0.2);
+        commit;
+        """
+        return subprocess.run([*DOCKER, 'exec', '-i', NAME, 'psql', '-U', 'postgres', '-qAt', '-v', 'ON_ERROR_STOP=1', '-v', 'VERBOSITY=verbose'], env=ENV, input=statement, text=True, capture_output=True)
+    for _timer_race_round in range(3):
+        sql("insert into public.time_entries(id,user_id,description,started_at) values ('70000000-0000-4000-8000-000000000002','00000000-0000-0000-0000-000000000001','Concurrent timer',now()-interval '1 hour');")
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            timer_outcomes = list(pool.map(concurrent_timer_transition, [1, 2]))
+        winners = [result for result in timer_outcomes if result.returncode == 0]
+        stale = [result for result in timer_outcomes if result.returncode != 0 and '40001' in result.stderr]
+        if len(winners) != 1 or len(stale) != 1:
+            raise AssertionError('Expected one winning timer transition and one stale revision rejection: ' + repr([(r.returncode, r.stdout, r.stderr) for r in timer_outcomes]))
+        sql("do $$ begin if not exists(select 1 from time_entries where id='70000000-0000-4000-8000-000000000002' and timer_revision=1 and jsonb_array_length(pause_intervals)=1) then raise exception 'Concurrent pause duplicated or lost history'; end if; end $$;")
+        sql("delete from public.time_entries where id='70000000-0000-4000-8000-000000000002';")
+    print('PASS: timer transitions serialize across independent PostgreSQL sessions; one stale request rejected with exactly one persisted pause (three rounds).', flush=True)
     print('PASS: PostgreSQL migration execution, two-role workspace isolation, version history, search, project links and Storage metadata policies.', flush=True)
     print('NOT VERIFIED: hosted Supabase Auth, PostgREST, Storage bytes, deployed schema, or hosted service-role operations.', flush=True)
 finally:

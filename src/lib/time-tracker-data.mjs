@@ -22,11 +22,38 @@ export function normalizeManualTimeEntry(input = {}) {
   };
 }
 
-export function durationSeconds(entry, now = Date.now()) {
+export function isTimeEntryPaused(entry) {
+  return entry?.ended_at == null && entry?.pause_intervals?.at(-1)?.ended_at === null;
+}
+
+// Subtract each recorded pause from the requested UTC window; local day/week
+// boundaries are supplied by the report caller, so DST needs no special offset.
+export function trackedSecondsWithin(entry, windowStart, windowEnd, now = Date.now()) {
   const start = Date.parse(entry?.started_at);
   const end = entry?.ended_at ? Date.parse(entry.ended_at) : now;
-  if (!Number.isFinite(start) || !Number.isFinite(end)) return 0;
-  return Math.max(0, Math.floor((end - start) / 1000));
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return 0;
+  const lower = Math.max(start, windowStart);
+  const upper = Math.min(end, windowEnd);
+  const pauses = entry.pause_intervals ?? [];
+  if (!Array.isArray(pauses) || pauses.length > 1000) throw new Error('Invalid timer pause history. Reload before reporting.');
+  let milliseconds = Math.max(0, upper - lower);
+  let previousEnd = start;
+  for (const [index, pause] of pauses.entries()) {
+    const pauseStart = Date.parse(pause?.started_at);
+    const pauseEnd = pause?.ended_at === null ? Math.max(end, pauseStart) : Date.parse(pause?.ended_at);
+    if (!Number.isFinite(pauseStart) || !Number.isFinite(pauseEnd)
+      || pauseStart < previousEnd || pauseEnd < pauseStart || (entry.ended_at != null && pauseEnd > end)
+      || (pause.ended_at === null && (index !== pauses.length - 1 || entry.ended_at != null))) {
+      throw new Error('Invalid timer pause history. Reload before reporting.');
+    }
+    milliseconds -= Math.max(0, Math.min(upper, pauseEnd) - Math.max(lower, pauseStart));
+    previousEnd = pauseEnd;
+  }
+  return Math.max(0, Math.floor(milliseconds / 1000));
+}
+
+export function durationSeconds(entry, now = Date.now()) {
+  return trackedSecondsWithin(entry, -Infinity, Infinity, now);
 }
 
 export function summarizeTimeEntries(entries, { now = new Date(), timezone = 'UTC' } = {}) {
@@ -43,12 +70,6 @@ export function summarizeTimeEntries(entries, { now = new Date(), timezone = 'UT
   const weekKey = `${String(weekWall.getUTCFullYear()).padStart(4, '0')}-${String(weekWall.getUTCMonth() + 1).padStart(2, '0')}-${String(weekWall.getUTCDate()).padStart(2, '0')}`;
   const weekStart = Date.parse(fromDatetimeLocal(`${weekKey}T00:00`, timezone));
   const todayStart = Date.parse(fromDatetimeLocal(`${todayKey}T00:00`, timezone));
-  const secondsWithin = (entry, start, end) => {
-    const entryStart = Date.parse(entry.started_at);
-    const entryEnd = entry.ended_at ? Date.parse(entry.ended_at) : now.getTime();
-    if (!Number.isFinite(entryStart) || !Number.isFinite(entryEnd)) return 0;
-    return Math.max(0, Math.floor((Math.min(entryEnd, end) - Math.max(entryStart, start)) / 1000));
-  };
   const groups = new Map();
   let todaySeconds = 0;
   let weekSeconds = 0;
@@ -56,8 +77,8 @@ export function summarizeTimeEntries(entries, { now = new Date(), timezone = 'UT
   for (const entry of entries || []) {
     const seconds = durationSeconds(entry, now.getTime());
     totalSeconds += seconds;
-    todaySeconds += secondsWithin(entry, todayStart, now.getTime());
-    weekSeconds += secondsWithin(entry, weekStart, now.getTime());
+    todaySeconds += trackedSecondsWithin(entry, todayStart, now.getTime(), now.getTime());
+    weekSeconds += trackedSecondsWithin(entry, weekStart, now.getTime(), now.getTime());
     const key = entry.project_id || 'unassigned';
     const group = groups.get(key) || { project_id: entry.project_id || null, seconds: 0, entries: 0 };
     group.seconds += seconds; group.entries += 1; groups.set(key, group);
@@ -73,9 +94,9 @@ function csvCell(value) {
 
 export function exportTimeEntriesCsv(entries, now = Date.now()) {
   const rows = [
-    ['description', 'project_id', 'life_task_id', 'started_at', 'ended_at', 'duration_seconds'],
+    ['description', 'project_id', 'life_task_id', 'started_at', 'ended_at', 'duration_seconds', 'pause_intervals'],
     ...(entries || []).map(entry => [entry.description, entry.project_id, entry.life_task_id,
-      entry.started_at, entry.ended_at, durationSeconds(entry, now)]),
+      entry.started_at, entry.ended_at, durationSeconds(entry, now), JSON.stringify(entry.pause_intervals || [])]),
   ];
   return `${rows.map(row => row.map(csvCell).join(',')).join('\r\n')}\r\n`;
 }
@@ -101,4 +122,60 @@ export async function loadAllTimeEntries(client, userId, pageSize = 500, maxRows
     }
   }
   return all;
+}
+
+export async function transitionTimeEntry(client, entry, userId, action) {
+  if (!client || !entry?.id || entry.user_id !== userId || !['pause', 'resume', 'stop'].includes(action)) {
+    throw new Error('Timer not found or access denied. Reload before retrying.');
+  }
+  const { data, error } = await client.rpc('transition_time_entry', {
+    p_entry_id: entry.id, p_action: action, p_expected_revision: entry.timer_revision ?? 0,
+  });
+  if (error) {
+    if (error.code === 'PGRST202' || error.code === '42883') throw new Error('Timer controls require the pause/resume database migration. Contact your workspace administrator.');
+    throw error;
+  }
+  const row = Array.isArray(data) && data.length === 1 ? data[0] : data;
+  const changed = action === 'stop' || (action === 'pause' ? !isTimeEntryPaused(entry) : isTimeEntryPaused(entry));
+  const expectedRevision = (entry.timer_revision ?? 0) + (changed ? 1 : 0);
+  if (!row || row.id !== entry.id || row.user_id !== userId
+    || !Number.isSafeInteger(row.timer_revision) || row.timer_revision !== expectedRevision
+    || (action === 'stop' ? row.ended_at == null : row.ended_at != null)
+    || (action === 'pause' && !isTimeEntryPaused(row))
+    || (action === 'resume' && isTimeEntryPaused(row))) {
+    throw new Error('Timer update could not be verified. Reload before retrying.');
+  }
+  return row;
+}
+
+export function createTimeReport(entries, { fromDate = '', toDate = '', timezone = 'UTC', now = Date.now() } = {}) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fromDate || '') || !/^\d{4}-\d{2}-\d{2}$/.test(toDate || '')) {
+    throw new Error('Choose valid report dates.');
+  }
+  const start = Date.parse(fromDatetimeLocal(`${fromDate}T00:00`, timezone));
+  // Validate the final date before advancing it; Date normalizes impossible dates.
+  fromDatetimeLocal(`${toDate}T00:00`, timezone);
+  if (fromDate > toDate) throw new Error('Report end date must be on or after its start date.');
+  const nextDay = new Date(`${toDate}T00:00:00Z`);
+  nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+  const end = Date.parse(fromDatetimeLocal(`${nextDay.toISOString().slice(0, 10)}T00:00`, timezone));
+  const rows = (entries || []).map(entry => ({ entry, seconds: trackedSecondsWithin(entry, start, Math.min(end, now), now) })).filter(row => row.seconds > 0);
+  const groups = new Map();
+  for (const row of rows) {
+    const key = row.entry.project_id || null;
+    groups.set(key, (groups.get(key) || 0) + row.seconds);
+  }
+  return { fromDate, toDate, timezone, started_at: new Date(start).toISOString(), ended_at: new Date(end).toISOString(),
+    totalSeconds: rows.reduce((sum, row) => sum + row.seconds, 0), rows,
+    byProject: [...groups].map(([project_id, seconds]) => ({ project_id, seconds })).sort((a, b) => b.seconds - a.seconds),
+  };
+}
+
+export function exportTimeReportCsv(report) {
+  const rows = [
+    ['description', 'project_id', 'life_task_id', 'report_start_inclusive', 'report_end_exclusive', 'timezone', 'seconds_in_range'],
+    ...report.rows.map(({ entry, seconds }) => [entry.description, entry.project_id, entry.life_task_id,
+      report.started_at, report.ended_at, report.timezone, seconds]),
+  ];
+  return `${rows.map(row => row.map(csvCell).join(',')).join('\r\n')}\r\n`;
 }
