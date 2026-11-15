@@ -1294,6 +1294,16 @@ try {
   await dataLab.getByText('Saved to Library and selected').waitFor();
   assert.equal(persistedGapPapers.length, 1, 'the authenticated persistence path stores the paper before it becomes analysis evidence');
   await dataLab.getByRole('button', { name: 'Already in Library' }).waitFor();
+  await dataLab.getByRole('searchbox', { name: 'Find a saved publication' }).fill('no matching fixture');
+  await dataLab.getByText('No saved papers match these filters. Your selected evidence is preserved.').waitFor();
+  await dataLab.getByText(/1 selected for analysis/).waitFor();
+  assert.equal(persistedGapPapers.length, 1, 'filtering selected evidence cannot change persistence');
+  await dataLab.getByRole('button', { name: 'Clear filters' }).click();
+  assert.equal(await dataLab.getByRole('checkbox').first().isChecked(), true, 'hidden paper selections remain checked');
+  await dataLab.getByRole('combobox', { name: 'Evidence selection' }).selectOption('unselected');
+  await dataLab.getByText('No saved papers match these filters. Your selected evidence is preserved.').waitFor();
+  await dataLab.getByRole('combobox', { name: 'Evidence selection' }).selectOption('selected');
+  assert.equal(await dataLab.getByRole('checkbox').first().isChecked(), true);
   await dataLab.reload();
   await dataLab.getByText('Climate adaptation evidence in coastal cities', { exact: true }).waitFor();
   assert.equal(await dataLab.getByRole('button', { name: 'Find research gaps' }).isDisabled(), true,

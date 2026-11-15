@@ -35,3 +35,19 @@ test('breadcrumb navigation has a current-page indication and a Home return link
   assert.match(crumbs, /aria-current="page"/);
   assert.match(crumbs, /to="\/home"/);
 });
+
+test('review and gap filters preserve explicit evidence records', () => {
+  const review = read('../src/pages/LiteratureReview.jsx');
+  const gaps = read('../src/pages/ResearchGaps.jsx');
+  for (const term of ['visiblePapers', 'screeningQuery', 'screeningFilter', 'Filter publication list by status', 'filters change only this list']) {
+    assert.ok(review.toLowerCase().includes(term.toLowerCase()), 'review filtering contract: ' + term);
+  }
+  for (const term of ['visibleSourcePapers', 'savedPaperQuery', 'savedPaperFilter', 'Search does not discard hidden selections', 'Your selected evidence is preserved']) {
+    assert.ok(gaps.includes(term), 'gap evidence filtering contract: ' + term);
+  }
+});
+test('Escape closes mobile navigation and returns focus to its toggle', () => {
+  const layout = read('../src/components/layout/AppLayout.jsx');
+  assert.match(layout, /event\.key === 'Escape'/);
+  assert.match(layout, /setMobileOpen\(false\); mobileToggleRef\.current\?\.focus\(\)/);
+});
