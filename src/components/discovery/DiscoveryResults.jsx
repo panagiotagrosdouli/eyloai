@@ -315,7 +315,9 @@ export default function DiscoveryResults({ results, onNewSearch }) {
             </button>
             {!projectCreated ? (
               <button
+                type="button"
                 onClick={createProject}
+                aria-describedby="project-save-scope"
                 disabled={creatingProject}
                 className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl eyra-gradient text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-60 flex-shrink-0"
               >
@@ -331,6 +333,11 @@ export default function DiscoveryResults({ results, onNewSearch }) {
               </Link>
             )}
           </div>
+          {!projectCreated && (
+            <p id="project-save-scope" className="mt-2 max-w-2xl text-xs leading-5 text-muted-foreground">
+              Creating a project also saves up to five papers, three researcher records and two funding opportunities from these results. Source records remain subject to verification.
+            </p>
+          )}
         </div>
 
         {projectCreated && (
