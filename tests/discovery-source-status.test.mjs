@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   countAvailablePaperIndexes,
   formatUnavailableSource,
+  formatRetrievalWarning,
   httpStatusFromError,
   PAPER_INDEX_SOURCE_IDS,
 } from '../src/lib/discovery-source-status.js';
@@ -39,4 +40,23 @@ test('provider failures preserve HTTP status for accurate source messaging', () 
   assert.equal(formatUnavailableSource({ label: 'Europe PMC', error_status: 503 }), 'Europe PMC is temporarily unavailable (HTTP 503)');
   assert.equal(formatUnavailableSource({ label: 'Semantic Scholar', error_status: 429 }), 'Semantic Scholar is rate limited (HTTP 429)');
   assert.equal(formatUnavailableSource({ label: 'arXiv' }), 'arXiv did not respond');
+});
+
+test('EYRA distinguishes complete source outage from partial retrieval and healthy empty results', () => {
+  const allDown = [
+    { label: 'OpenAlex', status: 'unavailable', error_code: 'DISCOVERY_RATE_LIMIT_UNAVAILABLE' },
+    { label: 'arXiv', status: 'unavailable', error_code: 'DISCOVERY_RATE_LIMIT_UNAVAILABLE' },
+    { label: 'Grants.gov', status: 'unavailable' },
+  ];
+  const warning = formatRetrievalWarning(allDown);
+  assert.match(warning, /^Live retrieval unavailable: /);
+  assert.match(warning, /OpenAlex could not be reached through EYLO/);
+  assert.match(warning, /Grants\.gov did not respond/);
+  assert.doesNotMatch(warning, /Partial live retrieval/);
+  assert.match(formatRetrievalWarning([
+    { label: 'OpenAlex', status: 'available' },
+    { label: 'arXiv', status: 'unavailable' },
+  ]), /^Partial live retrieval: /);
+  assert.equal(formatRetrievalWarning([{ label: 'OpenAlex', status: 'available' }]), '');
+  assert.equal(formatRetrievalWarning([]), '');
 });
