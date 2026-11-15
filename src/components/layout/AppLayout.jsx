@@ -18,7 +18,7 @@ import { useAuth } from '@/lib/AuthContext';
 const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
   { label: 'Discover', path: '/search', icon: Search },
-  { label: 'Workspace', path: '/projects', icon: FolderOpen },
+  { label: 'Workspace', path: '/workspace', icon: FolderOpen },
   { label: 'Create', path: '/documents/new', icon: FilePlus2 },
   { label: 'Learn', path: '/learn', icon: GraduationCap },
 ];
@@ -37,6 +37,7 @@ const TOOL_GROUPS = [
     section: 'Workspace',
     description: 'Research work that stays connected to projects',
     items: [
+      { label: 'Projects', path: '/projects', icon: FolderOpen, desc: 'Keep research evidence and decisions in projects' },
       { label: 'EYLO Files', path: '/files', icon: File, desc: 'Private project files with version history' },
       { label: 'Time Tracker', path: '/time-tracker', icon: Clock3, desc: 'Track project work and Life tasks' },
       { label: 'Learn', path: '/learn', icon: GraduationCap, desc: 'Author lessons and follow saved learning paths' },
@@ -153,7 +154,7 @@ export default function AppLayout() {
   const isWorkspaceHome = location.pathname === '/home';
   const isActive = path => location.pathname === path || (path !== '/life' && location.pathname.startsWith(`${path}/`));
   const toolsActive = ALL_TOOLS.some(item => isActive(item.path));
-  const primaryActive = item => isActive(item.path) || (item.path === '/projects' && ['/library', '/notes', '/files', '/life', '/calendar', '/workspace/search'].some(path => isActive(path)));
+  const primaryActive = item => isActive(item.path) || (item.path === '/workspace' && ['/projects', '/library', '/notes', '/files', '/life', '/calendar'].some(path => isActive(path)));
   const query = toolQuery.trim().toLowerCase();
   const visibleGroups = TOOL_GROUPS.map(group => ({
     ...group,
