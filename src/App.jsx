@@ -56,6 +56,7 @@ const ProjectResearchRecords = lazy(() => import('@/pages/ProjectResearchRecords
 const ProjectDecisions = lazy(() => import('@/pages/ProjectDecisions'));
 const Researchers = lazy(() => import('@/pages/Researchers'));
 const PublicCareers = lazy(() => import('@/pages/PublicCareers'));
+const Careers = lazy(() => import('@/pages/Careers'));
 const Opportunities = lazy(() => import('@/pages/Opportunities'));
 const History = lazy(() => import('@/pages/History'));
 const Profile = lazy(() => import('@/pages/Profile'));
@@ -123,7 +124,7 @@ const AuthenticatedApp = () => {
         <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/home" element={<Home />} />
-          <Route path="/workspace/careers" element={<PublicCareers />} />
+          <Route path="/workspace/careers" element={<Careers />} />
           <Route path="/search" element={<Home searchOnly />} />
           <Route path="/library" element={<Library />} />
           <Route path="/files" element={<EyloFiles />} />

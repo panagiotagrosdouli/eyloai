@@ -38,6 +38,8 @@ export default function LiteratureReview() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [attempt, setAttempt] = useState(0);
+  const [screeningQuery, setScreeningQuery] = useState('');
+  const [screeningFilter, setScreeningFilter] = useState('all');
 
   useEffect(() => {
     const epoch = ++loadEpochRef.current;
@@ -202,6 +204,17 @@ export default function LiteratureReview() {
   const screening = Array.isArray(protocol.screening) ? protocol.screening : [];
   const counts = screeningCounts({ screening });
   const methodsAudit = auditReviewMethods(protocol, { libraryRowsShown: papers.length, listLimit: 100 });
+  // Filtering affects presentation only. Unsaved reviewer decisions and exports
+  // always use the full screening log rather than the visible subset.
+  const visiblePapers = papers.filter(paper => {
+    const query = screeningQuery.trim().toLocaleLowerCase();
+    const matchesText = !query || [paper.title, paper.authors, paper.doi, paper.year]
+      .some(value => String(value || '').toLocaleLowerCase().includes(query));
+    const record = screening.find(item => item.paper_id === String(paper.id));
+    const matchesDecision = screeningFilter === 'all'
+      || (screeningFilter === 'unscreened' ? !record : record?.decision === screeningFilter);
+    return matchesText && matchesDecision;
+  });
 
   return (
     <main className="eylo-page">
@@ -300,24 +313,48 @@ export default function LiteratureReview() {
               </div>
               <Link to="/library" onClick={event => { if (!confirmDiscard()) event.preventDefault(); }} className="text-sm text-primary underline">Open Library</Link>
             </div>
-            {!papers.length && <p className="mt-4 text-sm text-muted-foreground">Save scholarly publications to your Library before screening.</p>}
-            <div className="mt-4 max-h-[34rem] space-y-3 overflow-y-auto">
-              {papers.map(paper => {
+            <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+              <label className="block text-sm font-medium" htmlFor="review-paper-search">Find a saved publication
+                <input id="review-paper-search" type="search" value={screeningQuery} onChange={event => setScreeningQuery(event.target.value)}
+                  placeholder="Search title, author, DOI or year" className="mt-2 block min-h-11 w-full rounded-lg border border-border bg-background px-3 text-base" />
+              </label>
+              <label className="block text-sm font-medium" htmlFor="review-screening-filter">Screening decision
+                <select id="review-screening-filter" value={screeningFilter} onChange={event => setScreeningFilter(event.target.value)}
+                  className="mt-2 block min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm">
+                  <option value="all">All saved papers</option>
+                  <option value="unscreened">Not screened</option>
+                  <option value="undecided">Undecided</option>
+                  <option value="include">Included</option>
+                  <option value="exclude">Excluded</option>
+                </select>
+              </label>
+            </div>
+            <p role="status" className="mt-3 text-xs text-muted-foreground">Showing {visiblePapers.length} of {papers.length} recently loaded publications. Filters change only this list, not your recorded screening decisions.</p>
+            {!papers.length && <div className="mt-4 rounded-lg border border-dashed border-border p-5">
+              <p className="text-sm text-muted-foreground">Save scholarly publications to your Library before screening.</p>
+              <Link to="/search" onClick={event => { if (!confirmDiscard()) event.preventDefault(); }} className="mt-3 inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Find publications</Link>
+            </div>}
+            {papers.length > 0 && visiblePapers.length === 0 && <div className="mt-4 rounded-lg border border-dashed border-border p-5 text-sm">
+              <p className="text-muted-foreground">No saved papers match these filters. Your recorded decisions have not changed.</p>
+              <button type="button" onClick={() => { setScreeningQuery(''); setScreeningFilter('all'); }} className="mt-3 min-h-11 rounded-lg border border-border px-4 font-semibold">Clear filters</button>
+            </div>}
+            <div className="mt-4 max-h-[34rem] space-y-3 overflow-y-auto" aria-label="Saved publications for screening">
+              {visiblePapers.map(paper => {
                 const record = screening.find(item => item.paper_id === String(paper.id));
                 return (
                   <div key={paper.id} className="rounded-lg border border-border p-3">
                     <p className="text-sm font-medium">{paper.title || 'Untitled saved publication'}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{[paper.authors, paper.year, paper.doi].filter(Boolean).join(' · ')}</p>
-                    {isSafeLiteratureSourceUrl(paper.url) && <a href={paper.url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-xs text-primary underline">View recorded source</a>}
+                    {isSafeLiteratureSourceUrl(paper.url) && <a href={paper.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex min-h-11 items-center text-sm text-primary underline">View recorded source</a>}
                     {!record ? (
-                      <button type="button" onClick={() => updateScreening(String(paper.id), {})} className="mt-2 block min-h-10 rounded-lg border border-border px-3 text-xs font-semibold">
+                      <button type="button" onClick={() => updateScreening(String(paper.id), {})} className="mt-2 block min-h-11 rounded-lg border border-border px-3 text-sm font-semibold">
                         Add to screening log
                       </button>
                     ) : (
                       <div className="mt-3 grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-start">
                         <label className="text-xs font-medium">Decision
                           <select aria-label={`Screening decision for ${paper.title}`} value={record.decision} onChange={event => updateScreening(String(paper.id), { decision: event.target.value })}
-                            className="mt-1 block min-h-10 rounded-lg border border-border bg-background px-2">
+                            className="mt-1 block min-h-11 rounded-lg border border-border bg-background px-2 text-sm">
                             <option value="undecided">Undecided</option>
                             <option value="include">Include</option>
                             <option value="exclude">Exclude</option>
@@ -326,9 +363,9 @@ export default function LiteratureReview() {
                         <label className="text-xs font-medium">Reason / screening note
                           <input value={record.reason || ''} onChange={event => updateScreening(String(paper.id), { reason: event.target.value })}
                             placeholder={record.decision === 'exclude' ? 'Required reason for exclusion' : 'Human-reviewed note'}
-                            className="mt-1 block min-h-10 w-full rounded-lg border border-border bg-background px-3 text-xs" />
+                            className="mt-1 block min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm" />
                         </label>
-                        <button type="button" onClick={() => removeScreening(String(paper.id))} className="min-h-10 rounded-lg border border-border px-3 text-xs">Remove</button>
+                        <button type="button" onClick={() => removeScreening(String(paper.id))} aria-label={`Remove ${paper.title || 'publication'} from screening log`} className="min-h-11 rounded-lg border border-border px-3 text-sm">Remove</button>
                       </div>
                     )}
                   </div>

@@ -167,7 +167,7 @@ export default function Projects() {
     <div className="eylo-page max-w-5xl">
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-8">
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">Research workspace</p>
           <h1 className="eylo-page-heading">Your projects</h1>
@@ -177,7 +177,7 @@ export default function Projects() {
           onClick={() => setShowNew(true)}
           className="flex items-center gap-2 eylo-action flex-shrink-0"
         >
-          <Plus size={14} /> New
+          <Plus size={14} aria-hidden="true" /> Create project
         </button>
       </div>
 
@@ -194,7 +194,7 @@ export default function Projects() {
       </div>
 
       {(error || loadError) && (
-        <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-200">
+        <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-foreground">
           <span>{loadError || error}</span>
           {loadError && <button type="button" onClick={projects.length > 0 ? loadOlderProjects : loadProjects} disabled={loading || loadingMore}
             className="min-h-9 rounded-lg border border-red-500/30 px-3 font-semibold transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50">
@@ -213,11 +213,11 @@ export default function Projects() {
             className="mb-6 p-6 rounded-2xl border border-primary/20 bg-primary/5"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-sm flex items-center gap-2">
+              <h2 className="font-semibold text-sm flex items-center gap-2">
                 <Sparkles size={14} className="text-primary" />
                 Create a new project
-              </h3>
-              <button onClick={resetForm} className="p-1.5 rounded-lg hover:bg-secondary transition-colors">
+              </h2>
+              <button type="button" onClick={resetForm} aria-label="Close new project form" className="grid min-h-11 min-w-11 place-items-center rounded-lg hover:bg-secondary transition-colors">
                 <X size={14} className="text-muted-foreground" />
               </button>
             </div>
@@ -232,20 +232,27 @@ export default function Projects() {
               <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-xl border border-border bg-secondary/40">
                 <LayoutTemplate size={12} className="text-primary" />
                 <span className="text-xs font-medium text-foreground">Template: {selectedTemplate.label}</span>
-                <button onClick={() => setShowTemplates(true)} className="ml-auto text-[10px] text-primary hover:underline">Change</button>
+                <button onClick={() => setShowTemplates(true)} className="ml-auto min-h-11 px-2 text-sm text-primary hover:underline">Change template</button>
               </div>
             )}
 
-            <div className="space-y-3">
+            <div className="space-y-4">
+              <label htmlFor="new-project-title" className="block text-sm font-medium text-foreground">Project title <span aria-hidden="true">*</span></label>
               <input
+                id="new-project-title"
                 type="text"
+                required
+                maxLength={180}
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
                 placeholder="Project title"
                 autoFocus
                 className="w-full h-11 px-4 rounded-xl border border-border bg-secondary/60 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40"
               />
+              <label htmlFor="new-project-goal" className="block text-sm font-medium text-foreground">Research goal <span aria-hidden="true">*</span></label>
               <textarea
+                id="new-project-goal"
+                required
                 value={newGoal}
                 onChange={e => setNewGoal(e.target.value)}
                 placeholder="What is the goal of this project? EYRA will use this to generate intelligence, find funding, and suggest next steps."
@@ -254,14 +261,18 @@ export default function Projects() {
               />
               {(newMilestones || newTasks) && (
                 <>
+                  <label htmlFor="new-project-milestones" className="block text-sm font-medium text-foreground">Milestones</label>
                   <textarea
+                    id="new-project-milestones"
                     value={newMilestones}
                     onChange={e => setNewMilestones(e.target.value)}
                     placeholder="Milestones..."
                     rows={5}
                     className="w-full px-4 py-3 rounded-xl border border-border bg-secondary/60 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 resize-none font-mono"
                   />
+                  <label htmlFor="new-project-tasks" className="block text-sm font-medium text-foreground">Tasks</label>
                   <textarea
+                    id="new-project-tasks"
                     value={newTasks}
                     onChange={e => setNewTasks(e.target.value)}
                     placeholder="Tasks..."
@@ -274,11 +285,11 @@ export default function Projects() {
                 <button
                   onClick={createProject}
                   disabled={!newTitle.trim() || !newGoal.trim() || working}
-                  className="px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold disabled:opacity-40"
+                  className="min-h-11 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-40"
                 >
                   {working ? 'Creating…' : 'Create Project'}
                 </button>
-                <button onClick={resetForm} className="px-4 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-secondary transition-colors">
+                <button onClick={resetForm} className="min-h-11 rounded-xl px-4 text-sm text-muted-foreground hover:bg-secondary transition-colors">
                   Cancel
                 </button>
               </div>

@@ -183,7 +183,7 @@ export default function Library() {
       )}
 
       {loadNotice && (
-        <div role="status" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">
+        <div role="status" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-foreground">
           <span>{loadNotice}</span>
           <button type="button" onClick={loadAll} disabled={loading}
             className="min-h-9 rounded-lg border border-amber-400/30 px-3 font-semibold transition hover:bg-amber-400/10 disabled:cursor-not-allowed disabled:opacity-50">
@@ -193,7 +193,7 @@ export default function Library() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
           { key: 'papers', label: 'Saved Papers', value: papers.length, icon: FileText, color: 'text-primary bg-primary/10' },
           { key: 'researchers', label: 'Researchers', value: researchers.length, icon: Users, color: 'text-accent bg-accent/10' },
@@ -214,25 +214,29 @@ export default function Library() {
 
       {/* Search */}
       <div className="relative mb-5 max-w-md">
+        <label htmlFor="library-search" className="sr-only">Search saved library items</label>
         <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input
-          type="text"
+          id="library-search"
+          type="search"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           placeholder="Search your library..."
-          className="w-full h-10 pl-10 pr-4 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition-all"
+          className="min-h-11 w-full pl-10 pr-4 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition-all"
         />
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-border/60 mb-6">
+      <div className="mb-6 flex max-w-full items-center gap-1 overflow-x-auto border-b border-border/60">
         {TABS.map(t => {
           const Icon = t.icon;
           return (
             <button
               key={t.key}
+              type="button"
               onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all border-b-2 -mb-px ${
+              aria-pressed={tab === t.key}
+              className={`flex min-h-11 shrink-0 items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all border-b-2 -mb-px ${
                 tab === t.key
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -247,8 +251,8 @@ export default function Library() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin" />
+        <div role="status" aria-live="polite" className="flex items-center justify-center gap-3 py-20 text-sm text-muted-foreground">
+          <div aria-hidden="true" className="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-primary" /> Loading your saved library…
         </div>
       ) : (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -276,7 +280,7 @@ export default function Library() {
               {failedCollections.includes('papers')
                 ? <p role="alert" className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">{failedCollectionMessage}</p>
                 : filter(papers, ['title', 'authors', 'source']).length === 0
-                ? <EmptyState icon={FileText} label="No saved papers" sub="Save papers from discovery results" />
+                ? <EmptyState icon={FileText} label={searchTerm.trim() ? 'No matching papers' : 'No saved papers yet'} sub={searchTerm.trim() ? 'Try another search term or clear the search.' : 'Start by exploring trusted sources and save useful results here.'} href="/search" action="Find publications" onClear={searchTerm.trim() ? () => setSearchTerm('') : undefined} />
                 : filter(papers, ['title', 'authors', 'source']).map(p => (
                   <div key={p.id} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all group">
                     <div className="flex items-start justify-between gap-3">
@@ -296,8 +300,8 @@ export default function Library() {
                         <ProjectLinkControl item={p} projects={projects} projectsLoaded={projectsLoaded} label="paper" onLink={(item, projectId) => linkToProject('SavedPaper', item, projectId, setPapers, 'paper')} />
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
-                        {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-secondary transition-colors"><ExternalLink size={13} className="text-muted-foreground" /></a>}
-                        <button onClick={() => deletePaper(p.id)} aria-label={`Remove ${p.title} from library`} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                        {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" aria-label={`Open source for ${p.title}`} className="grid min-h-11 min-w-11 place-items-center rounded-lg hover:bg-secondary transition-colors"><ExternalLink size={16} className="text-muted-foreground" /></a>}
+                        <button onClick={() => deletePaper(p.id)} aria-label={`Remove ${p.title} from library`} className="grid min-h-11 min-w-11 place-items-center rounded-lg hover:bg-destructive/10 transition-colors">
                           <Trash2 size={13} className="text-destructive/60" />
                         </button>
                       </div>
@@ -314,7 +318,7 @@ export default function Library() {
               {failedCollections.includes('researchers')
                 ? <p role="alert" className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">{failedCollectionMessage}</p>
                 : filter(researchers, ['name', 'institution', 'research_areas']).length === 0
-                ? <EmptyState icon={Users} label="No saved researchers" sub="Save researchers from discovery results" />
+                ? <EmptyState icon={Users} label={searchTerm.trim() ? 'No matching researchers' : 'No saved researchers yet'} sub={searchTerm.trim() ? 'Try another search term or clear the search.' : 'Start by exploring trusted sources and save useful results here.'} href="/researchers" action="Find researchers" onClear={searchTerm.trim() ? () => setSearchTerm('') : undefined} />
                 : filter(researchers, ['name', 'institution', 'research_areas']).map(r => (
                   <div key={r.id} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all group">
                     <div className="flex items-start justify-between gap-3">
@@ -329,7 +333,7 @@ export default function Library() {
                         <ProjectLinkControl item={r} projects={projects} projectsLoaded={projectsLoaded} label="researcher" onLink={(item, projectId) => linkToProject('SavedResearcher', item, projectId, setResearchers, 'researcher')} />
                       </div>
                       <div className="flex flex-col gap-1 flex-shrink-0">
-                        {r.profile_url && <a href={r.profile_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-secondary transition-colors"><ExternalLink size={13} className="text-muted-foreground" /></a>}
+                        {r.profile_url && <a href={r.profile_url} target="_blank" rel="noopener noreferrer" aria-label={`Open researcher profile for ${r.name}`} className="grid min-h-11 min-w-11 place-items-center rounded-lg hover:bg-secondary transition-colors"><ExternalLink size={16} className="text-muted-foreground" /></a>}
                         <button onClick={() => deleteResearcher(r.id)} aria-label={`Remove ${r.name} from library`} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
                           <Trash2 size={13} className="text-destructive/60" />
                         </button>
@@ -347,7 +351,7 @@ export default function Library() {
               {failedCollections.includes('opportunities')
                 ? <p role="alert" className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">{failedCollectionMessage}</p>
                 : filter(opportunities, ['title', 'description', 'type']).length === 0
-                ? <EmptyState icon={Award} label="No saved opportunities" sub="Save opportunities from discovery results" />
+                ? <EmptyState icon={Award} label={searchTerm.trim() ? 'No matching opportunities' : 'No saved opportunities yet'} sub={searchTerm.trim() ? 'Try another search term or clear the search.' : 'Start by exploring trusted sources and save useful results here.'} href="/opportunities" action="Find funding" onClear={searchTerm.trim() ? () => setSearchTerm('') : undefined} />
                 : filter(opportunities, ['title', 'description', 'type']).map(o => (
                   <div key={o.id} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all group">
                     <div className="flex items-start justify-between gap-3">
@@ -363,7 +367,7 @@ export default function Library() {
                         {o.url && <a href={o.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex min-h-10 items-center gap-2 text-sm text-primary hover:underline">Open official source <ExternalLink size={14} aria-hidden="true" /></a>}
                         <ProjectLinkControl item={o} projects={projects} projectsLoaded={projectsLoaded} label="opportunity" onLink={(item, projectId) => linkToProject('SavedOpportunity', item, projectId, setOpportunities, 'opportunity')} />
                       </div>
-                      <button onClick={() => deleteOpportunity(o.id)} aria-label={`Remove ${o.title} from library`} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                      <button onClick={() => deleteOpportunity(o.id)} aria-label={`Remove ${o.title} from library`} className="grid min-h-11 min-w-11 shrink-0 place-items-center rounded-lg hover:bg-destructive/10 transition-colors">
                         <Trash2 size={13} className="text-destructive/60" />
                       </button>
                     </div>
@@ -378,14 +382,18 @@ export default function Library() {
   );
 }
 
-function EmptyState({ icon: Icon, label, sub }) {
+function EmptyState({ icon: Icon, label, sub, href, action, onClear }) {
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
       <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mb-4">
         <Icon size={20} className="text-muted-foreground" />
       </div>
       <p className="font-medium text-sm text-foreground">{label}</p>
-      <p className="text-xs text-muted-foreground mt-1">{sub}</p>
+      <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">{sub}</p>
+      <div className="mt-5 flex flex-wrap justify-center gap-3">
+        {onClear ? <button type="button" onClick={onClear} className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-medium text-foreground">Clear search</button> : null}
+        <Link to={href} className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">{action}</Link>
+      </div>
     </div>
   );
 }
