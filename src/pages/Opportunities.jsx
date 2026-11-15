@@ -285,23 +285,22 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
       </div>
 
       {/* Search */}
-      <form onSubmit={e => { e.preventDefault(); handleSearch(); }} className="relative max-w-2xl mb-4">
-        <Sparkles size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" />
-        <input
-          type="text"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Describe your research area or project goal..."
-          aria-label="Funding search"
-          className="w-full h-12 pl-11 pr-36 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition-all"
-        />
-        <button
-          type="submit"
-          disabled={!query.trim() || loading}
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40 transition-opacity flex items-center gap-2"
-        >
-          {loading && <Loader2 size={13} className="animate-spin" />}
-          Find
+      <form onSubmit={e => { e.preventDefault(); handleSearch(); }} className="mb-4 flex max-w-2xl flex-col gap-3 sm:flex-row sm:items-end" aria-busy={loading}>
+        <div className="min-w-0 flex-1">
+          <label htmlFor="funding-query" className="mb-2 block text-sm font-medium text-foreground">Research topic or project goal</label>
+          <input
+            id="funding-query"
+            type="search"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="e.g. Renewable energy research"
+            className="min-h-12 w-full rounded-xl border border-border bg-secondary px-4 text-base text-foreground placeholder:text-muted-foreground"
+          />
+        </div>
+        <button type="submit" disabled={!query.trim() || loading}
+          className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-40">
+          {loading && <Loader2 size={15} className="animate-spin" aria-hidden="true" />}
+          {loading ? 'Searching funding…' : 'Find funding'}
         </button>
       </form>
 
@@ -312,7 +311,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
             <button
               key={qs}
               onClick={() => handleSearch(qs)}
-              className="px-3 py-1.5 rounded-full border border-border/60 bg-secondary/40 text-xs text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all"
+              className="min-h-11 rounded-full border border-border/60 bg-secondary/40 px-4 text-sm text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all"
             >
               {qs}
             </button>
@@ -321,13 +320,13 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
       )}
 
       {searchError && (
-        <div role="alert" className="mb-5 max-w-2xl rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">
+        <div role="alert" className="mb-5 max-w-2xl rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-foreground">
           {searchError}
         </div>
       )}
 
       {rankingError && (
-        <div role="status" className="mb-5 max-w-2xl rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-300">
+        <div role="status" className="mb-5 max-w-2xl rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-foreground">
           {rankingError}
         </div>
       )}
@@ -345,7 +344,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
       )}
 
       {hasSearched && !loading && results.length > 0 && <div className="mb-4 grid gap-2 sm:grid-cols-3">
-        <select value={deadlineFilter} onChange={(event) => setDeadlineFilter(event.target.value)} aria-label="Filter calls by deadline" className="rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-foreground">
+        <select value={deadlineFilter} onChange={(event) => setDeadlineFilter(event.target.value)} aria-label="Filter calls by deadline" className="min-h-11 rounded-lg border border-border bg-secondary px-3 text-sm text-foreground">
           <option value="all">All deadlines</option><option value="active">Not expired / deadline unknown</option><option value="expired">Expired</option>
         </select>
         <input value={fieldFilter} onChange={(event) => setFieldFilter(event.target.value)} placeholder="Filter by research field" aria-label="Filter by research field" className="rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-foreground" />
@@ -359,7 +358,7 @@ Return one ranking object for every supplied id. Do not add opportunities or cha
               <h2 id="funding-comparison-heading" className="text-sm font-semibold text-foreground">Compare official opportunities</h2>
               <p className="mt-1 text-[11px] text-muted-foreground">Source-provided fields only. Missing values are marked explicitly.</p>
             </div>
-            <button type="button" onClick={() => setComparisonIds([])} className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">
+            <button type="button" onClick={() => setComparisonIds([])} className="min-h-11 rounded-lg border border-border px-4 text-sm text-muted-foreground hover:text-foreground">
               Clear
             </button>
           </div>
