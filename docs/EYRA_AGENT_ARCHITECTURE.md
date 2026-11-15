@@ -30,3 +30,9 @@ The main Command Center enables this limited registry. Other EYRA entry points r
 - Write permission is checked against the actual user prompt, not independently against the browser-supplied `tool_intent` field.
 - A read-only `research.lookup_doi` tool validates bibliographic metadata from Crossref and labels it `bibliographic_metadata_only`. It never claims to have retrieved or interpreted full text.
 - The initial TypeScript failure was corrected; full CI and live service acceptance must still pass before merge.
+
+## Server-validated contextual workspace (review branch)
+
+The Command Center accepts an optional resource identifier derived from the active `/projects/:id` route. The client forwards only `{kind:'project',id:UUID}`, not privileged project text. The authenticated backend retrieves `projects` under explicit owner predicate and RLS; `paper` and `note` resource types are additionally supported for explicit callers. Unsupported resource types or malformed UUIDs fail before quota reservation, and inaccessible resources return a not-found error without reaching the model. Only bounded, allowlisted scalar fields reach the model, labeled as untrusted user workspace data rather than independently verified scholarly evidence. A browser-provided resource ID never proves ownership.
+
+The Command Center's prompt includes earlier conversation. Write authorization therefore extracts the latest user request from the structured prompt; historical instructions and earlier requests cannot authorize a new project creation or paper save. All enabled tool calls are verified against the model-exposed allowlisted tool contracts in deterministic backend code; unknown names, extra keys, wrong types, and oversized string values fail before dispatch.
