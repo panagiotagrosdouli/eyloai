@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, BookOpen, FolderOpen, RefreshCw, Sparkles } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useCapabilities } from '@/lib/capabilities';
-import { buildResearchJourney, researchJourneyLinks } from '@/lib/research-journey.mjs';
+import { buildResearchJourney, researchJourneyLinks, researchJourneyNextAction } from '@/lib/research-journey.mjs';
 import { isSafeLiteratureSourceUrl } from '@/lib/literature-review-protocol.mjs';
 
 function StepCard({ item, index }) {
@@ -89,7 +89,8 @@ export default function ResearchJourney() {
     return () => { active = false; };
   }, [selectedId, attempt]);
 
-  const steps = buildResearchJourney(project, { linkedPapers: papers?.length ?? null, papersLoaded });
+  const steps = buildResearchJourney(project, { linkedPapers: papers?.length ?? null, papersLoaded, paperLimit: 100 });
+  const nextAction = researchJourneyNextAction(steps);
   const links = project ? researchJourneyLinks(project.id) : null;
   return (
     <main className="eylo-page mx-auto max-w-5xl pb-20">
@@ -127,6 +128,13 @@ export default function ResearchJourney() {
       </section>}
       {!loading && !error && project && <>
         {coverageError && <p role="status" className="mb-5 rounded-xl border border-border bg-secondary/50 p-4 text-sm text-foreground">{coverageError}</p>}
+        {nextAction && <section aria-labelledby="journey-next-action" className="mb-6 rounded-2xl border border-primary/30 bg-card p-5 sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary">Suggested next step · based on saved fields</p>
+          <h2 id="journey-next-action" className="mt-2 text-lg font-semibold text-foreground">{nextAction.label}</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{nextAction.description}</p>
+          {nextAction.href ? <Link to={nextAction.href} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Continue research <ArrowRight size={16} aria-hidden="true" /></Link>
+            : <button type="button" onClick={() => setAttempt(value => value + 1)} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold text-foreground"><RefreshCw size={16} aria-hidden="true" /> Retry evidence load</button>}
+        </section>}
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">Your five research stages</h2>
           <Link to={links.project} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary"><FolderOpen size={16} aria-hidden="true" /> Open project</Link>
