@@ -91,7 +91,7 @@ function matchesIntent(item, rawQuery) {
   if (!query) return true;
   const haystack = [item.title, item.description, item.category, item.slug, INTENT_ALIASES[item.slug] || ''].join(' ').toLowerCase();
   if (haystack.includes(query)) return true;
-  const terms = query.replace(/[^\\p{L}\\p{N}]+/gu, ' ').split(' ').filter(term => term.length > 1 && !SEARCH_STOPWORDS.has(term));
+  const terms = query.replace(/[^\p{L}\p{N}]+/gu, ' ').split(' ').filter(term => term.length > 1 && !SEARCH_STOPWORDS.has(term));
   return terms.length > 0 && terms.every(term => haystack.includes(term));
 }
 
