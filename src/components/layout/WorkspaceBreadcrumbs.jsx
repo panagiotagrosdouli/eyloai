@@ -15,6 +15,10 @@ const ROUTE_LABELS = {
   'time-tracker': 'Time tracker', 'workspace': 'Workspace',
   'labs': 'Research labs', 'data': 'Research Data Lab',
 };
+const isNavigable = path => (
+  ['/home', '/projects', '/tools', '/learn', '/life', '/workspace/search'].includes(path)
+  || /^\/projects\/[^/]+$/.test(path)
+);
 const labelFor = segment => ROUTE_LABELS[segment] || segment.replace(/-/g, ' ').replace(/^./, s => s.toUpperCase());
 
 export default function WorkspaceBreadcrumbs() {
@@ -34,7 +38,9 @@ export default function WorkspaceBreadcrumbs() {
           <li key={crumb.path} className="inline-flex min-h-8 items-center gap-2">
             <span aria-hidden="true">/</span>
             {index === crumbs.length - 1 ? <span aria-current="page" className="font-medium text-foreground">{crumb.label}</span>
-              : <Link to={crumb.path} className="hover:text-primary">{crumb.label}</Link>}
+              : isNavigable(crumb.path)
+                ? <Link to={crumb.path} className="hover:text-primary">{crumb.label}</Link>
+                : <span>{crumb.label}</span>}
           </li>
         ))}
       </ol>
