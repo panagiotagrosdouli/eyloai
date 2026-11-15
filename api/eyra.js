@@ -84,6 +84,40 @@ const PROJECT_TOOLS = [
   },
   {
     type: 'function',
+    name: 'learning.list_courses',
+    description: 'List the authenticated user’s own learning courses; read-only metadata, not lesson content.',
+    parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
+    strict: true,
+  },
+  {
+    type: 'function',
+    name: 'learning.list_quizzes',
+    description: 'List the authenticated user’s own quizzes; read-only quiz metadata, not questions or grades.',
+    parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
+    strict: true,
+  },
+  {
+    type: 'function',
+    name: 'notes.search',
+    description: 'Search a bounded recent set of the user’s saved private notes by text; returns only matching metadata and short previews.',
+    parameters: {
+      type: 'object', properties: { query: { type: 'string' } },
+      required: ['query'], additionalProperties: false,
+    },
+    strict: true,
+  },
+  {
+    type: 'function',
+    name: 'library.search_papers',
+    description: 'Search the user’s saved papers by title, author or DOI across a bounded recent window; no external full-text access.',
+    parameters: {
+      type: 'object', properties: { query: { type: 'string' } },
+      required: ['query'], additionalProperties: false,
+    },
+    strict: true,
+  },
+  {
+    type: 'function',
     name: 'funding.list_saved_opportunities',
     description: 'Read saved funding opportunities from the authenticated user’s workspace; do not infer they remain open.',
     parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
@@ -550,6 +584,77 @@ async function executeProjectTool(name, rawArguments, identity) {
         updated_date: row.updated_date || '',
       };
     });
+  }
+  if (name === 'learning.list_courses' || name === 'learning.list_quizzes') {
+    const table = name === 'learning.list_courses' ? 'learning_courses' : 'quizzes';
+    const select = name === 'learning.list_courses'
+      ? 'id,title,subject,description,updated_at'
+      : 'id,title,subject,updated_at';
+    const params = new URLSearchParams({
+      select, user_id: `eq.${identity.user.id}`,
+      order: 'updated_at.desc', limit: '20',
+    });
+    const upstream = await fetch(`${identity.supabaseUrl}/rest/v1/${table}?${params}`, {
+      headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
+    });
+    if (!upstream.ok) throw new Error('Learning records are temporarily unavailable.');
+    const rows = await upstream.json();
+    if (!Array.isArray(rows)) throw new Error('Learning records returned an invalid response.');
+    const records = rows.slice(0, 20).map(row => {
+      if (typeof row?.id !== 'string' || !RUN_UUID.test(row.id)) {
+        throw new Error('Learning records included an invalid ID.');
+      }
+      return {
+        id: row.id,
+        title: typeof row.title === 'string' ? row.title.slice(0, 180) : '',
+        subject: typeof row.subject === 'string' ? row.subject.slice(0, 180) : '',
+        ...(table === 'learning_courses' ? {
+          description: typeof row.description === 'string' ? row.description.slice(0, 300) : '',
+        } : {}),
+        updated_at: typeof row.updated_at === 'string' ? row.updated_at.slice(0, 40) : '',
+      };
+    });
+    return { records, count: records.length, metadata_only: true, source: 'authenticated_learning_workspace' };
+  }
+  if (name === 'notes.search' || name === 'library.search_papers') {
+    const query = typeof args.query === 'string' ? args.query.trim().toLocaleLowerCase() : '';
+    if (query.length < 3 || query.length > 120) {
+      throw new Error('A search query of 3–120 characters is required.');
+    }
+    const table = name === 'notes.search' ? 'notes' : 'saved_papers';
+    const params = new URLSearchParams({
+      select: 'id,data,updated_date',
+      user_id: `eq.${identity.user.id}`,
+      order: 'updated_date.desc', limit: '100',
+    });
+    const upstream = await fetch(`${identity.supabaseUrl}/rest/v1/${table}?${params}`, {
+      headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
+    });
+    if (!upstream.ok) throw new Error('Saved research search is unavailable.');
+    const rows = await upstream.json();
+    if (!Array.isArray(rows)) throw new Error('Saved research search returned an invalid list.');
+    const matching = rows.slice(0, 100).filter(row => {
+      if (typeof row?.id !== 'string' || !row.data || typeof row.data !== 'object'
+        || Array.isArray(row.data)) throw new Error('Saved research search returned an invalid record.');
+      const fields = table === 'notes'
+        ? [row.data.title, row.data.name, row.data.content, row.data.body]
+        : [row.data.title, row.data.authors, row.data.doi];
+      return fields.some(value => typeof value === 'string'
+        && value.toLocaleLowerCase().includes(query));
+    }).slice(0, 10);
+    const records = matching.map(row => table === 'notes'
+      ? {
+        id: row.id, title: String(row.data.title || row.data.name || '').slice(0, 180),
+        preview: String(row.data.content || row.data.body || '').slice(0, 300),
+        updated_date: String(row.updated_date || '').slice(0, 40),
+      }
+      : boundedWorkspaceRow(row, 'paper'));
+    return {
+      query: args.query.trim(), count: records.length, records,
+      scanned_recent_records: Math.min(rows.length, 100),
+      total_scope: 'last_100_records_only',
+      evidence_level: table === 'notes' ? 'user_saved_notes' : 'saved_bibliographic_metadata_only',
+    };
   }
   if (name === 'project.get') {
     const id = typeof args.id === 'string' ? args.id.trim() : '';
