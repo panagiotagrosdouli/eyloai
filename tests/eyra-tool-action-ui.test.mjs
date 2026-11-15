@@ -23,3 +23,13 @@ test('action status is tied to server-confirmed outcomes, not model predictions'
   assert.match(source, /action\.status === 'succeeded' && action\.tool === 'library\.save_paper'/);
   assert.match(source, /response\?\.actions/);
 });
+
+test('workspace writes require a visible review step with edit, cancel and confirm controls', () => {
+  assert.match(source, /requestedEyraWrites\(content\)/);
+  assert.match(source, /setPendingWriteReview\(\{ content, writeIntent \}\)/);
+  assert.match(source, /aria-label="Review EYRA write request"/);
+  assert.match(source, /aria-label="Edit pending EYRA write"/);
+  assert.match(source, /aria-label="Cancel pending EYRA write"/);
+  assert.match(source, /aria-label="Confirm and send EYRA write"/);
+  assert.match(source, /write_confirmed: allowWorkspaceActions && writeConfirmed/);
+});
