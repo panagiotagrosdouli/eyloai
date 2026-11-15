@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Download, FilePlus2, Loader2, RotateCcw, Save } from 'lucide-react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { createEyloFilesService } from '@/services/eylo-files.mjs';
 import { useAuth } from '@/lib/AuthContext';
@@ -40,6 +40,7 @@ export default function DocumentEditor() {
   const { id } = useParams();
   const isNew = !id || id === 'new';
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [file, setFile] = useState(null);
@@ -53,7 +54,12 @@ export default function DocumentEditor() {
   const [recoveredDraft, setRecoveredDraft] = useState(false);
   const [loadedKey, setLoadedKey] = useState('');
   const loadGeneration = useRef(0);
-  const key = useMemo(() => draftStorageKey(user?.id || 'unknown', isNew ? null : id), [user?.id, isNew, id]);
+  // Navigation state is a local draft handoff, never a saved file or authority to read another project.
+  const reviewOutline = isNew && location.state?.reviewOutline && typeof location.state.reviewOutline === 'object'
+    ? location.state.reviewOutline : null;
+  const outlineProjectId = typeof reviewOutline?.projectId === 'string' ? reviewOutline.projectId.slice(0, 100) : '';
+  const key = useMemo(() => draftStorageKey(user?.id || 'unknown',
+    isNew ? (outlineProjectId ? `review-${outlineProjectId}` : null) : id), [user?.id, isNew, id, outlineProjectId]);
   const dirty = !savedSnapshot || name !== savedSnapshot.name || body !== savedSnapshot.body;
 
   const loadDocument = useCallback(async () => {
@@ -81,9 +87,20 @@ export default function DocumentEditor() {
         nextBody = await (await files.download(latest)).text();
         if (generation !== loadGeneration.current) return;
       }
+      if (isNew && reviewOutline) {
+        const candidateBody = typeof reviewOutline.body === 'string' ? reviewOutline.body : '';
+        const candidateFilename = typeof reviewOutline.filename === 'string' ? reviewOutline.filename : '';
+        if (candidateBody.length > MAX_DOCUMENT_CHARACTERS) throw new Error('The review outline exceeds the editor limit.');
+        if (candidateBody.trim()) {
+          nextBody = candidateBody;
+          nextName = candidateFilename.trim().slice(0, 240) || EMPTY_TITLE;
+        }
+      }
       if (nextBody.length > MAX_DOCUMENT_CHARACTERS) throw new Error('This document is larger than the editor limit. Download it from EYLO Files instead.');
       setFile(nextFile);
-      const snapshot = { name: nextName, body: nextBody };
+      const snapshot = isNew && reviewOutline && nextBody !== EMPTY_BODY
+        ? { name: EMPTY_TITLE, body: EMPTY_BODY }
+        : { name: nextName, body: nextBody };
       setSavedSnapshot(snapshot);
       setName(nextName);
       setBody(nextBody);
@@ -106,7 +123,7 @@ export default function DocumentEditor() {
     } finally {
       if (generation === loadGeneration.current) setLoading(false);
     }
-  }, [id, isNew, key]);
+  }, [id, isNew, key, reviewOutline]);
 
   useEffect(() => {
     void loadDocument();
@@ -196,6 +213,7 @@ export default function DocumentEditor() {
       <p role="note" className="mb-4 rounded-xl border border-border bg-card px-4 py-3 text-xs leading-5 text-muted-foreground">Documents are saved as Markdown in your private EYLO Files workspace. Each save creates a recoverable version; Markdown export is a valid plain-text `.md` file.</p>
       {error && <p role="alert" className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm">{error}</p>}
       {recoveredDraft && <p role="status" className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">Unsaved changes were recovered for this account and document. Save to keep them in EYLO Files.</p>}
+      {isNew && reviewOutline && !loading && !recoveredDraft && dirty && <p role="status" className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">Your source-linked review outline is ready to edit. It has not been saved to EYLO Files. Select Save version when you choose to keep it.</p>}
       {loading ? <div role="status" className="grid min-h-48 place-items-center text-sm text-muted-foreground"><Loader2 className="animate-spin" size={18} aria-hidden="true" />Opening document…</div> : <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
         <section className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-label="Document editing surface">
           <label className="block text-xs font-semibold text-muted-foreground">Document title
