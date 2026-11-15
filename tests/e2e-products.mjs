@@ -327,7 +327,7 @@ try {
   // EYLO 2030: the compact mobile navigation must not dismiss its directory
   // when a user focuses or types in the search field.
   await page.getByRole("button", { name: "Open navigation menu" }).click();
-  await page.getByRole("button", { name: "All tools", exact: true }).click();
+  await page.locator("#workspace-mobile-menu").getByRole("button", { name: "All tools", exact: true }).click();
   const mobileToolSearch = page.getByRole("searchbox", { name: "Find a tool" });
   await mobileToolSearch.fill("funding");
   await assert.equal(await mobileToolSearch.isVisible(), true);
