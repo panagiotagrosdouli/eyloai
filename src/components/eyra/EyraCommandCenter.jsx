@@ -373,6 +373,14 @@ function formatEyraToolActions(actions) {
       }[action.tool];
       return `- Retrieved ${Array.isArray(action.result) ? action.result.length : 0} private ${label}. Saved records are not live eligibility or affiliation verification.`;
     }
+    if (action.status === 'succeeded' && ['learning.list_courses', 'learning.list_quizzes'].includes(action.tool)) {
+      const label = action.tool === 'learning.list_courses' ? 'learning courses' : 'quizzes';
+      return `- Retrieved ${action.result?.count || 0} saved ${label} from your own learning workspace; metadata only.`;
+    }
+    if (action.status === 'succeeded' && ['notes.search', 'library.search_papers'].includes(action.tool)) {
+      const label = action.tool === 'notes.search' ? 'private notes' : 'saved paper metadata records';
+      return `- Found ${action.result?.count || 0} matching ${label} within ${action.result?.scanned_recent_records || 0} recent records; this was not an exhaustive full-text search.`;
+    }
     if (action.status === 'succeeded' && action.tool === 'research.search_publications') {
       return `- Retrieved ${action.result?.count || 0} DOI-validated **bibliographic metadata** records from Crossref; full text was not analyzed.`;
     }
