@@ -46,7 +46,7 @@ try {
       });
       const page = await context.newPage();
       const pageErrors = [];
-      page.on('pageerror', error => pageErrors.push(error.message));
+      page.on('pageerror', () => pageErrors.push('Uncaught browser exception (details omitted for privacy)'));
       for (const route of screens) {
         const begin = Date.now();
         await page.goto(base + route, { waitUntil: 'domcontentloaded' });
@@ -71,10 +71,6 @@ try {
           await page.getByRole('searchbox', { name: 'Find a tool or task' }).fill('thesis');
           await page.getByRole('link', { name: /Organize my thesis/i }).waitFor();
         }
-        if (artifactDir && allowScreenshots) {
-          await mkdir(artifactDir, { recursive: true });
-          await page.screenshot({ path: path.join(artifactDir, `${width}-${colorScheme}-${route.slice(1).replaceAll('/', '-')}.png`), fullPage: true, animations: 'disabled' });
-        }
         // Bound the lab observation interval; do not claim field stability or INP.
         await page.waitForTimeout(500);
         const vitals = await page.evaluate(() => {
@@ -86,7 +82,12 @@ try {
             domContentLoadedMs: nav ? nav.domContentLoadedEventEnd : null,
           };
         });
-        observations.push({ route, width, colorScheme, navigationMs: Date.now() - begin,
+        const navigationMs = Date.now() - begin;
+        if (artifactDir && allowScreenshots) {
+          await mkdir(artifactDir, { recursive: true });
+          await page.screenshot({ path: path.join(artifactDir, `${width}-${colorScheme}-${route.slice(1).replaceAll('/', '-')}.png`), fullPage: true, animations: 'disabled' });
+        }
+        observations.push({ route, width, colorScheme, navigationMs,
           lcpMs: vitals.lcpMs, cls: vitals.cls, clsEntries: vitals.clsEntries,
           domContentLoadedMs: vitals.domContentLoadedMs,
           inpMs: null, // INP needs representative real interactions; never synthesize it.
