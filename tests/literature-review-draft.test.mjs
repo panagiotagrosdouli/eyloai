@@ -56,7 +56,8 @@ test('editor receives only an unsaved local handoff and requires an explicit sav
   const editor = readFileSync(new URL('../src/pages/DocumentEditor.jsx', import.meta.url), 'utf8');
   assert.match(review, /startEvidenceOutline/);
   assert.match(review, /hasUnsavedChanges \|\| counts\.included === 0/);
-  assert.match(review, /state: \{ reviewOutline:/);
+  assert.match(review, /state: \{ reviewOutline: \{ userId: user\.id/);
+  assert.match(editor, /candidateOutline\.userId === user\.id/);
   assert.match(editor, /location\.state\?\.reviewOutline/);
   assert.match(editor, /Select Save version/);
   assert.match(editor, /async function save\(\)/);
