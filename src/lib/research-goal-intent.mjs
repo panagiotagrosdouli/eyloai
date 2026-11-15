@@ -3,6 +3,7 @@
  * This helper never performs retrieval, sends AI requests or writes user records.
  * Unrecognized questions pass through unchanged to discovery.
  */
+/** @type {Array<{goal: 'review'|'thesis'|'understand', pattern: RegExp}>} */
 const GOAL_PATTERNS = [
   {
     goal: 'review',
