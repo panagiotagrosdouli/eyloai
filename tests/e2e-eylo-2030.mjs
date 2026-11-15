@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { summarizeUxObservations } from '../src/lib/ux-observation-summary.mjs';
 
 const base = process.env.EYLO_E2E_BASE_URL?.replace(/\/$/, '');
 const storageState = process.env.EYLO_E2E_STORAGE_STATE;
@@ -12,6 +13,7 @@ if (!base || !storageState) {
 }
 const widths = [320, 390, 768, 1024, 1440];
 const artifactDir = process.env.EYLO_E2E_ARTIFACT_DIR;
+const allowScreenshots = process.env.EYLO_E2E_ALLOW_SCREENSHOTS === '1';
 const browser = await chromium.launch({ headless: true });
 const observations = [];
 const screens = ['/home', '/search', '/projects', '/library', '/study-planner', '/opportunities', '/tools', '/research-journey'];
@@ -20,19 +22,27 @@ try {
     for (const colorScheme of ['light', 'dark']) {
       const context = await browser.newContext({ storageState, viewport: { width, height: 900 }, colorScheme, reducedMotion: 'reduce' });
       await context.addInitScript(() => {
-        window.__eyloUxVitals = { lcpMs: null, cls: 0 };
-        try {
-          new PerformanceObserver(list => {
-            for (const entry of list.getEntries()) window.__eyloUxVitals.lcpMs = entry.startTime;
-          }).observe({ type: 'largest-contentful-paint', buffered: true });
-        } catch { /* Unsupported browsers must report null LCP, not a fabricated score. */ }
-        try {
-          new PerformanceObserver(list => {
-            for (const entry of list.getEntries()) {
-              if (!entry.hadRecentInput) window.__eyloUxVitals.cls += entry.value;
-            }
-          }).observe({ type: 'layout-shift', buffered: true });
-        } catch { window.__eyloUxVitals.cls = null; }
+        const supported = window.PerformanceObserver?.supportedEntryTypes || [];
+        window.__eyloUxVitals = { lcpMs: null, cls: supported.includes('layout-shift') ? 0 : null, clsEntries: 0 };
+        if (supported.includes('largest-contentful-paint')) {
+          try {
+            new PerformanceObserver(list => {
+              for (const entry of list.getEntries()) window.__eyloUxVitals.lcpMs = entry.startTime;
+            }).observe({ type: 'largest-contentful-paint', buffered: true });
+          } catch { /* null means not measured, not 0. */ }
+        }
+        if (supported.includes('layout-shift')) {
+          try {
+            new PerformanceObserver(list => {
+              for (const entry of list.getEntries()) {
+                if (!entry.hadRecentInput) {
+                  window.__eyloUxVitals.cls += entry.value;
+                  window.__eyloUxVitals.clsEntries += 1;
+                }
+              }
+            }).observe({ type: 'layout-shift', buffered: true });
+          } catch { window.__eyloUxVitals.cls = null; }
+        }
       });
       const page = await context.newPage();
       const pageErrors = [];
@@ -61,24 +71,29 @@ try {
           await page.getByRole('searchbox', { name: 'Find a tool or task' }).fill('thesis');
           await page.getByRole('link', { name: /Organize my thesis/i }).waitFor();
         }
-        if (artifactDir) {
+        if (artifactDir && allowScreenshots) {
           await mkdir(artifactDir, { recursive: true });
           await page.screenshot({ path: path.join(artifactDir, `${width}-${colorScheme}-${route.slice(1).replaceAll('/', '-')}.png`), fullPage: true, animations: 'disabled' });
         }
+        // Bound the lab observation interval; do not claim field stability or INP.
+        await page.waitForTimeout(500);
         const vitals = await page.evaluate(() => {
           const nav = performance.getEntriesByType('navigation')[0];
           return {
             lcpMs: window.__eyloUxVitals?.lcpMs ?? null,
             cls: window.__eyloUxVitals?.cls ?? null,
+            clsEntries: window.__eyloUxVitals?.clsEntries ?? null,
             domContentLoadedMs: nav ? nav.domContentLoadedEventEnd : null,
           };
         });
         observations.push({ route, width, colorScheme, navigationMs: Date.now() - begin,
-          lcpMs: vitals.lcpMs, cls: vitals.cls, domContentLoadedMs: vitals.domContentLoadedMs,
-          inpMs: null, // INP needs a representative interaction; navigation alone cannot measure it.
-          pageErrors: [...pageErrors] });
+          lcpMs: vitals.lcpMs, cls: vitals.cls, clsEntries: vitals.clsEntries,
+          domContentLoadedMs: vitals.domContentLoadedMs,
+          inpMs: null, // INP needs representative real interactions; never synthesize it.
+          pageErrors: pageErrors.splice(0) });
       }
-      assert.deepEqual(pageErrors, [], 'Unexpected browser errors at ' + width + 'px');
+      assert.equal(observations.filter(item => item.width === width && item.colorScheme === colorScheme).flatMap(item => item.pageErrors).length, 0,
+        'Unexpected browser errors at ' + width + 'px');
       await context.close();
     }
   }
@@ -86,6 +101,8 @@ try {
   await browser.close();
 }
 if (artifactDir) {
+  await mkdir(artifactDir, { recursive: true });
   await writeFile(path.join(artifactDir, 'ux-observations.json'), JSON.stringify(observations, null, 2));
+  await writeFile(path.join(artifactDir, 'ux-summary.json'), JSON.stringify(summarizeUxObservations(observations), null, 2));
 }
 console.log(`EYLO authenticated UX smoke checks passed: ${observations.length} route/viewport/theme observations.`);
