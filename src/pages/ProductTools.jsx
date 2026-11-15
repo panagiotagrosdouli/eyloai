@@ -108,9 +108,10 @@ function ToolDirectory() {
 
   return (
     <div className="eylo-page mx-auto max-w-6xl">
-      <h1 className="eylo-page-heading">All tools</h1>
+      <h1 className="eylo-page-heading">What would you like to do?</h1>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Find the right workflow for your goal. Existing project and research tools remain available here.</p>
-      <div className="mt-6">
+      <section aria-label="Browse EYLO tools" className="mt-6">
+      <div>
         <label htmlFor="tool-directory-search" className="mb-2 block text-sm font-medium">Find a tool or task</label>
         <input id="tool-directory-search" type="search" value={query} onChange={event => setQuery(event.target.value)}
           placeholder="Try literature review, study plan, funding…" className="min-h-12 w-full rounded-xl border border-border bg-card px-4 text-base text-foreground" />
@@ -133,6 +134,7 @@ function ToolDirectory() {
         <p className="mt-2 text-sm text-muted-foreground">Try another term or clear the category filter.</p>
         <button type="button" onClick={() => { setQuery(''); setCategory('All'); }} className="mt-4 min-h-11 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Show all tools</button>
       </div>}
+      </section>
     </div>
   );
 }
