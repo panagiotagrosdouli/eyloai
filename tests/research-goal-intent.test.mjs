@@ -39,7 +39,7 @@ test('unknown, incomplete and malformed requests never fabricate intent', () => 
 test('guided discovery uses the parsed goal without bypassing narrow-topic clarification', () => {
   const source = readFileSync(new URL('../src/components/discovery/GuidedSearch.jsx', import.meta.url), 'utf8');
   assert.match(source, /interpretResearchGoal\(value\)/);
-  assert.match(source, /researchTopic\.split\(/);
-  assert.match(source, /autoRefine \|\| needsScope/);
+  assert.match(source, /researchTopic\.trim\(\)\.split\(/);
+  assert.match(source, /autoRefine \|\| researchTopic/);
   assert.match(source, /goal: researchGoal/);
 });
