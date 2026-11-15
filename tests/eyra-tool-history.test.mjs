@@ -779,3 +779,125 @@ test('project and Library tool replies are bounded to safe metadata fields', asy
     globalThis.fetch = previousFetch;
   }
 });
+
+test('learning courses and quizzes use hosted canonical scalar columns with owner RLS filters', async () => {
+  const original = globalThis.fetch;
+  const owner = '00000000-0000-4000-8000-000000000001';
+  const recordId = '00000000-0000-4000-8000-000000000021';
+  let aiCalls = 0;
+  let learningReads = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const value = String(url);
+    const parsed = new URL(value);
+    if (parsed.pathname === '/auth/v1/user') return new Response(JSON.stringify({ id: owner }), { status: 200 });
+    if (parsed.pathname === '/rest/v1/rpc/reserve_eyra_usage') {
+      return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    }
+    if (['/rest/v1/learning_courses', '/rest/v1/quizzes'].includes(parsed.pathname)) {
+      learningReads += 1;
+      assert.equal(parsed.searchParams.get('user_id'), 'eq.' + owner);
+      assert.equal(parsed.searchParams.get('limit'), '20');
+      assert.equal(parsed.searchParams.get('order'), 'updated_at.desc');
+      assert.ok(!parsed.searchParams.get('select').includes('data'),
+        'native learning tables must not be queried as JSONB workspace tables');
+      assert.equal(options.headers.authorization, 'Bearer user-access-token');
+      return new Response(JSON.stringify([{
+        id: recordId, title: 'Methods', subject: 'Statistics',
+        description: 'a'.repeat(1000), updated_at: '2026-11-15T00:00:00Z',
+        private_secret: 'MUST-NOT-EXPOSE',
+      }]), { status: 200 });
+    }
+    if (parsed.hostname === 'api.openai.com') {
+      aiCalls += 1;
+      if (aiCalls === 2) {
+        const results = JSON.parse(options.body).input.filter(item => item.type === 'function_call_output')
+          .map(item => JSON.parse(item.output).result);
+        assert.equal(results.length, 2);
+        assert.equal(results[0].records[0].description.length, 300);
+        assert.equal(results[1].records[0].subject, 'Statistics');
+        assert.ok(!JSON.stringify(results).includes('MUST-NOT-EXPOSE'));
+        assert.equal(results[0].metadata_only, true);
+      }
+      return new Response(JSON.stringify(aiCalls === 1 ? {
+        id: 'learn-1', status: 'completed', output: [
+          { type: 'function_call', name: 'learning.list_courses', call_id: 'courses', arguments: '{}' },
+          { type: 'function_call', name: 'learning.list_quizzes', call_id: 'quizzes', arguments: '{}' },
+        ],
+      } : {
+        id: 'learn-2', status: 'completed',
+        output: [{ content: [{ type: 'output_text', text: 'Verified learning metadata.' }] }],
+      }), { status: 200 });
+    }
+    throw new Error('Unexpected URL ' + value);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' },
+      body: { prompt: 'List my courses and quizzes.', enable_project_tools: true } }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(learningReads, 2);
+    assert.ok(response.payload.actions.every(action => action.status === 'succeeded'));
+  } finally { globalThis.fetch = original; }
+});
+
+test('private note and saved paper searches never expose nonmatching or unrelated JSONB fields', async () => {
+  const original = globalThis.fetch;
+  const owner = '00000000-0000-4000-8000-000000000001';
+  const recordId = '00000000-0000-4000-8000-000000000031';
+  let aiCalls = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const value = String(url);
+    const parsed = new URL(value);
+    if (parsed.pathname === '/auth/v1/user') return new Response(JSON.stringify({ id: owner }), { status: 200 });
+    if (parsed.pathname === '/rest/v1/rpc/reserve_eyra_usage') {
+      return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    }
+    if (['/rest/v1/notes', '/rest/v1/saved_papers'].includes(parsed.pathname)) {
+      assert.equal(parsed.searchParams.get('user_id'), 'eq.' + owner);
+      assert.equal(parsed.searchParams.get('limit'), '100');
+      assert.equal(options.headers.authorization, 'Bearer user-access-token');
+      const notes = parsed.pathname.endsWith('notes');
+      const rows = [
+        { id: recordId, data: notes
+          ? { title: 'Neural methods', content: 'a'.repeat(600), password: 'PRIVATE-NOTE-SECRET' }
+          : { title: 'Neural methods', authors: 'Research group', doi: '10.1234/x', pdf: 'PRIVATE-FULL-TEXT' },
+          updated_date: '2026-11-15T00:00:00Z' },
+        { id: '00000000-0000-4000-8000-000000000032',
+          data: { title: 'Other topic', content: 'private unrelated research' }, updated_date: '2026-11-14T00:00:00Z' },
+      ];
+      return new Response(JSON.stringify(rows), { status: 200 });
+    }
+    if (parsed.hostname === 'api.openai.com') {
+      aiCalls += 1;
+      if (aiCalls === 2) {
+        const results = JSON.parse(options.body).input.filter(item => item.type === 'function_call_output')
+          .map(item => JSON.parse(item.output).result);
+        assert.equal(results.length, 2);
+        assert.equal(results[0].count, 1);
+        assert.equal(results[1].count, 1);
+        assert.equal(results[0].records[0].preview.length, 300);
+        assert.equal(results[0].total_scope, 'last_100_records_only');
+        assert.ok(!JSON.stringify(results).includes('PRIVATE-NOTE-SECRET'));
+        assert.ok(!JSON.stringify(results).includes('PRIVATE-FULL-TEXT'));
+        assert.ok(!JSON.stringify(results).includes('private unrelated research'));
+      }
+      return new Response(JSON.stringify(aiCalls === 1 ? {
+        id: 'search1', status: 'completed', output: [
+          { type: 'function_call', name: 'notes.search', call_id: 'notes1',
+            arguments: JSON.stringify({ query: 'Neural' }) },
+          { type: 'function_call', name: 'library.search_papers', call_id: 'papers1',
+            arguments: JSON.stringify({ query: 'Neural' }) },
+        ],
+      } : { id: 'search2', status: 'completed',
+        output: [{ content: [{ type: 'output_text', text: 'Matched bounded private metadata.' }] }] }), { status: 200 });
+    }
+    throw new Error('Unexpected URL ' + value);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' },
+      body: { prompt: 'Find neural notes and saved papers.', enable_project_tools: true } }, response);
+    assert.equal(response.statusCode, 200);
+    assert.ok(response.payload.actions.every(action => action.status === 'succeeded'));
+  } finally { globalThis.fetch = original; }
+});
