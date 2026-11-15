@@ -58,6 +58,8 @@ test('editor receives only an unsaved local handoff and requires an explicit sav
   assert.match(review, /hasUnsavedChanges \|\| counts\.included === 0/);
   assert.match(review, /state: \{ reviewOutline: \{ userId: user\.id/);
   assert.match(editor, /candidateOutline\.userId === user\.id/);
+  assert.match(review, /loadedForUserId !== user\.id/);
+  assert.match(review, /\[attempt, preferredProjectId, user\?\.id\]/);
   assert.match(editor, /location\.state\?\.reviewOutline/);
   assert.match(editor, /Select Save version/);
   assert.match(editor, /async function save\(\)/);
