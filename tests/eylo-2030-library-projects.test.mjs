@@ -25,3 +25,19 @@ test('Project creation has field labels and preserves creation action', () => {
   assert.ok(projects.includes('aria-label="Close new project form"'));
   assert.ok(projects.includes('onClick={createProject}'));
 });
+
+test('Funding search does not depend on a fixed-width overlaid submit button', () => {
+  const funding = readFileSync(new URL('../src/pages/Opportunities.jsx', import.meta.url), 'utf8');
+  assert.ok(funding.includes('htmlFor="funding-query"'));
+  assert.ok(funding.includes('id="funding-query"'));
+  assert.ok(funding.includes('Find funding'));
+  assert.ok(funding.includes('className="mb-4 flex max-w-2xl flex-col gap-3 sm:flex-row'));
+  assert.ok(funding.includes('aria-busy={loading}'));
+});
+test('Research gap workflow documents the evidence threshold and preserves saving behavior', () => {
+  const gaps = readFileSync(new URL('../src/pages/ResearchGaps.jsx', import.meta.url), 'utf8');
+  assert.ok(gaps.includes('Select at least two saved publications'));
+  assert.ok(gaps.includes('Find publications'));
+  assert.ok(gaps.includes('onClick={() => saveDiscoveredPaper(paper)}'));
+  assert.ok(gaps.includes('Create project from this gap'));
+});
