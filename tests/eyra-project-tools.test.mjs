@@ -59,7 +59,7 @@ test('explicit project request uses the authenticated RLS route and reports the 
     const response = responseMock();
     await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' }, body: {
       prompt: 'Create a project about explainable diagnosis and add milestones.',
-      tool_intent: 'Create a project about explainable diagnosis and add milestones.', enable_project_tools: true,
+      tool_intent: 'Create a project about explainable diagnosis and add milestones.', enable_project_tools: true, write_confirmed: true,
     } }, response);
     assert.equal(response.statusCode, 200);
     assert.match(response.payload.text, /Created project Explainable diagnosis/);
@@ -143,6 +143,7 @@ test('explicit paper-save request verifies DOI metadata and persists the Crossre
       prompt: 'Save this paper to my Library.',
       tool_intent: 'Save this paper to my Library.',
       enable_project_tools: true,
+      write_confirmed: true,
     } }, response);
     assert.equal(response.statusCode, 200);
     assert.equal(response.payload.actions[0].status, 'succeeded');
