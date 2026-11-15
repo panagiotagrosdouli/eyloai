@@ -88,7 +88,8 @@ test('signed-in public entry routes redirect into the authenticated workspace', 
   assert.match(app, /<Route path="\/discover" element=\{<PublicEntry workspacePath="\/search">/);
   assert.match(app, /<Route path="\/find-researchers" element=\{<PublicEntry workspacePath="\/researchers">/);
   assert.match(app, /<Route path="\/careers" element=\{<PublicEntry workspacePath="\/workspace\/careers">/);
-  assert.match(app, /<Route path="\/workspace\/careers" element=\{<PublicCareers \/>\} \/>/);
+  assert.match(app, /<Route path="\/workspace\/careers" element=\{<Careers \/>\} \/>/);
+  assert.match(app, /<Route path="\/careers" element=\{<PublicEntry workspacePath="\/workspace\/careers"><PublicCareers \/><\/PublicEntry>\} \/>/);
   assert.match(layout, /label: 'Careers', path: '\/workspace\/careers'/);
   assert.match(app, /<Route element=\{<ProtectedRoute \/>\}>/);
 });
