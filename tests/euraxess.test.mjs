@@ -102,3 +102,14 @@ test('EURAXESS accepts an explicit empty search and rejects off-domain posting l
     assert.equal(response.statusCode, 502);
   } finally { globalThis.fetch = previousFetch; }
 });
+
+test('EURAXESS pagination follows the upstream next-page marker even with a short page', async () => {
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: true, text: async () => currentEuraxessMarkup + '<a rel="next" href="?page=1">Next page</a>' });
+  try {
+    const response = createResponse();
+    await handler({ method: 'GET', headers: {}, query: { q: 'climate' } }, response);
+    assert.equal(response.body.items.length, 1);
+    assert.equal(response.body.has_more, true);
+  } finally { globalThis.fetch = previousFetch; }
+});

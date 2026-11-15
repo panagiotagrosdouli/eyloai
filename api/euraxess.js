@@ -1,7 +1,7 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 const SOURCE = 'https://euraxess.ec.europa.eu/jobs/search';
 const MAX_QUERY_LENGTH = 180;
-const MAX_RESULTS = 12;
+const MAX_RESULTS = 50;
 const MAX_PAGE = 99;
 const TIMEOUT_MS = 10000;
 
@@ -127,7 +127,7 @@ export default async function handler(request, response) {
       source_url: SOURCE + '?' + params.toString(),
       items,
       page,
-      has_more: items.length >= MAX_RESULTS,
+      has_more: /rel=["']next["']|class=["'][^"']*\bpager__item--next\b/i.test(html),
     });
   } catch (error) {
     console.error('EURAXESS careers search failed', {
