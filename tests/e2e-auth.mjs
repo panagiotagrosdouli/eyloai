@@ -679,7 +679,7 @@ try {
   await dataLab.getByLabel('Inclusion criteria').fill('Studies reporting source tracing');
   await dataLab.getByLabel('Exclusion criteria').fill('No source tracing evaluation');
   await dataLab.getByRole('button', { name: 'Add to screening log' }).first().click();
-  await dataLab.getByLabel('Decision').selectOption('exclude');
+  await dataLab.getByLabel('Screening decision for Library persistence test paper', { exact: true }).selectOption('exclude');
   await dataLab.getByLabel('Reason / screening note').fill('Does not report a method evaluation');
   await dataLab.getByRole('button', { name: 'Save protocol to project' }).click();
   try {
