@@ -449,3 +449,44 @@ test('context rejects invalid or unauthorized resources before quota reservation
     globalThis.fetch = previousFetch;
   }
 });
+
+test('historic project creation instructions cannot authorize a new write', async () => {
+  const previousFetch = globalThis.fetch;
+  let databaseWrites = 0;
+  let modelCalls = 0;
+  const prompt = [
+    'RECENT CONVERSATION:',
+    'User: Create a project about robotics.',
+    'EYRA: I can help.',
+    '',
+    'LATEST USER REQUEST (preserved in full):',
+    'What would a robotics project involve?',
+    '',
+    'Context excerpts are bounded and may omit details.',
+  ].join(String.fromCharCode(10));
+  globalThis.fetch = async (url) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address === 'https://api.openai.com/v1/responses') {
+      modelCalls += 1;
+      return new Response(JSON.stringify(modelCalls === 1 ? {
+        id: 'attempt', status: 'completed', output: [{ type: 'function_call', call_id: 'create', name: 'project.create',
+          arguments: JSON.stringify({ title: 'Robotics', description: '', goal: '', milestones: '', tasks: '' }) }],
+      } : { id: 'done', status: 'completed', output: [{ content: [{ type: 'output_text', text: 'No project was created.' }] }] }), { status: 200 });
+    }
+    if (address.includes('/rest/v1/projects')) databaseWrites += 1;
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' }, body: {
+      prompt, tool_intent: 'Create a project named Robotics', enable_project_tools: true,
+    } }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(databaseWrites, 0);
+    assert.equal(response.payload.actions[0].status, 'failed');
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
