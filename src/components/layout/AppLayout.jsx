@@ -18,9 +18,9 @@ import { useAuth } from '@/lib/AuthContext';
 const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
   { label: 'Discover', path: '/search', icon: Search },
-  { label: 'Connect', path: '/researchers', icon: Users },
-  { label: 'Careers', path: '/workspace/careers', icon: Briefcase },
-  { label: 'Projects', path: '/projects', icon: FolderOpen },
+  { label: 'Workspace', path: '/projects', icon: FolderOpen },
+  { label: 'Create', path: '/documents/new', icon: FilePlus2 },
+  { label: 'Learn', path: '/learn', icon: GraduationCap },
 ];
 
 const TOOL_GROUPS = [
@@ -28,6 +28,8 @@ const TOOL_GROUPS = [
     section: 'Research calls',
     description: 'Funding and collaboration opportunities',
     items: [
+      { label: 'Researchers', path: '/researchers', icon: Users, desc: 'Find experts and collaborators' },
+      { label: 'Careers', path: '/workspace/careers', icon: Briefcase, desc: 'Explore research career opportunities' },
       { label: 'Funding & calls', path: '/opportunities', icon: Award, desc: 'Search official funding records' },
     ],
   },
@@ -150,6 +152,7 @@ export default function AppLayout() {
   const isWorkspaceHome = location.pathname === '/home';
   const isActive = path => location.pathname === path || (path !== '/life' && location.pathname.startsWith(`${path}/`));
   const toolsActive = ALL_TOOLS.some(item => isActive(item.path));
+  const primaryActive = item => isActive(item.path) || (item.path === '/projects' && ['/library', '/notes', '/files', '/life', '/calendar', '/workspace/search'].some(path => isActive(path)));
   const query = toolQuery.trim().toLowerCase();
   const visibleGroups = TOOL_GROUPS.map(group => ({
     ...group,
@@ -203,6 +206,7 @@ export default function AppLayout() {
 
   return (
     <div className={`eylo-app-canvas min-h-screen bg-background ${isWorkspaceHome ? "eylo-home-layout" : ""}`}>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-2 focus:z-[100] focus:rounded-lg focus:bg-background focus:p-3">Skip to content</a>
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center gap-2 px-4 sm:px-8">
           <Link to="/home" className="mr-3 flex shrink-0 items-center" aria-label="EYLO workspace home">
@@ -212,7 +216,7 @@ export default function AppLayout() {
           <nav className="hidden flex-1 items-center gap-1 lg:flex" aria-label="Workspace navigation">
             {PRIMARY_NAV.map(item => {
               const Icon = item.icon;
-              const active = isActive(item.path);
+              const active = primaryActive(item);
               return (
                 <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined}
                   className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium transition-colors ${active ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>
@@ -275,18 +279,24 @@ export default function AppLayout() {
               <div className="grid grid-cols-2 gap-2">
                 {PRIMARY_NAV.map(item => {
                   const Icon = item.icon;
-                  const active = isActive(item.path);
+                  const active = primaryActive(item);
                   return <Link key={item.path} to={item.path} className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-medium ${active ? 'border-primary/30 bg-primary/5 text-primary' : 'border-border bg-card text-muted-foreground'}`}><Icon size={15} />{item.label}</Link>;
                 })}
               </div>
               <div className="my-4 flex items-center justify-end gap-3"><ServiceStatus /></div>
-              <div className="space-y-5">
-                {TOOL_GROUPS.map(group => (
+              <button type="button" onClick={() => setCommandOpen(true)} className="mb-3 flex min-h-11 w-full items-center gap-2 rounded-xl border border-border px-3 text-sm font-medium"><Search size={16} />Search everything <span className="ml-auto text-xs text-muted-foreground">⌘/Ctrl K</span></button>
+              <button type="button" onClick={() => setToolsOpen(value => !value)} aria-expanded={toolsOpen} aria-controls="mobile-tool-directory" className="flex min-h-11 w-full items-center justify-between rounded-xl border border-border px-3 text-sm font-semibold"><span>All tools</span><ChevronDown size={16} className={toolsOpen ? 'rotate-180' : ''} /></button>
+              {toolsOpen && <div id="mobile-tool-directory" className="mt-3 space-y-4">
+                <label className="block"><span className="sr-only">Find a tool</span><input type="search" value={toolQuery} onChange={event => setToolQuery(event.target.value)} placeholder="Find a tool…" className="min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm" /></label>
+                {visibleGroups.map(group => (
                   <section key={group.section}>
                     <p className="mb-1 px-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{group.section}</p>
                     <div className="grid gap-1 sm:grid-cols-2">{group.items.map(item => <ToolLink key={item.path} item={item} active={isActive(item.path)} />)}</div>
                   </section>
                 ))}
+                {!visibleGroups.length && <p className="text-sm text-muted-foreground">No matching tools.</p>}
+              </div>}
+              <div className="mt-4">
                 <button type="button" onClick={handleSignOut} disabled={signingOut}
                   className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-medium text-foreground disabled:opacity-50">
                   <LogOut size={16} aria-hidden="true" />{signingOut ? 'Signing out…' : 'Sign out'}
@@ -298,21 +308,21 @@ export default function AppLayout() {
       </header>
       {signOutError && <p role="alert" className="border-b border-destructive/30 bg-destructive/10 px-4 py-3 text-center text-sm text-destructive">{signOutError}</p>}
 
-      <main className="relative z-10 min-h-[calc(100vh-4.5rem)] pb-24 lg:pb-0"><Outlet /></main>
+      <main id="main-content" className="relative z-10 min-h-[calc(100vh-4.5rem)] pb-24 lg:pb-0"><Outlet /></main>
       <GlobalCommandCenter open={commandOpen} onClose={() => setCommandOpen(false)} />
       <EyraCommandCenter open={eyraOpen} onClose={() => setEyraOpen(false)} />
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl lg:hidden" aria-label="Primary mobile navigation">
         <div className="mx-auto grid max-w-lg grid-cols-6 items-end">
-          {[PRIMARY_NAV[0], PRIMARY_NAV[1]].map(item => {
-            const Icon = item.icon; const active = isActive(item.path);
+          {PRIMARY_NAV.slice(0, 2).map(item => {
+            const Icon = item.icon; const active = primaryActive(item);
             return <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}><Icon size={18} /><span>{item.label}</span></Link>;
           })}
           <button type="button" onClick={() => setEyraOpen(true)} disabled={!aiAvailable} className="-mt-6 flex flex-col items-center gap-1 text-[10px] font-semibold text-primary disabled:opacity-45" aria-label={aiAvailable ? 'Ask EYRA' : 'EYRA unavailable'}>
             <EyraOrb className="h-12 w-12 rounded-2xl" decorative={false} /><span>EYRA</span>
           </button>
-          {[PRIMARY_NAV[2], PRIMARY_NAV[3]].map(item => {
-            const Icon = item.icon; const active = isActive(item.path);
+          {PRIMARY_NAV.slice(2).map(item => {
+            const Icon = item.icon; const active = primaryActive(item);
             return <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}><Icon size={18} /><span>{item.label}</span></Link>;
           })}
         </div>

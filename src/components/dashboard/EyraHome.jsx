@@ -78,8 +78,8 @@ export default function EyraHome({ onSearch }) {
                 <span className="rounded-full border border-primary/20 bg-background/75 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">EYLO · Research workspace</span>
                 <span className="text-xs text-muted-foreground">{greeting.greeting}</span>
               </div>
-              <h1 className="max-w-xl text-[2.65rem] font-semibold leading-[1.02] tracking-[-0.06em] text-foreground sm:text-6xl">Research,<br /><span className="font-serif font-medium italic text-primary">connected.</span></h1>
-              <p className="mt-5 max-w-lg text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">Follow a question from papers to people, projects and the opportunities around it.</p>
+              <h1 className="max-w-xl text-[2.65rem] font-semibold leading-[1.02] tracking-[-0.06em] text-foreground sm:text-6xl">Your research,<br /><span className="font-serif font-medium italic text-primary">in motion.</span></h1>
+              <p className="mt-5 max-w-lg text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">Start with a question. Find evidence, organize your work and decide what to do next.</p>
               <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-muted-foreground">
                 <span className="inline-flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Evidence first</span>
                 <span className="h-3 w-px bg-border" aria-hidden="true" />
@@ -109,13 +109,23 @@ export default function EyraHome({ onSearch }) {
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Start here</p>
-                <h2 className="mt-1 text-lg font-semibold tracking-tight text-foreground">What are you working on?</h2>
+                <h2 className="mt-1 text-lg font-semibold tracking-tight text-foreground">What would you like to accomplish today?</h2>
               </div>
               <button type="button" disabled={!eyraReady} onClick={() => window.dispatchEvent(new Event('eylo:open-eyra'))} className="inline-flex min-h-9 items-center gap-2 rounded-full border border-border bg-card px-3 text-xs font-semibold text-foreground transition hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50">
                 <Search size={13} aria-hidden="true" /> Ask EYRA
               </button>
             </div>
             <GuidedSearch onSearch={onSearch} defaultLevel={defaultLevel} />
+            <nav aria-label="Suggested research actions" className="mt-4 flex flex-wrap gap-2">
+              {[
+                { label: 'Explore a topic', href: '/search' },
+                { label: 'Understand a paper', href: '/library' },
+                { label: 'Start a project', href: '/projects' },
+                { label: 'Prepare a literature review', href: '/literature-review' },
+                { label: 'Create study materials', href: '/quiz-generator' },
+                { label: 'Find research funding', href: '/opportunities' },
+              ].map(action => <Link key={action.href} to={action.href} className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-4 text-xs font-medium text-foreground hover:border-primary/40 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">{action.label}<ArrowRight size={13} className="ml-2" aria-hidden="true" /></Link>)}
+            </nav>
             <p className="mt-3 text-[11px] leading-5 text-muted-foreground">Search results link back to academic sources. AI interpretations are labeled separately from retrieved evidence.</p>
           </div>
         </section>
