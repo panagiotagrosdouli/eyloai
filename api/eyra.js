@@ -479,6 +479,39 @@ function validatedEyraToolArguments(name, rawArguments) {
   return argumentsObject;
 }
 
+async function boundedJsonResponse(result, maxBytes = 1_048_576) {
+  const declared = Number(result.headers?.get?.('content-length'));
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    throw new Error('Workspace record response exceeded its safety budget.');
+  }
+  const reader = result.body?.getReader?.();
+  if (!reader) {
+    const raw = await result.text();
+    if (Buffer.byteLength(raw, 'utf8') > maxBytes) {
+      throw new Error('Workspace record response exceeded its safety budget.');
+    }
+    try { return JSON.parse(raw); } catch { throw new Error('Workspace record response was invalid JSON.'); }
+  }
+  let bytes = 0;
+  const chunks = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!(value instanceof Uint8Array)) {
+      throw new Error('Invalid workspace record stream.');
+    }
+    bytes += value.byteLength;
+    if (bytes > maxBytes) {
+      await reader.cancel().catch(() => {});
+      throw new Error('Workspace record response exceeded its safety budget.');
+    }
+    chunks.push(value);
+  }
+  const joined = Buffer.concat(chunks.map(part => Buffer.from(part)));
+  try { return JSON.parse(joined.toString('utf8')); }
+  catch { throw new Error('Workspace record response was invalid JSON.'); }
+}
+
 async function executeProjectTool(name, rawArguments, identity) {
   const args = validatedEyraToolArguments(name, rawArguments);
   if (name === 'research.search_publications') {
@@ -709,7 +742,7 @@ async function executeProjectTool(name, rawArguments, identity) {
       headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
     });
     if (!upstream.ok) throw new Error('Saved research search is unavailable.');
-    const rows = await upstream.json();
+    const rows = await boundedJsonResponse(upstream);
     if (!Array.isArray(rows)) throw new Error('Saved research search returned an invalid list.');
     const matching = rows.slice(0, 100).filter(row => {
       if (typeof row?.id !== 'string' || !row.data || typeof row.data !== 'object'
