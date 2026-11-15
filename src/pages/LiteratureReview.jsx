@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { BookOpen, Download, RefreshCw, Save } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { auditReviewMethods } from '@/lib/literature-review-methods-audit.mjs';
 import { createReviewEvidenceOutline } from '@/lib/literature-review-draft.mjs';
 import {
@@ -26,6 +27,7 @@ const FIELD_LABELS = [
 
 export default function LiteratureReview() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const preferredProjectId = searchParams.get('project_id') || '';
   const selectionEpochRef = useRef(0);
@@ -202,7 +204,7 @@ export default function LiteratureReview() {
   };
 
   const startEvidenceOutline = () => {
-    if (!selectedProject || hasUnsavedChanges) {
+    if (!user?.id || !selectedProject || hasUnsavedChanges) {
       setError('Save your review protocol before preparing an editable evidence outline.');
       return;
     }
@@ -211,7 +213,7 @@ export default function LiteratureReview() {
     try {
       const outline = createReviewEvidenceOutline({ project: selectedProject, protocol: checked, papers });
       navigate('/documents/new', {
-        state: { reviewOutline: { projectId: selectedProject.id, filename: outline.filename, body: outline.body } },
+        state: { reviewOutline: { userId: user.id, projectId: selectedProject.id, filename: outline.filename, body: outline.body } },
       });
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : 'Could not prepare the evidence outline.');
