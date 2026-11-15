@@ -13,5 +13,5 @@ test('project load errors are tracked separately from project creation errors', 
 test('project empty state does not misrepresent a failed creation as a failed list', () => {
   assert.match(source, /loadError && projects\.length === 0/);
   assert.doesNotMatch(source, /\) : error && projects\.length === 0/);
-  assert.match(source, /loadError && <button type="button" onClick=\{loadProjects\}/);
+  assert.match(source, /loadError && <button type="button" onClick=\{projects\.length > 0 \? loadOlderProjects : loadProjects\}/);
 });
