@@ -1109,7 +1109,12 @@ export default async function handler(request, response) {
             }
             if (uncertain) safeError += ' Verify the workspace before a new write; the action may have committed.';
           }
-          actionResults.push({ action_id: call.call_id, tool: call.name, status: 'failed', error: safeError });
+          const needsReview = Boolean(actionLedgerId)
+            && ['project.create', 'library.save_paper'].includes(call.name);
+          actionResults.push({
+            action_id: call.call_id, tool: call.name,
+            status: needsReview ? 'needs_review' : 'failed', error: safeError,
+          });
           outputs.push({ type: 'function_call_output', call_id: call.call_id, output: JSON.stringify({ ok: false, error: safeError }) });
         }
       }
@@ -1207,12 +1212,15 @@ export default async function handler(request, response) {
       }
     }
 
+    const runStatus = actionResults.some(action => action.status === 'needs_review')
+      ? 'needs_review'
+      : actionResults.some(action => action.status === 'failed') ? 'partial' : 'completed';
     if (agentRunId) {
-      await finalizeAgentRun(identity, agentRunId, 'completed', text, actionResults);
+      await finalizeAgentRun(identity, agentRunId, runStatus, text, actionResults);
       runClosed = true;
     }
     return response.status(200).json({
-      ...(agentRunId ? { run_id: agentRunId } : {}),
+      ...(agentRunId ? { run_id: agentRunId, run_status: runStatus } : {}),
       ...(responseSchema ? { data } : {}),
       text,
       model: result.model || process.env.OPENAI_MODEL || 'gpt-5.6',
