@@ -60,7 +60,11 @@ export async function consumeDiscoveryQuota(request, {
   if (!subjectHash) return unavailable('missing_trusted_client_ip');
 
   try {
-    const result = await fetchImpl(`${projectUrl}/rest/v1/rpc/consume_discovery_rate_limit`, {
+    // Transient 502/503/504 responses may come from an overloaded gateway.
+    // Retry once, but never bypass the durable quota or retry a potentially
+    // committed request after a network error/timeout (which could double count).
+    const rpcUrl = `${projectUrl}/rest/v1/rpc/consume_discovery_rate_limit`;
+    const rpcOptions = {
       method: 'POST',
       headers: {
         apikey: serviceRoleKey,
@@ -73,8 +77,14 @@ export async function consumeDiscoveryQuota(request, {
         p_limit: limit,
         p_window_seconds: windowSeconds,
       }),
-      signal: AbortSignal.timeout(3_000),
-    });
+      signal: AbortSignal.timeout(6_000),
+    };
+    let result = await fetchImpl(rpcUrl, rpcOptions);
+    if ([502, 503, 504].includes(result.status)) {
+      await result.body?.cancel().catch(() => {});
+      // Use a fresh timeout signal for the second attempt.
+      result = await fetchImpl(rpcUrl, { ...rpcOptions, signal: AbortSignal.timeout(6_000) });
+    }
     if (!result.ok) {
       const reason = result.status === 401 || result.status === 403 ? 'rpc_access_denied'
         : result.status === 404 ? 'rpc_not_found' : 'rpc_http_error';
