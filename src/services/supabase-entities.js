@@ -1,4 +1,5 @@
 import { getBillingStatus } from '@/lib/billing';
+import { workspaceDataError } from '@/lib/workspace-schema-error.mjs';
 import { mergeWorkspaceProfile, assertCanonicalProfileWrite } from '@/lib/profile-merge.mjs';
 import { requireEntityVersion, requireVersionedWriteResult } from '@/lib/entity-optimistic-version.mjs';
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
@@ -76,7 +77,7 @@ async function assertCreateAllowed(table, user) {
     .from('projects')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id);
-  if (error) throw error;
+  if (error) throw workspaceDataError(error);
 
   if (Number(count || 0) >= 1) {
     throw Object.assign(
@@ -102,7 +103,7 @@ function entityRepository({ table }) {
         query.order(column, { ascending: !descending }).order('id', { ascending: true });
       }
       const { data, error } = await query.limit(Math.max(limit || 100, 1));
-      if (error) throw error;
+      if (error) throw workspaceDataError(error);
       if (expectedOwnerId && (data || []).some(row => row?.user_id !== expectedOwnerId)) {
         throw Object.assign(new Error('This collection could not be verified for the signed-in account.'), { code: 'ENTITY_OWNER_MISMATCH' });
       }
@@ -134,7 +135,7 @@ function entityRepository({ table }) {
         .order(column, { ascending: !descending })
         .order('id', { ascending: true })
         .range(start, start + limit);
-      if (error) throw error;
+      if (error) throw workspaceDataError(error);
       if (expectedOwnerId && (data || []).some(row => row?.user_id !== expectedOwnerId)) {
         throw Object.assign(new Error('This collection could not be verified for the signed-in account.'), { code: 'ENTITY_OWNER_MISMATCH' });
       }
@@ -155,7 +156,7 @@ function entityRepository({ table }) {
         query = query.order(column, { ascending: !descending }).order('id', { ascending: true });
       }
       const { data, error } = await query.limit(Math.max(limit || 100, 1));
-      if (error) throw error;
+      if (error) throw workspaceDataError(error);
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
     },
     async search(searchQuery, limit = 100) {
@@ -170,7 +171,7 @@ function entityRepository({ table }) {
         search_query: query,
         result_limit: Math.max(1, Math.min(Number(limit) || 100, 100)),
       });
-      if (error) throw error;
+      if (error) throw workspaceDataError(error);
       return (data || []).map(rowToEntity);
     },
     async versions(entityId, limit = 50) {
@@ -182,7 +183,7 @@ function entityRepository({ table }) {
         .eq('user_id', user.id)
         .order('version', { ascending: false })
         .limit(Math.max(1, Math.min(Number(limit) || 50, 50)));
-      if (error) throw error;
+      if (error) throw workspaceDataError(error);
       return data || [];
     },
     async getVersion(entityId, version, expectedOwnerId) {
@@ -192,7 +193,7 @@ function entityRepository({ table }) {
       const { data, error } = await requireSupabase().from('note_versions')
         .select('id,note_id,user_id,version,snapshot,created_date')
         .eq('note_id', entityId).eq('version', version).eq('user_id', user.id).single();
-      if (error) throw error;
+      if (error) throw workspaceDataError(error);
       if (data?.user_id !== expectedOwnerId || data.note_id !== entityId || data.version !== version) throw new Error('The Note version could not be verified.');
       return data;
     },
@@ -200,7 +201,7 @@ function entityRepository({ table }) {
       const user = await currentUser();
       if (expectedOwnerId && user.id !== expectedOwnerId) throw Object.assign(new Error('The signed-in account changed.'), { code: 'ENTITY_OWNER_CHANGED' });
       const { data, error } = await requireSupabase().from(table).select('*').eq('id', entityId).eq('user_id', user.id).single();
-      if (error) throw error;
+      if (error) throw workspaceDataError(error);
       if (expectedOwnerId && data?.user_id !== expectedOwnerId) throw Object.assign(new Error('The record owner could not be verified.'), { code: 'ENTITY_OWNER_MISMATCH' });
       return rowToEntity(data);
     },
@@ -212,7 +213,7 @@ function entityRepository({ table }) {
       await assertCreateAllowed(table, user);
       const write = splitPayload(payload);
       const { data, error } = await requireSupabase().from(table).insert({ user_id: user.id, ...write }).select('*').single();
-      if (error) throw error;
+      if (error) throw workspaceDataError(error);
       const entity = rowToEntity(data);
       if (table === 'saved_papers') recordActivation('paper');
       if (table === 'projects') {
@@ -229,7 +230,7 @@ function entityRepository({ table }) {
       // Ownership is enforced by RLS in Postgres. This explicit user predicate
       // is an additional guard for writes from authenticated client sessions.
       const { data, error } = await requireSupabase().from(table).update(write).eq('id', entityId).eq('user_id', user.id).select('*').single();
-      if (error) throw error;
+      if (error) throw workspaceDataError(error);
       if (table === 'projects' && containsSavedEyraOutput(patch)) {
         trackEyraFollowthrough('project');
       }
@@ -263,7 +264,7 @@ function entityRepository({ table }) {
         throw Object.assign(new Error('The signed-in account changed. Reload this workspace.'), { code: 'ENTITY_OWNER_CHANGED' });
       }
       const { data, error } = await requireSupabase().from(table).delete().eq('id', entityId).eq('user_id', user.id).select('id');
-      if (error) throw error;
+      if (error) throw workspaceDataError(error);
       // A zero-row delete must never be reported as successful.
       if (!data?.some(row => row.id === entityId)) {
         throw Object.assign(new Error('Record was not found or access was denied.'), { code: 'ENTITY_NOT_FOUND' });
@@ -274,7 +275,7 @@ function entityRepository({ table }) {
       if (table !== 'activity_events') throw new Error('Bulk clear is only available for activity history.');
       const user = await currentUser();
       const { error } = await requireSupabase().from(table).delete().eq('user_id', user.id);
-      if (error) throw error;
+      if (error) throw workspaceDataError(error);
       return { cleared: true };
     },
   };
@@ -295,6 +296,7 @@ export const supabaseProfile = {
       .maybeSingle();
 
     if (error) {
+      if (workspaceDataError(error) !== error) throw workspaceDataError(error);
       console.warn('Profile table read failed; using authenticated metadata', { code: error.code });
       return {
         id: user.id,
