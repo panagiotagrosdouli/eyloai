@@ -1,8 +1,10 @@
 import { assertTranslationReferences } from "@/lib/translation-references.mjs";
+import { readOptionalEyraMessages } from "@/lib/memory-source-availability.mjs";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { getUsableSession, requireSupabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/lib/AuthContext";
 import { invokeEyra } from "@/lib/eyra-intelligence";
 import ProjectDocumentWorkspace, {
   downloadWorkspace,
@@ -93,16 +95,33 @@ function Status({ state }) {
   );
 }
 function Memory() {
+  const { user } = useAuth();
+  const requestGeneration = useRef(0);
   const state = useOperation(),
     [sources, setSources] = useState([]),
     [query, setQuery] = useState(""),
-    [loaded, setLoaded] = useState(false);
+    [loaded, setLoaded] = useState(false),
+    [loadedOwnerId, setLoadedOwnerId] = useState(null);
+  useEffect(() => {
+    // Invalidate in-flight requests and private results on every account switch.
+    requestGeneration.current += 1;
+    setSources([]);
+    setQuery("");
+    setLoaded(false);
+    setLoadedOwnerId(null);
+    state.setNotice("");
+    state.setError("");
+  }, [user?.id]);
   const load = () =>
     state.act(async () => {
+      const generation = requestGeneration.current;
       const session = await getUsableSession({
         required: true,
         validate: true,
       });
+      if (session.user.id !== user?.id) {
+        throw new Error("Your account changed. Reload the workspace.");
+      }
       const [notes, projects, messages] = await Promise.all([
         base44.entities.Note.list("-updated_date", 1000),
         base44.entities.Project.list("-updated_date", 1000),
@@ -113,18 +132,20 @@ function Memory() {
           .order("created_date", { ascending: false })
           .limit(1000),
       ]);
-      if (messages.error) throw messages.error;
+      // A missing optional conversation table must not hide available private
+      // Notes and projects; denied access and other backend errors still fail.
+      const { records: eyraRows, historyAvailable } = readOptionalEyraMessages(
+        messages, session.user.id,
+      );
       if (
         new TextEncoder().encode(
-          JSON.stringify([notes, projects, messages.data]),
+          JSON.stringify([notes, projects, eyraRows]),
         ).length > 20971520
       )
         throw new Error(
           "Loaded memory sources exceed the 20 MiB reading budget. Use scoped Workspace Search instead.",
         );
-      if (messages.data.some((row) => row.user_id !== session.user.id))
-        throw new Error("Source ownership mismatch.");
-      if (!state.alive.current) return;
+      if (!state.alive.current || generation !== requestGeneration.current) return;
       setSources([
         ...notes.map((n) => ({
           id: n.id,
@@ -140,7 +161,7 @@ function Memory() {
           text: p.description || p.goal || "",
           href: `/projects/${p.id}`,
         })),
-        ...messages.data.map((m) => ({
+        ...eyraRows.map((m) => ({
           id: m.id,
           kind: "EYRA message",
           title: "Saved conversation message",
@@ -149,18 +170,23 @@ function Memory() {
           conversation_id: m.conversation_id,
         })),
       ]);
+      setLoadedOwnerId(session.user.id);
       setLoaded(true);
-      state.setNotice("Loaded up to1,000 recent records per source.");
+      state.setNotice(
+        historyAvailable
+          ? "Loaded up to 1,000 recent records per source."
+          : "Notes and projects loaded. EYRA message history is not configured yet.",
+      );
     });
   return (
     <div className="space-y-4">
       <p className="text-sm">
-        Search your saved Notes, projects and EYRA messages without sending them
-        to an AI model. Matches use all search words and cover the loaded
-        sources.
+        Search your saved Notes and projects, plus EYRA messages where available,
+        without sending them to an AI model. Matches use all search words and
+        cover only the sources successfully loaded.
       </p>
       <Status state={state} />
-      <button className={button} disabled={state.busy} onClick={load}>
+      <button className={button} disabled={state.busy || !user?.id} onClick={load}>
         Load my saved sources
       </button>
       <label className="block text-sm">
@@ -172,10 +198,11 @@ function Memory() {
           onChange={(e) => setQuery(e.target.value)}
         />
       </label>
-      {loaded && query && !searchCanonicalMemory(query, sources).length && (
-        <p>No matching loaded sources.</p>
+      {loaded && loadedOwnerId === user?.id && query
+        && !searchCanonicalMemory(query, sources).length && (
+          <p>No matching loaded sources.</p>
       )}
-      {searchCanonicalMemory(query, sources).map((row) => (
+      {(loadedOwnerId === user?.id ? searchCanonicalMemory(query, sources) : []).map((row) => (
         <article
           key={`${row.kind}/${row.id}`}
           className="space-y-2 rounded-xl border border-border p-4"
