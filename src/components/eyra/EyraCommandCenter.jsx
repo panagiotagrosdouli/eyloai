@@ -1055,7 +1055,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
               <button type="button" onClick={() => void saveConversation()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
               <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
               <button type="button" onClick={exportConversation} disabled={loading || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Export conversation</button>
-              <button type="button" onClick={() => showAgentRuns ? (setShowAgentRuns(false), setSelectedAgentRun(null)) : void refreshAgentRuns()}
+              <button type="button" onClick={() => { if (showAgentRuns) { setShowAgentRuns(false); setSelectedAgentRun(null); } else void refreshAgentRuns(); }}
                 disabled={loading || agentRunsBusy} aria-expanded={showAgentRuns}
                 className="min-h-9 rounded-lg border border-border px-2">
                 {agentRunsBusy ? 'Loading runs…' : showAgentRuns ? 'Hide agent runs' : 'Agent runs'}
