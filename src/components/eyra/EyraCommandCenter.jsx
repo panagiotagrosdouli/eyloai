@@ -19,7 +19,7 @@ import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
 import { useAuth } from '@/lib/AuthContext';
 import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conversation.mjs';
 
-import { listEyraConversations, saveEyraConversation, loadEyraConversation, deleteEyraConversation } from '@/lib/eyra-history';
+import { listEyraConversations, saveEyraConversation, loadEyraConversation, renameEyraConversation, deleteEyraConversation } from '@/lib/eyra-history';
 
 import { snapshotPayload, snapshotIdentity, conversationExport } from '@/lib/eyra-snapshot.mjs';
 import { requestedEyraWrites } from '@/lib/eyra-write-intent.mjs';
@@ -397,6 +397,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const [liveDraft, setLiveDraft] = useState('');
   const [savedConversations, setSavedConversations] = useState([]);
   const [remoteConversation, setRemoteConversation] = useState(null);
+  const [renameTitle, setRenameTitle] = useState(null);
   const [savingConversation, setSavingConversation] = useState(false);
   const [historyBusy, setHistoryBusy] = useState(false);
   const historyEpochRef = useRef(0);
@@ -749,9 +750,36 @@ Answer the user's latest request. Cite every externally verifiable claim with th
     try {
       const saved = await loadEyraConversation(id);
       if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
-      setMessages(saved.messages); setRemoteConversation(saved); setActionError('');
+      setMessages(saved.messages); setRemoteConversation(saved); setRenameTitle(null); setActionError('');
     } catch (error) { if (ownerRef.current === owner && historyEpochRef.current === epoch) setActionError(error?.message || 'Conversation could not be opened.'); }
     finally { if (ownerRef.current === owner && historyEpochRef.current === epoch) setHistoryBusy(false); }
+  };
+
+  const saveRenamedConversation = async () => {
+    const owner = user?.id, snapshot = remoteConversation;
+    if (!owner || !snapshot || renameTitle === null || loading
+      || historyBusy || savingConversation || historyWriteLockRef.current) return;
+    historyWriteLockRef.current = true;
+    setHistoryBusy(true); setActionError('');
+    const epoch = ++historyEpochRef.current;
+    try {
+      const renamed = await renameEyraConversation(snapshot.id, snapshot.version, renameTitle);
+      if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
+      setRemoteConversation(previous => previous?.id === renamed.id
+        ? { ...previous, ...renamed } : previous);
+      setSavedConversations(previous => previous.map(item => item.id === renamed.id
+        ? { ...item, ...renamed } : item));
+      setRenameTitle(null);
+    } catch (error) {
+      if (ownerRef.current === owner && historyEpochRef.current === epoch) {
+        setActionError(error?.message || 'Conversation title was not changed.');
+      }
+    } finally {
+      if (ownerRef.current === owner && historyEpochRef.current === epoch) {
+        historyWriteLockRef.current = false;
+        setHistoryBusy(false);
+      }
+    }
   };
 
   const exportConversation = () => {
@@ -773,7 +801,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
       await deleteEyraConversation(snapshot.id, snapshot.version);
       if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
       setSavedConversations(items => items.filter(item => item.id !== snapshot.id));
-      setRemoteConversation(null); setMessages([createWelcomeMessage(userName)]); setLiveDraft('');
+      setRemoteConversation(null); setRenameTitle(null); setMessages([createWelcomeMessage(userName)]); setLiveDraft('');
       snapshotRequestRef.current = null;
       try { sessionStorage.removeItem(`${eyraConversationKey(owner)}:snapshot-request`); } catch { /* Optional tab storage. */ }
     } catch (error) { if (ownerRef.current === owner) setActionError(error?.message || 'Snapshot could not be deleted.'); }
@@ -818,7 +846,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
     if (!window.confirm('Clear the conversation in this tab? Conversations you explicitly saved remain available.')) return;
     historyEpochRef.current += 1; setHistoryBusy(false);
     activeRequestRef.current?.abort(); activeRequestRef.current = null;
-    setLoading(false); setLiveDraft(''); setRemoteConversation(null);
+    setLoading(false); setLiveDraft(''); setRemoteConversation(null); setRenameTitle(null);
     window.speechSynthesis?.cancel();
     setMessages([{ ...createWelcomeMessage(userName), mode: activeMode }]);
     setInput('');
@@ -945,9 +973,24 @@ Answer the user's latest request. Cite every externally verifiable claim with th
               <button type="button" onClick={() => void saveConversation()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
               <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
               <button type="button" onClick={exportConversation} disabled={loading || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Export conversation</button>
+              {remoteConversation && <button type="button" onClick={() => setRenameTitle(remoteConversation.title || '')} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Rename saved conversation</button>}
               {remoteConversation && <button type="button" onClick={() => void deleteSnapshot()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Delete saved snapshot</button>}
               <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); }} />Allow authorized workspace and research tools for this request</label>
             </div>
+            {renameTitle !== null && remoteConversation && (
+              <form className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-border p-2"
+                onSubmit={event => { event.preventDefault(); void saveRenamedConversation(); }}>
+                <label className="text-xs" htmlFor="eyra-conversation-title">Conversation title</label>
+                <input id="eyra-conversation-title" type="text" maxLength={180}
+                  value={renameTitle} onChange={event => setRenameTitle(event.target.value)}
+                  disabled={historyBusy} required
+                  className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm" />
+                <button type="submit" disabled={historyBusy || !renameTitle.trim()}
+                  className="rounded-lg bg-primary px-3 py-2 text-xs text-primary-foreground">Save title</button>
+                <button type="button" disabled={historyBusy} onClick={() => setRenameTitle(null)}
+                  className="rounded-lg border border-border px-3 py-2 text-xs">Cancel rename</button>
+              </form>
+            )}
             {pendingWriteReview && (
               <section role="group" aria-label="Review EYRA write request"
                 className="mb-2 rounded-xl border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-foreground">
