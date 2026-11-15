@@ -21,6 +21,18 @@ const PROJECT_TOOLS = [
   },
   {
     type: 'function',
+    name: 'project.get',
+    description: 'Read one project by its UUID from the authenticated user’s workspace.',
+    parameters: {
+      type: 'object',
+      properties: { id: { type: 'string' } },
+      required: ['id'],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+  {
+    type: 'function',
     name: 'project.create',
     description: 'Create a project in the authenticated user’s workspace when they explicitly ask EYRA to create one.',
     parameters: {
@@ -330,6 +342,26 @@ async function executeProjectTool(name, rawArguments, identity) {
     prefer: 'return=representation',
   };
 
+  if (name === 'project.get') {
+    const id = typeof args.id === 'string' ? args.id.trim() : '';
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+      throw new Error('A valid project UUID is required.');
+    }
+    const params = new URLSearchParams({
+      select: 'id,data,created_date,updated_date',
+      id: `eq.${id}`,
+      user_id: `eq.${identity.user.id}`,
+      limit: '1',
+    });
+    const result = await fetch(`${url}?${params}`, {
+      headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
+    });
+    if (!result.ok) throw new Error('Project details are unavailable.');
+    const rows = await result.json();
+    if (!Array.isArray(rows)) throw new Error('Project service returned an invalid response.');
+    if (!rows.length) throw new Error('Project not found or not accessible.');
+    return entityFromRow(rows[0]);
+  }
   if (name === 'project.list') {
     const result = await fetch(`${url}?select=id,data,created_date,updated_date&user_id=eq.${encodeURIComponent(identity.user.id)}&order=updated_date.desc&limit=50`, {
       headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
