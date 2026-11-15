@@ -34,7 +34,10 @@ Collect per task: first meaningful action time, first target discovery time, int
 ## Automation
 
 - `npm run check`: imports, typecheck, lint, unit tests and production bundle.
-- `npm run test:e2e:ux`: opt-in read-only authenticated route/viewport/theme smoke tests. Supply `EYLO_E2E_BASE_URL`, `EYLO_E2E_STORAGE_STATE` and optionally `EYLO_E2E_ARTIFACT_DIR`. No credentials should be checked into Git.
+- `npm run test:e2e:ux`: opt-in read-only authenticated route/viewport/theme smoke tests. Supply `EYLO_E2E_BASE_URL`, `EYLO_E2E_STORAGE_STATE` and optionally `EYLO_E2E_ARTIFACT_DIR`. No credentials should be checked into Git. Use only authorized, synthetic, non-sensitive test accounts.
+- With `EYLO_E2E_ARTIFACT_DIR`, the suite writes `ux-observations.json` and `ux-summary.json` (sample sizes, missing-data counts, medians and p75 per route). It records only static route paths, viewport/theme and bounded lab measurements, not workspace titles or research queries. Browser exceptions are counted without recording messages.
+- **Screenshots are disabled by default**, even when an artifact folder is set. For consented synthetic accounts only, explicitly set `EYLO_E2E_ALLOW_SCREENSHOTS=1`; review and delete screenshot artifacts according to your organization's retention policy.
+- LCP can remain `null` when no valid entry was observed; unsupported CLS is `null`, while a supported observed zero CLS is a legitimate lab result within the observation window. INP remains **not measured** (null) because the suite does not exercise representative interactions. A 500 ms post-readiness sampling window is not a field Core Web Vitals measurement or a basis for production thresholds. Interpret p75 cautiously for tiny samples; compare the same browser/device/network configurations, ideally with repeated runs.
 - Existing discovery, funding, learning, product and EYRA integration tests should be rerun. This suite is not a substitute for real-task validation.
 
 ## Release gate
