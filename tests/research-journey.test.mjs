@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildResearchJourney, researchJourneyLinks } from '../src/lib/research-journey.mjs';
+import { buildResearchJourney, researchJourneyLinks, researchJourneyNextAction } from '../src/lib/research-journey.mjs';
 
 const project = { id: 'p one/unsafe?', title: 'Coastal methods', goal: 'Review coastal evidence' };
 const read = name => readFileSync(new URL('../src/' + name, import.meta.url), 'utf8');
@@ -83,4 +83,37 @@ test('linked project sources are displayed only with safe original links and pro
   assert.ok(page.includes('Saved metadata from this project, not independently verified source quality'));
   assert.ok(page.includes('Source link unavailable'));
   assert.ok(page.includes('papers.slice(0, 4)'));
+});
+
+test('bounded scholarly reads never advertise an exhaustive paper count', () => {
+  const capped = buildResearchJourney(project, { linkedPapers: 100, papersLoaded: true, paperLimit: 100 });
+  assert.equal(capped[1].statusText, 'At least 100 recently linked papers (limited view)');
+  const uncapped = buildResearchJourney(project, { linkedPapers: 99, papersLoaded: true, paperLimit: 100 });
+  assert.equal(uncapped[1].statusText, '99 linked papers');
+  assert.equal(buildResearchJourney(project, { linkedPapers: 100, papersLoaded: false })[1].status, 'unknown');
+});
+
+test('the next step never treats failed source reads as zero records', () => {
+  const unknown = buildResearchJourney(project, { papersLoaded: false });
+  assert.equal(researchJourneyNextAction(unknown).label, 'Verify your evidence coverage');
+  assert.equal(researchJourneyNextAction(unknown).href, null);
+  const noGoal = buildResearchJourney({ ...project, goal: '' }, { linkedPapers: 0, papersLoaded: true });
+  assert.equal(researchJourneyNextAction(noGoal).label, 'Define your research goal');
+  const none = buildResearchJourney(project, { linkedPapers: 0, papersLoaded: true });
+  assert.equal(researchJourneyNextAction(none).label, 'Find and assess publications');
+});
+
+test('the next step reflects recorded method and author-controlled writing', () => {
+  const missingProtocol = buildResearchJourney(project, { linkedPapers: 2, papersLoaded: true });
+  assert.equal(researchJourneyNextAction(missingProtocol).label, 'Record a reproducible review method');
+  const documented = { ...project, review_protocol: {
+    question: 'RQ', search_databases: 'Crossref', search_strings: 'search',
+    inclusion_criteria: 'criterion', exclusion_criteria: 'criterion',
+  } };
+  const outline = buildResearchJourney(documented, { linkedPapers: 2, papersLoaded: true });
+  assert.equal(researchJourneyNextAction(outline).label, 'Outline your thesis');
+  const withChapters = buildResearchJourney({ ...documented, thesis_outline: { chapters: [{ id: '1' }] } }, { linkedPapers: 2, papersLoaded: true });
+  assert.equal(researchJourneyNextAction(withChapters).label, 'Review your scientific evidence');
+  assert.match(researchJourneyNextAction(withChapters).description, /do not certify completion/);
+  assert.equal(researchJourneyNextAction([]), null);
 });
