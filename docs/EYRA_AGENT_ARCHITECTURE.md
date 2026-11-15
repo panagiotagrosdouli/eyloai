@@ -17,10 +17,10 @@ The main Command Center enables this limited registry. Other EYRA entry points r
 
 ## Boundaries and remaining work
 
-- The registry currently supports `project.list`, `project.create`, `library.list_papers`, and `library.save_paper` for DOI records verified by Crossref.
+- The registry supports authenticated project and Library operations; this PR additionally adds `project.get`, read-only Notes/Tasks/Calendar summaries, and Crossref publication discovery / DOI metadata verification. These remain proposed branch capabilities until CI and integration tests pass.
 - There is no durable action-history table yet; returned action metadata is request-scoped.
 - There is no independent confirmation UI. A clear user request to create a project is treated as authorization for this reversible action; destructive actions are not available.
-- Non-DOI Library saves, project updates, milestones, deletion, exports, workflow persistence, idempotency keys and broader route context are not implemented.
+- Non-DOI Library saves, project updates, milestones, deletion, exports, workflow persistence, cross-request idempotency keys, and broader route context are not implemented.
 - Production OpenAI, Supabase RLS, billing entitlements, and deployment availability require live verification before claiming readiness.
 
 ## Incremental agent safeguards (PR #457)
