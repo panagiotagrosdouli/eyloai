@@ -59,3 +59,13 @@ test('discovery retains results without saving history until the user approves',
   assert.match(results, /aria-describedby="project-save-scope"/);
   assert.match(results, /Creating a project also saves up to five papers/);
 });
+
+test('an approved review project leads to scoped human screening rather than claiming a completed review', () => {
+  const results = read('../src/components/discovery/DiscoveryResults.jsx');
+  const review = read('../src/pages/LiteratureReview.jsx');
+  assert.match(results, /discoveryProfile\.goal === 'review'/);
+  assert.match(results, /\/literature-review\?project_id=/);
+  assert.match(results, /Review protocol & screening/);
+  assert.match(review, /preferredProjectId = searchParams\.get\('project_id'\)/);
+  assert.match(review, /Requested project unavailable\./);
+});
