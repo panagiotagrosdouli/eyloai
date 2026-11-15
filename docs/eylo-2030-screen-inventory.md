@@ -44,3 +44,11 @@ Static source inspection on 2026-11-15. **Not a logged-in browser or accessibili
 | FutureMe | Check nested headings | 0 | 0 | Review nested components |
 | ResearchBattlefield | H1 present | 1 | 1 | status, alert |
 | DreamTeam | H1 present | 1 | 2 | alert |
+| ImpactPredictor | H1 present | 1 | 1 | alert |
+| VoiceAssistant | H1 present | 1 | 1 | Review nested components |
+| PitchDeckBuilder | H1 present | 1 | 3 | Review nested components |
+| InstitutionAdmin | H1 present | 0 | 0 | Review nested components |
+| Profile | H1 present | 0 | 2 | status |
+| Settings | H1 present | 0 | 1 | Review nested components |
+| Notifications | H1 present | 0 | 0 | Review nested components |
+| Challenges | H1 present | 0 | 1 | status, alert |
