@@ -490,3 +490,41 @@ test('historic project creation instructions cannot authorize a new write', asyn
     globalThis.fetch = previousFetch;
   }
 });
+
+test('rejects malformed model arguments before any database side effect', async () => {
+  const previousFetch = globalThis.fetch;
+  let writes = 0;
+  let modelRequests = 0;
+  globalThis.fetch = async (url) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address === 'https://api.openai.com/v1/responses') {
+      modelRequests += 1;
+      return new Response(JSON.stringify(modelRequests === 1 ? {
+        id: 'bad_arguments', status: 'completed', output: [
+          { type: 'function_call', call_id: 'bad1', name: 'project.create',
+            arguments: JSON.stringify({ title: 'Incorrect', description: '', goal: '', milestones: '', tasks: '', user_id: 'attacker' }) },
+          { type: 'function_call', call_id: 'bad2', name: 'research.lookup_doi',
+            arguments: JSON.stringify({ doi: ['10.1234/example'] }) },
+          { type: 'function_call', call_id: 'bad3', name: 'project.get', arguments: '[]' },
+        ],
+      } : { id: 'done', status: 'completed',
+        output: [{ content: [{ type: 'output_text', text: 'No actions were performed.' }] }] }), { status: 200 });
+    }
+    if (address.includes('/rest/v1/projects') || address.includes('/rest/v1/saved_papers') || address.includes('crossref.org')) writes += 1;
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' }, body: {
+      prompt: 'Create a project about robotics.', enable_project_tools: true,
+    } }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(writes, 0);
+    assert.equal(response.payload.actions.length, 3);
+    assert.ok(response.payload.actions.every(action => action.status === 'failed'));
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
