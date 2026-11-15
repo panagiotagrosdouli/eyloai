@@ -1234,7 +1234,9 @@ export default async function handler(request, response) {
       ...(actionResults.length ? { actions: actionResults } : {}),
     });
   } catch (error) {
-    await releaseUsage(reservation);
+    // Do not refund a request that already executed/attempted real tools.
+    // Network failure after a write must not make a further attempt free.
+    if (!actionResults.length) await releaseUsage(reservation);
     const timedOut = error?.name === 'TimeoutError';
     // Upstream exception messages can contain private research input.
     const safeErrorClass = ['TimeoutError', 'AbortError', 'TypeError'].includes(error?.name)
