@@ -21,3 +21,17 @@
 ## Recovery
 
 If OpenAI fails before a tool call, no project operation should have run. If a Supabase write succeeded but the OpenAI follow-up fails, the database row is authoritative; query it through the authenticated project view before retrying to avoid duplicates. The current implementation does not provide durable idempotency keys or a separate action-history screen.
+
+## Live database audit — 2026-11-15 (read-only)
+
+A connected Supabase project named `eyloai` reported status `ACTIVE_HEALTHY`, but its `public` schema table listing did **not** include `eyra_conversations` or `eyra_messages`. The live migration history also did not list the EYRA conversation migration sequence:
+
+1. `20261113090000_eyra_conversations.sql`
+2. `20261113114924_eyra_conversation_snapshots.sql`
+3. `20261113120556_eyra_snapshot_retry_identity.sql`
+
+Therefore durable EYRA conversation persistence is **not verified and must not be advertised as active** for this project. Review the migration dependency chain and run the existing SQL integration tests against an approved staging database **before** planning deployment. Do not apply these migrations to production as a side effect of reviewing this PR.
+
+The same read-only security advisor check flagged leaked-password protection disabled (WARN). It also reported `public.discovery_rate_limits` with RLS enabled and no policies (INFO); because this may be intended as a service-only table, verify its access model before adding a policy. These warnings are not evidence of an exploitable EYRA vulnerability without additional testing.
+
+After the staging migrations, verify the canonical owner-only conversation reads and writes using two separate authenticated users, validate the snapshot RPC retry behavior, and verify quota/cancellation/streaming against real endpoints. Record outcomes and migration versions before releasing.
