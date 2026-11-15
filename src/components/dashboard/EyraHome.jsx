@@ -70,7 +70,7 @@ export default function EyraHome({ onSearch }) {
 
   return (
     <div className="eylo-home min-h-[calc(100vh-4.5rem)] bg-background text-foreground">
-      <main className="mx-auto w-full max-w-7xl px-5 pb-20 pt-6 sm:px-8 sm:pt-8">
+      <div className="mx-auto w-full max-w-7xl px-5 pb-20 pt-6 sm:px-8 sm:pt-8">
         <section className="overflow-hidden rounded-3xl border border-border bg-card shadow-[0_14px_40px_-30px_rgba(23,42,64,0.24)]">
           <div className="relative grid gap-8 px-6 pb-7 pt-7 sm:px-9 sm:pt-9 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:px-12 lg:pb-9">
             <div className="relative z-10 max-w-2xl">
@@ -276,7 +276,7 @@ export default function EyraHome({ onSearch }) {
             </Link>
           </aside>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
