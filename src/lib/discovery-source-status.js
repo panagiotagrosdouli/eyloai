@@ -32,3 +32,13 @@ export function formatUnavailableSource(source) {
   if (status >= 400 && status <= 499) return `${label} returned HTTP ${status}`;
   return `${label} did not respond`;
 }
+
+/** An outage across every provider is not a partial retrieval. */
+export function formatRetrievalWarning(sourceStatuses = []) {
+  if (!sourceStatuses.length) return '';
+  const unavailable = sourceStatuses.filter(source => source.status === 'unavailable');
+  if (!unavailable.length) return '';
+  const allUnavailable = unavailable.length === sourceStatuses.length;
+  const prefix = allUnavailable ? 'Live retrieval unavailable' : 'Partial live retrieval';
+  return `${prefix}: ${unavailable.map(formatUnavailableSource).join('; ')}.`;
+}
