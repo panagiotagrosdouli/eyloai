@@ -147,6 +147,21 @@ try {
   await page.getByRole('button', { name: 'Export all CSV' }).click();
   assert.equal((await download).suggestedFilename(), 'eylo-time-entries.csv');
   console.log('PASS fixture: canonical task timer start, reload, stop and export.');
+  const originalEntries = structuredClone(tables.time_entries);
+  tables.time_entries = Array.from({ length: 1001 }, (_, index) => ({
+    id: randomUUID(), user_id: user.id, description: `History entry ${index}`,
+    started_at: '2026-11-14T10:00:00Z', ended_at: '2026-11-14T10:01:00Z',
+  }));
+  tables.time_entries.push({ id: randomUUID(), user_id: user.id, description: 'Recovered old timer', started_at: '2026-11-01T09:00:00Z', ended_at: null });
+  await page.reload();
+  await page.getByRole('button', { name: 'Stop timer', exact: true }).waitFor();
+  await page.getByText('Showing 50 of 1002 loaded entries').waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Start timer', exact: true }).count(), 0);
+  await page.getByRole('button', { name: 'Show more entries', exact: true }).click();
+  await page.getByText('Showing 100 of 1002 loaded entries').waitFor();
+  tables.time_entries = originalEntries;
+  console.log('PASS fixture: complete time history recovers an active timer beyond 1,000 rows and bounds rendered entries.');
+
 
   await page.goto(`${origin}/quiz-generator`);
   await page.getByRole('button', { name: 'Write a quiz' }).click();
