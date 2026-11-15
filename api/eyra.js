@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import { FREE_MONTHLY_AI_ACTIONS } from '../src/lib/eyra-usage-policy.mjs';
 import { matchesEyraResponseSchema } from '../src/lib/eyra-structured-contract.mjs';
 import { relayEyraResponse } from '../src/lib/eyra-stream.mjs';
+import { requestedEyraWrites } from '../src/lib/eyra-write-intent.mjs';
 
 const MAX_PROMPT_LENGTH = 24_000;
 // Bound provider spending and prevent unexpectedly large responses on every model turn.
@@ -388,18 +389,6 @@ function boundedWorkspaceRow(row, kind) {
   };
 }
 
-function userExplicitlyRequestedProjectCreation(prompt) {
-  const text = String(prompt || '').toLowerCase();
-  if (/\b(?:don't|do not|never|should not|shouldn't)\b/.test(text) || /\bμη(?:ν|ν)?\b/.test(text)) return false;
-  return /\b(?:create|make|start|set up|open)\b.{0,100}\bproject\b|\bnew project\b|\bproject\b.{0,100}\b(?:create|make|start|set up|open)\b|(?:δημιουργ(?:ησε|ήστε|ήσω)|φτιαξε|φτιάξε|ανοιξε|άνοιξε)\b.{0,100}έργο|νέο έργο/.test(text);
-}
-
-function userExplicitlyRequestedPaperSave(prompt) {
-  const text = String(prompt || '').toLowerCase();
-  if (/\b(?:don't|do not|never|should not|shouldn't)\b/.test(text) || /\bμη(?:ν)?\b/.test(text)) return false;
-  return /\b(?:save|add|put|store)\b.{0,100}\b(?:paper|article|publication)\b|\b(?:paper|article|publication)\b.{0,100}\b(?:save|add|put|store)\b|\bmy library\b|\bστη βιβλιοθήκη μου\b|\bαποθήκευσ(?:ε|ετέ)\b.{0,100}\b(?:άρθρο|δημοσίευση|εργασία)\b|\b(?:άρθρο|δημοσίευση|εργασία)\b.{0,100}\bαποθήκευσ/.test(text);
-}
-
 const TOOL_STRING_LIMITS = {
   title: 180, description: 4000, goal: 2000, milestones: 6000,
   tasks: 6000, query: 180, doi: 255, id: 36,
@@ -589,7 +578,7 @@ async function executeProjectTool(name, rawArguments, identity) {
   }
 
   if (name === 'project.create') {
-    if (!identity.explicitProjectCreate) throw new Error('Project creation requires an explicit create request from the user.');
+    if (!identity.explicitProjectCreate) throw new Error('Project creation requires both an explicit current create request and user confirmation.');
     if (billingActive() && usageState(identity).plan === 'free') {
       const existingResponse = await fetch(`${url}?select=id&user_id=eq.${encodeURIComponent(identity.user.id)}&limit=1`, {
         headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
@@ -632,7 +621,7 @@ async function executeProjectTool(name, rawArguments, identity) {
   }
 
   if (name === 'library.save_paper') {
-    if (!identity.explicitPaperSave) throw new Error('Saving a paper requires an explicit save request from the user.');
+    if (!identity.explicitPaperSave) throw new Error('Saving a paper requires both an explicit current save request and user confirmation.');
     const doi = String(args.doi || '').trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '').toLowerCase();
     if (!/^10\.\d{4,9}\/[\-._;()/:A-Z0-9]+$/i.test(doi)) throw new Error('A valid DOI is required to verify and save this paper.');
     const sourceResponse = await fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`, {
@@ -839,9 +828,18 @@ export default async function handler(request, response) {
         code: 'INVALID_LATEST_USER_REQUEST',
       });
     }
+    if (request.body?.write_confirmed !== undefined && typeof request.body.write_confirmed !== 'boolean') {
+      return response.status(400).json({
+        error: 'Write confirmation must be a boolean.',
+        code: 'INVALID_WRITE_CONFIRMATION',
+      });
+    }
     const currentIntent = currentUserRequest(prompt, latestUserRequest);
-    identity.explicitProjectCreate = userExplicitlyRequestedProjectCreation(currentIntent);
-    identity.explicitPaperSave = userExplicitlyRequestedPaperSave(currentIntent);
+    const requestedWrites = requestedEyraWrites(currentIntent);
+    // User approval is explicit per request. It never comes from the model,
+    // historical messages, or a retrieved document.
+    identity.explicitProjectCreate = requestedWrites.project && request.body?.write_confirmed === true;
+    identity.explicitPaperSave = requestedWrites.paper && request.body?.write_confirmed === true;
 
     const requestedSchema = request.body?.response_json_schema;
     const stream = request.body?.stream === true;
