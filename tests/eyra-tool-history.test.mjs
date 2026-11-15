@@ -180,3 +180,51 @@ test('DOI research lookup returns Crossref metadata with explicit evidence limit
     globalThis.fetch = previousFetch;
   }
 });
+
+test('scholarly search validates and caps Crossref results without claiming full text', async () => {
+  const previousFetch = globalThis.fetch;
+  let openAiCalls = 0;
+  let queryUrl;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address.startsWith('https://api.crossref.org/works?')) {
+      queryUrl = new URL(address);
+      return new Response(JSON.stringify({ message: { items: [
+        { DOI: '10.1234/test', title: ['Credible article'], author: [{ given: 'A', family: 'Researcher' }], published: { 'date-parts': [[2024]] } },
+        { DOI: 'unverified', title: ['Invalid DOI'] },
+      ] } }), { status: 200 });
+    }
+    if (address === 'https://api.openai.com/v1/responses') {
+      openAiCalls += 1;
+      if (openAiCalls === 2) {
+        const input = JSON.parse(options.body).input;
+        const output = JSON.parse(input.at(-1).output);
+        assert.equal(output.ok, true);
+        assert.equal(output.result.records.length, 1);
+        assert.equal(output.result.records[0].evidence_level, 'bibliographic_metadata_only');
+      }
+      return new Response(JSON.stringify(openAiCalls === 1
+        ? { id: 'search_call', status: 'completed', output: [{
+          type: 'function_call', call_id: 'search-1', name: 'research.search_publications',
+          arguments: JSON.stringify({ query: 'explainable artificial intelligence' }),
+        }] }
+        : { id: 'search_final', status: 'completed', output: [{ content: [{ type: 'output_text', text: 'One validated bibliographic result.' }] }] }
+      ), { status: 200 });
+    }
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' },
+      body: { prompt: 'Find scholarly publications about explainable artificial intelligence.', enable_project_tools: true },
+    }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.payload.actions[0].status, 'succeeded');
+    assert.equal(queryUrl.searchParams.get('rows'), '5');
+    assert.equal(queryUrl.searchParams.get('query.bibliographic'), 'explainable artificial intelligence');
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
