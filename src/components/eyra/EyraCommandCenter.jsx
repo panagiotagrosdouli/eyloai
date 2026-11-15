@@ -23,6 +23,7 @@ import { listEyraConversations, saveEyraConversation, loadEyraConversation, dele
 
 import { snapshotPayload, snapshotIdentity, conversationExport } from '@/lib/eyra-snapshot.mjs';
 import { requestedEyraWrites } from '@/lib/eyra-write-intent.mjs';
+import { buildEyraConversationContext } from '@/lib/eyra-conversation-context.mjs';
 
 // EYRA modes change the analysis lens; evidence rules stay identical.
 const MODES = [
@@ -606,9 +607,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     setLoadingStage('retrieving');
 
     const mode = MODES.find(item => item.id === activeMode);
-    const history = newMessages.slice(0, -1).slice(-5).map(message =>
-      `${message.role === 'user' ? 'User' : 'EYRA'}: ${message.content.slice(0, 800)}`
-    ).join('\n\n');
+    const history = buildEyraConversationContext(newMessages.slice(0, -1));
 
     let evidence = { query: content, blocks: [], sources: [], attempted: false };
     try {
