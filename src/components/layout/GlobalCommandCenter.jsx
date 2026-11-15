@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Command } from 'cmdk';
 import { useNavigate } from 'react-router-dom';
+import { PRODUCT_TOOLS, getProductToolPath } from '@/lib/product-registry.mjs';
 import {
   BookOpen, FolderOpen, History, Lightbulb, Plus, Search,
   Settings, Sparkles, Users, Video, X, Award,
@@ -12,6 +13,7 @@ const COMMANDS = [
   { group: 'Navigate', label: 'Discover research', path: '/search', icon: Search, keywords: 'papers literature' },
   { group: 'Navigate', label: 'Learn', path: '/learn', icon: BookOpen, keywords: 'study lessons' },
   { group: 'Navigate', label: 'My workspace search', path: '/workspace/search', icon: Search, keywords: 'authorized notes saved files tasks' },
+  { group: 'Navigate', label: 'Workspace', path: '/workspace', icon: FolderOpen, keywords: 'resume saved work' },
   { group: 'Navigate', label: 'Projects', path: '/projects', icon: FolderOpen, keywords: 'search project' },
   { group: 'Navigate', label: 'Library', path: '/library', icon: BookOpen, keywords: 'saved papers evidence' },
   { group: 'Navigate', label: 'Funding', path: '/opportunities', icon: Award, keywords: 'grants' },
@@ -31,14 +33,19 @@ const COMMANDS = [
 
 export default function GlobalCommandCenter({ open, onClose }) {
   const [query, setQuery] = useState('');
+  const previousFocusRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!open) return undefined;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setQuery('');
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = previousOverflow; };
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (previousFocusRef.current?.isConnected) previousFocusRef.current.focus();
+    };
   }, [open]);
 
   if (!open) return null;
@@ -53,12 +60,10 @@ export default function GlobalCommandCenter({ open, onClose }) {
   };
   const searchActions = query.trim().length >= 2
     ? [
-      { group: 'Search this', label: 'Search projects', path: `/projects?q=${encodeURIComponent(query.trim())}`, icon: FolderOpen },
-      { group: 'Search this', label: 'Search Library', path: `/library?q=${encodeURIComponent(query.trim())}`, icon: BookOpen },
+      { group: 'Search this', label: 'Search saved work', path: `/workspace/search?q=${encodeURIComponent(query.trim())}`, icon: Search },
+      { group: 'Search this', label: 'Discover academic papers', path: `/search?q=${encodeURIComponent(query.trim())}`, icon: BookOpen },
       { group: 'Search this', label: 'Find researchers', path: `/researchers?q=${encodeURIComponent(query.trim())}`, icon: Users },
-      { group: 'Search this', label: 'Search funding', path: `/opportunities?q=${encodeURIComponent(query.trim())}`, icon: Award },
-      { group: 'Search this', label: 'Search meetings', path: `/meetings?q=${encodeURIComponent(query.trim())}`, icon: Video },
-      { group: 'Search this', label: 'Search history', path: `/history?q=${encodeURIComponent(query.trim())}`, icon: History },
+      { group: 'Search this', label: 'Find research funding', path: `/opportunities?q=${encodeURIComponent(query.trim())}`, icon: Award },
     ]
     : [];
 
@@ -88,6 +93,16 @@ export default function GlobalCommandCenter({ open, onClose }) {
                   const Icon = item.icon;
                   return <Command.Item key={item.label} value={`${item.label} ${query}`} onSelect={() => selectCommand(item)} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm text-foreground aria-selected:bg-secondary aria-selected:text-foreground"><Icon size={15} className="text-muted-foreground" aria-hidden="true" />{item.label}<span className="ml-auto max-w-[55%] truncate text-xs text-muted-foreground">{query}</span></Command.Item>;
                 })}
+              </Command.Group>
+            )}
+            {query.trim().length >= 2 && (
+              <Command.Group heading="Tools" className="mb-2 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted-foreground">
+                {PRODUCT_TOOLS.map(tool => (
+                  <Command.Item key={tool.slug} value={`${tool.title} ${tool.description} ${tool.kind}`} onSelect={() => selectCommand({ path: getProductToolPath(tool) })} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm text-foreground aria-selected:bg-secondary" >
+                    <Search size={15} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <span className="min-w-0"><span className="block font-medium">{tool.title}</span><span className="block truncate text-xs text-muted-foreground">{tool.description}</span></span>
+                  </Command.Item>
+                ))}
               </Command.Group>
             )}
             {['Navigate', 'Actions', 'Intelligence'].map(group => (
