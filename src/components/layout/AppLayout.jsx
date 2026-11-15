@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import EyraCommandCenter from '@/components/eyra/EyraCommandCenter';
 import GlobalCommandCenter from '@/components/layout/GlobalCommandCenter';
+import WorkspaceBreadcrumbs from '@/components/layout/WorkspaceBreadcrumbs';
 import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
 import NotificationsBell from '@/components/monitoring/NotificationsBell';
 import ServiceStatus from '@/components/system/ServiceStatus';
@@ -239,7 +240,8 @@ export default function AppLayout() {
                     <input value={toolQuery} onChange={event => setToolQuery(event.target.value)} autoFocus placeholder="Find a tool…"
                       className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/40" />
                   </label>
-                  <div className="mt-3 grid max-h-[65vh] gap-5 overflow-y-auto p-1 sm:grid-cols-2">
+                  <div className="mt-3 flex items-center justify-between gap-3 border-b border-border pb-3"><span className="text-xs text-muted-foreground">Choose a workflow</span><Link to="/tools" className="text-sm font-semibold text-primary hover:underline">Browse complete directory</Link></div>
+                   <div className="mt-3 grid max-h-[65vh] gap-5 overflow-y-auto p-1 sm:grid-cols-2">
                     {visibleGroups.map(group => (
                       <section key={group.section}>
                         <p className="mb-1 px-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{group.section}</p>
@@ -267,14 +269,14 @@ export default function AppLayout() {
             </button>
           </div>
 
-          <button type="button" onClick={() => setMobileOpen(value => !value)} aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileOpen}
+          <button type="button" onClick={() => setMobileOpen(value => !value)} aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileOpen} aria-controls="mobile-navigation-panel"
             className="ml-auto rounded-xl p-2.5 text-muted-foreground hover:bg-secondary hover:text-foreground lg:hidden">
             {mobileOpen ? <X size={19} /> : <Menu size={19} />}
           </button>
         </div>
 
         {mobileOpen && (
-          <div className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
+          <div id="mobile-navigation-panel" className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
             <div className="mx-auto max-w-xl">
               <div className="grid grid-cols-2 gap-2">
                 {PRIMARY_NAV.map(item => {
@@ -308,7 +310,7 @@ export default function AppLayout() {
       </header>
       {signOutError && <p role="alert" className="border-b border-destructive/30 bg-destructive/10 px-4 py-3 text-center text-sm text-destructive">{signOutError}</p>}
 
-      <main id="main-content" className="relative z-10 min-h-[calc(100vh-4.5rem)] pb-24 lg:pb-0"><Outlet /></main>
+      <main id="main-content" tabIndex={-1} className="relative z-10 min-h-[calc(100vh-4.5rem)] pb-24 lg:pb-0"><WorkspaceBreadcrumbs /><Outlet /></main>
       <GlobalCommandCenter open={commandOpen} onClose={() => setCommandOpen(false)} />
       <EyraCommandCenter open={eyraOpen} onClose={() => setEyraOpen(false)} />
 
