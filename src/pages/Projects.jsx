@@ -300,7 +300,7 @@ export default function Projects() {
             }`}
           >
             {f.label}
-            <span className="opacity-50 tabular-nums">{counts[f.key] || 0}</span>
+            <span className="opacity-50 tabular-nums">{counts[f.key] || 0}{hasMoreProjects ? '+' : ''}</span>
           </button>
         ))}
       </div>
