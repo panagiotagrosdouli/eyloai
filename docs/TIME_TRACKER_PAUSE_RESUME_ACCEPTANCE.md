@@ -6,7 +6,7 @@
 
 Stopped entries close any open pause atomically. Daily, weekly, project and total duration calculations subtract pause overlap in UTC after local report boundaries are determined. The all-entry CSV includes pause history and net duration. Inclusive local-date reports and their CSV clip net work to exact UTC boundaries and show totals by project. A 23-hour Athens DST-day regression verifies boundary calculations. Reports advance their clock while paused, including across midnight. A timer supports at most 1,000 recorded pauses; stopping remains available when that limit is reached.
 
-The browser requires the RPC for stop as well as pause/resume. Missing migration errors are shown explicitly, without announcing a successful transition. Apply only to the independently confirmed EYLO staging project after hosted schema/history reconciliation; do not push the legacy migration directory wholesale. The checked-in manifest authorizes disposable local replay only.
+Backward compatibility: rows from the old schema, with neither pause_intervals nor timer_revision, retain the original owner-scoped, version-checked direct stop. Pause/resume is disabled for those rows. Migrated timers always use the RPC, including stop; missing-function, authorization and concurrency failures never fall back to a direct write for migrated records. Missing migration errors are shown explicitly, without announcing a successful transition. Apply only to the independently confirmed EYLO staging project after hosted schema/history reconciliation; do not push the legacy migration directory wholesale. The checked-in manifest authorizes disposable local replay only.
 
 ## Local validation
 

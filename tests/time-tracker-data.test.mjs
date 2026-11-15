@@ -199,3 +199,31 @@ test('historical reports clip pauses to inclusive local dates across DST', async
   assert.throws(() => createTimeReport([], { fromDate: '2027-03-02', toDate: '2027-03-01' }), /on or after/);
   assert.throws(() => createTimeReport([], { fromDate: '', toDate: '2027-03-01' }), /valid report dates/);
 });
+
+test('legacy timers stop without the optional migration using owner and version guards', async () => {
+  const { transitionTimeEntry } = await import('../src/lib/time-tracker-data.mjs');
+  const entry = { id: 'legacy', user_id: 'u1', started_at: '2026-01-01T10:00:00Z', updated_at: '2026-01-01T10:00:00Z', ended_at: null };
+  const predicates = [];
+  let patch;
+  const query = { update(value) { patch = value; return this; }, eq(key, value) { predicates.push([key, value]); return this; }, is(key, value) { predicates.push([key, value]); return this; }, select() { return this; }, async maybeSingle() { return { data: { ...entry, ...patch } }; } };
+  const client = { from(table) { assert.equal(table, 'time_entries'); return query; }, rpc() { assert.fail('legacy stop must not require the migration'); } };
+  const saved = await transitionTimeEntry(client, entry, 'u1', 'stop');
+  assert.ok(saved.ended_at);
+  assert.deepEqual(predicates, [['id','legacy'],['user_id','u1'],['started_at',entry.started_at],['updated_at',entry.updated_at],['ended_at',null]]);
+  query.maybeSingle = async () => ({ data: null });
+  await assert.rejects(transitionTimeEntry(client, entry, 'u1', 'stop'), /changed in another tab/);
+  query.maybeSingle = async () => ({ error: new Error('storage unavailable') });
+  await assert.rejects(transitionTimeEntry(client, entry, 'u1', 'stop'), /storage unavailable/);
+  query.maybeSingle = async () => ({ data: { ...entry, ...patch, user_id: 'u2' } });
+  await assert.rejects(transitionTimeEntry(client, entry, 'u1', 'stop'), /could not be verified/);
+  await assert.rejects(transitionTimeEntry(client, entry, 'u2', 'stop'), /access denied/);
+});
+
+test('migrated timers never bypass a missing or denied transition RPC', async () => {
+  const { transitionTimeEntry } = await import('../src/lib/time-tracker-data.mjs');
+  const entry = { id: 'migrated', user_id: 'u1', timer_revision: 0, pause_intervals: [], ended_at: null };
+  const client = { from() { assert.fail('migrated stops must not fall back to a direct write'); }, rpc: async () => ({ error: { code: 'PGRST202' } }) };
+  await assert.rejects(transitionTimeEntry(client, entry, 'u1', 'stop'), /database migration/);
+  client.rpc = async () => ({ error: { code: '42501', message: 'access denied' } });
+  await assert.rejects(transitionTimeEntry(client, entry, 'u1', 'stop'), error => error.code === '42501' && error.message === 'access denied');
+});

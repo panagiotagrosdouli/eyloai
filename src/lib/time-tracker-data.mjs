@@ -124,9 +124,33 @@ export async function loadAllTimeEntries(client, userId, pageSize = 500, maxRows
   return all;
 }
 
+async function stopLegacyTimeEntry(client, entry, userId) {
+  const started = Date.parse(entry.started_at);
+  const now = Date.now();
+  if (!Number.isFinite(started) || now <= started || !Number.isFinite(Date.parse(entry.updated_at))) {
+    throw new Error('Reload this timer and check your device time before stopping it.');
+  }
+  const endedAt = new Date(now).toISOString();
+  const { data, error } = await client.from('time_entries').update({ ended_at: endedAt })
+    .eq('id', entry.id).eq('user_id', userId).eq('started_at', entry.started_at)
+    .eq('updated_at', entry.updated_at).is('ended_at', null).select('*').maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('Timer changed in another tab. Reload before retrying.');
+  if (data.id !== entry.id || data.user_id !== userId || data.started_at !== entry.started_at
+    || Date.parse(data.ended_at) !== now || (data.pause_intervals?.length || 0) > 0) {
+    throw new Error('Timer update could not be verified. Reload before retrying.');
+  }
+  return data;
+}
+
 export async function transitionTimeEntry(client, entry, userId, action) {
   if (!client || !entry?.id || entry.user_id !== userId || !['pause', 'resume', 'stop'].includes(action)) {
     throw new Error('Timer not found or access denied. Reload before retrying.');
+  }
+  // Old-schema rows have neither pause field. Preserve the previous owner/CAS
+  // stop path without bypassing the transition RPC for any migrated timer.
+  if (action === 'stop' && entry.pause_intervals === undefined && entry.timer_revision === undefined) {
+    return stopLegacyTimeEntry(client, entry, userId);
   }
   const { data, error } = await client.rpc('transition_time_entry', {
     p_entry_id: entry.id, p_action: action, p_expected_revision: entry.timer_revision ?? 0,
