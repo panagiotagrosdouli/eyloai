@@ -3,7 +3,7 @@ import { afterEach, test } from 'node:test';
 import handler from '../server/capabilities.js';
 
 const keys = [
-  'OPENAI_API_KEY', 'RESEND_API_KEY', 'CONTACT_TO_EMAIL', 'RESEND_FROM_EMAIL',
+  'OPENAI_API_KEY', 'RESEND_API_KEY', 'CONTACT_TO_EMAIL', 'RESEND_FROM_EMAIL', 'CONTACT_PUBLIC_ENABLED',
   'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET',
   'STRIPE_PRO_PRICE_ID', 'STRIPE_FOUNDER_PRICE_ID',
   'SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY',
@@ -53,10 +53,18 @@ test('contact is available only when all email delivery settings are present', (
   handler({ method: 'GET' }, missingSender);
   assert.equal(missingSender.body.contact, false);
   process.env.RESEND_FROM_EMAIL = 'EYLO <hello@example.test>';
+  const notVerified = response();
+  handler({ method: 'GET' }, notVerified);
+  assert.equal(notVerified.body.contact, false, 'configured credentials are not evidence of verified delivery');
+  process.env.CONTACT_PUBLIC_ENABLED = '1';
   const configured = response();
   handler({ method: 'GET' }, configured);
   assert.equal(configured.body.contact, true);
   assert.equal(JSON.stringify(configured.body).includes('example.test'), false);
+  process.env.RESEND_FROM_EMAIL = '';
+  const missingAfterEnable = response();
+  handler({ method: 'GET' }, missingAfterEnable);
+  assert.equal(missingAfterEnable.body.contact, false, 'opt-in must not bypass missing credentials');
 });
 
 test('billing requires every secret, price and server-side Supabase credential', () => {
