@@ -5,8 +5,9 @@ export function diagnoseConfiguration(env = process.env) {
   const present = key => Boolean(String(env[key] || '').trim());
   const config = readSupabaseApiConfig(env);
   const database = [];
-  if (!present('VITE_SUPABASE_URL')) database.push('VITE_SUPABASE_URL');
-  else if (!config.url) database.push('VITE_SUPABASE_URL (invalid official HTTPS project URL)');
+  if (config.urlConflict) database.push('SUPABASE_URL and VITE_SUPABASE_URL (conflicting projects)');
+  else if (!present('SUPABASE_URL') && !present('VITE_SUPABASE_URL')) database.push('SUPABASE_URL or VITE_SUPABASE_URL');
+  else if (!config.url) database.push('SUPABASE_URL or VITE_SUPABASE_URL (invalid official HTTPS project URL)');
   if (!config.publicKey) database.push('SUPABASE_PUBLISHABLE_KEY or SUPABASE_ANON_KEY or VITE_SUPABASE_ANON_KEY');
   if (!config.serverKey) database.push('SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY');
 
