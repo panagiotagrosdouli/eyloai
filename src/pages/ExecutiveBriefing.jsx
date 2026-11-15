@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import {
   Sparkles, RefreshCw, AlertTriangle, TrendingUp, DollarSign,
-  Target, CheckSquare, Brain, Zap, Star, ExternalLink
+  Target, CheckSquare, Brain, Zap, Star, ExternalLink, Save, Download
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import moment from 'moment';
 import { searchAllPapers } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
+import { executiveBriefingNoteContent, normalizeExecutiveBriefing, normalizeStoredExecutiveBriefing } from '@/lib/executive-briefing.mjs';
 
 export default function ExecutiveBriefing() {
   const [user, setUser] = useState(null);
@@ -18,6 +19,9 @@ export default function ExecutiveBriefing() {
   const [lastGenerated, setLastGenerated] = useState(null);
   const [sourceCounts, setSourceCounts] = useState({ papers: 0, funding: 0 });
   const [error, setError] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
+  const [savedNote, setSavedNote] = useState(null);
+  const [saveMessage, setSaveMessage] = useState('');
 
   useEffect(() => { loadWorkspace(); }, []);
 
@@ -30,20 +34,14 @@ export default function ExecutiveBriefing() {
       ]);
       setUser(me);
       setProjects(projs);
-
-      const today = new Date().toDateString();
-      const cachedDate = localStorage.getItem('eyra_briefing_grounded_v2_date');
-      const cachedBriefing = localStorage.getItem('eyra_briefing_grounded_v2');
-      if (cachedDate === today && cachedBriefing) {
-        try {
-          const parsedBriefing = JSON.parse(cachedBriefing);
-          setBriefing(parsedBriefing);
-          setSourceCounts(parsedBriefing._source_counts || { papers: 0, funding: 0 });
-          setLastGenerated(new Date(localStorage.getItem('eyra_briefing_grounded_v2_ts') || Date.now()));
-        } catch {
-          localStorage.removeItem('eyra_briefing_grounded_v2');
-          localStorage.removeItem('eyra_briefing_grounded_v2_date');
-        }
+      const savedBriefings = await base44.entities.Note.filter({ kind: 'executive_briefing' }, '-updated_date', 1, me.id);
+      const latest = savedBriefings[0];
+      if (latest?.briefing_payload) {
+        const restored = normalizeStoredExecutiveBriefing(latest.briefing_payload);
+        setBriefing(restored);
+        setSourceCounts(restored._source_counts);
+        setLastGenerated(new Date(restored.generated_at));
+        setSavedNote(latest);
       }
     } catch (workspaceError) {
       setError(workspaceError?.message || 'Your briefing workspace could not be loaded.');
@@ -89,7 +87,7 @@ Career goal: ${currentUser?.career_goal || 'Not specified'}
 Startup interest: ${currentUser?.startup_interest || 'Not specified'}
 
 PROJECTS:
-${projs.map((project, index) => `[J${index + 1}] ${project.title} [${project.status}]: ${project.goal || 'No goal recorded'}`).join('\n') || 'None'}
+${projs.slice(0, 10).map((project, index) => `[J${index + 1}] ${project.title} [${project.status}]: ${project.goal || 'No goal recorded'}`).join('\n') || 'None'}
 
 SAVED OPPORTUNITIES:
 ${opps.slice(0, 8).map((opportunity, index) => `[S${index + 1}] ${opportunity.title} — ${opportunity.deadline || 'deadline not saved'} — ${opportunity.source_url || 'no URL saved'}`).join('\n') || 'None'}
@@ -119,7 +117,7 @@ Return:
 - critical_risks: project or execution risks with mitigations
 - paper_signals: select only supplied LIVE SCHOLARLY IDs (P1, P2...) and explain significance
 - funding_matches: select only supplied LIVE FUNDING IDs (F1, F2...) and propose a next action
-- project_health: include only supplied project names; status green, yellow, or red
+- project_health: include only supplied PROJECT IDs (J1, J2...); status green, yellow, or red
 - priority_actions: concrete actions based on supplied data
 - strategic_summary and weekly_focus
 
@@ -137,50 +135,67 @@ Rules:
             critical_risks: { type: 'array', items: { type: 'object', properties: { risk: { type: 'string' }, mitigation: { type: 'string' } } } },
             paper_signals: { type: 'array', items: { type: 'object', properties: { source_id: { type: 'string' }, significance: { type: 'string' } } } },
             funding_matches: { type: 'array', items: { type: 'object', properties: { source_id: { type: 'string' }, action: { type: 'string' } } } },
-            project_health: { type: 'array', items: { type: 'object', properties: { project: { type: 'string' }, status: { type: 'string', enum: ['green', 'yellow', 'red'] }, note: { type: 'string' } } } },
+            project_health: { type: 'array', items: { type: 'object', properties: { source_id: { type: 'string' }, status: { type: 'string', enum: ['green', 'yellow', 'red'] }, note: { type: 'string' } }, required: ['source_id', 'status', 'note'], additionalProperties: false } },
             priority_actions: { type: 'array', items: { type: 'object', properties: { action: { type: 'string' }, deadline: { type: 'string' }, impact: { type: 'string' } } } },
           },
         },
       });
 
-      const groundedBriefing = {
-        ...result,
-        _source_counts: { papers: livePapers.length, funding: liveFunding.length },
-        new_discoveries: (result.paper_signals || []).map(signal => {
-          const index = Number(String(signal.source_id).replace(/\D/g, '')) - 1;
-          const paper = livePapers[index];
-          return paper ? {
-            item: paper.title,
-            significance: signal.significance,
-            source_url: paper.url,
-            source: paper.source,
-          } : null;
-        }).filter(Boolean),
-        funding_alerts: (result.funding_matches || []).map(match => {
-          const index = Number(String(match.source_id).replace(/\D/g, '')) - 1;
-          const opportunity = liveFunding[index];
-          return opportunity ? {
-            alert: opportunity.title,
-            action: match.action,
-            source_url: opportunity.source_url,
-            deadline: opportunity.deadline,
-          } : null;
-        }).filter(Boolean),
-      };
-      delete groundedBriefing.paper_signals;
-      delete groundedBriefing.funding_matches;
-
+      const now = new Date();
+      const groundedBriefing = normalizeExecutiveBriefing(result, {
+        papers: livePapers,
+        funding: liveFunding,
+        projects: projs,
+        generatedAt: now.toISOString(),
+      });
       setBriefing(groundedBriefing);
       setProjects(projs);
-      const now = new Date();
       setLastGenerated(now);
-      localStorage.setItem('eyra_briefing_grounded_v2_date', now.toDateString());
-      localStorage.setItem('eyra_briefing_grounded_v2', JSON.stringify(groundedBriefing));
-      localStorage.setItem('eyra_briefing_grounded_v2_ts', now.toISOString());
+      setSavedNote(null);
+      setSaveMessage('');
     } catch (briefingError) {
       setError(briefingError?.message || 'The briefing could not be generated.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveBriefingToNotes = async () => {
+    if (!briefing || !user?.id || savingNote) return;
+    setSavingNote(true);
+    setError('');
+    setSaveMessage('');
+    try {
+      const note = await base44.entities.Note.create({
+        title: `Executive Briefing — ${moment(briefing.generated_at).format('YYYY-MM-DD')}`,
+        content: executiveBriefingNoteContent(briefing),
+        tags: ['executive-briefing'],
+        kind: 'executive_briefing',
+        briefing_payload: briefing,
+      }, user.id);
+      setSavedNote(note);
+      setSaveMessage('Briefing saved to your private Notes.');
+    } catch (saveError) {
+      setError(saveError?.message || 'The briefing could not be saved to Notes.');
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
+  const exportBriefing = () => {
+    if (!briefing) return;
+    try {
+      const blob = new Blob([JSON.stringify(briefing, null, 2)], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `eylo-executive-briefing-${moment(briefing.generated_at).format('YYYY-MM-DD')}.json`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    } catch (exportError) {
+      setError(exportError?.message || 'The briefing export could not be created.');
     }
   };
 
@@ -197,11 +212,24 @@ Rules:
             <p className="text-[10px] text-muted-foreground mt-0.5">Last generated: {moment(lastGenerated).fromNow()}</p>
           )}
         </div>
-        <button onClick={() => generateBriefing()} disabled={loading || initializing || !user}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity flex-shrink-0">
-          {loading ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
-          {initializing ? 'Loading…' : loading ? 'Generating…' : briefing ? 'Refresh' : 'Generate'}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          {briefing && <>
+            <button onClick={saveBriefingToNotes} disabled={savingNote || loading || !user || Boolean(savedNote)}
+              className="flex min-h-10 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60">
+              {savingNote ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
+              {savedNote ? 'Saved to Notes' : savingNote ? 'Saving…' : 'Save to Notes'}
+            </button>
+            <button onClick={exportBriefing} disabled={loading}
+              className="flex min-h-10 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60">
+              <Download size={14} /> Export JSON
+            </button>
+          </>}
+          <button onClick={() => generateBriefing()} disabled={loading || initializing || !user}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-opacity flex-shrink-0">
+            {loading ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
+            {initializing ? 'Loading…' : loading ? 'Generating…' : briefing ? 'Refresh' : 'Generate'}
+          </button>
+        </div>
       </div>
 
 
@@ -214,6 +242,8 @@ Rules:
       {briefing && !loading && (
         <div className="mb-5 px-3 py-2 rounded-xl border border-primary/15 bg-primary/5 text-[11px] text-muted-foreground">
           Evidence used: <span className="text-primary font-medium">{sourceCounts.papers} live papers</span> and <span className="text-primary font-medium">{sourceCounts.funding} official funding records</span>. Strategic labels are AI-assisted planning judgments.
+          {savedNote?.id && <span className="ml-2">Saved record: <a className="text-primary underline" href={`/notes?focus=${encodeURIComponent(savedNote.id)}`}>open in Notes</a>.</span>}
+          {saveMessage && <span role="status" className="ml-2">{saveMessage}</span>}
         </div>
       )}
 
