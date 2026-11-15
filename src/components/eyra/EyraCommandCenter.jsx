@@ -7,12 +7,13 @@ import { searchFundingOpportunities } from '@/lib/funding-api';
 import { getPreferenceLocale, loadPreferences, subscribePreferences } from '@/lib/preferences';
 import { getLocalGreeting } from '@/lib/local-greeting';
 import { checkEyraCitationIds, isSafeEyraSourceUrl } from '@/lib/eyra-citation-ids.mjs';
+import { describeEyraCitedEvidence } from '@/lib/eyra-evidence-status.mjs';
 import {
   X, Mic, MicOff, Send, Sparkles, Loader2,
   Volume2, VolumeX, Target, FileText, Users,
   Award, Map, AlertTriangle, Brain,
   Rocket, BarChart3, BookOpen, Trash2, BookmarkPlus,
-  Check, Copy, Database, ExternalLink, ShieldCheck
+  Check, Copy, Database, ExternalLink
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
@@ -247,6 +248,7 @@ function TypingIndicator({ stage }) {
 
 function Message({ msg, onSave, onCopy, saved, copied, saving }) {
   const isEyra = msg.role === 'eyra';
+  const citedEvidence = isEyra ? describeEyraCitedEvidence(msg.sources) : null;
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -283,26 +285,37 @@ function Message({ msg, onSave, onCopy, saved, copied, saving }) {
             <p>{msg.content}</p>
           )}
         </div>
-        {isEyra && msg.sources?.length > 0 && (
-          <div className="mt-2 flex max-w-full flex-wrap gap-1.5" aria-label="Sources used in this answer">
-            {msg.sources.slice(0, 8).map(source => (
-              <a
-                key={source.id}
-                href={source.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={`${source.title}${source.meta ? ` — ${source.meta}` : ''}`}
-                className="inline-flex max-w-full items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[9px] font-medium text-foreground hover:border-primary/35"
-              >
-                <ShieldCheck size={9} aria-hidden="true" />
-                <span>{source.id}</span>
-                <span className="max-w-36 truncate text-muted-foreground">{source.title}</span>
-                <ExternalLink size={8} aria-hidden="true" />
-              </a>
-            ))}
-            {msg.sources.length > 8 && <span className="px-2 py-1 text-[9px] text-muted-foreground">+{msg.sources.length - 8} more</span>}
-          </div>
+        {isEyra && citedEvidence?.items.length > 0 && (
+          <section className="mt-2 max-w-full rounded-xl border border-border/70 bg-card/70 p-2.5" aria-label="EYRA retrieved source records">
+            <p className="mb-2 text-[11px] leading-relaxed text-muted-foreground">
+              {citedEvidence.summary}
+            </p>
+            <div className="flex max-w-full flex-wrap gap-1.5">
+              {citedEvidence.items.slice(0, 8).map(source => (
+                <a
+                  key={source.id}
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`${source.kind}: ${source.title}. ${source.scope}`}
+                  aria-label={`${source.id} ${source.kind}: ${source.title}. ${source.scope}`}
+                  className="inline-flex min-h-9 max-w-full items-center gap-1 rounded-lg border border-border bg-background px-2 py-1 text-xs font-medium text-foreground transition-colors hover:border-primary/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                >
+                  <BookOpen size={13} aria-hidden="true" />
+                  <span>{source.id}</span>
+                  <span className="max-w-44 truncate text-muted-foreground">{source.title}</span>
+                  <ExternalLink size={11} aria-hidden="true" />
+                </a>
+              ))}
+              {citedEvidence.items.length > 8 && (
+                <span className="self-center px-2 py-1 text-xs text-muted-foreground">
+                  +{citedEvidence.items.length - 8} more linked records
+                </span>
+              )}
+            </div>
+          </section>
         )}
+
         <div className="mt-1 flex items-center gap-1 px-1">
           <p className="mr-auto text-[9px] text-muted-foreground">
             {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -631,7 +644,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
         tool_intent: content,
         latest_user_request: content,
         write_confirmed: allowWorkspaceActions && writeConfirmed,
-        ...(resourceContext ? { resource_context: resourceContext } : {}),
+        ...(preferences.data_personalization && resourceContext ? { resource_context: resourceContext } : {}),
         prompt: `${BASE_SYSTEM}
 
 ANALYSIS MODE:
