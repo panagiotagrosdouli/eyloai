@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describeEyraCitedEvidence } from '../src/lib/eyra-evidence-status.mjs';
+import { normalizeEyraConversation } from '../src/lib/eyra-conversation.mjs';
 
 test('publication citation labels link retrieval, not scientific verification', () => {
   const result = describeEyraCitedEvidence([
@@ -51,4 +52,21 @@ test('compact EYRA remains consent-scoped and source chips no longer imply peer-
   assert.match(source, /preferences\.data_personalization && resourceContext/);
   assert.match(source, /checkEyraCitationIds\(baseAnswer, evidence\.sources\)/);
   assert.match(source, /write_confirmed: allowWorkspaceActions && writeConfirmed/);
+});
+
+test('the missing-citation warning is safely persisted and restored for the same conversation', () => {
+  const restored = normalizeEyraConversation([
+    { role: 'user', content: 'Summarize the current research', timestamp: 100 },
+    { role: 'eyra', content: 'No matching records were found.', timestamp: 101, sources: [], retrievalAttempted: true },
+  ]);
+  assert.equal(restored[1].retrievalAttempted, true);
+  assert.equal(restored[0].retrievalAttempted, undefined);
+  assert.equal(normalizeEyraConversation([{ role: 'eyra', content: 'Planning advice', timestamp: 102, retrievalAttempted: false }])[0].retrievalAttempted, undefined);
+});
+
+test('retrieval warning applies only to source-backed requests with no linked records', () => {
+  const source = readFileSync(new URL('../src/components/eyra/EyraCommandCenter.jsx', import.meta.url), 'utf8');
+  assert.match(source, /msg\.retrievalAttempted && citedEvidence\?\.items\.length === 0/);
+  assert.match(source, /No retrieved records are linked to this answer/);
+  assert.match(source, /retrievalAttempted: evidence\.attempted/);
 });
