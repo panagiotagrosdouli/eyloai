@@ -356,7 +356,7 @@ function formatEyraToolActions(actions) {
   }).join('\n');
 }
 
-export default function EyraCommandCenter({ open, onClose }) {
+export default function EyraCommandCenter({ open, onClose, resourceContext = null }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState(() => loadConversation(user?.id));
   const [conversationOwner, setConversationOwner] = useState(user?.id);
@@ -591,6 +591,7 @@ export default function EyraCommandCenter({ open, onClose }) {
         stream: !allowWorkspaceActions,
         on_delta: delta => { if (!controller.signal.aborted) setLiveDraft(previous => previous + delta); },
         tool_intent: content,
+        ...(resourceContext ? { resource_context: resourceContext } : {}),
         prompt: `${BASE_SYSTEM}
 
 ANALYSIS MODE:
