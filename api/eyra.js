@@ -4,6 +4,10 @@ import crypto from 'node:crypto';
 import { FREE_MONTHLY_AI_ACTIONS } from '../src/lib/eyra-usage-policy.mjs';
 import { matchesEyraResponseSchema } from '../src/lib/eyra-structured-contract.mjs';
 import { relayEyraResponse } from '../src/lib/eyra-stream.mjs';
+import {
+  durableRunsEnabled, UUID as RUN_UUID, requestFingerprint, startAgentRun,
+  reserveAgentAction, completeAgentAction, finalizeAgentRun, isAgentRunCancelled,
+} from '../server/eyra-run-ledger.mjs';
 import { requestedEyraWrites } from '../src/lib/eyra-write-intent.mjs';
 
 const MAX_PROMPT_LENGTH = 24_000;
@@ -778,6 +782,10 @@ export default async function handler(request, response) {
   }
 
   let reservation = null;
+  let agentRunId = null;
+  let agentIdentity = null;
+  let runClosed = false;
+  const actionResults = [];
   let streamTimer;
   let streamController;
   const stopStream = () => { if (!response.writableEnded) streamController?.abort(); };
@@ -874,6 +882,15 @@ export default async function handler(request, response) {
       });
     }
 
+    const durableRequested = durableRunsEnabled() && request.body?.enable_project_tools === true;
+    if (durableRequested && (typeof request.body?.run_request_id !== 'string'
+      || !RUN_UUID.test(request.body.run_request_id))) {
+      return response.status(400).json({
+        error: 'A stable UUID run request ID is required while the durable agent ledger is enabled.',
+        code: 'INVALID_RUN_REQUEST_ID',
+      });
+    }
+
     const usage = usageState(identity);
     reservation = await reserveUsage(identity, usage);
     if (!reservation.allowed) {
@@ -884,6 +901,39 @@ export default async function handler(request, response) {
         usage: { used: reservation.used, limit: usage.limit, month: usage.month },
         upgrade_url: '/pricing',
       });
+    }
+
+    if (durableRequested) {
+      const fingerprint = requestFingerprint({
+        prompt, latest_user_request: latestUserRequest || null,
+        resource_context: request.body?.resource_context || null,
+        tools: true, schema: requestedSchema || null,
+        write_confirmed: request.body?.write_confirmed === true,
+      });
+      try {
+        const started = await startAgentRun(identity, request.body.run_request_id, fingerprint, currentIntent || prompt);
+        if (!started.created) {
+          await releaseUsage(reservation);
+          reservation = null;
+          return response.status(started.conflict ? 409 : 409).json({
+            error: started.conflict
+              ? 'This agent request ID already belongs to different instructions.'
+              : 'This agent run has already been started. Review its recorded status; writes are never automatically replayed.',
+            code: started.conflict ? 'RUN_REQUEST_CONFLICT' : 'RUN_ALREADY_EXISTS',
+            run_id: started.id, status: started.status,
+          });
+        }
+        agentRunId = started.id;
+        agentIdentity = identity;
+      } catch (error) {
+        await releaseUsage(reservation);
+        reservation = null;
+        console.error('EYRA durable run unavailable', { reason: 'ledger_unavailable' });
+        return response.status(503).json({
+          error: 'Durable execution storage is unavailable; no agent action was started.',
+          code: 'AGENT_LEDGER_UNAVAILABLE',
+        });
+      }
     }
 
     /** @type {Record<string, any>} */
@@ -984,7 +1034,6 @@ export default async function handler(request, response) {
         code: 'EYRA_INCOMPLETE',
       });
     }
-    const actionResults = [];
     /** @type {Array<Record<string, any>>} */
     const toolTranscript = [
       { role: 'user', content: prompt },
@@ -1024,15 +1073,42 @@ export default async function handler(request, response) {
       for (const id of roundIds) seenToolCallIds.add(id);
       const outputs = [];
       for (const call of calls) {
+        let actionLedgerId = null;
         try {
+          if (agentRunId) {
+            if (await isAgentRunCancelled(identity, agentRunId)) {
+              throw new Error('This agent run was cancelled before the next action.');
+            }
+            const reserved = await reserveAgentAction(identity, agentRunId, call.call_id,
+              call.name, requestFingerprint({ name: call.name, arguments: call.arguments }));
+            if (!reserved.reserved) {
+              throw new Error('This tool action was already reserved or its outcome is uncertain. Review the run before retrying.');
+            }
+            actionLedgerId = reserved.id;
+          }
           if (call.name === 'project.create' && actionResults.some((action) => action.tool === 'project.create' && action.status === 'succeeded')) {
             throw new Error('Only one project can be created in a single EYRA request.');
           }
           const value = await executeProjectTool(call.name, call.arguments, identity);
+          if (actionLedgerId) {
+            await completeAgentAction(identity, actionLedgerId, 'succeeded',
+              { record_id: typeof value?.id === 'string' ? value.id.slice(0, 100) : null });
+          }
           actionResults.push({ action_id: call.call_id, tool: call.name, status: 'succeeded', result: value });
           outputs.push({ type: 'function_call_output', call_id: call.call_id, output: JSON.stringify({ ok: true, result: value }) });
         } catch (error) {
-          const safeError = error instanceof Error ? error.message : 'The project action failed.';
+          let safeError = error instanceof Error ? error.message : 'The project action failed.';
+          if (actionLedgerId) {
+            // A write may have committed despite a response or transport error.
+            const uncertain = ['project.create', 'library.save_paper'].includes(call.name);
+            try {
+              await completeAgentAction(identity, actionLedgerId,
+                uncertain ? 'needs_review' : 'failed', { reason: 'execution_incomplete' });
+            } catch {
+              safeError = 'Action persistence is uncertain. Inspect the workspace and run ledger before attempting any retry.';
+            }
+            if (uncertain) safeError += ' Verify the workspace before a new write; the action may have committed.';
+          }
           actionResults.push({ action_id: call.call_id, tool: call.name, status: 'failed', error: safeError });
           outputs.push({ type: 'function_call_output', call_id: call.call_id, output: JSON.stringify({ ok: false, error: safeError }) });
         }
@@ -1131,7 +1207,12 @@ export default async function handler(request, response) {
       }
     }
 
+    if (agentRunId) {
+      await finalizeAgentRun(identity, agentRunId, 'completed', text, actionResults);
+      runClosed = true;
+    }
     return response.status(200).json({
+      ...(agentRunId ? { run_id: agentRunId } : {}),
       ...(responseSchema ? { data } : {}),
       text,
       model: result.model || process.env.OPENAI_MODEL || 'gpt-5.6',
@@ -1162,6 +1243,15 @@ export default async function handler(request, response) {
     }
     return response.status(500).json({ error: 'EYRA is temporarily unavailable.' });
   } finally {
+    if (agentRunId && agentIdentity && !runClosed) {
+      try {
+        await finalizeAgentRun(agentIdentity, agentRunId,
+          actionResults.length ? 'needs_review' : 'failed', '', actionResults,
+          actionResults.length ? 'PARTIAL_EXECUTION_REQUIRES_REVIEW' : 'AGENT_INCOMPLETE');
+      } catch {
+        console.error('EYRA durable run remains unresolved; manual review required', { run_id: agentRunId });
+      }
+    }
     if (streamTimer) clearTimeout(streamTimer);
     response.off?.('close', stopStream);
   }
