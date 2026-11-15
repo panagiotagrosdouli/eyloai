@@ -352,7 +352,23 @@ function formatEyraToolActions(actions) {
     if (action.status === 'succeeded' && action.tool === 'library.list_papers') {
       return `- Retrieved ${Array.isArray(action.result) ? action.result.length : 0} saved papers in your Library.`;
     }
-    return `- ${action.tool || 'Workspace action'} ${action.status || 'failed'}: ${action.error || 'Please check the workspace before retrying.'}`;
+    if (action.status === 'succeeded' && action.tool === 'project.get') {
+      return `- Retrieved project **${action.result?.title || 'Untitled'}** from your workspace.`;
+    }
+    if (action.status === 'succeeded' && ['notes.list','tasks.list','calendar.list_events'].includes(action.tool)) {
+      const label = { 'notes.list': 'notes', 'tasks.list': 'tasks', 'calendar.list_events': 'calendar events' }[action.tool];
+      return `- Retrieved ${Array.isArray(action.result) ? action.result.length : 0} private ${label}.`;
+    }
+    if (action.status === 'succeeded' && action.tool === 'research.search_publications') {
+      return `- Retrieved ${action.result?.count || 0} DOI-validated **bibliographic metadata** records from Crossref; full text was not analyzed.`;
+    }
+    if (action.status === 'succeeded' && action.tool === 'research.lookup_doi') {
+      return `- Crossref DOI metadata verified for **${action.result?.title || 'publication'}** (${action.result?.doi || 'DOI unavailable'}); this is not a full-text review.`;
+    }
+    if (action.status === 'failed') {
+      return `- ${action.tool || 'Workspace action'} failed: ${action.error || 'Check the workspace before retrying.'}`;
+    }
+    return `- ${action.tool || 'Workspace action'} completed.`;
   }).join('\n');
 }
 
