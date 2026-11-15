@@ -29,7 +29,7 @@ export async function signIn(email, password) {
     if (!hasAuthenticatedSignIn(data)) return fail(createAppError(AppErrorCode.SERVICE_UNAVAILABLE));
     return ok(data);
   } catch (error) {
-    return fail(mapSupabaseError(error));
+    return fail(serviceException(error));
   }
 }
 
