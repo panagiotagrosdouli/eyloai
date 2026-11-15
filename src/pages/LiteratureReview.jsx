@@ -318,7 +318,7 @@ export default function LiteratureReview() {
                 <input id="review-paper-search" type="search" value={screeningQuery} onChange={event => setScreeningQuery(event.target.value)}
                   placeholder="Search title, author, DOI or year" className="mt-2 block min-h-11 w-full rounded-lg border border-border bg-background px-3 text-base" />
               </label>
-              <label className="block text-sm font-medium" htmlFor="review-screening-filter">Screening decision
+              <label className="block text-sm font-medium" htmlFor="review-screening-filter">Filter publication list by status
                 <select id="review-screening-filter" value={screeningFilter} onChange={event => setScreeningFilter(event.target.value)}
                   className="mt-2 block min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm">
                   <option value="all">All saved papers</option>
