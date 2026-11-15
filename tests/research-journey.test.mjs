@@ -75,3 +75,12 @@ test('research journey handles read errors without inventing results or mutating
   assert.ok(!page.includes('SavedPaper.create('));
   assert.ok(!page.includes('Project.update('));
 });
+
+test('linked project sources are displayed only with safe original links and provenance caveats', () => {
+  const page = read('pages/ResearchJourney.jsx');
+  assert.ok(page.includes('isSafeLiteratureSourceUrl(paper.url)'));
+  assert.ok(page.includes('rel="noopener noreferrer"'));
+  assert.ok(page.includes('Saved metadata from this project, not independently verified source quality'));
+  assert.ok(page.includes('Source link unavailable'));
+  assert.ok(page.includes('papers.slice(0, 4)'));
+});
