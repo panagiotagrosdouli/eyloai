@@ -324,6 +324,21 @@ try {
   // wait for asynchronous Supabase sign-in/session persistence.
   await page.waitForURL(url => url.pathname !== "/login");
   await page.goto(host + "/tools");
+  // EYLO 2030: the compact mobile navigation must not dismiss its directory
+  // when a user focuses or types in the search field.
+  await page.getByRole("button", { name: "Open navigation menu" }).click();
+  await page.getByRole("button", { name: "All tools", exact: true }).click();
+  const mobileToolSearch = page.getByRole("searchbox", { name: "Find a tool" });
+  await mobileToolSearch.fill("funding");
+  await assert.equal(await mobileToolSearch.isVisible(), true);
+  await page.getByRole("link", { name: /Funding & calls/ }).waitFor();
+  await mobileToolSearch.fill("");
+  // Command palette is a single keyboard-accessible navigation entry point.
+  await page.keyboard.press("Control+k");
+  await page.getByRole("dialog", { name: "EYLO command center" }).waitFor();
+  await page.keyboard.press("Escape");
+  await page.getByRole("dialog", { name: "EYLO command center" }).waitFor({ state: "hidden" });
+  await page.getByRole("button", { name: "Close navigation menu" }).click();
   await page
     .getByRole("heading", { name: "EYLO tools", exact: true })
     .waitFor();
