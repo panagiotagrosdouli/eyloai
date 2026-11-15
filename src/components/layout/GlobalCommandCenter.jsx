@@ -14,7 +14,7 @@ const COMMANDS = [
   { group: 'Navigate', label: 'Learn', path: '/learn', icon: BookOpen, keywords: 'study lessons' },
   { group: 'Navigate', label: 'My workspace search', path: '/workspace/search', icon: Search, keywords: 'authorized notes saved files tasks' },
   { group: 'Navigate', label: 'Workspace', path: '/workspace', icon: FolderOpen, keywords: 'resume saved work' },
-  { group: 'Navigate', label: 'Projects', path: '/projects', icon: FolderOpen, keywords: 'search project' }
+  { group: 'Navigate', label: 'Projects', path: '/projects', icon: FolderOpen, keywords: 'search project' },
   { group: 'Navigate', label: 'Library', path: '/library', icon: BookOpen, keywords: 'saved papers evidence' },
   { group: 'Navigate', label: 'Funding', path: '/opportunities', icon: Award, keywords: 'grants' },
   { group: 'Navigate', label: 'Researchers', path: '/researchers', icon: Users, keywords: 'people authors' },
