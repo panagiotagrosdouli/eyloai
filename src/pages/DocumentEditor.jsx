@@ -55,8 +55,12 @@ export default function DocumentEditor() {
   const [loadedKey, setLoadedKey] = useState('');
   const loadGeneration = useRef(0);
   // Navigation state is a local draft handoff, never a saved file or authority to read another project.
-  const reviewOutline = isNew && location.state?.reviewOutline && typeof location.state.reviewOutline === 'object'
-    ? location.state.reviewOutline : null;
+  // Router state may survive a sign-out or account switch in browser history.
+  // Private review outlines must never be handed to another authenticated user.
+  const candidateOutline = location.state?.reviewOutline;
+  const reviewOutline = isNew && user?.id && candidateOutline
+    && typeof candidateOutline === 'object' && candidateOutline.userId === user.id
+    ? candidateOutline : null;
   const outlineProjectId = typeof reviewOutline?.projectId === 'string' ? reviewOutline.projectId.slice(0, 100) : '';
   const key = useMemo(() => draftStorageKey(user?.id || 'unknown',
     isNew ? (outlineProjectId ? `review-${outlineProjectId}` : null) : id), [user?.id, isNew, id, outlineProjectId]);
