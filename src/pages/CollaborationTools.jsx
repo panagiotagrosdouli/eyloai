@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { getUsableSession, requireSupabase } from "@/lib/supabaseClient";
 import {
@@ -22,8 +23,12 @@ const TOOLS = {
 };
 export default function CollaborationTools() {
   const { tool } = useParams();
+  const { user } = useAuth();
+  // A collaboration view must not reuse another account's directory, team
+  // membership or private draft state during a same-route account switch.
+  // Remount before the next owner's authorized data request is completed.
   return Object.hasOwn(TOOLS, tool) ? (
-    <Workspace key={tool} tool={tool} />
+    <Workspace key={`${tool}/${user?.id || "signed-out"}`} tool={tool} />
   ) : (
     <main className="eylo-page">Workspace unavailable.</main>
   );
