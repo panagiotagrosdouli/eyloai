@@ -314,8 +314,9 @@ export default function DiscoveryResults({ results, onNewSearch }) {
               {searchSaved ? 'Search saved' : 'Save search'}
             </button>
             {!projectCreated ? (
-              <button
+              <button type="button"
                 onClick={createProject}
+                aria-describedby="project-save-scope"
                 disabled={creatingProject}
                 className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl eyra-gradient text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-60 flex-shrink-0"
               >
@@ -331,6 +332,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
               </Link>
             )}
           </div>
+          {!projectCreated && <p id="project-save-scope" className="mt-2 max-w-2xl text-xs leading-5 text-muted-foreground">Creating a project also saves up to five papers, three researcher records and two funding opportunities from these results. Source records still require verification.</p>}
         </div>
 
         {projectCreated && (
@@ -349,6 +351,12 @@ export default function DiscoveryResults({ results, onNewSearch }) {
                     <ArrowRight size={10} /> {item.label}
                   </button>
                 ))}
+                {discoveryProfile.goal === 'review' && (
+                  <Link to={`/literature-review?project_id=${encodeURIComponent(projectCreated.id)}`}
+                    className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-primary/30 bg-card px-3 text-xs font-semibold text-primary hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                    <BookOpen size={14} aria-hidden="true" /> Review protocol & screening
+                  </Link>
+                )}
                 <Link to={`/projects/${projectCreated.id}`}
                   className="flex items-center gap-1 px-3 py-1.5 rounded-lg eyra-gradient text-white text-xs font-medium">
                   <Sparkles size={10} /> Open project →

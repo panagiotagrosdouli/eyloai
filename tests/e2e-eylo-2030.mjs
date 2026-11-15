@@ -14,7 +14,7 @@ const widths = [320, 390, 768, 1024, 1440];
 const artifactDir = process.env.EYLO_E2E_ARTIFACT_DIR;
 const browser = await chromium.launch({ headless: true });
 const observations = [];
-const screens = ['/home', '/search', '/projects', '/library', '/study-planner', '/opportunities', '/tools'];
+const screens = ['/home', '/workspace', '/search', '/projects', '/library', '/study-planner', '/opportunities', '/tools'];
 try {
   for (const width of widths) {
     for (const colorScheme of ['light', 'dark']) {

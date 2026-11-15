@@ -9,18 +9,18 @@ const css = readFileSync(new URL('../src/index.css', import.meta.url), 'utf8');
 test('authenticated primary navigation is goal-first without losing EYRA and tools', () => {
   const navigation = layout.match(/const PRIMARY_NAV = \[([\s\S]*?)\];/)?.[1];
   assert.ok(navigation, 'primary navigation should be declared');
-  for (const label of ['Home', 'Discover', 'My workspace', 'Learn']) {
+  for (const label of ['Home', 'Discover', 'Workspace', 'Create', 'Learn']) {
     assert.match(navigation, new RegExp("label: '" + label + "'"));
   }
-  assert.equal((navigation.match(/path:/g) || []).length, 4);
+  assert.equal((navigation.match(/path:/g) || []).length, 5);
   assert.match(layout, /Ask EYRA/);
   assert.match(layout, /All tools/);
   assert.match(layout, /TOOL_GROUPS/);
-  assert.match(layout, /grid-cols-5 items-end/);
+  assert.match(layout, /grid-cols-6 items-end/);
 });
 
 test('protected legacy workflow deep links remain declared', () => {
-  const required = ['/home', '/search', '/projects', '/library', '/notes', '/files', '/learn', '/study-planner', '/opportunities', '/research-gaps', '/literature-review', '/labs/data', '/knowledge-graph', '/meetings', '/grant-builder', '/tools/:tool'];
+  const required = ['/home', '/workspace', '/search', '/projects', '/library', '/notes', '/files', '/learn', '/study-planner', '/opportunities', '/research-gaps', '/literature-review', '/labs/data', '/knowledge-graph', '/meetings', '/grant-builder', '/tools/:tool'];
   for (const path of required) {
     assert.ok(routes.includes('path="' + path + '"'), 'missing route: ' + path);
   }

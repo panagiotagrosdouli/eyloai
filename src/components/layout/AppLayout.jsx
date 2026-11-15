@@ -20,7 +20,8 @@ import { useAuth } from '@/lib/AuthContext';
 const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
   { label: 'Discover', path: '/search', icon: Search },
-  { label: 'My workspace', path: '/projects', icon: FolderOpen },
+  { label: 'Workspace', path: '/workspace', icon: FolderOpen },
+  { label: 'Create', path: '/documents/new', icon: FilePlus2 },
   { label: 'Learn', path: '/learn', icon: GraduationCap },
 ];
 
@@ -38,6 +39,7 @@ const TOOL_GROUPS = [
     section: 'Workspace',
     description: 'Research work that stays connected to projects',
     items: [
+      { label: 'Projects', path: '/projects', icon: FolderOpen, desc: 'Manage research evidence, tasks and project decisions' },
       { label: 'EYLO Files', path: '/files', icon: File, desc: 'Private project files with version history' },
       { label: 'Time Tracker', path: '/time-tracker', icon: Clock3, desc: 'Track project work and Life tasks' },
       { label: 'Learn', path: '/learn', icon: GraduationCap, desc: 'Author lessons and follow saved learning paths' },
@@ -134,6 +136,7 @@ export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [toolQuery, setToolQuery] = useState('');
   const toolsRef = useRef(null);
+  const mobileToolsRef = useRef(null);
   const mobileToggleRef = useRef(null);
   const { data: capabilities, loading: capabilitiesLoading } = useCapabilities();
   const aiAvailable = !capabilitiesLoading && capabilities.ai;
@@ -160,7 +163,7 @@ export default function AppLayout() {
   const isWorkspaceHome = location.pathname === '/home';
   const isActive = path => location.pathname === path || (path !== '/life' && location.pathname.startsWith(`${path}/`));
   const toolsActive = ALL_TOOLS.some(item => isActive(item.path)) && !PRIMARY_NAV.some(item => isActive(item.path));
-  const primaryActive = item => isActive(item.path) || (item.path === '/projects' && ['/library', '/notes', '/files', '/life', '/calendar', '/workspace/search'].some(path => isActive(path)));
+  const primaryActive = item => isActive(item.path) || (item.path === '/workspace' && ['/projects', '/library', '/notes', '/files', '/life', '/calendar', '/workspace/search'].some(path => isActive(path)));
   const query = toolQuery.trim().toLowerCase();
   const visibleGroups = TOOL_GROUPS.map(group => ({
     ...group,
@@ -171,7 +174,7 @@ export default function AppLayout() {
 
   useEffect(() => {
     const close = event => {
-      if (!toolsRef.current?.contains(event.target)) setToolsOpen(false);
+      if (!toolsRef.current?.contains(event.target) && !mobileToolsRef.current?.contains(event.target)) setToolsOpen(false);
     };
     const closeWithKeyboard = event => {
       if (event.key === 'Escape') {
@@ -299,6 +302,7 @@ export default function AppLayout() {
               </div>
               <div className="my-4 flex items-center justify-end gap-3"><ServiceStatus /></div>
               <button type="button" onClick={() => setCommandOpen(true)} className="mb-3 flex min-h-11 w-full items-center gap-2 rounded-xl border border-border px-3 text-sm font-medium"><Search size={16} />Search everything <span className="ml-auto text-xs text-muted-foreground">⌘/Ctrl K</span></button>
+              <div ref={mobileToolsRef}>
               <button type="button" onClick={() => setToolsOpen(value => !value)} aria-expanded={toolsOpen} aria-controls="mobile-tool-directory" className="flex min-h-11 w-full items-center justify-between rounded-xl border border-border px-3 text-sm font-semibold"><span>All tools</span><ChevronDown size={16} className={toolsOpen ? 'rotate-180' : ''} /></button>
               {toolsOpen && <div id="mobile-tool-directory" className="mt-3 space-y-4">
                 <label className="block"><span className="sr-only">Find a tool</span><input type="search" value={toolQuery} onChange={event => setToolQuery(event.target.value)} placeholder="Find a tool…" className="min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm" /></label>
@@ -310,6 +314,7 @@ export default function AppLayout() {
                 ))}
                 {!visibleGroups.length && <p className="text-sm text-muted-foreground">No matching tools.</p>}
               </div>}
+              </div>
               <div className="mt-4">
                 <button type="button" onClick={handleSignOut} disabled={signingOut}
                   className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-medium text-foreground disabled:opacity-50">
@@ -327,7 +332,7 @@ export default function AppLayout() {
       <EyraCommandCenter open={eyraOpen} onClose={() => setEyraOpen(false)} resourceContext={eyraResourceContext} />
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl lg:hidden" aria-label="Primary mobile navigation">
-        <div className="mx-auto grid max-w-lg grid-cols-5 items-end">
+        <div className="mx-auto grid max-w-lg grid-cols-6 items-end">
           {PRIMARY_NAV.slice(0, 2).map(item => {
             const Icon = item.icon; const active = primaryActive(item);
             return <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}><Icon size={18} /><span>{item.label}</span></Link>;

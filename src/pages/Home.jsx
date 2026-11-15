@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { base44 } from '@/api/base44Client';
 import { runEyraDiscovery } from '@/lib/eyra-engine';
+import { interpretResearchGoal } from '@/lib/research-goal-intent.mjs';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, useSearchParams } from 'react-router-dom';
 import { SearchHeroCompact } from '@/components/discovery/SearchHero';
@@ -13,12 +13,12 @@ import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard'
 export default function Home({ searchOnly = false }) {
   const [state, setState] = useState(searchOnly ? 'search' : 'dashboard'); // dashboard | search | loading | results
   const [results, setResults] = useState(null);
+  const [workspaceExpanded, setWorkspaceExpanded] = useState(false);
   const [progress, setProgress] = useState(null);
   const [currentQuery, setCurrentQuery] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
   const activeSearchId = useRef(0);
   const activeSearchController = useRef(null);
-  const savedHistorySearchId = useRef(null);
   const { toast } = useToast();
 
   const handleSearch = async (request) => {
@@ -28,14 +28,17 @@ export default function Home({ searchOnly = false }) {
     const controller = new AbortController();
     activeSearchController.current = controller;
     const searchId = ++activeSearchId.current;
-    savedHistorySearchId.current = null;
     setResults(null);
     setState('loading');
     setCurrentQuery(topic);
     setProgress({ status: 'loading', papers: [], researchers: [], institutions: [] });
 
     try {
-      const finalResults = await runEyraDiscovery(request, (partial) => {
+      const interpreted = typeof request === 'string' ? interpretResearchGoal(request) : null;
+      const discoveryRequest = interpreted
+        ? { ...interpreted, level: 'researcher', recency: 'balanced' }
+        : request;
+      const finalResults = await runEyraDiscovery(discoveryRequest, (partial) => {
         if (controller.signal.aborted) return;
         if (searchId !== activeSearchId.current) return;
         setProgress({ ...partial });
@@ -43,32 +46,13 @@ export default function Home({ searchOnly = false }) {
         if (partial.status === 'complete') {
           setResults(partial);
           setState('results');
-          const profile = partial.discovery_profile || {};
-          if (savedHistorySearchId.current === searchId) return;
-          savedHistorySearchId.current = searchId;
-          base44.entities.SearchHistory.create({
-            query: topic,
-            level: profile.level || 'researcher',
-            goal: profile.goal || 'review',
-            recency: profile.recency || 'balanced',
-            source_indexes: partial.source_indexes || [],
-            retrieval_status: partial.retrieval_status || 'complete',
-            results_summary: `${partial.papers?.length || 0} papers, ${partial.researchers?.length || 0} researchers`,
-            saved: false,
-          }).then((entry) => {
-            if (entry?.id && searchId === activeSearchId.current) {
-              setResults(current => ({ ...(current || partial), search_history_id: entry.id }));
-            }
-          }).catch(() => {});
+
 
         }
       }, { signal: controller.signal });
       if (searchId !== activeSearchId.current) return;
-      // Keep any history id that completed during the final progress update.
-      setResults(current => ({
-        ...finalResults,
-        ...(current?.search_history_id ? { search_history_id: current.search_history_id } : {}),
-      }));
+      // Search history is written only when the user selects Save search.
+      setResults(finalResults);
       setState('results');
     } catch (err) {
       if (controller.signal.aborted || searchId !== activeSearchId.current) return;
@@ -133,5 +117,5 @@ export default function Home({ searchOnly = false }) {
     );
   }
 
-  return <><EyraHome onSearch={handleSearch} /><details className="eylo-page mx-auto max-w-7xl pb-12"><summary className="min-h-11 cursor-pointer rounded-xl border border-border bg-card px-5 py-4 text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">More from your workspace — tasks, calendar and saved work</summary><div className="pt-6"><PersonalizedDashboard /></div></details></>;
+  return <><EyraHome onSearch={handleSearch} /><details className="eylo-page mx-auto max-w-7xl pb-12" onToggle={event => setWorkspaceExpanded(event.currentTarget.open)}><summary className="min-h-11 cursor-pointer rounded-xl border border-border bg-card px-5 py-4 text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">More from your workspace — tasks, calendar and saved work</summary>{workspaceExpanded && <div className="pt-6"><PersonalizedDashboard /></div>}</details></>;
 }
