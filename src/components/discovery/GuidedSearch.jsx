@@ -4,6 +4,7 @@ import {
   Target, Wrench, X,
 } from 'lucide-react';
 import { trackGuidedSearchCompleted } from '@/lib/product-analytics';
+import { interpretResearchGoal } from '@/lib/research-goal-intent.mjs';
 import VoiceSearchButton from './VoiceSearchButton';
 
 export const DISCOVERY_LEVELS = [
@@ -70,9 +71,13 @@ export default function GuidedSearch({
     event?.preventDefault();
     const value = draftTopic.trim();
     if (!value) return;
-    setTopic(value);
-    if (autoRefine || isBroad) setRefining(true);
-    else complete(normalizeDiscoveryRequest({ topic: value, level: defaultLevel, goal: 'review', recency: 'balanced' }));
+    const interpreted = interpretResearchGoal(value);
+    const researchTopic = interpreted?.topic || value;
+    const researchGoal = interpreted?.goal || 'review';
+    setTopic(researchTopic);
+    if (interpreted) setGoal(researchGoal);
+    if (autoRefine || researchTopic.trim().split(/\\s+/).filter(Boolean).length <= 3) setRefining(true);
+    else complete(normalizeDiscoveryRequest({ topic: researchTopic, level: defaultLevel, goal: researchGoal, recency: 'balanced' }));
   };
 
   const submit = () => {
