@@ -31,6 +31,7 @@ export default function Contact() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(careerForm),
+        signal: AbortSignal.timeout(15000),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok || !result.ok)
@@ -46,7 +47,9 @@ export default function Contact() {
     } catch (error) {
       setCareerStatus({
         submitting: false,
-        error: error.message || "Could not send your message.",
+        error: error?.name === "TimeoutError" || error?.name === "AbortError"
+          ? "The contact service did not respond in time. Please check before retrying; your previous message may have been delivered."
+          : error?.message || "Could not send your message.",
         sent: false,
       });
     }
