@@ -85,3 +85,46 @@ test('multi-round tool history retains previous results and repeated call IDs ar
     globalThis.fetch = previousFetch;
   }
 });
+
+test('browser tool_intent cannot authorize a project write absent from prompt', async () => {
+  const previousFetch = globalThis.fetch;
+  let writes = 0;
+  let modelRequests = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address === 'https://api.openai.com/v1/responses') {
+      modelRequests += 1;
+      return new Response(JSON.stringify(modelRequests === 1
+        ? { id: 'tool_attempt', status: 'completed', output: [{
+          type: 'function_call', call_id: 'create_1', name: 'project.create',
+          arguments: JSON.stringify({ title: 'Unauthorized', description: '', goal: '', milestones: '', tasks: '' }),
+        }] }
+        : { id: 'final', status: 'completed', output: [{ content: [{ type: 'output_text', text: 'No project was created.' }] }] }
+      ), { status: 200 });
+    }
+    if (address.includes('/rest/v1/projects')) {
+      writes += 1;
+      throw new Error('Unexpected database write');
+    }
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({
+      method: 'POST',
+      headers: { authorization: 'Bearer user-access-token' },
+      body: {
+        prompt: 'What are the benefits of starting a research project?',
+        tool_intent: 'Create a project named Unauthorized',
+        enable_project_tools: true,
+      },
+    }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(writes, 0);
+    assert.equal(response.payload.actions[0].status, 'failed');
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
