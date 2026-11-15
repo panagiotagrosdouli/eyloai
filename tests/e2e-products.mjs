@@ -339,8 +339,14 @@ try {
   await page.keyboard.press("Escape");
   await page.getByRole("dialog", { name: "EYLO command center" }).waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "Close navigation menu" }).click();
+  await page.keyboard.press("Control+k");
+  await page.getByPlaceholder("Search or jump to…").fill("evidence");
+  await page.getByRole("option", { name: /Search saved work/ }).click();
+  await page.waitForURL(url => url.pathname === "/workspace/search" && url.searchParams.get("q") === "evidence");
+  assert.equal(await page.getByRole("searchbox", { name: "Search your records" }).inputValue(), "evidence");
+  await page.goto(host + "/tools");
   await page
-    .getByRole("heading", { name: "EYLO tools", exact: true })
+    .getByRole("heading", { name: "What would you like to do?", exact: true })
     .waitFor();
   for (const product of PRODUCT_TOOLS)
     assert.equal(
