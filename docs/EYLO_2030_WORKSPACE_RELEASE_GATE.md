@@ -30,3 +30,11 @@ The current feature sets a **700,000-byte raw/minified per-JavaScript-chunk maxi
 ## Not yet complete
 
 The complete EYLO 2030 mission remains phased work. Full goal orchestration, evidence screening to editable drafts, contextual EYRA authorizations and approvals, usability testing, and accessibility audit evidence are not yet provided by this increment. Do not promote to production before current-head CI and deployment checks pass.
+
+## Research data consent improvements
+
+Discovery does not silently persist a SearchHistory record when retrieval completes. Results stay in the current browser session until a user selects the explicit **Save search** control. Creating a project from research results explicitly discloses that the action also saves up to five papers, three researchers and two funding opportunities in that project. This is a user-initiated write, not autonomous EYRA execution.
+
+## Verification provenance
+
+The previous revision `70ea3821c6` passed Build and EYLO Quality Gate, including disposable PostgreSQL checks. Product quality failed because the *new Playwright test selector* ambiguously identified two buttons named “All tools”; its selector has been scoped to the mobile menu in the current source. The current PR head requires fresh checks and must not inherit a green result from another SHA.
