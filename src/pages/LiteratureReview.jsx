@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { BookOpen, Download, RefreshCw, Save } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { auditReviewMethods } from '@/lib/literature-review-methods-audit.mjs';
+import { createReviewEvidenceOutline } from '@/lib/literature-review-draft.mjs';
 import {
   emptyReviewProtocol,
   validateReviewProtocol,
@@ -24,6 +25,7 @@ const FIELD_LABELS = [
 ];
 
 export default function LiteratureReview() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const preferredProjectId = searchParams.get('project_id') || '';
   const selectionEpochRef = useRef(0);
@@ -199,6 +201,23 @@ export default function LiteratureReview() {
     setMessage('Human-reviewed screening log exported. Save separately to persist your decisions in EYLO.');
   };
 
+  const startEvidenceOutline = () => {
+    if (!selectedProject || hasUnsavedChanges) {
+      setError('Save your review protocol before preparing an editable evidence outline.');
+      return;
+    }
+    const checked = prepare();
+    if (!checked) return;
+    try {
+      const outline = createReviewEvidenceOutline({ project: selectedProject, protocol: checked, papers });
+      navigate('/documents/new', {
+        state: { reviewOutline: { projectId: selectedProject.id, filename: outline.filename, body: outline.body } },
+      });
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'Could not prepare the evidence outline.');
+    }
+  };
+
   const screening = Array.isArray(protocol.screening) ? protocol.screening : [];
   const counts = screeningCounts({ screening });
   const methodsAudit = auditReviewMethods(protocol, { libraryRowsShown: papers.length, listLimit: 100 });
@@ -342,6 +361,11 @@ export default function LiteratureReview() {
               className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-50">
               <Save size={16} aria-hidden="true" />{saving ? 'Saving…' : 'Save protocol to project'}
             </button>
+            <button type="button" disabled={saving || !selectedProject || hasUnsavedChanges || counts.included === 0} onClick={startEvidenceOutline}
+              aria-describedby="review-outline-help"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-5 text-sm font-semibold text-foreground hover:border-primary/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50">
+              <BookOpen size={16} aria-hidden="true" />Prepare editable evidence outline
+            </button>
             <button type="button" disabled={saving || !selectedProject} onClick={exportJson}
               className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-5 text-sm font-medium disabled:opacity-50">
               <Download size={16} aria-hidden="true" />Export reproducible JSON
@@ -350,6 +374,9 @@ export default function LiteratureReview() {
               className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-5 text-sm font-medium disabled:opacity-50">
               <Download size={16} aria-hidden="true" />Export screening CSV
             </button>
+            <p id="review-outline-help" className="basis-full text-xs leading-5 text-muted-foreground">
+              Save a valid protocol with at least one researcher-included publication before preparing a draft. The outline includes recorded source metadata only, opens unsaved in EYLO Create, and requires your review of the original papers.
+            </p>
             <button type="button" disabled={saving} onClick={() => { if (confirmDiscard()) setAttempt(value => value + 1); }}
               className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-4 text-sm">
               <RefreshCw size={15} aria-hidden="true" />Reload saved records
