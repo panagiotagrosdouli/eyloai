@@ -8,6 +8,7 @@ import { getPreferenceLocale, loadPreferences, subscribePreferences } from '@/li
 import { getLocalGreeting } from '@/lib/local-greeting';
 import { checkEyraCitationIds, isSafeEyraSourceUrl } from '@/lib/eyra-citation-ids.mjs';
 import { describeEyraCitedEvidence } from '@/lib/eyra-evidence-status.mjs';
+import { buildEvidenceOnlyFallback } from '@/lib/eyra-evidence-fallback.mjs';
 import {
   X, Mic, MicOff, Send, Sparkles, Loader2,
   Volume2, VolumeX, Target, FileText, Users,
@@ -154,56 +155,6 @@ async function retrieveEvidence(content, mode, workspaceContext) {
   if (paperSourcesUnavailable.length) blocks.push(`SOURCE STATUS | Partial scholarly retrieval: ${paperSourcesUnavailable.join(', ')} unavailable.`);
   if (failed.length) blocks.push(`SOURCE STATUS | ${failed.length} retrieval task(s) unavailable: ${failed.join('; ')}`);
   return { query, blocks, sources, attempted: true };
-}
-
-function buildVerifiedEvidenceFallback(evidence, error) {
-  const sources = evidence?.sources || [];
-  const authIssue = error?.status === 401 || /auth|session|sign in/i.test(error?.message || '');
-  const lines = [
-    '## Live retrieval completed',
-    authIssue
-      ? 'The secure AI session needs renewal, so I did not invent an AI synthesis. The verified records retrieved for this request are still available below.'
-      : 'The AI synthesis service did not finish, so I kept the response strictly to the verified records retrieved for this request.',
-  ];
-
-  if (!sources.length) {
-    lines.push(
-      '',
-      evidence?.attempted
-        ? 'No usable live records were returned for this query. Try adding a method, application, population, or date range.'
-        : 'This request needs AI reasoning rather than external retrieval. Refresh the page once to renew the secure session, then resend it.',
-    );
-    return lines.join('\n');
-  }
-
-  const grouped = Object.groupBy
-    ? Object.groupBy(sources, source => source.type)
-    : sources.reduce((groups, source) => {
-        (groups[source.type] ||= []).push(source);
-        return groups;
-      }, {});
-
-  Object.entries(grouped).forEach(([type, items]) => {
-    lines.push('', `### ${type}`);
-    items.slice(0, 6).forEach(source => {
-      const details = source.meta ? ` — ${source.meta}` : '';
-      lines.push(`- [${source.id}] [${source.title}](${source.url})${details}`);
-    });
-  });
-
-  lines.push('', '### Useful next step');
-  if (grouped.Paper?.length) {
-    lines.push('Start with the first two papers, compare their methods and limitations, then refine the query around the disagreement or missing evidence.');
-  } else if (grouped.Funding?.length) {
-    lines.push('Open the official opportunity record and verify scope, eligibility, deadline, and required partners before planning an application.');
-  } else if (grouped.Researcher?.length || grouped.Institution?.length) {
-    lines.push('Review the linked publication record to confirm expertise fit before considering outreach; publication activity does not imply availability.');
-  } else {
-    lines.push('Open the linked records and refine the query with the specific outcome you want.');
-  }
-  if (authIssue) lines.push('Refresh the page once to renew the secure session and ask EYRA to synthesize these same sources.');
-
-  return lines.join('\n');
 }
 
 function createWelcomeMessage(name = '') {
@@ -688,7 +639,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
       );
       const citations = checkEyraCitationIds(baseAnswer, evidence.sources);
       if (!citations.valid) throw Object.assign(
-        new Error('EYRA cited a source outside the verified retrieval set.'),
+        new Error('EYRA cited an identifier outside the retrieved source records.'),
         { actions: response?.actions || [] },
       );
       const toolActions = formatEyraToolActions(response?.actions);
@@ -706,7 +657,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
       speak(eyraMsg.content);
     } catch (error) {
       if (controller.signal.aborted) return;
-      const fallbackContent = buildVerifiedEvidenceFallback(evidence, error);
+      const fallbackContent = buildEvidenceOnlyFallback(evidence, error);
       const toolActions = formatEyraToolActions(error?.actions);
       setMessages(previous => [...previous, {
         role: 'eyra',
