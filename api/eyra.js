@@ -815,14 +815,29 @@ export default async function handler(request, response) {
       if (request.body?.enable_project_tools !== true) {
         return response.status(502).json({ error: 'EYRA requested a tool that is not enabled.', code: 'TOOL_NOT_ENABLED' });
       }
+      // Reject malformed or repeated provider IDs before sending another
+      // Responses request. Duplicate call IDs cannot be safely disambiguated
+      // in the stateless provider transcript.
+      const roundIds = new Set();
+      for (const call of calls) {
+        if (typeof call.call_id !== 'string' || !call.call_id
+          || seenToolCallIds.has(call.call_id) || roundIds.has(call.call_id)) {
+          actionResults.push({
+            action_id: call.call_id, tool: call.name, status: 'failed',
+            error: 'Duplicate or invalid tool call identifier.',
+          });
+          return response.status(502).json({
+            error: 'EYRA received an invalid tool sequence. Check completed actions before retrying.',
+            code: 'INVALID_TOOL_SEQUENCE',
+            actions: actionResults,
+          });
+        }
+        roundIds.add(call.call_id);
+      }
+      for (const id of roundIds) seenToolCallIds.add(id);
       const outputs = [];
       for (const call of calls) {
         try {
-          // A repeated provider call ID must not re-execute a write, even across rounds.
-          if (typeof call.call_id !== 'string' || !call.call_id || seenToolCallIds.has(call.call_id)) {
-            throw new Error('Duplicate or invalid tool call identifier.');
-          }
-          seenToolCallIds.add(call.call_id);
           if (call.name === 'project.create' && actionResults.some((action) => action.tool === 'project.create' && action.status === 'succeeded')) {
             throw new Error('Only one project can be created in a single EYRA request.');
           }
