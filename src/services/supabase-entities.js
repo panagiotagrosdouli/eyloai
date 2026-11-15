@@ -107,6 +107,43 @@ function entityRepository({ table }) {
       }
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
     },
+    async listPage(sort = '-updated_date', pageSize = 100, offset = 0, expectedOwnerId = null) {
+      const limit = Number(pageSize);
+      const start = Number(offset);
+      if (!Number.isSafeInteger(limit) || limit < 1 || limit > 200
+          || !Number.isSafeInteger(start) || start < 0) {
+        throw new Error('A valid page size and offset are required.');
+      }
+
+      const descending = sort.startsWith('-');
+      const column = descending ? sort.slice(1) : sort;
+      if (!['created_date', 'updated_date'].includes(column)) {
+        throw new Error('Paged lists must be ordered by creation or update date.');
+      }
+
+      const user = await currentUser();
+      if (expectedOwnerId && user.id !== expectedOwnerId) {
+        throw Object.assign(new Error('The signed-in account changed. Reload this workspace.'), { code: 'ENTITY_OWNER_CHANGED' });
+      }
+
+      const { data, error } = await requireSupabase()
+        .from(table)
+        .select('*')
+        .eq('user_id', user.id)
+        .order(column, { ascending: !descending })
+        .order('id', { ascending: true })
+        .range(start, start + limit);
+      if (error) throw error;
+      if (expectedOwnerId && (data || []).some(row => row?.user_id !== expectedOwnerId)) {
+        throw Object.assign(new Error('This collection could not be verified for the signed-in account.'), { code: 'ENTITY_OWNER_MISMATCH' });
+      }
+
+      const rows = data || [];
+      return {
+        items: sortEntities(rows.slice(0, limit).map(rowToEntity), sort),
+        hasMore: rows.length > limit,
+      };
+    },
     async filter(filters = {}, sort = '-created_date', limit = 100) {
       const user = await currentUser();
       const descending = sort.startsWith('-');
