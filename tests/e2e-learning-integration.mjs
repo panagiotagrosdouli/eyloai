@@ -652,11 +652,11 @@ try {
   assert.equal(workspaceExport.collections.time_entries.length, 1);
   assert.ok(workspaceExport.collections.projects.every(row => row.user_id === user.id));
   assert.ok(Object.keys(workspaceExport.collections).includes('eyra_messages'));
-  assert.equal(Object.keys(workspaceExport.collections).length,40);
+  assert.equal(Object.keys(workspaceExport.collections).length,WORKSPACE_EXPORT_TABLES.length);
   for(const table of contributionTables) {assert.equal(workspaceExport.collections[table].length,1); assert.equal(workspaceExport.collections[table][0].user_id,user.id);}
   assert.equal(workspaceJson.includes('never-export'),false);
   assert.equal(workspaceJson.includes('Foreign collaboration data'),false);
-  console.log('PASS fixture: Settings downloads owner-validated portable workspace v3 with40 collections and excludes token material/foreign contributions; including canonical notes, learning and timer records; file bytes explicitly excluded.');
+  console.log(`PASS fixture: Settings downloads owner-validated portable workspace v3 with${WORKSPACE_EXPORT_TABLES.length} collections and excludes token material/foreign contributions; including canonical notes, learning and timer records; file bytes explicitly excluded.`);
   const privateATitle = 'Account A confidential fixture paper';
   const privateBTitle = 'Account B confidential fixture paper';
   const ownerB = { ...user, id: '00000000-0000-0000-0000-000000000002', email: 'second-fixture@example.org' };

@@ -32,7 +32,7 @@ test("private legacy caches cannot migrate to another identity or retain an unkn
   assert.equal(local.getItem("eyra_future_me_goal"), null);
   assert.equal(local.getItem("eylo_prefs"), "device theme");
 });
-test("confirmed deletion clears owned local catalog/drafts without erasing another owner or device preferences", () => {
+test("confirmed deletion clears owned local legacy catalog/drafts without erasing another owner or device preferences", () => {
   const local = storage({
     "eylo.research-data-catalog.v1:a": "A",
     "eylo.research-data-catalog.v1:b": "B",

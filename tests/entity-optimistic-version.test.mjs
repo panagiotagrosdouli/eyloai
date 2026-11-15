@@ -24,7 +24,7 @@ test('zero-row update is a conflict rather than a successful data save', () => {
 test('the repository implements a conditional update under owner and updated_date predicates', () => {
   const source = readFileSync(new URL('../src/services/supabase-entities.js', import.meta.url), 'utf8');
   const start = source.indexOf('async updateIfUnchanged(entityId, patch, expectedUpdatedDate)');
-  const end = source.indexOf('async delete(entityId)', start);
+  const end = source.indexOf('async delete(entityId', start);
   assert.ok(start >= 0 && end > start);
   const guarded = source.slice(start, end);
   assert.match(guarded, /requireEntityVersion\(expectedUpdatedDate\)/);
