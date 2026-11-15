@@ -370,3 +370,82 @@ test('private workspace read tools always apply owner predicates and bounded pre
     globalThis.fetch = previousFetch;
   }
 });
+
+test('authorized contextual resource is resolved under bearer and owner, not from browser text', async () => {
+  const previousFetch = globalThis.fetch;
+  const id = '123e4567-e89b-42d3-a456-426614174000';
+  let modelSeen = false;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.includes('/rest/v1/projects?')) {
+      const u = new URL(address);
+      assert.equal(u.searchParams.get('user_id'), 'eq.user-a');
+      assert.equal(u.searchParams.get('id'), 'eq.' + id);
+      assert.equal(options.headers.authorization, 'Bearer user-access-token');
+      return new Response(JSON.stringify([{ id, data: {
+        title: 'Research project',
+        description: 'Untrusted project description',
+        private_token: 'must-not-be-sent',
+      } }]), { status: 200 });
+    }
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address === 'https://api.openai.com/v1/responses') {
+      const input = JSON.parse(options.body);
+      assert.match(input.instructions, /Research project/);
+      assert.match(input.instructions, /untrusted data/i);
+      assert.doesNotMatch(input.instructions, /must-not-be-sent/);
+      modelSeen = true;
+      return new Response(JSON.stringify({ id: 'context_final', status: 'completed',
+        output: [{ content: [{ type: 'output_text', text: 'Based on your project context.' }] }],
+      }), { status: 200 });
+    }
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({
+      method: 'POST', headers: { authorization: 'Bearer user-access-token' },
+      body: { prompt: 'Explain this project.', resource_context: { kind: 'project', id } },
+    }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(modelSeen, true);
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
+
+test('context rejects invalid or unauthorized resources before quota reservation or provider call', async () => {
+  const previousFetch = globalThis.fetch;
+  const id = '123e4567-e89b-42d3-a456-426614174000';
+  let quotaCalls = 0;
+  let aiCalls = 0;
+  globalThis.fetch = async url => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.includes('/rest/v1/projects?')) return new Response('[]', { status: 200 });
+    if (address.includes('/reserve_eyra_usage')) quotaCalls += 1;
+    if (address.includes('api.openai.com')) aiCalls += 1;
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    for (const [resource_context, status, code] of [
+      [{ kind: 'project', id: 'not-an-id' }, 400, 'INVALID_RESOURCE_CONTEXT'],
+      [{ kind: 'unknown', id }, 400, 'INVALID_RESOURCE_CONTEXT'],
+      [{ kind: 'project', id, injected: true }, 400, 'INVALID_RESOURCE_CONTEXT'],
+      [{ kind: 'project', id }, 404, 'RESOURCE_NOT_FOUND'],
+    ]) {
+      const response = responseMock();
+      await handler({
+        method: 'POST', headers: { authorization: 'Bearer user-access-token' },
+        body: { prompt: 'Describe resource.', resource_context },
+      }, response);
+      assert.equal(response.statusCode, status);
+      assert.equal(response.payload.code, code);
+    }
+    assert.equal(quotaCalls, 0);
+    assert.equal(aiCalls, 0);
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
