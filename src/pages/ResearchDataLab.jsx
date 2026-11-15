@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { base44 } from '@/api/base44Client';
 import { BarChart3, Database, Download, FileSpreadsheet, LockKeyhole, RotateCcw, Trash2, Upload } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import {
@@ -15,7 +16,7 @@ import {
 } from '@/lib/research-data.mjs';
 import { auditResearchDataQuality } from '@/lib/research-data-quality.mjs';
 import { sha256ResearchFile, buildResearchDataProvenance } from '@/lib/research-data-provenance.mjs';
-import { addResearchCatalogEntry, clearResearchCatalog, exportResearchCatalogJson, readResearchCatalog, removeResearchCatalogEntry, researchCatalogStorageKey } from '@/lib/research-catalog.mjs';
+import { exportResearchCatalogJson, normalizeResearchCatalogEntry } from '@/lib/research-catalog.mjs';
 
 const numberFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 4 });
 
@@ -53,19 +54,27 @@ export default function ResearchDataLab() {
   const [catalogError, setCatalogError] = useState('');
   const [catalogStatus, setCatalogStatus] = useState('');
   const [confirmCatalogClear, setConfirmCatalogClear] = useState(false);
-  const catalogKey = useMemo(() => researchCatalogStorageKey(user?.id), [user?.id]);
+  const catalogOwner = user?.id || '';
+  const [catalogLoading, setCatalogLoading] = useState(false);
   useEffect(() => {
+    let active = true;
     setCatalogEntries([]);
     setCatalogStatus('');
     setCatalogError('');
     setConfirmCatalogClear(false);
-    if (!catalogKey) {
-      setCatalogError('Sign in to access this account’s browser-local catalog.');
-      return;
+    if (!catalogOwner) {
+      setCatalogError('Sign in to access your cloud catalog.');
+      return () => { active = false; };
     }
-    try { setCatalogEntries(readResearchCatalog(window.localStorage, catalogKey)); }
-    catch (cause) { setCatalogError(cause.message || 'The local catalog could not be opened.'); }
-  }, [catalogKey]);
+    setCatalogLoading(true);
+    base44.entities.ResearchDataset.list('-created_date', 100, catalogOwner)
+      .then((rows) => {
+        if (active) setCatalogEntries(rows.map((row) => normalizeResearchCatalogEntry({ ...row, addedAt: row.addedAt || row.created_date })));
+      })
+      .catch((cause) => { if (active) setCatalogError(cause.message || 'The cloud catalog could not be loaded.'); })
+      .finally(() => { if (active) setCatalogLoading(false); });
+    return () => { active = false; };
+  }, [catalogOwner]);
   const summaries = useMemo(() => summarizeResearchData(dataset, { minimumCellSize }), [dataset, minimumCellSize]);
   const quality = useMemo(() => dataset ? auditResearchDataQuality(dataset) : null, [dataset]);
   const numericColumns = summaries.filter((summary) => summary.type === 'numeric').map((summary) => summary.column);
@@ -204,38 +213,50 @@ export default function ResearchDataLab() {
     }
   };
 
-  const saveToCatalog = () => {
+  const saveToCatalog = async () => {
     if (!dataset) return;
-    if (!catalogKey) { setCatalogError('Sign in before saving dataset metadata.'); return; }
+    if (!catalogOwner) { setCatalogError('Sign in before saving dataset metadata.'); return; }
+    const entry = normalizeResearchCatalogEntry({
+      id: window.crypto.randomUUID(), fileName: filename, sha256: fileDigest,
+      byteLength: fileBytes, rowCount: dataset.rows.length, columnCount: dataset.headers.length,
+      addedAt: new Date().toISOString(),
+    });
     try {
-      const result = addResearchCatalogEntry(window.localStorage, {
-        id: window.crypto.randomUUID(), fileName: filename, sha256: fileDigest,
-        byteLength: fileBytes, rowCount: dataset.rows.length, columnCount: dataset.headers.length,
-        addedAt: new Date().toISOString(),
-      }, catalogKey);
-      setCatalogEntries(result.entries);
+      const saved = await base44.entities.ResearchDataset.create(entry, catalogOwner);
+      const savedEntry = normalizeResearchCatalogEntry({ ...saved, addedAt: saved.addedAt || saved.created_date });
+      setCatalogEntries((previous) => [savedEntry, ...previous].slice(0, 100));
       setCatalogError('');
-      setCatalogStatus(result.duplicate ? 'This exact file fingerprint is already in your catalog.' : 'Dataset metadata saved in this browser.');
-    } catch (cause) { setCatalogError(cause.message || 'The local catalog could not save this entry.'); }
+      setCatalogStatus('Dataset metadata saved to your EYLO workspace.');
+    } catch (cause) {
+      if (cause?.code === '23505' && entry.sha256) {
+        try {
+          const current = await base44.entities.ResearchDataset.list('-created_date', 100, catalogOwner);
+          setCatalogEntries(current.map((row) => normalizeResearchCatalogEntry({ ...row, addedAt: row.addedAt || row.created_date })));
+        } catch { /* Preserve the verified unique-conflict result when refresh is unavailable. */ }
+        setCatalogStatus('This exact file fingerprint is already in your catalog.');
+        return;
+      }
+      setCatalogError(cause.message || 'The cloud catalog could not save this entry.');
+    }
   };
 
-  const deleteCatalogEntry = (id) => {
+  const deleteCatalogEntry = async (id) => {
     try {
-      const entries = removeResearchCatalogEntry(window.localStorage, id, catalogKey);
-      setCatalogEntries(entries);
+      await base44.entities.ResearchDataset.delete(id, catalogOwner);
+      setCatalogEntries((previous) => previous.filter((item) => item.id !== id));
       setCatalogError('');
-      setCatalogStatus('Catalog entry removed from this browser.');
+      setCatalogStatus('Catalog entry removed from your EYLO workspace.');
     } catch (cause) { setCatalogError(cause.message || 'The catalog entry could not be removed.'); }
   };
 
-  const deleteCatalog = () => {
+  const deleteCatalog = async () => {
     try {
-      clearResearchCatalog(window.localStorage, catalogKey);
+      for (const entry of catalogEntries) await base44.entities.ResearchDataset.delete(entry.id, catalogOwner);
       setCatalogEntries([]);
       setCatalogError('');
-      setCatalogStatus('Local catalog cleared.');
+      setCatalogStatus('Cloud catalog cleared.');
       setConfirmCatalogClear(false);
-    } catch (cause) { setCatalogError(cause.message || 'The local catalog could not be cleared.'); }
+    } catch (cause) { setCatalogError(cause.message || 'The cloud catalog could not be cleared completely. Reload to see saved entries.'); }
   };
 
   const exportCatalog = () => {
@@ -244,7 +265,7 @@ export default function ResearchDataLab() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'eylo-local-research-catalog.json';
+      link.download = 'eylo-research-catalog.json';
       document.body.append(link);
       link.click();
       link.remove();
@@ -321,21 +342,21 @@ export default function ResearchDataLab() {
       <section className="rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="catalog-title">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 id="catalog-title" className="text-lg font-semibold">Local Data Catalog</h2>
-            <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">Opt in to save a dataset name, dimensions, file size, saved date and optional SHA-256 fingerprint in this browser, scoped to your signed-in account. CSV contents and column values are never stored, so reselect the original file to analyze it again after leaving this page. Names and hashes can still be sensitive; catalog exports do not guarantee anonymity.</p>
+            <h2 id="catalog-title" className="text-lg font-semibold">Data Catalog</h2>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">Opt in to save a dataset name, dimensions, file size, saved date and optional SHA-256 fingerprint to your private EYLO workspace. Metadata syncs across devices. CSV contents and column values remain in this browser session only; reselect the original file to analyze it again after leaving this page. Names and hashes can still be sensitive; catalog exports do not guarantee anonymity.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={exportCatalog} disabled={!catalogEntries.length} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50">
               <Download size={15} aria-hidden="true" /> Export catalog metadata
             </button>
-            <button type="button" onClick={() => setConfirmCatalogClear(true)} disabled={!catalogKey || (!catalogEntries.length && !catalogError)} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50">
+            <button type="button" onClick={() => setConfirmCatalogClear(true)} disabled={!catalogOwner || (!catalogEntries.length && !catalogError)} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50">
               <Trash2 size={15} aria-hidden="true" /> Clear catalog
             </button>
           </div>
         </div>
         {confirmCatalogClear && <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3" role="alertdialog" aria-labelledby="clear-catalog-title" aria-describedby="clear-catalog-description">
           <h3 id="clear-catalog-title" className="text-sm font-semibold">Clear all catalog metadata?</h3>
-          <p id="clear-catalog-description" className="mt-1 text-sm text-muted-foreground">This removes {catalogEntries.length} browser-local entries for this account. It does not affect source files or analysis data.</p>
+          <p id="clear-catalog-description" className="mt-1 text-sm text-muted-foreground">This removes {catalogEntries.length} cloud metadata entries for this account. It does not affect source files or analysis data.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button type="button" onClick={() => setConfirmCatalogClear(false)} className="min-h-10 rounded-lg border border-border px-3 text-sm">Cancel</button>
             <button type="button" onClick={deleteCatalog} className="min-h-10 rounded-lg bg-destructive px-3 text-sm font-semibold text-destructive-foreground">Confirm clear catalog</button>
@@ -343,7 +364,7 @@ export default function ResearchDataLab() {
         </div>}
         {catalogError && <p role="alert" className="mt-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{catalogError}</p>}
         {catalogStatus && <p role="status" className="mt-3 text-sm text-muted-foreground">{catalogStatus}</p>}
-        {catalogEntries.length ? (
+        {catalogLoading ? <p role="status" className="mt-4 text-sm text-muted-foreground">Loading your cloud catalog…</p> : catalogEntries.length ? (
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
             {catalogEntries.map((entry) => (
               <li key={entry.id} className="min-w-0 rounded-xl border border-border p-3">
@@ -363,7 +384,7 @@ export default function ResearchDataLab() {
             ))}
           </ul>
         ) : !catalogError ? (
-          <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">No catalog entries yet. Open a CSV and choose “Save metadata to Data Catalog” to remember its identity on this device.</p>
+          <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">No catalog entries yet. Open a CSV and choose “Save metadata to Data Catalog” to sync its metadata to your EYLO workspace.</p>
         ) : null}
       </section>
 

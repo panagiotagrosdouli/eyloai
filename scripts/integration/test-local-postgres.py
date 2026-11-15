@@ -81,6 +81,8 @@ try:
     print('PASS: research budget and thesis canonical project/Note persistence, unrelated-data preservation, stale-save rejection and outsider isolation.', flush=True)
     sql((ROOT / 'tests/integration/complete-products-postgres.sql').read_text())
     print('PASS: new product canonical actions/replays, team consent/role revocation, peer review privacy, feedback trusted-role checks, personal token scopes and publishing budgets.', flush=True)
+    sql((ROOT / 'tests/integration/research-catalog-postgres.sql').read_text())
+    print('PASS: Research Data Lab catalog metadata bounds, fingerprint uniqueness, anonymous denial and two-account RLS isolation.', flush=True)
     sql((ROOT / 'tests/integration/account-deletion-postgres.sql').read_text())
     print('PASS: private deletion lifecycle, stale-token lockdown, service-only leases, Storage ordering, Auth cascades and other-author manuscript preservation; no hosted file bytes.', flush=True)
     export_tables = json.loads(subprocess.check_output(['node', '--input-type=module', '-e',

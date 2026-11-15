@@ -1836,7 +1836,7 @@
       "id": 31,
       "name": "EYLO Export Center",
       "status": "Partially implemented",
-      "tracker_statement": "PARTIAL: Settings portable workspace v3 paginates40 collections, including authored collaboration data and own memberships; uses directory user_id primary key, validates owner and revalidates account before download. Token metadata only; digest/raw secret excluded by projection and sanitization. Settings now links the implemented reauthenticated, leased/receipt-resumable isolated-staging deletion flow; confirmed same-owner deletion clears owned browser catalogs/drafts. Remaining: Hosted file-byte/Auth/privacy acceptance, MFA/passwordless and billing lifecycle, full DSAR/processor/log/backup retention review; no production activation.",
+      "tracker_statement": "PARTIAL: Settings portable workspace v3 paginates41 collections, including authored collaboration data and own memberships; uses directory user_id primary key, validates owner and revalidates account before download. Token metadata only; digest/raw secret excluded by projection and sanitization. Settings now links the implemented reauthenticated, leased/receipt-resumable isolated-staging deletion flow; confirmed same-owner deletion clears owned browser drafts and cascades cloud catalog rows. Remaining: Hosted file-byte/Auth/privacy acceptance, MFA/passwordless and billing lifecycle, full DSAR/processor/log/backup retention review; no production activation.",
       "source_files": [
         "src/lib/auth/privateBrowserData.mjs",
         "src/lib/workspace-export.mjs",
@@ -1942,7 +1942,7 @@
         "tests/private-browser-deletion.test.mjs",
         "tests/workspace-export.test.mjs"
       ],
-      "user_workflow_and_remaining_acceptance": "Settings portable workspace v3 paginates40 collections, including authored collaboration data and own memberships; uses directory user_id primary key, validates owner and revalidates account before download. Token metadata only; digest/raw secret excluded by projection and sanitization. Settings now links the implemented reauthenticated, leased/receipt-resumable isolated-staging deletion flow; confirmed same-owner deletion clears owned browser catalogs/drafts. Remaining: Hosted file-byte/Auth/privacy acceptance, MFA/passwordless and billing lifecycle, full DSAR/processor/log/backup retention review; no production activation.",
+      "user_workflow_and_remaining_acceptance": "Settings portable workspace v3 paginates41 collections, including authored collaboration data and own memberships; uses directory user_id primary key, validates owner and revalidates account before download. Token metadata only; digest/raw secret excluded by projection and sanitization. Settings now links the implemented reauthenticated, leased/receipt-resumable isolated-staging deletion flow; confirmed same-owner deletion clears owned browser drafts and cascades cloud catalog rows. Remaining: Hosted file-byte/Auth/privacy acceptance, MFA/passwordless and billing lifecycle, full DSAR/processor/log/backup retention review; no production activation.",
       "workflow_entry_path": "/settings",
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
@@ -4608,10 +4608,12 @@
       "id": 73,
       "name": "Data Catalog",
       "status": "Partially implemented",
-      "tracker_statement": "PARTIAL: Existing Data Lab parses bounded local CSV files, produces deterministic summaries/comparisons and retains an account-scoped metadata-only browser catalog. Actual local browser fixtures pass; raw datasets are not silently uploaded. Remaining: Canonical hosted dataset/file integration, secure cloud metadata persistence, data governance/provenance and full Data Catalog acceptance. The local metadata catalog is not a server-side data repository.",
+      "tracker_statement": "PARTIAL: Candidate adds a private Supabase metadata catalog with account RLS, server-enforced bounds, per-user fingerprint uniqueness, workspace export and account-deletion cascade. CSV bytes and values remain page-memory-only and are never uploaded. Hosted staging, cloud Storage integration, data-governance review and full product acceptance remain open.",
       "source_files": [
         "src/lib/research-catalog.mjs",
-        "src/pages/ResearchDataLab.jsx"
+        "src/lib/workspace-export.mjs",
+        "src/pages/ResearchDataLab.jsx",
+        "src/services/supabase-entities.js"
       ],
       "frontend_routes": [
         {
@@ -4620,28 +4622,36 @@
         }
       ],
       "backend_apis": [],
-      "supabase_entities": [],
-      "migration_files": [],
-      "authentication": "Public and/or protected shared surface; see route guards",
-      "open_prs": [
-        387
+      "supabase_entities": [
+        "research_datasets"
       ],
+      "migration_files": [
+        "supabase/migrations/20261115090000_research_dataset_catalog.sql"
+      ],
+      "authentication": "Public and/or protected shared surface; see route guards",
+      "open_prs": [],
       "automated_test_files": [
+        "tests/e2e-auth.mjs",
+        "tests/integration/research-catalog-postgres.sql",
         "tests/research-catalog.test.mjs"
       ],
-      "user_workflow_and_remaining_acceptance": "Existing Data Lab parses bounded local CSV files, produces deterministic summaries/comparisons and retains an account-scoped metadata-only browser catalog. Actual local browser fixtures pass; raw datasets are not silently uploaded. Remaining: Canonical hosted dataset/file integration, secure cloud metadata persistence, data governance/provenance and full Data Catalog acceptance. The local metadata catalog is not a server-side data repository.",
+      "user_workflow_and_remaining_acceptance": "PARTIAL: Candidate adds a private Supabase metadata catalog with account RLS, server-enforced bounds, per-user fingerprint uniqueness, workspace export and account-deletion cascade. CSV bytes and values remain page-memory-only and are never uploaded. Hosted staging, cloud Storage integration, data-governance review and full product acceptance remain open.",
       "workflow_entry_path": "/labs/data",
       "workflow_project_path": null,
       "workflow_acceptance": "Scoped local workflow verified; full product acceptance remains unestablished",
       "implementation_commit": "7cb7b2d74671d188d8c494f8e3e428bfb5685256",
       "automated_test_status": "Combined suite PASS: 732 tests; mapped file presence is not full product acceptance",
       "automated_test_source_commit": "f48e8430d49085384aa1b8a25565806329134090",
-      "integration_test_status": "Partial local verification: 727 unit/API tests and production build; fixture browser suites;21 selected migrations on actual disposable PostgreSQL; public provider diagnostic is real HTTP, not human relevance acceptance. Hosted Auth/Storage/OpenAI/Stripe/LiveKit acceptance was not executed.. Remaining product criteria unverified.",
+      "integration_test_status": "Unit validation/export tests pass and production build passes. Browser E2E fixture added but not executed because Chromium socket creation is denied in this environment; two-account PostgreSQL SQL fixture added but local PostgreSQL/Docker is unavailable. Hosted Auth/Storage and staging remain unverified.",
       "staging_verification": "NOT_RUN: intended EYLO staging is not connected",
       "production_verification": "No private product acceptance. Public identity/capabilities GETs only; see deployment-probe.json.",
       "deployment_dependencies": [],
       "known_blockers": [
         "Acceptance criteria and full product workflow still incomplete"
+      ],
+      "files": [
+        "supabase/migrations/20261115090000_research_dataset_catalog.sql",
+        "tests/integration/research-catalog-postgres.sql"
       ]
     },
     {

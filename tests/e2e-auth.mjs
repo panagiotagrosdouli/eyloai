@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { createServer } from 'node:net';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, readFile as readDataLabDownload } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { parseResearchCsv } from '../src/lib/research-data.mjs';
@@ -179,6 +179,31 @@ try {
     user: testUser,
   }));
   await dataLab.route('https://eylo-auth-test.supabase.co/auth/v1/user**', (route) => sendAuthJson(route, testUser));
+  const catalogRows = [];
+  await dataLab.route('https://eylo-auth-test.supabase.co/rest/v1/research_datasets**', async (route) => {
+    const request = route.request();
+    const headers = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, POST, DELETE, OPTIONS', 'access-control-allow-headers': '*' };
+    if (request.method() === 'OPTIONS') { await route.fulfill({ status: 204, headers }); return; }
+    const url = new URL(request.url());
+    if (request.method() === 'GET') {
+      await route.fulfill({ status: 200, headers, contentType: 'application/json', body: JSON.stringify(catalogRows) });
+      return;
+    }
+    if (request.method() === 'POST') {
+      const row = { id: randomUUID(), user_id: testUser.id, ...request.postDataJSON() };
+      catalogRows.push({ ...row, created_date: new Date().toISOString(), updated_date: new Date().toISOString() });
+      await route.fulfill({ status: 201, headers, contentType: 'application/json', body: JSON.stringify(catalogRows.at(-1)) });
+      return;
+    }
+    if (request.method() === 'DELETE') {
+      const id = url.searchParams.get('id')?.replace(/^eq\./, '');
+      const index = catalogRows.findIndex((row) => row.id === id);
+      const [removed] = index >= 0 ? catalogRows.splice(index, 1) : [];
+      await route.fulfill({ status: 200, headers, contentType: 'application/json', body: JSON.stringify(removed ? [{ id: removed.id }] : []) });
+      return;
+    }
+    await route.fulfill({ status: 405, headers, body: 'Method not allowed' });
+  });
   await dataLab.goto(`${baseUrl}/login`);
   await dataLab.getByLabel('Email address').fill(testUser.email);
   await dataLab.getByLabel('Password').fill('Test-password-123');
@@ -216,16 +241,16 @@ try {
   await dataLab.getByText('Local file identity (SHA-256)').waitFor();
   await dataLab.getByText(digestOf(originalCsv), { exact: true }).waitFor();
   await dataLab.getByRole('button', { name: 'Save metadata to Data Catalog' }).click();
-  await dataLab.getByRole('status').filter({ hasText: 'Dataset metadata saved in this browser.' }).waitFor();
+  await dataLab.getByRole('status').filter({ hasText: 'Dataset metadata saved to your EYLO workspace.' }).waitFor();
   assert.equal(await dataLab.getByRole('listitem').filter({ hasText: digestOf(originalCsv) }).count(), 1,
     'saved metadata must appear in the Data Catalog list');
-  const catalogStorage = await dataLab.evaluate(() => localStorage.getItem('eylo.research-data-catalog.v1:eylo-e2e-user'));
+  const catalogStorage = JSON.stringify(catalogRows);
   assert.ok(catalogStorage.includes(digestOf(originalCsv)));
   assert.equal(catalogStorage.includes(canary), false, 'the catalog must never persist raw CSV values');
   const catalogDownloadPromise = dataLab.waitForEvent('download');
   await dataLab.getByRole('button', { name: 'Export catalog metadata' }).click();
   const catalogDownload = await catalogDownloadPromise;
-  assert.equal(catalogDownload.suggestedFilename(), 'eylo-local-research-catalog.json');
+  assert.equal(catalogDownload.suggestedFilename(), 'eylo-research-catalog.json');
   const exportedCatalog = JSON.parse(await readDataLabDownload(await catalogDownload.path(), 'utf8'));
   assert.equal(exportedCatalog.rawDataIncluded, false);
   assert.equal(exportedCatalog.anonymityGuaranteed, false);
@@ -257,8 +282,7 @@ try {
   await dataLab.getByRole('button', { name: 'Save metadata to Data Catalog' }).click();
   await dataLab.getByRole('button', { name: 'Clear catalog' }).click();
   await dataLab.getByRole('button', { name: 'Confirm clear catalog' }).click();
-  assert.equal(await dataLab.evaluate(() => localStorage.getItem('eylo.research-data-catalog.v1:eylo-e2e-user')), null,
-    'Clear catalog must remove the browser-local metadata');
+  assert.equal(catalogRows.length, 0, 'Clear catalog must remove the cloud metadata');
 
   await dataLab.getByRole('button', { name: 'Clear data' }).click();
   await dataLab.getByRole('heading', { name: 'Column summary' }).waitFor({ state: 'detached' });

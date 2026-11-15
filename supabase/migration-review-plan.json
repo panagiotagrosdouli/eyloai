@@ -23,6 +23,7 @@
     "20261113114924_eyra_conversation_snapshots.sql",
     "20261113120556_eyra_snapshot_retry_identity.sql",
     "20261113180517_complete_workspace_products.sql",
+    "20261115090000_research_dataset_catalog.sql",
     "20261114063216_account_deletion_lifecycle.sql"
   ],
   "files": [
@@ -193,6 +194,12 @@
       "sha256": "00def41bb5e691757d1045db902ce40fe7ea0caa1d1f6c1dc7d4cde931410fbe",
       "classification": "canonical-local-replay",
       "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261115090000_research_dataset_catalog.sql",
+      "sha256": "127b102ef59c0925b5326dd7ec9b24916d3573f542c178d3fd8cd690f505ea52",
+      "classification": "canonical-local-replay",
+      "reason": "User-scoped Research Data Lab metadata catalog with database-enforced bounds, deduplication and RLS; local replay only, not hosted migration authorization."
     }
   ]
 }

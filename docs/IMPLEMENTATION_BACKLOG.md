@@ -74,13 +74,14 @@
 - [ ] Mark model-generated proposal text as draft and require human review.
 - [ ] Add project linking, export and tests for missing/expired funding metadata.
 
-### 9. Research Data Lab — implemented for local analysis; hosted persistence intentionally off
+### 9. Research Data Lab — local analysis with a private cloud metadata catalog
 
 - [x] Add browser-only CSV parsing with 5 MB, 10,000 row, 50 column and per-cell limits; files are not uploaded or sent to AI.
 - [x] Add preview, missingness/distinct counts, numeric summaries, sample standard deviation, selectable row chart, and reproducible calculation notes.
 - [x] Export the summary as CSV with formula-safe text fields; clear local data on demand and on page exit.
+- [x] Save opt-in file metadata and fingerprints to the user-scoped Supabase catalog; enforce bounds, per-user fingerprint uniqueness and RLS. Include metadata in workspace export and account-deletion cascade.
 - [x] Cover quoted fields, malformed rows, bounds, missing data, statistics, chart selection and safe export with deterministic tests.
-- [ ] Add desktop/mobile browser E2E and review screen-reader chart rendering; data remains session-only until a user-controlled project-save design is specified.
+- [ ] Verify the cloud catalog on isolated staging with two real Auth users and Storage permissions; review screen-reader chart rendering. Dataset bytes remain session-only pending a separate user-controlled project-save design.
 
 ### 10. Reproducibility Checker — not implemented
 

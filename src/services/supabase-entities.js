@@ -22,6 +22,7 @@ const ENTITY_SCHEMAS = {
   Watchlist: { table: 'watchlists' },
   MonitoringDiscovery: { table: 'monitoring_discoveries' },
   Notification: { table: 'notifications' },
+  ResearchDataset: { table: 'research_datasets' },
 };
 
 function containsSavedEyraOutput(value = {}) {
@@ -203,8 +204,11 @@ function entityRepository({ table }) {
       if (expectedOwnerId && data?.user_id !== expectedOwnerId) throw Object.assign(new Error('The record owner could not be verified.'), { code: 'ENTITY_OWNER_MISMATCH' });
       return rowToEntity(data);
     },
-    async create(payload) {
+    async create(payload, expectedOwnerId = null) {
       const user = await currentUser();
+      if (expectedOwnerId && user.id !== expectedOwnerId) {
+        throw Object.assign(new Error('The signed-in account changed. Reload this workspace.'), { code: 'ENTITY_OWNER_CHANGED' });
+      }
       await assertCreateAllowed(table, user);
       const write = splitPayload(payload);
       const { data, error } = await requireSupabase().from(table).insert({ user_id: user.id, ...write }).select('*').single();
@@ -253,8 +257,11 @@ function entityRepository({ table }) {
       }
       return rowToEntity(row);
     },
-    async delete(entityId) {
+    async delete(entityId, expectedOwnerId = null) {
       const user = await currentUser();
+      if (expectedOwnerId && user.id !== expectedOwnerId) {
+        throw Object.assign(new Error('The signed-in account changed. Reload this workspace.'), { code: 'ENTITY_OWNER_CHANGED' });
+      }
       const { data, error } = await requireSupabase().from(table).delete().eq('id', entityId).eq('user_id', user.id).select('id');
       if (error) throw error;
       // A zero-row delete must never be reported as successful.
