@@ -122,9 +122,9 @@ function ToolDirectory() {
       </div>
       <p role="status" className="mt-6 text-xs text-muted-foreground">{matches.length} {matches.length === 1 ? 'tool' : 'tools'} available</p>
       {matches.length ? <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {matches.map(item => <Link key={item.slug + ':' + item.category} to={toolHref(item)}
+        {matches.map(item => <Link key={item.slug + ':' + item.category} to={toolHref(item)} aria-label={item.title + ': ' + item.description}
           className="group flex min-h-36 flex-col rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary/40 hover:bg-secondary/30">
-          <span className="text-xs font-semibold text-primary">{item.category}</span>
+          <span aria-hidden="true" className="text-xs font-semibold text-primary">{item.category}</span>
           <h2 className="mt-2 text-base font-semibold text-foreground group-hover:text-primary">{item.title}</h2>
           <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">{item.description}</p>
           <span className="mt-3 text-sm font-semibold text-primary">Open tool <span aria-hidden="true">→</span></span>
