@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Command } from 'cmdk';
 import { useNavigate } from 'react-router-dom';
+import { PRODUCT_TOOLS, getProductToolPath } from '@/lib/product-registry.mjs';
 import {
   BookOpen, FolderOpen, History, Lightbulb, Plus, Search,
   Settings, Sparkles, Users, Video, X, Award,
@@ -92,6 +93,16 @@ export default function GlobalCommandCenter({ open, onClose }) {
                   const Icon = item.icon;
                   return <Command.Item key={item.label} value={`${item.label} ${query}`} onSelect={() => selectCommand(item)} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm text-foreground aria-selected:bg-secondary aria-selected:text-foreground"><Icon size={15} className="text-muted-foreground" aria-hidden="true" />{item.label}<span className="ml-auto max-w-[55%] truncate text-xs text-muted-foreground">{query}</span></Command.Item>;
                 })}
+              </Command.Group>
+            )}
+            {query.trim().length >= 2 && (
+              <Command.Group heading="Tools" className="mb-2 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted-foreground">
+                {PRODUCT_TOOLS.map(tool => (
+                  <Command.Item key={tool.slug} value={`${tool.title} ${tool.description} ${tool.kind}`} onSelect={() => selectCommand({ path: getProductToolPath(tool) })} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm text-foreground aria-selected:bg-secondary" >
+                    <Search size={15} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <span className="min-w-0"><span className="block font-medium">{tool.title}</span><span className="block truncate text-xs text-muted-foreground">{tool.description}</span></span>
+                  </Command.Item>
+                ))}
               </Command.Group>
             )}
             {['Navigate', 'Actions', 'Intelligence'].map(group => (
