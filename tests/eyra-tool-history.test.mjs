@@ -269,3 +269,62 @@ test('project.get retrieves only an owner-scoped UUID record', async () => {
     globalThis.fetch = previousFetch;
   }
 });
+
+test('private workspace read tools always apply owner predicates and bounded previews', async () => {
+  const previousFetch = globalThis.fetch;
+  const toolTable = [
+    ['notes.list', 'notes'],
+    ['tasks.list', 'life_tasks'],
+    ['calendar.list_events', 'calendar_events'],
+  ];
+  let next = 0;
+  let modelCalls = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address.startsWith('https://eyra-tool-history-test.supabase.co/rest/v1/')) {
+      const parsed = new URL(address);
+      assert.equal(parsed.pathname, '/rest/v1/' + toolTable[next][1]);
+      assert.equal(parsed.searchParams.get('user_id'), 'eq.user-a');
+      assert.equal(parsed.searchParams.get('limit'), '20');
+      assert.equal(options.method, undefined);
+      next += 1;
+      return new Response(JSON.stringify([{ id: 'record-' + next, data: {
+        title: 'Private record', content: 'x'.repeat(500), status: 'open',
+      }, updated_date: '2026-11-15T00:00:00Z' }]), { status: 200 });
+    }
+    if (address === 'https://api.openai.com/v1/responses') {
+      modelCalls += 1;
+      if (modelCalls === 2) {
+        const input = JSON.parse(options.body).input;
+        assert.equal(input.length, 7);
+        const outputs = input.filter(item => item.type === 'function_call_output')
+          .map(item => JSON.parse(item.output));
+        assert.equal(outputs.length, 3);
+        assert.equal(outputs[0].result[0].preview.length, 300);
+        assert.equal(outputs[1].result[0].preview, '');
+        assert.equal(outputs[2].result[0].preview, '');
+      }
+      return new Response(JSON.stringify(modelCalls === 1
+        ? { id: 'workspace_call', status: 'completed', output: toolTable.map(([name], i) => ({
+          type: 'function_call', name, call_id: 'read-' + i, arguments: '{}',
+        })) }
+        : { id: 'workspace_final', status: 'completed', output: [{ content: [{ type: 'output_text', text: 'Workspace records summarized.' }] }] }
+      ), { status: 200 });
+    }
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' },
+      body: { prompt: 'List my notes, tasks, and calendar events.', enable_project_tools: true },
+    }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.payload.actions.length, 3);
+    assert.equal(next, 3);
+    assert.ok(response.payload.actions.every(action => action.status === 'succeeded'));
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
