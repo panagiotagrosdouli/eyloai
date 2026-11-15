@@ -55,6 +55,7 @@ function buildProviderUrl(provider, query, limit, sort, page = 1, country = '', 
     const params = new URLSearchParams({
       search: query,
       per_page: String(limit),
+      page: String(page),
       sort: sort === 'recent' ? 'publication_date:desc' : 'relevance_score:desc',
     });
     authorizeOpenAlex(params);
@@ -154,7 +155,7 @@ export default async function handler(request, response) {
   if (!Number.isInteger(requestedPage) || requestedPage < 1 || requestedPage > 200) {
     return response.status(400).json({ error: 'Page must be between 1 and 200.' });
   }
-  const page = provider === 'openalex_authors' ? requestedPage : 1;
+  const page = provider === 'openalex_authors' || provider === 'openalex_works' ? requestedPage : 1;
   const country = String(request.query?.country || '').trim().toUpperCase();
   if (country && !/^[A-Z]{2}$/.test(country)) return response.status(400).json({ error: 'Country must be an ISO two-letter code.' });
 

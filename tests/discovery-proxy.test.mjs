@@ -106,6 +106,34 @@ test('discovery proxy bounds provider limits and emits cache/source headers', as
   }
 });
 
+test('OpenAlex works pagination stays behind the bounded discovery gateway', async () => {
+  const originalFetch = globalThis.fetch;
+  let requestedUrl = '';
+  globalThis.fetch = async url => {
+    requestedUrl = String(url);
+    return new Response(JSON.stringify({ results: [] }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+  try {
+    const response = createResponse();
+    await handler({
+      method: 'GET',
+      query: { provider: 'openalex_works', q: 'robotics', page: '2', limit: '5' },
+    }, response);
+    assert.equal(response.statusCode, 200);
+    const upstream = new URL(requestedUrl);
+    assert.equal(upstream.hostname, 'api.openalex.org');
+    assert.equal(upstream.pathname, '/works');
+    assert.equal(upstream.searchParams.get('search'), 'robotics');
+    assert.equal(upstream.searchParams.get('page'), '2');
+    assert.equal(upstream.searchParams.get('per_page'), '5');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('OpenAlex proxy uses a server-side API key without returning it to the browser', async (t) => {
   const originalFetch = globalThis.fetch;
   const originalApiKey = process.env.OPENALEX_API_KEY;
@@ -324,6 +352,8 @@ test('discovery proxy rejects malformed paging and country filters without upstr
       { provider: 'openalex_authors', q: 'robotics', page: '0' },
       { provider: 'openalex_authors', q: 'robotics', page: '2.5' },
       { provider: 'openalex_authors', q: 'robotics', page: '201' },
+      { provider: 'openalex_works', q: 'robotics', page: '0' },
+      { provider: 'openalex_works', q: 'robotics', page: '201' },
       { provider: 'openalex_authors', q: 'robotics', country: 'GR|US' },
     ]) {
       const response = createResponse();

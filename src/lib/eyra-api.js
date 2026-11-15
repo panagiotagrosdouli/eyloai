@@ -47,9 +47,9 @@ function proxyUrl(provider, query, limit, sort = 'relevance', page = 1, country 
     limit: String(limit),
     sort,
   });
-  if (provider === 'openalex_authors') {
+  if (provider === 'openalex_authors' || provider === 'openalex_works') {
     params.set('page', String(page));
-    if (country) params.set('country', country);
+    if (provider === 'openalex_authors' && country) params.set('country', country);
   }
   const path = `/api/discovery?${params}`;
   return baseUrl ? new URL(path, baseUrl).toString() : path;
@@ -217,14 +217,12 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
 // Publication authorship is not proof of professor rank or supervisor availability.
 export async function searchResearchPeopleByPublications(query, limit = 25, strictOptions = {}) {
   try {
-    const topic = String(query || '').replace(/\\bph\\.?d\\.?\\b|\\bdoctorate\\b|\\bdoctoral\\b|\\bin\\b/gi, ' ').trim() || String(query || '').trim();
+    const topic = String(query || '').replace(/\bph\.?d\.?\b|\bdoctorate\b|\bdoctoral\b|\bin\b/gi, ' ').replace(/\s+/g, ' ').trim() || String(query || '').trim();
     const page = Math.min(200, Math.max(1, Number(strictOptions.page) || 1));
     const directUrl = `${OPENALEX_BASE}/works?search=${encodeURIComponent(topic)}&per_page=25&page=${page}&sort=relevance_score:desc${OPENALEX_CONTACT}`;
-    // Page one can use EYLO's proxy. Other pages are fetched directly until
-    // the works proxy supports a page argument.
-    const response = page === 1
-      ? await fetchResearchSource('openalex_works', topic, 25, 'relevance', directUrl, strictOptions)
-      : await fetchWithTimeout(directUrl, strictOptions);
+    // Preserve the configured discovery gateway, including quota and error
+    // attribution, for every page rather than bypassing it after page one.
+    const response = await fetchResearchSource('openalex_works', topic, 25, 'relevance', directUrl, { ...strictOptions, page });
     if (!response.ok) throw new Error(`OpenAlex publication search failed: ${response.status}`);
     const payload = await response.json();
     const people = new Map();
