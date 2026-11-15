@@ -89,7 +89,8 @@ export default function EyraHome({ onSearch }) {
         </section>
         <nav aria-label="Common starting actions" className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
-            { title: 'Find a publication', help: 'Discover papers with source links.', href: '/search', Icon: BookOpen },
+            { title: 'Start a research journey', help: 'Connect a question, papers, review methods and thesis.', href: '/research-journey', Icon: BookOpen },
+            { title: 'Find a publication', help: 'Discover papers with source links.', href: '/search', Icon: Search },
             { title: 'Create a project', help: 'Organize evidence and tasks.', href: '/projects?new=1', Icon: FolderOpen },
             { title: 'Save and review papers', help: 'Return to your research library.', href: '/library', Icon: Bookmark },
             { title: 'Plan my studies', help: 'Schedule study sessions and exams.', href: '/study-planner', Icon: BookOpen },
