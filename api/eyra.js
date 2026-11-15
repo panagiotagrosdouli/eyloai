@@ -72,6 +72,27 @@ const PROJECT_TOOLS = [
   },
   {
     type: 'function',
+    name: 'learning.list_flashcard_decks',
+    description: 'Read the authenticated user's saved flashcard decks.',
+    parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
+    strict: true,
+  },
+  {
+    type: 'function',
+    name: 'funding.list_saved_opportunities',
+    description: 'Read saved funding opportunities from the authenticated user's workspace; do not infer they remain open.',
+    parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
+    strict: true,
+  },
+  {
+    type: 'function',
+    name: 'research.list_saved_researchers',
+    description: 'Read researchers previously saved by the authenticated user; saved records do not prove current affiliation.',
+    parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
+    strict: true,
+  },
+  {
+    type: 'function',
     name: 'research.search_publications',
     description: 'Search real scholarly bibliographic records in Crossref. Results are metadata, not evidence from full text.',
     parameters: {
@@ -458,11 +479,16 @@ async function executeProjectTool(name, rawArguments, identity) {
     prefer: 'return=representation',
   };
 
-  if (name === 'notes.list' || name === 'tasks.list' || name === 'calendar.list_events') {
+  if (['notes.list', 'tasks.list', 'calendar.list_events',
+    'learning.list_flashcard_decks', 'funding.list_saved_opportunities',
+    'research.list_saved_researchers'].includes(name)) {
     const table = {
       'notes.list': 'notes',
       'tasks.list': 'life_tasks',
       'calendar.list_events': 'calendar_events',
+      'learning.list_flashcard_decks': 'study_flashcard_decks',
+      'funding.list_saved_opportunities': 'saved_opportunities',
+      'research.list_saved_researchers': 'saved_researchers',
     }[name];
     const params = new URLSearchParams({
       select: 'id,data,created_date,updated_date',
@@ -488,6 +514,12 @@ async function executeProjectTool(name, rawArguments, identity) {
         due_date: String(item.due_date || item.dueDate || '').slice(0, 60),
         start_time: String(item.start_time || item.startTime || '').slice(0, 60),
         preview: name === 'notes.list' ? String(item.content || item.body || '').slice(0, 300) : '',
+        source_url: ['funding.list_saved_opportunities', 'research.list_saved_researchers'].includes(name)
+          ? String(item.source_url || item.url || item.profile_url || '').slice(0, 500) : '',
+        metadata_status: name === 'funding.list_saved_opportunities'
+          ? 'saved_record_not_live_eligibility_verification'
+          : name === 'research.list_saved_researchers'
+            ? 'saved_record_not_live_affiliation_verification' : '',
         updated_date: row.updated_date || '',
       };
     });
