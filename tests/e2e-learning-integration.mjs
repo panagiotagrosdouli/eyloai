@@ -374,12 +374,12 @@ try {
   assert.equal(await page.getByRole('button', { name: 'Add to screening log' }).count(), 0);
   await page.getByRole('button', { name: 'Clear filters' }).click();
   assert.equal(await page.getByLabel('Find a saved publication').inputValue(), '');
-  await page.getByLabel('Screening decision', { exact: true }).selectOption('unscreened');
+  await page.getByLabel('Filter publication list by status', { exact: true }).selectOption('unscreened');
   await page.getByText('No saved papers match these filters. Your recorded decisions have not changed.').waitFor();
-  await page.getByLabel('Screening decision', { exact: true }).selectOption('include');
+  await page.getByLabel('Filter publication list by status', { exact: true }).selectOption('include');
   assert.equal(await page.getByLabel('Screening decision for Synthetic review protocol fixture paper', { exact: true }).inputValue(), 'include');
   assert.equal(tables.projects[0].data.review_protocol.screening[0].decision, 'include', 'screening filters never mutate saved decisions');
-  await page.getByLabel('Screening decision', { exact: true }).selectOption('all');
+  await page.getByLabel('Filter publication list by status', { exact: true }).selectOption('all');
   await page.getByLabel('Research question').fill('My protocol draft');
   tables.projects[0].updated_date = '2026-11-16T00:00:00.000Z';
   tables.projects[0].data.review_protocol = { ...protocolSnapshot, question: 'Other session protocol' };
