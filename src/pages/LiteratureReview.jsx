@@ -34,6 +34,7 @@ export default function LiteratureReview() {
   const loadEpochRef = useRef(0);
   const activeProjectRef = useRef('');
   const [projects, setProjects] = useState([]);
+  const [loadedForUserId, setLoadedForUserId] = useState('');
   const [papers, setPapers] = useState([]);
   const [projectId, setProjectId] = useState('');
   const [protocol, setProtocol] = useState(emptyReviewProtocol);
@@ -48,6 +49,9 @@ export default function LiteratureReview() {
     selectionEpochRef.current += 1;
     let active = true;
     setLoading(true);
+    setLoadedForUserId('');
+    setProjects([]);
+    setPapers([]);
     setError('');
     Promise.all([
       base44.entities.Project.list('-updated_date', 100),
@@ -65,6 +69,7 @@ export default function LiteratureReview() {
       if (!active || loadEpochRef.current !== epoch) return;
       setProjects(authorizedProjects);
       setPapers(paperRows);
+      setLoadedForUserId(user?.id || '');
       setProjectId(current => {
         if (preferredProjectId && authorizedProjects.some(project => project.id === preferredProjectId)) return preferredProjectId;
         if (current && authorizedProjects.some(project => project.id === current)) return current;
@@ -72,12 +77,12 @@ export default function LiteratureReview() {
       });
     }).catch(() => {
       if (active) {
-        setProjects([]); setPapers([]); setProjectId('');
+        setProjects([]); setPapers([]); setProjectId(''); setLoadedForUserId('');
         setError('Could not load the requested private project and saved papers. Check access and your connection, then retry.');
       }
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; loadEpochRef.current += 1; selectionEpochRef.current += 1; };
-  }, [attempt, preferredProjectId]);
+  }, [attempt, preferredProjectId, user?.id]);
 
   activeProjectRef.current = projectId;
   const selectedProject = projects.find(project => project.id === projectId);
@@ -134,7 +139,7 @@ export default function LiteratureReview() {
   };
 
   const prepare = () => {
-    if (!selectedProject) {
+    if (!user?.id || loadedForUserId !== user.id || !selectedProject) {
       setError('Choose one of your authorized projects first.');
       return null;
     }
@@ -204,7 +209,7 @@ export default function LiteratureReview() {
   };
 
   const startEvidenceOutline = () => {
-    if (!user?.id || !selectedProject || hasUnsavedChanges) {
+    if (!user?.id || loadedForUserId !== user.id || !selectedProject || hasUnsavedChanges) {
       setError('Save your review protocol before preparing an editable evidence outline.');
       return;
     }
@@ -363,7 +368,7 @@ export default function LiteratureReview() {
               className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-50">
               <Save size={16} aria-hidden="true" />{saving ? 'Saving…' : 'Save protocol to project'}
             </button>
-            <button type="button" disabled={saving || !selectedProject || hasUnsavedChanges || counts.included === 0} onClick={startEvidenceOutline}
+            <button type="button" disabled={saving || loadedForUserId !== user?.id || !selectedProject || hasUnsavedChanges || counts.included === 0} onClick={startEvidenceOutline}
               aria-describedby="review-outline-help"
               className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-5 text-sm font-semibold text-foreground hover:border-primary/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50">
               <BookOpen size={16} aria-hidden="true" />Prepare editable evidence outline
