@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Loader2, Search, FolderKanban, ExternalLink, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -19,6 +19,9 @@ const comparisonSchema = { type: 'object', properties: {
 }, required: ['research_objectives', 'methods_and_samples', 'findings', 'disagreements', 'limitations', 'synthesis'] };
 
 export default function ResearchGaps() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedProjectId = searchParams.get('project_id') || '';
+  const loadEpoch = useRef(0);
   const [papers, setPapers] = useState([]);
   const [selected, setSelected] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -44,16 +47,42 @@ export default function ResearchGaps() {
   const { toast } = useToast();
 
   const load = async () => {
+    const epoch = ++loadEpoch.current;
     setLoading(true); setError('');
     const [paperResult, projectResult] = await Promise.allSettled([
-      base44.entities.SavedPaper.list('-created_date', 100), base44.entities.Project.list('-updated_date', 100),
+      requestedProjectId
+        ? base44.entities.SavedPaper.filter({ project_id: requestedProjectId }, '-created_date', 100)
+        : base44.entities.SavedPaper.list('-created_date', 100),
+      base44.entities.Project.list('-updated_date', 100),
     ]);
+    if (epoch !== loadEpoch.current) return;
+    if (projectResult.status === 'fulfilled') {
+      let authorizedProjects = projectResult.value;
+      if (requestedProjectId && !authorizedProjects.some(item => String(item.id) === requestedProjectId)) {
+        try {
+          const exact = await base44.entities.Project.get(requestedProjectId);
+          if (!exact || String(exact.id) !== requestedProjectId) throw new Error('Unavailable project');
+          authorizedProjects = [exact, ...authorizedProjects];
+        } catch {
+          if (epoch !== loadEpoch.current) return;
+          setProjects(authorizedProjects); setProjectId('');
+          setPapers([]); setError('The requested private project could not be opened. Check its access and retry.');
+          setLoading(false);
+          return;
+        }
+      }
+      if (epoch !== loadEpoch.current) return;
+      setProjects(authorizedProjects);
+      setProjectId(requestedProjectId);
+    }
     if (paperResult.status === 'fulfilled') setPapers(paperResult.value);
-    if (projectResult.status === 'fulfilled') setProjects(projectResult.value);
     if (paperResult.status === 'rejected' || projectResult.status === 'rejected') setError('Some saved research could not be loaded. Retry after your connection recovers.');
     setLoading(false);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    void load();
+    return () => { loadEpoch.current += 1; };
+  }, [requestedProjectId]);
   useEffect(() => () => {
     literatureRequest.current.sequence += 1;
     literatureRequest.current.controller?.abort();
@@ -135,6 +164,7 @@ export default function ResearchGaps() {
     setLiteratureRetrievedAt('');
     setLiteratureError('');
     setProjectId(value);
+    setSearchParams(value ? { project_id: value } : {});
     setSelected([]);
     setError('');
     invalidateAnalysis();
