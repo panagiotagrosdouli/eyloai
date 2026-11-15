@@ -26,7 +26,7 @@ The main Command Center enables this limited registry. Other EYRA entry points r
 ## Incremental agent safeguards (PR #457)
 
 - The stateless Responses agent now carries the complete prior tool exchanges into subsequent rounds, instead of only the latest round.
-- Duplicate provider tool call identifiers are denied inside a single request to avoid accidental repeated execution. This is **not** durable cross-request idempotency; a persistent action ledger is still required before advertising durable writes.
+- Duplicate provider tool call identifiers cause a terminal 502 invalid-tool-sequence response inside a single request, without running the duplicate or sending an ambiguous follow-up. The response includes any previously confirmed actions to guide safe retries. This is **not** durable cross-request idempotency; a persistent action ledger is still required before advertising durable writes.
 - Write permission is checked against the actual user prompt, not independently against the browser-supplied `tool_intent` field.
 - A read-only `research.lookup_doi` tool validates bibliographic metadata from Crossref and labels it `bibliographic_metadata_only`. It never claims to have retrieved or interpreted full text.
 - The initial TypeScript failure was corrected; full CI and live service acceptance must still pass before merge.
