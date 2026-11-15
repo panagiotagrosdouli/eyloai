@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
+import RouteErrorBoundary from '@/components/system/RouteErrorBoundary';
 import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -199,6 +200,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router basename={import.meta.env.BASE_URL === '/eyloai/' ? '/eyloai' : '/'}>
           <ScrollToTop />
+          <RouteErrorBoundary>
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<PublicEntry><Landing /></PublicEntry>} />
@@ -218,6 +220,7 @@ function App() {
               <Route path="/*" element={<AuthenticatedApp />} />
             </Routes>
           </Suspense>
+          </RouteErrorBoundary>
         </Router>
         <Analytics beforeSend={redactAnalyticsEvent} />
         <Toaster />
