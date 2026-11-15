@@ -8,7 +8,7 @@ Audit increment: 2026-11-15 (Europe/Athens). This inventory preserves the existi
 
 Evidence: 16 focused time-domain tests pass. The full disposable PostgreSQL runner passed all 23 selected canonical migrations, actual owner/outsider/anonymous checks and three concurrent timer-transition race rounds. The complete updated Playwright learning suite passed, including failed pause retry, pause/reload/resume/stop, report export/date validation and same-route account-switch isolation. The final quality gate passed: imports, both TypeScript projects, lint, 754 Node tests and production build. Hosted verification remains outstanding.
 
-Migration: `20261115181809_time_tracker_pause_resume.sql`. It has not been applied to a hosted project. The browser now needs its RPC for stop as well as pause/resume; the deployment order and data-preserving rollback limitations are documented in [TIME_TRACKER_PAUSE_RESUME_ACCEPTANCE.md](TIME_TRACKER_PAUSE_RESUME_ACCEPTANCE.md). This increment is PARTIALLY FUNCTIONAL pending hosted acceptance; passing local SQL is not verified hosted Auth/PostgREST/RLS.
+Migration: `20261115181809_time_tracker_pause_resume.sql`. It has not been applied to a hosted project. Migrated timers need the RPC for stop as well as pause/resume; legacy-schema stops are restored by the compatibility follow-up below; the deployment order and data-preserving rollback limitations are documented in [TIME_TRACKER_PAUSE_RESUME_ACCEPTANCE.md](TIME_TRACKER_PAUSE_RESUME_ACCEPTANCE.md). This increment is PARTIALLY FUNCTIONAL pending hosted acceptance; passing local SQL is not verified hosted Auth/PostgREST/RLS.
 
 ## Prior increment — complete history
 
@@ -153,3 +153,10 @@ Read-only connector checks on 2026-11-15: Supabase lists only project `umzrggayi
 ## Unresolved limitations of this increment
 
 The existing paginated read is not a database snapshot: concurrent inserts/deletes during pagination can change offsets. Date-filtered server aggregates and snapshot-consistent reporting remain future work. The safety bound deliberately blocks partial reports beyond 50,000 entries. Pause/resume and report date filters are implemented by the follow-up described above; hosted acceptance, scheduled automations and the broader platform acceptance work remain outstanding.
+
+
+## Regression repair — preserve pre-migration timer behavior
+
+The timer UI was merged externally before hosted migration verification, exposing an avoidable dependency: the old Stop action required the new RPC. Restore the prior stop write for old-schema rows only, guarded by owner, record ID, started_at, updated_at and a still-null ended_at. Confirm the returned persisted row before announcing success. Legacy pause controls are disabled with an explanation. Migrated rows never bypass their RPC or discard pause history.
+
+Two regression tests cover legacy success/conflict/failure/foreign responses and denial of direct-write fallback for migrated rows. The complete learning browser suite passed, including an unmigrated-timer stop assertion with zero RPC requests. npm run check passed: imports, both TypeScript projects, lint, 771 tests and production build. Public landing/login/protected-route redirect checks produced no uncaught JavaScript errors; these were read-only, unauthenticated checks through the sandbox proxy, not private workflow acceptance. No hosted schema/configuration changes or data deletions are part of this repair. Discovery/provider configuration remains a separate unresolved blocker; this is not an entire-platform restoration claim.
