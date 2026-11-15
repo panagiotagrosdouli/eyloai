@@ -371,7 +371,8 @@ function validatedEyraToolArguments(name, rawArguments) {
   }
   for (const key of permitted) {
     if (typeof argumentsObject[key] !== 'string'
-      || argumentsObject[key].length > (TOOL_STRING_LIMITS[key] || 1000)) {
+      || argumentsObject[key].length > (key === 'title' && name === 'library.save_paper'
+        ? 1000 : (TOOL_STRING_LIMITS[key] || 1000))) {
       throw new Error('Invalid field in tool arguments.');
     }
   }
