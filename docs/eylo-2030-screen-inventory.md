@@ -20,3 +20,11 @@ Static source inspection on 2026-11-15. **Not a logged-in browser or accessibili
 | Researchers | H1 present | 1 | 5 | status, alert |
 | Meetings | H1 present | 0 | 1 | alert |
 | GrantBuilder | H1 present | 0 | 4 | status |
+| QuizGenerator | H1 present | 2 | 12 | alert |
+| Flashcards | H1 present | 1 | 6 | status, alert |
+| TimeTracker | H1 present | 2 | 10 | status, alert |
+| Life | H1 present | 1 | 13 | status, alert |
+| LifeGoals | H1 present | 1 | 8 | status, alert |
+| Habits | H1 present | 1 | 4 | status, alert |
+| History | H1 present | 0 | 1 | status |
+| ActivityHistory | H1 present | 0 | 0 | status, alert |
