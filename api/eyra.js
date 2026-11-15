@@ -618,6 +618,8 @@ export default async function handler(request, response) {
       });
     }
     const actionResults = [];
+    const toolTranscript = [{ role: 'user', content: prompt }];
+    const seenToolCallIds = new Set();
     // Only the two allowlisted, authenticated project operations above can be
     // executed. Each call is scoped by the caller's bearer token and Supabase RLS.
     for (let round = 0; round < 3; round += 1) {
@@ -632,6 +634,11 @@ export default async function handler(request, response) {
       const outputs = [];
       for (const call of calls) {
         try {
+          // A repeated provider call ID must not re-execute a write, even across rounds.
+          if (typeof call.call_id !== 'string' || !call.call_id || seenToolCallIds.has(call.call_id)) {
+            throw new Error('Duplicate or invalid tool call identifier.');
+          }
+          seenToolCallIds.add(call.call_id);
           if (call.name === 'project.create' && actionResults.some((action) => action.tool === 'project.create' && action.status === 'succeeded')) {
             throw new Error('Only one project can be created in a single EYRA request.');
           }
@@ -644,6 +651,9 @@ export default async function handler(request, response) {
           outputs.push({ type: 'function_call_output', call_id: call.call_id, output: JSON.stringify({ ok: false, error: safeError }) });
         }
       }
+      // Preserve every earlier tool exchange; dropping previous rounds causes
+      // the model to lose verified results and can trigger repeated actions.
+      toolTranscript.push(...(result.output || []), ...outputs);
       const followup = await fetch('https://api.openai.com/v1/responses', {
         method: 'POST',
         headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
@@ -652,11 +662,7 @@ export default async function handler(request, response) {
           instructions: EYRA_INSTRUCTIONS,
           // Keep the endpoint stateless (`store: false`) and carry the tool
           // exchange explicitly instead of relying on response retrieval.
-          input: [
-            { role: 'user', content: prompt },
-            ...(result.output || []).filter((item) => item.type === 'function_call'),
-            ...outputs,
-          ],
+          input: toolTranscript,
           tools: PROJECT_TOOLS,
           tool_choice: 'auto',
           store: false,
