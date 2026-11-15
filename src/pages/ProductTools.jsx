@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { PRODUCT_TOOLS } from "@/lib/product-registry.mjs";
@@ -10,37 +10,7 @@ import {
 export default function ProductTools() {
   const { tool } = useParams();
   const config = PRODUCT_TOOLS.find((p) => p.slug === tool);
-  if (!tool)
-    return (
-      <main className="eylo-page mx-auto max-w-6xl space-y-5">
-        <h1 className="text-2xl font-bold">EYLO tools</h1>
-        <p className="text-sm text-muted-foreground">
-          Choose tools for your private projects, collaboration and workspace
-          operations. Availability depends on your permissions and enabled
-          services.
-        </p>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {PRODUCT_TOOLS.map((p) => (
-            <Link
-              className="rounded-xl border border-border bg-card p-4 hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
-              key={p.id}
-              to={
-                p.kind === "offline"
-                  ? "/offline"
-                  : p.kind === "collaboration"
-                    ? `/collaboration/${p.slug}`
-                    : `/tools/${p.slug}`
-              }
-            >
-              <h2 className="font-semibold">{p.title}</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {p.description}
-              </p>
-            </Link>
-          ))}
-        </div>
-      </main>
-    );
+  if (!tool) return <ToolDirectory />;
   if (!config) return <main className="eylo-page">Unknown tool.</main>;
   return config.kind === "project" || config.kind === "personal-project" ? (
     <ProjectChooser key={tool} config={config} />
@@ -48,6 +18,73 @@ export default function ProductTools() {
     <PersonalTools key={tool} tool={tool} />
   );
 }
+
+const DIRECT_TOOLS = [
+  { slug: 'research-discovery', title: 'Research discovery', description: 'Find publications and examine source evidence.', href: '/search', category: 'Research' },
+  { slug: 'literature-review', title: 'Literature review protocol', description: 'Plan, screen and document a reproducible review.', href: '/literature-review', category: 'Research' },
+  { slug: 'research-gaps', title: 'Research gap finder', description: 'Compare saved studies and examine evidence gaps.', href: '/research-gaps', category: 'Research' },
+  { slug: 'data-lab', title: 'Research Data Lab', description: 'Analyze CSV data privately in your browser.', href: '/labs/data', category: 'Research' },
+  { slug: 'knowledge-graph', title: 'Knowledge graph', description: 'Explore connections supported by saved research.', href: '/knowledge-graph', category: 'Research' },
+  { slug: 'researchers', title: 'Find researchers', description: 'Identify potential collaborators from their work.', href: '/researchers', category: 'Research' },
+  { slug: 'funding', title: 'Funding and calls', description: 'Find opportunities and check their official source.', href: '/opportunities', category: 'Funding' },
+  { slug: 'grant-builder', title: 'Grant workspace', description: 'Prepare and track research grant applications.', href: '/grant-builder', category: 'Funding' },
+  { slug: 'opportunity-radar', title: 'Opportunity review', description: 'Compare funding options against project context.', href: '/radar', category: 'Funding' },
+  { slug: 'projects', title: 'Projects', description: 'Keep your research tasks, records and evidence together.', href: '/projects', category: 'Workspace' },
+  { slug: 'library', title: 'Library', description: 'Return to saved papers, researchers and opportunities.', href: '/library', category: 'Workspace' },
+  { slug: 'notes', title: 'Notes', description: 'Capture ideas and link notes to projects.', href: '/notes', category: 'Workspace' },
+  { slug: 'files', title: 'Files', description: 'Organize research files with version history.', href: '/files', category: 'Workspace' },
+  { slug: 'meetings', title: 'Meetings', description: 'Capture decisions and follow-up actions.', href: '/meetings', category: 'Workspace' },
+  { slug: 'calendar', title: 'Calendar', description: 'Manage study sessions, events and deadlines.', href: '/calendar', category: 'Workspace' },
+  { slug: 'study-planner', title: 'Study planner', description: 'Plan study sessions, courses and exams.', href: '/study-planner', category: 'Learning' },
+  { slug: 'learn', title: 'Learn', description: 'Continue lessons and saved learning paths.', href: '/learn', category: 'Learning' },
+  { slug: 'flashcards', title: 'Flashcards', description: 'Practice recall with saved study cards.', href: '/flashcards', category: 'Learning' },
+  { slug: 'quiz-generator', title: 'Quiz generator', description: 'Create and review self-assessment quizzes.', href: '/quiz-generator', category: 'Learning' },
+];
+const toolHref = item => item.href || (item.kind === 'offline' ? '/offline' : item.kind === 'collaboration' ? '/collaboration/' + item.slug : '/tools/' + item.slug);
+const toolCategory = item => item.category || (item.kind === 'collaboration' ? 'Collaboration' : item.kind === 'project' || item.kind === 'personal-project' ? 'Workspace' : 'Specialized tools');
+const DIRECTORY = [...DIRECT_TOOLS, ...PRODUCT_TOOLS.map(item => ({ ...item, category: toolCategory(item) }))];
+const CATEGORIES = ['All', 'Research', 'Workspace', 'Learning', 'Funding', 'Collaboration', 'Specialized tools'];
+
+function ToolDirectory() {
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('All');
+  const matches = useMemo(() => DIRECTORY.filter(item =>
+    (category === 'All' || item.category === category)
+    && (!query.trim() || [item.title, item.description, item.category, item.slug].join(' ').toLowerCase().includes(query.trim().toLowerCase()))
+  ), [query, category]);
+
+  return (
+    <main className="eylo-page mx-auto max-w-6xl">
+      <nav aria-label="Breadcrumb" className="mb-4 text-sm text-muted-foreground"><Link to="/home" className="hover:text-primary">Home</Link><span aria-hidden="true"> / </span><span aria-current="page">All tools</span></nav>
+      <h1 className="eylo-page-heading">All tools</h1>
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Find the right workflow for your goal. Existing project and research tools remain available here.</p>
+      <div className="mt-6">
+        <label htmlFor="tool-directory-search" className="mb-2 block text-sm font-medium">Find a tool or task</label>
+        <input id="tool-directory-search" type="search" value={query} onChange={event => setQuery(event.target.value)}
+          placeholder="Try literature review, study plan, funding…" className="min-h-12 w-full rounded-xl border border-border bg-card px-4 text-base text-foreground" />
+      </div>
+      <div role="group" aria-label="Tool category" className="mt-4 flex flex-wrap gap-2">
+        {CATEGORIES.map(name => <button key={name} type="button" onClick={() => setCategory(name)} aria-pressed={category === name}
+          className={`min-h-11 rounded-xl border px-4 text-sm font-medium transition-colors ${category === name ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground hover:bg-secondary'}`}>{name}</button>)}
+      </div>
+      <p role="status" className="mt-6 text-xs text-muted-foreground">{matches.length} {matches.length === 1 ? 'tool' : 'tools'} available</p>
+      {matches.length ? <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {matches.map(item => <Link key={item.slug + ':' + item.category} to={toolHref(item)}
+          className="group flex min-h-36 flex-col rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary/40 hover:bg-secondary/30">
+          <span className="text-xs font-semibold text-primary">{item.category}</span>
+          <h2 className="mt-2 text-base font-semibold text-foreground group-hover:text-primary">{item.title}</h2>
+          <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">{item.description}</p>
+          <span className="mt-3 text-sm font-semibold text-primary">Open tool <span aria-hidden="true">→</span></span>
+        </Link>)}
+      </div> : <div className="mt-4 rounded-xl border border-dashed border-border bg-card p-8 text-center">
+        <h2 className="text-base font-semibold">No tools found</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Try another term or clear the category filter.</p>
+        <button type="button" onClick={() => { setQuery(''); setCategory('All'); }} className="mt-4 min-h-11 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Show all tools</button>
+      </div>}
+    </main>
+  );
+}
+
 function ProjectChooser({ config }) {
   const [projects, setProjects] = useState([]),
     [selected, setSelected] = useState(""),
