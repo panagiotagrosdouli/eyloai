@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ArrowRight, FolderOpen, Search, Sparkles } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { PRODUCT_TOOLS } from "@/lib/product-registry.mjs";
+import { PRODUCT_TOOLS, getProductToolPath } from "@/lib/product-registry.mjs";
 import PersonalTools from "@/components/products/PersonalTools";
 import {
   workspaceInput as input,
@@ -54,13 +54,6 @@ const FRIENDLY_TOOL_DESCRIPTIONS = {
   forms: "Create forms and collect project responses.",
 };
 
-function toolPath(item) {
-  return item.kind === "offline"
-    ? "/offline"
-    : item.kind === "collaboration"
-      ? `/collaboration/${item.slug}`
-      : `/tools/${item.slug}`;
-}
 
 function ToolsDirectory() {
   const [query, setQuery] = useState("");
@@ -128,7 +121,7 @@ function ToolsDirectory() {
         {results.length ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {results.map(item => (
-              <Link key={item.id} to={toolPath(item)}
+              <Link key={item.id} to={getProductToolPath(item)}
                 className="group flex min-h-32 flex-col justify-between gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-secondary/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
                 <div>
                   <h3 className="font-semibold text-foreground">{item.title}</h3>
