@@ -133,5 +133,5 @@ export default function Home({ searchOnly = false }) {
     );
   }
 
-  return <><EyraHome onSearch={handleSearch} /><PersonalizedDashboard /></>;
+  return <><EyraHome onSearch={handleSearch} /><details className="eylo-page mx-auto max-w-7xl pb-12"><summary className="min-h-11 cursor-pointer rounded-xl border border-border bg-card px-5 py-4 text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">More from your workspace — tasks, calendar and saved work</summary><div className="pt-6"><PersonalizedDashboard /></div></details></>;
 }
