@@ -277,8 +277,10 @@ try {
   assert.equal(await dataLab.getByRole('listitem').filter({ hasText: digestOf(originalCsv) }).count(), 1,
     'Replacing the active file must not silently erase its separately saved catalog metadata');
   await dataLab.getByRole('button', { name: 'Remove study.csv from catalog' }).click();
+  await dataLab.getByRole('listitem').filter({ hasText: digestOf(originalCsv) }).waitFor({ state: 'detached' });
   assert.equal(await dataLab.getByRole('listitem').filter({ hasText: digestOf(originalCsv) }).count(), 0,
     'Removing a catalog entry must remove its saved fingerprint');
+  assert.equal(catalogRows.length, 0, 'Removing a catalog entry must delete its cloud metadata');
   await dataLab.getByRole('button', { name: 'Save metadata to Data Catalog' }).click();
   await dataLab.getByRole('button', { name: 'Clear catalog' }).click();
   await dataLab.getByRole('button', { name: 'Confirm clear catalog' }).click();
