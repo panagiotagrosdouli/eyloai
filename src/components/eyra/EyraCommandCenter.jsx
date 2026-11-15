@@ -618,6 +618,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
         stream: !allowWorkspaceActions,
         on_delta: delta => { if (!controller.signal.aborted) setLiveDraft(previous => previous + delta); },
         tool_intent: content,
+        latest_user_request: content,
         ...(resourceContext ? { resource_context: resourceContext } : {}),
         prompt: `${BASE_SYSTEM}
 
