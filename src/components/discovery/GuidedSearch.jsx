@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ArrowRight, BookOpen, Compass, GraduationCap, Layers3, Search,
   Target, Wrench, X,
 } from 'lucide-react';
 import { trackGuidedSearchCompleted } from '@/lib/product-analytics';
+import { interpretResearchGoal } from '@/lib/research-goal-intent.mjs';
 import VoiceSearchButton from './VoiceSearchButton';
 
 export const DISCOVERY_LEVELS = [
@@ -55,8 +56,6 @@ export default function GuidedSearch({
   const [recency, setRecency] = useState('latest');
   const [refining, setRefining] = useState(initialRefine && Boolean(initialTopic));
 
-  const isBroad = useMemo(() => draftTopic.trim().split(/\s+/).filter(Boolean).length <= 3, [draftTopic]);
-
   const complete = request => {
     trackGuidedSearchCompleted({
       level: request.level,
@@ -70,9 +69,14 @@ export default function GuidedSearch({
     event?.preventDefault();
     const value = draftTopic.trim();
     if (!value) return;
-    setTopic(value);
-    if (autoRefine || isBroad) setRefining(true);
-    else complete(normalizeDiscoveryRequest({ topic: value, level: defaultLevel, goal: 'review', recency: 'balanced' }));
+    const interpreted = interpretResearchGoal(value);
+    const researchTopic = interpreted?.topic || value;
+    const researchGoal = interpreted?.goal || 'review';
+    setTopic(researchTopic);
+    if (interpreted) setGoal(researchGoal);
+    const needsScope = researchTopic.split(/\s+/).filter(Boolean).length <= 3;
+    if (autoRefine || needsScope) setRefining(true);
+    else complete(normalizeDiscoveryRequest({ topic: researchTopic, level: defaultLevel, goal: researchGoal, recency: 'balanced' }));
   };
 
   const submit = () => {
