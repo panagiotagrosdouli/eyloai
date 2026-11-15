@@ -587,3 +587,91 @@ test('funding, flashcards and researcher lookup remain owner-filtered read-only 
     globalThis.fetch = previousFetch;
   }
 });
+
+test('wrapped prompt needs a matching standalone latest turn before a write', async () => {
+  const previousFetch = globalThis.fetch;
+  const latest = 'Create a project about causal inference.';
+  const prompt = [
+    'RECENT CONVERSATION:',
+    'User: Create a project named Old Project.',
+    'EYRA: Previously discussed.',
+    '',
+    'LATEST USER REQUEST (preserved in full):',
+    latest,
+    '',
+    'Context excerpts are bounded and may omit details.',
+    '',
+    'Answer the user.',
+  ].join(String.fromCharCode(10));
+  let writes = 0;
+  let aiCalls = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) {
+      return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    }
+    if (address === 'https://api.openai.com/v1/responses') {
+      aiCalls += 1;
+      return new Response(JSON.stringify(aiCalls % 2 === 1
+        ? { id: 'call', status: 'completed', output: [{ type: 'function_call',
+          name: 'project.create', call_id: 'create-' + aiCalls,
+          arguments: JSON.stringify({ title: 'Causal inference',
+            description: '', goal: '', milestones: '', tasks: '' }),
+        }] }
+        : { id: 'done', status: 'completed',
+          output: [{ content: [{ type: 'output_text', text: 'Request evaluated.' }] }] }
+      ), { status: 200 });
+    }
+    if (address.includes('/rest/v1/projects') && options.method === 'POST') {
+      writes += 1;
+      return new Response(JSON.stringify([{ id: '123e4567-e89b-42d3-a456-426614174000',
+        data: { title: 'Causal inference' } }]), { status: 200 });
+    }
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    for (const [userTurn, expectedWrites] of [
+      [undefined, 0],
+      ['Create a project named Old Project.', 0],
+      [latest, 1],
+    ]) {
+      const response = responseMock();
+      await handler({ method: 'POST',
+        headers: { authorization: 'Bearer user-access-token' },
+        body: {
+          prompt, enable_project_tools: true,
+          ...(userTurn !== undefined ? { latest_user_request: userTurn } : {}),
+        },
+      }, response);
+      assert.equal(response.statusCode, 200);
+      assert.equal(writes, expectedWrites);
+      assert.equal(response.payload.actions[0].status,
+        userTurn === latest ? 'succeeded' : 'failed');
+    }
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
+
+test('standalone latest turn is validated before usage reservation', async () => {
+  const previousFetch = globalThis.fetch;
+  let quota = 0;
+  globalThis.fetch = async url => {
+    if (String(url).endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (String(url).includes('/reserve_eyra_usage')) quota += 1;
+    throw new Error('No other network call expected.');
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST',
+      headers: { authorization: 'Bearer user-access-token' },
+      body: { prompt: 'Create a project.', latest_user_request: { text: 'Create a project.' } },
+    }, response);
+    assert.equal(response.statusCode, 400);
+    assert.equal(response.payload.code, 'INVALID_LATEST_USER_REQUEST');
+    assert.equal(quota, 0);
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
