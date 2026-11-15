@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   if (name.length < 2 || !validEmail(email) || !['Research & Evidence', 'AI & Engineering', 'Design & Partnerships', 'Other'].includes(interest) || message.length < 20) {
     return res.status(400).json({ error: 'Please complete all fields with valid information.' });
   }
-  if (!process.env.RESEND_API_KEY || !process.env.CONTACT_TO_EMAIL || !process.env.RESEND_FROM_EMAIL) {
+  if (process.env.CONTACT_PUBLIC_ENABLED !== '1' || !process.env.RESEND_API_KEY || !process.env.CONTACT_TO_EMAIL || !process.env.RESEND_FROM_EMAIL) {
     return res.status(503).json({ error: 'The contact form is currently unavailable. Please try again later.' });
   }
   try {
