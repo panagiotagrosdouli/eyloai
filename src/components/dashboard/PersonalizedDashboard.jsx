@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import { describeWorkspaceSourceFailures } from '@/lib/workspace-dashboard.mjs';
 
 /** @type {Array<[string, () => Promise<any[]>]>} */
 const SOURCES = [
@@ -165,7 +166,7 @@ export default function PersonalizedDashboard() {
         <Link to="/activity" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:border-primary/40"><Activity size={14} aria-hidden="true" /> Activity history</Link>
       </div>
       {hasFailures && <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/30 px-4 py-3 text-sm text-destructive">
-        <span>Some workspace records could not be loaded. Available sections are shown; retry to refresh.</span>
+        <span>Some workspace records could not be loaded ({describeWorkspaceSourceFailures(failed)}). Available sections are shown; retry to refresh.</span>
         <button type="button" onClick={() => setAttempt(value => value + 1)} className="min-h-9 rounded-lg border border-destructive/30 px-3 text-xs font-semibold">Retry</button>
       </div>}
 
