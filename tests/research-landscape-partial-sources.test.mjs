@@ -16,3 +16,9 @@ test('landscape does not claim no literature when all providers fail', () => {
   assert.match(source, /Empty counts are not proof of no research/);
   assert.match(source, /role="status"/);
 });
+
+test('landscape does not silently convert OpenAlex gateway errors into zero records', () => {
+  assert.match(source, /searchOpenAlexAuthors\(searchQuery, 10, \{ throwOnError: true \}\)/);
+  assert.match(source, /searchOpenAlexInstitutions\(searchQuery, 6, \{ throwOnError: true \}\)/);
+  assert.match(source, /searchOpenAlexWorks\(searchQuery, 8, 'relevance', \{ throwOnError: true \}\)/);
+});
