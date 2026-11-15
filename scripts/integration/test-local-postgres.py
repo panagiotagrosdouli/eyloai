@@ -67,9 +67,36 @@ try:
     if not ready:
         raise RuntimeError('Disposable PostgreSQL did not become ready')
     sql(BOOTSTRAP)
-    for name in MIGRATIONS:
-        sql((ROOT / 'supabase/migrations' / name).read_text())
-        print('APPLIED locally:', name, flush=True)
+    bundle_replay = os.environ.get('EYLO_SQL_RESTORATION_BUNDLE') == '1'
+    legacy_replay = bundle_replay or os.environ.get('EYLO_SQL_LEGACY_SCHEMA') == '1'
+    if legacy_replay:
+        sql((ROOT / 'tests/integration/legacy-schema-bootstrap.sql').read_text())
+    if bundle_replay:
+        import hashlib
+        repair = json.loads((ROOT / 'supabase/legacy-workspace-restoration-plan.json').read_text())
+        if repair['project_ref'] != 'kbzjngpzxpniaumlupaa':
+            raise RuntimeError('Unexpected restoration target identity')
+        bridge = (ROOT / 'supabase/migrations' / repair['bridge_applied_separately']).read_text()
+        sql(bridge)
+        sql((ROOT / 'tests/integration/legacy-schema-postgres.sql').read_text())
+        # These already exist in the observed live database. Emulate them locally
+        # without replaying the incompatible historical core migration.
+        for existing in ['20261115191510_workspace_timestamp_support.sql', '20260803_eylo_monitoring_entities.sql', '20260811053718_production_billing_entitlements.sql', '20261113113010_shared_discovery_quota.sql']:
+            sql((ROOT / 'supabase/migrations' / existing).read_text())
+        for row in repair['migrations']:
+            source = ROOT / 'supabase/migrations' / row['file']
+            if source.name != row['file'] or hashlib.sha256(source.read_bytes()).hexdigest() != row['sha256']:
+                raise RuntimeError('Unreviewed restoration source: ' + row['file'])
+            sql(source.read_text())
+            print('RESTORATION source applied locally:', row['file'], flush=True)
+    else:
+        for name in MIGRATIONS:
+            sql((ROOT / 'supabase/migrations' / name).read_text())
+            print('APPLIED locally:', name, flush=True)
+            if legacy_replay and name.endswith('_bridge_legacy_workspace_schema.sql'):
+                sql((ROOT / 'supabase/migrations' / name).read_text())  # Idempotent replay preserves rows.
+                sql((ROOT / 'tests/integration/legacy-schema-postgres.sql').read_text())
+                print('PASS: legacy content/timestamps/trigger states preserved, bidirectional writes, canonical profile upsert and unchanged RLS isolation.', flush=True)
     sql((ROOT / 'tests/integration/workspace-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/learning-time-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/timer-pauses-postgres.sql').read_text())
@@ -85,8 +112,11 @@ try:
     print('PASS: new product canonical actions/replays, team consent/role revocation, peer review privacy, feedback trusted-role checks, personal token scopes and publishing budgets.', flush=True)
     sql((ROOT / 'tests/integration/research-catalog-postgres.sql').read_text())
     print('PASS: Research Data Lab catalog metadata bounds, fingerprint uniqueness, anonymous denial and two-account RLS isolation.', flush=True)
-    sql((ROOT / 'tests/integration/account-deletion-postgres.sql').read_text())
-    print('PASS: private deletion lifecycle, stale-token lockdown, service-only leases, Storage ordering, Auth cascades and other-author manuscript preservation; no hosted file bytes.', flush=True)
+    if not bundle_replay:
+        sql((ROOT / 'tests/integration/account-deletion-postgres.sql').read_text())
+        print('PASS: private deletion lifecycle, stale-token lockdown, service-only leases, Storage ordering, Auth cascades and other-author manuscript preservation; no hosted file bytes.', flush=True)
+    else:
+        print('NOT ACTIVATED: account deletion lifecycle intentionally excluded from restoration.', flush=True)
     export_tables = json.loads(subprocess.check_output(['node', '--input-type=module', '-e',
         "import { WORKSPACE_EXPORT_TABLES } from './src/lib/workspace-export.mjs'; process.stdout.write(JSON.stringify(WORKSPACE_EXPORT_TABLES));"], cwd=ROOT, text=True))
     if any(not isinstance(table, str) or not table.isidentifier() for table in export_tables):

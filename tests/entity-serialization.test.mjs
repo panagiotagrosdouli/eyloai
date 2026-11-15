@@ -47,3 +47,15 @@ test('entity filters target JSONB data instead of nonexistent table columns', ()
   assert.equal(applyEntityFilters(query, { project_id: 'project-1' }), query);
   assert.deepEqual(calls, [{ column: 'data', value: { project_id: 'project-1' } }]);
 });
+
+test('legacy business columns do not flatten canonical arrays or replace trusted identity/version', () => {
+  const record = rowToEntity({ id: 'trusted', user_id: 'owner', version: 3,
+    title: 'Legacy title', authors: '["A","B"]',
+    data: { id: 'forged', version: 99, title: 'Canonical title', authors: ['A','B'] },
+  });
+  assert.equal(record.id, 'trusted');
+  assert.equal(record.version, 3);
+  assert.equal(record.title, 'Canonical title');
+  assert.deepEqual(record.authors, ['A','B']);
+  assert.equal(rowToEntity({ id: 'old', title: 'Unbridged legacy', data: {} }).title, 'Unbridged legacy');
+});

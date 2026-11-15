@@ -3,7 +3,9 @@
   "scope": "disposable-canonical-test-replay-only",
   "remote_application_authorized": false,
   "canonical_local_order": [
+    "20261115190203_bridge_legacy_workspace_schema.sql",
     "20260803_eylo_core_entities.sql",
+    "20261115191510_workspace_timestamp_support.sql",
     "20260803_eylo_monitoring_entities.sql",
     "20260811053718_production_billing_entitlements.sql",
     "20261112154425_private_notes.sql",
@@ -207,6 +209,18 @@
       "sha256": "fb7c2a4883311062dfe1d8e2b1c604a4000fe2b290156c08596c9e6b11b425e8",
       "classification": "canonical-local-replay",
       "reason": "Additive pause history, validated owner/RLS timer transitions and revision concurrency; local replay only, no remote approval."
+    },
+    {
+      "name": "20261115190203_bridge_legacy_workspace_schema.sql",
+      "sha256": "a27964a76263ad0de9976db6a33ccf81cc5b3c0e904140995a21678bba0d6dd0",
+      "classification": "canonical-local-replay",
+      "reason": "Additive legacy-schema bridge replayed before canonical foundations; no remote application approval is conveyed."
+    },
+    {
+      "name": "20261115191510_workspace_timestamp_support.sql",
+      "sha256": "5dba26b99255a3d38d5c0cccb7a57bce7f2b3a89134eed360d7a9682888a12db",
+      "classification": "canonical-local-replay",
+      "reason": "Shared existing canonical trigger dependency; tested with canonical and legacy schemas. This manifest remains local-only."
     }
   ]
 }

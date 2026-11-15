@@ -14,14 +14,14 @@ with changed as (update grant_applications set notes='Stale overwrite',version=2
 select pg_temp.check_funding((select count(*)=0 from changed),'grant CAS rejects stale revision');
 select pg_temp.check_funding((select notes='Second project draft' from grant_applications where project_id='10000000-0000-0000-0000-000000000003'),'second draft unchanged');
 insert into saved_papers(user_id,data) values(auth.uid(),'{"source_id":"doi:10.1234/local-fixture","title":"Synthetic metadata fixture"}');
-insert into saved_papers(user_id,data) values(auth.uid(),'{"source_id":"provider-one","doi":"10.1234/alias-fixture.v2"}');
+insert into saved_papers(user_id,data) values(auth.uid(),'{"title":"Synthetic alias fixture","source_id":"provider-one","doi":"10.1234/alias-fixture.v2"}');
 do $$ begin
   begin
-    insert into saved_papers(user_id,data) values(auth.uid(),'{"source_id":"doi:10.1234/local-fixture"}');
+    insert into saved_papers(user_id,data) values(auth.uid(),'{"title":"Synthetic duplicate identity","source_id":"doi:10.1234/local-fixture"}');
     raise exception 'Duplicate saved-paper identity unexpectedly succeeded';
   exception when unique_violation then null; end;
   begin
-    insert into saved_papers(user_id,data) values(auth.uid(),'{"source_id":"provider-two","doi":"https://doi.org/10.1234/ALIAS-FIXTURE.v2"}');
+    insert into saved_papers(user_id,data) values(auth.uid(),'{"title":"Synthetic duplicate DOI","source_id":"provider-two","doi":"https://doi.org/10.1234/ALIAS-FIXTURE.v2"}');
     raise exception 'Duplicate canonical DOI unexpectedly succeeded';
   exception when unique_violation then null; end;
 end $$;
