@@ -9,7 +9,16 @@ export default function Contact() {
     data: capabilities,
     loading: capabilitiesLoading,
     error: capabilitiesError,
+    refresh: refreshCapabilities,
   } = useCapabilities();
+  const [checkingAgain, setCheckingAgain] = useState(false);
+  const retryAvailability = async () => {
+    if (checkingAgain) return;
+    setCheckingAgain(true);
+    try { await refreshCapabilities(); }
+    finally { setCheckingAgain(false); }
+  };
+  const contactAvailable = !capabilitiesLoading && !capabilitiesError && capabilities.contact === true;
   const [careerForm, setCareerForm] = useState({
     name: "",
     email: "",
@@ -24,7 +33,7 @@ export default function Contact() {
   });
   const submitCareer = async (event) => {
     event.preventDefault();
-    if (careerStatus.submitting) return;
+    if (careerStatus.submitting || !contactAvailable) return;
     setCareerStatus({ submitting: true, error: "", sent: false });
     try {
       const response = await fetch(apiUrl("/api/contact"), {
@@ -74,27 +83,21 @@ export default function Contact() {
             Share your question, tell us about your work or explore how we might
             collaborate.
           </p>
-          {!capabilitiesLoading && capabilitiesError && (
-            <p
-              role="status"
-              className="mt-4 text-sm text-amber-800 dark:text-amber-200"
-            >
-              We couldn’t load the contact form. Please refresh the page or try
-              again later.
-            </p>
-          )}
-          {!capabilitiesLoading &&
-            !capabilitiesError &&
-            !capabilities.contact && (
-              <p
-                role="status"
-                className="mt-4 text-sm text-amber-800 dark:text-amber-200"
-              >
-                The contact form is temporarily unavailable. Please check back
-                soon.
+          {!capabilitiesLoading && !contactAvailable && (
+            <div role="status" className="mt-5 space-y-3 rounded-xl border border-[var(--company-border)] bg-[var(--company-surface)] p-4">
+              <p className="text-sm font-semibold text-[var(--company-ink)]">
+                {capabilitiesError ? "We can't verify message delivery right now." : "Message delivery is not enabled right now."}
               </p>
-            )}
-          <form onSubmit={submitCareer} className="mt-6 grid gap-4">
+              <p className="text-sm leading-6 text-[var(--company-muted)]">
+                Your message has not been sent. You can check again without losing what you've written.
+              </p>
+              <button type="button" onClick={retryAvailability} disabled={checkingAgain || capabilitiesLoading}
+                className="min-h-11 rounded-lg border border-[var(--company-border)] px-4 py-2 text-sm font-semibold text-[var(--company-ink)] hover:bg-[var(--company-soft)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60">
+                {checkingAgain ? "Checking…" : "Check availability again"}
+              </button>
+            </div>
+          )}
+          <form onSubmit={submitCareer} aria-label="Contact EYLO" className="mt-6 grid gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-2 text-sm font-medium text-[var(--company-ink)]">
                 Your name
@@ -190,13 +193,8 @@ export default function Contact() {
             )}
             <button
               type="submit"
-              disabled={
-                careerStatus.submitting ||
-                capabilitiesLoading ||
-                Boolean(capabilitiesError) ||
-                !capabilities.contact
-              }
-              className="inline-flex w-fit items-center gap-2 rounded-xl company-primary px-6 py-3 text-sm font-semibold text-white hover:bg-[var(--company-soft)] disabled:cursor-wait disabled:opacity-60"
+              disabled={careerStatus.submitting || !contactAvailable}
+              className="inline-flex w-fit items-center gap-2 rounded-xl company-primary px-6 py-3 text-sm font-semibold text-white hover:bg-[var(--company-soft)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {careerStatus.submitting ? "Sending…" : "Send your message"}{" "}
               <ArrowRight size={16} />
