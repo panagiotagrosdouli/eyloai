@@ -11,6 +11,8 @@ import { useToast } from '@/components/ui/use-toast';
 import moment from 'moment';
 import { getResearchIdeaForNewProject } from '@/lib/discovery/workspaceSignup';
 
+const PROJECT_PAGE_SIZE = 100;
+
 const STATUS_CONFIG = {
   planning: { label: 'Planning', color: 'bg-secondary text-muted-foreground' },
   active: { label: 'Active', color: 'bg-green-500/15 text-green-400' },
@@ -41,6 +43,8 @@ export default function Projects() {
   const [working, setWorking] = useState(false);
   const [error, setError] = useState('');
   const [loadError, setLoadError] = useState('');
+  const [hasMoreProjects, setHasMoreProjects] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
 
@@ -66,12 +70,33 @@ export default function Projects() {
     setLoadError('');
     setError('');
     try {
-      const data = await base44.entities.Project.list('-updated_date', 1000);
-      setProjects(data);
+      const page = await base44.entities.Project.listPage('-updated_date', PROJECT_PAGE_SIZE, 0);
+      setProjects(page.items);
+      setHasMoreProjects(page.hasMore);
     } catch (failure) {
+      setProjects([]);
+      setHasMoreProjects(false);
       setLoadError(failure?.message || 'Projects could not be loaded.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadOlderProjects = async () => {
+    if (loadingMore || !hasMoreProjects) return;
+    setLoadingMore(true);
+    setLoadError('');
+    try {
+      const page = await base44.entities.Project.listPage('-updated_date', PROJECT_PAGE_SIZE, projects.length);
+      setProjects(current => {
+        const existingIds = new Set(current.map(project => project.id));
+        return [...current, ...page.items.filter(project => !existingIds.has(project.id))];
+      });
+      setHasMoreProjects(page.hasMore);
+    } catch (failure) {
+      setLoadError(failure?.message || 'Older projects could not be loaded.');
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -156,23 +181,24 @@ export default function Projects() {
         </button>
       </div>
 
-      {!loading && projects.length >= 1000 && (
+      {!loading && projects.length > 0 && (
         <p role="status" className="mb-4 text-xs text-muted-foreground">
-          Showing the 1,000 most recently updated projects. Older projects need pagination, which is not available yet.
+          Showing {projects.length} most recently updated projects{hasMoreProjects ? ' so far. Load older projects to browse further back.' : '.'}
+          {hasMoreProjects && searchTerm.trim() ? ' Search and filters apply to the projects currently loaded.' : ''}
         </p>
       )}
 
       <div className="relative mb-5 max-w-md">
         <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-        <input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Search projects..." aria-label="Search projects" className="w-full h-10 pl-10 pr-4 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
+        <input type="search" value={searchTerm} onChange={event => setSearchTerm(event.target.value)} placeholder="Search loaded projects..." aria-label="Search loaded projects" className="w-full h-10 pl-10 pr-4 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
       </div>
 
       {(error || loadError) && (
         <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-200">
           <span>{loadError || error}</span>
-          {loadError && <button type="button" onClick={loadProjects} disabled={loading}
+          {loadError && <button type="button" onClick={projects.length > 0 ? loadOlderProjects : loadProjects} disabled={loading || loadingMore}
             className="min-h-9 rounded-lg border border-red-500/30 px-3 font-semibold transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50">
-            {loading ? 'Retrying…' : 'Retry loading'}
+            {loading || loadingMore ? 'Retrying…' : 'Retry loading'}
           </button>}
         </div>
       )}
@@ -294,15 +320,21 @@ export default function Projects() {
             <FolderOpen size={22} className="text-muted-foreground/50" />
           </div>
           <p className="font-semibold text-sm text-foreground mb-1">
-            {filterStatus === 'all' ? 'No projects yet' : `No ${filterStatus} projects`}
+            {projects.length === 0
+              ? filterStatus === 'all' ? 'No projects yet' : `No ${filterStatus} projects`
+              : 'No projects match these filters'}
           </p>
           <p className="text-xs text-muted-foreground mt-1 max-w-xs leading-relaxed">
-            {filterStatus === 'all'
-              ? 'Create a project and EYRA will generate research intelligence, roadmaps, and funding recommendations.'
-              : 'Try a different filter or create a new project.'
+            {projects.length === 0
+              ? filterStatus === 'all'
+                ? 'Create a project and EYRA will generate research intelligence, roadmaps, and funding recommendations.'
+                : 'Try a different filter or create a new project.'
+              : hasMoreProjects
+                ? 'Load older projects to include them in search and filters.'
+                : 'Try a different search or filter.'
             }
           </p>
-          {filterStatus === 'all' && (
+          {projects.length === 0 && filterStatus === 'all' && !searchTerm.trim() && (
             <button onClick={() => setShowNew(true)} className="mt-5 px-5 py-2.5 rounded-xl eyra-gradient text-white text-sm font-semibold">
               Create your first project
             </button>
@@ -360,6 +392,20 @@ export default function Projects() {
               </motion.div>
             );
           })}
+        </div>
+      )}
+
+      {hasMoreProjects && !loading && (
+        <div className="mt-6 flex flex-col items-center gap-2">
+          <button
+            type="button"
+            onClick={loadOlderProjects}
+            disabled={loadingMore}
+            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-primary/30 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loadingMore ? 'Loading older projects…' : 'Load older projects'}
+          </button>
+          {loadError && <p role="status" className="text-xs text-muted-foreground">Your loaded projects are still available. Retry to continue browsing.</p>}
         </div>
       )}
 
