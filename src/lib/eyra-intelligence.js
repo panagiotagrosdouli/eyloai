@@ -93,7 +93,10 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProje
     throw new EyraRequestError(
       result.error || 'EYRA could not complete this analysis. Please try again.',
       response.status,
-      result,
+      {
+        ...result,
+        run_id: result.run_id || response.headers?.get?.('x-eyra-run-id') || null,
+      },
     );
   }
 
