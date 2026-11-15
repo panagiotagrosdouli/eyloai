@@ -85,6 +85,7 @@ export default function PublicDiscovery() {
   const [sourceStatus, setSourceStatus] = useState([]);
   const [attempt, setAttempt] = useState(0);
   const [activePanel, setActivePanel] = useState('discover');
+  const [showRefinement, setShowRefinement] = useState(false);
   const [savedPapers, setSavedPapers] = useState(() => readBrowserList(SAVED_KEY));
   const [searchHistory, setSearchHistory] = useState(() => readBrowserList(HISTORY_KEY));
   const savedIds = useMemo(() => new Set(savedPapers.map(paper => paper.url || paper.id || paper.title)), [savedPapers]);
@@ -207,6 +208,7 @@ export default function PublicDiscovery() {
 
   const runGuidedSearch = request => {
     setActivePanel('discover');
+    setShowRefinement(false);
     const profile = normalizeDiscoveryRequest(request);
     setParams({
       q: profile.topic,
@@ -318,8 +320,18 @@ export default function PublicDiscovery() {
           </section>
         )}
 
-        {initialQuery && !refined && (
-          <section className="mx-auto max-w-5xl py-8 sm:py-14">
+        {initialQuery && (
+          <div className="mx-auto mb-5 flex max-w-5xl justify-end">
+            <button type="button" onClick={() => setShowRefinement(open => !open)}
+              aria-expanded={showRefinement} aria-controls="public-discovery-refinement"
+              className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground hover:border-primary/40">
+              {showRefinement ? 'Close research scope' : 'Refine research scope'}
+            </button>
+          </div>
+        )}
+
+        {initialQuery && showRefinement && (
+          <section id="public-discovery-refinement" className="mx-auto max-w-5xl py-8 sm:py-14">
             <div className="mb-7 max-w-3xl">
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{initialQuery}</p>
               <h1 className="mt-2 font-serif text-3xl font-normal tracking-tight sm:text-5xl">Refine your research question.</h1>
