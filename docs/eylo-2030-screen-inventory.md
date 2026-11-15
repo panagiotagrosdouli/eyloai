@@ -36,3 +36,11 @@ Static source inspection on 2026-11-15. **Not a logged-in browser or accessibili
 | ProjectDecisions | H1 present | 1 | 11 | status, alert |
 | ThesisStudio | Check nested headings | 1 | 7 | status, alert |
 | ResearchBudget | Check nested headings | 1 | 8 | Review nested components |
+| ForYou | H1 present | 0 | 0 | status |
+| IdeaVault | H1 present | 0 | 4 | status, alert |
+| OpportunityRadar | H1 present | 0 | 1 | status, alert |
+| ExecutiveBriefing | H1 present | 0 | 0 | Review nested components |
+| FutureSimulator | H1 present | 1 | 1 | alert |
+| FutureMe | Check nested headings | 0 | 0 | Review nested components |
+| ResearchBattlefield | H1 present | 1 | 1 | status, alert |
+| DreamTeam | H1 present | 1 | 2 | alert |
