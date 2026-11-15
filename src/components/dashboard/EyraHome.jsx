@@ -115,7 +115,7 @@ export default function EyraHome({ onSearch }) {
                 <Search size={13} aria-hidden="true" /> Ask EYRA
               </button>
             </div>
-            <GuidedSearch onSearch={onSearch} defaultLevel={defaultLevel} />
+            <GuidedSearch onSearch={onSearch} defaultLevel={defaultLevel} compact autoRefine={false} />
             <nav aria-label="Suggested research actions" className="mt-4 flex flex-wrap gap-2">
               {[
                 { label: 'Explore a topic', href: '/search' },
