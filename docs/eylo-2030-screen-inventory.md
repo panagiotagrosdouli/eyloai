@@ -52,3 +52,19 @@ Static source inspection on 2026-11-15. **Not a logged-in browser or accessibili
 | Settings | H1 present | 0 | 1 | Review nested components |
 | Notifications | H1 present | 0 | 0 | Review nested components |
 | Challenges | H1 present | 0 | 1 | status, alert |
+| src/pages/PublicCareers.jsx | Check nested headings | 0 | 0 | Review nested components |
+| src/pages/OfflineWorkspace.jsx | H1 present | 0 | 2 | status, alert |
+| src/pages/DocumentEditor.jsx | H1 present | 0 | 3 | status, alert |
+| src/pages/Pricing.jsx | H1 present | 0 | 0 | status |
+| src/pages/AccountDeletion.jsx | H1 present | 2 | 4 | status, alert |
+| src/components/products/PersonalTools.jsx | H1 present | 0 | 11 | status, alert |
+| src/components/eyra/EyraCommandCenter.jsx | Check nested headings | 0 | 3 | status, alert |
+| src/components/layout/AppLayout.jsx | Check nested headings | 0 | 2 | alert |
+
+## Interpretation and outstanding validation
+
+This inventory covers core route components and the shared EYRA/layout shells. Counts are **literal JSX tags in the selected files only**; nested components may supply headings, inputs, errors and states. A missing literal is a review prompt, not a confirmed accessibility failure.
+
+- **Not executed:** authenticated browser audit, first-time pilot sessions, viewport screenshots, axe scans, Lighthouse and end-to-end workflows against real data.
+- **Required before merge:** `npm run check`, route regression suite, browser screenshots at 320/390/768/1024/1440 in both themes, keyboard/EYRA testing and paper-to-library-to-project/funding/study task trials.
+- **Targets not achieved by assumption:** action within 30 seconds, three interactions to start common workflows, and 90% unassisted pilot completion. Measure these explicitly.
