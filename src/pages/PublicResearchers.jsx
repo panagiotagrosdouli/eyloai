@@ -41,7 +41,7 @@ export default function PublicResearchers() {
     setError('');
     Promise.allSettled([
       searchOpenAlexAuthors(topic, 20, { throwOnError: true }),
-      searchResearchPeopleByPublications(topic, 20),
+      searchResearchPeopleByPublications(topic, 20, { throwOnError: true }),
     ]).then(outcomes => {
       if (!active) return;
       if (outcomes.every(outcome => outcome.status === 'rejected')) {

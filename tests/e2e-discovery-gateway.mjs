@@ -152,7 +152,18 @@ try {
   await page
     .getByText(/EYLO’s search request limit has been reached/)
     .waitFor();
-  assert.deepEqual(
+  // An unreachable researcher provider is not scientific evidence that no
+  // researchers matched the user's query. Both search paths must report failure.
+  phase = "unavailable";
+  await page.goto(origin + "/find-researchers?q=sleep%20learning");
+  await page.getByRole("alert").getByText(
+    /Researcher indexes are unavailable right now/,
+  ).waitFor();
+  assert.equal(
+    await page.getByText(/No public profiles matched this query/).count(),
+    0,
+  );
+    assert.deepEqual(
     direct,
     [],
     "hosted failures never bypass the gateway to reach providers",

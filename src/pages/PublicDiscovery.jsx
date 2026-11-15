@@ -132,7 +132,7 @@ export default function PublicDiscovery() {
         searchAllPapersWithStatus(initialQuery, { ...profile, limit: 24 }),
         Promise.allSettled([
           searchOpenAlexAuthors(initialQuery, 8, { throwOnError: true }),
-          searchResearchPeopleByPublications(initialQuery, 12),
+          searchResearchPeopleByPublications(initialQuery, 12, { throwOnError: true }),
         ]).then(outcomes => {
           if (outcomes.every(outcome => outcome.status === 'rejected')) throw new Error('Researcher sources unavailable');
           const direct = outcomes[0].status === 'fulfilled' ? outcomes[0].value : [];
