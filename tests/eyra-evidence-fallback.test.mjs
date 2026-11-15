@@ -32,7 +32,7 @@ test('unsafe records and markdown control characters never produce an extra link
   ] });
   assert.doesNotMatch(text, /\]\(javascript:/);
   assert.doesNotMatch(text, /Injected|Credentials/);
-  assert.match(text, /A \\[misleading\\]\\\(javascript:alert\\\(1\\\)\\\) claim/);
+  assert.ok(text.includes(String.raw`A \\[misleading\\]\\(javascript:alert\\(1\\)\\) claim`));
   assert.match(text, /https:\/\/doi.org\/10.1234\/example/);
 });
 
