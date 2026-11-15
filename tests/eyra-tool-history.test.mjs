@@ -31,7 +31,7 @@ function responseMock() {
   };
 }
 
-test('multi-round tool history retains previous results and repeated call IDs are not executed twice', async () => {
+test('duplicate provider call IDs abort without another tool execution or provider follow-up', async () => {
   const previousFetch = globalThis.fetch;
   let reads = 0;
   const modelInputs = [];
@@ -70,17 +70,59 @@ test('multi-round tool history retains previous results and repeated call IDs ar
       headers: { authorization: 'Bearer user-access-token' },
       body: { prompt: 'List my projects.', tool_intent: 'List my projects.', enable_project_tools: true },
     }, response);
-    assert.equal(response.statusCode, 200);
+    assert.equal(response.statusCode, 502);
+    assert.equal(response.payload.code, 'INVALID_TOOL_SEQUENCE');
     assert.equal(reads, 1, 'duplicate provider call ID must not execute again');
     assert.equal(response.payload.actions.length, 2);
     assert.equal(response.payload.actions[0].status, 'succeeded');
     assert.equal(response.payload.actions[1].status, 'failed');
     assert.match(response.payload.actions[1].error, /Duplicate or invalid/);
-    assert.equal(modelInputs.length, 3);
+    assert.equal(modelInputs.length, 2, 'invalid tool sequence stops further provider calls');
     assert.equal(modelInputs[1].length, 3, 'first follow-up includes user, call and result');
-    assert.equal(modelInputs[2].length, 5, 'second follow-up includes both tool exchanges');
-    assert.equal(modelInputs[2][2].type, 'function_call_output');
-    assert.equal(modelInputs[2][4].type, 'function_call_output');
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
+
+test('multi-round tool history retains every distinct prior call and output', async () => {
+  const previousFetch = globalThis.fetch;
+  const modelInputs = [];
+  let reads = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address.includes('/rest/v1/projects?')) {
+      reads += 1;
+      return new Response('[]', { status: 200 });
+    }
+    if (address === 'https://api.openai.com/v1/responses') {
+      const body = JSON.parse(options.body);
+      modelInputs.push(body.input);
+      const n = modelInputs.length;
+      return new Response(JSON.stringify(n < 3
+        ? { id: 'resp_' + n, status: 'completed', output: [{
+          type: 'function_call', name: 'project.list', call_id: 'unique-' + n, arguments: '{}',
+        }] }
+        : { id: 'resp_final', status: 'completed', output: [{ content: [{
+          type: 'output_text', text: 'Two project lookups complete.',
+        }] }] }
+      ), { status: 200 });
+    }
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' },
+      body: { prompt: 'List my research projects.', enable_project_tools: true },
+    }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(reads, 2);
+    assert.equal(modelInputs.length, 3);
+    assert.equal(modelInputs[1].length, 3);
+    assert.equal(modelInputs[2].length, 5);
+    assert.deepEqual(modelInputs[2].filter(item => item.type === 'function_call_output')
+      .map(item => item.call_id), ['unique-1', 'unique-2']);
   } finally {
     globalThis.fetch = previousFetch;
   }
