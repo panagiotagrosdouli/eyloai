@@ -282,7 +282,7 @@ export default function AppLayout() {
         </div>
 
         {mobileOpen && (
-          <div id="mobile-navigation-panel" onKeyDown={event => { if (event.key === 'Escape') mobileToggleRef.current?.focus(); }} className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
+          <div id="mobile-navigation-panel" onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); setToolsOpen(false); setMobileOpen(false); mobileToggleRef.current?.focus(); } }} className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
             <div className="mx-auto max-w-xl">
               <div className="grid grid-cols-2 gap-2">
                 {PRIMARY_NAV.map(item => {
