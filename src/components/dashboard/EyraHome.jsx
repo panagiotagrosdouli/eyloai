@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Bookmark, Briefcase, ChevronRight, FolderOpen, Lightbulb, Loader2, Plus, Search, Users, Zap } from 'lucide-react';
 import { buildUserProfile } from '@/lib/second-brain';
 import GuidedSearch from '@/components/discovery/GuidedSearch';
+import GoalOnboarding from '@/components/dashboard/GoalOnboarding';
 import { getLocalGreeting } from '@/lib/local-greeting';
 import { promiseWithTimeout } from '@/lib/promise-timeout';
 import { useCapabilities } from '@/lib/capabilities';
@@ -129,6 +130,8 @@ export default function EyraHome({ onSearch }) {
             <p className="mt-3 text-[11px] leading-5 text-muted-foreground">Search results link back to academic sources. AI interpretations are labeled separately from retrieved evidence.</p>
           </div>
         </section>
+
+        {loaded && !profileError && <GoalOnboarding userId={authUser?.id} existingRole={userType} />}
 
         {loaded && workspaceWarnings.length > 0 && (
           <div role="status" className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#D8E5EF] bg-white px-4 py-3 text-sm text-[#334A60]">
