@@ -29,7 +29,7 @@ async function getAccessToken(forceRefresh = false) {
   return session.access_token;
 }
 
-function postAnalysis(accessToken, prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, resourceContext = undefined) {
+function postAnalysis(accessToken, prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, resourceContext = undefined, latestUserRequest = undefined) {
   return fetch('/api/eyra', {
     method: 'POST',
     headers: {
@@ -44,24 +44,25 @@ function postAnalysis(accessToken, prompt, responseSchema, signal, enableProject
       ...(enableProjectTools ? { enable_project_tools: true } : {}),
       ...(enableProjectTools && toolIntent ? { tool_intent: toolIntent } : {}),
       ...(resourceContext ? { resource_context: resourceContext } : {}),
+      ...(latestUserRequest !== undefined ? { latest_user_request: latestUserRequest } : {}),
     }),
   });
 }
 
-async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, onDelta = undefined, resourceContext = undefined) {
+async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, onDelta = undefined, resourceContext = undefined, latestUserRequest = undefined) {
   const cleanPrompt = String(prompt || '').trim();
   if (!cleanPrompt) throw new EyraRequestError('Tell EYRA what you want to analyse.', 400);
 
   let accessToken = await getAccessToken();
   signal?.throwIfAborted();
-  let response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext);
+  let response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest);
 
   // A cached browser session can outlive its access token. Refresh once and
   // replay exactly the same request before requiring a new sign-in.
   if (response.status === 401) {
     accessToken = await getAccessToken(true);
     signal?.throwIfAborted();
-    response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext);
+    response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest);
   }
 
   if (response.status === 401) {
@@ -110,11 +111,11 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProje
 }
 
 /**
- * @param {{prompt?: string, response_json_schema?: Record<string, any>, signal?: AbortSignal, enable_project_tools?: boolean, tool_intent?: string, resource_context?: {kind:'project'|'paper'|'note', id:string}, stream?: boolean, on_delta?: (text: string) => void}} [options]
+ * @param {{prompt?: string, response_json_schema?: Record<string, any>, signal?: AbortSignal, enable_project_tools?: boolean, tool_intent?: string, latest_user_request?: string, resource_context?: {kind:'project'|'paper'|'note', id:string}, stream?: boolean, on_delta?: (text: string) => void}} [options]
  * @returns {Promise<any>}
  */
-export async function invokeEyra({ prompt = '', response_json_schema: responseSchema, signal, enable_project_tools: enableProjectTools = false, tool_intent: toolIntent = '', resource_context: resourceContext, stream = false, on_delta: onDelta } = {}) {
-  const result = await requestOpenAiAnalysis(prompt, responseSchema, signal, enableProjectTools, toolIntent, stream, onDelta, resourceContext);
+export async function invokeEyra({ prompt = '', response_json_schema: responseSchema, signal, enable_project_tools: enableProjectTools = false, tool_intent: toolIntent = '', latest_user_request: latestUserRequest, resource_context: resourceContext, stream = false, on_delta: onDelta } = {}) {
+  const result = await requestOpenAiAnalysis(prompt, responseSchema, signal, enableProjectTools, toolIntent, stream, onDelta, resourceContext, latestUserRequest);
   trackEyraActionCompleted();
   return result;
 }
