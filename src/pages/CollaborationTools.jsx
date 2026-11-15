@@ -27,13 +27,13 @@ export default function CollaborationTools() {
   // A collaboration view must not reuse another account's directory, team
   // membership or private draft state during a same-route account switch.
   // Remount before the next owner's authorized data request is completed.
-  return Object.hasOwn(TOOLS, tool) ? (
-    <Workspace key={`${tool}/${user?.id || "signed-out"}`} tool={tool} />
+  return Object.hasOwn(TOOLS, tool) && user?.id ? (
+    <Workspace key={`${tool}/${user.id}`} tool={tool} ownerId={user.id} />
   ) : (
     <main className="eylo-page">Workspace unavailable.</main>
   );
 }
-function Workspace({ tool }) {
+function Workspace({ tool, ownerId }) {
   const config = TOOLS[tool],
     alive = useRef(true);
   const [data, setData] = useState(/** @type {Record<string, any[]>} */ ({})),
@@ -60,6 +60,9 @@ function Workspace({ tool }) {
         required: true,
         validate: true,
       });
+      if (session.user.id !== ownerId) {
+        throw new Error("Your account changed. Reload the workspace.");
+      }
       const tables = [
         ...new Set([
           ...config.tables,
@@ -105,7 +108,7 @@ function Workspace({ tool }) {
     } finally {
       if (alive.current) setBusy(false);
     }
-  }, [config, tool]);
+  }, [config, tool, ownerId]);
   useEffect(() => {
     alive.current = true;
     void load();
