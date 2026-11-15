@@ -19,7 +19,7 @@ test('EYLO 2030 keeps goal-first navigation with access to the existing tool dir
 
 test('existing authenticated routes and lazy-loading remain intact', () => {
   const routes = read('../src/App.jsx');
-  for (const path of ['/home', '/search', '/projects', '/documents/new', '/learn', '/tools', '/workspace/search', '/literature-review', '/grant-builder']) {
+  for (const path of ['/home', '/workspace', '/search', '/projects', '/documents/new', '/learn', '/tools', '/workspace/search', '/literature-review', '/grant-builder']) {
     assert.ok(routes.includes('path="' + path + '"'), path + ' remains registered');
   }
   assert.match(routes, /const Home = lazy\(/);
@@ -43,6 +43,8 @@ test('command search forwards the query to the authorized shared search service'
   assert.match(search, /searchParams\.get\('q'\)/);
   assert.match(search, /searchWorkspaceSource\(/);
   assert.match(command, /previousFocusRef\.current\.focus\(\)/);
+  assert.match(command, /PRODUCT_TOOLS\.map\(tool/);
+  assert.match(command, /getProductToolPath\(tool\)/);
 });
 
 test('product directory filters actual registry entries rather than duplicating tools', () => {
@@ -50,4 +52,7 @@ test('product directory filters actual registry entries rather than duplicating 
   assert.match(tools, /PRODUCT_TOOLS\.filter\(/);
   assert.match(tools, /visibleTools\.map\(/);
   assert.match(tools, /No tools match your search/);
+  assert.match(tools, /getProductToolPath\(p\)/);
+  const catalog = read('../src/lib/product-registry.mjs');
+  assert.match(catalog, /export function getProductToolPath/);
 });
