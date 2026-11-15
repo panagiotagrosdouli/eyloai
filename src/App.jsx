@@ -26,6 +26,7 @@ const PlanGate = lazy(() => import('@/components/billing/PlanGate'));
 const CapabilityGate = lazy(() => import('@/components/system/CapabilityGate'));
 const PageNotFound = lazy(() => import('./lib/PageNotFound'));
 const Home = lazy(() => import('@/pages/Home'));
+const WorkspaceHub = lazy(() => import('@/pages/WorkspaceHub'));
 const Library = lazy(() => import('@/pages/Library'));
 const EyloFiles = lazy(() => import('@/pages/EyloFiles'));
 const DocumentEditor = lazy(() => import('@/pages/DocumentEditor'));
@@ -123,6 +124,7 @@ const AuthenticatedApp = () => {
         <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/home" element={<Home />} />
+          <Route path="/workspace" element={<WorkspaceHub />} />
           <Route path="/workspace/careers" element={<PublicCareers />} />
           <Route path="/search" element={<Home searchOnly />} />
           <Route path="/library" element={<Library />} />
