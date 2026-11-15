@@ -217,7 +217,7 @@ function createWelcomeMessage(name = '') {
   };
 }
 
-/** @typedef {{role: string, content: string, timestamp: number, mode?: string, welcome?: boolean, sources?: any[], retrievalQuery?: string}} EyraMessage */
+/** @typedef {{role: string, content: string, timestamp: number, mode?: string, welcome?: boolean, sources?: any[], retrievalQuery?: string, retrievalAttempted?: boolean}} EyraMessage */
 /** @returns {EyraMessage[]} */
 function loadConversation(userId) {
   try {
@@ -285,6 +285,9 @@ function Message({ msg, onSave, onCopy, saved, copied, saving }) {
             <p>{msg.content}</p>
           )}
         </div>
+        {isEyra && msg.retrievalAttempted && citedEvidence?.items.length === 0 && (
+          <p role="status" className="mt-2 max-w-full rounded-lg border border-border px-3 py-2 text-xs text-muted-foreground">No retrieved records are linked to this answer. Scientific claims remain unverified; refine your question or check original sources.</p>
+        )}
         {isEyra && citedEvidence?.items.length > 0 && (
           <section className="mt-2 max-w-full rounded-xl border border-border/70 bg-card/70 p-2.5" aria-label="EYRA retrieved source records">
             <p className="mb-2 text-[11px] leading-relaxed text-muted-foreground">
@@ -697,6 +700,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
         mode: activeMode,
         sources: citations.citedSources,
         retrievalQuery: evidence.query,
+        retrievalAttempted: evidence.attempted,
       };
       setMessages(previous => [...previous, eyraMsg]);
       speak(eyraMsg.content);
@@ -711,6 +715,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
         mode: activeMode,
         sources: evidence.sources || [],
         retrievalQuery: evidence.query,
+        retrievalAttempted: evidence.attempted,
       }]);
     } finally {
       if (activeRequestRef.current === controller) {
