@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  isOverdueLifeTask, lifeGoalProgress, nextLifeTaskDate, normalizeLifeGoal, normalizeLifeTask, sortLifeTasks, summarizeHabits,
+  canRecordHabitOccurrence, habitOccurrenceState, isOverdueLifeTask, lifeGoalProgress, nextLifeTaskDate, normalizeLifeGoal, normalizeLifeTask, sortLifeTasks, summarizeHabits,
 } from '../src/lib/life-domain.mjs';
 
 const migration = readFileSync(new URL('../supabase/migrations/20261112161818_eylo_life_tasks.sql', import.meta.url), 'utf8');
@@ -129,4 +129,28 @@ test('Life workspace supports real saved CRUD, status updates and protected navi
   assert.match(habitsPage, /summarizeHabits/);
   assert.match(habitsPage, /currentStreak/);
   assert.match(habitsPage, /base44\.entities\.LifeTask\.updateIfUnchanged/);
+});
+
+
+test('habit history distinguishes scheduled, overdue and recorded occurrences without future completions', () => {
+  const today = '2026-11-15';
+  assert.equal(habitOccurrenceState({ due_date: today, status: 'todo' }, today), 'due');
+  assert.equal(habitOccurrenceState({ due_date: '2026-11-14', status: 'todo' }, today), 'overdue');
+  assert.equal(habitOccurrenceState({ due_date: '2026-11-16', status: 'todo' }, today), 'scheduled');
+  assert.equal(habitOccurrenceState({ due_date: '2026-11-16', status: 'done' }, today), 'future_recorded');
+  assert.equal(habitOccurrenceState({ due_date: '2026-02-30', status: 'done' }, today), 'invalid');
+  assert.equal(canRecordHabitOccurrence({ due_date: '2026-11-16', status: 'todo' }, today), false);
+  assert.equal(canRecordHabitOccurrence({ due_date: '2026-11-16', status: 'done' }, today), false);
+  assert.equal(canRecordHabitOccurrence({ due_date: today, status: 'todo' }, today), true);
+  const tasks = [
+    { id: 'root', kind: 'habit', title: 'Read', recurrence: 'daily', due_date: '2026-11-14', status: 'done' },
+    { id: 'today', recurrence_parent_id: 'root', kind: 'habit', recurrence: 'daily', due_date: today, status: 'done' },
+    { id: 'future', recurrence_parent_id: 'root', kind: 'habit', recurrence: 'daily', due_date: '2026-11-16', status: 'done' },
+  ];
+  const habit = summarizeHabits(tasks, today)[0];
+  assert.equal(habit.occurrences.length, 3, 'future-dated saved records remain visible for review');
+  assert.deepEqual(habit.completedDates, ['2026-11-14', '2026-11-15']);
+  assert.equal(habit.completedCount, 2);
+  assert.equal(habit.currentStreak, 2);
+  assert.equal(summarizeHabits(tasks, '2026-11-16')[0].completedCount, 3);
 });
