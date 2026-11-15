@@ -359,6 +359,17 @@ function formatEyraToolActions(actions) {
       const label = { 'notes.list': 'notes', 'tasks.list': 'tasks', 'calendar.list_events': 'calendar events' }[action.tool];
       return `- Retrieved ${Array.isArray(action.result) ? action.result.length : 0} private ${label}.`;
     }
+    if (action.status === 'succeeded' && [
+      'learning.list_flashcard_decks', 'funding.list_saved_opportunities',
+      'research.list_saved_researchers',
+    ].includes(action.tool)) {
+      const label = {
+        'learning.list_flashcard_decks': 'flashcard decks',
+        'funding.list_saved_opportunities': 'saved funding opportunities',
+        'research.list_saved_researchers': 'saved researchers',
+      }[action.tool];
+      return `- Retrieved ${Array.isArray(action.result) ? action.result.length : 0} private ${label}. Saved records are not live eligibility or affiliation verification.`;
+    }
     if (action.status === 'succeeded' && action.tool === 'research.search_publications') {
       return `- Retrieved ${action.result?.count || 0} DOI-validated **bibliographic metadata** records from Crossref; full text was not analyzed.`;
     }
