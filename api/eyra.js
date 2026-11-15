@@ -925,6 +925,8 @@ export default async function handler(request, response) {
         }
         agentRunId = started.id;
         agentIdentity = identity;
+        // Every later error path retains a stable recovery handle.
+        response.setHeader('X-Eyra-Run-Id', agentRunId);
       } catch (error) {
         await releaseUsage(reservation);
         reservation = null;
