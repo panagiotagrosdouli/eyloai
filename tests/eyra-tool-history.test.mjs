@@ -675,3 +675,71 @@ test('standalone latest turn is validated before usage reservation', async () =>
     globalThis.fetch = previousFetch;
   }
 });
+
+test('project and Library tool replies are bounded to safe metadata fields', async () => {
+  const previousFetch = globalThis.fetch;
+  const projectId = '123e4567-e89b-42d3-a456-426614174000';
+  let modelCalls = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) {
+      return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    }
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) {
+      return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    }
+    if (address.includes('/rest/v1/projects?')) {
+      const u = new URL(address);
+      assert.equal(u.searchParams.get('user_id'), 'eq.user-a');
+      return new Response(JSON.stringify([{ id: projectId, data: {
+        title: 'Safe project', status: 'planning', description: 'a'.repeat(10000),
+        notes: 'DO-NOT-EXPOSE-UNREQUESTED-PRIVATE-NOTES', secret: 'PROJECT-SECRET',
+        milestones: 'm'.repeat(10000),
+      } }]), { status: 200 });
+    }
+    if (address.includes('/rest/v1/saved_papers?')) {
+      const u = new URL(address);
+      assert.equal(u.searchParams.get('user_id'), 'eq.user-a');
+      return new Response(JSON.stringify([{ id: 'paper-1', data: {
+        title: 'Verified article', doi: '10.1000/example', summary: 'PRIVATE-FULL-ABSTRACT',
+        authors: 'X'.repeat(5000), source: 'Journal', arbitrary: 'PAPER-SECRET',
+      } }]), { status: 200 });
+    }
+    if (address === 'https://api.openai.com/v1/responses') {
+      modelCalls += 1;
+      if (modelCalls === 2) {
+        const items = JSON.parse(options.body).input
+          .filter(item => item.type === 'function_call_output')
+          .map(item => JSON.parse(item.output).result);
+        assert.equal(items.length, 3);
+        assert.equal(items[0][0].description.length, 300);
+        assert.equal(items[1].milestones.length, 1600);
+        assert.equal(items[2][0].authors.length, 350);
+        assert.ok(!JSON.stringify(items).includes('PROJECT-SECRET'));
+        assert.ok(!JSON.stringify(items).includes('PAPER-SECRET'));
+        assert.ok(!JSON.stringify(items).includes('PRIVATE-FULL-ABSTRACT'));
+        assert.ok(!JSON.stringify(items).includes('DO-NOT-EXPOSE-UNREQUESTED-PRIVATE-NOTES'));
+      }
+      return new Response(JSON.stringify(modelCalls === 1 ? {
+        id: 'bounds', status: 'completed', output: [
+          { type: 'function_call', name: 'project.list', call_id: 'projlist', arguments: '{}' },
+          { type: 'function_call', name: 'project.get', call_id: 'projget',
+            arguments: JSON.stringify({ id: projectId }) },
+          { type: 'function_call', name: 'library.list_papers', call_id: 'paperlist', arguments: '{}' },
+        ],
+      } : { id: 'done', status: 'completed',
+        output: [{ content: [{ type: 'output_text', text: 'Bounded records retrieved.' }] }] }), { status: 200 });
+    }
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' },
+      body: { prompt: 'List my projects and Library, and show this project.', enable_project_tools: true },
+    }, response);
+    assert.equal(response.statusCode, 200);
+    assert.ok(response.payload.actions.every(action => action.status === 'succeeded'));
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
