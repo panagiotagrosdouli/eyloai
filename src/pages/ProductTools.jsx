@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { PRODUCT_TOOLS } from "@/lib/product-registry.mjs";
+import { PRODUCT_TOOLS, getProductToolPath } from "@/lib/product-registry.mjs";
 import PersonalTools from "@/components/products/PersonalTools";
 import {
   workspaceInput as input,
@@ -29,13 +29,7 @@ export default function ProductTools() {
             <Link
               className="rounded-xl border border-border bg-card p-4 hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
               key={p.id}
-              to={
-                p.kind === "offline"
-                  ? "/offline"
-                  : p.kind === "collaboration"
-                    ? `/collaboration/${p.slug}`
-                    : `/tools/${p.slug}`
-              }
+              to={getProductToolPath(p)}
             >
               <h2 className="font-semibold">{p.title}</h2>
               <p className="mt-2 text-sm text-muted-foreground">
