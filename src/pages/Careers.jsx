@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Briefcase, ExternalLink, FileText, Loader2, MapPin, Search, ShieldCheck, Upload, X } from 'lucide-react';
 import { extractCvText } from '@/lib/cv-extraction';
@@ -21,8 +21,15 @@ export default function Careers() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [sourceNotice, setSourceNotice] = useState('');
+  const [hasMore, setHasMore] = useState(false);
+  const [resultPage, setResultPage] = useState(0);
+  const [searchedQuery, setSearchedQuery] = useState('');
+  const [sourceQuery, setSourceQuery] = useState('');
+  const [country, setCountry] = useState('');
+  const activeSearch = useRef(null);
+  const countries = useMemo(() => [...new Set(items.map(item => item.country).filter(Boolean))].sort(), [items]);
 
-  const rankedItems = useMemo(() => rankCareers(items, cvText, query), [items, cvText, query]);
+  const rankedItems = useMemo(() => rankCareers(items.filter(item => !country || item.country === country), cvText, searchedQuery), [items, cvText, searchedQuery, country]);
 
   const runSearch = async (term, page = 0) => {
     const clean = String(term || '').trim();
@@ -30,24 +37,31 @@ export default function Careers() {
       setError('Add a research area, skill or role to search.');
       return;
     }
+    activeSearch.current?.abort();
+    const controller = new AbortController();
+    activeSearch.current = controller;
+    const signal = controller.signal;
     setQuery(clean);
+    setSearchedQuery(clean);
+    if (!page) { setItems([]); setCountry(''); setHasMore(false); }
     setParams({ q: clean }, { replace: true });
     setLoading(true);
     setError('');
     setSourceNotice('');
     const [initialResearchResult, generalResult] = await Promise.allSettled([
-      searchCareers(clean, page),
-      loadGeneralCareerListings(),
+      searchCareers(page ? sourceQuery : clean, page, signal),
+      loadGeneralCareerListings(signal),
     ]);
+    if (signal.aborted) return;
     let research = initialResearchResult.status === 'fulfilled' ? initialResearchResult.value : null;
     const general = generalResult.status === 'fulfilled' ? generalResult.value : null;
     let results = combineCareerSearchResults(research?.items, general?.items, clean);
     let broadenedTerm = '';
-    if (!results.length && research) {
+    if (!page && !results.length && research) {
       broadenedTerm = broaderCareerSearchTerm(clean);
       if (broadenedTerm) {
         try {
-          research = await searchCareers(broadenedTerm, page);
+          research = await searchCareers(broadenedTerm, page, signal);
           results = combineCareerSearchResults(research.items, general?.items, clean);
         } catch {
           // Preserve the initial result set and let the ordinary source/error state explain the fallback failure.
@@ -55,28 +69,38 @@ export default function Careers() {
         }
       }
     }
-    setItems(results);
+    if (signal.aborted) return;
+    setItems(previous => page ? combineCareerSearchResults(previous, results, clean) : results);
+    if (!page) setSourceQuery(broadenedTerm || clean);
+    setResultPage(page);
+    setHasMore(Boolean(research?.has_more) && page < 99);
     setSourceUrl(research?.source_url || '');
     setRetrievedAt([research?.retrieved_at, general?.retrieved_at].filter(Boolean).sort().at(-1) || '');
     setRemotiveSnapshotAt(general?.remotive_snapshot_retrieved_at || '');
+    const unavailableSources = [];
+    const notices = [];
+    if (broadenedTerm) notices.push(`EURAXESS used a broader source search for “${broadenedTerm}”; role and topic terms are matched locally.`);
+    if (initialResearchResult.status === 'rejected') unavailableSources.push('EURAXESS');
+    if (generalResult.status === 'rejected') unavailableSources.push('general listings');
+    else if (general?.failed_sources?.length) unavailableSources.push(...general.failed_sources);
+    if (unavailableSources.length) {
+      notices.push('Some sources are temporarily unavailable (' + unavailableSources.join(', ') + '). Search coverage is incomplete. Retry or check the original source.');
+    }
+    if (general?.remotive_snapshot_retrieved_at && Date.now() - Date.parse(general.remotive_snapshot_retrieved_at) > 48 * 60 * 60 * 1000) {
+      notices.push('The Remotive snapshot is over 48 hours old. Availability must be checked on the original posting.');
+    }
+    setSourceNotice(notices.join(' '));
     if (initialResearchResult.status === 'rejected' && generalResult.status === 'rejected') {
-      setError('Career listings are temporarily unavailable. Please try again shortly.');
-    } else if (!results.length) {
-      setError('No current roles matched that search. Try a broader research topic.');
-    } else {
-      const unavailableSources = [];
-      const notices = [];
-      if (broadenedTerm) notices.push(`EURAXESS used a broader source search for “${broadenedTerm}”; all search terms were still matched locally.`);
-      if (initialResearchResult.status === 'rejected') unavailableSources.push('EURAXESS');
-      if (generalResult.status === 'rejected') unavailableSources.push('general listings');
-      else if (general?.failed_sources?.length) unavailableSources.push(...general.failed_sources);
-      if (unavailableSources.length) {
-        notices.push('Some sources are temporarily unavailable (' + unavailableSources.join(', ') + '). Showing available listings.');
-      }
-      setSourceNotice(notices.join(' '));
+      setError('Career listings are temporarily unavailable. Please retry.');
+    } else if (!results.length && !page) {
+      setError(unavailableSources.length
+        ? 'No matching roles in the available listings. Unavailable sources could not be evaluated.'
+        : 'No roles matched in the retrieved listings. Try a broader topic or another results page.');
     }
     setLoading(false);
   };
+
+  useEffect(() => () => activeSearch.current?.abort(), []);
 
   useEffect(() => {
     const initial = params.get('q');
@@ -133,9 +157,9 @@ export default function Careers() {
           <div className="mx-auto flex max-w-4xl items-center gap-2 rounded-xl border border-border bg-background p-2 shadow-sm focus-within:ring-2 focus-within:ring-ring">
             <Search size={18} className="ml-2 shrink-0 text-muted-foreground" aria-hidden="true" />
             <input id="career-query" value={query} onChange={event => setQuery(event.target.value)} placeholder="e.g. climate adaptation, machine learning, PhD supervisor" className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm outline-none placeholder:text-muted-foreground" />
-            <button type="submit" disabled={loading} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60">{loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}<span className="hidden sm:inline">Search roles</span></button>
+            <button type="submit" aria-label="Search roles" disabled={loading} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60">{loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}<span className="hidden sm:inline">Search roles</span></button>
           </div>
-          <div className="mx-auto mt-2 flex max-w-4xl items-center justify-between gap-3 text-[11px] text-muted-foreground">
+          <div className="mx-auto mt-2 flex max-w-4xl flex-wrap items-center justify-between gap-3 text-[11px] text-muted-foreground">
             <span>Search terms go to EURAXESS · job feeds are matched locally</span> <span aria-hidden="true">·</span> <a href="https://www.arbeitnow.com/" target="_blank" rel="noreferrer" className="hover:underline">Europe/UK listings by Arbeitnow</a> <span aria-hidden="true">·</span> <a href="https://remotive.com/remote-jobs/api" target="_blank" rel="noreferrer" className="hover:underline">Remote listings by Remotive</a>
             {sourceUrl && <a href={sourceUrl} target="_blank" rel="noreferrer" className="hover:underline">Source search <ExternalLink size={11} className="inline" /></a>}
             <p className="basis-full text-[10px] leading-5">Remotive listings can be delayed by the provider and EYLO refreshes the snapshot daily.{remotiveSnapshotAt ? ' Snapshot refreshed ' + new Date(remotiveSnapshotAt).toLocaleString() + '.' : ''}</p>
@@ -147,6 +171,8 @@ export default function Careers() {
         <div className="space-y-4">
           {sourceNotice && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{sourceNotice}</div>}
           {error && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{error}</div>}
+          {!loading && (error || sourceNotice) && <button type="button" onClick={() => runSearch(searchedQuery)} className="min-h-10 rounded-lg border border-border px-4 text-sm">Retry search</button>}
+          {countries.length > 1 && <label className="block text-sm">Listing location<select aria-label="Listing location" value={country} onChange={event => setCountry(event.target.value)} className="ml-2 max-w-full rounded-lg border border-border bg-background p-2"><option value="">All retrieved locations</option>{countries.map(value => <option key={value} value={value}>{value}</option>)}</select></label>}
           {loading && <div role="status" className="flex items-center gap-3 rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground"><Loader2 size={16} className="animate-spin" />Searching EURAXESS and loading Europe/UK and remote listings…</div>}
           {!loading && !error && items.length > 0 && <p className="text-xs text-muted-foreground">{rankedItems.length} matching research, Europe/UK and remote roles · {retrievedAt ? 'updated ' + new Date(retrievedAt).toLocaleString() : 'current source records'} · sorted by {cvText ? 'CV overlap' : 'search relevance'}</p>}
           {!loading && rankedItems.map(item => (
@@ -158,6 +184,7 @@ export default function Careers() {
                 </div>
                 {item.deadline && <span className="rounded-full border border-border px-2.5 py-1 text-[10px] text-muted-foreground">Deadline {item.deadline}</span>}
               </div>
+              {item.published_at && <p className="mt-2 text-xs text-muted-foreground">Published {item.published_at.slice(0, 10)}</p>}
               <h2 className="mt-3 font-serif text-xl leading-7 text-foreground">{item.title}</h2>
               {item.organization && <p className="mt-1 text-sm font-medium text-muted-foreground">{item.organization}</p>}
               {item.description && <p className="mt-3 line-clamp-4 text-sm leading-6 text-muted-foreground">{item.description}</p>}
@@ -169,6 +196,7 @@ export default function Careers() {
               </div>
             </article>
           ))}
+          {!loading && hasMore && <button type="button" onClick={() => runSearch(searchedQuery, resultPage + 1)} className="min-h-11 rounded-lg border border-border px-4 text-sm font-semibold">Load more EURAXESS results</button>}
           {!loading && !error && items.length === 0 && <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center"><Briefcase size={24} className="mx-auto text-muted-foreground" /><h2 className="mt-3 text-lg font-semibold text-foreground">Find your research role</h2><p className="mt-2 text-sm text-muted-foreground">Search by field, methods, skills, PhD or postdoctoral role.</p></div>}
         </div>
 

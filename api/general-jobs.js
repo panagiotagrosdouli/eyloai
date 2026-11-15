@@ -5,7 +5,7 @@ const FEEDS = [
 ];
 const REMOTIVE_FEED_URL = 'https://raw.githubusercontent.com/panagiotagrosdouli/eyloai/career-feed/remotive-jobs.json';
 const TIMEOUT_MS = 10000;
-const MAX_ITEMS_PER_FEED = 50;
+const MAX_ITEMS_PER_FEED = 300;
 const MAX_REMOTIVE_ITEMS = 100;
 
 function decodeEntities(value = '') {
@@ -55,6 +55,9 @@ function normalizeJob(job, feed) {
     organization: plainText(job.company_name || ''),
     country: plainText(job.location || feed.region),
     description: plainText(job.description || '').slice(0, 700),
+    published_at: Number.isFinite(Number(job.created_at)) && Number(job.created_at) > 0
+      ? new Date(Number(job.created_at) * 1000).toISOString() : '',
+    work_arrangement: job.remote === true ? 'Remote' : '',
     deadline: '',
     source: feed.source,
     source_url: sourceUrl,
@@ -74,6 +77,8 @@ function normalizeRemotiveJob(job) {
       organization: plainText(job?.organization || job?.company_name || ''),
       country: plainText(job?.country || job?.candidate_required_location || 'Remote'),
       description: plainText(job?.description || '').slice(0, 700),
+      published_at: String(job?.published_at || job?.publication_date || '').slice(0, 40),
+      work_arrangement: 'Remote',
       deadline: '',
       source: 'Remotive',
       source_url: sourceUrl.toString(),
@@ -90,7 +95,7 @@ async function loadRemotiveJobs() {
   });
   if (!upstream.ok) throw new Error('Remotive snapshot returned ' + upstream.status);
   const snapshot = await upstream.json();
-  if (snapshot?.source !== 'Remotive' || !Array.isArray(snapshot?.items) || !snapshot.items.length || !snapshot.retrieved_at) {
+  if (snapshot?.source !== 'Remotive' || !Array.isArray(snapshot?.items) || !snapshot.items.length || !Number.isFinite(Date.parse(snapshot.retrieved_at))) {
     throw new Error('Remotive snapshot is invalid.');
   }
   const items = snapshot.items.slice(0, MAX_REMOTIVE_ITEMS).map(normalizeRemotiveJob).filter(Boolean);
@@ -117,7 +122,8 @@ export default async function handler(request, response) {
       });
       if (!upstream.ok) throw new Error(feed.source + ' returned ' + upstream.status);
       const payload = await upstream.json();
-      const data = Array.isArray(payload?.data) ? payload.data : [];
+      if (!Array.isArray(payload?.data)) throw new Error(feed.source + ' returned an invalid jobs feed');
+      const data = payload.data;
       return data.slice(0, MAX_ITEMS_PER_FEED).map(job => normalizeJob(job, feed)).filter(Boolean);
     }),
     loadRemotiveJobs(),

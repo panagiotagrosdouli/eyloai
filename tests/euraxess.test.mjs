@@ -76,3 +76,40 @@ test('EURAXESS parser still accepts the previous class-based result wrapper', as
     globalThis.fetch = previousFetch;
   }
 });
+
+test('EURAXESS rejects a successful HTML maintenance page instead of claiming zero jobs', async () => {
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: true, text: async () => '<html><h1>Service temporarily unavailable</h1></html>' });
+  try {
+    const response = createResponse();
+    await handler({ method: 'GET', headers: {}, query: { q: 'postdoc' } }, response);
+    assert.equal(response.statusCode, 502);
+    assert.match(response.body.error, /recogniz|unavailable/i);
+  } finally { globalThis.fetch = previousFetch; }
+});
+
+test('EURAXESS accepts an explicit empty search and rejects off-domain posting links', async () => {
+  const previousFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => ({ ok: true, text: async () => '<div class="view-empty">No results found</div>' });
+    let response = createResponse();
+    await handler({ method: 'GET', headers: {}, query: { q: 'postdoc' } }, response);
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(response.body.items, []);
+    globalThis.fetch = async () => ({ ok: true, text: async () => currentEuraxessMarkup.replace('/jobs/478694', 'https://untrusted.example/jobs/478694') });
+    response = createResponse();
+    await handler({ method: 'GET', headers: {}, query: { q: 'postdoc' } }, response);
+    assert.equal(response.statusCode, 502);
+  } finally { globalThis.fetch = previousFetch; }
+});
+
+test('EURAXESS pagination follows the upstream next-page marker even with a short page', async () => {
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({ ok: true, text: async () => currentEuraxessMarkup + '<a rel="next" href="?page=1">Next page</a>' });
+  try {
+    const response = createResponse();
+    await handler({ method: 'GET', headers: {}, query: { q: 'climate' } }, response);
+    assert.equal(response.body.items.length, 1);
+    assert.equal(response.body.has_more, true);
+  } finally { globalThis.fetch = previousFetch; }
+});

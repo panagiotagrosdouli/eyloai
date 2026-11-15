@@ -1,0 +1,116 @@
+{
+  "audit_date": "2026-11-15",
+  "timezone": "Europe/Athens",
+  "pr": "https://github.com/panagiotagrosdouli/eyloai/pull/441",
+  "status": "IMPLEMENTED \u2014 UNVERIFIED",
+  "database_changes": false,
+  "production_deployed_by_agent": false,
+  "checks": {
+    "npm run check": {
+      "result": "PASS",
+      "node_tests": 756,
+      "includes": [
+        "imports",
+        "frontend and API typecheck",
+        "lint",
+        "tests",
+        "production build"
+      ]
+    },
+    "careers_regressions": {
+      "result": "PASS",
+      "tests": 23,
+      "before_fix": "4 failing regressions were reproduced before implementation"
+    },
+    "npm run test:e2e:careers": {
+      "result": "PASS",
+      "transport": "fixtures",
+      "widths": [
+        320,
+        390,
+        768,
+        1365
+      ]
+    },
+    "npm run test:e2e:auth": {
+      "result": "PASS",
+      "transport": "fixtures"
+    },
+    "npm run test:e2e:products": {
+      "result": "PASS",
+      "transport": "fixtures",
+      "workflow_count": 22
+    },
+    "npm run test:e2e:learning": {
+      "result": "PASS",
+      "transport": "fixtures"
+    },
+    "npm run test:e2e:discovery-gateway": {
+      "result": "PASS",
+      "transport": "fixtures"
+    },
+    "npm run test:e2e:meetings": {
+      "result": "BLOCKED",
+      "reason": "Missing required staging URL, host email/password, guest email/password; guard failed before test writes"
+    },
+    "local_postgres": {
+      "result": "PASS",
+      "migrations_replayed": 22,
+      "limitations": "Real disposable PostgreSQL with Auth and Storage metadata compatibility fixtures; not hosted Auth or Storage bytes"
+    },
+    "npm run db:review-plan": {
+      "result": "PASS",
+      "selected": 22,
+      "excluded": 7,
+      "remote_authorized": false
+    },
+    "npm run release:readiness": {
+      "result": "NO-GO"
+    },
+    "npm run config:check": {
+      "result": "CONFIGURATION_INCOMPLETE"
+    },
+    "npm run release:probe": {
+      "result": "PROBE_FAILED",
+      "transport_note": "Initial Node fetch failed; NODE_USE_ENV_PROXY=1 rerun reached real endpoints",
+      "reason": "Discovery503 DISCOVERY_RATE_LIMIT_UNAVAILABLE and disabled AI/contact/billing"
+    }
+  },
+  "public_readonly_observations": {
+    "observed_release": "5f270e8eaa177610e4be3e1e7a587abde7bd59af",
+    "root": 200,
+    "deployment_status": 200,
+    "capabilities": {
+      "ai": false,
+      "billing": false,
+      "contact": false,
+      "scheduled_monitoring": false,
+      "institution_analytics": false
+    },
+    "general_jobs": {
+      "status": 200,
+      "items": 116
+    },
+    "euraxess": 502,
+    "arbeitnow_europe": {
+      "status": 200,
+      "items": 300
+    },
+    "arbeitnow_uk": 403,
+    "remotive_snapshot": {
+      "status": 200,
+      "items": 16,
+      "retrieved_at": "2026-11-15T12:43:10.936Z"
+    },
+    "public_bundle_supabase_ref": "kbzjngpzxpniaumlupaa"
+  },
+  "blockers": [
+    "Correct EYLO Supabase project metadata inspection denied; no actual schema or migration history available",
+    "Connected Supabase exposes only forbidden unrelated project; no SQL run there",
+    "No separate confirmed staging and disposable users",
+    "Vercel connector search returns no EYLO project",
+    "Production schema errors remain BROKEN; root cause unverified",
+    "Real provider, Storage bytes, RLS, Stripe test mode and LiveKit acceptance outstanding",
+    "77-product full acceptance remains outstanding"
+  ]
+}
