@@ -475,3 +475,58 @@ body { min-width: 320px; background: hsl(var(--background)); letter-spacing: -0.
   --input: 214 22% 90%;
   --ring: 213 58% 30%;
 }
+
+
+/* EYLO 2030 foundations — semantic tokens shared by authenticated product surfaces.
+   Existing Tailwind HSL tokens remain the source of truth for color and theme. */
+.eylo-app-canvas {
+  --eylo-space-1: 0.25rem;
+  --eylo-space-2: 0.5rem;
+  --eylo-space-3: 0.75rem;
+  --eylo-space-4: 1rem;
+  --eylo-space-6: 1.5rem;
+  --eylo-space-8: 2rem;
+  --eylo-space-12: 3rem;
+  --eylo-radius-control: 0.75rem;
+  --eylo-radius-panel: 1rem;
+  --eylo-shadow-panel: 0 8px 30px -24px hsl(var(--foreground) / 0.22);
+  --eylo-content-width: 80rem;
+}
+.eylo-app-canvas :where(.eylo-surface) {
+  border-radius: var(--eylo-radius-panel);
+  box-shadow: var(--eylo-shadow-panel);
+}
+.eylo-app-canvas :where(button, [role='button'], a):focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 3px;
+}
+.eylo-app-canvas :where(button, [role='button']) {
+  touch-action: manipulation;
+}
+@media (prefers-reduced-motion: reduce) {
+  .eylo-app-canvas :where(button, a, [role='button']) {
+    transform: none !important;
+  }
+}
+
+/* Home must honor the selected dark theme, rather than pinning light colors. */
+:root.dark .eylo-home,
+:root.dark .eylo-home-layout {
+  --background: 213 53% 9%;
+  --foreground: 207 34% 95%;
+  --card: 213 43% 13%;
+  --card-foreground: 207 34% 95%;
+  --popover: 213 43% 13%;
+  --popover-foreground: 207 34% 95%;
+  --primary: 203 70% 70%;
+  --primary-foreground: 213 53% 9%;
+  --secondary: 213 35% 18%;
+  --secondary-foreground: 206 31% 86%;
+  --muted: 213 35% 18%;
+  --muted-foreground: 207 22% 72%;
+  --accent: 203 65% 65%;
+  --accent-foreground: 213 53% 9%;
+  --border: 211 27% 27%;
+  --input: 211 27% 27%;
+  --ring: 203 70% 70%;
+}

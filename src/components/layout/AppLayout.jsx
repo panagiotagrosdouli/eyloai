@@ -15,11 +15,11 @@ import { useCapabilities } from '@/lib/capabilities';
 import { trackActivatedReturn } from '@/lib/product-analytics';
 import { useAuth } from '@/lib/AuthContext';
 
+// Keep primary destinations stable and human-readable; secondary workflows live in All tools.
 const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
   { label: 'Discover', path: '/search', icon: Search },
-  { label: 'Workspace', path: '/projects', icon: FolderOpen },
-  { label: 'Create', path: '/documents/new', icon: FilePlus2 },
+  { label: 'My workspace', path: '/projects', icon: FolderOpen },
   { label: 'Learn', path: '/learn', icon: GraduationCap },
 ];
 
@@ -151,7 +151,7 @@ export default function AppLayout() {
 
   const isWorkspaceHome = location.pathname === '/home';
   const isActive = path => location.pathname === path || (path !== '/life' && location.pathname.startsWith(`${path}/`));
-  const toolsActive = ALL_TOOLS.some(item => isActive(item.path));
+  const toolsActive = ALL_TOOLS.some(item => isActive(item.path)) && !PRIMARY_NAV.some(item => isActive(item.path));
   const primaryActive = item => isActive(item.path) || (item.path === '/projects' && ['/library', '/notes', '/files', '/life', '/calendar', '/workspace/search'].some(path => isActive(path)));
   const query = toolQuery.trim().toLowerCase();
   const visibleGroups = TOOL_GROUPS.map(group => ({
@@ -228,7 +228,7 @@ export default function AppLayout() {
             <div ref={toolsRef} className="relative">
               <button type="button" onClick={() => setToolsOpen(value => !value)} aria-expanded={toolsOpen}
                 className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium transition-colors ${toolsActive ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>
-                <LayoutGrid size={14} aria-hidden="true" />Tools<ChevronDown size={12} className={`transition-transform ${toolsOpen ? 'rotate-180' : ''}`} />
+                <LayoutGrid size={14} aria-hidden="true" />All tools<ChevronDown size={12} className={`transition-transform ${toolsOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {toolsOpen && (
@@ -313,7 +313,7 @@ export default function AppLayout() {
       <EyraCommandCenter open={eyraOpen} onClose={() => setEyraOpen(false)} />
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl lg:hidden" aria-label="Primary mobile navigation">
-        <div className="mx-auto grid max-w-lg grid-cols-6 items-end">
+        <div className="mx-auto grid max-w-lg grid-cols-5 items-end">
           {PRIMARY_NAV.slice(0, 2).map(item => {
             const Icon = item.icon; const active = primaryActive(item);
             return <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}><Icon size={18} /><span>{item.label}</span></Link>;
