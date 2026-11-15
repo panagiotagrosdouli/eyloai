@@ -217,7 +217,9 @@ export async function searchOpenAlexAuthors(query, limit = 8, strictOptions = {}
 // Publication authorship is not proof of professor rank or supervisor availability.
 export async function searchResearchPeopleByPublications(query, limit = 25, strictOptions = {}) {
   try {
-    const topic = String(query || '').replace(/\bph\.?d\.?\b|\bdoctorate\b|\bdoctoral\b|\bin\b/gi, ' ').replace(/\s+/g, ' ').trim() || String(query || '').trim();
+    const topic = String(query || '').replace(/\bph\.?d\.?(?=\W|$)|\bdoctorate\b|\bdoctoral\b|\bin\b/gi, ' ').replace(/\s+/g, ' ').trim() || String(query || '').trim();
+    const requestedCountry = String(strictOptions.country || '').trim().toUpperCase();
+    const countryFilter = /^[A-Z]{2}$/.test(requestedCountry) ? requestedCountry : '';
     const page = Math.min(200, Math.max(1, Number(strictOptions.page) || 1));
     const directUrl = `${OPENALEX_BASE}/works?search=${encodeURIComponent(topic)}&per_page=25&page=${page}&sort=relevance_score:desc${OPENALEX_CONTACT}`;
     // Preserve the configured discovery gateway, including quota and error
@@ -231,9 +233,14 @@ export async function searchResearchPeopleByPublications(query, limit = 25, stri
         const author = authorship.author || {};
         const id = String(author.id || '');
         if (!/^https:\/\/openalex\.org\/A\d+$/.test(id) || !isIndividualResearcherName(author.display_name)) continue;
-        const institution = authorship.institutions?.[0];
-        const country = institution?.country_code || '';
-        if (strictOptions.country && country !== strictOptions.country) continue;
+        // A publication author can have multiple affiliations. A requested
+        // country may match a later institution, not only the first one.
+        const institutions = Array.isArray(authorship.institutions) ? authorship.institutions : [];
+        const institution = countryFilter
+          ? institutions.find(item => String(item?.country_code || '').toUpperCase() === countryFilter)
+          : institutions[0];
+        if (countryFilter && !institution) continue;
+        const country = String(institution?.country_code || '').toUpperCase();
         if (people.has(id)) continue;
         people.set(id, {
           id, openalex_id: id, name: author.display_name,
