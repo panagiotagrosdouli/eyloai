@@ -19,6 +19,21 @@ try {
   for (const width of widths) {
     for (const colorScheme of ['light', 'dark']) {
       const context = await browser.newContext({ storageState, viewport: { width, height: 900 }, colorScheme, reducedMotion: 'reduce' });
+      await context.addInitScript(() => {
+        window.__eyloUxVitals = { lcpMs: null, cls: 0 };
+        try {
+          new PerformanceObserver(list => {
+            for (const entry of list.getEntries()) window.__eyloUxVitals.lcpMs = entry.startTime;
+          }).observe({ type: 'largest-contentful-paint', buffered: true });
+        } catch { /* Unsupported browsers must report null LCP, not a fabricated score. */ }
+        try {
+          new PerformanceObserver(list => {
+            for (const entry of list.getEntries()) {
+              if (!entry.hadRecentInput) window.__eyloUxVitals.cls += entry.value;
+            }
+          }).observe({ type: 'layout-shift', buffered: true });
+        } catch { window.__eyloUxVitals.cls = null; }
+      });
       const page = await context.newPage();
       const pageErrors = [];
       page.on('pageerror', error => pageErrors.push(error.message));
@@ -50,7 +65,18 @@ try {
           await mkdir(artifactDir, { recursive: true });
           await page.screenshot({ path: path.join(artifactDir, `${width}-${colorScheme}-${route.slice(1).replaceAll('/', '-')}.png`), fullPage: true, animations: 'disabled' });
         }
-        observations.push({ route, width, colorScheme, navigationMs: Date.now() - begin, pageErrors: [...pageErrors] });
+        const vitals = await page.evaluate(() => {
+          const nav = performance.getEntriesByType('navigation')[0];
+          return {
+            lcpMs: window.__eyloUxVitals?.lcpMs ?? null,
+            cls: window.__eyloUxVitals?.cls ?? null,
+            domContentLoadedMs: nav ? nav.domContentLoadedEventEnd : null,
+          };
+        });
+        observations.push({ route, width, colorScheme, navigationMs: Date.now() - begin,
+          lcpMs: vitals.lcpMs, cls: vitals.cls, domContentLoadedMs: vitals.domContentLoadedMs,
+          inpMs: null, // INP needs a representative interaction; navigation alone cannot measure it.
+          pageErrors: [...pageErrors] });
       }
       assert.deepEqual(pageErrors, [], 'Unexpected browser errors at ' + width + 'px');
       await context.close();
