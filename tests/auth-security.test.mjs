@@ -111,3 +111,10 @@ test('authentication preserves current product and privacy destinations, includi
  for(const path of ['/account-deletion','/account-deletion#receipt','/tools/forms','/collaboration/peer-review','/automations','/calendar','/notes?focus=exact-note','/files','/documents/new','/life/goals','/study','/learn','/quiz-generator','/time-tracker','/offline']) assert.equal(getSafeRedirect(path),path);
  for(const path of ['/tools-evil','//tools.evil.example','/account-deletion-evil','/tools/../../login','https://evil.example/tools']) assert.equal(getSafeRedirect(path),'/home');
 });
+
+test('password reset handles rejected authentication requests with a retryable error', async () => {
+  const page = await readFile(new URL('../src/pages/ResetPassword.jsx', import.meta.url), 'utf8');
+  assert.match(page, /try\s*\{[\s\S]*?await updatePassword\(password\)/);
+  assert.match(page, /catch\s*\{\s*setFormError\(["']The account service could not be reached/);
+  assert.match(page, /result\?\.error\?\.message\s*\|\|/);
+});

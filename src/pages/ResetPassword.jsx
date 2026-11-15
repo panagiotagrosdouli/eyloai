@@ -28,12 +28,16 @@ export default function ResetPassword() {
 
   const onSubmit = async ({ password }) => {
     setFormError("");
-    const result = await updatePassword(password);
-    if (!result.ok) {
-      setFormError(result.error.message);
-      return;
+    try {
+      const result = await updatePassword(password);
+      if (!result?.ok) {
+        setFormError(result?.error?.message || "Could not update your password. Please retry.");
+        return;
+      }
+      setDone(true);
+    } catch {
+      setFormError("The account service could not be reached. Check your connection and retry.");
     }
-    setDone(true);
   };
 
   if (done) {
