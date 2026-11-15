@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { PRODUCT_TOOLS } from "@/lib/product-registry.mjs";
 import PersonalTools from "@/components/products/PersonalTools";
@@ -138,6 +138,9 @@ function ToolDirectory() {
 }
 
 function ProjectChooser({ config }) {
+  const [searchParams] = useSearchParams();
+  const preferredProjectId = searchParams.get("project_id");
+  const [projectSearch, setProjectSearch] = useState("");
   const [projects, setProjects] = useState([]),
     [selected, setSelected] = useState(""),
     [error, setError] = useState(""),
@@ -146,7 +149,12 @@ function ProjectChooser({ config }) {
     let active = true;
     void base44.entities.Project.list("-updated_date", 1000)
       .then((rows) => {
-        if (active) setProjects(rows);
+        if (active) {
+          setProjects(rows);
+          const requested = rows.find(project => project.id === preferredProjectId);
+          if (requested) setSelected(requested.id);
+          else if (rows.length === 1) setSelected(rows[0].id);
+        }
       })
       .catch(() => {
         if (active) setError("Private projects could not be loaded.");
@@ -157,7 +165,8 @@ function ProjectChooser({ config }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [preferredProjectId]);
+  const filteredProjects = projects.filter(project => project.id === selected || String(project.title || "").toLowerCase().includes(projectSearch.toLowerCase()));
   return (
     <main className="eylo-page mx-auto max-w-3xl space-y-5">
       <Link to="/tools">All tools</Link>
@@ -165,6 +174,13 @@ function ProjectChooser({ config }) {
       <p>{config.description}</p>
       {error && <p role="alert">{error}</p>}
       {loading && <p role="status">Loading private projects…</p>}
+      {projects.length > 10 && (
+        <label className="block text-sm">
+          Find a project
+          <input type="search" value={projectSearch} onChange={event => setProjectSearch(event.target.value)}
+            placeholder="Search projects by name" className={input} />
+        </label>
+      )}
       <label className="block text-sm">
         Private project
         <select
@@ -173,13 +189,14 @@ function ProjectChooser({ config }) {
           onChange={(e) => setSelected(e.target.value)}
         >
           <option value="">Choose a project</option>
-          {projects.map((p) => (
+          {filteredProjects.map((p) => (
             <option key={p.id} value={p.id}>
               {p.title}
             </option>
           ))}
         </select>
       </label>
+      {!loading && !projects.length && <p className="text-sm text-muted-foreground">No projects yet. Create one to begin using this tool.</p>}
       {selected && (
         <Link
           className={button}
