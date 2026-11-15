@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ArrowRight, BookOpen, Compass, GraduationCap, Layers3, Search,
   Target, Wrench, X,
@@ -56,8 +56,6 @@ export default function GuidedSearch({
   const [recency, setRecency] = useState('latest');
   const [refining, setRefining] = useState(initialRefine && Boolean(initialTopic));
 
-  const isBroad = useMemo(() => draftTopic.trim().split(/\s+/).filter(Boolean).length <= 3, [draftTopic]);
-
   const complete = request => {
     trackGuidedSearchCompleted({
       level: request.level,
@@ -76,7 +74,7 @@ export default function GuidedSearch({
     const researchGoal = interpreted?.goal || 'review';
     setTopic(researchTopic);
     if (interpreted) setGoal(researchGoal);
-    if (autoRefine || researchTopic.trim().split(/\\s+/).filter(Boolean).length <= 3) setRefining(true);
+    if (autoRefine || researchTopic.trim().split(/\s+/).filter(Boolean).length <= 3) setRefining(true);
     else complete(normalizeDiscoveryRequest({ topic: researchTopic, level: defaultLevel, goal: researchGoal, recency: 'balanced' }));
   };
 
