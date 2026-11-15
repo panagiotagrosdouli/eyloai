@@ -131,6 +131,17 @@ try {
     0,
   );
   assert.equal(await page.getByText(/Private upstream information/).count(), 0);
+  // A direct ?q= link still searches immediately, but visitors can now
+  // change level, goal and recency without leaving the result page.
+  const refine = page.getByRole("button", { name: "Refine research scope" });
+  await refine.click();
+  assert.equal(await page.getByRole("button", { name: "Close research scope" }).getAttribute("aria-expanded"), "true");
+  await page.getByRole("heading", { name: "Set the scope." }).waitFor();
+  await page.getByRole("button", { name: "University student" }).click();
+  await page.getByRole("button", { name: "Literature review" }).click();
+  await page.getByRole("button", { name: "Balanced", exact: true }).click();
+  await page.getByRole("button", { name: "Close research scope" }).click();
+  assert.equal(await page.getByRole("heading", { name: "Set the scope." }).count(), 0);
   if (process.env.EYLO_E2E_ARTIFACT_DIR) {
     await mkdir(process.env.EYLO_E2E_ARTIFACT_DIR, { recursive: true });
     await page.screenshot({
