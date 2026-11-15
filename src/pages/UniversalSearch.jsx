@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { UNIVERSAL_SEARCH_PAGE_SIZE, UNIVERSAL_SEARCH_SOURCES } from '@/lib/universal-search-domain.mjs';
@@ -9,14 +9,18 @@ const LABELS = { all: 'All sources', Project: 'Projects', Note: 'Notes', LifeTas
 
 export default function UniversalSearch() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const urlQuery = searchParams.get('q') || '';
   const generation = useRef(0);
   const [sourcePages, setSourcePages] = useState({});
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(urlQuery);
   const [source, setSource] = useState('all');
   const [pages, setPages] = useState({});
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState([]);
   const eligibleSources = source === 'all' ? UNIVERSAL_SEARCH_SOURCES : [source];
+
+  useEffect(() => { setQuery(urlQuery); setPages({}); }, [urlQuery]);
 
   useEffect(() => {
     generation.current += 1;
