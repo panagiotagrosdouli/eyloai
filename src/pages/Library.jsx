@@ -351,7 +351,7 @@ export default function Library() {
               {failedCollections.includes('opportunities')
                 ? <p role="alert" className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">{failedCollectionMessage}</p>
                 : filter(opportunities, ['title', 'description', 'type']).length === 0
-                ? <EmptyState icon={Award} label={searchTerm.trim() ? 'No matching opportunitys' : 'No saved opportunities yet'} sub={searchTerm.trim() ? 'Try another search term or clear the search.' : 'Start by exploring trusted sources and save useful results here.'} href="/opportunities" action="Find funding" onClear={searchTerm.trim() ? () => setSearchTerm('') : undefined} />
+                ? <EmptyState icon={Award} label={searchTerm.trim() ? 'No matching opportunities' : 'No saved opportunities yet'} sub={searchTerm.trim() ? 'Try another search term or clear the search.' : 'Start by exploring trusted sources and save useful results here.'} href="/opportunities" action="Find funding" onClear={searchTerm.trim() ? () => setSearchTerm('') : undefined} />
                 : filter(opportunities, ['title', 'description', 'type']).map(o => (
                   <div key={o.id} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all group">
                     <div className="flex items-start justify-between gap-3">
