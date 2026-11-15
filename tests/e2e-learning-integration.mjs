@@ -24,6 +24,7 @@ const tables = {
 };
 for (const table of WORKSPACE_EXPORT_TABLES) tables[table] ||= [];
 let aiCalls = 0;
+let failNextTimerTransition = true;
 let interruptSnapshotSave = true;
 let snapshotWrites = 0;
 const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS' };
@@ -36,6 +37,18 @@ async function capture(page, name) {
 }
 
 function rpc(name, args) {
+  if (name === 'transition_time_entry') {
+    const entry = tables.time_entries.find(row => row.id === args.p_entry_id && row.user_id === user.id);
+    assert.ok(entry);
+    assert.equal(args.p_expected_revision, entry.timer_revision ?? 0);
+    entry.pause_intervals ||= [];
+    const last = entry.pause_intervals.at(-1);
+    if (args.p_action === 'pause') entry.pause_intervals.push({ started_at: now(), ended_at: null });
+    else if (last?.ended_at === null) last.ended_at = now();
+    if (args.p_action === 'stop') entry.ended_at = now();
+    entry.timer_revision = (entry.timer_revision ?? 0) + 1;
+    return entry;
+  }
   if (name === 'save_eyra_conversation_snapshot') {
     snapshotWrites += 1;
     const existing = tables.eyra_conversations.find(item => item.id === args.p_snapshot_id);
@@ -100,7 +113,12 @@ try {
     if (url.pathname.includes('/auth/v1/token')) return json(route, { access_token: fixtureUser.id === user.id ? 'learning-fixture-access-token' : 'learning-fixture-access-token-b', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now()/1000)+3600, refresh_token: 'learning-fixture-refresh-token', user: fixtureUser });
     if (url.pathname.includes('/auth/v1/user')) return json(route, fixtureUser);
     if (url.pathname.includes('/rest/v1/rpc/')) {
-      const name = url.pathname.split('/').at(-1); const result = rpc(name, request.postDataJSON());
+      const name = url.pathname.split('/').at(-1);
+      if (name === 'transition_time_entry' && failNextTimerTransition) {
+        failNextTimerTransition = false;
+        return route.fulfill({ status: 503, headers, contentType: 'application/json', body: JSON.stringify({ message: 'Timer service unavailable' }) });
+      }
+      const result = rpc(name, request.postDataJSON());
       if (name === 'save_eyra_conversation_snapshot' && interruptSnapshotSave) { interruptSnapshotSave = false; return route.abort('failed'); }
       return json(route, result);
     }
@@ -140,13 +158,36 @@ try {
   await page.getByRole('button', { name: 'Start timer', exact: true }).click();
   await page.getByRole('button', { name: 'Stop timer', exact: true }).waitFor();
   assert.equal(tables.time_entries[0].life_task_id, tables.life_tasks[0].id);
+  await page.getByRole('button', { name: 'Pause timer', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'Timer service unavailable' }).waitFor();
+  assert.equal(tables.time_entries[0].pause_intervals?.length || 0, 0);
+  await page.getByRole('button', { name: 'Pause timer', exact: true }).click();
+  await page.getByRole('button', { name: 'Resume timer', exact: true }).waitFor();
+  assert.equal(tables.time_entries[0].pause_intervals[0].ended_at, null);
+  await page.reload();
+  await page.getByRole('button', { name: 'Resume timer', exact: true }).click();
+  await page.getByRole('button', { name: 'Pause timer', exact: true }).waitFor();
+  assert.ok(tables.time_entries[0].pause_intervals[0].ended_at);
+  await page.getByRole('button', { name: 'Pause timer', exact: true }).click();
+  await page.getByRole('button', { name: 'Resume timer', exact: true }).waitFor();
+
   await page.reload();
   await page.getByRole('button', { name: 'Stop timer', exact: true }).click();
   await page.getByText(/Timer stopped after/).waitFor();
+  assert.ok(tables.time_entries[0].pause_intervals.at(-1).ended_at);
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export all CSV' }).click();
   assert.equal((await download).suggestedFilename(), 'eylo-time-entries.csv');
-  console.log('PASS fixture: canonical task timer start, reload, stop and export.');
+  await page.getByLabel('Report from', { exact: true }).fill('2026-11-14');
+  await page.getByLabel('Report through', { exact: true }).fill('2026-11-13');
+  await page.getByRole('alert').filter({ hasText: 'Report end date must be on or after its start date.' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Export report CSV', exact: true }).isDisabled(), true);
+  await page.getByLabel('Report through', { exact: true }).fill('2026-11-14');
+  const reportDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export report CSV', exact: true }).click();
+  assert.equal((await reportDownload).suggestedFilename(), 'eylo-time-report-2026-11-14-2026-11-14.csv');
+
+  console.log('PASS fixture: canonical task timer start, failed pause retry, pause/resume reload, stop while paused and export.');
   const originalEntries = structuredClone(tables.time_entries);
   tables.time_entries = Array.from({ length: 1001 }, (_, index) => ({
     id: randomUUID(), user_id: user.id, description: `History entry ${index}`,
@@ -757,6 +798,34 @@ try {
   assert.equal(tables.life_tasks.length, beforeTasks + 1);
   console.log('PASS fixture: exact Life task beyond recent1000 opens; same-route foreign/missing targets clear the editor and fail closed without a substitute or mutation. Hosted RLS remains unverified.');
   console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.');
+  await page.goto(`${origin}/time-tracker`);
+  await page.getByRole('heading', { name: 'Review source methods', exact: true }).waitFor();
+  await page.getByLabel('What are you working on?').fill('Private account A draft');
+  tables.time_entries.push({ id: randomUUID(), user_id: ownerB.id, description: 'Account B private timer', started_at: now(), ended_at: null, pause_intervals: [], timer_revision: 0 });
+  let markTimeOwnerQuery, releaseTimeOwnerQuery;
+  const timeOwnerStarted = new Promise(resolve => { markTimeOwnerQuery = resolve; });
+  const timeOwnerGate = new Promise(resolve => { releaseTimeOwnerQuery = resolve; });
+  await page.route(`${supabaseUrl}/rest/v1/time_entries**`, async route => {
+    if (new URL(route.request().url()).searchParams.get('user_id') === `eq.${ownerB.id}`) { markTimeOwnerQuery(); await timeOwnerGate; }
+    await route.fallback();
+  });
+  fixtureUser = ownerB;
+  try {
+    await page.evaluate(async email => {
+      const { supabase } = await import('/src/lib/supabaseClient.js');
+      const result = await supabase.auth.signInWithPassword({ email, password: 'Fixture-password-123' });
+      if (result.error) throw result.error;
+    }, ownerB.email);
+    await Promise.race([timeOwnerStarted, new Promise((_, reject) => setTimeout(() => reject(new Error('New timer owner did not reload history')), 5000))]);
+    assert.equal(await page.getByRole('heading', { name: 'Review source methods', exact: true }).count(), 0);
+    assert.equal(await page.getByLabel('What are you working on?').count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'Export all CSV', exact: true }).isDisabled(), true);
+    releaseTimeOwnerQuery();
+    await page.getByRole('heading', { name: 'Account B private timer', exact: true }).waitFor();
+    assert.equal(await page.getByText('Private account A draft', { exact: true }).count(), 0);
+    console.log('PASS fixture: same-route timer account switch hides old records, draft controls and exports before the new-owner history query resolves.');
+  } finally { releaseTimeOwnerQuery(); }
+
 } finally {
   if (browser) await browser.close();
   server.kill('SIGTERM');

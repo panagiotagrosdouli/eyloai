@@ -24,7 +24,8 @@
     "20261113120556_eyra_snapshot_retry_identity.sql",
     "20261113180517_complete_workspace_products.sql",
     "20261115090000_research_dataset_catalog.sql",
-    "20261114063216_account_deletion_lifecycle.sql"
+    "20261114063216_account_deletion_lifecycle.sql",
+    "20261115181809_time_tracker_pause_resume.sql"
   ],
   "files": [
     {
@@ -200,6 +201,12 @@
       "sha256": "127b102ef59c0925b5326dd7ec9b24916d3573f542c178d3fd8cd690f505ea52",
       "classification": "canonical-local-replay",
       "reason": "User-scoped Research Data Lab metadata catalog with database-enforced bounds, deduplication and RLS; local replay only, not hosted migration authorization."
+    },
+    {
+      "name": "20261115181809_time_tracker_pause_resume.sql",
+      "sha256": "fb7c2a4883311062dfe1d8e2b1c604a4000fe2b290156c08596c9e6b11b425e8",
+      "classification": "canonical-local-replay",
+      "reason": "Additive pause history, validated owner/RLS timer transitions and revision concurrency; local replay only, no remote approval."
     }
   ]
 }
