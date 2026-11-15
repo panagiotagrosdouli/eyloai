@@ -338,7 +338,8 @@ try {
   await page.getByRole("dialog", { name: "EYLO command center" }).waitFor();
   await page.keyboard.press("Escape");
   await page.getByRole("dialog", { name: "EYLO command center" }).waitFor({ state: "hidden" });
-  await page.getByRole("button", { name: "Close navigation menu" }).click();
+  // Escape also closes the mobile navigation; verify that state rather than clicking an absent close control.
+  await page.getByRole("button", { name: "Open navigation menu" }).waitFor();
   await page.keyboard.press("Control+k");
   await page.getByPlaceholder("Search or jump to…").fill("evidence");
   await page.getByRole("option", { name: /Search saved work/ }).click();
