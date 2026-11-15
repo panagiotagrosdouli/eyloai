@@ -109,3 +109,17 @@ test('general listings return an error when every provider fails', async () => {
     globalThis.fetch = previousFetch;
   }
 });
+
+test('malformed Arbeitnow payloads are reported as failed sources while Remotive survives', async () => {
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async url => ({ ok: true, json: async () => String(url).includes('raw.githubusercontent.com')
+    ? { source: 'Remotive', retrieved_at: '2026-11-15T12:00:00Z', items: [{ id: 'remote-1', title: 'Scientist', source_url: 'https://remotive.com/remote-jobs/science/1', published_at: '2026-11-14' }] }
+    : { error: 'feed format changed' } });
+  try {
+    const response = createResponse();
+    await handler({ method: 'GET', headers: {}, query: {} }, response);
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(response.body.failed_sources, ['Arbeitnow Europe', 'Arbeitnow UK']);
+    assert.equal(response.body.items[0].published_at, '2026-11-14');
+  } finally { globalThis.fetch = previousFetch; }
+});

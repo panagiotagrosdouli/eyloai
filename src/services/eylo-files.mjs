@@ -1,9 +1,10 @@
 import { EYLO_FILE_BUCKET, safeStorageFilename, validateEyloFile } from '../lib/eylo-files.mjs';
+import { workspaceDataError } from '../lib/workspace-schema-error.mjs';
 
 const FILE_LIMIT = 500;
 
 function raise(error) {
-  if (error) throw error;
+  if (error) throw workspaceDataError(error);
 }
 
 function fileClient(client) {

@@ -11,6 +11,7 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json && tsc -p ./jsconfig.api.json",
     "test": "node --test tests/*.test.mjs",
+    "test:e2e:careers": "node tests/e2e-careers.mjs",
     "test:e2e:auth": "node tests/e2e-auth.mjs",
     "test:e2e:learning": "node tests/e2e-learning-integration.mjs",
     "check": "npm run check:imports && npm run typecheck && npm run lint && npm run test && npm run build",
