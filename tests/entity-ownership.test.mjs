@@ -18,6 +18,10 @@ test('entity list and filter queries require the authenticated owner', () => {
     assert.match(body, /await currentUser\(\)/, `${name} must authenticate`);
     assert.match(body, /\.eq\('user_id', user\.id\)/, `${name} must filter by owner`);
   }
+  assert.match(filter, /expectedOwnerId && user\.id !== expectedOwnerId/,
+    'a user-scoped filtered read must reject an account switch');
+  assert.match(filter, /data \|\| \[\]\)\.some\(row => row\?\.user_id !== expectedOwnerId\)/,
+    'a user-scoped filtered read must reject unverified rows');
 });
 
 test('entity read, update, and delete queries require the authenticated owner', () => {
