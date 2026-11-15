@@ -177,6 +177,7 @@ try {
   await page.getByRole("textbox", { name: /Verified institutional email/ }).fill("alex@example.edu");
   await page.getByRole("search").getByRole("textbox").fill("climate adaptation");
   await page.getByRole("search").getByRole("button", { name: "Search" }).click();
+  await page.getByRole("heading", { name: "Contact Alex Example" }).waitFor({ state: "detached" });
   assert.equal(await page.getByRole("heading", { name: "Contact Alex Example" }).count(), 0);
   assert.equal(await page.getByRole("textbox", { name: /Verified institutional email/ }).count(), 0);
   phase = "limited";
