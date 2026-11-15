@@ -392,9 +392,11 @@ test('authorized contextual resource is resolved under bearer and owner, not fro
     if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
     if (address === 'https://api.openai.com/v1/responses') {
       const input = JSON.parse(options.body);
-      assert.match(input.instructions, /Research project/);
-      assert.match(input.instructions, /untrusted data/i);
-      assert.doesNotMatch(input.instructions, /must-not-be-sent/);
+      assert.ok(Array.isArray(input.input));
+      assert.match(input.input[1].content, /Research project/);
+      assert.match(input.input[1].content, /untrusted data/i);
+      assert.doesNotMatch(input.input[1].content, /must-not-be-sent/);
+      assert.doesNotMatch(input.instructions, /Research project/);
       modelSeen = true;
       return new Response(JSON.stringify({ id: 'context_final', status: 'completed',
         output: [{ content: [{ type: 'output_text', text: 'Based on your project context.' }] }],
