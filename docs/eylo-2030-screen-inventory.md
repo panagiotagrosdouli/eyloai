@@ -28,3 +28,11 @@ Static source inspection on 2026-11-15. **Not a logged-in browser or accessibili
 | Habits | H1 present | 1 | 4 | status, alert |
 | History | H1 present | 0 | 1 | status |
 | ActivityHistory | H1 present | 0 | 0 | status, alert |
+| ProductTools | H1 present | 0 | 2 | status, alert |
+| ProductWorkbench | Check nested headings | 1 | 6 | Review nested components |
+| CollaborationTools | H1 present | 0 | 12 | status, alert |
+| ProjectDetail | Check nested headings | 0 | 21 | status, alert |
+| ProjectResearchRecords | H1 present | 1 | 7 | status, alert |
+| ProjectDecisions | H1 present | 1 | 11 | status, alert |
+| ThesisStudio | Check nested headings | 1 | 7 | status, alert |
+| ResearchBudget | Check nested headings | 1 | 8 | Review nested components |
