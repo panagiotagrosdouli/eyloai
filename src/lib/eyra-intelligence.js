@@ -29,7 +29,7 @@ async function getAccessToken(forceRefresh = false) {
   return session.access_token;
 }
 
-function postAnalysis(accessToken, prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, resourceContext = undefined, latestUserRequest = undefined) {
+function postAnalysis(accessToken, prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, resourceContext = undefined, latestUserRequest = undefined, writeConfirmed = false) {
   return fetch('/api/eyra', {
     method: 'POST',
     headers: {
@@ -45,6 +45,7 @@ function postAnalysis(accessToken, prompt, responseSchema, signal, enableProject
       ...(enableProjectTools && toolIntent ? { tool_intent: toolIntent } : {}),
       ...(resourceContext ? { resource_context: resourceContext } : {}),
       ...(latestUserRequest !== undefined ? { latest_user_request: latestUserRequest } : {}),
+      ...(writeConfirmed ? { write_confirmed: true } : {}),
     }),
   });
 }
@@ -55,7 +56,7 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProje
 
   let accessToken = await getAccessToken();
   signal?.throwIfAborted();
-  let response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest);
+  let response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest, writeConfirmed);
 
   // A cached browser session can outlive its access token. Refresh once and
   // replay exactly the same request before requiring a new sign-in.
@@ -111,11 +112,11 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProje
 }
 
 /**
- * @param {{prompt?: string, response_json_schema?: Record<string, any>, signal?: AbortSignal, enable_project_tools?: boolean, tool_intent?: string, latest_user_request?: string, resource_context?: {kind:'project'|'paper'|'note', id:string}, stream?: boolean, on_delta?: (text: string) => void}} [options]
+ * @param {{prompt?: string, response_json_schema?: Record<string, any>, signal?: AbortSignal, enable_project_tools?: boolean, tool_intent?: string, latest_user_request?: string, write_confirmed?: boolean, resource_context?: {kind:'project'|'paper'|'note', id:string}, stream?: boolean, on_delta?: (text: string) => void}} [options]
  * @returns {Promise<any>}
  */
-export async function invokeEyra({ prompt = '', response_json_schema: responseSchema, signal, enable_project_tools: enableProjectTools = false, tool_intent: toolIntent = '', latest_user_request: latestUserRequest, resource_context: resourceContext, stream = false, on_delta: onDelta } = {}) {
-  const result = await requestOpenAiAnalysis(prompt, responseSchema, signal, enableProjectTools, toolIntent, stream, onDelta, resourceContext, latestUserRequest);
+export async function invokeEyra({ prompt = '', response_json_schema: responseSchema, signal, enable_project_tools: enableProjectTools = false, tool_intent: toolIntent = '', latest_user_request: latestUserRequest, write_confirmed: writeConfirmed = false, resource_context: resourceContext, stream = false, on_delta: onDelta } = {}) {
+  const result = await requestOpenAiAnalysis(prompt, responseSchema, signal, enableProjectTools, toolIntent, stream, onDelta, resourceContext, latestUserRequest, writeConfirmed);
   trackEyraActionCompleted();
   return result;
 }
