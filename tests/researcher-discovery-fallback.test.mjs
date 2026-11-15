@@ -93,3 +93,35 @@ test('cleans doctoral search terms and keeps later publication pages on the conf
   assert.equal(requests[0].searchParams.get('q'), 'robotics');
   assert.equal(requests[0].searchParams.get('page'), '2');
 });
+
+test('doctoral abbreviations and case-insensitive country filters preserve matching second affiliations', async (t) => {
+  const originalFetch = globalThis.fetch;
+  const requests = [];
+  globalThis.fetch = async url => {
+    const requested = new URL(String(url));
+    requests.push(requested);
+    return Response.json({ results: [{
+      authorships: [{
+        author: { id: 'https://openalex.org/A5033953081', display_name: 'Nelly M. Cruz' },
+        institutions: [
+          { display_name: 'First University', country_code: 'GB' },
+          { display_name: 'Second University', country_code: 'us' },
+        ],
+      }, {
+        author: { id: 'https://openalex.org/A5033953082', display_name: 'Other Researcher' },
+        institutions: [{ display_name: 'Other University', country_code: 'DE' }],
+      }],
+    }] });
+  };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  const researchers = await searchResearchPeopleByPublications('Ph.D. in robotics', 8, {
+    country: 'us', page: 2, proxyBaseUrl: 'https://gateway.example.test',
+  });
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].searchParams.get('q'), 'robotics');
+  assert.equal(requests[0].searchParams.get('page'), '2');
+  assert.deepEqual(researchers.map(person => person.name), ['Nelly M. Cruz']);
+  assert.equal(researchers[0].country, 'US');
+  assert.equal(researchers[0].institution, 'Second University');
+});
