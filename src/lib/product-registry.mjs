@@ -160,3 +160,10 @@ export const PRODUCT_TOOLS = [
   description,
   kind,
 }));
+
+/** Reuse the canonical product route mapping in navigation and the tool directory. */
+export function getProductToolPath(tool) {
+  if (tool.kind === 'offline') return '/offline';
+  if (tool.kind === 'collaboration') return `/collaboration/${tool.slug}`;
+  return `/tools/${tool.slug}`;
+}
