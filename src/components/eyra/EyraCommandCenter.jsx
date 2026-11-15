@@ -377,6 +377,9 @@ function formatEyraToolActions(actions) {
     if (action.status === 'succeeded' && action.tool === 'research.lookup_doi') {
       return `- Crossref DOI metadata verified for **${action.result?.title || 'publication'}** (${action.result?.doi || 'DOI unavailable'}); this is not a full-text review.`;
     }
+    if (action.status === 'needs_review') {
+      return `- **Outcome uncertain — manual review required:** ${action.tool || 'Workspace action'}. ${action.error || 'Check the actual workspace record before retrying.'}`;
+    }
     if (action.status === 'failed') {
       return `- ${action.tool || 'Workspace action'} failed: ${action.error || 'Check the workspace before retrying.'}`;
     }
@@ -676,7 +679,11 @@ Answer the user's latest request. Cite every externally verifiable claim with th
         { actions: response?.actions || [] },
       );
       const toolActions = formatEyraToolActions(response?.actions);
-      const answer = [baseAnswer, toolActions ? `### Confirmed workspace actions\n${toolActions}` : ''].filter(Boolean).join('\n\n');
+      const runReference = typeof response?.run_id === 'string'
+        ? `Execution ID: \`${response.run_id.slice(0, 36)}\` · Status: ${response.run_status || 'unknown'}`
+        : '';
+      const answer = [baseAnswer, toolActions ? `### Workspace action results\n${toolActions}` : '', runReference]
+        .filter(Boolean).join('\n\n');
       const eyraMsg = {
         role: 'eyra',
         content: answer,
@@ -691,9 +698,12 @@ Answer the user's latest request. Cite every externally verifiable claim with th
       if (controller.signal.aborted) return;
       const fallbackContent = buildVerifiedEvidenceFallback(evidence, error);
       const toolActions = formatEyraToolActions(error?.actions);
+      const runReference = typeof error?.runId === 'string'
+        ? `Execution ID: \`${error.runId.slice(0, 36)}\`. Inspect the run before retrying.`
+        : '';
       setMessages(previous => [...previous, {
         role: 'eyra',
-        content: [fallbackContent, toolActions ? `### Workspace action status\n${toolActions}` : ''].filter(Boolean).join('\n\n'),
+        content: [fallbackContent, toolActions ? `### Workspace action status\n${toolActions}` : '', runReference].filter(Boolean).join('\n\n'),
         timestamp: Date.now(),
         mode: activeMode,
         sources: evidence.sources || [],
