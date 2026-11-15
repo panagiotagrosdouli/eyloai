@@ -39,6 +39,18 @@ const PROJECT_TOOLS = [
   },
   {
     type: 'function',
+    name: 'research.search_publications',
+    description: 'Search real scholarly bibliographic records in Crossref. Results are metadata, not evidence from full text.',
+    parameters: {
+      type: 'object',
+      properties: { query: { type: 'string' } },
+      required: ['query'],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+  {
+    type: 'function',
     name: 'research.lookup_doi',
     description: 'Retrieve actual publication metadata from Crossref using a DOI. Metadata is not full-text evidence.',
     parameters: {
@@ -92,6 +104,7 @@ Rules:
 - For structured requests, populate every required field with useful, specific analysis.
 - Use project tools only when the user explicitly requests listing their projects or creating a project. Never infer permission to create from a request for advice or a draft.
 - Use Library save tools only when the user explicitly asks to save a paper; save only DOI records whose title and metadata are verified against Crossref.
+- For publication discovery and DOI lookups, prefer the available Crossref research tools. Treat their results as bibliographic metadata, not verified article findings or full-text research.
 - Report a project as created only when the project tool returns a verified record and identifier.
 - Report a paper as saved only when the Library write returns a persisted record and identifier.
 - Never describe a fallback or template as live research.
@@ -240,6 +253,40 @@ function userExplicitlyRequestedPaperSave(prompt) {
 async function executeProjectTool(name, rawArguments, identity) {
   let args;
   try { args = JSON.parse(rawArguments || '{}'); } catch { throw new Error('Invalid tool arguments.'); }
+  if (name === 'research.search_publications') {
+    const query = typeof args.query === 'string' ? args.query.trim() : '';
+    if (query.length < 3 || query.length > 180) {
+      throw new Error('A research query of 3–180 characters is required.');
+    }
+    const searchUrl = new URL('https://api.crossref.org/works');
+    searchUrl.searchParams.set('query.bibliographic', query);
+    searchUrl.searchParams.set('rows', '5');
+    const upstream = await fetch(searchUrl, {
+      headers: { accept: 'application/json' },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!upstream.ok) throw new Error('Crossref search is unavailable.');
+    const response = await upstream.json();
+    if (!Array.isArray(response?.message?.items)) throw new Error('Crossref returned invalid search data.');
+    const records = response.message.items.slice(0, 5).flatMap(item => {
+      const doi = typeof item.DOI === 'string' ? item.DOI.trim().toLowerCase() : '';
+      const title = typeof item.title?.[0] === 'string' ? item.title[0].trim() : '';
+      if (!/^10\\.\\d{4,9}\\/[\\-._;()/:A-Z0-9]+$/i.test(doi) || !title) return [];
+      const year = item.published?.['date-parts']?.[0]?.[0];
+      return [{
+        doi, title: title.slice(0, 1000),
+        authors: (Array.isArray(item.author) ? item.author : []).slice(0, 15)
+          .map(author => [author.given, author.family].filter(v => typeof v === 'string').join(' '))
+          .filter(Boolean),
+        year: Number.isInteger(year) ? year : null,
+        journal: String(item['container-title']?.[0] || '').slice(0, 300),
+        url: `https://doi.org/${doi}`,
+        source: 'Crossref',
+        evidence_level: 'bibliographic_metadata_only',
+      }];
+    });
+    return { query, records, count: records.length, source: 'Crossref', evidence_level: 'bibliographic_metadata_only' };
+  }
   if (name === 'research.lookup_doi') {
     const doi = typeof args.doi === 'string'
       ? args.doi.trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '').toLowerCase()
