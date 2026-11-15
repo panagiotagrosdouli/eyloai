@@ -29,7 +29,7 @@ export default class RouteErrorBoundary extends Component {
             This page could not load.
           </h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            Your saved work is safe. Retry the page, or return to EYLO and continue from there.
+            The rest of EYLO is still available. Retry the page, or return to the home page.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button
@@ -41,6 +41,7 @@ export default class RouteErrorBoundary extends Component {
             </button>
             <Link
               to="/"
+              onClick={() => this.setState({ hasError: false })}
               className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border px-5 text-sm font-semibold hover:bg-secondary"
             >
               Return to EYLO
