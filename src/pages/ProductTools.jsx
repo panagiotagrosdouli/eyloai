@@ -80,8 +80,7 @@ function ToolDirectory() {
   ), [query, category]);
 
   return (
-    <main className="eylo-page mx-auto max-w-6xl">
-      <nav aria-label="Breadcrumb" className="mb-4 text-sm text-muted-foreground"><Link to="/home" className="hover:text-primary">Home</Link><span aria-hidden="true"> / </span><span aria-current="page">All tools</span></nav>
+    <div className="eylo-page mx-auto max-w-6xl">
       <h1 className="eylo-page-heading">All tools</h1>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Find the right workflow for your goal. Existing project and research tools remain available here.</p>
       <div className="mt-6">
@@ -107,7 +106,7 @@ function ToolDirectory() {
         <p className="mt-2 text-sm text-muted-foreground">Try another term or clear the category filter.</p>
         <button type="button" onClick={() => { setQuery(''); setCategory('All'); }} className="mt-4 min-h-11 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Show all tools</button>
       </div>}
-    </main>
+    </div>
   );
 }
 
