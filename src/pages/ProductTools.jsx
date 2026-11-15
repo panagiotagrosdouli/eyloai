@@ -20,6 +20,9 @@ export default function ProductTools() {
 }
 
 const DIRECT_TOOLS = [
+  { slug: 'thesis-studio', title: 'Organize my thesis', description: 'Open a research project to plan thesis writing and evidence.', href: '/projects', category: 'Research' },
+  { slug: 'paper-summary', title: 'Understand a scientific paper', description: 'Open saved publications and request evidence-aware help from EYRA.', href: '/library', category: 'Research' },
+  { slug: 'study-plan-goal', title: 'Make a study plan', description: 'Schedule courses, reading and exam preparation.', href: '/study-planner', category: 'Learning' },
   { slug: 'document-editor', title: 'Create document', description: 'Write and save a research document.', href: '/documents/new', category: 'Workspace' },
   { slug: 'workspace-search', title: 'Search my workspace', description: 'Find saved notes, projects and research.', href: '/workspace/search', category: 'Workspace' },
   { slug: 'time-tracker', title: 'Time tracker', description: 'Track time spent on project work.', href: '/time-tracker', category: 'Workspace' },
@@ -68,6 +71,30 @@ const DIRECT_TOOLS = [
 ];
 const toolHref = item => item.href || (item.kind === 'offline' ? '/offline' : item.kind === 'collaboration' ? '/collaboration/' + item.slug : '/tools/' + item.slug);
 const toolCategory = item => item.category || (item.kind === 'collaboration' ? 'Collaboration' : item.kind === 'project' || item.kind === 'personal-project' ? 'Workspace' : 'Specialized tools');
+const INTENT_ALIASES = {
+  'research-discovery': 'research topic paper scientific publication scholarly article find literature',
+  'paper-summary': 'explain understand summarize analyse analyze scientific paper study reading article',
+  'literature-review': 'systematic review prisma screening evidence synthesis methods',
+  'thesis-studio': 'dissertation doctoral thesis masters proposal organize write plan',
+  'research-gaps': 'find gaps missing evidence research question',
+  'grant-builder': 'funding application grant proposal write',
+  funding: 'call scholarships grants research funding opportunities',
+  'study-plan-goal': 'need a study plan schedule studying',
+  'study-planner': 'study plan exams syllabus course timetable',
+  'knowledge-graph': 'concept map network related papers',
+  'data-lab': 'csv dataset statistics analysis',
+  'projects': 'create research project start project',
+};
+const SEARCH_STOPWORDS = new Set(['i','a','an','the','to','for','my','me','want','need','would','like','how','do','can','please','help','with','some','and','of','on','in']);
+function matchesIntent(item, rawQuery) {
+  const query = rawQuery.trim().toLowerCase();
+  if (!query) return true;
+  const haystack = [item.title, item.description, item.category, item.slug, INTENT_ALIASES[item.slug] || ''].join(' ').toLowerCase();
+  if (haystack.includes(query)) return true;
+  const terms = query.replace(/[^\\p{L}\\p{N}]+/gu, ' ').split(' ').filter(term => term.length > 1 && !SEARCH_STOPWORDS.has(term));
+  return terms.length > 0 && terms.every(term => haystack.includes(term));
+}
+
 const DIRECTORY = [...DIRECT_TOOLS, ...PRODUCT_TOOLS.map(item => ({ ...item, category: toolCategory(item) }))];
 const CATEGORIES = ['All', 'Research', 'Workspace', 'Learning', 'Funding', 'Collaboration', 'Specialized tools'];
 
@@ -76,7 +103,7 @@ function ToolDirectory() {
   const [category, setCategory] = useState('All');
   const matches = useMemo(() => DIRECTORY.filter(item =>
     (category === 'All' || item.category === category)
-    && (!query.trim() || [item.title, item.description, item.category, item.slug].join(' ').toLowerCase().includes(query.trim().toLowerCase()))
+    && matchesIntent(item, query)
   ), [query, category]);
 
   return (
