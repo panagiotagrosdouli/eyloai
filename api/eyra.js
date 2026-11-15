@@ -84,6 +84,24 @@ const PROJECT_TOOLS = [
   },
   {
     type: 'function',
+    name: 'learning.list_lessons',
+    description: 'List at most 30 private lesson outlines for an owned course; metadata and objectives only, never full lesson content.',
+    parameters: {
+      type: 'object', properties: { course_id: { type: 'string' } },
+      required: ['course_id'], additionalProperties: false,
+    }, strict: true,
+  },
+  {
+    type: 'function',
+    name: 'learning.list_progress',
+    description: 'Read up to 30 own lesson completion statuses for an owned course. No quiz answers or private grader outputs.',
+    parameters: {
+      type: 'object', properties: { course_id: { type: 'string' } },
+      required: ['course_id'], additionalProperties: false,
+    }, strict: true,
+  },
+  {
+    type: 'function',
     name: 'learning.list_courses',
     description: 'List the authenticated user’s own learning courses; read-only metadata, not lesson content.',
     parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
@@ -429,7 +447,7 @@ function boundedWorkspaceRow(row, kind) {
 
 const TOOL_STRING_LIMITS = {
   title: 180, description: 4000, goal: 2000, milestones: 6000,
-  tasks: 6000, query: 180, doi: 255, id: 36,
+  tasks: 6000, query: 180, doi: 255, id: 36, course_id: 36,
 };
 
 function validatedEyraToolArguments(name, rawArguments) {
@@ -584,6 +602,66 @@ async function executeProjectTool(name, rawArguments, identity) {
         updated_date: row.updated_date || '',
       };
     });
+  }
+  if (name === 'learning.list_lessons' || name === 'learning.list_progress') {
+    if (!RUN_UUID.test(args.course_id)) throw new Error('A valid owned course UUID is required.');
+    const courseParams = new URLSearchParams({
+      select: 'id', id: `eq.${args.course_id}`, user_id: `eq.${identity.user.id}`, limit: '1',
+    });
+    const courseResponse = await fetch(
+      `${identity.supabaseUrl}/rest/v1/learning_courses?${courseParams}`, {
+        headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
+      });
+    if (!courseResponse.ok) throw new Error('Course ownership could not be verified.');
+    const ownedCourses = await courseResponse.json();
+    if (!Array.isArray(ownedCourses) || ownedCourses.length !== 1
+      || ownedCourses[0].id !== args.course_id) {
+      throw new Error('Course is not available to the authenticated user.');
+    }
+    const progress = name === 'learning.list_progress';
+    const table = progress ? 'learning_lesson_progress' : 'learning_lessons';
+    const select = progress
+      ? 'id,course_id,lesson_id,status,completed_at,updated_at'
+      : 'id,course_id,title,objective,position,quiz_id';
+    const params = new URLSearchParams({
+      select, user_id: `eq.${identity.user.id}`,
+      course_id: `eq.${args.course_id}`,
+      order: progress ? 'updated_at.desc' : 'position.asc',
+      limit: '30',
+    });
+    const upstream = await fetch(`${identity.supabaseUrl}/rest/v1/${table}?${params}`, {
+      headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
+    });
+    if (!upstream.ok) throw new Error('Learning lessons or progress are unavailable.');
+    const rows = await upstream.json();
+    if (!Array.isArray(rows)) throw new Error('Learning record service returned invalid results.');
+    const records = rows.slice(0, 30).map(row => {
+      if (!RUN_UUID.test(row?.id || '') || row.course_id !== args.course_id) {
+        throw new Error('Learning record ownership or course association could not be verified.');
+      }
+      if (progress) {
+        return {
+          id: row.id,
+          course_id: row.course_id,
+          lesson_id: typeof row.lesson_id === 'string' ? row.lesson_id : '',
+          status: typeof row.status === 'string' ? row.status.slice(0, 40) : '',
+          completed_at: typeof row.completed_at === 'string' ? row.completed_at.slice(0, 40) : null,
+        };
+      }
+      return {
+        id: row.id, course_id: row.course_id,
+        title: typeof row.title === 'string' ? row.title.slice(0, 180) : '',
+        objective: typeof row.objective === 'string' ? row.objective.slice(0, 350) : '',
+        position: Number.isInteger(row.position) ? row.position : null,
+        has_assessment: typeof row.quiz_id === 'string' && RUN_UUID.test(row.quiz_id),
+      };
+    });
+    return {
+      course_id: args.course_id,
+      count: records.length, records,
+      total_scope: 'last_30_records_only', source: 'authenticated_learning_workspace',
+      metadata_only: true,
+    };
   }
   if (name === 'learning.list_courses' || name === 'learning.list_quizzes') {
     const table = name === 'learning.list_courses' ? 'learning_courses' : 'quizzes';
