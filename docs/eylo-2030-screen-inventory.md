@@ -12,3 +12,11 @@ Static source inspection on 2026-11-15. **Not a logged-in browser or accessibili
 | Learn | H1 present | 1 | 10 | alert |
 | StudyPlanner | H1 present | 1 | 10 | status, alert |
 | Calendar | H1 present | 1 | 8 | status, alert |
+| ResearchGaps | H1 present | 1 | 3 | status, alert |
+| LiteratureReview | H1 present | 0 | 7 | status, alert |
+| ResearchDataLab | H1 present | 0 | 4 | status, alert |
+| ResearchKnowledgeGraph | H1 present | 0 | 2 | status, alert |
+| Opportunities | H1 present | 1 | 4 | status, alert |
+| Researchers | H1 present | 1 | 5 | status, alert |
+| Meetings | H1 present | 0 | 1 | alert |
+| GrantBuilder | H1 present | 0 | 4 | status |
