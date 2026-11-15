@@ -14,7 +14,7 @@ const widths = [320, 390, 768, 1024, 1440];
 const artifactDir = process.env.EYLO_E2E_ARTIFACT_DIR;
 const browser = await chromium.launch({ headless: true });
 const observations = [];
-const screens = ['/home', '/search', '/projects', '/library', '/study-planner', '/opportunities', '/tools'];
+const screens = ['/home', '/search', '/projects', '/library', '/study-planner', '/opportunities', '/tools', '/research-journey'];
 try {
   for (const width of widths) {
     for (const colorScheme of ['light', 'dark']) {
@@ -34,6 +34,11 @@ try {
         if (route === '/home') {
           await page.getByRole('heading', { name: 'What would you like to work on?' }).waitFor();
           await page.getByRole('button', { name: 'Start researching' }).waitFor();
+        }
+        if (route === '/research-journey') {
+          await page.getByRole('heading', { name: 'Research Journey' }).waitFor();
+          await page.getByRole('combobox', { name: 'Research project' }).waitFor();
+          await page.getByRole('button', { name: 'Refresh progress' }).waitFor();
         }
         if (route === '/tools') {
           await page.getByRole('searchbox', { name: 'Find a tool or task' }).fill('study plan');
