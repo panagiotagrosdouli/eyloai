@@ -18,7 +18,7 @@ export default function Contact() {
     try { await refreshCapabilities(); }
     finally { setCheckingAgain(false); }
   };
-  const contactAvailable = !capabilitiesLoading && !capabilitiesError && capabilities.contact === true;
+  const contactAvailable = !capabilitiesLoading && !capabilitiesError && Boolean(capabilities.contact);
   const [careerForm, setCareerForm] = useState({
     name: "",
     email: "",
