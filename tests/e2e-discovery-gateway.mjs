@@ -90,6 +90,17 @@ try {
     const provider = new URL(route.request().url()).searchParams.get(
       "provider",
     );
+    if (phase === "partial" && provider === "openalex_authors")
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ results: [{
+          id: "https://openalex.org/A5033953099",
+          display_name: "Alex Example",
+          last_known_institutions: [{ display_name: "Sample University", country_code: "GB" }],
+          works_count: 3,
+        }] }),
+      });
     if (phase === "partial" && provider === "openalex_works")
       return route.fulfill({
         status: 200,
@@ -158,8 +169,18 @@ try {
     .getByRole("heading", { name: "Fixture: Sleep and learning", exact: true })
     .waitFor();
   await page.getByText(/through EYLO’s research connection/).waitFor();
+  // Researcher outreach must never retain the old draft/recipient when the
+  // user searches for a different researcher or topic.
+  await page.goto(origin + "/find-researchers?q=sleep%20learning");
+  await page.getByRole("button", { name: /Prepare inquiry/ }).first().click();
+  await page.getByRole("heading", { name: "Contact Alex Example" }).waitFor();
+  await page.getByRole("textbox", { name: /Verified institutional email/ }).fill("alex@example.edu");
+  await page.getByRole("search").getByRole("textbox").fill("climate adaptation");
+  await page.getByRole("search").getByRole("button", { name: "Search" }).click();
+  assert.equal(await page.getByRole("heading", { name: "Contact Alex Example" }).count(), 0);
+  assert.equal(await page.getByRole("textbox", { name: /Verified institutional email/ }).count(), 0);
   phase = "limited";
-  await page.reload();
+  await page.goto(origin + "/discover?q=sleep%20learning");
   await page
     .getByText(/EYLO’s search request limit has been reached/)
     .waitFor();

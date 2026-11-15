@@ -34,7 +34,14 @@ export default function PublicResearchers() {
   useEffect(() => { setQuery(topic); }, [topic]);
 
   useEffect(() => {
-    if (!topic.trim()) { setResearchers([]); setSearched(false); return; }
+    // Invalidate a draft and its target details when a new query arrives.
+    // Otherwise an inquiry composed for the previous researcher can be saved
+    // against the new search topic or opened with stale recipient details.
+    setSelected(null);
+    setCopied(false);
+    setInstitutionalEmail('');
+    setOutreachMessage('');
+    if (!topic.trim()) { setResearchers([]); setSearched(false); setLoading(false); setError(''); return; }
     let active = true;
     setLoading(true);
     setSearched(true);
