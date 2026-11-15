@@ -102,6 +102,27 @@ test('invalid Supabase URL fails closed without network access', async () => {
   assert.equal(calls, 0);
 });
 
+test('analytics refuses Supabase URLs with userinfo, ports, paths, queries or fragments', async () => {
+  configureAnalytics();
+  let requests = 0;
+  globalThis.fetch = async () => { requests++; throw Error('Must not forward user bearer'); };
+  for (const url of [
+    'https://user:pass@test-project.supabase.co',
+    'https://test-project.supabase.co:8443',
+    'https://test-project.supabase.co/custom-path',
+    'https://test-project.supabase.co?redirect=1',
+    'https://test-project.supabase.co/#fragment',
+    'http://test-project.supabase.co',
+  ]) {
+    process.env.VITE_SUPABASE_URL = url;
+    const res = response();
+    await handler({ method: 'GET', headers: { authorization: 'Bearer disposable-token' } }, res);
+    assert.equal(res.statusCode, 503, url);
+    assert.equal(res.body.code, 'ANALYTICS_NOT_CONFIGURED', url);
+  }
+  assert.equal(requests, 0);
+});
+
 test('explicitly configured analytics delegates to same-user Supabase RPC and retains no-store', async () => {
   configureAnalytics();
   let called = 0;

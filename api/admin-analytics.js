@@ -1,23 +1,13 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 import { analyticsEnabled, validWorkspaceAnalyticsPayload } from '../src/lib/analytics-readiness.mjs';
+import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
 
 function configuredSupabaseAnalytics() {
-  const url = String(process.env.VITE_SUPABASE_URL || '').trim();
-  const key = String(
-    process.env.SUPABASE_PUBLISHABLE_KEY
-    || process.env.SUPABASE_ANON_KEY
-    || process.env.VITE_SUPABASE_ANON_KEY
-    || '',
-  ).trim();
-
-  if (!url || !key) return null;
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== 'https:' || !parsed.hostname.endsWith('.supabase.co')) return null;
-  } catch {
-    return null;
-  }
-  return { url, key };
+  // Use the same strict, official Supabase origin validation as other APIs.
+  // Never forward the user's bearer token to a URL containing a custom path,
+  // credentials, port, query or fragment.
+  const config = readSupabaseApiConfig();
+  return config.hasPublicConfig ? { url: config.url, key: config.publicKey } : null;
 }
 
 export default async function handler(request, response) {
