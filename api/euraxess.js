@@ -65,7 +65,11 @@ function extractJobs(html) {
       if (remove) description = description.replace(remove, ' ');
     }
     description = description.replace(/\bJOB\b/g, ' ').replace(/\s+/g, ' ').trim();
-    const sourceUrl = new URL(jobLink[1], SOURCE).toString();
+    const posting = new URL(jobLink[1], SOURCE);
+    if (posting.protocol !== 'https:' || posting.hostname !== 'euraxess.ec.europa.eu'
+        || !/^\/jobs\/\d+\/?$/.test(posting.pathname) || posting.username || posting.password) continue;
+    const sourceUrl = posting.toString();
+    if (records.some(record => record.source_url === sourceUrl)) continue;
     records.push({
       id: sourceUrl,
       title,
@@ -109,6 +113,12 @@ export default async function handler(request, response) {
     const html = await upstream.text();
     if (html.length > 5_000_000) return response.status(502).json({ error: 'EURAXESS returned an unexpectedly large search page.' });
     const items = extractJobs(html);
+    // A maintenance/challenge page or changed markup is not a zero-result search.
+    // Only an explicit empty-results container establishes a legitimate empty set.
+    const explicitEmpty = /class=["'][^"']*\bview-empty\b[^"']*["'][^>]*>[\s\S]{0,2000}?(?:no results|no jobs|no result|no content|no matching|your search yielded no)/i.test(html);
+    if (!items.length && !explicitEmpty) {
+      return response.status(502).json({ error: 'EURAXESS returned an unrecognized search page. The source may be unavailable; retry or open EURAXESS directly.' });
+    }
     response.setHeader('Cache-Control', 'public, s-maxage=900, stale-while-revalidate=1800');
     return response.status(200).json({
       query,

@@ -1,5 +1,10 @@
 import { apiUrl } from './api-url.js';
 const REMOTIVE_SNAPSHOT_URL = 'https://raw.githubusercontent.com/panagiotagrosdouli/eyloai/career-feed/remotive-jobs.json';
+function requestSignal(signal) {
+  const timeout = AbortSignal.timeout(15000);
+  return signal ? AbortSignal.any([signal, timeout]) : timeout;
+}
+
 const REMOTIVE_ATTRIBUTION_URL = 'https://remotive.com/remote-jobs/api';
 
 export async function searchCareers(query, page = 0, signal) {
@@ -8,11 +13,12 @@ export async function searchCareers(query, page = 0, signal) {
   const params = new URLSearchParams({ q: cleanQuery, page: String(page) });
   const response = await fetch(apiUrl('/api/euraxess?' + params.toString()), {
     headers: { accept: 'application/json' },
-    signal,
+    signal: requestSignal(signal),
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(result.error || 'Research role search is unavailable.');
-  return { ...result, items: Array.isArray(result.items) ? result.items : [] };
+  if (!Array.isArray(result.items)) throw new Error('Research role search returned an invalid response. Please retry.');
+  return result;
 }
 
 const STOP_WORDS = new Set(('about after again against all also among another around because been before being between both ' +
@@ -20,19 +26,40 @@ const STOP_WORDS = new Set(('about after again against all also among another ar
   'this those through under until very what when where which while with within your yours researcher research position ' +
   'experience skills ability knowledge role work team candidate application university project').split(/\s+/));
 
+function normalizeSearchText(value) {
+  return String(value || '').toLowerCase()
+    .replace(/ph[.\s-]*d\.?/g, 'phd')
+    .replace(/post[\s-]+doc(?:toral)?/g, 'postdoctoral')
+    .replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function searchTerms(query) {
+  // Ignore filler only in multi-term queries; a standalone research search
+  // remains useful. Role and discipline terms must still match together.
+  const terms = [...new Set(normalizeSearchText(query).split(' ').filter(term => term.length > 1))];
+  const meaningful = terms.filter(term => !['in', 'on', 'of', 'for', 'and', 'the', 'research', 'position', 'positions', 'job', 'jobs'].includes(term));
+  return meaningful.length ? meaningful : terms;
+}
+
 const SEARCH_TERM_VARIANTS = {
   ai: ['ai', 'artificial intelligence', 'artificial intelligent'],
   writer: ['writer', 'copywriter', 'contentwriter'],
   copywriter: ['copywriter', 'writer', 'contentwriter'],
   postdoctoral: ['postdoctoral', 'postdoc', 'post doctoral'],
   postdoc: ['postdoc', 'postdoctoral', 'post doctoral'],
+  phd: ['phd', 'doctoral', 'doctorate'],
+  doctoral: ['doctoral', 'phd', 'doctorate'],
+  doctorate: ['doctorate', 'doctoral', 'phd'],
+  laboratory: ['laboratory', 'lab'],
+  lab: ['lab', 'laboratory'],
+  professor: ['professor', 'professorship'],
 };
 
 function termMatches(text, term) {
-  const normalized = ` ${String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `;
+  const normalized = ` ${normalizeSearchText(text)} `;
   const variants = SEARCH_TERM_VARIANTS[term] || [term];
   return variants.some(variant => normalized.includes(
-    ` ${variant.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()} `,
+    ` ${normalizeSearchText(variant)} `,
   ));
 }
 
@@ -52,7 +79,7 @@ export function cvSearchTerms(text, limit = 6) {
 export function rankCareers(items, cvText, query = '') {
   const words = [...new Set((String(cvText || '').toLowerCase().match(/[a-z][a-z-]{3,}/g) || [])
     .filter(word => !STOP_WORDS.has(word)))];
-  const queryTerms = [...new Set(String(query || '').toLowerCase().match(/[a-z0-9][a-z0-9-]{1,}/g) || [])];
+  const queryTerms = searchTerms(query);
   return items.map(item => {
     const searchable = [item.title, item.organization, item.country, item.description].join(' ').toLowerCase();
     const overlaps = words.filter(word => searchable.includes(word)).slice(0, 8);
@@ -71,7 +98,7 @@ export function rankCareers(items, cvText, query = '') {
 
 
 export function normalizeRemotiveSnapshot(snapshot) {
-  if (snapshot?.source !== 'Remotive' || !Array.isArray(snapshot.items) || !snapshot.retrieved_at) {
+  if (snapshot?.source !== 'Remotive' || !Array.isArray(snapshot.items) || !Number.isFinite(Date.parse(snapshot.retrieved_at))) {
     throw new Error('Remotive snapshot is invalid.');
   }
 
@@ -88,6 +115,8 @@ export function normalizeRemotiveSnapshot(snapshot) {
         organization: String(job?.organization || job?.company_name || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 180),
         country: String(job?.country || job?.candidate_required_location || 'Remote').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 180),
         description: String(job?.description || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 700),
+        published_at: String(job?.published_at || job?.publication_date || '').slice(0, 40),
+        work_arrangement: 'Remote',
         deadline: '',
         source: 'Remotive',
         source_url: sourceUrl.toString(),
@@ -103,7 +132,7 @@ export function normalizeRemotiveSnapshot(snapshot) {
 async function loadRemotiveSnapshot(signal) {
   const response = await fetch(REMOTIVE_SNAPSHOT_URL, {
     headers: { accept: 'application/json' },
-    signal,
+    signal: requestSignal(signal),
   });
   if (!response.ok) throw new Error('Remotive snapshot returned ' + response.status);
   return normalizeRemotiveSnapshot(await response.json());
@@ -114,11 +143,12 @@ export async function loadGeneralCareerListings(signal) {
     (async () => {
       const response = await fetch(apiUrl('/api/general-jobs'), {
         headers: { accept: 'application/json' },
-        signal,
+        signal: requestSignal(signal),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || 'General career listings are unavailable.');
-      return { ...result, items: Array.isArray(result.items) ? result.items : [] };
+      if (!Array.isArray(result.items)) throw new Error('Research role search returned an invalid response. Please retry.');
+  return result;
     })(),
     loadRemotiveSnapshot(signal),
   ]);
@@ -158,7 +188,7 @@ export async function loadGeneralCareerListings(signal) {
 }
 
 export function filterCareerListings(items, query) {
-  const terms = [...new Set(String(query || '').toLowerCase().match(/[a-z0-9][a-z0-9-]{1,}/g) || [])];
+  const terms = searchTerms(query);
   if (!terms.length) return [];
   const requiredMatches = terms.length === 1 ? 1 : terms.length === 2 ? 2 : Math.ceil(terms.length * 0.6);
   return items.filter(item => {
@@ -171,13 +201,20 @@ export function filterCareerListings(items, query) {
 }
 
 export function broaderCareerSearchTerm(query) {
-  const terms = [...new Set(String(query || '').toLowerCase().match(/[a-z0-9][a-z0-9-]{1,}/g) || [])];
+  const terms = searchTerms(query);
   return terms.length > 1 ? terms[0] : '';
 }
 
 export function combineCareerSearchResults(researchItems, generalItems, query) {
+  const seen = new Set();
   return filterCareerListings([
     ...(Array.isArray(researchItems) ? researchItems : []),
     ...(Array.isArray(generalItems) ? generalItems : []),
-  ], query);
+  ], query).filter(item => {
+    const key = item.source_url || item.id;
+    if (!key) return true;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
