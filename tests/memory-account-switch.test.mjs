@@ -9,7 +9,7 @@ test('Memory clears old account data and queries on account changes', () => {
   assert.match(memory, /requestGeneration\.current \+= 1/);
   assert.match(memory, /setSources\(\[\]\)/);
   assert.match(memory, /setLoadedOwnerId\(null\)/);
-  assert.match(memory, /setQuery\("..."\)/);
+  assert.match(memory, /setQuery\(""\)/);
   assert.match(memory, /\}, \[user\?\.id\]\)/);
 });
 
