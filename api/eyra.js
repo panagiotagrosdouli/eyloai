@@ -271,7 +271,7 @@ async function executeProjectTool(name, rawArguments, identity) {
     const records = response.message.items.slice(0, 5).flatMap(item => {
       const doi = typeof item.DOI === 'string' ? item.DOI.trim().toLowerCase() : '';
       const title = typeof item.title?.[0] === 'string' ? item.title[0].trim() : '';
-      if (!/^10\\.\\d{4,9}\\/[\\-._;()/:A-Z0-9]+$/i.test(doi) || !title) return [];
+      if (!/^10\.\d{4,9}\/[\-._;()/:A-Z0-9]+$/i.test(doi) || !title) return [];
       const year = item.published?.['date-parts']?.[0]?.[0];
       return [{
         doi, title: title.slice(0, 1000),
