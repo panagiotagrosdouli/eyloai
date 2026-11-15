@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, ChevronDown, CircleAlert, RefreshCw } from 'lucide-react';
 import { useCapabilities } from '@/lib/capabilities';
+import { apiUrl } from '@/lib/api-url';
 
 const SERVICE_ROWS = [
   {
@@ -43,7 +44,7 @@ export default function ServiceStatus({ compact = false, className = '' }) {
     const controller = new AbortController();
     setDeploymentLoading(true);
     setDeploymentError('');
-    fetch('/api/deployment-status', { method: 'GET', cache: 'no-store', signal: controller.signal })
+    fetch(apiUrl('/api/deployment-status'), { method: 'GET', cache: 'no-store', signal: controller.signal })
       .then(async response => {
         if (!response.ok) throw new Error('Deployment identity could not be retrieved.');
         const data = await response.json();
