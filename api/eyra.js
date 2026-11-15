@@ -51,6 +51,27 @@ const PROJECT_TOOLS = [
   },
   {
     type: 'function',
+    name: 'notes.list',
+    description: 'List the authenticated user’s private notes with title and bounded preview.',
+    parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
+    strict: true,
+  },
+  {
+    type: 'function',
+    name: 'tasks.list',
+    description: 'List the authenticated user’s life tasks with status and due date.',
+    parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
+    strict: true,
+  },
+  {
+    type: 'function',
+    name: 'calendar.list_events',
+    description: 'List the authenticated user’s calendar events.',
+    parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
+    strict: true,
+  },
+  {
+    type: 'function',
     name: 'research.search_publications',
     description: 'Search real scholarly bibliographic records in Crossref. Results are metadata, not evidence from full text.',
     parameters: {
@@ -342,6 +363,40 @@ async function executeProjectTool(name, rawArguments, identity) {
     prefer: 'return=representation',
   };
 
+  if (name === 'notes.list' || name === 'tasks.list' || name === 'calendar.list_events') {
+    const table = {
+      'notes.list': 'notes',
+      'tasks.list': 'life_tasks',
+      'calendar.list_events': 'calendar_events',
+    }[name];
+    const params = new URLSearchParams({
+      select: 'id,data,created_date,updated_date',
+      user_id: `eq.${identity.user.id}`,
+      order: 'updated_date.desc',
+      limit: '20',
+    });
+    const upstream = await fetch(`${identity.supabaseUrl}/rest/v1/${table}?${params}`, {
+      headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
+    });
+    if (!upstream.ok) throw new Error('Workspace records are unavailable.');
+    const rows = await upstream.json();
+    if (!Array.isArray(rows)) throw new Error('Workspace service returned invalid records.');
+    return rows.slice(0, 20).map(row => {
+      if (typeof row?.id !== 'string' || !row.data || typeof row.data !== 'object' || Array.isArray(row.data)) {
+        throw new Error('Workspace service returned an invalid record.');
+      }
+      const item = row.data;
+      return {
+        id: row.id,
+        title: String(item.title || item.name || '').slice(0, 180),
+        status: String(item.status || '').slice(0, 40),
+        due_date: String(item.due_date || item.dueDate || '').slice(0, 60),
+        start_time: String(item.start_time || item.startTime || '').slice(0, 60),
+        preview: name === 'notes.list' ? String(item.content || item.body || '').slice(0, 300) : '',
+        updated_date: row.updated_date || '',
+      };
+    });
+  }
   if (name === 'project.get') {
     const id = typeof args.id === 'string' ? args.id.trim() : '';
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
