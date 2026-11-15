@@ -68,3 +68,58 @@ test('time export accepts an exact safety limit only after checking for extra re
   } };
   await assert.rejects(loadAllTimeEntries(overflowClient, 'u1', 2, 2), /safety limit/);
 });
+
+test('complete history includes old running timers beyond the first thousand entries', async () => {
+  const rows = Array.from({ length: 1001 }, (_, i) => ({
+    id: String(i), user_id: 'u1', project_id: 'p1',
+    started_at: '2027-01-04T10:00:00Z', ended_at: '2027-01-04T10:01:00Z',
+  }));
+  rows.push({ id: 'active', user_id: 'u1', started_at: '2027-01-04T09:00:00Z', ended_at: null });
+  const ranges = [];
+  const client = { from: () => {
+    const query = { select() { return this; }, eq() { return this; }, order() { return this; },
+      async range(start, end) { ranges.push([start, end]); return { data: rows.slice(start, end + 1) }; } };
+    return query;
+  } };
+  const history = await loadAllTimeEntries(client, 'u1');
+  assert.deepEqual(ranges, [[0, 499], [500, 999], [1000, 1499]]);
+  assert.equal(history.find(entry => entry.ended_at === null)?.id, 'active');
+  const summary = summarizeTimeEntries(history, { now: new Date('2027-01-04T11:00:00Z') });
+  assert.equal(summary.totalSeconds, 1001 * 60 + 7200);
+  assert.equal(summary.todaySeconds, summary.totalSeconds);
+});
+
+test('non-aligned history safety limits never load or silently accept extra records', async () => {
+  for (const count of [3, 4]) {
+    const rows = Array.from({ length: count }, (_, i) => ({ id: String(i), user_id: 'u1' }));
+    const ranges = [];
+    const client = { from: () => {
+      const query = { select() { return this; }, eq() { return this; }, order() { return this; },
+        async range(start, end) { ranges.push([start, end]); return { data: rows.slice(start, end + 1) }; } };
+      return query;
+    } };
+    if (count === 3) assert.equal((await loadAllTimeEntries(client, 'u1', 2, 3)).length, 3);
+    else await assert.rejects(loadAllTimeEntries(client, 'u1', 2, 3), /safety limit/);
+    assert.deepEqual(ranges, [[0, 1], [2, 2], [3, 3]]);
+  }
+});
+
+test('CSV running durations use a reproducible snapshot timestamp', () => {
+  const csv = exportTimeEntriesCsv([{ description: 'Research', started_at: '2027-01-01T00:00:00Z', ended_at: null }], Date.parse('2027-01-01T00:02:05Z'));
+  assert.match(csv, /"125"\r\n$/);
+});
+
+test('a later history page failure rejects the whole report instead of returning partial totals', async () => {
+  let calls = 0;
+  const client = { from: () => {
+    const query = { select() { return this; }, eq() { return this; }, order() { return this; },
+      async range() {
+        calls++;
+        return calls === 1 ? { data: [{ id: '1', user_id: 'u1' }, { id: '2', user_id: 'u1' }] }
+          : { error: new Error('page timeout') };
+      } };
+    return query;
+  } };
+  await assert.rejects(loadAllTimeEntries(client, 'u1', 2, 10), /page timeout/);
+  assert.equal(calls, 2);
+});

@@ -52,15 +52,17 @@ export function summarizeTimeEntries(entries, { now = new Date(), timezone = 'UT
   const groups = new Map();
   let todaySeconds = 0;
   let weekSeconds = 0;
+  let totalSeconds = 0;
   for (const entry of entries || []) {
     const seconds = durationSeconds(entry, now.getTime());
+    totalSeconds += seconds;
     todaySeconds += secondsWithin(entry, todayStart, now.getTime());
     weekSeconds += secondsWithin(entry, weekStart, now.getTime());
     const key = entry.project_id || 'unassigned';
     const group = groups.get(key) || { project_id: entry.project_id || null, seconds: 0, entries: 0 };
     group.seconds += seconds; group.entries += 1; groups.set(key, group);
   }
-  return { todaySeconds, weekSeconds, byProject: [...groups.values()].sort((a, b) => b.seconds - a.seconds) };
+  return { todaySeconds, weekSeconds, totalSeconds, byProject: [...groups.values()].sort((a, b) => b.seconds - a.seconds) };
 }
 
 function csvCell(value) {
@@ -69,11 +71,11 @@ function csvCell(value) {
   return `"${text.replaceAll('"', '""')}"`;
 }
 
-export function exportTimeEntriesCsv(entries) {
+export function exportTimeEntriesCsv(entries, now = Date.now()) {
   const rows = [
     ['description', 'project_id', 'life_task_id', 'started_at', 'ended_at', 'duration_seconds'],
     ...(entries || []).map(entry => [entry.description, entry.project_id, entry.life_task_id,
-      entry.started_at, entry.ended_at, durationSeconds(entry)]),
+      entry.started_at, entry.ended_at, durationSeconds(entry, now)]),
   ];
   return `${rows.map(row => row.map(csvCell).join(',')).join('\r\n')}\r\n`;
 }
@@ -84,17 +86,17 @@ export async function loadAllTimeEntries(client, userId, pageSize = 500, maxRows
   const all = [];
   for (let offset = 0; offset < maxRows; offset += pageSize) {
     const { data, error } = await client.from('time_entries').select('*').eq('user_id', userId)
-      .order('started_at', { ascending: false }).order('id', { ascending: true }).range(offset, offset + pageSize - 1);
+      .order('started_at', { ascending: false }).order('id', { ascending: true }).range(offset, Math.min(offset + pageSize, maxRows) - 1);
     if (error) throw error;
     const page = data || [];
     if (page.some(entry => entry.user_id !== userId)) throw new Error('Time export returned a record from another account.');
     all.push(...page);
-    if (page.length < pageSize) return all;
+    if (page.length < Math.min(pageSize, maxRows - offset)) return all;
     if (all.length >= maxRows) {
       const { data: extra, error: extraError } = await client.from('time_entries').select('id').eq('user_id', userId)
         .order('started_at', { ascending: false }).order('id', { ascending: true }).range(maxRows, maxRows);
       if (extraError) throw extraError;
-      if (extra?.length) throw new Error('Time export reached its safety limit; narrow the date range and retry.');
+      if (extra?.length) throw new Error('Time history exceeds its record safety limit. Complete reports are unavailable; contact support before exporting.');
       return all;
     }
   }
