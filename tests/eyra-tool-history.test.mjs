@@ -128,3 +128,55 @@ test('browser tool_intent cannot authorize a project write absent from prompt', 
     globalThis.fetch = previousFetch;
   }
 });
+
+test('DOI research lookup returns Crossref metadata with explicit evidence limitations', async () => {
+  const previousFetch = globalThis.fetch;
+  let modelCount = 0;
+  let savedPapers = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address === 'https://api.openai.com/v1/responses') {
+      modelCount += 1;
+      if (modelCount === 2) {
+        const input = JSON.parse(options.body).input;
+        const result = JSON.parse(input.at(-1).output);
+        assert.equal(result.ok, true);
+        assert.equal(result.result.doi, '10.1234/example');
+        assert.equal(result.result.evidence_level, 'bibliographic_metadata_only');
+        assert.equal(result.result.title, 'Verified research article');
+      }
+      return new Response(JSON.stringify(modelCount === 1
+        ? { id: 'lookup_call', status: 'completed', output: [{
+          type: 'function_call', name: 'research.lookup_doi', call_id: 'lookup-1',
+          arguments: JSON.stringify({ doi: '10.1234/example' }),
+        }] }
+        : { id: 'final', status: 'completed', output: [{ content: [{ type: 'output_text', text: 'Crossref metadata retrieved; full text not analyzed.' }] }] }
+      ), { status: 200 });
+    }
+    if (address === 'https://api.crossref.org/works/10.1234%2Fexample') {
+      return new Response(JSON.stringify({ message: {
+        DOI: '10.1234/example', title: ['Verified research article'],
+        author: [{ given: 'Jane', family: 'Researcher' }],
+        published: { 'date-parts': [[2025, 1, 1]] },
+        'container-title': ['Research Journal'],
+      } }), { status: 200 });
+    }
+    if (address.includes('/rest/v1/saved_papers')) savedPapers += 1;
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({
+      method: 'POST', headers: { authorization: 'Bearer user-access-token' },
+      body: { prompt: 'Find metadata for DOI 10.1234/example.', enable_project_tools: true },
+    }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.payload.actions[0].status, 'succeeded');
+    assert.equal(savedPapers, 0);
+    assert.equal(response.payload.actions[0].result.source, 'Crossref');
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
