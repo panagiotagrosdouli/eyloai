@@ -352,6 +352,8 @@ test('discovery proxy rejects malformed paging and country filters without upstr
       { provider: 'openalex_authors', q: 'robotics', page: '0' },
       { provider: 'openalex_authors', q: 'robotics', page: '2.5' },
       { provider: 'openalex_authors', q: 'robotics', page: '201' },
+      { provider: 'openalex_works', q: 'robotics', page: '0' },
+      { provider: 'openalex_works', q: 'robotics', page: '201' },
       { provider: 'openalex_authors', q: 'robotics', country: 'GR|US' },
     ]) {
       const response = createResponse();
