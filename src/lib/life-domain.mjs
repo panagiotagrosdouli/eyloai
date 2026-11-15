@@ -61,6 +61,18 @@ function daysBetween(left, right) {
   return Math.round((new Date(`${right}T00:00:00Z`).getTime() - new Date(`${left}T00:00:00Z`).getTime()) / 86_400_000);
 }
 
+export function habitOccurrenceState(task, today) {
+  const date = task?.due_date;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '') || Number.isNaN(Date.parse(`${date}T00:00:00Z`))
+    || new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) !== date) return 'invalid';
+  if (task.status === 'done') return date > today ? 'future_recorded' : 'completed';
+  return date > today ? 'scheduled' : date < today ? 'overdue' : 'due';
+}
+
+export function canRecordHabitOccurrence(task, today) {
+  return ['due', 'overdue', 'completed'].includes(habitOccurrenceState(task, today));
+}
+
 export function summarizeHabits(tasks, today = new Date().toISOString().slice(0, 10)) {
   const groups = new Map();
   for (const task of tasks) {
@@ -73,7 +85,7 @@ export function summarizeHabits(tasks, today = new Date().toISOString().slice(0,
 
   return [...groups.entries()].map(([id, occurrences]) => {
     const ordered = [...occurrences].sort((a, b) => String(a.due_date || '').localeCompare(String(b.due_date || '')));
-    const completedDates = [...new Set(ordered.filter(item => item.status === 'done' && item.due_date).map(item => item.due_date))].sort();
+    const completedDates = [...new Set(ordered.filter(item => habitOccurrenceState(item, today) === 'completed').map(item => item.due_date))].sort();
     const current = ordered.find(item => item.status !== 'done') || ordered.at(-1);
     const frequency = current?.recurrence || ordered.at(-1)?.recurrence || 'daily';
     const interval = frequency === 'weekly' ? 7 : 1;

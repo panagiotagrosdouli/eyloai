@@ -27,6 +27,12 @@ let aiCalls = 0;
 let interruptSnapshotSave = true;
 let snapshotWrites = 0;
 const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS' };
+function containsJson(value, expected) {
+  if (Array.isArray(expected)) return Array.isArray(value) && expected.every(item => value.some(candidate => containsJson(candidate, item)));
+  if (expected !== null && typeof expected === 'object') return value !== null && typeof value === 'object'
+    && Object.entries(expected).every(([key, item]) => containsJson(value[key], item));
+  return Object.is(value, expected);
+}
 async function json(route, value) { await route.fulfill({ status: 200, headers, contentType: 'application/json', body: JSON.stringify(value) }); }
 async function capture(page, name) {
   if (!process.env.EYLO_E2E_ARTIFACT_DIR) return;
@@ -107,16 +113,18 @@ try {
     const table = url.pathname.split('/').at(-1);
     assert.ok(table in tables, `Unknown table: ${table}`);
     const filters = [...url.searchParams].filter(([key, value]) => value.startsWith('eq.') || value === 'is.null');
-    const matching = row => filters.every(([key, value]) => { const current = key.startsWith('data->>') ? row.data?.[key.slice(7)] : row[key]; return value === 'is.null' ? current == null : String(current) === value.slice(3); });
+    const containment = url.searchParams.get('data');
+    const expectedData = containment?.startsWith('cs.') ? JSON.parse(containment.slice(3)) : null;
+    const matching = row => (expectedData === null || containsJson(row.data, expectedData)) && filters.every(([key, value]) => { const current = key.startsWith('data->>') ? row.data?.[key.slice(7)] : row[key]; return value === 'is.null' ? current == null : String(current) === value.slice(3); });
     let rows = tables[table].filter(matching);
     if (request.method() !== 'GET') {
       if (request.method() === 'POST') {
         const payload = request.postDataJSON(); assert.equal(payload.user_id, user.id);
-        const row = { ...payload, id: randomUUID(), created_at: now(), updated_at: now() };
+        const row = { ...payload, id: randomUUID(), created_at: now(), updated_at: now(), ...(table === 'life_tasks' ? { created_date: now(), updated_date: now() } : {}) };
         tables[table].push(row); rows = [row];
       } else {
         assert.equal(url.searchParams.get('user_id'), `eq.${user.id}`, 'writes must be owner filtered');
-        if (request.method() === 'PATCH') rows.forEach(row => Object.assign(row, request.postDataJSON(), { updated_at: now(), ...(table === 'projects' ? { updated_date: now() } : {}) }));
+        if (request.method() === 'PATCH') rows.forEach(row => Object.assign(row, request.postDataJSON(), { updated_at: now(), ...(['projects', 'life_tasks'].includes(table) ? { updated_date: now() } : {}) }));
         else if (request.method() === 'DELETE') {
           const removed = rows.map(row => row.id); tables[table] = tables[table].filter(row => !matching(row));
           if (table === 'eyra_conversations') tables.eyra_messages = tables.eyra_messages.filter(row => !removed.includes(row.conversation_id));
@@ -757,6 +765,30 @@ try {
   assert.equal(tables.life_tasks.length, beforeTasks + 1);
   console.log('PASS fixture: exact Life task beyond recent1000 opens; same-route foreign/missing targets clear the editor and fail closed without a substitute or mutation. Hosted RLS remains unverified.');
   console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.');
+  await page.goto(`${origin}/habits`);
+  await page.getByRole('heading', { name: 'Habits', exact: true }).waitFor();
+  const habitToday = await page.getByLabel('First check-in date', { exact: true }).inputValue();
+  const tomorrow = new Date(`${habitToday}T00:00:00Z`);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  await page.getByLabel('Habit', { exact: true }).fill('Future reading routine');
+  await page.getByLabel('First check-in date', { exact: true }).fill(tomorrow.toISOString().slice(0, 10));
+  await page.getByRole('button', { name: 'Save habit', exact: true }).click();
+  await page.getByRole('heading', { name: 'Future reading routine', exact: true }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Check in for Future reading routine', exact: true }).isDisabled(), true);
+  await page.getByLabel('Habit', { exact: true }).fill('Today reading routine');
+  await page.getByLabel('First check-in date', { exact: true }).fill(habitToday);
+  await page.getByRole('button', { name: 'Save habit', exact: true }).click();
+  await page.getByRole('heading', { name: 'Today reading routine', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Check in for Today reading routine', exact: true }).click();
+  await page.getByText(/Recorded for .*Next check-in is/).waitFor();
+  await page.reload();
+  const routine = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Today reading routine', exact: true }) });
+  await routine.getByText('Saved check-in history', { exact: true }).click();
+  await routine.getByText('Completed', { exact: true }).waitFor();
+  await routine.getByText('Scheduled', { exact: true }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Check in for Today reading routine', exact: true }).isDisabled(), true);
+  console.log('PASS fixture: future habit check-ins are disabled; saved completion and next scheduled date survive reload in history.');
+
 } finally {
   if (browser) await browser.close();
   server.kill('SIGTERM');
