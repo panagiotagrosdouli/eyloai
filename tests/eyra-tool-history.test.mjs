@@ -642,6 +642,7 @@ test('wrapped prompt needs a matching standalone latest turn before a write', as
         body: {
           prompt, enable_project_tools: true,
           ...(userTurn !== undefined ? { latest_user_request: userTurn } : {}),
+          ...(userTurn === latest ? { write_confirmed: true } : {}),
         },
       }, response);
       assert.equal(response.statusCode, 200);
@@ -649,6 +650,41 @@ test('wrapped prompt needs a matching standalone latest turn before a write', as
       assert.equal(response.payload.actions[0].status,
         userTurn === latest ? 'succeeded' : 'failed');
     }
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
+
+test('project write without explicit confirmation cannot touch the database', async () => {
+  const previousFetch = globalThis.fetch;
+  let writes = 0;
+  let aiCalls = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address === 'https://api.openai.com/v1/responses') {
+      aiCalls += 1;
+      return new Response(JSON.stringify(aiCalls === 1 ? {
+        id: 'proposed', status: 'completed', output: [{ type: 'function_call', call_id: 'denied',
+          name: 'project.create', arguments: JSON.stringify({
+            title: 'Research', description: '', goal: '', milestones: '', tasks: '',
+          }) }],
+      } : { id: 'response', status: 'completed',
+        output: [{ content: [{ type: 'output_text', text: 'Write requires confirmation.' }] }] }), { status: 200 });
+    }
+    if (address.includes('/rest/v1/projects')) writes += 1;
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' },
+      body: { prompt: 'Create a project about graph learning.', enable_project_tools: true },
+    }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(writes, 0);
+    assert.equal(response.payload.actions[0].status, 'failed');
+    assert.match(response.payload.actions[0].error, /confirmation/);
   } finally {
     globalThis.fetch = previousFetch;
   }
