@@ -242,9 +242,9 @@ async function executeProjectTool(name, rawArguments, identity) {
   try { args = JSON.parse(rawArguments || '{}'); } catch { throw new Error('Invalid tool arguments.'); }
   if (name === 'research.lookup_doi') {
     const doi = typeof args.doi === 'string'
-      ? args.doi.trim().replace(/^https?:\\/\\/(?:dx\\.)?doi\\.org\\//i, '').replace(/^doi:\\s*/i, '').toLowerCase()
+      ? args.doi.trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '').toLowerCase()
       : '';
-    if (!/^10\\.\\d{4,9}\\/[\\-._;()/:A-Z0-9]+$/i.test(doi) || doi.length > 255) {
+    if (!/^10\.\d{4,9}\/[\-._;()/:A-Z0-9]+$/i.test(doi) || doi.length > 255) {
       throw new Error('A valid DOI is required.');
     }
     const sourceResponse = await fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`, {
