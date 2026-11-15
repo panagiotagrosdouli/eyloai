@@ -17,6 +17,8 @@ export class EyraRequestError extends Error {
     this.name = 'EyraRequestError';
     this.status = status;
     this.actions = Array.isArray(details.actions) ? details.actions : [];
+    this.runId = typeof details.run_id === 'string' ? details.run_id : null;
+    this.runStatus = typeof details.status === 'string' ? details.status : null;
   }
 }
 
@@ -29,7 +31,7 @@ async function getAccessToken(forceRefresh = false) {
   return session.access_token;
 }
 
-function postAnalysis(accessToken, prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, resourceContext = undefined, latestUserRequest = undefined, writeConfirmed = false) {
+function postAnalysis(accessToken, prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, resourceContext = undefined, latestUserRequest = undefined, writeConfirmed = false, runRequestId = undefined) {
   return fetch('/api/eyra', {
     method: 'POST',
     headers: {
@@ -46,6 +48,7 @@ function postAnalysis(accessToken, prompt, responseSchema, signal, enableProject
       ...(resourceContext ? { resource_context: resourceContext } : {}),
       ...(latestUserRequest !== undefined ? { latest_user_request: latestUserRequest } : {}),
       ...(writeConfirmed ? { write_confirmed: true } : {}),
+      ...(enableProjectTools && runRequestId ? { run_request_id: runRequestId } : {}),
     }),
   });
 }
@@ -54,16 +57,18 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProje
   const cleanPrompt = String(prompt || '').trim();
   if (!cleanPrompt) throw new EyraRequestError('Tell EYRA what you want to analyse.', 400);
 
+  // Stable across an authentication refresh/replay; a fresh invocation receives a new UUID.
+  const runRequestId = enableProjectTools ? globalThis.crypto?.randomUUID?.() : undefined;
   let accessToken = await getAccessToken();
   signal?.throwIfAborted();
-  let response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest, writeConfirmed);
+  let response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest, writeConfirmed, runRequestId);
 
   // A cached browser session can outlive its access token. Refresh once and
   // replay exactly the same request before requiring a new sign-in.
   if (response.status === 401) {
     accessToken = await getAccessToken(true);
     signal?.throwIfAborted();
-    response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest, writeConfirmed);
+    response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest, writeConfirmed, runRequestId);
   }
 
   if (response.status === 401) {
