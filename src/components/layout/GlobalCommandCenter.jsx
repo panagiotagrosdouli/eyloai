@@ -58,12 +58,10 @@ export default function GlobalCommandCenter({ open, onClose }) {
   };
   const searchActions = query.trim().length >= 2
     ? [
-      { group: 'Search this', label: 'Search projects', path: `/projects?q=${encodeURIComponent(query.trim())}`, icon: FolderOpen },
-      { group: 'Search this', label: 'Search Library', path: `/library?q=${encodeURIComponent(query.trim())}`, icon: BookOpen },
+      { group: 'Search this', label: 'Search saved work', path: `/workspace/search?q=${encodeURIComponent(query.trim())}`, icon: Search },
+      { group: 'Search this', label: 'Discover academic papers', path: `/search?q=${encodeURIComponent(query.trim())}`, icon: BookOpen },
       { group: 'Search this', label: 'Find researchers', path: `/researchers?q=${encodeURIComponent(query.trim())}`, icon: Users },
-      { group: 'Search this', label: 'Search funding', path: `/opportunities?q=${encodeURIComponent(query.trim())}`, icon: Award },
-      { group: 'Search this', label: 'Search meetings', path: `/meetings?q=${encodeURIComponent(query.trim())}`, icon: Video },
-      { group: 'Search this', label: 'Search history', path: `/history?q=${encodeURIComponent(query.trim())}`, icon: History },
+      { group: 'Search this', label: 'Find research funding', path: `/opportunities?q=${encodeURIComponent(query.trim())}`, icon: Award },
     ]
     : [];
 
