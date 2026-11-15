@@ -122,6 +122,12 @@
 | UX, themes and accessibility | Source theme manager exists; all navigation/mobile/keyboard and theme acceptance not rerun against live release | NOT RUN |
 | Beta / legal | No observed real-user beta evidence or owner-accepted legal sign-off | NOT RUN |
 
+## Additional production scheduler evidence (read-only)
+
+- Live Supabase lists `scheduled-monitoring` as **ACTIVE**, Edge Function **version 1**, with `verify_jwt=false`. The deployed source uses a separate constant-time comparison against a stored hashed cron token; disabling JWT at the platform layer is **not** by itself proof that the endpoint is unauthenticated.
+- The deployed version **differs** from the current tracked `supabase/functions/scheduled-monitoring/index.ts` source: the GitHub version imports bounded, validated research-provider response helpers instead of relying on unchecked response shapes. This is **verified deployment/source drift**, not authorization to auto-replace the live function.
+- Confirm scheduled execution, intended cron identity, secret-hash setup, verified alert delivery and owner consent in staging; deploy a reviewed function only after migration/dependency checks and an explicit release decision. No live monitoring function was changed during this inspection.
+
 ## Safe next engineering increments
 
 1. Review and complete PR #455 CI; perform actual hosted preview browser acceptance before merge. Do not promote just because build is green.
