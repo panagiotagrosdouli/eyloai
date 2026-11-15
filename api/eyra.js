@@ -814,8 +814,10 @@ export default async function handler(request, response) {
     /** @type {Record<string, any>} */
     const requestBody = {
       model: process.env.OPENAI_MODEL || 'gpt-5.6',
-      instructions: EYRA_INSTRUCTIONS + resourceInstructions,
-      input: prompt,
+      instructions: EYRA_INSTRUCTIONS,
+      input: resourceInstructions
+        ? [{ role: 'user', content: prompt }, { role: 'user', content: resourceInstructions }]
+        : prompt,
       store: false,
       max_output_tokens: MAX_OUTPUT_TOKENS,
       ...(stream ? { stream: true } : {}),
@@ -909,7 +911,10 @@ export default async function handler(request, response) {
     }
     const actionResults = [];
     /** @type {Array<Record<string, any>>} */
-    const toolTranscript = [{ role: 'user', content: prompt }];
+    const toolTranscript = [
+      { role: 'user', content: prompt },
+      ...(resourceInstructions ? [{ role: 'user', content: resourceInstructions }] : []),
+    ];
     const seenToolCallIds = new Set();
     // Only the two allowlisted, authenticated project operations above can be
     // executed. Each call is scoped by the caller's bearer token and Supabase RLS.
@@ -965,7 +970,7 @@ export default async function handler(request, response) {
         headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
         body: JSON.stringify({
           model: process.env.OPENAI_MODEL || 'gpt-5.6',
-          instructions: EYRA_INSTRUCTIONS + resourceInstructions,
+          instructions: EYRA_INSTRUCTIONS,
           // Keep the endpoint stateless (`store: false`) and carry the tool
           // exchange explicitly instead of relying on response retrieval.
           input: toolTranscript,
