@@ -13,23 +13,39 @@ let capabilityPromise;
 
 export async function getCapabilities({ refresh = false } = {}) {
   if (refresh || !capabilityPromise) {
-    capabilityPromise = fetch(apiUrl('/api/capabilities'), {
-      headers: { accept: 'application/json' },
-      cache: 'no-store',
-    }).then(async response => {
-      if (!response.ok) throw new Error('Could not verify service availability.');
-      const result = await response.json();
-      return {
-        ai: result.ai === true,
-        billing: result.billing === true,
-        contact: result.contact === true,
-        scheduled_monitoring: result.scheduled_monitoring === true,
-        institution_analytics: result.institution_analytics === true,
-      };
+    const controller = new AbortController();
+    let timeoutId;
+    const timeout = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => {
+        controller.abort();
+        reject(new Error('Service availability check timed out.'));
+      }, 10000);
+    });
+    const pending = Promise.race([
+      fetch(apiUrl('/api/capabilities'), {
+        headers: { accept: 'application/json' },
+        cache: 'no-store',
+        signal: controller.signal,
+      }).then(async response => {
+        if (!response.ok) throw new Error('Could not verify service availability.');
+        const result = await response.json();
+        return {
+          ai: result.ai === true,
+          billing: result.billing === true,
+          contact: result.contact === true,
+          scheduled_monitoring: result.scheduled_monitoring === true,
+          institution_analytics: result.institution_analytics === true,
+        };
+      }),
+      timeout,
+    ]).finally(() => {
+      clearTimeout(timeoutId);
     }).catch(error => {
-      capabilityPromise = undefined;
+      // An older request must not erase a newer refresh request.
+      if (capabilityPromise === pending) capabilityPromise = undefined;
       throw error;
     });
+    capabilityPromise = pending;
   }
   return capabilityPromise;
 }
