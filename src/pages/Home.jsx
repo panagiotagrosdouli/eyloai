@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { runEyraDiscovery } from '@/lib/eyra-engine';
+import { interpretResearchGoal } from '@/lib/research-goal-intent.mjs';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, useSearchParams } from 'react-router-dom';
 import { SearchHeroCompact } from '@/components/discovery/SearchHero';
@@ -33,7 +34,11 @@ export default function Home({ searchOnly = false }) {
     setProgress({ status: 'loading', papers: [], researchers: [], institutions: [] });
 
     try {
-      const finalResults = await runEyraDiscovery(request, (partial) => {
+      const interpreted = typeof request === 'string' ? interpretResearchGoal(request) : null;
+      const discoveryRequest = interpreted
+        ? { ...interpreted, level: 'researcher', recency: 'balanced' }
+        : request;
+      const finalResults = await runEyraDiscovery(discoveryRequest, (partial) => {
         if (controller.signal.aborted) return;
         if (searchId !== activeSearchId.current) return;
         setProgress({ ...partial });
