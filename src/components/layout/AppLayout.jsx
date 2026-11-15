@@ -127,6 +127,7 @@ export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [toolQuery, setToolQuery] = useState('');
   const toolsRef = useRef(null);
+  const mobileToolsRef = useRef(null);
   const { data: capabilities, loading: capabilitiesLoading } = useCapabilities();
   const aiAvailable = !capabilitiesLoading && capabilities.ai;
 
@@ -163,7 +164,7 @@ export default function AppLayout() {
 
   useEffect(() => {
     const close = event => {
-      if (!toolsRef.current?.contains(event.target)) setToolsOpen(false);
+      if (!toolsRef.current?.contains(event.target) && !mobileToolsRef.current?.contains(event.target)) setToolsOpen(false);
     };
     const closeWithKeyboard = event => {
       if (event.key === 'Escape') {
@@ -226,18 +227,18 @@ export default function AppLayout() {
             })}
 
             <div ref={toolsRef} className="relative">
-              <button type="button" onClick={() => setToolsOpen(value => !value)} aria-expanded={toolsOpen}
+              <button type="button" onClick={() => setToolsOpen(value => !value)} aria-expanded={toolsOpen} aria-haspopup="true" aria-controls="desktop-tool-directory"
                 className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium transition-colors ${toolsActive ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>
                 <LayoutGrid size={14} aria-hidden="true" />Tools<ChevronDown size={12} className={`transition-transform ${toolsOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {toolsOpen && (
-                <div className="absolute left-0 top-full mt-2 w-[min(48rem,calc(100vw-2rem))] rounded-2xl border border-border/80 bg-popover p-4 shadow-xl">
+                <div id="desktop-tool-directory" className="absolute left-0 top-full mt-2 w-[min(48rem,calc(100vw-2rem))] rounded-2xl border border-border/80 bg-popover p-4 shadow-xl">
                   <label className="relative block">
                     <span className="sr-only">Search EYLO tools</span>
                     <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <input value={toolQuery} onChange={event => setToolQuery(event.target.value)} autoFocus placeholder="Find a tool…"
-                      className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/40" />
+                    <input type="search" value={toolQuery} onChange={event => setToolQuery(event.target.value)} autoFocus placeholder="Find a tool…"
+                      className="min-h-11 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/40" />
                   </label>
                   <div className="mt-3 grid max-h-[65vh] gap-5 overflow-y-auto p-1 sm:grid-cols-2">
                     {visibleGroups.map(group => (
@@ -267,14 +268,14 @@ export default function AppLayout() {
             </button>
           </div>
 
-          <button type="button" onClick={() => setMobileOpen(value => !value)} aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileOpen}
+          <button type="button" onClick={() => setMobileOpen(value => !value)} aria-controls="workspace-mobile-menu" aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileOpen}
             className="ml-auto rounded-xl p-2.5 text-muted-foreground hover:bg-secondary hover:text-foreground lg:hidden">
             {mobileOpen ? <X size={19} /> : <Menu size={19} />}
           </button>
         </div>
 
         {mobileOpen && (
-          <div className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
+          <div id="workspace-mobile-menu" className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
             <div className="mx-auto max-w-xl">
               <div className="grid grid-cols-2 gap-2">
                 {PRIMARY_NAV.map(item => {
@@ -285,6 +286,7 @@ export default function AppLayout() {
               </div>
               <div className="my-4 flex items-center justify-end gap-3"><ServiceStatus /></div>
               <button type="button" onClick={() => setCommandOpen(true)} className="mb-3 flex min-h-11 w-full items-center gap-2 rounded-xl border border-border px-3 text-sm font-medium"><Search size={16} />Search everything <span className="ml-auto text-xs text-muted-foreground">⌘/Ctrl K</span></button>
+              <div ref={mobileToolsRef}>
               <button type="button" onClick={() => setToolsOpen(value => !value)} aria-expanded={toolsOpen} aria-controls="mobile-tool-directory" className="flex min-h-11 w-full items-center justify-between rounded-xl border border-border px-3 text-sm font-semibold"><span>All tools</span><ChevronDown size={16} className={toolsOpen ? 'rotate-180' : ''} /></button>
               {toolsOpen && <div id="mobile-tool-directory" className="mt-3 space-y-4">
                 <label className="block"><span className="sr-only">Find a tool</span><input type="search" value={toolQuery} onChange={event => setToolQuery(event.target.value)} placeholder="Find a tool…" className="min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm" /></label>
@@ -296,6 +298,7 @@ export default function AppLayout() {
                 ))}
                 {!visibleGroups.length && <p className="text-sm text-muted-foreground">No matching tools.</p>}
               </div>}
+              </div>
               <div className="mt-4">
                 <button type="button" onClick={handleSignOut} disabled={signingOut}
                   className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-medium text-foreground disabled:opacity-50">
