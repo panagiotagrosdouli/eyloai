@@ -7,7 +7,7 @@ const ROUTE_LABELS = {
   search: 'Discover', projects: 'My workspace', library: 'Library',
   files: 'Files', notes: 'Notes', learn: 'Learn', 'study-planner': 'Study planner',
   calendar: 'Calendar', tools: 'All tools', opportunities: 'Funding and calls',
-  researchers: 'Researchers', 'research-gaps': 'Research gap finder',
+  researchers: 'Researchers', 'research-journey': 'Research Journey', 'research-gaps': 'Research gap finder',
   'literature-review': 'Literature review protocol', 'knowledge-graph': 'Knowledge graph',
   meetings: 'Meetings', 'grant-builder': 'Grant workspace',
   'quiz-generator': 'Quiz generator', flashcards: 'Flashcards',

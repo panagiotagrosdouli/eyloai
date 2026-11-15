@@ -499,6 +499,7 @@ Rules:
         <div className="min-w-0 w-full sm:flex-1">
           <input
             type="text"
+            aria-label="Project title"
             value={editing.title}
             onChange={e => setEditing(prev => ({ ...prev, title: e.target.value }))}
             className="w-full text-2xl sm:text-3xl font-heading font-bold bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground"
@@ -506,6 +507,7 @@ Rules:
           />
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <select
+              aria-label="Project status"
               value={editing.status}
               onChange={e => setEditing(prev => ({ ...prev, status: e.target.value }))}
               className={`text-xs font-semibold px-3 py-1 rounded-full border-0 focus:outline-none focus:ring-1 focus:ring-primary/40 ${statusColor}`}
@@ -520,6 +522,10 @@ Rules:
           </div>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Link to={'/research-journey?project_id=' + encodeURIComponent(project.id)}
+            className="inline-flex min-h-11 items-center rounded-xl border border-primary/30 bg-primary/10 px-4 text-sm font-semibold text-primary">
+            Research journey
+          </Link>
           <button
             onClick={runEyraAnalysis}
             disabled={analyzing}

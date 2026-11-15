@@ -1309,6 +1309,16 @@ try {
   assert.equal(await dataLab.getByRole('button', { name: 'Find research gaps' }).isDisabled(), true,
     'one saved paper is still below the two-paper analysis requirement');
   console.log('Research Gap Finder browser flow passed with provider-shaped fixtures and isolated authenticated persistence; live providers and production RLS were not exercised.');
+  // A newly authenticated researcher with no projects receives a useful,
+  // private, fully navigable first-step state rather than invented progress.
+  await dataLab.goto(`${baseUrl}/research-journey`);
+  await dataLab.getByRole('heading', { name: 'Research Journey' }).waitFor();
+  await dataLab.getByRole('heading', { name: 'Start with a research project' }).waitFor();
+  await dataLab.getByRole('link', { name: 'Create a project' }).waitFor();
+  await dataLab.setViewportSize({ width: 320, height: 812 });
+  assert.equal(await dataLab.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), true,
+    'the new research journey must fit a 320px mobile viewport');
+  console.log('Research Journey authenticated empty-project and 320px mobile navigation passed against isolated fixtures.');
 
   // Verify sign-out actually invalidates the session and protects private routes.
   await dataLab.setViewportSize({ width: 1365, height: 900 });

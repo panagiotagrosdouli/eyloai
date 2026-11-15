@@ -20,6 +20,7 @@ export default function ProductTools() {
 }
 
 const DIRECT_TOOLS = [
+  { slug: 'research-journey', title: 'Research journey', description: 'Connect a question, saved evidence, review methods and thesis writing.', href: '/research-journey', category: 'Research' },
   { slug: 'thesis-studio', title: 'Organize my thesis', description: 'Open a research project to plan thesis writing and evidence.', href: '/projects', category: 'Research' },
   { slug: 'paper-summary', title: 'Understand a scientific paper', description: 'Open saved publications and request evidence-aware help from EYRA.', href: '/library', category: 'Research' },
   { slug: 'study-plan-goal', title: 'Make a study plan', description: 'Schedule courses, reading and exam preparation.', href: '/study-planner', category: 'Learning' },
