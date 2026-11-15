@@ -111,7 +111,12 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProje
 
   if (!result.text) throw new EyraRequestError('EYRA returned an empty response.', 502);
   if (enableProjectTools) {
-    return { text: result.text, actions: Array.isArray(result.actions) ? result.actions : [] };
+    return {
+      text: result.text,
+      actions: Array.isArray(result.actions) ? result.actions : [],
+      run_id: typeof result.run_id === 'string' ? result.run_id : null,
+      run_status: typeof result.run_status === 'string' ? result.run_status : null,
+    };
   }
   return result.text;
 }
