@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { getUsableSession, requireSupabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/lib/AuthContext";
 import { invokeEyra } from "@/lib/eyra-intelligence";
 import ProjectDocumentWorkspace, {
   downloadWorkspace,
@@ -94,16 +95,33 @@ function Status({ state }) {
   );
 }
 function Memory() {
+  const { user } = useAuth();
+  const requestGeneration = useRef(0);
   const state = useOperation(),
     [sources, setSources] = useState([]),
     [query, setQuery] = useState(""),
-    [loaded, setLoaded] = useState(false);
+    [loaded, setLoaded] = useState(false),
+    [loadedOwnerId, setLoadedOwnerId] = useState(null);
+  useEffect(() => {
+    // Invalidate in-flight requests and private results on every account switch.
+    requestGeneration.current += 1;
+    setSources([]);
+    setQuery("");
+    setLoaded(false);
+    setLoadedOwnerId(null);
+    state.setNotice("");
+    state.setError("");
+  }, [user?.id]);
   const load = () =>
     state.act(async () => {
+      const generation = requestGeneration.current;
       const session = await getUsableSession({
         required: true,
         validate: true,
       });
+      if (session.user.id !== user?.id) {
+        throw new Error("Your account changed. Reload the workspace.");
+      }
       const [notes, projects, messages] = await Promise.all([
         base44.entities.Note.list("-updated_date", 1000),
         base44.entities.Project.list("-updated_date", 1000),
@@ -127,7 +145,7 @@ function Memory() {
         throw new Error(
           "Loaded memory sources exceed the 20 MiB reading budget. Use scoped Workspace Search instead.",
         );
-      if (!state.alive.current) return;
+      if (!state.alive.current || generation !== requestGeneration.current) return;
       setSources([
         ...notes.map((n) => ({
           id: n.id,
@@ -152,6 +170,7 @@ function Memory() {
           conversation_id: m.conversation_id,
         })),
       ]);
+      setLoadedOwnerId(session.user.id);
       setLoaded(true);
       state.setNotice(
         historyAvailable
@@ -167,7 +186,7 @@ function Memory() {
         cover only the sources successfully loaded.
       </p>
       <Status state={state} />
-      <button className={button} disabled={state.busy} onClick={load}>
+      <button className={button} disabled={state.busy || !user?.id} onClick={load}>
         Load my saved sources
       </button>
       <label className="block text-sm">
@@ -179,10 +198,11 @@ function Memory() {
           onChange={(e) => setQuery(e.target.value)}
         />
       </label>
-      {loaded && query && !searchCanonicalMemory(query, sources).length && (
-        <p>No matching loaded sources.</p>
+      {loaded && loadedOwnerId === user?.id && query
+        && !searchCanonicalMemory(query, sources).length && (
+          <p>No matching loaded sources.</p>
       )}
-      {searchCanonicalMemory(query, sources).map((row) => (
+      {(loadedOwnerId === user?.id ? searchCanonicalMemory(query, sources) : []).map((row) => (
         <article
           key={`${row.kind}/${row.id}`}
           className="space-y-2 rounded-xl border border-border p-4"
