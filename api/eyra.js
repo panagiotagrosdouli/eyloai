@@ -631,6 +631,9 @@ async function executeProjectTool(name, rawArguments, identity) {
     if (!sourceResponse.ok) throw new Error('Crossref could not verify this DOI. The paper was not saved.');
     const sourcePayload = await sourceResponse.json();
     const metadata = sourcePayload?.message;
+    if (typeof metadata?.DOI !== 'string' || metadata.DOI.trim().toLowerCase() !== doi) {
+      throw new Error('Crossref returned a different DOI. The paper was not saved.');
+    }
     const verifiedTitle = String(metadata?.title?.[0] || '').trim();
     const normalizeTitle = (value) => String(value || '').toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, '');
     if (!verifiedTitle || normalizeTitle(verifiedTitle) !== normalizeTitle(args.title)) {
