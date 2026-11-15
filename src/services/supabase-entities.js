@@ -1,6 +1,7 @@
 import { getBillingStatus } from '@/lib/billing';
 import { workspaceDataError } from '@/lib/workspace-schema-error.mjs';
 import { mergeWorkspaceProfile, assertCanonicalProfileWrite } from '@/lib/profile-merge.mjs';
+import { isLegacyProfileShapeError, normalizeLegacyProfileWrite } from '@/lib/legacy-profile-schema.mjs';
 import { requireEntityVersion, requireVersionedWriteResult } from '@/lib/entity-optimistic-version.mjs';
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 import { recordActivation, trackEyraFollowthrough } from '@/lib/product-analytics';
@@ -289,11 +290,22 @@ export const supabaseProfile = {
   async me() {
     const user = await currentUser();
     const authProfile = pickProfileFields(user.user_metadata || {});
-    const { data, error } = await requireSupabase()
+    let { data, error } = await requireSupabase()
       .from('profiles')
       .select('data')
       .eq('user_id', user.id)
       .maybeSingle();
+
+    // Existing production projects can retain the original id/flat-field
+    // profiles contract. Only a missing canonical column permits a retry.
+    if (error && isLegacyProfileShapeError(error)) {
+      const legacy = await requireSupabase().from('profiles')
+        .select(PROFILE_FIELDS.join(','))
+        .eq('id', user.id)
+        .maybeSingle();
+      data = legacy.data ? { data: legacy.data } : null;
+      error = legacy.error;
+    }
 
     if (error) {
       if (workspaceDataError(error) !== error) throw workspaceDataError(error);
@@ -323,11 +335,20 @@ export const supabaseProfile = {
 
     // The saved profiles row is the canonical workspace source. Confirm it
     // before attempting the secondary authentication-metadata compatibility update.
-    const profileWrite = await client
+    let profileWrite = await client
       .from('profiles')
       .upsert(profileRow, { onConflict: 'user_id' })
       .select('data')
       .maybeSingle();
+    if (profileWrite.error && isLegacyProfileShapeError(profileWrite.error)) {
+      // Original schema uses id = auth.uid() and owner-scoped RLS. Preserve
+      // all other legacy columns; never retry auth/permission failures.
+      const legacyWrite = await client.from('profiles')
+        .upsert({ id: user.id, email: user.email, ...next }, { onConflict: 'id' })
+        .select(PROFILE_FIELDS.join(','))
+        .maybeSingle();
+      profileWrite = normalizeLegacyProfileWrite(legacyWrite);
+    }
     const savedProfile = assertCanonicalProfileWrite(profileWrite);
     const authWrite = await client.auth.updateUser({ data: next });
     if (authWrite.error) {
