@@ -364,6 +364,30 @@ function currentUserRequest(prompt, userTurn) {
   return embedded === userTurn ? userTurn : '';
 }
 
+function boundedWorkspaceRow(row, kind) {
+  const full = entityFromRow(row);
+  const str = (field, limit) => typeof full[field] === 'string'
+    ? full[field].slice(0, limit) : '';
+  const base = { id: row.id, created_date: full.created_date, updated_date: full.updated_date };
+  if (kind === 'paper') {
+    return {
+      ...base, title: str('title', 1000), doi: str('doi', 255),
+      authors: str('authors', 350), source: str('source', 250),
+      url: str('url', 500),
+      year: Number.isInteger(full.year) ? full.year : null,
+    };
+  }
+  return {
+    ...base, title: str('title', 180), status: str('status', 40),
+    goal: str('goal', kind === 'project_detail' ? 1200 : 280),
+    description: str('description', kind === 'project_detail' ? 2400 : 300),
+    ...(kind === 'project_detail' ? {
+      milestones: str('milestones', 1600),
+      tasks: str('tasks', 1600),
+    } : {}),
+  };
+}
+
 function userExplicitlyRequestedProjectCreation(prompt) {
   const text = String(prompt || '').toLowerCase();
   if (/\b(?:don't|do not|never|should not|shouldn't)\b/.test(text) || /\bμη(?:ν|ν)?\b/.test(text)) return false;
@@ -552,7 +576,7 @@ async function executeProjectTool(name, rawArguments, identity) {
     const rows = await result.json();
     if (!Array.isArray(rows)) throw new Error('Project service returned an invalid response.');
     if (!rows.length) throw new Error('Project not found or not accessible.');
-    return entityFromRow(rows[0]);
+    return boundedWorkspaceRow(rows[0], 'project_detail');
   }
   if (name === 'project.list') {
     const result = await fetch(`${url}?select=id,data,created_date,updated_date&user_id=eq.${encodeURIComponent(identity.user.id)}&order=updated_date.desc&limit=50`, {
@@ -561,7 +585,7 @@ async function executeProjectTool(name, rawArguments, identity) {
     if (!result.ok) throw new Error(`Project list failed (${result.status}).`);
     const rows = await result.json();
     if (!Array.isArray(rows)) throw new Error('Project service returned an invalid list.');
-    return rows.map(entityFromRow);
+    return rows.slice(0, 50).map(row => boundedWorkspaceRow(row, 'project'));
   }
 
   if (name === 'project.create') {
@@ -604,7 +628,7 @@ async function executeProjectTool(name, rawArguments, identity) {
     if (!result.ok) throw new Error(`Library list failed (${result.status}).`);
     const rows = await result.json();
     if (!Array.isArray(rows)) throw new Error('Library service returned an invalid list.');
-    return rows.map(entityFromRow);
+    return rows.slice(0, 50).map(row => boundedWorkspaceRow(row, 'paper'));
   }
 
   if (name === 'library.save_paper') {
