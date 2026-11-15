@@ -373,6 +373,10 @@ function formatEyraToolActions(actions) {
       }[action.tool];
       return `- Retrieved ${Array.isArray(action.result) ? action.result.length : 0} private ${label}. Saved records are not live eligibility or affiliation verification.`;
     }
+    if (action.status === 'succeeded' && ['learning.list_lessons', 'learning.list_progress'].includes(action.tool)) {
+      const label = action.tool === 'learning.list_lessons' ? 'lesson outlines' : 'lesson progress records';
+      return `- Retrieved ${action.result?.count || 0} ${label} from an authenticated owned course; no lesson full text or quiz answers were accessed.`;
+    }
     if (action.status === 'succeeded' && ['learning.list_courses', 'learning.list_quizzes'].includes(action.tool)) {
       const label = action.tool === 'learning.list_courses' ? 'learning courses' : 'quizzes';
       return `- Retrieved ${action.result?.count || 0} saved ${label} from your own learning workspace; metadata only.`;
