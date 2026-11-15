@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { searchOpenAlexAuthors } from '../src/lib/eyra-api.js';
+import { searchOpenAlexAuthors, searchResearchPeopleByPublications } from '../src/lib/eyra-api.js';
 
 test('discovers real paper authors when a multiword OpenAlex author search is empty', async (t) => {
   const originalFetch = globalThis.fetch;
@@ -63,4 +63,33 @@ test('excludes corporate and consortium author records from researcher profiles'
   const researchers = await searchOpenAlexAuthors('climate change adaptation', 8);
 
   assert.deepEqual(researchers.map(person => person.name), ['Nelly M. Cruz']);
+});
+
+test('cleans doctoral search terms and keeps later publication pages on the configured gateway', async (t) => {
+  const originalFetch = globalThis.fetch;
+  const requests = [];
+  globalThis.fetch = async url => {
+    const parsed = new URL(String(url));
+    requests.push(parsed);
+    return new Response(JSON.stringify({ results: [{
+      authorships: [{
+        author: { id: 'https://openalex.org/A5033953081', display_name: 'Nelly M. Cruz' },
+        institutions: [],
+      }],
+    }] }), { status: 200 });
+  };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  const people = await searchResearchPeopleByPublications('PhD in robotics', 5, {
+    page: 2,
+    proxyBaseUrl: 'https://gateway.example.test',
+  });
+
+  assert.equal(people.length, 1);
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].origin, 'https://gateway.example.test');
+  assert.equal(requests[0].pathname, '/api/discovery');
+  assert.equal(requests[0].searchParams.get('provider'), 'openalex_works');
+  assert.equal(requests[0].searchParams.get('q'), 'robotics');
+  assert.equal(requests[0].searchParams.get('page'), '2');
 });
