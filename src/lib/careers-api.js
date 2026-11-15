@@ -37,7 +37,8 @@ function searchTerms(query) {
   // Ignore filler only in multi-term queries; a standalone research search
   // remains useful. Role and discipline terms must still match together.
   const terms = [...new Set(normalizeSearchText(query).split(' ').filter(term => term.length > 1))];
-  const meaningful = terms.filter(term => !['in', 'on', 'of', 'for', 'and', 'the', 'research', 'position', 'positions', 'job', 'jobs'].includes(term));
+  const meaningful = terms.filter(term => !['in', 'on', 'of', 'for', 'and', 'the', 'position', 'positions', 'job', 'jobs'].includes(term)
+    && !(term === 'research' && terms.length > 2));
   return meaningful.length ? meaningful : terms;
 }
 

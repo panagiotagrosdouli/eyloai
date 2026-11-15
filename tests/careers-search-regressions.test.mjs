@@ -27,3 +27,9 @@ test('a malformed 200 response is a source failure, never a legitimate empty sea
     await assert.rejects(loadGeneralCareerListings(), /unavailable/);
   } finally { globalThis.fetch = previousFetch; }
 });
+
+test('research assistant queries retain the research concept rather than filling results with unrelated assistants', () => {
+  const research = { title: 'Research assistant', description: 'Laboratory experiments' };
+  const sales = { title: 'Sales assistant', description: 'Retail customer service' };
+  assert.deepEqual(filterCareerListings([research, sales], 'research assistant'), [research]);
+});

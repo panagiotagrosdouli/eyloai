@@ -249,12 +249,15 @@ No SQL was applied. Legacy duplicate `20260803` versions and native-schema assum
 
 ## Batch verification
 
-- `npm run check`: initial full run passed imports, both TypeScript projects, lint, 752 Node tests and production build. Final rerun evidence is recorded with the PR.
+- `npm run check`: final run passed imports, both TypeScript projects, lint, 756 Node tests and production build after incorporating main through c24afe5.
 - Careers browser fixtures passed outage, legitimate-empty versus unavailable coverage, retry, doctoral variants, pagination, source links and 320/390/768/1365px overflow checks.
 - Disposable PostgreSQL replay passed 22 selected migrations with two-role policies, version history, search, project/file links, Storage metadata, quota/concurrent-write tests. It uses minimal local Auth/Storage metadata fixtures; real hosted bytes and Auth remain unverified.
 - `db:review-plan` passed: 22 selected / 7 excluded; remote authorization and history flags remain false.
 - `release:readiness`: NO-GO; `config:check`: CONFIGURATION_INCOMPLETE. No local provider credentials were provisioned.
 - `release:probe`: direct Node transport initially failed; rerun using environment proxy reached the real endpoints and failed on discovery503 and disabled AI/contact/billing. Public root, manifest, capabilities and deployment-status responded200. Public general-jobs returned116 source listings; this is retrieval evidence, not exhaustive relevance or posting-availability acceptance.
+
+- Existing Auth, Products (22 workflows), Learning and Discovery Gateway browser suites passed with synthetic transport. Real Meetings suite was invoked and stopped before any browser or data mutation because the staging URL and two account credentials are missing.
+- Implementation PR: [#441](https://github.com/panagiotagrosdouli/eyloai/pull/441), draft. See [batch evidence](integration/careers-audit-2026-11-15.json). No hosted candidate verification or production certification.
 
 ## Remaining acceptance
 

@@ -1,13 +1,356 @@
 {
-  "base_commit": "5f270e8eaa177610e4be3e1e7a587abde7bd59af",
+  "base_commit": "c803baf3d5054ec3e7a99197a6f4d23f8d409bbb",
   "method": "Static source scan; matches are review candidates, not behavioral acceptance",
+  "routes": [
+    {
+      "path": "/login",
+      "element": "<Login />} />"
+    },
+    {
+      "path": "/register",
+      "element": "<Register />} />"
+    },
+    {
+      "path": "/forgot-password",
+      "element": "<ForgotPassword />} />"
+    },
+    {
+      "path": "/reset-password",
+      "element": "<ResetPassword />} />"
+    },
+    {
+      "path": "/auth/callback",
+      "element": "<AuthCallback />} />"
+    },
+    {
+      "path": "/account-deletion",
+      "element": "<AccountDeletion />} />"
+    },
+    {
+      "path": "/offline",
+      "element": "<OfflineWorkspace />} />"
+    },
+    {
+      "path": "/home",
+      "element": "<Home />} />"
+    },
+    {
+      "path": "/workspace/careers",
+      "element": "<PublicCareers />} />"
+    },
+    {
+      "path": "/search",
+      "element": "<Home searchOnly />} />"
+    },
+    {
+      "path": "/library",
+      "element": "<Library />} />"
+    },
+    {
+      "path": "/files",
+      "element": "<EyloFiles />} />"
+    },
+    {
+      "path": "/documents/new",
+      "element": "<DocumentEditor />} />"
+    },
+    {
+      "path": "/documents/:id",
+      "element": "<DocumentEditor />} />"
+    },
+    {
+      "path": "/notes",
+      "element": "<Notes />} />"
+    },
+    {
+      "path": "/time-tracker",
+      "element": "<TimeTracker />} />"
+    },
+    {
+      "path": "/quiz-generator",
+      "element": "<QuizGenerator />} />"
+    },
+    {
+      "path": "/learn",
+      "element": "<Learn />} />"
+    },
+    {
+      "path": "/life",
+      "element": "<Life />} />"
+    },
+    {
+      "path": "/life/goals",
+      "element": "<LifeGoals />} />"
+    },
+    {
+      "path": "/study-planner",
+      "element": "<StudyPlanner />} />"
+    },
+    {
+      "path": "/habits",
+      "element": "<Habits />} />"
+    },
+    {
+      "path": "/flashcards",
+      "element": "<Flashcards />} />"
+    },
+    {
+      "path": "/calendar",
+      "element": "<Calendar />} />"
+    },
+    {
+      "path": "/workspace/search",
+      "element": "<UniversalSearch />} />"
+    },
+    {
+      "path": "/activity",
+      "element": "<ActivityHistory />} />"
+    },
+    {
+      "path": "/research-gaps",
+      "element": "<ResearchGaps />} />"
+    },
+    {
+      "path": "/literature-review",
+      "element": "<LiteratureReview />} />"
+    },
+    {
+      "path": "/labs/data",
+      "element": "<ResearchDataLab />} />"
+    },
+    {
+      "path": "/knowledge-graph",
+      "element": "<ResearchKnowledgeGraph />} />"
+    },
+    {
+      "path": "/projects",
+      "element": "<Projects />} />"
+    },
+    {
+      "path": "/automations",
+      "element": "<Navigate to=\"/tools/workflows\" replace />} />"
+    },
+    {
+      "path": "/tools",
+      "element": "<ProductTools />} />"
+    },
+    {
+      "path": "/tools/:tool",
+      "element": "<ProductTools />} />"
+    },
+    {
+      "path": "/collaboration/:tool",
+      "element": "<CollaborationTools />} />"
+    },
+    {
+      "path": "/projects/:id/workbench/:tool",
+      "element": "<ProductWorkbench />} />"
+    },
+    {
+      "path": "/projects/:id/spreadsheet",
+      "element": "<Spreadsheet />} />"
+    },
+    {
+      "path": "/projects/:id/budget",
+      "element": "<ResearchBudget />} />"
+    },
+    {
+      "path": "/projects/:id/thesis",
+      "element": "<ThesisStudio />} />"
+    },
+    {
+      "path": "/projects/:id/research/:workspace",
+      "element": "<ProjectResearchRecords />} />"
+    },
+    {
+      "path": "/projects/:id/decisions",
+      "element": "<ProjectDecisions />} />"
+    },
+    {
+      "path": "/projects/:id",
+      "element": "<ProjectDetail />} />"
+    },
+    {
+      "path": "/researchers",
+      "element": "<Researchers />} />"
+    },
+    {
+      "path": "/opportunities",
+      "element": "<Opportunities />} />"
+    },
+    {
+      "path": "/history",
+      "element": "<History />} />"
+    },
+    {
+      "path": "/challenges",
+      "element": "<Challenges />} />"
+    },
+    {
+      "path": "/profile",
+      "element": "<Profile />} />"
+    },
+    {
+      "path": "/labs/scenario",
+      "element": "<AiTool minimum=\"pro\"><FutureSimulator /></AiTool>} />"
+    },
+    {
+      "path": "/labs/professional-path",
+      "element": "<FutureMe />} />"
+    },
+    {
+      "path": "/labs/research-landscape",
+      "element": "<AiTool minimum=\"pro\"><ResearchBattlefield /></AiTool>} />"
+    },
+    {
+      "path": "/labs/team",
+      "element": "<AiTool minimum=\"founder\"><DreamTeam /></AiTool>} />"
+    },
+    {
+      "path": "/labs/impact",
+      "element": "<AiTool minimum=\"pro\"><ImpactPredictor /></AiTool>} />"
+    },
+    {
+      "path": "/future",
+      "element": "<Navigate to=\"/labs/scenario\" replace />} />"
+    },
+    {
+      "path": "/futureme",
+      "element": "<Navigate to=\"/labs/professional-path\" replace />} />"
+    },
+    {
+      "path": "/battlefield",
+      "element": "<Navigate to=\"/labs/research-landscape\" replace />} />"
+    },
+    {
+      "path": "/dreamteam",
+      "element": "<Navigate to=\"/labs/team\" replace />} />"
+    },
+    {
+      "path": "/impact",
+      "element": "<Navigate to=\"/labs/impact\" replace />} />"
+    },
+    {
+      "path": "/pricing",
+      "element": "<Pricing />} />"
+    },
+    {
+      "path": "/meetings",
+      "element": "<Meetings />} />"
+    },
+    {
+      "path": "/radar",
+      "element": "<PlanGate minimum=\"pro\"><OpportunityRadar /></PlanGate>} />"
+    },
+    {
+      "path": "/briefing",
+      "element": "<AiTool minimum=\"pro\"><ExecutiveBriefing /></AiTool>} />"
+    },
+    {
+      "path": "/foryou",
+      "element": "<ForYou />} />"
+    },
+    {
+      "path": "/ideas",
+      "element": "<IdeaVault />} />"
+    },
+    {
+      "path": "/settings",
+      "element": "<Settings />} />"
+    },
+    {
+      "path": "/notifications",
+      "element": "<Notifications />} />"
+    },
+    {
+      "path": "/labs/voice",
+      "element": "<AiTool minimum=\"pro\"><VoiceAssistant /></AiTool>} />"
+    },
+    {
+      "path": "/voice",
+      "element": "<Navigate to=\"/labs/voice\" replace />} />"
+    },
+    {
+      "path": "/pitchdeck",
+      "element": "<AiTool minimum=\"founder\"><PitchDeckBuilder /></AiTool>} />"
+    },
+    {
+      "path": "/grant-builder",
+      "element": "<AiTool minimum=\"founder\"><GrantBuilder /></AiTool>} />"
+    },
+    {
+      "path": "/institution",
+      "element": "<CapabilityGate capability=\"institution_analytics\"><InstitutionAdmin /></CapabilityGate>} />"
+    },
+    {
+      "path": "*",
+      "element": "<PageNotFound />} />"
+    },
+    {
+      "path": "/",
+      "element": "<PublicEntry><Landing /></PublicEntry>} />"
+    },
+    {
+      "path": "/plans",
+      "element": "<PublicPlans standalone />} />"
+    },
+    {
+      "path": "/contact",
+      "element": "<Contact />} />"
+    },
+    {
+      "path": "/company",
+      "element": "<CompanyPage />} />"
+    },
+    {
+      "path": "/company/:section",
+      "element": "<CompanyPage />} />"
+    },
+    {
+      "path": "/discover",
+      "element": "<PublicEntry workspacePath=\"/search\"><PublicDiscovery /></PublicEntry>} />"
+    },
+    {
+      "path": "/find-researchers",
+      "element": "<PublicEntry workspacePath=\"/researchers\"><PublicResearchers /></PublicEntry>} />"
+    },
+    {
+      "path": "/careers",
+      "element": "<PublicEntry workspacePath=\"/workspace/careers\"><PublicCareers /></PublicEntry>} />"
+    },
+    {
+      "path": "/login",
+      "element": "<Login />} />"
+    },
+    {
+      "path": "/register",
+      "element": "<Register />} />"
+    },
+    {
+      "path": "/forgot-password",
+      "element": "<ForgotPassword />} />"
+    },
+    {
+      "path": "/reset-password",
+      "element": "<ResetPassword />} />"
+    },
+    {
+      "path": "/auth/callback",
+      "element": "<AuthCallback />} />"
+    },
+    {
+      "path": "/*",
+      "element": "<AuthenticatedApp />} />"
+    }
+  ],
   "files": {
     ".github/workflows/build.yml": {
       "lines": 57,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     ".github/workflows/deploy-pages.yml": {
       "lines": 89,
@@ -16,49 +359,56 @@
       "environment_variables": [
         "GITHUB_SHA"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     ".github/workflows/eylo-quality.yml": {
       "lines": 30,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     ".github/workflows/normalize-base44.yml": {
       "lines": 42,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     ".github/workflows/public-production-smoke.yml": {
       "lines": 26,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     ".github/workflows/quality.yml": {
       "lines": 78,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     ".github/workflows/remotive-jobs.yml": {
       "lines": 47,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "api/admin-analytics.js": {
       "lines": 81,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "api/billing.js": {
       "lines": 215,
@@ -74,7 +424,8 @@
         "SUPABASE_SERVICE_ROLE_KEY",
         "VERCEL_PROJECT_PRODUCTION_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "api/discovery.js": {
       "lines": 255,
@@ -87,21 +438,37 @@
         "VERCEL",
         "VITE_RESEARCH_CONTACT_EMAIL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "api/euraxess.js": {
       "lines": 138,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "api/eyra-conversations.js": {
       "lines": 110,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 80,
+          "source": "select: 'id,title,version,created_date,updated_date',"
+        },
+        {
+          "line": 95,
+          "source": "select: 'id,title,version,created_date,updated_date',"
+        },
+        {
+          "line": 96,
+          "source": "user_id: owner, order: 'updated_date.desc,id.desc',"
+        }
+      ]
     },
     "api/eyra.js": {
       "lines": 776,
@@ -117,14 +484,41 @@
         "SUPABASE_SECRET_KEY",
         "SUPABASE_SERVICE_ROLE_KEY"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 212,
+          "source": "updated_date: row.updated_date || row.created_date || '',"
+        },
+        {
+          "line": 241,
+          "source": "const result = await fetch(`${url}?select=id,data,created_date,updated_date&user_id=eq.${encodeURIComponent(identity.user.id)}&order=updated_date.desc&limit=50`, {"
+        },
+        {
+          "line": 270,
+          "source": "const result = await fetch(`${url}?select=id,data,created_date,updated_date`, {"
+        },
+        {
+          "line": 284,
+          "source": "const result = await fetch(`${papersUrl}?select=id,data,created_date,updated_date&user_id=eq.${encodeURIComponent(identity.user.id)}&order=updated_date.desc&limit=50`, {"
+        },
+        {
+          "line": 312,
+          "source": "select: 'id,data,created_date,updated_date',"
+        },
+        {
+          "line": 340,
+          "source": "const saveResponse = await fetch(`${papersUrl}?select=id,data,created_date,updated_date`, {"
+        }
+      ]
     },
     "api/general-jobs.js": {
       "lines": 160,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "api/meeting-room.js": {
       "lines": 202,
@@ -136,7 +530,8 @@
         "LIVEKIT_API_SECRET",
         "LIVEKIT_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "api/monitor.js": {
       "lines": 287,
@@ -147,14 +542,21 @@
         "RESEARCH_CONTACT_EMAIL",
         "VITE_RESEARCH_CONTACT_EMAIL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 118,
+          "source": "// updated_date via the existing server-side trigger; never fetch upstream."
+        }
+      ]
     },
     "api/opportunities.js": {
       "lines": 257,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "api/stripe-webhook.js": {
       "lines": 175,
@@ -163,14 +565,16 @@
       "environment_variables": [
         "STRIPE_WEBHOOK_SECRET"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "api/system.js": {
       "lines": 29,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "server/account-deletion.js": {
       "lines": 364,
@@ -179,7 +583,8 @@
       "environment_variables": [
         "EYLO_PRIVACY_WORKER_SECRET"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "server/capabilities.js": {
       "lines": 37,
@@ -195,14 +600,16 @@
         "STRIPE_SECRET_KEY",
         "STRIPE_WEBHOOK_SECRET"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "server/configuration-diagnostics.mjs": {
       "lines": 40,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "server/contact.js": {
       "lines": 55,
@@ -213,7 +620,8 @@
         "RESEND_API_KEY",
         "RESEND_FROM_EMAIL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "server/deployment-status.js": {
       "lines": 25,
@@ -223,14 +631,16 @@
         "VERCEL_ENV",
         "VERCEL_GIT_COMMIT_SHA"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "server/discovery-rate-limit.mjs": {
       "lines": 105,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "server/product-api.js": {
       "lines": 222,
@@ -241,21 +651,45 @@
         "OPENAI_API_KEY",
         "STRIPE_SECRET_KEY"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 54,
+          "source": "typeof body?.updated_date !== \"string\" ||"
+        },
+        {
+          "line": 55,
+          "source": "!Number.isFinite(Date.parse(body.updated_date))"
+        },
+        {
+          "line": 60,
+          "source": "url.searchParams.set(\"updated_date\", `eq.${body.updated_date}`);"
+        },
+        {
+          "line": 73,
+          "source": "`${config.url}/rest/v1/eylo_feedback?select=id,category,body,status,updated_date&order=created_date.desc&limit=100`,"
+        },
+        {
+          "line": 187,
+          "source": "url.searchParams.set(\"select\", \"id,user_id,data,updated_date\");"
+        }
+      ]
     },
     "server/scholarly-resilience.mjs": {
       "lines": 68,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "server/supabase-config.mjs": {
       "lines": 42,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/App.jsx": {
       "lines": 232,
@@ -264,28 +698,32 @@
       "environment_variables": [
         "BASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/api/base44Client.js": {
       "lines": 18,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/AuthLayout.jsx": {
       "lines": 71,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/GoogleIcon.jsx": {
       "lines": 12,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/ProtectedRoute.jsx": {
       "lines": 48,
@@ -297,28 +735,32 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/ScrollToTop.jsx": {
       "lines": 12,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/UserNotRegisteredError.jsx": {
       "lines": 20,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/billing/PlanGate.jsx": {
       "lines": 38,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/brand/BrandLogo.jsx": {
       "lines": 59,
@@ -327,7 +769,8 @@
       "environment_variables": [
         "BASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/dashboard/DailyMission.jsx": {
       "lines": 125,
@@ -347,7 +790,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/dashboard/Dashboard.jsx": {
       "lines": 174,
@@ -379,7 +823,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/dashboard/EyraHome.jsx": {
       "lines": 272,
@@ -399,7 +844,17 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 21,
+          "source": "const date = project.updated_date && !Number.isNaN(new Date(project.updated_date).getTime())"
+        },
+        {
+          "line": 22,
+          "source": "? new Date(project.updated_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null;"
+        }
+      ]
     },
     "src/components/dashboard/PersonalizedDashboard.jsx": {
       "lines": 218,
@@ -411,7 +866,49 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 13,
+          "source": "['projects', () => base44.entities.Project.list('-updated_date', 4)],"
+        },
+        {
+          "line": 14,
+          "source": "['notes', () => base44.entities.Note.list('-updated_date', 4)],"
+        },
+        {
+          "line": 15,
+          "source": "['tasks', () => base44.entities.LifeTask.filter({ due_date: localDate() }, '-updated_date', 100)],"
+        },
+        {
+          "line": 16,
+          "source": "['goals', () => base44.entities.LifeGoal.filter({ area: 'study' }, '-updated_date', 4)],"
+        },
+        {
+          "line": 17,
+          "source": "['events', () => base44.entities.CalendarEvent.list('-updated_date', 1000)],"
+        },
+        {
+          "line": 18,
+          "source": "['decks', () => base44.entities.FlashcardDeck.list('-updated_date', 4)],"
+        },
+        {
+          "line": 19,
+          "source": "['papers', () => base44.entities.SavedPaper.list('-updated_date', 4)],"
+        },
+        {
+          "line": 182,
+          "source": "{loading ? <p role=\"status\" className=\"py-4 text-sm text-muted-foreground\">Loading projects\u2026</p> : data.projects?.length ? <div className=\"divide-y divide-border\">{data.projects.map(item => <ItemLink key={item.id} href={recordHref('projects', item)} title={item.title} detail={item.updated_date ? 'Updated ' + formatDate(item.updated_date) : 'Project'} />)}</div> : <EmptyAction href=\"/projects\">Crea"
+        },
+        {
+          "line": 186,
+          "source": "{loading ? <p role=\"status\" className=\"py-4 text-sm text-muted-foreground\">Loading notes\u2026</p> : data.notes?.length ? <div className=\"divide-y divide-border\">{data.notes.map(item => <ItemLink key={item.id} href={recordHref('notes', item)} title={item.title} detail={item.updated_date ? 'Edited ' + formatDate(item.updated_date) : 'Note'} />)}</div> : <EmptyAction href=\"/notes\">Write your first note.<"
+        },
+        {
+          "line": 198,
+          "source": "{loading ? <p role=\"status\" className=\"py-4 text-sm text-muted-foreground\">Loading saved research\u2026</p> : data.papers?.length ? <div className=\"divide-y divide-border\">{data.papers.map(item => <ItemLink key={item.id} href={recordHref('papers', item)} title={item.title || item.name} detail={item.updated_date ? 'Saved ' + formatDate(item.updated_date) : 'Saved paper'} />)}</div> : <EmptyAction href=\""
+        }
+      ]
     },
     "src/components/discovery/DiscoveryResults.jsx": {
       "lines": 996,
@@ -483,7 +980,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/discovery/GuidedSearch.jsx": {
       "lines": 185,
@@ -531,14 +1029,16 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/discovery/LoadingState.jsx": {
       "lines": 100,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/discovery/SearchHero.jsx": {
       "lines": 22,
@@ -550,7 +1050,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/discovery/VoiceSearchButton.jsx": {
       "lines": 69,
@@ -562,7 +1063,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eylo/ResearchQuestion.jsx": {
       "lines": 19,
@@ -578,21 +1080,24 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eylo/SeeEylo.jsx": {
       "lines": 14,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eylo/SeeEyra.jsx": {
       "lines": 14,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eyra/DailyMissions.jsx": {
       "lines": 276,
@@ -632,7 +1137,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eyra/EyraAgentPanel.jsx": {
       "lines": 442,
@@ -684,14 +1190,16 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eyra/EyraBadge.jsx": {
       "lines": 51,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eyra/EyraButton.jsx": {
       "lines": 25,
@@ -707,7 +1215,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eyra/EyraCommandCenter.jsx": {
       "lines": 948,
@@ -795,7 +1304,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eyra/EyraDailyBriefing.jsx": {
       "lines": 124,
@@ -815,7 +1325,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eyra/EyraDigitalTwin.jsx": {
       "lines": 251,
@@ -835,7 +1346,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eyra/EyraProjectTwin.jsx": {
       "lines": 376,
@@ -851,7 +1363,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eyra/EyraResearchCompanion.jsx": {
       "lines": 80,
@@ -867,7 +1380,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eyra/PaperSummary.jsx": {
       "lines": 289,
@@ -935,7 +1449,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eyra/UserTypeOnboarding.jsx": {
       "lines": 101,
@@ -959,7 +1474,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/eyra/WhileYouWereAway.jsx": {
       "lines": 345,
@@ -983,7 +1499,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/futureme/FutureMeDashboard.jsx": {
       "lines": 313,
@@ -1007,14 +1524,16 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/futureme/FutureMeGapAnalysis.jsx": {
       "lines": 90,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/futureme/FutureMeRoadmap.jsx": {
       "lines": 71,
@@ -1030,14 +1549,16 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/futureme/FutureMeScores.jsx": {
       "lines": 58,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/futureme/FutureMeSetup.jsx": {
       "lines": 157,
@@ -1085,7 +1606,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/futureme/FutureMeWhatIf.jsx": {
       "lines": 241,
@@ -1121,7 +1643,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/layout/AppLayout.jsx": {
       "lines": 322,
@@ -1157,7 +1680,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/layout/GlobalCommandCenter.jsx": {
       "lines": 107,
@@ -1169,7 +1693,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/library/CitationVerification.jsx": {
       "lines": 63,
@@ -1185,7 +1710,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/marketing/LandingPreview.jsx": {
       "lines": 272,
@@ -1203,7 +1729,8 @@
       "environment_variables": [
         "BASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/marketing/PublicHeader.jsx": {
       "lines": 40,
@@ -1212,14 +1739,16 @@
       "environment_variables": [
         "BASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/marketing/PublicPlans.jsx": {
       "lines": 107,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/marketing/ThemeToggle.jsx": {
       "lines": 39,
@@ -1235,7 +1764,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/meetings/MeetingCard.jsx": {
       "lines": 90,
@@ -1247,7 +1777,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/meetings/MeetingDetail.jsx": {
       "lines": 487,
@@ -1311,7 +1842,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/meetings/MeetingForm.jsx": {
       "lines": 204,
@@ -1383,7 +1915,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/meetings/MeetingRoom.jsx": {
       "lines": 212,
@@ -1435,7 +1968,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/meetings/ProjectMeetings.jsx": {
       "lines": 137,
@@ -1459,7 +1993,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/monitoring/LiveIntelligenceFeed.jsx": {
       "lines": 10,
@@ -1471,7 +2006,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/monitoring/NotificationsBell.jsx": {
       "lines": 74,
@@ -1503,7 +2039,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/monitoring/WatchlistManager.jsx": {
       "lines": 19,
@@ -1523,7 +2060,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/products/PersonalTools.jsx": {
       "lines": 999,
@@ -1715,7 +2253,45 @@
         "time_entries"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 107,
+          "source": "base44.entities.Note.list(\"-updated_date\", 1000),"
+        },
+        {
+          "line": 108,
+          "source": "base44.entities.Project.list(\"-updated_date\", 1000),"
+        },
+        {
+          "line": 675,
+          "source": "updated_date: row.updated_date,"
+        },
+        {
+          "line": 704,
+          "source": "base44.entities.Project.list(\"-updated_date\", 100),"
+        },
+        {
+          "line": 747,
+          "source": "updated_date: project.updated_date,"
+        },
+        {
+          "line": 834,
+          "source": "base44.entities.Project.list(\"-updated_date\", 1000),"
+        },
+        {
+          "line": 837,
+          "source": ".select(\"id,name,project_ids,expires_at,revoked_at,updated_date\")"
+        },
+        {
+          "line": 926,
+          "source": ".select(\"id,name,project_ids,expires_at,revoked_at,updated_date\")"
+        },
+        {
+          "line": 977,
+          "source": ".eq(\"updated_date\", token.updated_date)"
+        }
+      ]
     },
     "src/components/projects/GapCandidateReviewItem.jsx": {
       "lines": 73,
@@ -1747,7 +2323,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/projects/ProjectConflictRecovery.jsx": {
       "lines": 68,
@@ -1771,7 +2348,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/projects/ProjectDocumentWorkspace.jsx": {
       "lines": 78,
@@ -1799,7 +2377,13 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 42,
+          "source": "const saved = await base44.entities.Project.updateIfUnchanged(id, write, project.updated_date); const document = read(saved);"
+        }
+      ]
     },
     "src/components/projects/ProjectHealthScore.jsx": {
       "lines": 170,
@@ -1815,7 +2399,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/projects/ProjectTemplates.jsx": {
       "lines": 187,
@@ -1835,7 +2420,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/projects/RecordedProjectSignals.jsx": {
       "lines": 69,
@@ -1851,7 +2437,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/projects/ReproducibilityReview.jsx": {
       "lines": 167,
@@ -1883,7 +2470,13 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 69,
+          "source": "const saved = await base44.entities.Project.updateIfUnchanged(projectId, { reproducibility_review: next }, project.updated_date);"
+        }
+      ]
     },
     "src/components/projects/StartupBuilder.jsx": {
       "lines": 144,
@@ -1911,7 +2504,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/system/CapabilityGate.jsx": {
       "lines": 46,
@@ -1923,7 +2517,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/system/RouteErrorBoundary.jsx": {
       "lines": 54,
@@ -1943,90 +2538,101 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/system/ServiceStatus.jsx": {
-      "lines": 151,
+      "lines": 152,
       "actions": [
         {
-          "line": 84,
+          "line": 85,
           "source": "<button"
         },
         {
-          "line": 86,
+          "line": 87,
           "source": "onClick={() => setOpen(value => !value)}"
         },
         {
-          "line": 102,
+          "line": 103,
           "source": "<button type=\"button\" onClick={() => { refresh(); setDeploymentAttempt(value => value + 1); }} disabled={loading || deploymentLoading} className=\"rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground\" aria-label=\"Refresh service status\">"
         }
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/ui/accordion.jsx": {
       "lines": 44,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/ui/alert-dialog.jsx": {
       "lines": 105,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/ui/button.jsx": {
       "lines": 44,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/ui/dialog.jsx": {
       "lines": 16,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/ui/input-otp.jsx": {
       "lines": 57,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/ui/input.jsx": {
       "lines": 18,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/ui/label.jsx": {
       "lines": 15,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/ui/toaster.jsx": {
       "lines": 8,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/components/ui/use-toast.js": {
       "lines": 30,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/AuthContext.jsx": {
       "lines": 339,
@@ -2035,259 +2641,310 @@
       "environment_variables": [
         "BASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/PageNotFound.jsx": {
       "lines": 33,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/analytics-readiness.mjs": {
       "lines": 21,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/api-cors.mjs": {
       "lines": 47,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/api-url.js": {
       "lines": 11,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/arxiv-feed.js": {
       "lines": 57,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/auth/authOperation.js": {
       "lines": 4,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/auth/oauthPopup.js": {
       "lines": 14,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/auth/privateBrowserData.mjs": {
       "lines": 49,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/auth/privateRadarCache.mjs": {
       "lines": 28,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/auth/privateSessionBoundary.js": {
       "lines": 8,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/auth/routePaths.js": {
       "lines": 17,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/auth/safeRedirect.ts": {
       "lines": 90,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/auth/sessionContract.js": {
       "lines": 4,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/billing.js": {
       "lines": 116,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/calendar-domain.mjs": {
       "lines": 90,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/capabilities.js": {
       "lines": 79,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/careers-api.js": {
-      "lines": 220,
+      "lines": 221,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/challenge-records.mjs": {
       "lines": 25,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/citation-verification.mjs": {
       "lines": 134,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/config/env.js": {
       "lines": 48,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/cv-extraction.js": {
       "lines": 65,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/decision-workspace.mjs": {
       "lines": 132,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 32,
+          "source": "updated_date: now,"
+        },
+        {
+          "line": 100,
+          "source": "updated_date: cleanText(value?.updated_date, 40),"
+        }
+      ]
     },
     "src/lib/deployment-probe.mjs": {
       "lines": 69,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/discovery-gateway-error.mjs": {
       "lines": 59,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/discovery-response-limit.mjs": {
       "lines": 54,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/discovery-source-status.js": {
-      "lines": 34,
+      "lines": 44,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/discovery/workspaceSignup.js": {
       "lines": 15,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/entity-optimistic-version.mjs": {
       "lines": 23,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 3,
+          "source": "* updated_date. Database update triggers advance the version on each write."
+        }
+      ]
     },
     "src/lib/evidence-matrix.mjs": {
       "lines": 41,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/evidence-verification.mjs": {
       "lines": 81,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/eylo-files.mjs": {
       "lines": 39,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/eyra-api.js": {
       "lines": 694,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/eyra-cache-key.mjs": {
       "lines": 7,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/eyra-citation-ids.mjs": {
       "lines": 28,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/eyra-conversation.mjs": {
       "lines": 21,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/eyra-engine.js": {
-      "lines": 375,
+      "lines": 373,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/eyra-history.js": {
       "lines": 35,
@@ -2297,84 +2954,114 @@
         "eyra_messages"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 11,
+          "source": "const { data, error } = await client.from('eyra_conversations').select('id,title,version,updated_date').eq('user_id', owner).order('updated_date', { ascending: false }).order('id', { ascending: false }).limit(20);"
+        },
+        {
+          "line": 30,
+          "source": "const { data: thread, error } = await client.from('eyra_conversations').select('id,title,version,updated_date').eq('user_id', owner).eq('id', id).single();"
+        }
+      ]
     },
     "src/lib/eyra-intelligence.js": {
       "lines": 119,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/eyra-monitor.js": {
       "lines": 220,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/eyra-snapshot.mjs": {
       "lines": 21,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/eyra-stream.mjs": {
       "lines": 50,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/eyra-structured-contract.mjs": {
       "lines": 47,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/eyra-usage-policy.mjs": {
       "lines": 2,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/flashcards-domain.mjs": {
       "lines": 110,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/funding-api.js": {
       "lines": 38,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/funding-comparison.mjs": {
       "lines": 79,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/funding-ranking.mjs": {
       "lines": 41,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/gap-candidate-review.mjs": {
       "lines": 49,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 40,
+          "source": "const saved = await entities.Project.updateIfUnchanged(projectId, { gap_candidates: candidates }, project.updated_date);"
+        },
+        {
+          "line": 48,
+          "source": "return entities.Project.updateIfUnchanged(projectId, { gap_candidates: candidates }, project.updated_date);"
+        }
+      ]
     },
     "src/lib/grant-applications-repository.mjs": {
       "lines": 84,
@@ -2383,161 +3070,212 @@
         "grant_applications"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/grant-applications.js": {
       "lines": 15,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/grant-draft-context.mjs": {
       "lines": 15,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/industry-research-labs.js": {
       "lines": 33,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/learn-data.mjs": {
       "lines": 43,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/life-domain.mjs": {
       "lines": 192,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 190,
+          "source": "return String(right.updated_date || '').localeCompare(String(left.updated_date || ''));"
+        }
+      ]
     },
     "src/lib/life-task-target.mjs": {
       "lines": 11,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/literature-review-methods-audit.mjs": {
       "lines": 30,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/literature-review-protocol.mjs": {
       "lines": 174,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/local-greeting.js": {
       "lines": 48,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/meeting-invitation.js": {
       "lines": 39,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/meeting-links.mjs": {
       "lines": 16,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/meeting-plans.mjs": {
       "lines": 12,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/meetings-e2e-target.mjs": {
       "lines": 29,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/monitor-scheduling.mjs": {
       "lines": 24,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 5,
+          "source": "* can indefinitely block every active watchlist. updated_date is refreshed"
+        },
+        {
+          "line": 6,
+          "source": "* by the repo's set_updated_date trigger after each successful/failed check."
+        },
+        {
+          "line": 20,
+          "source": "order: 'updated_date.asc,id.asc',"
+        }
+      ]
     },
     "src/lib/monitoring-service.js": {
       "lines": 192,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 29,
+          "source": "repositories.watchlists.list('-updated_date', 100),"
+        }
+      ]
     },
     "src/lib/notes-domain.mjs": {
       "lines": 67,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 60,
+          "source": "const updated = new Date(note.updated_date || '');"
+        }
+      ]
     },
     "src/lib/offline-vault.mjs": {
       "lines": 104,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/paper-summary-persistence.js": {
       "lines": 31,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/paper-summary.mjs": {
       "lines": 140,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/persona.js": {
       "lines": 160,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/plan-catalog.js": {
       "lines": 59,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/preferences.js": {
       "lines": 119,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/product-analytics.js": {
       "lines": 83,
@@ -2546,301 +3284,384 @@
       "environment_variables": [
         "PROD"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/product-operation-recovery.mjs": {
       "lines": 69,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/product-registry.mjs": {
       "lines": 162,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/product-utilities.mjs": {
       "lines": 216,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/product-workbench.mjs": {
       "lines": 389,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/profile-merge.mjs": {
       "lines": 28,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/project-budget.mjs": {
       "lines": 56,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/project-conflict-recovery.mjs": {
       "lines": 63,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/project-eyra-provenance.mjs": {
       "lines": 24,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/project-plan-draft.mjs": {
       "lines": 48,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/project-recorded-signals.mjs": {
       "lines": 116,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 111,
+          "source": "project_version: project.updated_date || null,"
+        }
+      ]
     },
     "src/lib/project-tasks.js": {
       "lines": 22,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/project-workplan.mjs": {
       "lines": 72,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/promise-timeout.js": {
       "lines": 15,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/protected-api.js": {
       "lines": 34,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/publication-type-label.js": {
       "lines": 19,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/query-client.js": {
       "lines": 11,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/quiz-data.mjs": {
       "lines": 67,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/release-readiness.mjs": {
       "lines": 71,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/reproducibility-review.mjs": {
       "lines": 81,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/research-catalog.mjs": {
       "lines": 54,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/research-data-provenance.mjs": {
       "lines": 43,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/research-data-quality.mjs": {
       "lines": 49,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/research-data.mjs": {
       "lines": 443,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/research-email.mjs": {
       "lines": 20,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/research-gap-candidate-save.mjs": {
       "lines": 66,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 64,
+          "source": "await entities.Project.updateIfUnchanged(projectId, { gap_candidates: [...saved, candidate] }, project.updated_date);"
+        }
+      ]
     },
     "src/lib/research-gap-candidates.mjs": {
       "lines": 23,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/research-gap-context.mjs": {
       "lines": 8,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/research-gap-coverage.mjs": {
       "lines": 16,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/research-gap-literature-save.mjs": {
       "lines": 86,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/research-graph-collections.mjs": {
       "lines": 45,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 5,
+          "source": "[\"projects\", \"Project\", \"-updated_date\"],"
+        },
+        {
+          "line": 6,
+          "source": "[\"notes\", \"Note\", \"-updated_date\"],"
+        },
+        {
+          "line": 7,
+          "source": "[\"tasks\", \"LifeTask\", \"-updated_date\"],"
+        }
+      ]
     },
     "src/lib/research-knowledge-graph.mjs": {
       "lines": 388,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/research-provenance.mjs": {
       "lines": 44,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/research-records.mjs": {
       "lines": 59,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/researcher-query-plan.mjs": {
       "lines": 15,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/researcher-shortlist.mjs": {
       "lines": 40,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/scholarly-provider-backoff.mjs": {
       "lines": 45,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/scholarly-query.mjs": {
       "lines": 71,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/scholarly-record-identity.mjs": {
       "lines": 47,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/second-brain.js": {
       "lines": 230,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 19,
+          "source": "['projects', base44.entities.Project.list('-updated_date', 20), []],"
+        },
+        {
+          "line": 25,
+          "source": "['notes', base44.entities.Note.list('-updated_date', 10), []],"
+        },
+        {
+          "line": 26,
+          "source": "['tasks', base44.entities.LifeTask.list('-updated_date', 20), []],"
+        },
+        {
+          "line": 27,
+          "source": "['decks', base44.entities.FlashcardDeck.list('-updated_date', 10), []],"
+        }
+      ]
     },
     "src/lib/supabase/auth.js": {
       "lines": 136,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/supabase/errors.js": {
       "lines": 66,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/supabase/types.js": {
       "lines": 13,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/supabaseClient.js": {
       "lines": 208,
@@ -2850,35 +3671,50 @@
         "PROD",
         "VITE_SUPABASE_USE_PROXY"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/supervisor-matching.js": {
       "lines": 45,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/theme.js": {
       "lines": 42,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/thesis-note-source.mjs": {
       "lines": 13,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 12,
+          "source": "return { current, source: { id: current.id, title: typeof snapshot.title === 'string' ? snapshot.title : '', content: snapshot.content, project_id: snapshot.project_id || '', version: row.version, updated_date: '', archived_date: row.created_date || '' } };"
+        }
+      ]
     },
     "src/lib/thesis-outline.mjs": {
       "lines": 45,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 40,
+          "source": "return `# ${outline.title || 'Thesis draft'}\\n\\nPrivate draft compiled from saved canonical Notes. Chapter statuses are user-reported; word counts use whitespace. This export does not verify citations or academic acceptance.\\n\\n` + outline.chapters.map(row => `## ${row.title}\\n\\nStatus: ${row.status}; target: ${row.target_words} words\\n\\n${row.guidance ? `Chapter guidance: ${row.guidance}\\n\\n` : '"
+        }
+      ]
     },
     "src/lib/time-tracker-data.mjs": {
       "lines": 104,
@@ -2887,56 +3723,74 @@
         "time_entries"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/translation-references.mjs": {
       "lines": 30,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/universal-search-domain.mjs": {
       "lines": 111,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 37,
+          "source": "updatedDate: typeof row.updated_date === 'string' ? row.updated_date : null,"
+        }
+      ]
     },
     "src/lib/utils.js": {
       "lines": 9,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/validation/auth.js": {
       "lines": 44,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/lib/workspace-export.mjs": {
       "lines": 167,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 45,
+          "source": "? 'id,user_id,name,project_ids,expires_at,revoked_at,created_date,updated_date'"
+        }
+      ]
     },
     "src/lib/zoned-time.mjs": {
       "lines": 38,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/main.jsx": {
       "lines": 12,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/AccountDeletion.jsx": {
       "lines": 361,
@@ -3000,7 +3854,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/ActivityHistory.jsx": {
       "lines": 62,
@@ -3016,7 +3871,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/AuthCallback.jsx": {
       "lines": 78,
@@ -3030,7 +3886,8 @@
       "environment_variables": [
         "BASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/Calendar.jsx": {
       "lines": 144,
@@ -3090,7 +3947,21 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 46,
+          "source": "base44.entities.CalendarEvent.list('-updated_date', 1000),"
+        },
+        {
+          "line": 47,
+          "source": "base44.entities.Project.list('-updated_date', 1000),"
+        },
+        {
+          "line": 91,
+          "source": "const saved = selected ? await base44.entities.CalendarEvent.updateIfUnchanged(selected.id, data, selected.updated_date) : await base44.entities.CalendarEvent.create(data);"
+        }
+      ]
     },
     "src/pages/Careers.jsx": {
       "lines": 224,
@@ -3142,7 +4013,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/Challenges.jsx": {
       "lines": 366,
@@ -3182,7 +4054,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/CollaborationTools.jsx": {
       "lines": 941,
@@ -3413,7 +4286,17 @@
         "eylo_team_members"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 80,
+          "source": "next.notes = await base44.entities.Note.list(\"-updated_date\", 1000);"
+        },
+        {
+          "line": 146,
+          "source": ".eq(\"updated_date\", row.updated_date)"
+        }
+      ]
     },
     "src/pages/CompanyPage.jsx": {
       "lines": 225,
@@ -3422,7 +4305,8 @@
       "environment_variables": [
         "BASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/ConfigurationError.jsx": {
       "lines": 39,
@@ -3431,7 +4315,8 @@
       "environment_variables": [
         "DEV"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/Contact.jsx": {
       "lines": 209,
@@ -3467,7 +4352,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/DocumentEditor.jsx": {
       "lines": 226,
@@ -3499,7 +4385,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/DreamTeam.jsx": {
       "lines": 475,
@@ -3539,7 +4426,13 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 40,
+          "source": "base44.entities.Project.list('-updated_date', 10).then(projs => {"
+        }
+      ]
     },
     "src/pages/ExecutiveBriefing.jsx": {
       "lines": 384,
@@ -3551,14 +4444,25 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 29,
+          "source": "base44.entities.Project.list('-updated_date', 10),"
+        },
+        {
+          "line": 62,
+          "source": "base44.entities.Project.list('-updated_date', 10),"
+        }
+      ]
     },
     "src/pages/EyloEyra.jsx": {
       "lines": 24,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/EyloFiles.jsx": {
       "lines": 222,
@@ -3614,7 +4518,13 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 48,
+          "source": "files.list(), base44.entities.Project.list('-updated_date', 500),"
+        }
+      ]
     },
     "src/pages/Flashcards.jsx": {
       "lines": 248,
@@ -3654,14 +4564,33 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 41,
+          "source": "base44.entities.FlashcardDeck.list('-updated_date', 1000),"
+        },
+        {
+          "line": 42,
+          "source": "base44.entities.Project.list('-updated_date', 1000),"
+        },
+        {
+          "line": 118,
+          "source": "? await base44.entities.FlashcardDeck.updateIfUnchanged(selected.id, savePayload, selected.updated_date)"
+        },
+        {
+          "line": 202,
+          "source": "const saved = await base44.entities.FlashcardDeck.updateIfUnchanged(selected.id, { cards }, selected.updated_date);"
+        }
+      ]
     },
     "src/pages/ForYou.jsx": {
       "lines": 198,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/ForgotPassword.jsx": {
       "lines": 86,
@@ -3675,14 +4604,16 @@
       "environment_variables": [
         "BASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/FutureMe.jsx": {
       "lines": 54,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/FutureSimulator.jsx": {
       "lines": 368,
@@ -3726,7 +4657,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/GrantBuilder.jsx": {
       "lines": 292,
@@ -3758,7 +4690,13 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 63,
+          "source": "base44.entities.Project.list('-updated_date', 100),"
+        }
+      ]
     },
     "src/pages/Habits.jsx": {
       "lines": 171,
@@ -3790,7 +4728,17 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 37,
+          "source": "const result = await base44.entities.LifeTask.filter({ kind: 'habit' }, '-updated_date', 1000);"
+        },
+        {
+          "line": 94,
+          "source": ": await base44.entities.LifeTask.updateIfUnchanged(current.id, { status: 'done' }, current.updated_date);"
+        }
+      ]
     },
     "src/pages/History.jsx": {
       "lines": 397,
@@ -3834,14 +4782,16 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/Home.jsx": {
       "lines": 137,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/IdeaVault.jsx": {
       "lines": 396,
@@ -3909,7 +4859,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/ImpactPredictor.jsx": {
       "lines": 353,
@@ -3945,14 +4896,16 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/InstitutionAdmin.jsx": {
       "lines": 49,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/Landing.jsx": {
       "lines": 747,
@@ -3994,7 +4947,8 @@
       "environment_variables": [
         "BASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/Learn.jsx": {
       "lines": 214,
@@ -4059,7 +5013,13 @@
         "quizzes"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 53,
+          "source": "base44.entities.Note.list('-updated_date', 1000).then(data => ({ data, error: null })),"
+        }
+      ]
     },
     "src/pages/Library.jsx": {
       "lines": 391,
@@ -4107,7 +5067,13 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 83,
+          "source": "base44.entities.Project.list('-updated_date', 1000),"
+        }
+      ]
     },
     "src/pages/Life.jsx": {
       "lines": 305,
@@ -4187,7 +5153,25 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 51,
+          "source": "base44.entities.LifeTask.list('-updated_date', 1000),"
+        },
+        {
+          "line": 52,
+          "source": "base44.entities.Project.list('-updated_date', 1000),"
+        },
+        {
+          "line": 153,
+          "source": "? await base44.entities.LifeTask.updateIfUnchanged(selected.id, savePayload, selected.updated_date)"
+        },
+        {
+          "line": 191,
+          "source": "const updated = await base44.entities.LifeTask.updateIfUnchanged(task.id, { status: nextStatus }, task.updated_date);"
+        }
+      ]
     },
     "src/pages/LifeGoals.jsx": {
       "lines": 225,
@@ -4247,7 +5231,21 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 40,
+          "source": "base44.entities.LifeGoal.list('-updated_date', 1000),"
+        },
+        {
+          "line": 41,
+          "source": "base44.entities.Project.list('-updated_date', 1000),"
+        },
+        {
+          "line": 105,
+          "source": "? await base44.entities.LifeGoal.updateIfUnchanged(selected.id, savePayload, selected.updated_date)"
+        }
+      ]
     },
     "src/pages/LiteratureReview.jsx": {
       "lines": 362,
@@ -4315,7 +5313,17 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 49,
+          "source": "base44.entities.Project.list('-updated_date', 100),"
+        },
+        {
+          "line": 156,
+          "source": "const saved = await base44.entities.Project.updateIfUnchanged(target.id, { review_protocol: next }, target.updated_date);"
+        }
+      ]
     },
     "src/pages/Login.jsx": {
       "lines": 185,
@@ -4341,7 +5349,8 @@
       "environment_variables": [
         "BASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/Meetings.jsx": {
       "lines": 306,
@@ -4385,7 +5394,13 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 91,
+          "source": "base44.entities.Project.list('-updated_date', 50),"
+        }
+      ]
     },
     "src/pages/Notes.jsx": {
       "lines": 451,
@@ -4465,7 +5480,41 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 97,
+          "source": "base44.entities.Note.list('-updated_date', 1000),"
+        },
+        {
+          "line": 98,
+          "source": "base44.entities.Project.list('-updated_date', 1000),"
+        },
+        {
+          "line": 222,
+          "source": ": await base44.entities.Note.list('-updated_date', 1000);"
+        },
+        {
+          "line": 260,
+          "source": "? await base44.entities.Note.updateIfUnchanged(targetId, savePayload, selected.updated_date)"
+        },
+        {
+          "line": 263,
+          "source": "setNotes(current => [saved, ...current.filter(note => note.id !== saved.id)].sort((a, b) => String(b.updated_date).localeCompare(String(a.updated_date))));"
+        },
+        {
+          "line": 321,
+          "source": "}, [dirty, editor, tagInput, selected?.id, selected?.updated_date, user?.id]);"
+        },
+        {
+          "line": 344,
+          "source": "const markdown = noteToMarkdown({ ...editor, project_title: project?.title || selected?.project_title, updated_date: selected?.updated_date });"
+        },
+        {
+          "line": 404,
+          "source": "<span className=\"mt-1 block text-[10px] text-muted-foreground\">{displayDate(note.updated_date)}</span>"
+        }
+      ]
     },
     "src/pages/Notifications.jsx": {
       "lines": 112,
@@ -4509,7 +5558,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/OfflineWorkspace.jsx": {
       "lines": 278,
@@ -4555,7 +5605,13 @@
       "environment_variables": [
         "PROD"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 88,
+          "source": ".order(\"updated_date\", { ascending: false })"
+        }
+      ]
     },
     "src/pages/Opportunities.jsx": {
       "lines": 550,
@@ -4623,7 +5679,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/OpportunityRadar.jsx": {
       "lines": 536,
@@ -4663,7 +5720,13 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 46,
+          "source": "base44.entities.Project.list('-updated_date', 10),"
+        }
+      ]
     },
     "src/pages/PitchDeckBuilder.jsx": {
       "lines": 188,
@@ -4695,7 +5758,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/Pricing.jsx": {
       "lines": 114,
@@ -4727,7 +5791,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/ProductTools.jsx": {
       "lines": 111,
@@ -4739,7 +5804,13 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 58,
+          "source": "void base44.entities.Project.list(\"-updated_date\", 1000)"
+        }
+      ]
     },
     "src/pages/ProductWorkbench.jsx": {
       "lines": 662,
@@ -4905,7 +5976,21 @@
         "projects"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 43,
+          "source": "\"-updated_date\","
+        },
+        {
+          "line": 188,
+          "source": "p_expected_version: project.updated_date,"
+        },
+        {
+          "line": 195,
+          "source": "p_expected_version: project.updated_date,"
+        }
+      ]
     },
     "src/pages/Profile.jsx": {
       "lines": 282,
@@ -4945,7 +6030,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/ProjectDecisions.jsx": {
       "lines": 177,
@@ -5053,7 +6139,29 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 71,
+          "source": "const ordered = useMemo(() => [...decisions].sort((a, b) => String(b.updated_date).localeCompare(String(a.updated_date))), [decisions]);"
+        },
+        {
+          "line": 102,
+          "source": "const normalized = normalizeDecision({ ...draft, updated_date: new Date().toISOString() });"
+        },
+        {
+          "line": 111,
+          "source": "const saved = await base44.entities.Project.updateIfUnchanged(id, { decision_records: next }, project.updated_date);"
+        },
+        {
+          "line": 129,
+          "source": "const saved = await base44.entities.Project.updateIfUnchanged(id, { decision_records: next }, project.updated_date);"
+        },
+        {
+          "line": 171,
+          "source": "<p className=\"mt-3 text-[11px] text-muted-foreground\">{Number.isFinite(Date.parse(decision.updated_date)) ? 'Updated ' + new Date(decision.updated_date).toLocaleDateString() : 'Update date unavailable'}</p>"
+        }
+      ]
     },
     "src/pages/ProjectDetail.jsx": {
       "lines": 1078,
@@ -5237,7 +6345,33 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 191,
+          "source": "const saved = await base44.entities.Project.updateIfUnchanged(id, localDraft, base.updated_date);"
+        },
+        {
+          "line": 210,
+          "source": "const saved = await base44.entities.Project.updateIfUnchanged(id, { tasks }, project.updated_date);"
+        },
+        {
+          "line": 267,
+          "source": "const saved = await base44.entities.Project.updateIfUnchanged(projectId, { plan_items: validation.items }, project.updated_date);"
+        },
+        {
+          "line": 321,
+          "source": "const saved = await base44.entities.Project.updateIfUnchanged(id, { evidence_matrix }, project.updated_date);"
+        },
+        {
+          "line": 344,
+          "source": "const analysisProjectVersion = project.updated_date;"
+        },
+        {
+          "line": 518,
+          "source": "<Clock size={10} /> Updated {moment(project.updated_date).fromNow()}"
+        }
+      ]
     },
     "src/pages/ProjectResearchRecords.jsx": {
       "lines": 100,
@@ -5301,7 +6435,13 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 48,
+          "source": "const saved = await base44.entities.Project.updateIfUnchanged(id, patch, project.updated_date);"
+        }
+      ]
     },
     "src/pages/Projects.jsx": {
       "lines": 436,
@@ -5389,14 +6529,29 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 73,
+          "source": "const page = await base44.entities.Project.listPage('-updated_date', PROJECT_PAGE_SIZE, 0);"
+        },
+        {
+          "line": 90,
+          "source": "const page = await base44.entities.Project.listPage('-updated_date', PROJECT_PAGE_SIZE, projects.length);"
+        },
+        {
+          "line": 360,
+          "source": "<Clock size={9} /> {moment(p.updated_date).fromNow()}"
+        }
+      ]
     },
     "src/pages/PublicCareers.jsx": {
       "lines": 29,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/PublicDiscovery.jsx": {
       "lines": 435,
@@ -5476,7 +6631,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/PublicResearchers.jsx": {
       "lines": 151,
@@ -5508,7 +6664,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/QuizGenerator.jsx": {
       "lines": 231,
@@ -5576,7 +6733,13 @@
         "quizzes"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 56,
+          "source": "base44.entities.Note.list('-updated_date', 1000).then(data => ({ data, error: null })),"
+        }
+      ]
     },
     "src/pages/Register.jsx": {
       "lines": 145,
@@ -5590,7 +6753,8 @@
       "environment_variables": [
         "BASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/ResearchBattlefield.jsx": {
       "lines": 463,
@@ -5622,7 +6786,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/ResearchBudget.jsx": {
       "lines": 37,
@@ -5646,7 +6811,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/ResearchDataLab.jsx": {
       "lines": 702,
@@ -5710,7 +6876,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/ResearchGaps.jsx": {
       "lines": 336,
@@ -5758,7 +6925,13 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 47,
+          "source": "base44.entities.SavedPaper.list('-created_date', 100), base44.entities.Project.list('-updated_date', 100),"
+        }
+      ]
     },
     "src/pages/ResearchKnowledgeGraph.jsx": {
       "lines": 328,
@@ -5806,7 +6979,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/Researchers.jsx": {
       "lines": 552,
@@ -5886,7 +7060,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/ResetPassword.jsx": {
       "lines": 101,
@@ -5898,7 +7073,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/Settings.jsx": {
       "lines": 520,
@@ -5976,7 +7152,13 @@
         "profiles"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 125,
+          "source": ".select('user_id,data,created_date,updated_date')"
+        }
+      ]
     },
     "src/pages/StudyPlanner.jsx": {
       "lines": 225,
@@ -6028,7 +7210,29 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 46,
+          "source": "base44.entities.LifeTask.filter({ area: 'study' }, '-updated_date', 1000),"
+        },
+        {
+          "line": 47,
+          "source": "base44.entities.LifeGoal.filter({ area: 'study' }, '-updated_date', 1000),"
+        },
+        {
+          "line": 48,
+          "source": "base44.entities.Project.list('-updated_date', 1000),"
+        },
+        {
+          "line": 119,
+          "source": "? await base44.entities.LifeTask.updateIfUnchanged(selected.id, savePayload, selected.updated_date)"
+        },
+        {
+          "line": 142,
+          "source": "const saved = await base44.entities.LifeTask.updateIfUnchanged(item.id, { status }, item.updated_date);"
+        }
+      ]
     },
     "src/pages/ThesisStudio.jsx": {
       "lines": 78,
@@ -6052,7 +7256,17 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 11,
+          "source": "const recent = await base44.entities.Note.list('-updated_date', 1000, ownerId);"
+        },
+        {
+          "line": 65,
+          "source": "const content = markdown ? thesisMarkdown(saved, linked, project.id) : JSON.stringify({ format: 'eylo-thesis-draft', version: 2, project_id: project.id, outline: saved, notes: Object.values(linked).map(({ id, title, content, version, updated_date, archived_date }) => ({ id, title, content, version, updated_date, archived_date })), disclosure: 'Private draft from canonical Notes. Pinned chapters us"
+        }
+      ]
     },
     "src/pages/TimeTracker.jsx": {
       "lines": 171,
@@ -6086,7 +7300,17 @@
         "time_entries"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 46,
+          "source": "base44.entities.Project.list('-updated_date', 100),"
+        },
+        {
+          "line": 47,
+          "source": "base44.entities.LifeTask.list('-updated_date', 500).then(data => ({ data, error: null })),"
+        }
+      ]
     },
     "src/pages/UniversalSearch.jsx": {
       "lines": 63,
@@ -6110,7 +7334,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/pages/VoiceAssistant.jsx": {
       "lines": 224,
@@ -6150,14 +7375,29 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/services/entity-serialization.js": {
       "lines": 36,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 2,
+          "source": "'id', 'user_id', 'created_at', 'updated_at', 'created_date', 'updated_date', 'data',"
+        },
+        {
+          "line": 11,
+          "source": "created_date: createdDate, updated_date: updatedDate, data, ...columns"
+        },
+        {
+          "line": 19,
+          "source": "updated_date: updatedDate || updatedAt || createdDate || createdAt || '',"
+        }
+      ]
     },
     "src/services/eylo-files.mjs": {
       "lines": 193,
@@ -6167,7 +7407,8 @@
         "eylo_files"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/services/supabase-entities.js": {
       "lines": 346,
@@ -6178,28 +7419,65 @@
         "projects"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": [
+        {
+          "line": 101,
+          "source": "if (column === 'created_date' || column === 'updated_date') {"
+        },
+        {
+          "line": 111,
+          "source": "async listPage(sort = '-updated_date', pageSize = 100, offset = 0, expectedOwnerId = null) {"
+        },
+        {
+          "line": 121,
+          "source": "if (!['created_date', 'updated_date'].includes(column)) {"
+        },
+        {
+          "line": 154,
+          "source": "if (column === 'created_date' || column === 'updated_date') {"
+        },
+        {
+          "line": 164,
+          "source": "if (!query) return this.list('-updated_date', limit);"
+        },
+        {
+          "line": 227,
+          "source": "const { id: _id, created_date: _created, updated_date: _updated, ...current } = existing;"
+        },
+        {
+          "line": 246,
+          "source": "const { id: _id, created_date: _created, updated_date: _updated, ...current } = existing;"
+        },
+        {
+          "line": 251,
+          "source": ".eq('updated_date', version)"
+        }
+      ]
     },
     "src/services/universal-search.js": {
       "lines": 16,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/utils/citation-export.js": {
       "lines": 94,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "src/utils/index.ts": {
       "lines": 3,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20260803_eylo_core_entities.sql": {
       "lines": 51,
@@ -6243,6 +7521,48 @@
           "line": 48,
           "source": "create index if not exists projects_status_idx on public.projects ((data ->> 'status'));"
         }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 3,
+          "source": "create or replace function public.set_updated_date()"
+        },
+        {
+          "line": 6,
+          "source": "new.updated_date = timezone('utc', now());"
+        },
+        {
+          "line": 15,
+          "source": "updated_date timestamptz not null default timezone('utc', now())"
+        },
+        {
+          "line": 28,
+          "source": "updated_date timestamptz not null default timezone(''utc'', now())"
+        },
+        {
+          "line": 30,
+          "source": "execute format('create index if not exists %I on public.%I (user_id, updated_date desc)', table_name || '_user_updated_idx', table_name);"
+        },
+        {
+          "line": 34,
+          "source": "execute format('drop trigger if exists %I on public.%I', table_name || '_set_updated_date', table_name);"
+        },
+        {
+          "line": 35,
+          "source": "execute format('create trigger %I before update on public.%I for each row execute function public.set_updated_date()', table_name || '_set_updated_date', table_name);"
+        },
+        {
+          "line": 43,
+          "source": "drop trigger if exists profiles_set_updated_date on public.profiles;"
+        },
+        {
+          "line": 44,
+          "source": "create trigger profiles_set_updated_date before update on public.profiles"
+        },
+        {
+          "line": 45,
+          "source": "for each row execute function public.set_updated_date();"
+        }
       ]
     },
     "supabase/migrations/20260803_eylo_monitoring_entities.sql": {
@@ -6275,6 +7595,24 @@
           "line": 24,
           "source": "create index if not exists notifications_unread_idx"
         }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 11,
+          "source": "updated_date timestamptz not null default timezone(''utc'', now())"
+        },
+        {
+          "line": 13,
+          "source": "execute format('create index if not exists %I on public.%I (user_id, updated_date desc)', table_name || '_user_updated_idx', table_name);"
+        },
+        {
+          "line": 17,
+          "source": "execute format('drop trigger if exists %I on public.%I', table_name || '_set_updated_date', table_name);"
+        },
+        {
+          "line": 18,
+          "source": "execute format('create trigger %I before update on public.%I for each row execute function public.set_updated_date()', table_name || '_set_updated_date', table_name);"
+        }
       ]
     },
     "supabase/migrations/20260811053718_production_billing_entitlements.sql": {
@@ -6299,7 +7637,8 @@
           "line": 40,
           "source": "create index if not exists eyra_usage_actions_user_month_idx"
         }
-      ]
+      ],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20260817090000_operational_services.sql": {
       "lines": 201,
@@ -6343,6 +7682,36 @@
           "line": 116,
           "source": "create trigger institution_memberships_eylo_updated_at"
         }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 18,
+          "source": "create or replace function public.set_eylo_updated_date()"
+        },
+        {
+          "line": 24,
+          "source": "new.updated_date = timezone('utc', now());"
+        },
+        {
+          "line": 62,
+          "source": "updated_date timestamptz not null default timezone(''utc'', now())"
+        },
+        {
+          "line": 65,
+          "source": "'create index if not exists %I on public.%I (user_id, updated_date desc)',"
+        },
+        {
+          "line": 75,
+          "source": "execute format('drop trigger if exists %I on public.%I', table_name || '_eylo_updated_date', table_name);"
+        },
+        {
+          "line": 77,
+          "source": "'create trigger %I before update on public.%I for each row execute function public.set_eylo_updated_date()',"
+        },
+        {
+          "line": 78,
+          "source": "table_name || '_eylo_updated_date',"
+        }
       ]
     },
     "supabase/migrations/20260817090500_security_hardening.sql": {
@@ -6383,21 +7752,24 @@
           "line": 67,
           "source": "'create policy \"Service role only\" on public.%I for all to service_role using (true) with check (true)',"
         }
-      ]
+      ],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20260817090600_analytics_rpc_boundary.sql": {
       "lines": 98,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20260817090700_analytics_smoke_verification.sql": {
       "lines": 20,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20260817091000_scheduled_monitoring.sql": {
       "lines": 72,
@@ -6409,14 +7781,16 @@
           "line": 10,
           "source": "create table if not exists public.system_secrets ("
         }
-      ]
+      ],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20261017090000_monitoring_discovery_uniqueness.sql": {
       "lines": 19,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20261110_native_video_meetings.sql": {
       "lines": 52,
@@ -6443,6 +7817,24 @@
         {
           "line": 50,
           "source": "create trigger meeting_participants_set_updated_date"
+        }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 17,
+          "source": "updated_date timestamptz not null default timezone('utc', now()),"
+        },
+        {
+          "line": 49,
+          "source": "drop trigger if exists meeting_participants_set_updated_date on public.meeting_participants;"
+        },
+        {
+          "line": 50,
+          "source": "create trigger meeting_participants_set_updated_date"
+        },
+        {
+          "line": 52,
+          "source": "for each row execute function public.set_updated_date();"
         }
       ]
     },
@@ -6476,6 +7868,28 @@
           "line": 44,
           "source": "create trigger grant_applications_set_updated_date"
         }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 20,
+          "source": "updated_date timestamptz not null default timezone('utc', now()),"
+        },
+        {
+          "line": 31,
+          "source": "on public.grant_applications (user_id, updated_date desc);"
+        },
+        {
+          "line": 43,
+          "source": "drop trigger if exists grant_applications_set_updated_date on public.grant_applications;"
+        },
+        {
+          "line": 44,
+          "source": "create trigger grant_applications_set_updated_date"
+        },
+        {
+          "line": 46,
+          "source": "for each row execute function public.set_updated_date();"
+        }
       ]
     },
     "supabase/migrations/20261112091000_saved_paper_identity_uniqueness.sql": {
@@ -6483,7 +7897,8 @@
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20261112154425_private_notes.sql": {
       "lines": 167,
@@ -6531,6 +7946,24 @@
           "line": 142,
           "source": "create trigger projects_unlink_deleted_notes after delete on public.projects"
         }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 7,
+          "source": "updated_date timestamptz not null default timezone('utc', now()),"
+        },
+        {
+          "line": 17,
+          "source": "create index if not exists notes_user_updated_idx on public.notes (user_id, updated_date desc);"
+        },
+        {
+          "line": 116,
+          "source": "new.updated_date := timezone('utc', now());"
+        },
+        {
+          "line": 162,
+          "source": ") desc, n.updated_date desc"
+        }
       ]
     },
     "supabase/migrations/20261112161818_eylo_life_tasks.sql": {
@@ -6567,6 +8000,20 @@
           "line": 160,
           "source": "create trigger projects_unlink_deleted_life_tasks after delete on public.projects"
         }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 6,
+          "source": "updated_date timestamptz not null default timezone('utc', now()),"
+        },
+        {
+          "line": 22,
+          "source": "create index if not exists life_tasks_user_updated_idx on public.life_tasks (user_id, updated_date desc);"
+        },
+        {
+          "line": 134,
+          "source": "new.updated_date := timezone('utc', now());"
+        }
       ]
     },
     "supabase/migrations/20261112163010_eylo_life_goals_milestones.sql": {
@@ -6598,6 +8045,20 @@
         {
           "line": 141,
           "source": "create trigger projects_unlink_deleted_life_goals after delete on public.projects"
+        }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 6,
+          "source": "updated_date timestamptz not null default timezone('utc', now()),"
+        },
+        {
+          "line": 21,
+          "source": "create index if not exists life_goals_user_updated_idx on public.life_goals (user_id, updated_date desc);"
+        },
+        {
+          "line": 116,
+          "source": "new.updated_date := timezone('utc', now());"
         }
       ]
     },
@@ -6635,6 +8096,20 @@
           "line": 158,
           "source": "create trigger projects_unlink_deleted_flashcard_decks after delete on public.projects"
         }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 6,
+          "source": "updated_date timestamptz not null default timezone('utc', now()),"
+        },
+        {
+          "line": 21,
+          "source": "on public.study_flashcard_decks (user_id, updated_date desc);"
+        },
+        {
+          "line": 133,
+          "source": "new.updated_date := timezone('utc', now());"
+        }
       ]
     },
     "supabase/migrations/20261112173500_eylo_calendar_events.sql": {
@@ -6662,6 +8137,16 @@
         {
           "line": 58,
           "source": "create trigger validate_calendar_event before insert or update on public.calendar_events"
+        }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 6,
+          "source": "updated_date timestamptz not null default timezone('utc', now()),"
+        },
+        {
+          "line": 52,
+          "source": "new.updated_date := timezone('utc', now());"
         }
       ]
     },
@@ -6711,6 +8196,12 @@
           "line": 81,
           "source": "create trigger capture_activity_projects after insert or update or delete on public.projects"
         }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 6,
+          "source": "updated_date timestamptz not null default timezone('utc', now())"
+        }
       ]
     },
     "supabase/migrations/20261112183722_universal_workspace_search.sql": {
@@ -6722,6 +8213,24 @@
         {
           "line": 12,
           "source": "'create index if not exists %I on public.%I using gin (to_tsvector(''simple'', coalesce(data::text, '''')))',"
+        }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 81,
+          "source": "''updated_date'', page.updated_date"
+        },
+        {
+          "line": 82,
+          "source": ") order by page.rank desc, page.updated_date desc, page.id), ''[]''::jsonb)"
+        },
+        {
+          "line": 84,
+          "source": "select r.id, r.data, r.updated_date,"
+        },
+        {
+          "line": 88,
+          "source": "order by rank desc, r.updated_date desc, r.id"
         }
       ]
     },
@@ -6787,7 +8296,8 @@
           "line": 112,
           "source": "create policy \"EYLO file owner can delete objects\" on storage.objects"
         }
-      ]
+      ],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20261112200000_private_file_search.sql": {
       "lines": 72,
@@ -6798,6 +8308,12 @@
         {
           "line": 3,
           "source": "create index if not exists eylo_files_private_search_idx"
+        }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 49,
+          "source": "'updated_date', page.updated_at"
         }
       ]
     },
@@ -6963,7 +8479,8 @@
           "line": 453,
           "source": "create trigger quiz_attempts_sync_learning_progress after insert on public.quiz_attempts"
         }
-      ]
+      ],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20261113090000_eyra_conversations.sql": {
       "lines": 100,
@@ -7019,6 +8536,20 @@
           "line": 81,
           "source": "create policy eyra_messages_owner_insert on public.eyra_messages"
         }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 11,
+          "source": "updated_date timestamptz not null default now(),"
+        },
+        {
+          "line": 16,
+          "source": "on public.eyra_conversations (user_id, updated_date desc, id desc);"
+        },
+        {
+          "line": 29,
+          "source": "new.updated_date := timezone('utc', now());"
+        }
       ]
     },
     "supabase/migrations/20261113113010_shared_discovery_quota.sql": {
@@ -7035,21 +8566,24 @@
           "line": 10,
           "source": "create index if not exists discovery_rate_limits_updated_idx"
         }
-      ]
+      ],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20261113114924_eyra_conversation_snapshots.sql": {
       "lines": 35,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20261113120556_eyra_snapshot_retry_identity.sql": {
       "lines": 51,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20261113180517_complete_workspace_products.sql": {
       "lines": 186,
@@ -7297,6 +8831,64 @@
           "line": 172,
           "source": "create index eylo_community_parent_idx on public.eylo_community_posts(parent_id,created_date);"
         }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 4,
+          "source": "create table public.eylo_directory(user_id uuid primary key references auth.users(id) on delete cascade,display_name text not null check(length(display_name) between 1 and 100),about text not null default '' check(length(about)<=1000),visible boolean not null default false,created_date timestamptz not null default now(),updated_date timestamptz not null default now());"
+        },
+        {
+          "line": 5,
+          "source": "create table public.eylo_teams(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,name text not null check(length(name) between 1 and 100),created_date timestamptz not null default now(),updated_date timestamptz not null default now());"
+        },
+        {
+          "line": 6,
+          "source": "create table public.eylo_team_invites(id uuid primary key default gen_random_uuid(),team_id uuid not null references public.eylo_teams on delete cascade,user_id uuid not null references auth.users(id) on delete cascade,recipient_id uuid not null references auth.users(id) on delete cascade,status text not null default 'pending' check(status in('pending','accepted','declined','cancelled','joined')),"
+        },
+        {
+          "line": 8,
+          "source": "create table public.eylo_team_members(id uuid primary key default gen_random_uuid(),team_id uuid not null references public.eylo_teams on delete cascade,user_id uuid not null references auth.users(id) on delete cascade,role text not null default 'member' check(role in('member','admin')),created_date timestamptz not null default now(),updated_date timestamptz not null default now(),unique(team_id,u"
+        },
+        {
+          "line": 9,
+          "source": "create table public.eylo_connections(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,recipient_id uuid not null references auth.users(id) on delete cascade,status text not null default 'pending' check(status in('pending','accepted','declined','disconnected')),created_date timestamptz not null default now(),updated_date timestamptz not"
+        },
+        {
+          "line": 11,
+          "source": "create table public.eylo_community_posts(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,parent_id uuid references public.eylo_community_posts on delete set null,body text not null check(length(body) between 1 and 4000),created_date timestamptz not null default now(),updated_date timestamptz not null default now());"
+        },
+        {
+          "line": 12,
+          "source": "create table public.eylo_peer_submissions(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,reviewer_id uuid not null references auth.users(id) on delete cascade,title text not null check(length(title) between 1 and 200),content text not null check(length(content) between 1 and 50000),created_date timestamptz not null default now(),upda"
+        },
+        {
+          "line": 13,
+          "source": "create table public.eylo_peer_reviews(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,submission_id uuid not null references public.eylo_peer_submissions on delete cascade,summary text not null default '' check(length(summary)<=6000),strengths text not null default '' check(length(strengths)<=4000),concerns text not null default '' ch"
+        },
+        {
+          "line": 14,
+          "source": "create table public.eylo_feedback(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,category text not null check(category in('bug','feature','experience')),body text not null check(length(body) between 1 and 4000),status text not null default 'submitted' check(status in('submitted','triaged','planned','closed')),created_date timestamptz"
+        },
+        {
+          "line": 15,
+          "source": "create table public.eylo_api_tokens(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,name text not null check(length(name) between 1 and 100),token_hash text not null unique check(token_hash~'^[0-9a-f]{64}$'),project_ids uuid[] not null check(cardinality(project_ids) between 1 and 20),expires_at timestamptz not null,revoked_at timestam"
+        },
+        {
+          "line": 29,
+          "source": "execute format('create trigger %I before update on public.%I for each row execute function public.set_updated_date()',t||'_updated',t);"
+        },
+        {
+          "line": 92,
+          "source": "if p.updated_date is distinct from p_expected_version then raise exception 'Project changed; reload before running' using errcode='40001';end if;"
+        },
+        {
+          "line": 114,
+          "source": "if p.updated_date is distinct from p_expected_version or jsonb_array_length(results)>=100 then raise exception 'Project changed or materialization budget exhausted';end if;"
+        },
+        {
+          "line": 141,
+          "source": "create function private.eylo_stamp_insert() returns trigger language plpgsql security invoker set search_path='' as $$begin new.created_date=now();new.updated_date=now();return new;end$$;"
+        }
       ]
     },
     "supabase/migrations/20261114063216_account_deletion_lifecycle.sql": {
@@ -7325,7 +8917,8 @@
           "line": 123,
           "source": "create trigger account_storage_write_lock before insert or update on storage.objects for each row execute function private.guard_account_storage_write();"
         }
-      ]
+      ],
+      "timestamp_contract_references": []
     },
     "supabase/migrations/20261115090000_research_dataset_catalog.sql": {
       "lines": 75,
@@ -7349,6 +8942,16 @@
           "line": 74,
           "source": "create trigger research_datasets_validate_entry before insert or update on public.research_datasets"
         }
+      ],
+      "timestamp_contract_references": [
+        {
+          "line": 6,
+          "source": "updated_date timestamptz not null default timezone('utc', now()),"
+        },
+        {
+          "line": 68,
+          "source": "new.updated_date = timezone('utc', now());"
+        }
       ]
     },
     "tests/account-deletion-api.test.mjs": {
@@ -7356,7 +8959,8 @@
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/activity-history.test.mjs": {
       "lines": 35,
@@ -7368,7 +8972,8 @@
           "line": 19,
           "source": "assert.match(migration, /create policy \"Users clear own activity\" on public\\.activity_events for delete to authenticated/i);"
         }
-      ]
+      ],
+      "timestamp_contract_references": []
     },
     "tests/analytics-availability.test.mjs": {
       "lines": 165,
@@ -7379,42 +8984,48 @@
         "SUPABASE_PUBLISHABLE_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/api-cors.test.mjs": {
       "lines": 65,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/arxiv-feed.test.mjs": {
       "lines": 30,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/auth-magic-link-signin.test.mjs": {
       "lines": 10,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/auth-operation-race.test.mjs": {
       "lines": 9,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/auth-route-paths.test.mjs": {
       "lines": 21,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/auth-security.test.mjs": {
       "lines": 120,
@@ -7426,14 +9037,16 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/auth-signin-contract.test.mjs": {
       "lines": 11,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/billing-private-error-logging.test.mjs": {
       "lines": 39,
@@ -7443,7 +9056,8 @@
         "SUPABASE_PUBLISHABLE_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/billing-return-origin.test.mjs": {
       "lines": 52,
@@ -7459,14 +9073,16 @@
         "VITE_SUPABASE_ANON_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/calendar-workspace.test.mjs": {
       "lines": 91,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/capabilities.test.mjs": {
       "lines": 134,
@@ -7483,77 +9099,88 @@
         "SUPABASE_SECRET_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/careers-api.test.mjs": {
       "lines": 122,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/careers-search-regressions.test.mjs": {
-      "lines": 29,
+      "lines": 35,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/challenge-records.test.mjs": {
       "lines": 46,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/citation-export.test.mjs": {
       "lines": 103,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/citation-verification.test.mjs": {
       "lines": 124,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/complete-products.test.mjs": {
       "lines": 412,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/configuration-diagnostics.test.mjs": {
       "lines": 57,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/crossref-paper-types.test.mjs": {
       "lines": 49,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/decision-workspace.test.mjs": {
       "lines": 48,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/deployment-probe.test.mjs": {
       "lines": 66,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/deployment-status.test.mjs": {
       "lines": 61,
@@ -7563,35 +9190,40 @@
         "VERCEL_ENV",
         "VERCEL_GIT_COMMIT_SHA"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/discovery-candidate-budget.test.mjs": {
       "lines": 27,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/discovery-gateway-error.test.mjs": {
       "lines": 114,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/discovery-human-benchmark.test.mjs": {
       "lines": 42,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/discovery-proxy-boundary.test.mjs": {
       "lines": 19,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/discovery-proxy.test.mjs": {
       "lines": 466,
@@ -7601,14 +9233,16 @@
         "OPENALEX_API_KEY",
         "SEMANTIC_SCHOLAR_API_KEY"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/discovery-ranking.test.mjs": {
       "lines": 243,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/discovery-rate-limit.test.mjs": {
       "lines": 219,
@@ -7619,21 +9253,24 @@
         "VERCEL",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/discovery-source-status.test.mjs": {
-      "lines": 42,
+      "lines": 62,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/discovery-workspace-signup.test.mjs": {
       "lines": 31,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/e2e-auth.mjs": {
       "lines": 1322,
@@ -7651,7 +9288,8 @@
         "EYLO_E2E_ARTIFACT_DIR",
         "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/e2e-careers.mjs": {
       "lines": 62,
@@ -7660,7 +9298,8 @@
       "environment_variables": [
         "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/e2e-company-landing.mjs": {
       "lines": 465,
@@ -7670,7 +9309,8 @@
         "EYLO_E2E_ARTIFACT_DIR",
         "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/e2e-discovery-gateway.mjs": {
       "lines": 211,
@@ -7680,7 +9320,8 @@
         "EYLO_E2E_ARTIFACT_DIR",
         "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/e2e-learn.mjs": {
       "lines": 93,
@@ -7695,7 +9336,8 @@
         "EYLO_E2E_HOST_PASSWORD",
         "EYLO_E2E_TIMEOUT_MS"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/e2e-learning-integration.mjs": {
       "lines": 763,
@@ -7705,7 +9347,8 @@
         "EYLO_E2E_ARTIFACT_DIR",
         "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/e2e-native-meetings.mjs": {
       "lines": 167,
@@ -7724,7 +9367,8 @@
         "EYLO_E2E_SCREEN_SHARE",
         "EYLO_E2E_TIMEOUT_MS"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/e2e-products.mjs": {
       "lines": 886,
@@ -7735,7 +9379,8 @@
         "EYLO_E2E_ARTIFACT_DIR",
         "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/e2e-quiz-generator.mjs": {
       "lines": 54,
@@ -7750,7 +9395,8 @@
         "EYLO_E2E_HOST_PASSWORD",
         "EYLO_E2E_TIMEOUT_MS"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/e2e-supabase-project-concurrency.mjs": {
       "lines": 136,
@@ -7759,7 +9405,8 @@
         "projects"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/e2e-time-tracker.mjs": {
       "lines": 57,
@@ -7774,56 +9421,64 @@
         "EYLO_E2E_HOST_PASSWORD",
         "EYLO_E2E_TIMEOUT_MS"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/entity-optimistic-version.test.mjs": {
       "lines": 55,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/entity-ownership.test.mjs": {
       "lines": 40,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/entity-serialization.test.mjs": {
       "lines": 49,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/euraxess.test.mjs": {
-      "lines": 104,
+      "lines": 115,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/evidence-matrix.test.mjs": {
       "lines": 30,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/evidence-verification.test.mjs": {
       "lines": 82,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eylo-files.test.mjs": {
       "lines": 164,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-boundaries.test.mjs": {
       "lines": 82,
@@ -7834,35 +9489,40 @@
         "SUPABASE_PUBLISHABLE_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-cache-key.test.mjs": {
       "lines": 33,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-cancellation.test.mjs": {
       "lines": 26,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-capability-copy.test.mjs": {
       "lines": 11,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-citation-ids.test.mjs": {
       "lines": 39,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-conversation-api.test.mjs": {
       "lines": 132,
@@ -7872,7 +9532,8 @@
         "SUPABASE_PUBLISHABLE_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-conversation-contract.test.mjs": {
       "lines": 38,
@@ -7884,14 +9545,16 @@
           "line": 13,
           "source": "assert.match(core, /create policy \"Users manage own rows\"[\\s\\S]*?authenticated using \\(\\(select auth\\.uid\\(\\)\\) = user_id\\)/);"
         }
-      ]
+      ],
+      "timestamp_contract_references": []
     },
     "tests/eyra-engine-concurrency.test.mjs": {
       "lines": 16,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-private-error-logging.test.mjs": {
       "lines": 45,
@@ -7902,14 +9565,16 @@
         "VERCEL_ENV",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-project-tools.test.mjs": {
       "lines": 158,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-provider-boundaries.test.mjs": {
       "lines": 98,
@@ -7921,7 +9586,8 @@
         "SUPABASE_SECRET_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-request-safety.test.mjs": {
       "lines": 182,
@@ -7933,42 +9599,48 @@
         "SUPABASE_SECRET_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-research-companion.test.mjs": {
       "lines": 15,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-snapshot.test.mjs": {
       "lines": 20,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-stop-generation-ui.test.mjs": {
       "lines": 19,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-stream-api.test.mjs": {
       "lines": 37,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-stream.test.mjs": {
       "lines": 32,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-structured-api.test.mjs": {
       "lines": 77,
@@ -7981,14 +9653,16 @@
         "VERCEL_ENV",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-structured-contract.test.mjs": {
       "lines": 45,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-timeout-response.test.mjs": {
       "lines": 47,
@@ -7998,14 +9672,16 @@
         "SUPABASE_PUBLISHABLE_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-tool-action-ui.test.mjs": {
       "lines": 25,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-upstream-timeouts.test.mjs": {
       "lines": 135,
@@ -8022,28 +9698,32 @@
         "SUPABASE_SERVICE_ROLE_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/eyra-usage-limit-contract.test.mjs": {
       "lines": 12,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/flashcards-workspace.test.mjs": {
       "lines": 72,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/form-responses-csv.test.mjs": {
       "lines": 25,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/funding-auth-config.test.mjs": {
       "lines": 84,
@@ -8053,7 +9733,8 @@
         "VITE_SUPABASE_ANON_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/funding-comparison-provider.integration.test.mjs": {
       "lines": 104,
@@ -8063,14 +9744,16 @@
         "VITE_SUPABASE_ANON_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/funding-comparison.test.mjs": {
       "lines": 62,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/funding-eu-source.test.mjs": {
       "lines": 42,
@@ -8080,28 +9763,32 @@
         "VITE_SUPABASE_ANON_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/funding-ranking-integrity.test.mjs": {
       "lines": 96,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/gap-candidate-review.test.mjs": {
       "lines": 57,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/general-career-listings.test.mjs": {
       "lines": 125,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/grant-applications-isolation.test.mjs": {
       "lines": 97,
@@ -8117,28 +9804,32 @@
           "line": 92,
           "source": "assert.match(sql, /foreign key \\(project_id, user_id\\)/i);"
         }
-      ]
+      ],
+      "timestamp_contract_references": []
     },
     "tests/grant-draft-project-context.test.mjs": {
       "lines": 27,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/helpers/rls-probe-fixture.mjs": {
       "lines": 24,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/human-evaluation.test.mjs": {
       "lines": 25,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/idea-vault-reliability.test.mjs": {
       "lines": 28,
@@ -8150,7 +9841,8 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/integration/account-deletion-postgres.sql": {
       "lines": 87,
@@ -8162,91 +9854,104 @@
           "line": 7,
           "source": "insert into storage.buckets(id,name,public) values('legacy-uploads','legacy-uploads',false);"
         }
-      ]
+      ],
+      "timestamp_contract_references": []
     },
     "tests/integration/complete-products-postgres.sql": {
       "lines": 128,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/integration/discovery-quota-postgres.sql": {
       "lines": 18,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/integration/eyra-conversations-postgres.sql": {
       "lines": 140,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/integration/funding-postgres.sql": {
       "lines": 36,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/integration/learning-time-postgres.sql": {
       "lines": 45,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/integration/planning-documents-postgres.sql": {
       "lines": 25,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/integration/research-catalog-postgres.sql": {
       "lines": 50,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/integration/research-records-postgres.sql": {
       "lines": 29,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/integration/workspace-postgres.sql": {
       "lines": 73,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/learn-data.test.mjs": {
       "lines": 34,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/library-reference-export-ui.test.mjs": {
       "lines": 21,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/life-task-target.test.mjs": {
       "lines": 22,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/life-workspace.test.mjs": {
       "lines": 132,
@@ -8258,21 +9963,24 @@
           "line": 84,
           "source": "assert.match(migration, /create trigger projects_unlink_deleted_life_tasks after delete on public\\.projects/i);"
         }
-      ]
+      ],
+      "timestamp_contract_references": []
     },
     "tests/literature-review-methods-audit.test.mjs": {
       "lines": 36,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/literature-review-protocol.test.mjs": {
       "lines": 145,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/meeting-links.test.mjs": {
       "lines": 35,
@@ -8288,14 +9996,16 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/meeting-plans.test.mjs": {
       "lines": 25,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/meeting-room.test.mjs": {
       "lines": 76,
@@ -8309,42 +10019,48 @@
         "SUPABASE_SECRET_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/meetings-e2e-target.test.mjs": {
       "lines": 27,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/migration-review.test.mjs": {
       "lines": 97,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/monitor-edge-provider-safety.test.mjs": {
       "lines": 24,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/monitor-provider-response.test.mjs": {
       "lines": 83,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/monitor-provider-retry.test.mjs": {
       "lines": 77,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/monitor-scheduling.test.mjs": {
       "lines": 37,
@@ -8356,7 +10072,8 @@
           "line": 34,
           "source": "assert.match(sql, /create trigger %I before update on public\\.%I for each row execute function public\\.set_updated_date\\(\\)/);"
         }
-      ]
+      ],
+      "timestamp_contract_references": []
     },
     "tests/monitor-source-failure.test.mjs": {
       "lines": 132,
@@ -8367,112 +10084,128 @@
         "SUPABASE_SECRET_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/notes-workspace.test.mjs": {
       "lines": 75,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/pages-hosting.test.mjs": {
       "lines": 131,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/paper-summary-persistence.test.mjs": {
       "lines": 79,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/paper-summary.test.mjs": {
       "lines": 158,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/private-browser-deletion.test.mjs": {
       "lines": 76,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/private-radar-cache.test.mjs": {
       "lines": 51,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/private-session-boundary.test.mjs": {
       "lines": 15,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/product-api.test.mjs": {
       "lines": 222,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/profile-merge.test.mjs": {
       "lines": 40,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/project-budget.test.mjs": {
       "lines": 29,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/project-conflict-recovery.test.mjs": {
       "lines": 66,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/project-detail-stale-navigation.test.mjs": {
       "lines": 28,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/project-evidence-loading.test.mjs": {
       "lines": 18,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/project-eyra-evidence.test.mjs": {
       "lines": 28,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/project-eyra-provenance.test.mjs": {
       "lines": 42,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/project-load-recovery.test.mjs": {
       "lines": 14,
@@ -8488,14 +10221,16 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/project-plan-draft.test.mjs": {
       "lines": 29,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/project-planner-ui.test.mjs": {
       "lines": 20,
@@ -8507,35 +10242,40 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/project-recorded-signals.test.mjs": {
       "lines": 92,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/project-tasks.test.mjs": {
       "lines": 22,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/project-versioned-saves.test.mjs": {
       "lines": 26,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/project-workplan.test.mjs": {
       "lines": 52,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/projects-loading-vs-create-error.test.mjs": {
       "lines": 17,
@@ -8547,189 +10287,216 @@
       ],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/publication-type-label.test.mjs": {
       "lines": 18,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/quiz-data.test.mjs": {
       "lines": 40,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/release-readiness.test.mjs": {
       "lines": 85,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/release-stamp.test.mjs": {
       "lines": 77,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/remotive-career-snapshot.test.mjs": {
       "lines": 45,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/reproducibility-review.test.mjs": {
       "lines": 53,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-catalog.test.mjs": {
       "lines": 32,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-data-comparison.test.mjs": {
       "lines": 215,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-data-provenance.test.mjs": {
       "lines": 52,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-data-quality-ui.test.mjs": {
       "lines": 20,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-data-quality.test.mjs": {
       "lines": 49,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-data.test.mjs": {
       "lines": 72,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-email.test.mjs": {
       "lines": 31,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-gap-candidate-save.test.mjs": {
       "lines": 62,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-gap-candidates.test.mjs": {
       "lines": 36,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-gap-context.test.mjs": {
       "lines": 23,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-gap-live-search.test.mjs": {
       "lines": 92,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-gap-project-flow.test.mjs": {
       "lines": 28,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-knowledge-graph.test.mjs": {
       "lines": 176,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-landscape-partial-sources.test.mjs": {
       "lines": 18,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-provenance.test.mjs": {
       "lines": 50,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-records.test.mjs": {
       "lines": 41,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/research-workflow-reliability.test.mjs": {
       "lines": 38,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/researcher-discovery-fallback.test.mjs": {
       "lines": 127,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/researcher-query-plan.test.mjs": {
       "lines": 24,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/researcher-shortlist.test.mjs": {
       "lines": 82,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/rls-fixture-requires-authorization.test.mjs": {
       "lines": 44,
@@ -8738,7 +10505,8 @@
       "environment_variables": [
         "PATH"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/scheduled-monitoring.test.mjs": {
       "lines": 202,
@@ -8749,28 +10517,32 @@
         "SUPABASE_SECRET_KEY",
         "VITE_SUPABASE_URL"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/scholarly-provider-backoff.test.mjs": {
       "lines": 49,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/scholarly-query.test.mjs": {
       "lines": 64,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/scholarly-record-identity.test.mjs": {
       "lines": 43,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/scholarly-resilience.test.mjs": {
       "lines": 70,
@@ -8780,28 +10552,32 @@
         "unavailable"
       ],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/scholarly-work-attribution.test.mjs": {
       "lines": 21,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/service-status-deployment.test.mjs": {
-      "lines": 18,
+      "lines": 19,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/staging-config.test.mjs": {
       "lines": 21,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/stripe-webhook-size.test.mjs": {
       "lines": 99,
@@ -8813,91 +10589,104 @@
       "environment_variables": [
         "STRIPE_WEBHOOK_SECRET"
       ],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/supabase-api-config.test.mjs": {
       "lines": 46,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/supabase-env-config.test.mjs": {
       "lines": 38,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/supervisor-meetings.test.mjs": {
       "lines": 199,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/system-api-routing.test.mjs": {
       "lines": 33,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/thesis-note-source.test.mjs": {
       "lines": 48,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/thesis-outline.test.mjs": {
       "lines": 40,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/time-tracker-data.test.mjs": {
       "lines": 125,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/translation-references.test.mjs": {
       "lines": 16,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/unified-academic-colors.test.mjs": {
       "lines": 38,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/universal-search.test.mjs": {
       "lines": 93,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/voice-workspace-lifecycle.test.mjs": {
       "lines": 23,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     },
     "tests/workspace-export.test.mjs": {
       "lines": 190,
       "actions": [],
       "tables": [],
       "environment_variables": [],
-      "sql_declarations": []
+      "sql_declarations": [],
+      "timestamp_contract_references": []
     }
   }
 }
