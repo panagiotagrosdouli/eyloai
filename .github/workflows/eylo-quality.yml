@@ -28,3 +28,7 @@ jobs:
         run: npm run check
       - name: Verify workspace and EYRA RLS in disposable PostgreSQL
         run: python3 scripts/integration/test-local-postgres.py
+      - name: Verify preservation and canonical workflows on the observed legacy schema
+        run: EYLO_SQL_LEGACY_SCHEMA=1 python3 scripts/integration/test-local-postgres.py
+      - name: Verify the exact curated restoration sources without historical core replay
+        run: EYLO_SQL_RESTORATION_BUNDLE=1 python3 scripts/integration/test-local-postgres.py

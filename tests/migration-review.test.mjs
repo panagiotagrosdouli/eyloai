@@ -13,10 +13,10 @@ const sources = Object.fromEntries(
     .map((n) => [n, readFileSync(new URL("migrations/" + n, root), "utf8")]),
 );
 
-test("actual migration manifest accounts for all30 files while authorizing only local23 replay", () => {
+test("actual migration manifest accounts for all32 files while authorizing only local25 replay", () => {
   const result = reviewMigrationPlan(plan, sources);
   assert.equal(result.local_plan_verified, true);
-  assert.equal(result.selected_count, 23);
+  assert.equal(result.selected_count, 25);
   assert.equal(result.excluded_count, 7);
   assert.equal(result.remote_application_authorized, false);
   assert.equal(result.remote_history_verified, false);

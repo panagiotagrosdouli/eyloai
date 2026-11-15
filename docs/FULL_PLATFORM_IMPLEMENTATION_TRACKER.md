@@ -153,3 +153,12 @@ Read-only connector checks on 2026-11-15: Supabase lists only project `umzrggayi
 ## Unresolved limitations of this increment
 
 The existing paginated read is not a database snapshot: concurrent inserts/deletes during pagination can change offsets. Date-filtered server aggregates and snapshot-consistent reporting remain future work. The safety bound deliberately blocks partial reports beyond 50,000 entries. Pause/resume and report date filters are implemented by the follow-up described above; hosted acceptance, scheduled automations and the broader platform acceptance work remain outstanding.
+
+
+## Live-schema repair after owner requested restoration (2026-11-15)
+
+Supabase access became available and confirmed the owner-provided project as eyloai. The live database had an older core schema: missing profile user_id/data, missing core created_date/updated_date, top-level required business columns, and no canonical workspace module tables. This was confirmed through catalog queries rather than inferred from the UI.
+
+The additive compatibility bridge was applied to the eight existing core tables. Existing profile count (2), legacy values and timestamps were verified unchanged using a preservation fingerprint; aliases/JSON metadata and all eight triggers were verified installed. RLS ownership policies were retained. The serializer additionally preserves canonical arrays over legacy text columns. Full local checks passed 770 tests/build, and replay against seeded legacy rows verified backfill preservation, old/new writes, owner checks, CAS and all existing canonical SQL regressions.
+
+The curated 19-source proposal for missing module tables is separately documented in supabase/legacy-workspace-restoration-plan.json and docs/LEGACY_SCHEMA_REPAIR.md. Its exact replay passed on disposable PostgreSQL, but automatic approval review rejected applying the broad production bundle without specific authorization. It has NOT been applied; do not mark Notes/Files/learning/Calendar or the wider platform as hosted verified. The reviewed timer compatibility and server-config PRs also require explicit merge/publication approval after an automatic-review rejection.
