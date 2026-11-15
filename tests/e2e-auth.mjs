@@ -284,6 +284,7 @@ try {
   await dataLab.getByRole('button', { name: 'Save metadata to Data Catalog' }).click();
   await dataLab.getByRole('button', { name: 'Clear catalog' }).click();
   await dataLab.getByRole('button', { name: 'Confirm clear catalog' }).click();
+  await dataLab.getByRole('status').filter({ hasText: 'Cloud catalog cleared.' }).waitFor();
   assert.equal(catalogRows.length, 0, 'Clear catalog must remove the cloud metadata');
 
   await dataLab.getByRole('button', { name: 'Clear data' }).click();
