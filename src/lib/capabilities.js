@@ -43,18 +43,49 @@ export function useCapabilities() {
 
   useEffect(() => {
     let active = true;
-    getCapabilities().then(data => {
-      if (active) setState({ data, loading: false, error: '' });
-    }).catch(error => {
-      if (active) {
+    let retryTimer = null;
+    let automaticRetryUsed = false;
+    let requestVersion = 0;
+    const load = async (refresh = false) => {
+      const version = ++requestVersion;
+      try {
+        const data = await getCapabilities({ refresh });
+        if (active && version === requestVersion) {
+          setState({ data, loading: false, error: '' });
+        }
+      } catch (error) {
+        if (!active || version !== requestVersion) return;
         setState({
           data: FALLBACK_CAPABILITIES,
           loading: false,
           error: error?.message || 'Service status is unavailable.',
         });
+        if (!automaticRetryUsed) {
+          automaticRetryUsed = true;
+          retryTimer = window.setTimeout(() => {
+            retryTimer = null;
+            if (active) void load(true);
+          }, 8000);
+        }
       }
-    });
-    return () => { active = false; };
+    };
+    const retryWhenConnected = () => {
+      if (retryTimer !== null) window.clearTimeout(retryTimer);
+      retryTimer = null;
+      void load(true);
+    };
+    const retryWhenVisible = () => {
+      if (document.visibilityState === 'visible') retryWhenConnected();
+    };
+    void load();
+    window.addEventListener('online', retryWhenConnected);
+    document.addEventListener('visibilitychange', retryWhenVisible);
+    return () => {
+      active = false;
+      if (retryTimer !== null) window.clearTimeout(retryTimer);
+      window.removeEventListener('online', retryWhenConnected);
+      document.removeEventListener('visibilitychange', retryWhenVisible);
+    };
   }, []);
 
   const refresh = async () => {
