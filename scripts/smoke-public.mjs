@@ -26,9 +26,17 @@ const checks = [
   // These routes must be reachable on a fresh, unauthenticated browser request.
   // An SPA fallback is expected; these checks do not claim client-side auth works.
   { path: '/discover', type: 'html', label: 'Public discovery route' },
+  { path: '/find-researchers', type: 'html', label: 'Public researcher route' },
+  { path: '/careers', type: 'html', label: 'Public careers route' },
+  { path: '/company', type: 'html', label: 'Company route' },
+  { path: '/company/what-we-do', type: 'html', label: 'Company detail route' },
+  { path: '/plans', type: 'html', label: 'Public plans route' },
+  { path: '/contact', type: 'html', label: 'Contact route' },
   { path: '/login', type: 'html', label: 'Login route' },
   { path: '/register', type: 'html', label: 'Registration route' },
   { path: '/forgot-password', type: 'html', label: 'Recovery route' },
+  { path: '/reset-password', type: 'html', label: 'Password reset route' },
+  { path: '/auth/callback', type: 'html', label: 'Email confirmation callback route' },
   { path: '/api/capabilities', type: 'capabilities', label: 'Server capability endpoint' },
 ];
 
