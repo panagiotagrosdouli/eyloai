@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlertCircle, BookOpen, ExternalLink, Mic, MicOff, Search,
@@ -9,6 +9,7 @@ import { getPreferenceLocale, loadPreferences } from '@/lib/preferences';
 
 export default function VoiceAssistant() {
   const recognitionRef = useRef(null);
+  const mountedRef = useRef(true);
   const [transcript, setTranscript] = useState('');
   const [listening, setListening] = useState(false);
   const [running, setRunning] = useState(false);
@@ -22,33 +23,77 @@ export default function VoiceAssistant() {
     ? /** @type {any} */ (window).SpeechRecognition || /** @type {any} */ (window).webkitSpeechRecognition
     : null;
 
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      const recognition = recognitionRef.current;
+      recognitionRef.current = null;
+      if (recognition) {
+        recognition.onresult = null;
+        recognition.onerror = null;
+        recognition.onend = null;
+        try { recognition.abort(); } catch { /* Browser may already have stopped recording. */ }
+      }
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
+
   const startListening = () => {
     if (!Recognition) {
       setError('Speech recognition is not supported in this browser. Type your question instead.');
       return;
     }
 
+    if (recognitionRef.current) return;
     setError('');
-    const recognition = new Recognition();
+    let recognition;
+    try {
+      recognition = new Recognition();
+    } catch {
+      setError('Could not initialize microphone recognition. Type your question instead.');
+      return;
+    }
     recognition.lang = voiceLocale;
     recognition.interimResults = true;
     recognition.continuous = false;
     recognition.onresult = (event) => {
       const text = Array.from(event.results).map(item => item[0].transcript).join(' ');
-      setTranscript(text);
+      if (mountedRef.current && recognitionRef.current === recognition) setTranscript(text);
     };
     recognition.onerror = (event) => {
-      setError(`Microphone recognition failed: ${event.error || 'unknown error'}`);
+      if (!mountedRef.current || recognitionRef.current !== recognition) return;
+      if (event.error !== 'aborted') {
+        setError(event.error === 'not-allowed'
+          ? 'Microphone permission was denied. Enable microphone access or type your question.'
+          : 'Microphone recognition failed. Type your question or try again.');
+      }
       setListening(false);
     };
-    recognition.onend = () => setListening(false);
+    recognition.onend = () => {
+      if (recognitionRef.current !== recognition) return;
+      recognitionRef.current = null;
+      if (mountedRef.current) setListening(false);
+    };
     recognitionRef.current = recognition;
-    recognition.start();
-    setListening(true);
+    try {
+      recognition.start();
+      setListening(true);
+    } catch {
+      recognitionRef.current = null;
+      setListening(false);
+      setError('Could not start microphone recognition. Check browser permissions or type your question.');
+    }
   };
 
   const stopListening = () => {
-    recognitionRef.current?.stop();
+    const recognition = recognitionRef.current;
+    if (!recognition) return;
+    try { recognition.stop(); }
+    catch {
+      recognitionRef.current = null;
+      setError('Could not stop microphone recognition. You can still type your question.');
+    }
     setListening(false);
   };
 
@@ -63,6 +108,7 @@ export default function VoiceAssistant() {
 
     try {
       const discovery = await runEyraDiscovery(query);
+      if (!mountedRef.current) return;
       setResult(discovery);
       const spoken = discovery.goal_analysis
         || (discovery.ai_error
@@ -75,9 +121,9 @@ export default function VoiceAssistant() {
         window.speechSynthesis.speak(utterance);
       }
     } catch (askError) {
-      setError(askError?.message || 'EYRA Voice could not complete the search.');
+      if (mountedRef.current) setError(askError?.message || 'EYRA Voice could not complete the search.');
     } finally {
-      setRunning(false);
+      if (mountedRef.current) setRunning(false);
     }
   };
 
@@ -92,6 +138,7 @@ export default function VoiceAssistant() {
       <section className="rounded-3xl border border-primary/20 bg-card p-5 sm:p-8">
         <form onSubmit={ask}>
           <textarea
+            aria-label="Voice research question"
             value={transcript}
             onChange={event => setTranscript(event.target.value)}
             rows={4}
