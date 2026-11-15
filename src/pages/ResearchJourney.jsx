@@ -4,6 +4,7 @@ import { ArrowRight, BookOpen, FolderOpen, RefreshCw, Sparkles } from 'lucide-re
 import { base44 } from '@/api/base44Client';
 import { useCapabilities } from '@/lib/capabilities';
 import { buildResearchJourney, researchJourneyLinks } from '@/lib/research-journey.mjs';
+import { isSafeLiteratureSourceUrl } from '@/lib/literature-review-protocol.mjs';
 
 function StepCard({ item, index }) {
   const badge = item.status === 'recorded' ? 'Recorded in workspace'
@@ -72,7 +73,7 @@ export default function ResearchJourney() {
         try {
           const linked = await base44.entities.SavedPaper.filter({ project_id: chosen.id }, '-created_date', 100);
           if (!active) return;
-          setPapers(linked.length);
+          setPapers(linked);
           setPapersLoaded(true);
           if (linked.length >= 100) setCoverageError('Showing a bounded sample of 100 recently saved project papers. Older linked papers may not be included.');
         } catch {
@@ -88,7 +89,7 @@ export default function ResearchJourney() {
     return () => { active = false; };
   }, [selectedId, attempt]);
 
-  const steps = buildResearchJourney(project, { linkedPapers: papers, papersLoaded });
+  const steps = buildResearchJourney(project, { linkedPapers: papers?.length ?? null, papersLoaded });
   const links = project ? researchJourneyLinks(project.id) : null;
   return (
     <main className="eylo-page mx-auto max-w-5xl pb-20">
@@ -131,6 +132,26 @@ export default function ResearchJourney() {
           <Link to={links.project} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary"><FolderOpen size={16} aria-hidden="true" /> Open project</Link>
         </div>
         <ol className="space-y-4">{steps.map((item, index) => <StepCard key={item.id} item={item} index={index} />)}</ol>
+        {papersLoaded && papers.length > 0 && <section aria-labelledby="journey-sources" className="mt-6 rounded-2xl border border-border bg-card p-5 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="journey-sources" className="text-lg font-semibold">Recently linked research records</h2>
+            <Link to={links.library} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary">Open Library</Link>
+          </div>
+          <p className="mt-2 text-xs leading-5 text-muted-foreground">Saved metadata from this project, not independently verified source quality. Inspect the original publication before citing or drawing conclusions.</p>
+          <ul className="mt-4 divide-y divide-border">
+            {papers.slice(0, 4).map(paper => <li key={paper.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-foreground">{paper.title || 'Untitled saved paper'}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{[paper.authors, paper.year, paper.doi].filter(Boolean).join(' · ') || 'Source metadata incomplete'}</p>
+              </div>
+              {isSafeLiteratureSourceUrl(paper.url) ? <a href={paper.url} target="_blank" rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center rounded-lg border border-border px-3 text-sm font-semibold text-primary"
+                aria-label={'Open original source for ' + (paper.title || 'saved paper')}>Open source</a>
+                : <span className="text-xs text-muted-foreground">Source link unavailable</span>}
+            </li>)}
+          </ul>
+          {papers.length > 4 && <p className="mt-2 text-xs text-muted-foreground">Showing 4 of {papers.length} recently loaded linked records; open Library for more.</p>}
+        </section>}
         <section aria-labelledby="journey-eyra" className="mt-6 rounded-2xl border border-border bg-card p-5 sm:p-6">
           <h2 id="journey-eyra" className="flex items-center gap-2 text-lg font-semibold"><Sparkles size={19} className="text-primary" aria-hidden="true" /> Think with EYRA</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Ask for help interpreting methodology or planning a next step. Independently verify every scientific statement against an actual source; an AI answer is not a citation or evidence of a research gap.</p>
