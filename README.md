@@ -95,6 +95,12 @@ npm ci
 npm run dev
 ```
 
+`npm run dev` serves the React app and the same `/api/*` handlers and aliases used
+on Vercel. Put server credentials in `.env.local` and restart the dev server after
+changing them. Missing credentials retain the handlers' normal unavailable or
+unauthorized responses. `npm run preview` serves only the static production build;
+use a Vercel preview deployment to verify hosted functions.
+
 The public client needs:
 
 ```env
