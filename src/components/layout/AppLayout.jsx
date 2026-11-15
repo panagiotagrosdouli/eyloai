@@ -128,6 +128,7 @@ export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [toolQuery, setToolQuery] = useState('');
   const toolsRef = useRef(null);
+  const mobileToggleRef = useRef(null);
   const { data: capabilities, loading: capabilitiesLoading } = useCapabilities();
   const aiAvailable = !capabilitiesLoading && capabilities.ai;
 
@@ -205,6 +206,11 @@ export default function AppLayout() {
     setToolQuery('');
   }, [location.pathname]);
 
+  // Route changes move keyboard/screen-reader context to the new workspace content.
+  useEffect(() => {
+    document.getElementById('main-content')?.focus({ preventScroll: true });
+  }, [location.pathname]);
+
   return (
     <div className={`eylo-app-canvas min-h-screen bg-background ${isWorkspaceHome ? "eylo-home-layout" : ""}`}>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-2 focus:z-[100] focus:rounded-lg focus:bg-background focus:p-3">Skip to content</a>
@@ -269,14 +275,14 @@ export default function AppLayout() {
             </button>
           </div>
 
-          <button type="button" onClick={() => setMobileOpen(value => !value)} aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileOpen} aria-controls="mobile-navigation-panel"
+          <button ref={mobileToggleRef} type="button" onClick={() => setMobileOpen(value => !value)} aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileOpen} aria-controls="mobile-navigation-panel"
             className="ml-auto rounded-xl p-2.5 text-muted-foreground hover:bg-secondary hover:text-foreground lg:hidden">
             {mobileOpen ? <X size={19} /> : <Menu size={19} />}
           </button>
         </div>
 
         {mobileOpen && (
-          <div id="mobile-navigation-panel" className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
+          <div id="mobile-navigation-panel" onKeyDown={event => { if (event.key === 'Escape') mobileToggleRef.current?.focus(); }} className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
             <div className="mx-auto max-w-xl">
               <div className="grid grid-cols-2 gap-2">
                 {PRIMARY_NAV.map(item => {
