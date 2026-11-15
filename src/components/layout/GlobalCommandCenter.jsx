@@ -8,6 +8,10 @@ import {
 
 const COMMANDS = [
   { group: 'Navigate', label: 'Home', path: '/home', icon: Search, keywords: 'start' },
+  { group: 'Navigate', label: 'All tools', path: '/tools', icon: Search, keywords: 'directory discover browse features' },
+  { group: 'Navigate', label: 'Discover research', path: '/search', icon: Search, keywords: 'papers literature' },
+  { group: 'Navigate', label: 'Learn', path: '/learn', icon: BookOpen, keywords: 'study lessons' },
+  { group: 'Navigate', label: 'My workspace search', path: '/workspace/search', icon: Search, keywords: 'authorized notes saved files tasks' },
   { group: 'Navigate', label: 'Projects', path: '/projects', icon: FolderOpen, keywords: 'search project' },
   { group: 'Navigate', label: 'Library', path: '/library', icon: BookOpen, keywords: 'saved papers evidence' },
   { group: 'Navigate', label: 'Funding', path: '/opportunities', icon: Award, keywords: 'grants' },
@@ -15,6 +19,10 @@ const COMMANDS = [
   { group: 'Navigate', label: 'Meetings', path: '/meetings', icon: Video, keywords: 'notes decisions' },
   { group: 'Navigate', label: 'Search history', path: '/history', icon: History, keywords: 'previous searches' },
   { group: 'Navigate', label: 'Settings', path: '/settings', icon: Settings, keywords: 'preferences' },
+  { group: 'Actions', label: 'New document', path: '/documents/new', icon: Plus, keywords: 'create write draft' },
+  { group: 'Actions', label: 'New note', path: '/notes', icon: Plus, keywords: 'create notes' },
+  { group: 'Actions', label: 'New task', path: '/life', icon: Plus, keywords: 'create tasks' },
+  { group: 'Actions', label: 'Prepare literature review', path: '/literature-review', icon: BookOpen, keywords: 'research evidence screening' },
   { group: 'Actions', label: 'New project', path: '/projects?new=1', icon: Plus, keywords: 'create' },
   { group: 'Actions', label: 'New search', path: '/home', icon: Search, keywords: 'discover literature evidence' },
   { group: 'Actions', label: 'Save an idea', path: '/ideas?new=1', icon: Lightbulb, keywords: 'capture' },
