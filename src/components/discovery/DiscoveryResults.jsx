@@ -356,6 +356,12 @@ export default function DiscoveryResults({ results, onNewSearch }) {
                     <ArrowRight size={10} /> {item.label}
                   </button>
                 ))}
+                {discoveryProfile.goal === 'review' && (
+                  <Link to={`/literature-review?project_id=${encodeURIComponent(projectCreated.id)}`}
+                    className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-primary/30 bg-card px-3 text-xs font-semibold text-primary hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                    <BookOpen size={14} aria-hidden="true" /> Review protocol & screening
+                  </Link>
+                )}
                 <Link to={`/projects/${projectCreated.id}`}
                   className="flex items-center gap-1 px-3 py-1.5 rounded-lg eyra-gradient text-white text-xs font-medium">
                   <Sparkles size={10} /> Open project →
