@@ -228,3 +228,44 @@ test('scholarly search validates and caps Crossref results without claiming full
     globalThis.fetch = previousFetch;
   }
 });
+
+test('project.get retrieves only an owner-scoped UUID record', async () => {
+  const previousFetch = globalThis.fetch;
+  const projectId = '123e4567-e89b-42d3-a456-426614174000';
+  let modelCount = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address.includes('/rest/v1/projects?')) {
+      const params = new URL(address).searchParams;
+      assert.equal(params.get('user_id'), 'eq.user-a');
+      assert.equal(params.get('id'), 'eq.' + projectId);
+      assert.equal(options.method, undefined);
+      return new Response(JSON.stringify([{ id: projectId, data: { title: 'Owner research project' }, created_date: '2026-11-15T00:00:00Z' }]), { status: 200 });
+    }
+    if (address === 'https://api.openai.com/v1/responses') {
+      modelCount += 1;
+      return new Response(JSON.stringify(modelCount === 1
+        ? { id: 'project_get_call', status: 'completed', output: [{
+          type: 'function_call', call_id: 'get-1', name: 'project.get',
+          arguments: JSON.stringify({ id: projectId }),
+        }] }
+        : { id: 'project_get_final', status: 'completed', output: [{ content: [{ type: 'output_text', text: 'Owner project found.' }] }] }
+      ), { status: 200 });
+    }
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({
+      method: 'POST', headers: { authorization: 'Bearer user-access-token' },
+      body: { prompt: 'Read details for my project ' + projectId, enable_project_tools: true },
+    }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.payload.actions[0].status, 'succeeded');
+    assert.equal(response.payload.actions[0].result.id, projectId);
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
