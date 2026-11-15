@@ -348,6 +348,11 @@ try {
   await page
     .getByRole("heading", { name: "What would you like to do?", exact: true })
     .waitFor();
+  await page.getByRole("region", { name: "Browse EYLO tools" }).waitFor();
+  assert.equal(await page.evaluate(() =>
+    document.documentElement.scrollWidth <= window.innerWidth + 1
+    && document.body.scrollWidth <= window.innerWidth + 1), true,
+    "Tools directory must not overflow the mobile viewport");
   for (const product of PRODUCT_TOOLS)
     assert.equal(
       await page
