@@ -265,7 +265,7 @@ try {
   await page.getByRole('button', { name: 'Ask EYRA', exact: true }).click();
   await page.getByText('Workspace context ready · sources attached when retrieved').waitFor();
   await page.getByRole('button', { name: 'Strategy', exact: true }).click();
-  assert.equal(await page.getByRole('checkbox', { name: 'Allow project and Library actions for this request' }).isChecked(), false);
+  assert.equal(await page.getByRole('checkbox', { name: 'Allow authorized workspace and research tools for this request' }).isChecked(), false);
   await page.getByLabel('Message EYRA').fill('Explain how to plan my next task');
   await page.getByLabel('Message EYRA').press('Enter');
   await page.getByText(answer, { exact: true }).waitFor();
