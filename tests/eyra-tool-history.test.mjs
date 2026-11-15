@@ -530,3 +530,60 @@ test('rejects malformed model arguments before any database side effect', async 
     globalThis.fetch = previousFetch;
   }
 });
+
+test('funding, flashcards and researcher lookup remain owner-filtered read-only operations', async () => {
+  const previousFetch = globalThis.fetch;
+  let modelCount = 0;
+  const names = [
+    ['learning.list_flashcard_decks', 'study_flashcard_decks'],
+    ['funding.list_saved_opportunities', 'saved_opportunities'],
+    ['research.list_saved_researchers', 'saved_researchers'],
+  ];
+  let readIndex = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address.startsWith('https://eyra-tool-history-test.supabase.co/rest/v1/')) {
+      const target = new URL(address);
+      assert.equal(target.pathname, '/rest/v1/' + names[readIndex][1]);
+      assert.equal(target.searchParams.get('user_id'), 'eq.user-a');
+      assert.equal(target.searchParams.get('limit'), '20');
+      assert.equal(options.method, undefined);
+      readIndex += 1;
+      return new Response(JSON.stringify([{ id: 'owner-record',
+        data: { title: 'Saved owner record', source_url: 'https://example.org/source' },
+        updated_date: '2026-11-15T00:00:00Z',
+      }]), { status: 200 });
+    }
+    if (address === 'https://api.openai.com/v1/responses') {
+      modelCount += 1;
+      if (modelCount === 2) {
+        const input = JSON.parse(options.body).input;
+        const outputs = input.filter(item => item.type === 'function_call_output')
+          .map(item => JSON.parse(item.output));
+        assert.equal(outputs.length, 3);
+        assert.equal(outputs[1].result[0].metadata_status, 'saved_record_not_live_eligibility_verification');
+        assert.equal(outputs[2].result[0].metadata_status, 'saved_record_not_live_affiliation_verification');
+      }
+      return new Response(JSON.stringify(modelCount === 1
+        ? { id: 'reads', status: 'completed', output: names.map(([name], i) => ({
+          type: 'function_call', call_id: 'read-' + i, name, arguments: '{}',
+        })) }
+        : { id: 'final', status: 'completed', output: [{ content: [{ type: 'output_text', text: 'Records retrieved.' }] }] }
+      ), { status: 200 });
+    }
+    throw new Error('Unexpected request ' + address);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' },
+      body: { prompt: 'Review my saved study materials, grants and researchers.', enable_project_tools: true },
+    }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(readIndex, 3);
+    assert.ok(response.payload.actions.every(action => action.status === 'succeeded'));
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
