@@ -387,6 +387,10 @@ export default function Projects() {
                     </span>
                   </div>
                 </Link>
+                <Link to={'/research-journey?project_id=' + encodeURIComponent(p.id)}
+                  className="mx-5 mb-2 inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">
+                  Research journey
+                </Link>
                 <Link
                   to={'/projects/' + p.id + '/decisions'}
                   className="mx-5 mb-4 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary"
