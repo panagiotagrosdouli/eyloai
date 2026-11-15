@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Command } from 'cmdk';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -31,14 +31,19 @@ const COMMANDS = [
 
 export default function GlobalCommandCenter({ open, onClose }) {
   const [query, setQuery] = useState('');
+  const previousFocusRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!open) return undefined;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setQuery('');
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = previousOverflow; };
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (previousFocusRef.current?.isConnected) previousFocusRef.current.focus();
+    };
   }, [open]);
 
   if (!open) return null;
