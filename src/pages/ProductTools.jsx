@@ -9,7 +9,9 @@ import {
 } from "@/components/projects/ProjectDocumentWorkspace";
 export default function ProductTools() {
   const { tool } = useParams();
+  const [query, setQuery] = useState("");
   const config = PRODUCT_TOOLS.find((p) => p.slug === tool);
+  const visibleTools = PRODUCT_TOOLS.filter(p => `${p.title} ${p.description} ${p.kind}`.toLowerCase().includes(query.trim().toLowerCase()));
   if (!tool)
     return (
       <main className="eylo-page mx-auto max-w-6xl space-y-5">
@@ -19,8 +21,11 @@ export default function ProductTools() {
           operations. Availability depends on your permissions and enabled
           services.
         </p>
+        <label className="block max-w-xl text-sm font-medium text-foreground" htmlFor="product-tools-search">Find a tool</label>
+        <input id="product-tools-search" type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search by task or tool name" className="min-h-11 w-full max-w-xl rounded-xl border border-border bg-background px-4 text-sm text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" />
+        <p role="status" className="text-xs text-muted-foreground">{visibleTools.length} tools available in this directory</p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {PRODUCT_TOOLS.map((p) => (
+          {visibleTools.map((p) => (
             <Link
               className="rounded-xl border border-border bg-card p-4 hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
               key={p.id}
@@ -39,6 +44,7 @@ export default function ProductTools() {
             </Link>
           ))}
         </div>
+        {visibleTools.length === 0 && <p role="status" className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">No tools match your search. Try another term or return to the workspace.</p>}
       </main>
     );
   if (!config) return <main className="eylo-page">Unknown tool.</main>;
