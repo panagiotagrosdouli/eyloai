@@ -1,4 +1,4 @@
-create function pg_temp.verify_research_catalog(ok boolean, message text) returns void language plpgsql as $
+create function pg_temp.verify_research_catalog(ok boolean, message text) returns void language plpgsql as $$
 begin if ok is distinct from true then raise exception 'Research catalog assertion failed: %', message; end if; end$;
 
 insert into auth.users(id) values
