@@ -1,4 +1,5 @@
 import { assertTranslationReferences } from "@/lib/translation-references.mjs";
+import { readOptionalEyraMessages } from "@/lib/memory-source-availability.mjs";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -113,17 +114,19 @@ function Memory() {
           .order("created_date", { ascending: false })
           .limit(1000),
       ]);
-      if (messages.error) throw messages.error;
+      // A missing optional conversation table must not hide available private
+      // Notes and projects; denied access and other backend errors still fail.
+      const { records: eyraRows, historyAvailable } = readOptionalEyraMessages(
+        messages, session.user.id,
+      );
       if (
         new TextEncoder().encode(
-          JSON.stringify([notes, projects, messages.data]),
+          JSON.stringify([notes, projects, eyraRows]),
         ).length > 20971520
       )
         throw new Error(
           "Loaded memory sources exceed the 20 MiB reading budget. Use scoped Workspace Search instead.",
         );
-      if (messages.data.some((row) => row.user_id !== session.user.id))
-        throw new Error("Source ownership mismatch.");
       if (!state.alive.current) return;
       setSources([
         ...notes.map((n) => ({
@@ -140,7 +143,7 @@ function Memory() {
           text: p.description || p.goal || "",
           href: `/projects/${p.id}`,
         })),
-        ...messages.data.map((m) => ({
+        ...eyraRows.map((m) => ({
           id: m.id,
           kind: "EYRA message",
           title: "Saved conversation message",
@@ -150,14 +153,18 @@ function Memory() {
         })),
       ]);
       setLoaded(true);
-      state.setNotice("Loaded up to1,000 recent records per source.");
+      state.setNotice(
+        historyAvailable
+          ? "Loaded up to 1,000 recent records per source."
+          : "Notes and projects loaded. EYRA message history is not configured yet.",
+      );
     });
   return (
     <div className="space-y-4">
       <p className="text-sm">
-        Search your saved Notes, projects and EYRA messages without sending them
-        to an AI model. Matches use all search words and cover the loaded
-        sources.
+        Search your saved Notes and projects, plus EYRA messages where available,
+        without sending them to an AI model. Matches use all search words and
+        cover only the sources successfully loaded.
       </p>
       <Status state={state} />
       <button className={button} disabled={state.busy} onClick={load}>
