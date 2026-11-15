@@ -576,7 +576,9 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     activeRequestRef.current = null;
     setLoading(false);
     setLiveDraft('');
-    setActionError('Generation stopped. No new EYRA response was saved.');
+    setActionError(allowWorkspaceActions
+      ? 'Display stopped. A server-side workspace action may still finish. Check the relevant record and agent run status before retrying.'
+      : 'Generation stopped. No new EYRA response was added to this conversation.');
   };
 
   const sendMessage = async (text, { writeConfirmed = false } = {}) => {
