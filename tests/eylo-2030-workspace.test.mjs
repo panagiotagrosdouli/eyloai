@@ -49,3 +49,13 @@ test('home does not mount its secondary dashboard until requested', () => {
   assert.match(hero, /autoRefine=\{false\}/);
   assert.doesNotMatch(hero, /<main\b/);
 });
+
+test('discovery retains results without saving history until the user approves', () => {
+  const home = read('../src/pages/Home.jsx');
+  const results = read('../src/components/discovery/DiscoveryResults.jsx');
+  assert.doesNotMatch(home, /SearchHistory\.create\(/);
+  assert.match(results, /onClick=\{saveSearch\}/);
+  assert.match(results, /SearchHistory\.create\(/);
+  assert.match(results, /aria-describedby="project-save-scope"/);
+  assert.match(results, /Creating a project also saves up to five papers/);
+});
