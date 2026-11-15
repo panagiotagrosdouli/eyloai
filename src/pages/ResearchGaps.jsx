@@ -38,6 +38,8 @@ export default function ResearchGaps() {
   const [literatureRetrievedAt, setLiteratureRetrievedAt] = useState('');
   const [searchingLiterature, setSearchingLiterature] = useState(false);
   const [literatureError, setLiteratureError] = useState('');
+  const [savedPaperQuery, setSavedPaperQuery] = useState('');
+  const [savedPaperFilter, setSavedPaperFilter] = useState('all');
   const literatureRequest = useRef({ sequence: 0, controller: null });
   const { toast } = useToast();
 
@@ -58,6 +60,16 @@ export default function ResearchGaps() {
   }, []);
 
   const sourcePapers = projectId ? papers.filter((paper) => paper.project_id === projectId) : papers;
+  // This is a view-only filter: analysis always uses explicit selected paper IDs,
+  // including selections that are currently hidden by a search.
+  const visibleSourcePapers = sourcePapers.filter(paper => {
+    const query = savedPaperQuery.trim().toLocaleLowerCase();
+    const matchesText = !query || [paper.title, paper.authors, paper.doi, paper.year]
+      .some(value => String(value || '').toLocaleLowerCase().includes(query));
+    const isSelected = selected.includes(paper.id);
+    return matchesText && (savedPaperFilter === 'all'
+      || (savedPaperFilter === 'selected' ? isSelected : !isSelected));
+  });
   const currentEvidenceContextKey = getResearchEvidenceContextKey(projectId, selected);
   const hasCurrentAnalysis = gapsContextKey === currentEvidenceContextKey
     || comparison?.contextKey === currentEvidenceContextKey;
@@ -310,7 +322,30 @@ export default function ResearchGaps() {
       )}
     </section>
     {error && <p role="alert" className="mb-4 rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-foreground">{error} <button className="ml-2 underline" onClick={load}>Retry</button></p>}
-    {loading ? <div role="status" className="py-16 text-center text-sm text-muted-foreground">Loading your research library…</div> : sourcePapers.length === 0 ? <div className="rounded-2xl border border-dashed border-border p-8 text-center"><p className="text-sm font-medium text-foreground">No saved papers in this view yet.</p><p className="mt-2 text-sm text-muted-foreground">Search above and save at least two relevant studies, or return to your Library.</p><div className="mt-4 flex flex-wrap justify-center gap-3"><Link to="/search" className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Find publications</Link><Link to="/library" className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm text-foreground">Open Library</Link></div></div> : <section className="mb-8 space-y-2">{sourcePapers.map((paper) => <label key={paper.id} className="flex cursor-pointer gap-3 rounded-xl border border-border bg-card p-4"><input type="checkbox" checked={selected.includes(paper.id)} onChange={() => toggle(paper.id)} className="mt-1"/><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{paper.title}</span><span className="mt-1 block text-xs text-muted-foreground">{[paper.authors, paper.year, paper.doi].filter(Boolean).join(' · ')}</span>{paper.summary && <span className="mt-2 block line-clamp-2 text-xs leading-5 text-muted-foreground">{paper.summary}</span>}</span>{isSafeLiteratureSourceUrl(paper.url) && <a href={paper.url} target="_blank" rel="noopener noreferrer" aria-label="Open paper source" className="text-primary" onClick={(event) => event.stopPropagation()}><ExternalLink size={15}/></a>}</label>)}</section>}
+    <section className="mb-5 rounded-xl border border-border bg-card p-4" aria-label="Choose saved research evidence">
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+        <label htmlFor="gap-saved-paper-search" className="block text-sm font-medium text-foreground">Find a saved publication
+          <input id="gap-saved-paper-search" type="search" value={savedPaperQuery} onChange={event => setSavedPaperQuery(event.target.value)}
+            placeholder="Search title, author, DOI or year" className="mt-2 block min-h-11 w-full rounded-lg border border-border bg-background px-3 text-base" />
+        </label>
+        <label htmlFor="gap-saved-paper-filter" className="block text-sm font-medium text-foreground">Evidence selection
+          <select id="gap-saved-paper-filter" value={savedPaperFilter} onChange={event => setSavedPaperFilter(event.target.value)}
+            className="mt-2 block min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm">
+            <option value="all">All saved papers</option>
+            <option value="selected">Selected papers</option>
+            <option value="unselected">Not selected</option>
+          </select>
+        </label>
+      </div>
+      <div role="status" className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+        <span>Showing {visibleSourcePapers.length} of {sourcePapers.length} loaded papers · {selected.length} selected for analysis. Search does not discard hidden selections.</span>
+        {(savedPaperQuery || savedPaperFilter !== 'all') && <button type="button" onClick={() => { setSavedPaperQuery(''); setSavedPaperFilter('all'); }}
+          className="min-h-11 rounded-lg border border-border px-3 text-sm font-semibold text-foreground">Clear filters</button>}
+      </div>
+      {!loading && sourcePapers.length > 0 && visibleSourcePapers.length === 0 &&
+        <p className="mt-3 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">No saved papers match these filters. Your selected evidence is preserved.</p>}
+    </section>
+    {loading ? <div role="status" className="py-16 text-center text-sm text-muted-foreground">Loading your research library…</div> : sourcePapers.length === 0 ? <div className="rounded-2xl border border-dashed border-border p-8 text-center"><p className="text-sm font-medium text-foreground">No saved papers in this view yet.</p><p className="mt-2 text-sm text-muted-foreground">Search above and save at least two relevant studies, or return to your Library.</p><div className="mt-4 flex flex-wrap justify-center gap-3"><Link to="/search" className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Find publications</Link><Link to="/library" className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm text-foreground">Open Library</Link></div></div> : <section className="mb-8 space-y-2">{visibleSourcePapers.map((paper) => <label key={paper.id} className="flex cursor-pointer gap-3 rounded-xl border border-border bg-card p-4"><input type="checkbox" checked={selected.includes(paper.id)} onChange={() => toggle(paper.id)} className="mt-1"/><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{paper.title}</span><span className="mt-1 block text-xs text-muted-foreground">{[paper.authors, paper.year, paper.doi].filter(Boolean).join(' · ')}</span>{paper.summary && <span className="mt-2 block line-clamp-2 text-xs leading-5 text-muted-foreground">{paper.summary}</span>}</span>{isSafeLiteratureSourceUrl(paper.url) && <a href={paper.url} target="_blank" rel="noopener noreferrer" aria-label={`Open source for ${paper.title || 'saved publication'}`} className="inline-flex min-h-11 min-w-11 items-center justify-center text-primary" onClick={(event) => event.stopPropagation()}><ExternalLink size={15}/></a>}</label>)}</section>}
     {analyzing && <p className="mb-4 flex items-center gap-2 text-sm text-muted-foreground"><Sparkles size={15} className="text-primary"/>EYRA is comparing the supplied evidence and limitations…</p>}
     {comparing && <p role="status" className="mb-4 text-sm text-muted-foreground">EYRA is comparing objectives, methods, findings and reported limitations…</p>}
     {hasCurrentAnalysis && comparison && comparison.contextKey === currentEvidenceContextKey && <article className="mb-5 rounded-2xl border border-primary/20 bg-card p-5"><p className="text-[10px] font-semibold uppercase tracking-wide text-primary">Paper comparison · abstract and metadata based</p><ol className="mt-2 list-inside list-decimal text-xs text-muted-foreground">{comparison.papers.map((paper) => <li key={paper.id}>{paper.title}{paper.url && <> · <a href={paper.url} target="_blank" rel="noopener noreferrer" className="text-primary underline">source</a></>}</li>)}</ol><div className="mt-4 grid gap-3 sm:grid-cols-2">{[['Research objectives', comparison.report.research_objectives], ['Methods and samples', comparison.report.methods_and_samples], ['Findings', comparison.report.findings], ['Disagreements', comparison.report.disagreements], ['Reported limitations', comparison.report.limitations], ['Synthesis', comparison.report.synthesis]].map(([label, value]) => <div key={label}><h3 className="text-xs font-semibold">{label}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{value}</p></div>)}</div></article>}
