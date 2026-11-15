@@ -239,7 +239,7 @@ function TypingIndicator({ stage }) {
           <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
         ))}
       </div>
-      <span className="text-[10px] text-muted-foreground">{stage === 'retrieving' ? 'Retrieving live evidence…' : 'Synthesizing a cited answer…'}</span>
+      <span className="text-xs text-muted-foreground">{stage === 'retrieving' ? 'Retrieving live evidence…' : 'Synthesizing a cited answer…'}</span>
     </div>
   );
 }
@@ -919,17 +919,17 @@ Answer the user's latest request. Cite every externally verifiable claim with th
                   type="button"
                   onClick={listening ? stopListening : startListening}
                   aria-label={listening ? 'Stop voice input' : 'Start voice input'}
-                  className={`p-1.5 rounded-lg transition-all ${listening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-secondary text-muted-foreground'}`}>
+                  className={`grid min-h-11 min-w-11 place-items-center rounded-lg transition-colors ${listening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-secondary text-muted-foreground'}`}>
                   {listening ? <MicOff size={14} /> : <Mic size={14} />}
                 </button>
                 {loading && (
                   <button type="button" aria-label="Stop EYRA generation" onClick={stopGeneration}
-                    className="rounded-lg border border-border px-2 py-1.5 text-xs font-semibold text-foreground hover:bg-secondary">
+                    className="min-h-11 rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-secondary">
                     Stop
                   </button>
                 )}
                 <button type="button" aria-label="Send message" onClick={() => sendMessage()} disabled={!input.trim() || loading}
-                  className="rounded-lg bg-primary p-1.5 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40">
+                  className="grid min-h-11 min-w-11 place-items-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40">
                   {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                 </button>
               </div>
@@ -937,7 +937,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
             {actionError && (
               <p role="alert" className="mt-2 text-center text-[10px] text-amber-300">{actionError}</p>
             )}
-            <p className="mt-1.5 text-center text-[9px] text-muted-foreground">
+            <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">
               Responses may use workspace context and retrieved records · Enter to send · Shift+Enter for a new line
             </p>
           </div>
