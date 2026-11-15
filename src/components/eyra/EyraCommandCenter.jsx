@@ -24,6 +24,7 @@ import { listEyraConversations, saveEyraConversation, loadEyraConversation, rena
 import { snapshotPayload, snapshotIdentity, conversationExport } from '@/lib/eyra-snapshot.mjs';
 import { requestedEyraWrites } from '@/lib/eyra-write-intent.mjs';
 import { buildEyraConversationContext } from '@/lib/eyra-conversation-context.mjs';
+import { listEyraAgentRuns, loadEyraAgentRun, cancelEyraAgentRun, deleteEyraAgentRun } from '@/lib/eyra-run-history';
 
 // EYRA modes change the analysis lens; evidence rules stay identical.
 const MODES = [
@@ -400,6 +401,11 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const [renameTitle, setRenameTitle] = useState(null);
   const [savingConversation, setSavingConversation] = useState(false);
   const [historyBusy, setHistoryBusy] = useState(false);
+  const [showAgentRuns, setShowAgentRuns] = useState(false);
+  const [agentRuns, setAgentRuns] = useState([]);
+  const [selectedAgentRun, setSelectedAgentRun] = useState(null);
+  const [agentRunsBusy, setAgentRunsBusy] = useState(false);
+  const [agentRunsError, setAgentRunsError] = useState('');
   const historyEpochRef = useRef(0);
   const snapshotRequestRef = useRef(null);
   const historyWriteLockRef = useRef(false);
@@ -433,6 +439,8 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     setRemoteConversation(null); setSavedConversations([]); setAllowWorkspaceActions(false);
     historyEpochRef.current += 1; snapshotRequestRef.current = null; historyWriteLockRef.current = false; setHistoryBusy(false);
     setSavingConversation(false); setSavedMessageIds(new Set()); setUserName(''); setActionError('');
+    setShowAgentRuns(false); setAgentRuns([]); setSelectedAgentRun(null);
+    setAgentRunsBusy(false); setAgentRunsError('');
   }, [user?.id]);
 
   useEffect(() => {
@@ -721,6 +729,78 @@ Answer the user's latest request. Cite every externally verifiable claim with th
     }
   };
 
+  const refreshAgentRuns = async () => {
+    const owner = user?.id;
+    if (!owner || agentRunsBusy || loading) return;
+    setAgentRunsBusy(true); setAgentRunsError('');
+    try {
+      const rows = await listEyraAgentRuns();
+      if (ownerRef.current !== owner) return;
+      setAgentRuns(rows);
+      setShowAgentRuns(true);
+      setSelectedAgentRun(null);
+    } catch (error) {
+      if (ownerRef.current === owner) {
+        setAgentRunsError(error?.message || 'Agent runs could not be loaded.');
+        setShowAgentRuns(true);
+      }
+    } finally {
+      if (ownerRef.current === owner) setAgentRunsBusy(false);
+    }
+  };
+
+  const inspectAgentRun = async id => {
+    const owner = user?.id;
+    if (!owner || agentRunsBusy || loading) return;
+    setAgentRunsBusy(true); setAgentRunsError('');
+    try {
+      const result = await loadEyraAgentRun(id);
+      if (ownerRef.current === owner) setSelectedAgentRun(result);
+    } catch (error) {
+      if (ownerRef.current === owner) {
+        setAgentRunsError(error?.message || 'Agent run details could not be loaded.');
+      }
+    } finally {
+      if (ownerRef.current === owner) setAgentRunsBusy(false);
+    }
+  };
+
+  const cancelAgentRun = async id => {
+    const owner = user?.id;
+    if (!owner || agentRunsBusy || loading) return;
+    if (!window.confirm('Request cancellation of this agent run? A write already in progress might still finish.')) return;
+    setAgentRunsBusy(true); setAgentRunsError('');
+    try {
+      await cancelEyraAgentRun(id);
+      if (ownerRef.current !== owner) return;
+      setAgentRuns(items => items.map(item => item.id === id
+        ? { ...item, status: 'cancelled' } : item));
+      setSelectedAgentRun(previous => previous?.run?.id === id
+        ? { ...previous, run: { ...previous.run, status: 'cancelled' } } : previous);
+    } catch (error) {
+      if (ownerRef.current === owner) setAgentRunsError(error?.message || 'Cancellation was not confirmed.');
+    } finally {
+      if (ownerRef.current === owner) setAgentRunsBusy(false);
+    }
+  };
+
+  const removeAgentRun = async id => {
+    const owner = user?.id;
+    if (!owner || agentRunsBusy || loading) return;
+    if (!window.confirm('Permanently delete this completed agent run and its action history? This cannot be undone.')) return;
+    setAgentRunsBusy(true); setAgentRunsError('');
+    try {
+      await deleteEyraAgentRun(id);
+      if (ownerRef.current !== owner) return;
+      setAgentRuns(items => items.filter(item => item.id !== id));
+      setSelectedAgentRun(previous => previous?.run?.id === id ? null : previous);
+    } catch (error) {
+      if (ownerRef.current === owner) setAgentRunsError(error?.message || 'Deletion was not confirmed.');
+    } finally {
+      if (ownerRef.current === owner) setAgentRunsBusy(false);
+    }
+  };
+
   const saveConversation = async () => {
     const owner = user?.id;
     if (!owner || loading || savingConversation || historyBusy || historyWriteLockRef.current) return;
@@ -975,10 +1055,64 @@ Answer the user's latest request. Cite every externally verifiable claim with th
               <button type="button" onClick={() => void saveConversation()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
               <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
               <button type="button" onClick={exportConversation} disabled={loading || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Export conversation</button>
+              <button type="button" onClick={() => showAgentRuns ? (setShowAgentRuns(false), setSelectedAgentRun(null)) : void refreshAgentRuns()}
+                disabled={loading || agentRunsBusy} aria-expanded={showAgentRuns}
+                className="min-h-9 rounded-lg border border-border px-2">
+                {agentRunsBusy ? 'Loading runs…' : showAgentRuns ? 'Hide agent runs' : 'Agent runs'}
+              </button>
               {remoteConversation && <button type="button" onClick={() => setRenameTitle(remoteConversation.title || '')} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Rename saved conversation</button>}
               {remoteConversation && <button type="button" onClick={() => void deleteSnapshot()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Delete saved snapshot</button>}
               <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); }} />Allow authorized workspace and research tools for this request</label>
             </div>
+            {showAgentRuns && (
+              <section aria-label="EYRA agent runs" className="mb-2 max-h-56 overflow-y-auto rounded-lg border border-border p-2 text-xs">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="font-semibold">Agent run history</span>
+                  <button type="button" onClick={() => void refreshAgentRuns()}
+                    disabled={agentRunsBusy || loading} className="rounded-md border border-border px-2 py-1">Refresh</button>
+                </div>
+                {agentRunsError && <p role="alert" className="mb-2 text-destructive">{agentRunsError}</p>}
+                {!agentRunsError && !agentRunsBusy && agentRuns.length === 0 && (
+                  <p className="text-muted-foreground">No recorded agent runs in this environment.</p>
+                )}
+                {agentRuns.map(item => (
+                  <div key={item.id} className="mb-1 flex flex-wrap items-center gap-2 border-b border-border/70 py-1">
+                    <span className="min-w-0 flex-1 truncate">{item.input_preview || item.id}</span>
+                    <span className="font-medium">{item.status}</span>
+                    <button type="button" onClick={() => void inspectAgentRun(item.id)}
+                      disabled={agentRunsBusy || loading} className="rounded-md border border-border px-2 py-1">Details</button>
+                  </div>
+                ))}
+                {selectedAgentRun && (
+                  <div className="mt-2 rounded-md border border-border bg-secondary/20 p-2">
+                    <p className="font-semibold">Run: {selectedAgentRun.run.id}</p>
+                    <p>Status: {selectedAgentRun.run.status}</p>
+                    <p className="break-words">Response: {selectedAgentRun.run.response_text || 'No recorded final response.'}</p>
+                    {selectedAgentRun.actions.map(action => (
+                      <p key={action.id} className="break-words">
+                        {action.tool_name}: {action.status}
+                        {action.status === 'needs_review' ? ' — inspect the saved record before retrying.' : ''}
+                      </p>
+                    ))}
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {selectedAgentRun.run.status === 'running' && (
+                        <button type="button" disabled={agentRunsBusy || loading}
+                          className="rounded-md border border-border px-2 py-1"
+                          onClick={() => void cancelAgentRun(selectedAgentRun.run.id)}>Request cancellation</button>
+                      )}
+                      {selectedAgentRun.run.status !== 'running' && (
+                        <button type="button" disabled={agentRunsBusy || loading}
+                          className="rounded-md border border-border px-2 py-1"
+                          onClick={() => void removeAgentRun(selectedAgentRun.run.id)}>Delete run history</button>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <p className="mt-2 text-muted-foreground">
+                  Cancellation is cooperative. A previously initiated external write may still complete.
+                </p>
+              </section>
+            )}
             {renameTitle !== null && remoteConversation && (
               <form className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-border p-2"
                 onSubmit={event => { event.preventDefault(); void saveRenamedConversation(); }}>
