@@ -476,8 +476,10 @@ export default async function handler(request, response) {
     if (request.body?.enable_project_tools === true && toolIntent !== undefined && (typeof toolIntent !== 'string' || toolIntent.length > 1000)) {
       return response.status(400).json({ error: 'The current action request is invalid.', code: 'INVALID_TOOL_INTENT' });
     }
-    identity.explicitProjectCreate = userExplicitlyRequestedProjectCreation(toolIntent);
-    identity.explicitPaperSave = userExplicitlyRequestedPaperSave(toolIntent);
+    // Tool intent is browser-supplied metadata, not independent authorization.
+    // The authenticated user's actual prompt must authorize every write.
+    identity.explicitProjectCreate = userExplicitlyRequestedProjectCreation(prompt);
+    identity.explicitPaperSave = userExplicitlyRequestedPaperSave(prompt);
 
     const requestedSchema = request.body?.response_json_schema;
     const stream = request.body?.stream === true;
@@ -618,6 +620,7 @@ export default async function handler(request, response) {
       });
     }
     const actionResults = [];
+    /** @type {Array<Record<string, any>>} */
     const toolTranscript = [{ role: 'user', content: prompt }];
     const seenToolCallIds = new Set();
     // Only the two allowlisted, authenticated project operations above can be
