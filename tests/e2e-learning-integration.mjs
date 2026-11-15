@@ -739,6 +739,29 @@ try {
     await page.getByText(/Showing at most 250 recent records per collection/).waitFor();
     console.log('PASS fixture: same-route Knowledge Graph account switch clears old nodes while new-owner queries are delayed; bounded Notes coverage is disclosed. This is not hosted two-user RLS acceptance.');
   } finally { releaseGraphOwnerQuery(); }
+  await page.goto(`${origin}/habits`);
+  await page.getByRole('heading', { name: 'Habits', exact: true }).waitFor();
+  const habitToday = await page.getByLabel('First check-in date', { exact: true }).inputValue();
+  const tomorrow = new Date(`${habitToday}T00:00:00Z`);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  await page.getByLabel('Habit', { exact: true }).fill('Future reading routine');
+  await page.getByLabel('First check-in date', { exact: true }).fill(tomorrow.toISOString().slice(0, 10));
+  await page.getByRole('button', { name: 'Save habit', exact: true }).click();
+  await page.getByRole('heading', { name: 'Future reading routine', exact: true }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Check in for Future reading routine', exact: true }).isDisabled(), true);
+  await page.getByLabel('Habit', { exact: true }).fill('Today reading routine');
+  await page.getByLabel('First check-in date', { exact: true }).fill(habitToday);
+  await page.getByRole('button', { name: 'Save habit', exact: true }).click();
+  await page.getByRole('heading', { name: 'Today reading routine', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Check in for Today reading routine', exact: true }).click();
+  await page.getByText(/Recorded for .*Next check-in is/).waitFor();
+  await page.reload();
+  const routine = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Today reading routine', exact: true }) });
+  await routine.getByText('Saved check-in history', { exact: true }).click();
+  await routine.getByText('Completed', { exact: true }).waitFor();
+  await routine.getByText('Scheduled', { exact: true }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Check in for Today reading routine', exact: true }).isDisabled(), true);
+  console.log('PASS fixture: future habit check-ins are disabled; saved completion and next scheduled date survive reload in history.');
   const oldTaskId = '40000000-0000-4000-8000-000000009999';
   const foreignTaskId = '40000000-0000-4000-8000-000000009998';
   tables.life_tasks = [
@@ -765,30 +788,6 @@ try {
   assert.equal(tables.life_tasks.length, beforeTasks + 1);
   console.log('PASS fixture: exact Life task beyond recent1000 opens; same-route foreign/missing targets clear the editor and fail closed without a substitute or mutation. Hosted RLS remains unverified.');
   console.log('PASS fixture: authenticated EYRA streaming, task context, explicit action opt-in and canonical EYRA snapshot save/restore.');
-  await page.goto(`${origin}/habits`);
-  await page.getByRole('heading', { name: 'Habits', exact: true }).waitFor();
-  const habitToday = await page.getByLabel('First check-in date', { exact: true }).inputValue();
-  const tomorrow = new Date(`${habitToday}T00:00:00Z`);
-  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  await page.getByLabel('Habit', { exact: true }).fill('Future reading routine');
-  await page.getByLabel('First check-in date', { exact: true }).fill(tomorrow.toISOString().slice(0, 10));
-  await page.getByRole('button', { name: 'Save habit', exact: true }).click();
-  await page.getByRole('heading', { name: 'Future reading routine', exact: true }).waitFor();
-  assert.equal(await page.getByRole('button', { name: 'Check in for Future reading routine', exact: true }).isDisabled(), true);
-  await page.getByLabel('Habit', { exact: true }).fill('Today reading routine');
-  await page.getByLabel('First check-in date', { exact: true }).fill(habitToday);
-  await page.getByRole('button', { name: 'Save habit', exact: true }).click();
-  await page.getByRole('heading', { name: 'Today reading routine', exact: true }).waitFor();
-  await page.getByRole('button', { name: 'Check in for Today reading routine', exact: true }).click();
-  await page.getByText(/Recorded for .*Next check-in is/).waitFor();
-  await page.reload();
-  const routine = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Today reading routine', exact: true }) });
-  await routine.getByText('Saved check-in history', { exact: true }).click();
-  await routine.getByText('Completed', { exact: true }).waitFor();
-  await routine.getByText('Scheduled', { exact: true }).waitFor();
-  assert.equal(await page.getByRole('button', { name: 'Check in for Today reading routine', exact: true }).isDisabled(), true);
-  console.log('PASS fixture: future habit check-ins are disabled; saved completion and next scheduled date survive reload in history.');
-
 } finally {
   if (browser) await browser.close();
   server.kill('SIGTERM');

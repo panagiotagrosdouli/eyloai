@@ -127,14 +127,6 @@ These scopes use existing main implementations. Page paths identify inspection t
 | EYRA AI | Existing `src/pages/EyloEyra.jsx`; baseline remains partial | Full execution-request criteria, real-service persistence and ownership acceptance; provider-dependent features require verified service configuration | None in this increment; preserve existing open PR work | Existing repository coverage; no new per-module claim | Not verified | PARTIALLY FUNCTIONAL |
 | All Workspace Tools | Existing `src/pages/ProductTools.jsx`; baseline remains partial | Full execution-request criteria, real-service persistence and ownership acceptance; provider-dependent features require verified service configuration | None in this increment; preserve existing open PR work | Existing repository coverage; no new per-module claim | Not verified | PARTIALLY FUNCTIONAL |
 
-## Fresh service-access evidence
-
-Read-only connector checks on 2026-11-15: Supabase lists only project `umzrggayitzfgrrofjnw` (`supabase-cyan-car`), whose EYLO ownership/staging role is not established. Vercel context returns the connected Hobby team with `linkedProjects: []`. No secrets, hosted migrations, data writes or deployments were performed. Acceptance requires access to an independently confirmed EYLO staging project, two authorized test users, and the configured AI, Storage, billing-test and LiveKit services.
-
-## Unresolved limitations of this increment
-
-The existing paginated read is not a database snapshot: concurrent inserts/deletes during pagination can change offsets. Date-filtered server aggregates and snapshot-consistent reporting remain future work. The safety bound deliberately blocks partial reports beyond 50,000 entries. Pause/resume, scheduled automations and the broader platform acceptance work are not implemented by this PR.
-
 ## Follow-up — Habits saved history and date eligibility (2026-11-15)
 
 - Show actual persisted occurrences with completed, overdue, due-today and scheduled labels. Invalid/future-dated saved completions remain visible for review; future dates do not inflate current statistics.
@@ -145,3 +137,11 @@ The existing paginated read is not a database snapshot: concurrent inserts/delet
 - Timer pause/resume and date reporting are separately proposed in PR #446; its migration has only been applied to disposable PostgreSQL. Build, EYLO Quality Gate, Product quality and Vercel checks passed on its 00354aa head; this is not hosted acceptance. This branch does not duplicate that implementation.
 
 Fresh access check after the user identified `kbzjngpzxpniaumlupaa`: both Supabase project metadata and migration-history requests returned permission denied. Repository release guards identify that ref as live EYLO, so it has not been used for staging acceptance writes. Hosted verification still requires an account connection with access and a separate confirmed staging project. No hosted migration or production-data write was performed.
+
+## Fresh service-access evidence
+
+Read-only connector checks on 2026-11-15: Supabase lists only project `umzrggayitzfgrrofjnw` (`supabase-cyan-car`), whose EYLO ownership/staging role is not established. Vercel context returns the connected Hobby team with `linkedProjects: []`. No secrets, hosted migrations, data writes or deployments were performed. Acceptance requires access to an independently confirmed EYLO staging project, two authorized test users, and the configured AI, Storage, billing-test and LiveKit services.
+
+## Unresolved limitations of this increment
+
+The existing paginated read is not a database snapshot: concurrent inserts/deletes during pagination can change offsets. Date-filtered server aggregates and snapshot-consistent reporting remain future work. The safety bound deliberately blocks partial reports beyond 50,000 entries. Pause/resume, scheduled automations and the broader platform acceptance work are not implemented by this PR.
