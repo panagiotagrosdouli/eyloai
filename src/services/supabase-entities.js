@@ -2,6 +2,7 @@ import { getBillingStatus } from '@/lib/billing';
 import { workspaceDataError } from '@/lib/workspace-schema-error.mjs';
 import { mergeWorkspaceProfile, assertCanonicalProfileWrite } from '@/lib/profile-merge.mjs';
 import { requireEntityVersion, requireVersionedWriteResult } from '@/lib/entity-optimistic-version.mjs';
+import { canRetryLegacyTimestamp, legacyTimestampColumn } from '@/lib/entity-timestamp-compat.mjs';
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 import { recordActivation, trackEyraFollowthrough } from '@/lib/product-analytics';
 import { applyEntityFilters, rowToEntity, splitPayload } from './entity-serialization';
@@ -102,7 +103,13 @@ function entityRepository({ table }) {
       if (column === 'created_date' || column === 'updated_date') {
         query.order(column, { ascending: !descending }).order('id', { ascending: true });
       }
-      const { data, error } = await query.limit(Math.max(limit || 100, 1));
+      let { data, error } = await query.limit(Math.max(limit || 100, 1));
+      if (canRetryLegacyTimestamp(error, column)) {
+        const legacyQuery = requireSupabase().from(table).select('*').eq('user_id', user.id)
+          .order(legacyTimestampColumn(column), { ascending: !descending })
+          .order('id', { ascending: true });
+        ({ data, error } = await legacyQuery.limit(Math.max(limit || 100, 1)));
+      }
       if (error) throw workspaceDataError(error);
       if (expectedOwnerId && (data || []).some(row => row?.user_id !== expectedOwnerId)) {
         throw Object.assign(new Error('This collection could not be verified for the signed-in account.'), { code: 'ENTITY_OWNER_MISMATCH' });
@@ -128,13 +135,20 @@ function entityRepository({ table }) {
         throw Object.assign(new Error('The signed-in account changed. Reload this workspace.'), { code: 'ENTITY_OWNER_CHANGED' });
       }
 
-      const { data, error } = await requireSupabase()
+      let { data, error } = await requireSupabase()
         .from(table)
         .select('*')
         .eq('user_id', user.id)
         .order(column, { ascending: !descending })
         .order('id', { ascending: true })
         .range(start, start + limit);
+      if (canRetryLegacyTimestamp(error, column)) {
+        ({ data, error } = await requireSupabase()
+          .from(table).select('*').eq('user_id', user.id)
+          .order(legacyTimestampColumn(column), { ascending: !descending })
+          .order('id', { ascending: true })
+          .range(start, start + limit));
+      }
       if (error) throw workspaceDataError(error);
       if (expectedOwnerId && (data || []).some(row => row?.user_id !== expectedOwnerId)) {
         throw Object.assign(new Error('This collection could not be verified for the signed-in account.'), { code: 'ENTITY_OWNER_MISMATCH' });
@@ -155,7 +169,15 @@ function entityRepository({ table }) {
       if (column === 'created_date' || column === 'updated_date') {
         query = query.order(column, { ascending: !descending }).order('id', { ascending: true });
       }
-      const { data, error } = await query.limit(Math.max(limit || 100, 1));
+      let { data, error } = await query.limit(Math.max(limit || 100, 1));
+      if (canRetryLegacyTimestamp(error, column)) {
+        let legacyQuery = requireSupabase().from(table).select('*').eq('user_id', user.id);
+        legacyQuery = applyEntityFilters(legacyQuery, filters);
+        ({ data, error } = await legacyQuery
+          .order(legacyTimestampColumn(column), { ascending: !descending })
+          .order('id', { ascending: true })
+          .limit(Math.max(limit || 100, 1)));
+      }
       if (error) throw workspaceDataError(error);
       return sortEntities((data || []).map(rowToEntity), sort).slice(0, limit || 100);
     },
@@ -246,12 +268,20 @@ function entityRepository({ table }) {
       const existing = await this.get(entityId);
       const { id: _id, created_date: _created, updated_date: _updated, ...current } = existing;
       const write = splitPayload({ ...current, ...patch });
-      const result = await requireSupabase().from(table).update(write)
+      let result = await requireSupabase().from(table).update(write)
         .eq('id', entityId)
         .eq('user_id', user.id)
         .eq('updated_date', version)
         .select('*')
         .maybeSingle();
+      if (canRetryLegacyTimestamp(result.error, 'updated_date')) {
+        result = await requireSupabase().from(table).update(write)
+          .eq('id', entityId)
+          .eq('user_id', user.id)
+          .eq('updated_at', version)
+          .select('*')
+          .maybeSingle();
+      }
       const row = requireVersionedWriteResult(result);
       if (table === 'projects' && containsSavedEyraOutput(patch)) {
         trackEyraFollowthrough('project');
