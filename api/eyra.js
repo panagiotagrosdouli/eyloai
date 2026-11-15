@@ -281,9 +281,7 @@ async function loadAuthorizedResourceContext(resource, identity) {
     || Object.keys(resource).some(key => !['kind', 'id'].includes(key))
     || !Object.hasOwn(RESOURCE_TABLES, resource.kind)
     || typeof resource.id !== 'string' || !RESOURCE_UUID.test(resource.id)) {
-    const error = new Error('Invalid workspace resource identifier.');
-    error.code = 'INVALID_RESOURCE_CONTEXT';
-    throw error;
+    throw Object.assign(new Error('Invalid workspace resource identifier.'), { code: 'INVALID_RESOURCE_CONTEXT' });
   }
   const table = RESOURCE_TABLES[resource.kind];
   const params = new URLSearchParams({
@@ -305,9 +303,7 @@ async function loadAuthorizedResourceContext(resource, identity) {
   const rows = await result.json();
   if (!Array.isArray(rows)) throw new Error('Workspace context returned an invalid response.');
   if (!rows.length) {
-    const error = new Error('Workspace resource not found or not accessible.');
-    error.code = 'RESOURCE_NOT_FOUND';
-    throw error;
+    throw Object.assign(new Error('Workspace resource not found or not accessible.'), { code: 'RESOURCE_NOT_FOUND' });
   }
   const row = rows[0];
   if (row?.id !== resource.id || !row.data || typeof row.data !== 'object' || Array.isArray(row.data)) {
