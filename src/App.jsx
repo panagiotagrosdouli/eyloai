@@ -42,6 +42,7 @@ const Calendar = lazy(() => import('@/pages/Calendar'));
 const UniversalSearch = lazy(() => import('@/pages/UniversalSearch'));
 const ActivityHistory = lazy(() => import('@/pages/ActivityHistory'));
 const ResearchGaps = lazy(() => import('@/pages/ResearchGaps'));
+const ResearchJourney = lazy(() => import('@/pages/ResearchJourney'));
 const LiteratureReview = lazy(() => import('@/pages/LiteratureReview'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
@@ -143,6 +144,7 @@ const AuthenticatedApp = () => {
           <Route path="/workspace/search" element={<UniversalSearch />} />
           <Route path="/activity" element={<ActivityHistory />} />
           <Route path="/research-gaps" element={<ResearchGaps />} />
+              <Route path="/research-journey" element={<ResearchJourney />} />
           <Route path="/literature-review" element={<LiteratureReview />} />
           <Route path="/labs/data" element={<ResearchDataLab />} />
           <Route path="/knowledge-graph" element={<ResearchKnowledgeGraph />} />
