@@ -22,6 +22,7 @@ import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conve
 import { listEyraConversations, saveEyraConversation, loadEyraConversation, deleteEyraConversation } from '@/lib/eyra-history';
 
 import { snapshotPayload, snapshotIdentity, conversationExport } from '@/lib/eyra-snapshot.mjs';
+import { requestedEyraWrites } from '@/lib/eyra-write-intent.mjs';
 
 // EYRA modes change the analysis lens; evidence rules stay identical.
 const MODES = [
@@ -388,6 +389,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const [messages, setMessages] = useState(() => loadConversation(user?.id));
   const [conversationOwner, setConversationOwner] = useState(user?.id);
   const [allowWorkspaceActions, setAllowWorkspaceActions] = useState(false);
+  const [pendingWriteReview, setPendingWriteReview] = useState(null);
   const [liveDraft, setLiveDraft] = useState('');
   const [savedConversations, setSavedConversations] = useState([]);
   const [remoteConversation, setRemoteConversation] = useState(null);
@@ -572,13 +574,22 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     setActionError('Generation stopped. No new EYRA response was saved.');
   };
 
-  const sendMessage = async (text) => {
+  const sendMessage = async (text, { writeConfirmed = false } = {}) => {
     const content = (text || input).trim();
     if (!content || loading || historyBusy || historyWriteLockRef.current || activeRequestRef.current) return;
     if (content.length > (allowWorkspaceActions ? 1000 : 2000)) {
       setActionError(allowWorkspaceActions ? 'Keep a workspace action request to 1,000 characters so its full authorization can be checked.' : 'Keep a message to 2,000 characters. Split longer material into focused questions.');
       return;
     }
+    const writeIntent = requestedEyraWrites(content);
+    if (allowWorkspaceActions && (writeIntent.project || writeIntent.paper) && !writeConfirmed) {
+      // This is a review of the user's request, not a preview of model-selected
+      // database fields. Actual writes still require explicit API confirmation.
+      setPendingWriteReview({ content, writeIntent });
+      setActionError('');
+      return;
+    }
+    setPendingWriteReview(null);
     const controller = new AbortController();
     activeRequestRef.current = controller;
     setInput('');
@@ -619,6 +630,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
         on_delta: delta => { if (!controller.signal.aborted) setLiveDraft(previous => previous + delta); },
         tool_intent: content,
         latest_user_request: content,
+        write_confirmed: allowWorkspaceActions && writeConfirmed,
         ...(resourceContext ? { resource_context: resourceContext } : {}),
         prompt: `${BASE_SYSTEM}
 
@@ -925,8 +937,30 @@ Answer the user's latest request. Cite every externally verifiable claim with th
               <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
               <button type="button" onClick={exportConversation} disabled={loading || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Export conversation</button>
               {remoteConversation && <button type="button" onClick={() => void deleteSnapshot()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Delete saved snapshot</button>}
-              <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => setAllowWorkspaceActions(event.target.checked)} />Allow authorized workspace and research tools for this request</label>
+              <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); }} />Allow authorized workspace and research tools for this request</label>
             </div>
+            {pendingWriteReview && (
+              <section role="group" aria-label="Review EYRA write request"
+                className="mb-2 rounded-xl border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-foreground">
+                <p className="font-semibold">Review before sending a workspace write</p>
+                <p className="mt-1 text-muted-foreground">
+                  EYRA may {pendingWriteReview.writeIntent.project ? 'create a project' : 'save a paper'}
+                  {pendingWriteReview.writeIntent.project && pendingWriteReview.writeIntent.paper ? ' and save a paper' : ''}.
+                  The model will choose the proposed record fields. Verify the resulting record after completion.
+                </p>
+                <p className="mt-2 max-h-24 overflow-auto whitespace-pre-wrap break-words rounded-md border border-border p-2">
+                  {pendingWriteReview.content}
+                </p>
+                <div className="mt-2 flex flex-wrap justify-end gap-2">
+                  <button type="button" aria-label="Cancel pending EYRA write" className="rounded-lg border border-border px-3 py-2"
+                    onClick={() => setPendingWriteReview(null)}>Cancel</button>
+                  <button type="button" aria-label="Edit pending EYRA write" className="rounded-lg border border-border px-3 py-2"
+                    onClick={() => { setInput(pendingWriteReview.content); setPendingWriteReview(null); inputRef.current?.focus(); }}>Edit</button>
+                  <button type="button" aria-label="Confirm and send EYRA write" className="rounded-lg bg-primary px-3 py-2 text-primary-foreground"
+                    onClick={() => void sendMessage(pendingWriteReview.content, { writeConfirmed: true })}>Confirm and send</button>
+                </div>
+              </section>
+            )}
             <div className="flex items-end gap-2 rounded-xl border border-border bg-background p-2 transition-colors focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10">
               <div className="mb-1.5 grid h-6 w-6 shrink-0 place-items-center rounded-md bg-secondary text-muted-foreground">
                 <ModeIcon size={11} />
