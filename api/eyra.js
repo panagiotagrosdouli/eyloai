@@ -345,9 +345,41 @@ function userExplicitlyRequestedPaperSave(prompt) {
   return /\b(?:save|add|put|store)\b.{0,100}\b(?:paper|article|publication)\b|\b(?:paper|article|publication)\b.{0,100}\b(?:save|add|put|store)\b|\bmy library\b|\bστη βιβλιοθήκη μου\b|\bαποθήκευσ(?:ε|ετέ)\b.{0,100}\b(?:άρθρο|δημοσίευση|εργασία)\b|\b(?:άρθρο|δημοσίευση|εργασία)\b.{0,100}\bαποθήκευσ/.test(text);
 }
 
+const TOOL_STRING_LIMITS = {
+  title: 180, description: 4000, goal: 2000, milestones: 6000,
+  tasks: 6000, query: 180, doi: 255, id: 36,
+};
+
+function validatedEyraToolArguments(name, rawArguments) {
+  const spec = PROJECT_TOOLS.find(tool => tool.name === name);
+  if (!spec) throw new Error('Unsupported workspace or research tool.');
+  if (typeof rawArguments !== 'string' || rawArguments.length > 32_000) {
+    throw new Error('Tool arguments exceed the allowed size.');
+  }
+  let argumentsObject;
+  try { argumentsObject = JSON.parse(rawArguments); } catch {
+    throw new Error('Invalid tool arguments.');
+  }
+  if (!argumentsObject || typeof argumentsObject !== 'object' || Array.isArray(argumentsObject)) {
+    throw new Error('Tool arguments must be a JSON object.');
+  }
+  const permitted = Object.keys(spec.parameters.properties);
+  const required = spec.parameters.required;
+  if (Object.keys(argumentsObject).some(key => !permitted.includes(key))
+    || required.some(key => !Object.hasOwn(argumentsObject, key))) {
+    throw new Error('Tool arguments do not match the allowlisted schema.');
+  }
+  for (const key of permitted) {
+    if (typeof argumentsObject[key] !== 'string'
+      || argumentsObject[key].length > (TOOL_STRING_LIMITS[key] || 1000)) {
+      throw new Error('Invalid field in tool arguments.');
+    }
+  }
+  return argumentsObject;
+}
+
 async function executeProjectTool(name, rawArguments, identity) {
-  let args;
-  try { args = JSON.parse(rawArguments || '{}'); } catch { throw new Error('Invalid tool arguments.'); }
+  const args = validatedEyraToolArguments(name, rawArguments);
   if (name === 'research.search_publications') {
     const query = typeof args.query === 'string' ? args.query.trim() : '';
     if (query.length < 3 || query.length > 180) {
