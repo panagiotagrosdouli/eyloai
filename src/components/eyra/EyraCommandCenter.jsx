@@ -731,7 +731,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
 
   const refreshAgentRuns = async () => {
     const owner = user?.id;
-    if (!owner || agentRunsBusy || loading) return;
+    if (!owner || agentRunsBusy) return;
     setAgentRunsBusy(true); setAgentRunsError('');
     try {
       const rows = await listEyraAgentRuns();
@@ -751,7 +751,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
 
   const inspectAgentRun = async id => {
     const owner = user?.id;
-    if (!owner || agentRunsBusy || loading) return;
+    if (!owner || agentRunsBusy) return;
     setAgentRunsBusy(true); setAgentRunsError('');
     try {
       const result = await loadEyraAgentRun(id);
@@ -767,7 +767,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
 
   const cancelAgentRun = async id => {
     const owner = user?.id;
-    if (!owner || agentRunsBusy || loading) return;
+    if (!owner || agentRunsBusy) return;
     if (!window.confirm('Request cancellation of this agent run? A write already in progress might still finish.')) return;
     setAgentRunsBusy(true); setAgentRunsError('');
     try {
@@ -786,7 +786,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
 
   const removeAgentRun = async id => {
     const owner = user?.id;
-    if (!owner || agentRunsBusy || loading) return;
+    if (!owner || agentRunsBusy) return;
     if (!window.confirm('Permanently delete this completed agent run and its action history? This cannot be undone.')) return;
     setAgentRunsBusy(true); setAgentRunsError('');
     try {
@@ -1056,7 +1056,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
               <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
               <button type="button" onClick={exportConversation} disabled={loading || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Export conversation</button>
               <button type="button" onClick={() => { if (showAgentRuns) { setShowAgentRuns(false); setSelectedAgentRun(null); } else void refreshAgentRuns(); }}
-                disabled={loading || agentRunsBusy} aria-expanded={showAgentRuns}
+                disabled={agentRunsBusy} aria-expanded={showAgentRuns}
                 className="min-h-9 rounded-lg border border-border px-2">
                 {agentRunsBusy ? 'Loading runs…' : showAgentRuns ? 'Hide agent runs' : 'Agent runs'}
               </button>
@@ -1069,7 +1069,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <span className="font-semibold">Agent run history</span>
                   <button type="button" onClick={() => void refreshAgentRuns()}
-                    disabled={agentRunsBusy || loading} className="rounded-md border border-border px-2 py-1">Refresh</button>
+                    disabled={agentRunsBusy} className="rounded-md border border-border px-2 py-1">Refresh</button>
                 </div>
                 {agentRunsError && <p role="alert" className="mb-2 text-destructive">{agentRunsError}</p>}
                 {!agentRunsError && !agentRunsBusy && agentRuns.length === 0 && (
@@ -1080,7 +1080,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
                     <span className="min-w-0 flex-1 truncate">{item.input_preview || item.id}</span>
                     <span className="font-medium">{item.status}</span>
                     <button type="button" onClick={() => void inspectAgentRun(item.id)}
-                      disabled={agentRunsBusy || loading} className="rounded-md border border-border px-2 py-1">Details</button>
+                      disabled={agentRunsBusy} className="rounded-md border border-border px-2 py-1">Details</button>
                   </div>
                 ))}
                 {selectedAgentRun && (
@@ -1096,12 +1096,12 @@ Answer the user's latest request. Cite every externally verifiable claim with th
                     ))}
                     <div className="mt-2 flex flex-wrap gap-2">
                       {selectedAgentRun.run.status === 'running' && (
-                        <button type="button" disabled={agentRunsBusy || loading}
+                        <button type="button" disabled={agentRunsBusy}
                           className="rounded-md border border-border px-2 py-1"
                           onClick={() => void cancelAgentRun(selectedAgentRun.run.id)}>Request cancellation</button>
                       )}
                       {selectedAgentRun.run.status !== 'running' && (
-                        <button type="button" disabled={agentRunsBusy || loading}
+                        <button type="button" disabled={agentRunsBusy}
                           className="rounded-md border border-border px-2 py-1"
                           onClick={() => void removeAgentRun(selectedAgentRun.run.id)}>Delete run history</button>
                       )}
