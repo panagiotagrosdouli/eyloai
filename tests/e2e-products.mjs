@@ -544,7 +544,7 @@ try {
     await page.goto(host + "/tools/memory");
     await page.getByRole("button", { name: "Load my saved sources" }).click();
     await page
-      .getByText("Loaded up to1,000 recent records per source.", {
+      .getByText("Loaded up to 1,000 recent records per source.", {
         exact: true,
       })
       .waitFor();
