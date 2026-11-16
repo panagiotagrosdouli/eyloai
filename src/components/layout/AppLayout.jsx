@@ -15,6 +15,7 @@ import ServiceStatus from '@/components/system/ServiceStatus';
 import { useCapabilities } from '@/lib/capabilities';
 import { trackActivatedReturn } from '@/lib/product-analytics';
 import { useAuth } from '@/lib/AuthContext';
+import { filterToolGroups } from '@/lib/tool-directory-search.mjs';
 
 // Keep primary destinations stable and human-readable; secondary workflows live in All tools.
 const PRIMARY_NAV = [
@@ -162,11 +163,7 @@ export default function AppLayout() {
   const isActive = path => location.pathname === path || (path !== '/life' && location.pathname.startsWith(`${path}/`));
   const toolsActive = ALL_TOOLS.some(item => isActive(item.path)) && !PRIMARY_NAV.some(item => isActive(item.path));
   const primaryActive = item => isActive(item.path) || (item.path === '/projects' && ['/library', '/notes', '/files', '/life', '/calendar', '/workspace/search'].some(path => isActive(path)));
-  const query = toolQuery.trim().toLowerCase();
-  const visibleGroups = TOOL_GROUPS.map(group => ({
-    ...group,
-    items: group.items.filter(item => !query || `${item.label} ${item.desc} ${item.badge || ''}`.toLowerCase().includes(query)),
-  })).filter(group => group.items.length);
+  const visibleGroups = filterToolGroups(TOOL_GROUPS, toolQuery);
 
   useEffect(() => { trackActivatedReturn(); }, []);
 
