@@ -399,6 +399,15 @@ export default function PublicDiscovery() {
                 <p className="mt-4 text-xs text-[var(--company-muted)]">{level} · {goal} · {recency.replace('_', ' ')}</p>
                 <div className="mt-5 flex flex-wrap gap-2">{sourceIndexes.map(source => <span key={source} className="rounded-full border border-[var(--company-border)] bg-[var(--company-surface)] px-3 py-1.5 text-[10px] text-[var(--company-muted)]">{source}</span>)}</div>
                 <p className="mt-4 text-[10px] text-[var(--company-muted)]">{data.papers.length} deduplicated papers · {data.researchers.length} researchers · {data.institutions.length} institutions</p>
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <Link
+                    to={`/workspace/literature-search?${new URLSearchParams({ q: initialQuery, level, goal, recency }).toString()}`}
+                    className="inline-flex items-center gap-2 rounded-xl border border-[var(--company-border)] bg-[var(--company-surface)] px-4 py-3 text-sm font-semibold text-[var(--company-muted)]"
+                  >
+                    Continue topic with EYRA <ArrowRight size={14} />
+                  </Link>
+                  <span className="max-w-md text-xs leading-5 text-[var(--company-muted)]">EYRA reruns retrieval for this topic and adds optional AI analysis. EYLO evidence remains accessible even if AI is unavailable.</span>
+                </div>
                 <p className="mt-3 max-w-3xl text-xs leading-5 text-slate-400">Bibliographic records come from external indexes. EYLO does not independently verify peer review, claims, findings, or publication quality. Open the original source before relying on a result.</p>
                 {data.papers.length > 0 && (
                   <div className="mt-5 flex flex-wrap items-center gap-3">
