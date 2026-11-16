@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import handler from '../api/general-jobs.js';
+import handler from '../server/general-jobs.js';
 
 function createResponse() {
   return {
