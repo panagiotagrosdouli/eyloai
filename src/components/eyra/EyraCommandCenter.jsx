@@ -1128,12 +1128,14 @@ Answer the user's latest request. Cite every externally verifiable claim with th
                     ))}
                     <div className="mt-2 flex flex-wrap gap-2">
                       {selectedAgentRun.run.status === 'running' && (
+                        <>
                         <button type="button" disabled={agentRunsBusy}
                           className="rounded-md border border-border px-2 py-1"
                           onClick={() => void cancelAgentRun(selectedAgentRun.run.id)}>Request cancellation</button>
                         <button type="button" disabled={agentRunsBusy}
                           className="rounded-md border border-border px-2 py-1"
                           onClick={() => void markAgentRunForReview(selectedAgentRun.run.id)}>Review stale run (30+ min)</button>
+                        </>
                       )}
                       {selectedAgentRun.run.status !== 'running' && (
                         <button type="button" disabled={agentRunsBusy}
