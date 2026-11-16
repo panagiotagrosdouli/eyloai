@@ -1,6 +1,6 @@
 import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import handler from '../api/admin-analytics.js';
+import handler from '../server/admin-analytics.js';
 import { validWorkspaceAnalyticsPayload } from '../src/lib/analytics-readiness.mjs';
 
 const analyticsEnvKeys = [
