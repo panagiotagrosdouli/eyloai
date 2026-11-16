@@ -4,6 +4,7 @@ import { searchFundingOpportunities } from '@/lib/funding-api';
 import { loadPreferences } from '@/lib/preferences';
 import { getUsableSession } from '@/lib/supabaseClient';
 import { RADAR_OWNER_KEY, isRadarCacheOwner } from '@/lib/auth/privateRadarCache.mjs';
+import { safeMonitoringSourceUrl, selectNewMonitoringDiscoveries } from '@/lib/monitoring-records.mjs';
 
 const KEYS = { watchlists: 'eylo_watchlists_v1', discoveries: 'eylo_monitoring_discoveries_v1', notifications: 'eylo_notifications_v1' };
 const EVENT = 'eylo:monitoring-updated';
@@ -105,7 +106,7 @@ function normalize(entity, kind, watchlist) {
     id: id(), externalId: entity.id, watchlistId: watchlist.id, watchQuery: watchlist.query,
     type: kind, title: entity.title || entity.name, description: entity.summary || entity.description || entity.research_areas || `${entity.type || 'Research institution'} in ${entity.country || 'an international network'}`,
     source: kind === 'opportunity' ? entity.source : kind === 'paper' ? entity.source : 'OpenAlex',
-    sourceUrl: entity.source_url || entity.url || entity.profile_url,
+    sourceUrl: safeMonitoringSourceUrl(entity.source_url || entity.url || entity.profile_url),
     authors: entity.authors, institution: entity.institution, year: entity.year,
     agency: entity.agency, deadline: entity.deadline, amount: entity.amount,
     priority: kind === 'opportunity' ? (entity.is_expiring ? 'HIGH' : 'MEDIUM') : priority,
@@ -167,8 +168,7 @@ export async function runWatchlist(watchlist) {
     throw new Error('Watchlist check was canceled because the signed-in account changed.');
   }
   const existing = read(KEYS.discoveries);
-  const known = new Set(existing.map(item => `${item.source}|${item.externalId}`));
-  const fresh = candidates.filter(item => item.externalId && !known.has(`${item.source}|${item.externalId}`));
+  const fresh = selectNewMonitoringDiscoveries(candidates, existing);
   write(KEYS.discoveries, [...fresh, ...existing].slice(0, 300));
   fresh.forEach(item => { const { id: temporaryId, ...payload } = item; persistCreate('discoveries', temporaryId, payload); });
   const notifications = fresh.filter(item => item.priority === 'HIGH').map(item => ({ id: id(), discoveryId: item.id, title: item.title, description: item.priorityReason, priority: item.priority, type: item.type, sourceUrl: item.sourceUrl, read: false, createdAt: item.detectedAt }));

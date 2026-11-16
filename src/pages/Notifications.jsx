@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Bell, CheckCheck, ExternalLink, Trash2 } from 'lucide-react';
 import { monitoringStore } from '@/lib/monitoring-service';
+import { safeMonitoringSourceUrl } from '@/lib/monitoring-records.mjs';
 
 const FILTERS = [
   { id: 'all', label: 'All' },
@@ -74,9 +75,9 @@ export default function Notifications() {
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">{item.description}</p>
               </button>
               <div className="flex shrink-0 items-start gap-1">
-                {item.sourceUrl && (
+                {safeMonitoringSourceUrl(item.sourceUrl) && (
                   <a
-                    href={item.sourceUrl}
+                    href={safeMonitoringSourceUrl(item.sourceUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => monitoringStore.markNotification(item.id, { read: true })}
