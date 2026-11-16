@@ -197,6 +197,24 @@ const PROJECT_TOOLS = [
   },
 ];
 
+// OpenAI Responses function tool names support only [A-Za-z0-9_-].
+// Keep the dotted EYLO authorization/ledger IDs stable internally; translate
+ // only at the provider boundary. Legacy dotted synthetic calls remain
+ // allowlisted for backwards-compatible local regression fixtures.
+const OPENAI_PROJECT_TOOLS = PROJECT_TOOLS.map(tool => ({
+  ...tool, name: tool.name.replaceAll('.', '_'),
+}));
+if (new Set(OPENAI_PROJECT_TOOLS.map(tool => tool.name)).size !== PROJECT_TOOLS.length) {
+  throw new Error('EYRA provider tool names are not unique.');
+}
+const TOOL_NAME_TO_CANONICAL = new Map([
+  ...PROJECT_TOOLS.map(tool => [tool.name, tool.name]),
+  ...OPENAI_PROJECT_TOOLS.map((tool, index) => [tool.name, PROJECT_TOOLS[index].name]),
+]);
+function canonicalToolName(providerName) {
+  return TOOL_NAME_TO_CANONICAL.get(providerName) || providerName;
+}
+
 const EYRA_INSTRUCTIONS = `You are EYRA, the research and innovation intelligence inside EYLO.
 
 Act as a rigorous research analyst, strategic advisor, funding guide, startup co-founder, and team builder.
@@ -1176,7 +1194,7 @@ export default async function handler(request, response) {
       store: false,
       max_output_tokens: MAX_OUTPUT_TOKENS,
       ...(stream ? { stream: true } : {}),
-      ...(request.body?.enable_project_tools === true ? { tools: PROJECT_TOOLS, tool_choice: 'auto' } : {}),
+      ...(request.body?.enable_project_tools === true ? { tools: OPENAI_PROJECT_TOOLS, tool_choice: 'auto' } : {}),
     };
 
     if (request.body?.enable_project_tools !== undefined && typeof request.body.enable_project_tools !== 'boolean') {
@@ -1303,6 +1321,7 @@ export default async function handler(request, response) {
       for (const id of roundIds) seenToolCallIds.add(id);
       const outputs = [];
       for (const call of calls) {
+        const toolName = canonicalToolName(call.name);
         let actionLedgerId = null;
         try {
           if (agentRunId) {
@@ -1310,27 +1329,27 @@ export default async function handler(request, response) {
               throw new Error('This agent run was cancelled before the next action.');
             }
             const reserved = await reserveAgentAction(identity, agentRunId, call.call_id,
-              call.name, requestFingerprint({ name: call.name, arguments: call.arguments }));
+              toolName, requestFingerprint({ name: toolName, arguments: call.arguments }));
             if (!reserved.reserved) {
               throw new Error('This tool action was already reserved or its outcome is uncertain. Review the run before retrying.');
             }
             actionLedgerId = reserved.id;
           }
-          if (call.name === 'project.create' && actionResults.some((action) => action.tool === 'project.create' && action.status === 'succeeded')) {
+          if (toolName === 'project.create' && actionResults.some((action) => action.tool === 'project.create' && action.status === 'succeeded')) {
             throw new Error('Only one project can be created in a single EYRA request.');
           }
-          const value = await executeProjectTool(call.name, call.arguments, identity);
+          const value = await executeProjectTool(toolName, call.arguments, identity);
           if (actionLedgerId) {
             await completeAgentAction(identity, actionLedgerId, 'succeeded',
               { record_id: typeof value?.id === 'string' ? value.id.slice(0, 100) : null });
           }
-          actionResults.push({ action_id: call.call_id, tool: call.name, status: 'succeeded', result: value });
+          actionResults.push({ action_id: call.call_id, tool: toolName, status: 'succeeded', result: value });
           outputs.push({ type: 'function_call_output', call_id: call.call_id, output: JSON.stringify({ ok: true, result: value }) });
         } catch (error) {
           let safeError = error instanceof Error ? error.message : 'The project action failed.';
           if (actionLedgerId) {
             // A write may have committed despite a response or transport error.
-            const uncertain = ['project.create', 'library.save_paper'].includes(call.name);
+            const uncertain = ['project.create', 'library.save_paper'].includes(toolName);
             try {
               await completeAgentAction(identity, actionLedgerId,
                 uncertain ? 'needs_review' : 'failed', { reason: 'execution_incomplete' });
@@ -1340,9 +1359,9 @@ export default async function handler(request, response) {
             if (uncertain) safeError += ' Verify the workspace before a new write; the action may have committed.';
           }
           const needsReview = Boolean(actionLedgerId)
-            && ['project.create', 'library.save_paper'].includes(call.name);
+            && ['project.create', 'library.save_paper'].includes(toolName);
           actionResults.push({
-            action_id: call.call_id, tool: call.name,
+            action_id: call.call_id, tool: toolName,
             status: needsReview ? 'needs_review' : 'failed', error: safeError,
           });
           outputs.push({ type: 'function_call_output', call_id: call.call_id, output: JSON.stringify({ ok: false, error: safeError }) });
