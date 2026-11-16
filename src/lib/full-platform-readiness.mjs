@@ -151,6 +151,9 @@ export function evaluateFullPlatformReadiness({
     ...products.flatMap(product => Array.isArray(product?.supabase_entities) ? product.supabase_entities : []),
     ...(Array.isArray(inventory?.additional_entities) ? inventory.additional_entities : []),
   ])];
+  if (entities.length < 1 || entities.some(name => typeof name !== 'string' || !/^[a-z][a-z0-9_]*$/.test(name))) {
+    schemaReasons.push('Canonical schema inventory must contain valid entity names.');
+  }
   const observed = fullEvidence?.schema?.tables;
   if (!Array.isArray(observed)) {
     schemaReasons.push('A read-only staging table/RLS inventory is required.');
