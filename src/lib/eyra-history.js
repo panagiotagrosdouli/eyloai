@@ -19,6 +19,26 @@ export async function saveEyraConversation(title, messages, snapshotId) {
   if (!data || data.id !== snapshotId) throw new Error('Save confirmation did not match this snapshot. Retry to verify.');
   return data;
 }
+export async function renameEyraConversation(id, expectedVersion, requestedTitle) {
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const title = typeof requestedTitle === 'string' ? requestedTitle.trim() : '';
+  if (!uuid.test(id || '') || !Number.isSafeInteger(expectedVersion) || expectedVersion < 1
+    || !title || title.length > 180) {
+    throw new Error('A valid saved conversation ID, version and title are required.');
+  }
+  const { client, owner } = await authenticatedClient();
+  const { data, error } = await client.from('eyra_conversations')
+    .update({ title })
+    .eq('user_id', owner).eq('id', id).eq('version', expectedVersion)
+    .select('id,title,version');
+  if (error || !Array.isArray(data) || data.length !== 1
+    || data[0].id !== id || data[0].title !== title
+    || data[0].version !== expectedVersion + 1) {
+    throw new Error('Conversation rename was not confirmed. Reload it before retrying.');
+  }
+  return data[0];
+}
+
 export async function deleteEyraConversation(id, expectedVersion) {
   if (!id || !Number.isSafeInteger(expectedVersion) || expectedVersion < 1) throw new Error('Reload the snapshot before deleting it.');
   const { client, owner } = await authenticatedClient();

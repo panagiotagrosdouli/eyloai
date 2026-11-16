@@ -7,6 +7,7 @@ import { searchFundingOpportunities } from '@/lib/funding-api';
 import { getPreferenceLocale, loadPreferences, subscribePreferences } from '@/lib/preferences';
 import { getLocalGreeting } from '@/lib/local-greeting';
 import { checkEyraCitationIds, isSafeEyraSourceUrl } from '@/lib/eyra-citation-ids.mjs';
+import { describeEyraCitedEvidence } from '@/lib/eyra-evidence-status.mjs';
 import { buildEvidenceOnlyFallback } from '@/lib/eyra-evidence-fallback.mjs';
 import {
   X, Mic, MicOff, Send, Sparkles, Loader2,
@@ -20,10 +21,12 @@ import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
 import { useAuth } from '@/lib/AuthContext';
 import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conversation.mjs';
 
-import { listEyraConversations, saveEyraConversation, loadEyraConversation, deleteEyraConversation } from '@/lib/eyra-history';
+import { listEyraConversations, saveEyraConversation, loadEyraConversation, renameEyraConversation, deleteEyraConversation } from '@/lib/eyra-history';
 
 import { snapshotPayload, snapshotIdentity, conversationExport } from '@/lib/eyra-snapshot.mjs';
 import { requestedEyraWrites } from '@/lib/eyra-write-intent.mjs';
+import { buildEyraConversationContext } from '@/lib/eyra-conversation-context.mjs';
+import { listEyraAgentRuns, loadEyraAgentRun, cancelEyraAgentRun, reviewStaleEyraAgentRun, deleteEyraAgentRun } from '@/lib/eyra-run-history';
 
 // EYRA modes change the analysis lens; evidence rules stay identical.
 const MODES = [
@@ -167,7 +170,7 @@ function createWelcomeMessage(name = '') {
   };
 }
 
-/** @typedef {{role: string, content: string, timestamp: number, mode?: string, welcome?: boolean, sources?: any[], retrievalQuery?: string}} EyraMessage */
+/** @typedef {{role: string, content: string, timestamp: number, mode?: string, welcome?: boolean, sources?: any[], retrievalQuery?: string, retrievalAttempted?: boolean}} EyraMessage */
 /** @returns {EyraMessage[]} */
 function loadConversation(userId) {
   try {
@@ -198,6 +201,7 @@ function TypingIndicator({ stage }) {
 
 function Message({ msg, onSave, onCopy, saved, copied, saving }) {
   const isEyra = msg.role === 'eyra';
+  const citedEvidence = isEyra ? describeEyraCitedEvidence(msg.sources) : null;
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -234,26 +238,40 @@ function Message({ msg, onSave, onCopy, saved, copied, saving }) {
             <p>{msg.content}</p>
           )}
         </div>
-        {isEyra && msg.sources?.length > 0 && (
-          <div className="mt-2 flex max-w-full flex-wrap gap-1.5" aria-label="Retrieved source records cited in this answer; not independently verified">
-            {msg.sources.slice(0, 8).map(source => (
-              <a
-                key={source.id}
-                href={source.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={`${source.title}${source.meta ? ` — ${source.meta}` : ''}`}
-                className="inline-flex max-w-full items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[9px] font-medium text-foreground hover:border-primary/35"
-              >
-                <ExternalLink size={9} aria-hidden="true" />
-                <span>{source.id}</span>
-                <span className="max-w-36 truncate text-muted-foreground">{source.title}</span>
-                <ExternalLink size={8} aria-hidden="true" />
-              </a>
-            ))}
-            {msg.sources.length > 8 && <span className="px-2 py-1 text-[9px] text-muted-foreground">+{msg.sources.length - 8} more</span>}
-          </div>
+        {isEyra && msg.retrievalAttempted && citedEvidence?.items.length === 0 && (
+          <p role="status" className="mt-2 max-w-full rounded-lg border border-border px-3 py-2 text-xs text-muted-foreground">No retrieved records are linked to this answer. Scientific claims remain unverified; refine your question or check original sources.</p>
         )}
+        {isEyra && citedEvidence?.items.length > 0 && (
+          <section className="mt-2 max-w-full rounded-xl border border-border/70 bg-card/70 p-2.5" aria-label="EYRA retrieved source records">
+            <p className="mb-2 text-[11px] leading-relaxed text-muted-foreground">
+              {citedEvidence.summary}
+            </p>
+            <div className="flex max-w-full flex-wrap gap-1.5">
+              {citedEvidence.items.slice(0, 8).map(source => (
+                <a
+                  key={source.id}
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`${source.kind}: ${source.title}. ${source.scope}`}
+                  aria-label={`${source.id} ${source.kind}: ${source.title}. ${source.scope}`}
+                  className="inline-flex min-h-9 max-w-full items-center gap-1 rounded-lg border border-border bg-background px-2 py-1 text-xs font-medium text-foreground transition-colors hover:border-primary/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                >
+                  <BookOpen size={13} aria-hidden="true" />
+                  <span>{source.id}</span>
+                  <span className="max-w-44 truncate text-muted-foreground">{source.title}</span>
+                  <ExternalLink size={11} aria-hidden="true" />
+                </a>
+              ))}
+              {citedEvidence.items.length > 8 && (
+                <span className="self-center px-2 py-1 text-xs text-muted-foreground">
+                  +{citedEvidence.items.length - 8} more linked records
+                </span>
+              )}
+            </div>
+          </section>
+        )}
+
         <div className="mt-1 flex items-center gap-1 px-1">
           <p className="mr-auto text-[9px] text-muted-foreground">
             {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -322,11 +340,26 @@ function formatEyraToolActions(actions) {
       }[action.tool];
       return `- Retrieved ${Array.isArray(action.result) ? action.result.length : 0} private ${label}. Saved records are not live eligibility or affiliation verification.`;
     }
+    if (action.status === 'succeeded' && ['learning.list_lessons', 'learning.list_progress'].includes(action.tool)) {
+      const label = action.tool === 'learning.list_lessons' ? 'lesson outlines' : 'lesson progress records';
+      return `- Retrieved ${action.result?.count || 0} ${label} from an authenticated owned course; no lesson full text or quiz answers were accessed.`;
+    }
+    if (action.status === 'succeeded' && ['learning.list_courses', 'learning.list_quizzes'].includes(action.tool)) {
+      const label = action.tool === 'learning.list_courses' ? 'learning courses' : 'quizzes';
+      return `- Retrieved ${action.result?.count || 0} saved ${label} from your own learning workspace; metadata only.`;
+    }
+    if (action.status === 'succeeded' && ['notes.search', 'library.search_papers'].includes(action.tool)) {
+      const label = action.tool === 'notes.search' ? 'private notes' : 'saved paper metadata records';
+      return `- Found ${action.result?.count || 0} matching ${label} within ${action.result?.scanned_recent_records || 0} recent records; this was not an exhaustive full-text search.`;
+    }
     if (action.status === 'succeeded' && action.tool === 'research.search_publications') {
       return `- Retrieved ${action.result?.count || 0} DOI-validated **bibliographic metadata** records from Crossref; full text was not analyzed.`;
     }
     if (action.status === 'succeeded' && action.tool === 'research.lookup_doi') {
       return `- Crossref DOI metadata verified for **${action.result?.title || 'publication'}** (${action.result?.doi || 'DOI unavailable'}); this is not a full-text review.`;
+    }
+    if (action.status === 'needs_review') {
+      return `- **Outcome uncertain — manual review required:** ${action.tool || 'Workspace action'}. ${action.error || 'Check the actual workspace record before retrying.'}`;
     }
     if (action.status === 'failed') {
       return `- ${action.tool || 'Workspace action'} failed: ${action.error || 'Check the workspace before retrying.'}`;
@@ -344,8 +377,14 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const [liveDraft, setLiveDraft] = useState('');
   const [savedConversations, setSavedConversations] = useState([]);
   const [remoteConversation, setRemoteConversation] = useState(null);
+  const [renameTitle, setRenameTitle] = useState(null);
   const [savingConversation, setSavingConversation] = useState(false);
   const [historyBusy, setHistoryBusy] = useState(false);
+  const [showAgentRuns, setShowAgentRuns] = useState(false);
+  const [agentRuns, setAgentRuns] = useState([]);
+  const [selectedAgentRun, setSelectedAgentRun] = useState(null);
+  const [agentRunsBusy, setAgentRunsBusy] = useState(false);
+  const [agentRunsError, setAgentRunsError] = useState('');
   const historyEpochRef = useRef(0);
   const snapshotRequestRef = useRef(null);
   const historyWriteLockRef = useRef(false);
@@ -379,6 +418,8 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     setRemoteConversation(null); setSavedConversations([]); setAllowWorkspaceActions(false);
     historyEpochRef.current += 1; snapshotRequestRef.current = null; historyWriteLockRef.current = false; setHistoryBusy(false);
     setSavingConversation(false); setSavedMessageIds(new Set()); setUserName(''); setActionError('');
+    setShowAgentRuns(false); setAgentRuns([]); setSelectedAgentRun(null);
+    setAgentRunsBusy(false); setAgentRunsError('');
   }, [user?.id]);
 
   useEffect(() => {
@@ -522,7 +563,9 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     activeRequestRef.current = null;
     setLoading(false);
     setLiveDraft('');
-    setActionError('Generation stopped. No new EYRA response was saved.');
+    setActionError(allowWorkspaceActions
+      ? 'Display stopped. A server-side workspace action may still finish. Check the relevant record and agent run status before retrying.'
+      : 'Generation stopped. No new EYRA response was added to this conversation.');
   };
 
   const sendMessage = async (text, { writeConfirmed = false } = {}) => {
@@ -554,9 +597,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     setLoadingStage('retrieving');
 
     const mode = MODES.find(item => item.id === activeMode);
-    const history = newMessages.slice(0, -1).slice(-5).map(message =>
-      `${message.role === 'user' ? 'User' : 'EYRA'}: ${message.content.slice(0, 800)}`
-    ).join('\n\n');
+    const history = buildEyraConversationContext(newMessages.slice(0, -1));
 
     let evidence = { query: content, blocks: [], sources: [], attempted: false };
     try {
@@ -582,7 +623,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
         tool_intent: content,
         latest_user_request: content,
         write_confirmed: allowWorkspaceActions && writeConfirmed,
-        ...(resourceContext ? { resource_context: resourceContext } : {}),
+        ...(preferences.data_personalization && resourceContext ? { resource_context: resourceContext } : {}),
         prompt: `${BASE_SYSTEM}
 
 ANALYSIS MODE:
@@ -627,7 +668,11 @@ Answer the user's latest request. Cite every externally verifiable claim with th
         { actions: response?.actions || [] },
       );
       const toolActions = formatEyraToolActions(response?.actions);
-      const answer = [baseAnswer, toolActions ? `### Confirmed workspace actions\n${toolActions}` : ''].filter(Boolean).join('\n\n');
+      const runReference = typeof response?.run_id === 'string'
+        ? `Execution ID: \`${response.run_id.slice(0, 36)}\` · Status: ${response.run_status || 'unknown'}`
+        : '';
+      const answer = [baseAnswer, toolActions ? `### Workspace action results\n${toolActions}` : '', runReference]
+        .filter(Boolean).join('\n\n');
       const eyraMsg = {
         role: 'eyra',
         content: answer,
@@ -635,6 +680,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
         mode: activeMode,
         sources: citations.citedSources,
         retrievalQuery: evidence.query,
+        retrievalAttempted: evidence.attempted,
       };
       setMessages(previous => [...previous, eyraMsg]);
       speak(eyraMsg.content);
@@ -642,13 +688,17 @@ Answer the user's latest request. Cite every externally verifiable claim with th
       if (controller.signal.aborted) return;
       const fallbackContent = buildEvidenceOnlyFallback(evidence, error);
       const toolActions = formatEyraToolActions(error?.actions);
+      const runReference = typeof error?.runId === 'string'
+        ? `Execution ID: \`${error.runId.slice(0, 36)}\`. Inspect the run before retrying.`
+        : '';
       setMessages(previous => [...previous, {
         role: 'eyra',
-        content: [fallbackContent, toolActions ? `### Workspace action status\n${toolActions}` : ''].filter(Boolean).join('\n\n'),
+        content: [fallbackContent, toolActions ? `### Workspace action status\n${toolActions}` : '', runReference].filter(Boolean).join('\n\n'),
         timestamp: Date.now(),
         mode: activeMode,
         sources: evidence.sources || [],
         retrievalQuery: evidence.query,
+        retrievalAttempted: evidence.attempted,
       }]);
     } finally {
       if (activeRequestRef.current === controller) {
@@ -657,6 +707,98 @@ Answer the user's latest request. Cite every externally verifiable claim with th
         setLiveDraft('');
         setAllowWorkspaceActions(false);
       }
+    }
+  };
+
+  const refreshAgentRuns = async () => {
+    const owner = user?.id;
+    if (!owner || agentRunsBusy) return;
+    setAgentRunsBusy(true); setAgentRunsError('');
+    try {
+      const rows = await listEyraAgentRuns();
+      if (ownerRef.current !== owner) return;
+      setAgentRuns(rows);
+      setShowAgentRuns(true);
+      setSelectedAgentRun(null);
+    } catch (error) {
+      if (ownerRef.current === owner) {
+        setAgentRunsError(error?.message || 'Agent runs could not be loaded.');
+        setShowAgentRuns(true);
+      }
+    } finally {
+      if (ownerRef.current === owner) setAgentRunsBusy(false);
+    }
+  };
+
+  const inspectAgentRun = async id => {
+    const owner = user?.id;
+    if (!owner || agentRunsBusy) return;
+    setAgentRunsBusy(true); setAgentRunsError('');
+    try {
+      const result = await loadEyraAgentRun(id);
+      if (ownerRef.current === owner) setSelectedAgentRun(result);
+    } catch (error) {
+      if (ownerRef.current === owner) {
+        setAgentRunsError(error?.message || 'Agent run details could not be loaded.');
+      }
+    } finally {
+      if (ownerRef.current === owner) setAgentRunsBusy(false);
+    }
+  };
+
+  const cancelAgentRun = async id => {
+    const owner = user?.id;
+    if (!owner || agentRunsBusy) return;
+    if (!window.confirm('Request cancellation of this agent run? A write already in progress might still finish.')) return;
+    setAgentRunsBusy(true); setAgentRunsError('');
+    try {
+      await cancelEyraAgentRun(id);
+      if (ownerRef.current !== owner) return;
+      setAgentRuns(items => items.map(item => item.id === id
+        ? { ...item, status: 'cancelled' } : item));
+      setSelectedAgentRun(previous => previous?.run?.id === id
+        ? { ...previous, run: { ...previous.run, status: 'cancelled' } } : previous);
+    } catch (error) {
+      if (ownerRef.current === owner) setAgentRunsError(error?.message || 'Cancellation was not confirmed.');
+    } finally {
+      if (ownerRef.current === owner) setAgentRunsBusy(false);
+    }
+  };
+
+  const markAgentRunForReview = async id => {
+    const owner = user?.id;
+    if (!owner || agentRunsBusy) return;
+    if (!window.confirm('Mark this stale execution for manual review? This never retries or reverses a previously started write.')) return;
+    setAgentRunsBusy(true); setAgentRunsError('');
+    try {
+      await reviewStaleEyraAgentRun(id);
+      if (ownerRef.current !== owner) return;
+      setAgentRuns(items => items.map(item => item.id === id
+        ? { ...item, status: 'needs_review' } : item));
+      setSelectedAgentRun(previous => previous?.run?.id === id
+        ? { ...previous, run: { ...previous.run, status: 'needs_review' } }
+        : previous);
+    } catch (error) {
+      if (ownerRef.current === owner) setAgentRunsError(error?.message || 'Stale run review was not confirmed.');
+    } finally {
+      if (ownerRef.current === owner) setAgentRunsBusy(false);
+    }
+  };
+
+  const removeAgentRun = async id => {
+    const owner = user?.id;
+    if (!owner || agentRunsBusy) return;
+    if (!window.confirm('Permanently delete this completed agent run and its action history? This cannot be undone.')) return;
+    setAgentRunsBusy(true); setAgentRunsError('');
+    try {
+      await deleteEyraAgentRun(id);
+      if (ownerRef.current !== owner) return;
+      setAgentRuns(items => items.filter(item => item.id !== id));
+      setSelectedAgentRun(previous => previous?.run?.id === id ? null : previous);
+    } catch (error) {
+      if (ownerRef.current === owner) setAgentRunsError(error?.message || 'Deletion was not confirmed.');
+    } finally {
+      if (ownerRef.current === owner) setAgentRunsBusy(false);
     }
   };
 
@@ -691,9 +833,36 @@ Answer the user's latest request. Cite every externally verifiable claim with th
     try {
       const saved = await loadEyraConversation(id);
       if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
-      setMessages(saved.messages); setRemoteConversation(saved); setActionError('');
+      setMessages(saved.messages); setRemoteConversation(saved); setRenameTitle(null); setActionError('');
     } catch (error) { if (ownerRef.current === owner && historyEpochRef.current === epoch) setActionError(error?.message || 'Conversation could not be opened.'); }
     finally { if (ownerRef.current === owner && historyEpochRef.current === epoch) setHistoryBusy(false); }
+  };
+
+  const saveRenamedConversation = async () => {
+    const owner = user?.id, snapshot = remoteConversation;
+    if (!owner || !snapshot || renameTitle === null || loading
+      || historyBusy || savingConversation || historyWriteLockRef.current) return;
+    historyWriteLockRef.current = true;
+    setHistoryBusy(true); setActionError('');
+    const epoch = ++historyEpochRef.current;
+    try {
+      const renamed = await renameEyraConversation(snapshot.id, snapshot.version, renameTitle);
+      if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
+      setRemoteConversation(previous => previous?.id === renamed.id
+        ? { ...previous, ...renamed } : previous);
+      setSavedConversations(previous => previous.map(item => item.id === renamed.id
+        ? { ...item, ...renamed } : item));
+      setRenameTitle(null);
+    } catch (error) {
+      if (ownerRef.current === owner && historyEpochRef.current === epoch) {
+        setActionError(error?.message || 'Conversation title was not changed.');
+      }
+    } finally {
+      if (ownerRef.current === owner && historyEpochRef.current === epoch) {
+        historyWriteLockRef.current = false;
+        setHistoryBusy(false);
+      }
+    }
   };
 
   const exportConversation = () => {
@@ -715,7 +884,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
       await deleteEyraConversation(snapshot.id, snapshot.version);
       if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
       setSavedConversations(items => items.filter(item => item.id !== snapshot.id));
-      setRemoteConversation(null); setMessages([createWelcomeMessage(userName)]); setLiveDraft('');
+      setRemoteConversation(null); setRenameTitle(null); setMessages([createWelcomeMessage(userName)]); setLiveDraft('');
       snapshotRequestRef.current = null;
       try { sessionStorage.removeItem(`${eyraConversationKey(owner)}:snapshot-request`); } catch { /* Optional tab storage. */ }
     } catch (error) { if (ownerRef.current === owner) setActionError(error?.message || 'Snapshot could not be deleted.'); }
@@ -760,7 +929,7 @@ Answer the user's latest request. Cite every externally verifiable claim with th
     if (!window.confirm('Clear the conversation in this tab? Conversations you explicitly saved remain available.')) return;
     historyEpochRef.current += 1; setHistoryBusy(false);
     activeRequestRef.current?.abort(); activeRequestRef.current = null;
-    setLoading(false); setLiveDraft(''); setRemoteConversation(null);
+    setLoading(false); setLiveDraft(''); setRemoteConversation(null); setRenameTitle(null);
     window.speechSynthesis?.cancel();
     setMessages([{ ...createWelcomeMessage(userName), mode: activeMode }]);
     setInput('');
@@ -887,9 +1056,83 @@ Answer the user's latest request. Cite every externally verifiable claim with th
               <button type="button" onClick={() => void saveConversation()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
               <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
               <button type="button" onClick={exportConversation} disabled={loading || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Export conversation</button>
+              <button type="button" onClick={() => { if (showAgentRuns) { setShowAgentRuns(false); setSelectedAgentRun(null); } else void refreshAgentRuns(); }}
+                disabled={agentRunsBusy} aria-expanded={showAgentRuns}
+                className="min-h-9 rounded-lg border border-border px-2">
+                {agentRunsBusy ? 'Loading runs…' : showAgentRuns ? 'Hide agent runs' : 'Agent runs'}
+              </button>
+              {remoteConversation && <button type="button" onClick={() => setRenameTitle(remoteConversation.title || '')} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Rename saved conversation</button>}
               {remoteConversation && <button type="button" onClick={() => void deleteSnapshot()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Delete saved snapshot</button>}
               <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); }} />Allow authorized workspace and research tools for this request</label>
             </div>
+            {showAgentRuns && (
+              <section aria-label="EYRA agent runs" className="mb-2 max-h-56 overflow-y-auto rounded-lg border border-border p-2 text-xs">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="font-semibold">Agent run history</span>
+                  <button type="button" onClick={() => void refreshAgentRuns()}
+                    disabled={agentRunsBusy} className="rounded-md border border-border px-2 py-1">Refresh</button>
+                </div>
+                {agentRunsError && <p role="alert" className="mb-2 text-destructive">{agentRunsError}</p>}
+                {!agentRunsError && !agentRunsBusy && agentRuns.length === 0 && (
+                  <p className="text-muted-foreground">No recorded agent runs in this environment.</p>
+                )}
+                {agentRuns.map(item => (
+                  <div key={item.id} className="mb-1 flex flex-wrap items-center gap-2 border-b border-border/70 py-1">
+                    <span className="min-w-0 flex-1 truncate">{item.input_preview || item.id}</span>
+                    <span className="font-medium">{item.status}</span>
+                    <button type="button" onClick={() => void inspectAgentRun(item.id)}
+                      disabled={agentRunsBusy} className="rounded-md border border-border px-2 py-1">Details</button>
+                  </div>
+                ))}
+                {selectedAgentRun && (
+                  <div className="mt-2 rounded-md border border-border bg-secondary/20 p-2">
+                    <p className="font-semibold">Run: {selectedAgentRun.run.id}</p>
+                    <p>Status: {selectedAgentRun.run.status}</p>
+                    <p className="break-words">Response: {selectedAgentRun.run.response_text || 'No recorded final response.'}</p>
+                    {selectedAgentRun.actions.map(action => (
+                      <p key={action.id} className="break-words">
+                        {action.tool_name}: {action.status}
+                        {action.status === 'needs_review' ? ' — inspect the saved record before retrying.' : ''}
+                      </p>
+                    ))}
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {selectedAgentRun.run.status === 'running' && (
+                        <>
+                        <button type="button" disabled={agentRunsBusy}
+                          className="rounded-md border border-border px-2 py-1"
+                          onClick={() => void cancelAgentRun(selectedAgentRun.run.id)}>Request cancellation</button>
+                        <button type="button" disabled={agentRunsBusy}
+                          className="rounded-md border border-border px-2 py-1"
+                          onClick={() => void markAgentRunForReview(selectedAgentRun.run.id)}>Review stale run (30+ min)</button>
+                        </>
+                      )}
+                      {selectedAgentRun.run.status !== 'running' && (
+                        <button type="button" disabled={agentRunsBusy}
+                          className="rounded-md border border-border px-2 py-1"
+                          onClick={() => void removeAgentRun(selectedAgentRun.run.id)}>Delete run history</button>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <p className="mt-2 text-muted-foreground">
+                  Cancellation is cooperative. A previously initiated external write may still complete.
+                </p>
+              </section>
+            )}
+            {renameTitle !== null && remoteConversation && (
+              <form className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-border p-2"
+                onSubmit={event => { event.preventDefault(); void saveRenamedConversation(); }}>
+                <label className="text-xs" htmlFor="eyra-conversation-title">Conversation title</label>
+                <input id="eyra-conversation-title" type="text" maxLength={180}
+                  value={renameTitle} onChange={event => setRenameTitle(event.target.value)}
+                  disabled={historyBusy} required
+                  className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm" />
+                <button type="submit" disabled={historyBusy || !renameTitle.trim()}
+                  className="rounded-lg bg-primary px-3 py-2 text-xs text-primary-foreground">Save title</button>
+                <button type="button" disabled={historyBusy} onClick={() => setRenameTitle(null)}
+                  className="rounded-lg border border-border px-3 py-2 text-xs">Cancel rename</button>
+              </form>
+            )}
             {pendingWriteReview && (
               <section role="group" aria-label="Review EYRA write request"
                 className="mb-2 rounded-xl border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-foreground">
