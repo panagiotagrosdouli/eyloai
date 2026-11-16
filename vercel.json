@@ -22,6 +22,10 @@
       "destination": "/api/system?endpoint=capabilities"
     },
     {
+      "source": "/api/admin-analytics",
+      "destination": "/api/system?endpoint=admin-analytics"
+    },
+    {
       "source": "/api/contact",
       "destination": "/api/system?endpoint=contact"
     },
