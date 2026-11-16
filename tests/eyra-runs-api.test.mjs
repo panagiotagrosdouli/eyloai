@@ -147,3 +147,108 @@ test('feature disabled reports unavailable without making network calls', async 
     else process.env.EYRA_DURABLE_RUNS_ENABLED = previous;
   }
 });
+
+test('stale running agent run is marked for manual review without replaying tools', async () => {
+  const previousFetch = globalThis.fetch;
+  const staleTime = new Date(Date.now() - 40 * 60 * 1000).toISOString();
+  const calls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    const u = new URL(String(url));
+    calls.push({ method: options.method || 'GET', pathname: u.pathname });
+    if (u.pathname === '/auth/v1/user') return reply({ id: owner });
+    assert.equal(u.searchParams.get('user_id'), 'eq.' + owner);
+    if (u.pathname === '/rest/v1/eyra_agent_runs') {
+      if (options.method === 'GET') {
+        assert.equal(u.searchParams.get('id'), 'eq.' + runId);
+        return reply([{ id: runId, status: 'running', updated_at: staleTime }]);
+      }
+      assert.equal(options.method, 'PATCH');
+      assert.equal(u.searchParams.get('status'), 'eq.running');
+      assert.equal(u.searchParams.get('updated_at'), 'eq.' + staleTime);
+      assert.equal(JSON.parse(options.body).status, 'needs_review');
+      return reply([{ id: runId, status: 'needs_review' }]);
+    }
+    if (u.pathname === '/rest/v1/eyra_agent_actions') {
+      assert.equal(options.method, 'PATCH');
+      assert.equal(u.searchParams.get('run_id'), 'eq.' + runId);
+      assert.equal(u.searchParams.get('status'), 'eq.started');
+      const body = JSON.parse(options.body);
+      assert.equal(body.status, 'needs_review');
+      assert.equal(body.error_code, 'STALE_ACTION_OUTCOME_UNVERIFIED');
+      return reply([{ id: 'action-1', status: 'needs_review' }]);
+    }
+    throw new Error('Unexpected URL ' + u);
+  };
+  try {
+    const res = responseMock();
+    await handler({ method: 'POST', body: { id: runId, action: 'review_stale' },
+      headers: { authorization: 'Bearer valid-session' } }, res);
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.payload.status, 'needs_review');
+    assert.equal(res.payload.recovery, 'manual_inspection_only');
+    assert.deepEqual(calls.map(x => x.pathname), [
+      '/auth/v1/user',
+      '/rest/v1/eyra_agent_runs',
+      '/rest/v1/eyra_agent_runs',
+      '/rest/v1/eyra_agent_actions',
+    ]);
+    assert.ok(!calls.some(x => x.pathname.includes('/projects') || x.pathname.includes('/openai')));
+  } finally { globalThis.fetch = previousFetch; }
+});
+
+test('fresh, terminal and missing agent runs cannot be marked stale', async () => {
+  const previousFetch = globalThis.fetch;
+  let item = { id: runId, status: 'running', updated_at: new Date().toISOString() };
+  let mutations = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const u = new URL(String(url));
+    if (u.pathname === '/auth/v1/user') return reply({ id: owner });
+    if (options.method === 'PATCH') mutations++;
+    assert.equal(u.pathname, '/rest/v1/eyra_agent_runs');
+    assert.equal(options.method, 'GET');
+    return reply(item ? [item] : []);
+  };
+  try {
+    const request = { method: 'POST', body: { id: runId, action: 'review_stale' },
+      headers: { authorization: 'Bearer valid-session' } };
+    for (const [row, status, code] of [
+      [{ id: runId, status: 'running', updated_at: new Date().toISOString() }, 409, 'RUN_NOT_STALE'],
+      [{ id: runId, status: 'completed', updated_at: new Date(Date.now() - 3600000).toISOString() }, 409, 'RUN_NOT_STALE'],
+      [null, 404, 'RUN_NOT_FOUND'],
+      [{ id: runId, status: 'running', updated_at: 'not-a-timestamp' }, 409, 'RUN_NOT_STALE'],
+    ]) {
+      item = row;
+      const res = responseMock();
+      await handler(request, res);
+      assert.equal(res.statusCode, status);
+      assert.equal(res.payload.code, code);
+    }
+    assert.equal(mutations, 0);
+  } finally { globalThis.fetch = previousFetch; }
+});
+
+test('stale recovery refuses changed run and never touches tool records', async () => {
+  const previousFetch = globalThis.fetch;
+  let actionUpdates = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const u = new URL(String(url));
+    if (u.pathname === '/auth/v1/user') return reply({ id: owner });
+    if (u.pathname === '/rest/v1/eyra_agent_runs') {
+      if (options.method === 'GET') return reply([{
+        id: runId, status: 'running', updated_at: new Date(Date.now() - 3600000).toISOString(),
+      }]);
+      assert.equal(options.method, 'PATCH');
+      return reply([]);
+    }
+    if (u.pathname === '/rest/v1/eyra_agent_actions') actionUpdates++;
+    throw new Error('Unexpected URL');
+  };
+  try {
+    const res = responseMock();
+    await handler({ method: 'POST', body: { id: runId, action: 'review_stale' },
+      headers: { authorization: 'Bearer valid-session' } }, res);
+    assert.equal(res.statusCode, 409);
+    assert.equal(res.payload.code, 'RUN_CHANGED');
+    assert.equal(actionUpdates, 0);
+  } finally { globalThis.fetch = previousFetch; }
+});
