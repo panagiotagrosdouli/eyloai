@@ -56,6 +56,9 @@ jobs:
       - name: Prevent cross-account authentication retries
         run: npm run test:e2e:session
 
+      - name: Verify private Library scope, exports and navigation
+        run: npm run test:e2e:library
+
       - name: Verify canonical timer, quiz and learning workflows
         run: npm run test:e2e:learning
 

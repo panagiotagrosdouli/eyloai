@@ -5,7 +5,7 @@ export const researchJourneyLinks = projectId => {
   return {
     project: '/projects/' + id,
     discover: '/search',
-    library: '/library',
+    library: '/library?project_id=' + id,
     gaps: '/research-gaps?project_id=' + id,
     review: '/literature-review?project_id=' + id,
     thesis: '/projects/' + id + '/thesis',
