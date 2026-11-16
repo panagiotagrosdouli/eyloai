@@ -1379,7 +1379,7 @@ export default async function handler(request, response) {
           // Keep the endpoint stateless (`store: false`) and carry the tool
           // exchange explicitly instead of relying on response retrieval.
           input: toolTranscript,
-          tools: PROJECT_TOOLS,
+          tools: OPENAI_PROJECT_TOOLS,
           tool_choice: 'auto',
           store: false,
           max_output_tokens: MAX_OUTPUT_TOKENS,
