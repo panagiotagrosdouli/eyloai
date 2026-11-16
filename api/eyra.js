@@ -1,5 +1,6 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
+import { isBillingTestEnabled } from '../server/billing-activation.mjs';
 import crypto from 'node:crypto';
 import { FREE_MONTHLY_AI_ACTIONS } from '../src/lib/eyra-usage-policy.mjs';
 import { matchesEyraResponseSchema } from '../src/lib/eyra-structured-contract.mjs';
@@ -287,13 +288,10 @@ function serverHeaders(key) {
 }
 
 function billingActive() {
-  return Boolean(
-    process.env.STRIPE_SECRET_KEY
-    && process.env.STRIPE_WEBHOOK_SECRET
-    && process.env.STRIPE_PRO_PRICE_ID
-    && process.env.STRIPE_FOUNDER_PRICE_ID
-    && supabaseServerKey()
-  );
+  // Subscription entitlements must follow the exact same verified staging
+  // activation gate as /api/billing. Merely placing Stripe credentials in
+  // production cannot activate a different EYRA quota or paid-plan state.
+  return isBillingTestEnabled();
 }
 
 async function authenticate(authorization) {
@@ -935,13 +933,27 @@ async function reserveUsage(identity, usage) {
       signal: AbortSignal.timeout(15_000),
     },
   );
-  if (!result.ok) throw new Error(`Usage reservation failed: ${result.status}`);
+  if (!result.ok) {
+    throw Object.assign(new Error('EYRA usage reservation is unavailable.'), {
+      code: 'USAGE_CONTROLS_UNAVAILABLE',
+    });
+  }
 
-  const payload = await result.json();
-  const reservation = Array.isArray(payload) ? payload[0] : payload;
+  const payload = await result.json().catch(() => null);
+  const reservation = Array.isArray(payload) && payload.length === 1 ? payload[0]
+    : (!Array.isArray(payload) ? payload : null);
+  const used = Number(reservation?.used);
+  if (typeof reservation?.allowed !== 'boolean' || !Number.isSafeInteger(used)
+    || used < 0 || typeof reservation?.used === 'boolean' || reservation?.used === null) {
+    // Missing or corrupt quota responses must not masquerade as a verified
+    // free-plan exhaustion or cause an unmetered OpenAI request.
+    throw Object.assign(new Error('EYRA usage reservation returned invalid data.'), {
+      code: 'USAGE_CONTROLS_UNAVAILABLE',
+    });
+  }
   return {
-    allowed: reservation?.allowed === true,
-    used: Number(reservation?.used || 0),
+    allowed: reservation.allowed,
+    used,
     actionId: reservation?.allowed === true ? actionId : null,
     serverKey: identity.serverKey,
     supabaseUrl: identity.supabaseUrl,
@@ -1452,6 +1464,13 @@ export default async function handler(request, response) {
       ...(actionResults.length ? { actions: actionResults } : {}),
     });
   } catch (error) {
+    if (error?.code === 'USAGE_CONTROLS_UNAVAILABLE') {
+      console.error('EYRA usage reservation failed validation');
+      return response.status(503).json({
+        error: 'EYRA usage limits could not be verified. No AI action was started.',
+        code: 'USAGE_CONTROLS_UNAVAILABLE',
+      });
+    }
     // Do not refund a request that already executed/attempted real tools.
     // Network failure after a write must not make a further attempt free.
     if (!actionResults.length) await releaseUsage(reservation);
