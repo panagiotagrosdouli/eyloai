@@ -1036,7 +1036,14 @@ export default async function handler(request, response) {
   const actionResults = [];
   let streamTimer;
   let streamController;
-  const stopStream = () => { if (!response.writableEnded) streamController?.abort(); };
+  let streamClientDisconnected = false;
+  let streamedTextDelivered = false;
+  const stopStream = () => {
+    if (!response.writableEnded) {
+      streamClientDisconnected = true;
+      streamController?.abort();
+    }
+  };
 
   try {
     const identity = await authenticate(request.headers.authorization);
@@ -1258,10 +1265,18 @@ export default async function handler(request, response) {
       response.setHeader('X-Content-Type-Options', 'nosniff');
       const send = value => { if (!response.destroyed) response.write(`data: ${JSON.stringify(value)}\n\n`); };
       try {
-        const final = await relayEyraResponse(openAiResponse.body, delta => send({ type: 'delta', delta }));
+        const final = await relayEyraResponse(openAiResponse.body, delta => {
+          if (delta) streamedTextDelivered = true;
+          send({ type: 'delta', delta });
+        });
         send({ type: 'done', ...final });
       } catch {
-        await releaseUsage(reservation); reservation = null;
+        // User disconnect after partial model output must not refund a
+        // consumed quota action. Ordinary upstream failures remain refundable.
+        if (!(streamClientDisconnected && streamedTextDelivered)) {
+          await releaseUsage(reservation);
+        }
+        reservation = null;
         send({ type: 'error', error: 'EYRA did not complete the response. The draft was not saved.', code: 'EYRA_INCOMPLETE' });
       }
       response.end();
