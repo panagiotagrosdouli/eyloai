@@ -14,10 +14,17 @@ const identity = {
   user: { id: owner }, supabaseUrl: 'https://ledger-test.supabase.co',
   serverKey: 'sb_secret_test',
 };
-const savedFlag = process.env.EYRA_DURABLE_RUNS_ENABLED;
+const activationKeys = [
+  'EYRA_DURABLE_RUNS_ENABLED','EYLO_ENVIRONMENT',
+  'EYLO_STAGING_SUPABASE_REF','EYLO_STAGING_CONFIRMED_REF',
+  'VITE_SUPABASE_URL','SUPABASE_PUBLISHABLE_KEY','SUPABASE_SECRET_KEY',
+];
+const savedActivation = Object.fromEntries(activationKeys.map(key => [key, process.env[key]]));
 after(() => {
-  if (savedFlag === undefined) delete process.env.EYRA_DURABLE_RUNS_ENABLED;
-  else process.env.EYRA_DURABLE_RUNS_ENABLED = savedFlag;
+  for (const key of activationKeys) {
+    if (savedActivation[key] === undefined) delete process.env[key];
+    else process.env[key] = savedActivation[key];
+  }
 });
 
 function respond(rows, status = 200) {
@@ -28,6 +35,15 @@ test('feature gate is disabled until explicitly enabled; fingerprint is stable',
   delete process.env.EYRA_DURABLE_RUNS_ENABLED;
   assert.equal(durableRunsEnabled(), false);
   process.env.EYRA_DURABLE_RUNS_ENABLED = 'true';
+  assert.equal(durableRunsEnabled(), false, 'A flag alone cannot authorize ledger writes');
+  Object.assign(process.env, {
+    EYLO_ENVIRONMENT: 'staging',
+    EYLO_STAGING_SUPABASE_REF: 'abcdefghijklmnopqrst',
+    EYLO_STAGING_CONFIRMED_REF: 'abcdefghijklmnopqrst',
+    VITE_SUPABASE_URL: 'https://abcdefghijklmnopqrst.supabase.co',
+    SUPABASE_PUBLISHABLE_KEY: 'fixture-public',
+    SUPABASE_SECRET_KEY: 'fixture-server',
+  });
   assert.equal(durableRunsEnabled(), true);
   assert.equal(requestFingerprint({ task: 'a' }), requestFingerprint({ task: 'a' }));
   assert.notEqual(requestFingerprint({ task: 'a' }), requestFingerprint({ task: 'b' }));
