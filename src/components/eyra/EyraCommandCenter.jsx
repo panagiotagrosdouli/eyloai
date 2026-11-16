@@ -376,6 +376,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const [pendingWriteReview, setPendingWriteReview] = useState(null);
   const [liveDraft, setLiveDraft] = useState('');
   const [savedConversations, setSavedConversations] = useState([]);
+  const [historyAvailability, setHistoryAvailability] = useState('checking');
   const [remoteConversation, setRemoteConversation] = useState(null);
   const [renameTitle, setRenameTitle] = useState(null);
   const [savingConversation, setSavingConversation] = useState(false);
@@ -415,7 +416,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     activeRequestRef.current?.abort(); activeRequestRef.current = null;
     setMessages(loadConversation(user?.id)); setConversationOwner(user?.id);
     setWorkspaceContext(''); setContextStatus('idle'); setLiveDraft(''); setLoading(false);
-    setRemoteConversation(null); setSavedConversations([]); setAllowWorkspaceActions(false);
+    setRemoteConversation(null); setSavedConversations([]); setHistoryAvailability('checking'); setAllowWorkspaceActions(false);
     historyEpochRef.current += 1; snapshotRequestRef.current = null; historyWriteLockRef.current = false; setHistoryBusy(false);
     setSavingConversation(false); setSavedMessageIds(new Set()); setUserName(''); setActionError('');
     setShowAgentRuns(false); setAgentRuns([]); setSelectedAgentRun(null);
@@ -426,9 +427,19 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     if (!open || !user?.id) return undefined;
     let live = true;
     const epoch = historyEpochRef.current;
+    setHistoryAvailability('checking');
     listEyraConversations()
-      .then(rows => { if (live && epoch === historyEpochRef.current) setSavedConversations(rows); })
-      .catch(() => { if (live && epoch === historyEpochRef.current) setActionError('Saved conversations could not be loaded. You can continue this conversation in this tab.'); });
+      .then(rows => {
+        if (live && epoch === historyEpochRef.current) {
+          setSavedConversations(rows); setHistoryAvailability('available');
+        }
+      })
+      .catch(() => {
+        if (live && epoch === historyEpochRef.current) {
+          setHistoryAvailability('unavailable');
+          setActionError('Saved conversations could not be loaded. You can continue this conversation in this tab.');
+        }
+      });
     return () => { live = false; };
   }, [open, user?.id]);
 
@@ -802,9 +813,28 @@ Answer the user's latest request. Cite every externally verifiable claim with th
     }
   };
 
+  const retrySavedConversations = async () => {
+    const owner = user?.id;
+    if (!owner || historyBusy || savingConversation || historyWriteLockRef.current) return;
+    const epoch = ++historyEpochRef.current;
+    setHistoryBusy(true); setHistoryAvailability('checking'); setActionError('');
+    try {
+      const rows = await listEyraConversations();
+      if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
+      setSavedConversations(rows); setHistoryAvailability('available');
+    } catch {
+      if (ownerRef.current === owner && historyEpochRef.current === epoch) {
+        setHistoryAvailability('unavailable');
+        setActionError('Cloud conversation history is unavailable. Keep chatting in this tab or export the conversation.');
+      }
+    } finally {
+      if (ownerRef.current === owner && historyEpochRef.current === epoch) setHistoryBusy(false);
+    }
+  };
+
   const saveConversation = async () => {
     const owner = user?.id;
-    if (!owner || loading || savingConversation || historyBusy || historyWriteLockRef.current) return;
+    if (!owner || historyAvailability !== 'available' || loading || savingConversation || historyBusy || historyWriteLockRef.current) return;
     historyWriteLockRef.current = true; const epoch = ++historyEpochRef.current;
     setSavingConversation(true); setActionError('');
     try {
@@ -1053,8 +1083,8 @@ Answer the user's latest request. Cite every externally verifiable claim with th
           {/* Input */}
           <div className="relative z-10 shrink-0 border-t border-border bg-card px-4 py-3">
             <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-              <button type="button" onClick={() => void saveConversation()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
-              <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
+              <button type="button" onClick={() => void saveConversation()} disabled={historyAvailability !== 'available' || loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
+              <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={historyAvailability !== 'available' || loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
               <button type="button" onClick={exportConversation} disabled={loading || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Export conversation</button>
               <button type="button" onClick={() => { if (showAgentRuns) { setShowAgentRuns(false); setSelectedAgentRun(null); } else void refreshAgentRuns(); }}
                 disabled={agentRunsBusy} aria-expanded={showAgentRuns}
@@ -1065,6 +1095,15 @@ Answer the user's latest request. Cite every externally verifiable claim with th
               {remoteConversation && <button type="button" onClick={() => void deleteSnapshot()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Delete saved snapshot</button>}
               <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); }} />Allow authorized workspace and research tools for this request</label>
             </div>
+            {historyAvailability === 'unavailable' && (
+              <div role="status" className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-amber-500/30 p-2 text-xs text-muted-foreground">
+                <span>Cloud conversation saving is unavailable. You can still chat and export this tab’s conversation. An export is not a verified cloud backup.</span>
+                <button type="button" className="rounded-md border border-border px-2 py-1"
+                  disabled={historyBusy || savingConversation} onClick={() => void retrySavedConversations()}>
+                  Check cloud history again
+                </button>
+              </div>
+            )}
             {showAgentRuns && (
               <section aria-label="EYRA agent runs" className="mb-2 max-h-56 overflow-y-auto rounded-lg border border-border p-2 text-xs">
                 <div className="mb-2 flex items-center justify-between gap-2">
