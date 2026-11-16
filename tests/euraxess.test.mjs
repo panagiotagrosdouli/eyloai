@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import handler from '../api/euraxess.js';
+import handler from '../server/euraxess.js';
 
 function createResponse() {
   return {

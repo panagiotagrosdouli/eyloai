@@ -6,6 +6,14 @@
   "installCommand": "npm ci --no-audit --no-fund",
   "rewrites": [
     {
+      "source": "/api/general-jobs",
+      "destination": "/api/system?endpoint=general-jobs"
+    },
+    {
+      "source": "/api/euraxess",
+      "destination": "/api/system?endpoint=euraxess"
+    },
+    {
       "source": "/api/account-deletion",
       "destination": "/api/system?endpoint=account-deletion"
     },
