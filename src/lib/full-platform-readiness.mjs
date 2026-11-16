@@ -107,7 +107,7 @@ function inventoryProblems(inventory) {
  * A READY_FOR_OWNER_REVIEW result can never authorize a production release.
  */
 export function evaluateFullPlatformReadiness({
-  inventory, workspaceEvidence, fullEvidence, expectedCommit, now = Date.now(),
+  inventory, workspaceEvidence, fullEvidence, sourceRoutes, expectedCommit, now = Date.now(),
 } = {}) {
   const workspace = evaluateReleaseReadiness(workspaceEvidence, { expectedCommit, now });
   const issues = inventoryProblems(inventory);
@@ -175,8 +175,28 @@ export function evaluateFullPlatformReadiness({
   }
   const fullSiteReasons = verifyReport(fullEvidence?.site, SITE_ACCEPTANCE, context);
   const siteCoverage = fullEvidence?.site?.coverage || {};
+  const routeTypes = [
+    ['public_routes', sourceRoutes?.public_routes, fullEvidence?.site?.tested_public_routes],
+    ['private_routes', sourceRoutes?.private_routes, fullEvidence?.site?.tested_private_routes],
+  ];
+  for (const [label, expectedRoutes, testedRoutes] of routeTypes) {
+    if (!Array.isArray(expectedRoutes) || expectedRoutes.length < 1
+      || !Array.isArray(testedRoutes)
+      || expectedRoutes.length !== new Set(expectedRoutes).size
+      || testedRoutes.length !== new Set(testedRoutes).size
+      || expectedRoutes.some(path => typeof path !== 'string' || !path.startsWith('/'))
+      || testedRoutes.length !== expectedRoutes.length
+      || expectedRoutes.some(path => !testedRoutes.includes(path))) {
+      fullSiteReasons.push(`Exact source-backed ${label} route acceptance is missing or stale.`);
+    }
+  }
   for (const type of ['public_routes', 'private_routes', 'interactive_controls']) {
     const expected = siteCoverage[`${type}_expected`];
+    const sourceCount = type === 'public_routes' ? sourceRoutes?.public_routes?.length
+      : type === 'private_routes' ? sourceRoutes?.private_routes?.length : null;
+    if (sourceCount !== null && expected !== sourceCount) {
+      fullSiteReasons.push(`Expected ${type} count must match the current source route inventory.`);
+    }
     const tested = siteCoverage[`${type}_tested`];
     if (!Number.isSafeInteger(expected) || expected < 1 || tested !== expected) {
       fullSiteReasons.push(`Complete measured ${type} coverage is required.`);
