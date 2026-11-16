@@ -1,4 +1,6 @@
 // Export available scholarly metadata without inventing missing fields.
+import { normalizeDoi } from '../lib/citation-verification.mjs';
+
 const plain = value => String(value ?? '').replace(/[\u0000-\u001f]+/g, ' ').trim();
 
 // Escape one character at a time: a blanket second-pass brace escape would
@@ -15,12 +17,9 @@ export const escapeBibTeXText = value =>
 const escapeRis = value => plain(value).replace(/\s+-\s+/g, ' - ');
 const authorList = value => Array.isArray(value)
   ? value.map(person => typeof person === 'string' ? person : (person?.name || person?.display_name || '')).map(plain).filter(Boolean)
-  : plain(value).split(/\s+(?:and|;)\s+/i).filter(Boolean);
+  : plain(value).split(/\s+and\s+|\s*;\s*/i).map(plain).filter(Boolean);
 const firstNonempty = (...values) => values.find(value => value !== undefined && value !== null && String(value).trim()) || '';
-const doiValue = paper => {
-  const doi = plain(firstNonempty(paper.doi, paper.DOI)).replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '');
-  return /^10\.\d{4,9}\/\S+$/i.test(doi) ? doi : '';
-};
+const doiValue = paper => normalizeDoi(firstNonempty(paper.doi, paper.DOI));
 
 const privateHostname = hostname => {
   const name = hostname.toLowerCase().replace(/\.$/, '');
@@ -35,7 +34,14 @@ const privateHostname = hostname => {
       || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)
       || (a === 100 && b >= 64 && b <= 127) || (a === 198 && (b === 18 || b === 19));
   }
-  return name.startsWith('[') && (name.includes('::1') || name.includes('fc') || name.includes('fd') || name.includes('fe80'));
+  if (name === '[::]' || name === '[::1]' || /^\[(?:f[cd]|fe[89ab])/i.test(name)) return true;
+  // URL canonicalization turns IPv4-mapped IPv6 into two final hex groups.
+  const mapped = /^\[::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})\]$/i.exec(name);
+  if (mapped) {
+    const high = parseInt(mapped[1], 16), low = parseInt(mapped[2], 16);
+    return privateHostname(`${high >> 8}.${high & 255}.${low >> 8}.${low & 255}`);
+  }
+  return false;
 };
 
 // Do not export signed URLs, tokens, internal app routes, or tenant-local
@@ -63,7 +69,7 @@ export function publicBibliographyUrl(value) {
 }
 const labelFor = (paper, index) => {
   const surname = authorList(paper.authors)[0]?.split(/\s+/).pop()?.replace(/[^a-z0-9]/gi, '') || 'source';
-  return (surname + (paper.year || 'nd') + String(index + 1)).toLowerCase();
+  return (surname + (yearValue(paper.year) || 'nd') + String(index + 1)).toLowerCase();
 };
 const yearValue = value => {
   const year = plain(value);
@@ -76,7 +82,7 @@ export function toBibTeX(papers) {
       ['year', yearValue(paper.year)], ['doi', doiValue(paper)], ['url', publicBibliographyUrl(paper.url)]];
     return '@misc{' + labelFor(paper, index) + ',\n'
       + fields.filter(([, value]) => value).map(([key, value]) =>
-        '  ' + key + ' = {' + (key === 'url' || key === 'doi' ? plain(value) : escapeBibTeXText(value)) + '}').join(',\n') + '\n}';
+        '  ' + key + ' = {' + escapeBibTeXText(value) + '}').join(',\n') + '\n}';
   }).join('\n\n');
 }
 export function toRIS(papers) {
