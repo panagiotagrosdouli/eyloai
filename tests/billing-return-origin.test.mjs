@@ -3,7 +3,7 @@ import { after, test } from 'node:test';
 import handler from '../api/billing.js';
 
 const oldFetch = globalThis.fetch;
-const names = ['APP_URL','VERCEL_PROJECT_PRODUCTION_URL','VITE_SUPABASE_URL','VITE_SUPABASE_ANON_KEY','SUPABASE_SECRET_KEY','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','STRIPE_PRO_PRICE_ID','STRIPE_FOUNDER_PRICE_ID'];
+const names = ['APP_URL','VERCEL_PROJECT_PRODUCTION_URL','VITE_SUPABASE_URL','VITE_SUPABASE_ANON_KEY','SUPABASE_SECRET_KEY','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','STRIPE_PRO_PRICE_ID','STRIPE_FOUNDER_PRICE_ID','EYLO_ENVIRONMENT','EYLO_BILLING_TEST_ENABLED','EYLO_STAGING_SUPABASE_REF','EYLO_STAGING_CONFIRMED_REF'];
 const oldEnv = Object.fromEntries(names.map(k => [k, process.env[k]]));
 after(() => {
   globalThis.fetch = oldFetch;
@@ -26,12 +26,16 @@ test('billing never exposes private responses in caches', async () => {
   assert.equal(r.headers['Cache-Control'],'private, no-store');
 });
 test('billing rejects attacker Host and constructs Stripe URLs from trusted origin', async () => {
-  process.env.APP_URL='https://eyloai.example';
+  process.env.APP_URL='https://eylo-preview.example';
+  process.env.EYLO_ENVIRONMENT='staging';
+  process.env.EYLO_BILLING_TEST_ENABLED='1';
+  process.env.EYLO_STAGING_SUPABASE_REF='abcdefghijklmnopqrst';
+  process.env.EYLO_STAGING_CONFIRMED_REF='abcdefghijklmnopqrst';
   process.env.VITE_SUPABASE_ANON_KEY='test-public-key';
-  process.env.VITE_SUPABASE_URL='https://eylo-test.supabase.co';
+  process.env.VITE_SUPABASE_URL='https://abcdefghijklmnopqrst.supabase.co';
   process.env.SUPABASE_SECRET_KEY='test-secret-key';
-  process.env.STRIPE_SECRET_KEY='test-stripe-key';
-  process.env.STRIPE_WEBHOOK_SECRET='test-webhook';
+  process.env.STRIPE_SECRET_KEY='sk_test_fixture';
+  process.env.STRIPE_WEBHOOK_SECRET='whsec_fixture';
   process.env.STRIPE_PRO_PRICE_ID='price_test_pro';
   process.env.STRIPE_FOUNDER_PRICE_ID='price_test_founder';
   const observed=[];
@@ -47,6 +51,6 @@ test('billing rejects attacker Host and constructs Stripe URLs from trusted orig
   assert.equal(r.statusCode,200);
   const stripe=observed.find(v=>v.url.includes('api.stripe.com'));
   assert.ok(stripe);
-  assert.match(stripe.options.body.toString(),/eyloai.example/);
+  assert.match(stripe.options.body.toString(),/eylo-preview.example/);
   assert.equal(stripe.options.body.toString().includes('attacker.example'),false);
 });
