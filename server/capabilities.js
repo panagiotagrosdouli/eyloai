@@ -1,6 +1,7 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 import { analyticsEnabled } from '../src/lib/analytics-readiness.mjs';
 import { readSupabaseApiConfig } from './supabase-config.mjs';
+import { isBillingTestEnabled } from './billing-activation.mjs';
 
 function supabaseServerConfigured() {
   const config = readSupabaseApiConfig();
@@ -20,13 +21,8 @@ export default function handler(request, response) {
     ai: Boolean(process.env.OPENAI_API_KEY && supabaseServerConfigured()),
     // Delivery credentials alone do not establish verified provider/inbox acceptance.
     contact: Boolean(process.env.CONTACT_PUBLIC_ENABLED === '1' && process.env.RESEND_API_KEY && process.env.CONTACT_TO_EMAIL && process.env.RESEND_FROM_EMAIL),
-    billing: Boolean(
-      process.env.STRIPE_SECRET_KEY
-      && process.env.STRIPE_WEBHOOK_SECRET
-      && process.env.STRIPE_PRO_PRICE_ID
-      && process.env.STRIPE_FOUNDER_PRICE_ID
-      && supabaseServerConfigured()
-    ),
+    // Never advertise paid checkout from credential presence alone.
+    billing: isBillingTestEnabled(),
     // Manual watchlist checks remain available. The production daily schedule
     // is enabled only after explicit consent to send each active query to the
     // selected external research/funding source.
