@@ -84,8 +84,66 @@ export default async function handler(request, response) {
       return response.status(200).json(id ? { run: rows[0], actions } : { runs: rows });
     }
     if (request.method === 'POST') {
+      if (request.body?.action === 'review_stale') {
+        // This is a conservative operator reconciliation marker, not a retry
+        // or proof about external writes. Only runs silent for >30 minutes
+        // can move from running to needs_review.
+        const owned = await db('eyra_agent_runs', 'GET', {
+          select: 'id,status,updated_at',
+          id: 'eq.' + id, user_id: 'eq.' + owner, limit: '1',
+        });
+        if (owned.length !== 1 || owned[0].id !== id) {
+          return fail(response, 404, 'RUN_NOT_FOUND', 'Agent run not found.');
+        }
+        const run = owned[0];
+        if (run.status !== 'running') {
+          return fail(response, 409, 'RUN_NOT_STALE', 'Only running agent executions may be marked for review.');
+        }
+        const observedUpdatedAt = run.updated_at;
+        const updatedTime = typeof observedUpdatedAt === 'string' ? Date.parse(observedUpdatedAt) : NaN;
+        if (!Number.isFinite(updatedTime)
+          || Date.now() - updatedTime < 30 * 60 * 1000) {
+          return fail(response, 409, 'RUN_NOT_STALE',
+            'The agent run is too recent or its last activity cannot be verified.');
+        }
+        const transition = await db('eyra_agent_runs', 'PATCH', {
+          select: 'id,status', id: 'eq.' + id, user_id: 'eq.' + owner,
+          status: 'eq.running', updated_at: 'eq.' + observedUpdatedAt,
+        }, {
+          status: 'needs_review',
+          updated_at: new Date().toISOString(),
+          finished_at: new Date().toISOString(),
+          error_code: 'STALE_RUN_REQUIRES_MANUAL_REVIEW',
+        }, { prefer: 'return=representation' });
+        if (transition.length !== 1 || transition[0].id !== id
+          || transition[0].status !== 'needs_review') {
+          return fail(response, 409, 'RUN_CHANGED',
+            'The agent run changed while it was being marked for review. Reload its status.');
+        }
+        // Preserve any confirmed succeeded or failed outcomes. Pending actions
+        // are explicitly uncertain; never execute them again.
+        try {
+          await db('eyra_agent_actions', 'PATCH', {
+            select: 'id,status', user_id: 'eq.' + owner,
+            run_id: 'eq.' + id, status: 'eq.started',
+          }, {
+            status: 'needs_review',
+            outcome: { reason: 'stale_run_manual_reconciliation' },
+            error_code: 'STALE_ACTION_OUTCOME_UNVERIFIED',
+            finished_at: new Date().toISOString(),
+          }, { prefer: 'return=representation' });
+        } catch {
+          // The parent is still needs_review. The caller must inspect the
+          // actions before any additional attempt, rather than claiming success.
+          return fail(response, 503, 'ACTION_REVIEW_INCOMPLETE',
+            'The run requires manual review, but some action records could not be updated. Reload the run before proceeding.');
+        }
+        return response.status(200).json({
+          run_id: id, status: 'needs_review', recovery: 'manual_inspection_only',
+        });
+      }
       if (request.body?.action !== 'cancel') {
-        return fail(response, 400, 'INVALID_RUN_ACTION', 'Only cancellation is available.');
+        return fail(response, 400, 'INVALID_RUN_ACTION', 'Only cancellation or stale-run review is available.');
       }
       const rows = await db('eyra_agent_runs', 'PATCH', {
         select: 'id,status', id: 'eq.' + id,
