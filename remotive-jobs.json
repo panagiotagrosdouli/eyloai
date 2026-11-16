@@ -1,9 +1,23 @@
 {
   "source": "Remotive",
   "source_url": "https://remotive.com/remote-jobs/api",
-  "retrieved_at": "2026-11-15T12:43:10.936Z",
+  "retrieved_at": "2026-11-16T13:37:35.754Z",
   "provider_delay_hours": 24,
   "items": [
+    {
+      "id": "remotive-2091173",
+      "title": "Content Creator - YouTube",
+      "organization": "Metics Media",
+      "country": "USA, Canada",
+      "description": "Important: Applications without an intro video will not be considered. Job Overview Create engaging YouTube tutorials about software, digital marketing, and AI tools that reach millions of people around the world every month through our YouTube channel, Metics Media. About us Metics Media is a small, fully remote team creating high-quality YouTube videos about software, digital marketing, and AI tools for an audience of over 700,000 subscribers. Our mission is simple: to make technology easy to understand and help people get the most out of the tools available to them. We partner with leading platforms like Shopify, Hostinger, and Squarespace, allowing us to keep our content free and accessible to everyone. We're now looking for talented, motivated content creators to join our growing team, help us produce even more high-quality videos, and reach millions more people around the world. What you'll do Research each video's topic and tools in depth, and figure out what to cover and how to present it in a clear, engaging way. Write video scripts and outlines. Record videos, including talking-head and screen recordings. Your face will be visible in your videos. Perform basic video editi",
+      "salary": "$85k - $155k",
+      "category": "Marketing",
+      "job_type": "full_time",
+      "published_at": "2026-11-13T17:29:57",
+      "deadline": "",
+      "source": "Remotive",
+      "source_url": "https://remotive.com/remote-jobs/marketing/content-creator-youtube-2091173"
+    },
     {
       "id": "remotive-1680495",
       "title": "Remote Office Assistant",
@@ -213,20 +227,6 @@
       "deadline": "",
       "source": "Remotive",
       "source_url": "https://remotive.com/remote-jobs/software-development/software-engineer-ai-coding-tasks-2091158"
-    },
-    {
-      "id": "remotive-2069746",
-      "title": "Tech Lead Full-Stack Rails Engineer",
-      "organization": "Mitre Media",
-      "country": "USA, Canada, USA timezones",
-      "description": "About Mitre Media Mitre Media is redefining FinTech with AI-driven tools that empower millions of investors. Our portfolio, including Dividend.com and MutualFunds.com, leverages LLMs to deliver novel data insights and visually rich user experiences. For over a decade, we’ve served individual investors, financial advisors, and top asset managers like BlackRock and Vanguard through our premium data, tools, and advertising solutions. Join our lean, entrepreneurial team to shape the future of AI-powered investing from your location ±3 hours from Eastern Time. Our users are deeply engaged, spending over 5 minutes per visit with a bounce rate below 10%, researching investments across hundreds of different categories. With 40 million brokerage accounts in the U.S., we take pride in building tools that make a real impact, fostering a culture of trust, innovation, and dynamism. If you’re passionate about financial technology and AI, we’d love to connect! About the Role As a Full-Stack Rails Tech Lead, you’ll architect and implement LLM-powered web applications within our microservices-based Rails 8 platform. Reporting directly to our CTO, you’ll collaborate with a small, high-impact team to",
-      "salary": "$170k - $200k",
-      "category": "Software Development",
-      "job_type": "full_time",
-      "published_at": "2026-10-14T20:33:44",
-      "deadline": "",
-      "source": "Remotive",
-      "source_url": "https://remotive.com/remote-jobs/software-development/tech-lead-full-stack-rails-engineer-2069746"
     }
   ]
 }
