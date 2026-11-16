@@ -25,6 +25,17 @@
 | `eylo_api_tokens` | #31, #76 |
 | `meeting_participants` | #33 |
 
+## Source migration candidates — not approved to apply
+
+The repository includes proposed SQL for many of these missing models:
+
+- `20261113090000_eyra_conversations.sql`: EYRA conversation/message tables.
+- `20261112090000_project_scoped_grant_applications.sql`: saved opportunity/project grant applications.
+- `20261113180517_complete_workspace_products.sql`: directory, team, connection, community, peer-review, feedback and API-token models.
+- `20261110_native_video_meetings.sql`: meeting-participant model.
+
+These files have distinct dependencies and grants. Do not assume that applying them against the current live schema is safe or complete: later migrations and current branch heads may change those contracts. Verify source order and actual hosted migration history on isolated staging first.
+
 **Interpretation:** These are exact naming mismatches between the source inventory and current production metadata. A feature may use another storage mechanism or be intentionally disabled, but no associated workflow is accepted without verification. This is **not** a declaration that every missing table should be installed as-is or that all existing tables are correctly configured.
 
 **Safe resolution:** Reconcile actual current migration files with production history, inspect source code expectations and dependencies, compare schemas on a separately authorized staging project, test migrations there in sequence, verify grants/RLS/storage with two disposable accounts and observe full backend/frontend workflows. Do **not** apply production DDL or synchronize production by assumption.
