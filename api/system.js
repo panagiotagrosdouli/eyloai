@@ -4,6 +4,7 @@ import accountDeletion from '../server/account-deletion.js';
 import capabilities from '../server/capabilities.js';
 import contact from '../server/contact.js';
 import deploymentStatus from '../server/deployment-status.js';
+import adminAnalytics from '../server/admin-analytics.js';
 
 import {adminOperations,developerRead} from '../server/product-api.js';
 
@@ -14,6 +15,7 @@ const handlers = Object.freeze({
   developer:developerRead,
   contact,
   'deployment-status': deploymentStatus,
+  'admin-analytics': adminAnalytics,
 });
 
 export default function handler(request, response) {
