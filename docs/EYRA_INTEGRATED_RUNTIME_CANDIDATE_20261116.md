@@ -17,7 +17,7 @@ This branch combines the **source-code-only** fixes from draft PRs #491, #492, #
 ## Scope and exclusions
 
 - All user/project database operations remain bound to existing verified Auth and RLS paths; no migrations applied, no new secrets accessed and no actual OpenAI/Stripe calls made in this integration.
-- **NOT included:** unmerged #475 conversation-run ledger migration or #476 evidence/consent quality features. Both touch overlapping EYRA UI and require separate careful review before any integration into this branch.
+- **Source reconciliation:** the canonical #475 run-ledger migration/API/tests and #476 evidence/consent utilities/tests are **already identical to current main**. Their older EYRA UI branches differ and must not overwrite current-main evidence labels or personalization consent. See `docs/EYRA_OLD_PR_RECONCILIATION_20261116.md`. Hosted activation and human evidence-quality acceptance are **not complete**.
 - **NOT hosted-accepted:** conversation snapshot tables/RPC, run ledger, two-account isolation, voice, actual provider request formats, live quota/refund, scientific reviewer audit, accessibility, Vercel preview and rollback.
 - Active EYLO production schema still lacks `eyra_conversations`, `eyra_messages`, `eyra_agent_runs`, `eyra_agent_actions`; source feature flags cannot replace tables or hosted acceptance.
 - A READY Vercel deployment or a green GitHub Actions suite cannot alone establish that provider calls work with real keys. Vercel account's preview build-rate limit may independently block preview generation.
@@ -28,7 +28,7 @@ This branch combines the **source-code-only** fixes from draft PRs #491, #492, #
 2. Review the diff for overlapping code and run static typecheck/lint; ensure no broad OAuth/Stripe/RLS migration snuck in.
 3. Obtain a distinct owner-authorized Supabase staging project and disposable two-user Auth identities; reconcile and apply *source-reviewed* conversation/agent migrations only there.
 4. Test live OpenAI Responses with real provider-valid tools, canceled streams, failure/retry, structured output and source-linked research; measure real usage quota effects.
-5. Test actual UI cloud save/rename/export/delete, native/unsupported voice behavior, mobile accessibility and owner isolation. Integrate #475/#476 only after dedicated review.
+5. Test actual UI cloud save/rename/export/delete, native/unsupported voice behavior, mobile accessibility and owner isolation. Reconcile historical #475/#476 branch status against current-main source; preserve newer UI privacy/evidence behavior rather than merging stale components.
 6. Record sanitized acceptance evidence tied to exact deployed commit, reviewer and rollback; **do not merge or deploy to production without explicit release approval**.
 
 **Decision:** NO-GO for full EYRA launch; SOURCE IMPLEMENTED / automated-test candidate only.
