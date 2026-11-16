@@ -96,6 +96,9 @@ function inventoryProblems(inventory) {
   if (!Array.isArray(inventory?.additional_features)) {
     issues.push('Additional existing and advertised feature inventory must be explicitly audited.');
   }
+  if (!Array.isArray(inventory?.additional_entities)) {
+    issues.push('Additional database entity inventory must be explicitly audited.');
+  }
   return issues;
 }
 
@@ -140,6 +143,33 @@ export function evaluateFullPlatformReadiness({
     reasons.push(...verifyReport(report, PRODUCT_ACCEPTANCE, context));
     return { id, name, status: reasons.length ? 'BLOCKED' : 'VERIFIED', reasons };
   });
+  const schemaReasons = verifyReport(fullEvidence?.schema, [
+    'all_required_tables_present', 'all_rls_enabled',
+    'migrations_reconciled', 'storage_policies_reviewed',
+  ], context);
+  const entities = [...new Set([
+    ...products.flatMap(product => Array.isArray(product?.supabase_entities) ? product.supabase_entities : []),
+    ...(Array.isArray(inventory?.additional_entities) ? inventory.additional_entities : []),
+  ])];
+  const observed = fullEvidence?.schema?.tables;
+  if (!Array.isArray(observed)) {
+    schemaReasons.push('A read-only staging table/RLS inventory is required.');
+  } else {
+    const seen = new Set();
+    for (const table of observed) {
+      const name = table?.name;
+      if (typeof name !== 'string' || !/^[a-z][a-z0-9_]*$/.test(name) || seen.has(name)) {
+        schemaReasons.push('Malformed or duplicate schema table entry.');
+      } else {
+        seen.add(name);
+      }
+    }
+    for (const name of entities) {
+      const row = observed.find(item => item?.name === name);
+      if (!row) schemaReasons.push(`Missing staging table: ${name}.`);
+      else if (row.rls_enabled !== true) schemaReasons.push(`RLS not verified for: ${name}.`);
+    }
+  }
   const fullSiteReasons = verifyReport(fullEvidence?.site, SITE_ACCEPTANCE, context);
   const siteCoverage = fullEvidence?.site?.coverage || {};
   for (const type of ['public_routes', 'private_routes', 'interactive_controls']) {
@@ -167,7 +197,7 @@ export function evaluateFullPlatformReadiness({
   const suppliedExtras = Object.keys(fullEvidence?.additional_features || {});
   if (suppliedExtras.some(name => !extras.includes(name))) reviewReasons.push('Uninventoried additional-feature report found.');
   if (extras.length !== new Set(extras).size) reviewReasons.push('Duplicate additional-feature inventory entries.');
-  const ready = issues.length === 0 && !fullSiteReasons.length && !reviewReasons.length
+  const ready = issues.length === 0 && !schemaReasons.length && !fullSiteReasons.length && !reviewReasons.length
     && perProduct.every(report => report.status === 'VERIFIED')
     && workflows.every(report => report.status === 'VERIFIED')
     && extraReports.every(report => report.status === 'VERIFIED');
@@ -177,6 +207,7 @@ export function evaluateFullPlatformReadiness({
     production_authorized: false,
     underlying_workspace_decision: workspace.decision,
     identity_issues: issues, products: perProduct,
+    database_schema: { status: schemaReasons.length ? 'BLOCKED' : 'VERIFIED', required_entity_count: entities.length, reasons: schemaReasons },
     site: { status: fullSiteReasons.length ? 'BLOCKED' : 'VERIFIED', reasons: fullSiteReasons },
     workflows,
     additional_inventory: { status: reviewReasons.length ? 'BLOCKED' : 'VERIFIED', reasons: reviewReasons },
