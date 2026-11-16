@@ -5,13 +5,17 @@ import handler from '../api/eyra-runs.js';
 const owner = '00000000-0000-4000-8000-000000000001';
 const runId = '20000000-0000-4000-8000-000000000001';
 const keys = ['VITE_SUPABASE_URL','SUPABASE_PUBLISHABLE_KEY','SUPABASE_SECRET_KEY',
-  'SUPABASE_SERVICE_ROLE_KEY','EYRA_DURABLE_RUNS_ENABLED'];
+  'SUPABASE_SERVICE_ROLE_KEY','EYRA_DURABLE_RUNS_ENABLED',
+  'EYLO_ENVIRONMENT','EYLO_STAGING_SUPABASE_REF','EYLO_STAGING_CONFIRMED_REF'];
 const previousEnv = Object.fromEntries(keys.map(key => [key, process.env[key]]));
 Object.assign(process.env, {
-  VITE_SUPABASE_URL: 'https://eyra-runs-test.supabase.co',
+  VITE_SUPABASE_URL: 'https://abcdefghijklmnopqrst.supabase.co',
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_fixture',
   SUPABASE_SECRET_KEY: 'sb_secret_fixture',
   EYRA_DURABLE_RUNS_ENABLED: 'true',
+  EYLO_ENVIRONMENT: 'staging',
+  EYLO_STAGING_SUPABASE_REF: 'abcdefghijklmnopqrst',
+  EYLO_STAGING_CONFIRMED_REF: 'abcdefghijklmnopqrst',
 });
 after(() => {
   keys.forEach(key => {

@@ -9,16 +9,21 @@ const runId = '20000000-0000-4000-8000-000000000011';
 const actionId = '30000000-0000-4000-8000-000000000011';
 const envKeys = ['VITE_SUPABASE_URL','SUPABASE_PUBLISHABLE_KEY','SUPABASE_SECRET_KEY',
   'OPENAI_API_KEY','EYRA_DURABLE_RUNS_ENABLED','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET',
-  'STRIPE_PRO_PRICE_ID','STRIPE_FOUNDER_PRICE_ID'];
+  'STRIPE_PRO_PRICE_ID','STRIPE_FOUNDER_PRICE_ID',
+  'EYLO_ENVIRONMENT','EYLO_STAGING_SUPABASE_REF','EYLO_STAGING_CONFIRMED_REF'];
 const saved = Object.fromEntries(envKeys.map(key => [key, process.env[key]]));
 Object.assign(process.env, {
-  VITE_SUPABASE_URL: 'https://eyra-durable-api-test.supabase.co',
+  VITE_SUPABASE_URL: 'https://abcdefghijklmnopqrst.supabase.co',
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test',
   SUPABASE_SECRET_KEY: 'sb_secret_test',
   OPENAI_API_KEY: 'sk-test-placeholder',
   EYRA_DURABLE_RUNS_ENABLED: 'true',
+  EYLO_ENVIRONMENT: 'staging',
+  EYLO_STAGING_SUPABASE_REF: 'abcdefghijklmnopqrst',
+  EYLO_STAGING_CONFIRMED_REF: 'abcdefghijklmnopqrst',
 });
-for (const key of envKeys.slice(5)) delete process.env[key];
+for (const key of ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET',
+  'STRIPE_PRO_PRICE_ID', 'STRIPE_FOUNDER_PRICE_ID']) delete process.env[key];
 after(() => {
   for (const [key, value] of Object.entries(saved)) {
     if (value === undefined) delete process.env[key];
