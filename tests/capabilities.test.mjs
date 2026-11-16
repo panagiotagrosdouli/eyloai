@@ -6,6 +6,7 @@ const keys = [
   'OPENAI_API_KEY', 'RESEND_API_KEY', 'CONTACT_TO_EMAIL', 'RESEND_FROM_EMAIL', 'CONTACT_PUBLIC_ENABLED',
   'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET',
   'STRIPE_PRO_PRICE_ID', 'STRIPE_FOUNDER_PRICE_ID',
+  'EYLO_ENVIRONMENT', 'EYLO_BILLING_TEST_ENABLED', 'EYLO_STAGING_SUPABASE_REF', 'EYLO_STAGING_CONFIRMED_REF',
   'SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY',
   'VITE_SUPABASE_URL', 'SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY', 'SUPABASE_PUBLISHABLE_KEY',
   'EYLO_ANALYTICS_ENABLED',
@@ -79,8 +80,19 @@ test('billing requires every secret, price and server-side Supabase credential',
   handler({ method: 'GET' }, missingProject);
   assert.equal(missingProject.body.billing, false);
 
-  process.env.VITE_SUPABASE_URL = 'https://eylo-capability-test.supabase.co';
+  process.env.VITE_SUPABASE_URL = 'https://abcdefghijklmnopqrst.supabase.co';
   process.env.SUPABASE_PUBLISHABLE_KEY = 'test-public-only';
+  const credentialOnly = response();
+  handler({ method: 'GET' }, credentialOnly);
+  assert.equal(credentialOnly.body.billing, false, 'credentials alone must not activate checkout');
+  process.env.EYLO_ENVIRONMENT = 'staging';
+  process.env.EYLO_BILLING_TEST_ENABLED = '1';
+  process.env.EYLO_STAGING_SUPABASE_REF = 'abcdefghijklmnopqrst';
+  process.env.EYLO_STAGING_CONFIRMED_REF = 'abcdefghijklmnopqrst';
+  process.env.STRIPE_SECRET_KEY = 'sk_test_fixture';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_fixture';
+  process.env.STRIPE_PRO_PRICE_ID = 'price_fixturepro';
+  process.env.STRIPE_FOUNDER_PRICE_ID = 'price_fixturefounder';
   const enabled = response();
   handler({ method: 'GET' }, enabled);
   assert.equal(enabled.body.billing, true);
