@@ -233,7 +233,7 @@ async function inspectOpenAiLimit(response) {
   } catch { /* A malformed upstream failure remains a generic rate limit. */ }
   const quotaExhausted = ['insufficient_quota', 'billing_hard_limit_reached', 'quota_exceeded'].includes(code);
   const rawRetry = response.headers?.get?.('retry-after');
-  const retryAfter = rawRetry !== null && rawRetry !== undefined && /^\\d{1,4}$/.test(String(rawRetry))
+  const retryAfter = rawRetry !== null && rawRetry !== undefined && /^\d{1,4}$/.test(String(rawRetry))
     ? Math.min(300, Number(rawRetry)) : null;
   return { quotaExhausted, retryAfter };
 }
