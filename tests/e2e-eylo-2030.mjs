@@ -92,6 +92,31 @@ try {
           domContentLoadedMs: vitals.domContentLoadedMs,
           inpMs: null, // INP needs representative real interactions; never synthesize it.
           pageErrors: pageErrors.splice(0) });
+        // Non-mutating keyboard smoke checks on the authenticated Home route.
+        // Run after performance sampling so interaction time never inflates
+        // navigation measurements or masquerades as real-user INP.
+        if (route === '/home') {
+          const skip = page.getByRole('link', { name: 'Skip to content' });
+          await skip.focus();
+          assert.equal(await skip.evaluate(node => document.activeElement === node), true,
+            'Skip link must accept keyboard focus');
+          await skip.press('Enter');
+          assert.equal(await page.evaluate(() => document.activeElement?.id), 'main-content',
+            'Skip link must focus the main content landmark');
+          if (width < 1024) {
+            const openMenu = page.getByRole('button', { name: 'Open navigation menu' });
+            await openMenu.click();
+            const panel = page.locator('#mobile-navigation-panel');
+            await panel.waitFor({ state: 'visible' });
+            const firstMenuLink = panel.getByRole('link').first();
+            await firstMenuLink.focus();
+            await firstMenuLink.press('Escape');
+            await page.getByRole('button', { name: 'Open navigation menu' }).waitFor();
+            assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')),
+              'Open navigation menu', 'Escape should return focus to mobile navigation toggle');
+          }
+          observations[observations.length - 1].keyboardChecks = 'passed';
+        }
       }
       assert.equal(observations.filter(item => item.width === width && item.colorScheme === colorScheme).flatMap(item => item.pageErrors).length, 0,
         'Unexpected browser errors at ' + width + 'px');
