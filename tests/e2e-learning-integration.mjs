@@ -437,6 +437,45 @@ try {
   await capture(page, 'literature-review-mobile');
   console.log('PASS fixture: Literature Review protocol/screening save/reload, CAS conflict draft retention, cancelled/confirmed project switching, private export and mobile viewport.');
 
+  // A retained human decision must survive once its source leaves recent100.
+  const retainedRows = [...tables.saved_papers];
+  tables.saved_papers.unshift(...Array.from({ length: 100 }, (_, index) => ({
+    id: randomUUID(), user_id: user.id, data: { title: `Newer Library fixture ${index}` },
+  })));
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(`${origin}/literature-review?project_id=${tables.projects[0].id}`);
+    await page.getByLabel('Screening decision for Synthetic review protocol fixture paper', { exact: true }).waitFor();
+    assert.equal(await page.getByLabel('Screening decision for Synthetic review protocol fixture paper', { exact: true }).inputValue(), 'include');
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+  }
+  await capture(page, 'review-retained-source-mobile');
+  await page.getByLabel('Research question').fill('Retained older source still supports my review protocol');
+  await page.getByRole('button', { name: 'Save protocol to project', exact: true }).click();
+  await page.getByText('Protocol saved privately in this research project.').waitFor();
+  const retainedExportEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export reproducible JSON', exact: true }).click();
+  const retainedStream = await (await retainedExportEvent).createReadStream();
+  let retainedJson = '';
+  for await (const chunk of retainedStream) retainedJson += chunk;
+  const retainedExport = JSON.parse(retainedJson);
+  assert.equal(retainedExport.protocol.screening[0].paper_id, retainedRows[0].id);
+  assert.equal(retainedExport.protocol.screening[0].title, retainedRows[0].data.title);
+  assert.equal(retainedExport.counts.included, 1);
+  tables.saved_papers = tables.saved_papers.filter(row => row.id !== retainedRows[0].id);
+  await page.reload();
+  await page.getByText(/Some screened publications are unavailable in your Library/).waitFor();
+  assert.equal(tables.projects[0].data.review_protocol.screening[0].paper_id, retainedRows[0].id, 'An unavailable source must not silently erase a saved human decision');
+  await capture(page, 'review-unavailable-source-mobile');
+  await page.getByRole('button', { name: 'Save protocol to project', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'One screening record is not in your authorized saved Library.' }).waitFor();
+  await page.getByRole('button', { name: `Remove unavailable publication ${retainedRows[0].id}`, exact: true }).click();
+  await page.getByRole('button', { name: 'Save protocol to project', exact: true }).click();
+  await page.getByText('Protocol saved privately in this research project.').waitFor();
+  assert.equal(tables.projects[0].data.review_protocol.screening.length, 0);
+  tables.saved_papers = retainedRows;
+  console.log('PASS fixture: retained source beyond recent100 renders on desktop/mobile, saves and exports exact metadata; unavailable sources remain explicit until researcher removal. No hosted RLS claim.');
+
   // Provider-shaped synthetic records exercise the real discovery normalizers,
   // card attribution and canonical Library persistence without live providers.
   const provenanceTitle = 'Coastal adaptation provenance fixture';

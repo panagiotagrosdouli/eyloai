@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { auditReviewMethods } from '@/lib/literature-review-methods-audit.mjs';
 import { createReviewEvidenceOutline } from '@/lib/literature-review-draft.mjs';
+import { loadReviewScreeningPapers } from '@/lib/literature-review-sources.mjs';
 import {
   emptyReviewProtocol,
   validateReviewProtocol,
@@ -36,6 +37,7 @@ export default function LiteratureReview() {
   const [projects, setProjects] = useState([]);
   const [loadedForUserId, setLoadedForUserId] = useState('');
   const [papers, setPapers] = useState([]);
+  const [unavailablePaperIds, setUnavailablePaperIds] = useState([]);
   const [projectId, setProjectId] = useState('');
   const [protocol, setProtocol] = useState(emptyReviewProtocol);
   const [loading, setLoading] = useState(true);
@@ -54,29 +56,37 @@ export default function LiteratureReview() {
     setLoadedForUserId('');
     setProjects([]);
     setPapers([]);
+    setUnavailablePaperIds([]);
     setError('');
     Promise.all([
-      base44.entities.Project.list('-updated_date', 100),
-      base44.entities.SavedPaper.list('-created_date', 100),
+      base44.entities.Project.list('-updated_date', 100, user?.id),
+      base44.entities.SavedPaper.list('-created_date', 100, user?.id),
     ]).then(async ([projectRows, paperRows]) => {
       if (!active || loadEpochRef.current !== epoch) return;
       let authorizedProjects = projectRows;
       if (preferredProjectId && !projectRows.some(project => project.id === preferredProjectId)) {
         // The recent list is a navigation cap, never authority to substitute a
         // different target for an explicit project URL.
-        const exact = await base44.entities.Project.get(preferredProjectId);
+        const exact = await base44.entities.Project.get(preferredProjectId, user?.id);
         if (!exact || exact.id !== preferredProjectId) throw new Error('Requested project unavailable.');
         authorizedProjects = [exact, ...projectRows];
       }
       if (!active || loadEpochRef.current !== epoch) return;
-      setProjects(authorizedProjects);
-      setPapers(paperRows);
-      setLoadedForUserId(user?.id || '');
-      setProjectId(current => {
-        if (preferredProjectId && authorizedProjects.some(project => project.id === preferredProjectId)) return preferredProjectId;
-        if (current && authorizedProjects.some(project => project.id === current)) return current;
-        return authorizedProjects[0]?.id || '';
+      const nextProjectId = preferredProjectId
+        || authorizedProjects.find(project => project.id === activeProjectRef.current)?.id
+        || authorizedProjects[0]?.id || '';
+      const sourceSet = await loadReviewScreeningPapers({
+        recentPapers: paperRows,
+        protocol: authorizedProjects.find(project => project.id === nextProjectId)?.review_protocol,
+        ownerId: user?.id,
+        getPaper: (id, ownerId) => base44.entities.SavedPaper.get(id, ownerId),
       });
+      if (!active || loadEpochRef.current !== epoch) return;
+      setProjects(authorizedProjects);
+      setPapers(sourceSet.papers);
+      setUnavailablePaperIds(sourceSet.unavailableIds);
+      setLoadedForUserId(user?.id || '');
+      setProjectId(nextProjectId);
     }).catch(() => {
       if (active) {
         setProjects([]); setPapers([]); setProjectId(''); setLoadedForUserId('');
@@ -228,6 +238,7 @@ export default function LiteratureReview() {
   };
 
   const screening = Array.isArray(protocol.screening) ? protocol.screening : [];
+  const unavailableScreening = screening.filter(record => unavailablePaperIds.includes(record.paper_id));
   const counts = screeningCounts({ screening });
   const methodsAudit = auditReviewMethods(protocol, { libraryRowsShown: papers.length, listLimit: 100 });
   // Filtering affects presentation only. Unsaved reviewer decisions and exports
@@ -355,7 +366,16 @@ export default function LiteratureReview() {
                 </select>
               </label>
             </div>
-            <p role="status" className="mt-3 text-xs text-muted-foreground">Showing {visiblePapers.length} of {papers.length} recently loaded publications. Filters change only this list, not your recorded screening decisions.</p>
+            <p role="status" className="mt-3 text-xs text-muted-foreground">Showing {visiblePapers.length} of {papers.length} loaded publications, including saved screening sources. Filters change only this list, not your recorded screening decisions.</p>
+            {unavailableScreening.length > 0 && <div role="status" className="mt-4 rounded-lg border border-amber-500/30 p-3 text-sm">
+              <p>Some screened publications are unavailable in your Library. Your decisions remain in this protocol. Retry loading, or explicitly remove these entries before saving or exporting.</p>
+              <ul className="mt-2 space-y-2">
+                {unavailableScreening.map(record => <li key={record.paper_id} className="flex flex-wrap items-center justify-between gap-2">
+                  <span>Unavailable publication ({record.paper_id}) · {record.decision}{record.reason ? ` · ${record.reason}` : ''}</span>
+                  <button type="button" aria-label={`Remove unavailable publication ${record.paper_id}`} onClick={() => removeScreening(record.paper_id)} className="min-h-11 rounded-lg border border-border px-3 text-sm">Remove from screening log</button>
+                </li>)}
+              </ul>
+            </div>}
             {!papers.length && <div className="mt-4 rounded-lg border border-dashed border-border p-5">
               <p className="text-sm text-muted-foreground">Save scholarly publications to your Library before screening.</p>
               <Link to="/search" onClick={event => { if (!confirmDiscard()) event.preventDefault(); }} className="mt-3 inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Find publications</Link>
