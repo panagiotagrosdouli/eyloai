@@ -22,6 +22,8 @@ export function wilson95(numerator, denominator) {
   return { lower: Math.max(0, center - half), upper: Math.min(1, center + half) };
 }
 
+const PUBLIC_DOMAINS = new Set(['biomedical', 'engineering', 'computer-science', 'environment', 'social-science', 'interdisciplinary', 'other']);
+
 function describeRatio(fraction) {
   return {
     ...fraction,
@@ -42,9 +44,8 @@ export function createEyraQualityReport(payload) {
   for (const [index, entry] of cases.entries()) {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)
       || typeof entry.reviewerId !== 'string' || !entry.reviewerId.trim()
-      || typeof entry.domain !== 'string' || !entry.domain.trim()
-      || entry.domain.length > 80) {
-      throw new TypeError(`Case ${index + 1} requires reviewerId and domain labels.`);
+      || typeof entry.domain !== 'string' || !PUBLIC_DOMAINS.has(entry.domain)) {
+      throw new TypeError(`Case ${index + 1} requires reviewerId and a predefined broad research domain.`);
     }
     reviewerIds.add(entry.reviewerId.trim());
   }
