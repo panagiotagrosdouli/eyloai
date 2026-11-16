@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
+import { isBillingTestEnabled } from '../server/billing-activation.mjs';
 const MAX_WEBHOOK_BODY_BYTES = 1024 * 1024; // Reject unusually large webhook requests before parsing.
 
 export const config = {
@@ -116,6 +117,13 @@ function subscriptionEntitlement(subscription) {
 export default async function handler(request, response) {
   if (request.method !== 'POST') return response.status(405).json({ error: 'Method not allowed.' });
 
+  // A valid Stripe signature alone is not authorization to mutate billing.
+  // Match the staging-only test gate already enforced by /api/billing.
+  // Reject before reading the body or making any upstream requests.
+  if (!isBillingTestEnabled()) {
+    return response.status(503).json({ error: 'Stripe test webhooks are not enabled for this environment.' });
+  }
+
   try {
     const payload = await rawBody(request);
     if (!verifySignature(payload, request.headers['stripe-signature'], process.env.STRIPE_WEBHOOK_SECRET)) {
@@ -130,7 +138,8 @@ export default async function handler(request, response) {
     }
     if (!event || typeof event !== 'object' || Array.isArray(event)
       || typeof event.id !== 'string' || !event.id
-      || typeof event.type !== 'string' || !event.type) {
+      || typeof event.type !== 'string' || !event.type
+      || event.livemode !== false) {
       return response.status(400).json({ error: 'Invalid Stripe event.' });
     }
 
