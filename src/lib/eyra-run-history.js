@@ -76,6 +76,15 @@ export async function cancelEyraAgentRun(id) {
   return result;
 }
 
+export async function reviewStaleEyraAgentRun(id) {
+  const result = await authenticatedRunRequest('POST', { id, action: 'review_stale' });
+  if (result.run_id !== id || result.status !== 'needs_review'
+    || result.recovery !== 'manual_inspection_only') {
+    throw new EyraRunHistoryError('Stale run review was not confirmed.', 502, 'REVIEW_NOT_CONFIRMED');
+  }
+  return result;
+}
+
 export async function deleteEyraAgentRun(id) {
   const result = await authenticatedRunRequest('DELETE', { id });
   if (result.run_id !== id || result.deleted !== true) {
