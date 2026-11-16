@@ -169,7 +169,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         await base44.entities.SearchHistory.create(payload);
       }
       setSearchSaved(true);
-      toast({ title: 'Search saved', description: 'Run the same research profile again from EYRA Activity.' });
+      toast({ title: 'Search saved', description: 'Run the same research profile again from EYLO search history.' });
     } catch (error) {
       toast({ title: 'Could not save this search', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
     } finally {
@@ -291,7 +291,7 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <EyraSectionLabel label="EYRA Discovery Report" />
+              <EyraSectionLabel label="EYLO Evidence · EYRA Insights" />
               <ConfidenceBadge level={evidenceCoverage} />
             </div>
             <h2 className="font-heading font-bold text-lg text-foreground">"{results.query}"</h2>
@@ -648,8 +648,8 @@ export default function DiscoveryResults({ results, onNewSearch }) {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <EyraSectionLabel label="EYRA Researcher Intelligence" className="mb-1" />
-              <p className="text-xs text-muted-foreground">{results.researchers?.length || 0} real experts found via OpenAlex · Recommended by EYRA</p>
+              <EyraSectionLabel label="EYLO Academics" className="mb-1" />
+              <p className="text-xs text-muted-foreground">{results.researchers?.length || 0} scholarly profiles found through OpenAlex · Verify expertise and availability at source</p>
             </div>
           </div>
 
