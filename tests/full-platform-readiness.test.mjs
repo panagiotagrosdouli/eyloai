@@ -40,6 +40,10 @@ function fixture() {
       test_mode: true, livemode: false,
     }])),
   };
+  const sourceRoutes = {
+    public_routes: ['/', '/login', '/register'],
+    private_routes: ['/files', '/home', '/notes', '/projects'],
+  };
   const inventory = {
     schema_version: 1,
     products: REQUIRED_PRODUCT_NAMES.map((name, i) => ({ id: i + 1, name, status: 'COMPLETE',
@@ -54,9 +58,12 @@ function fixture() {
       'all_required_tables_present', 'all_rls_enabled',
       'migrations_reconciled', 'storage_policies_reviewed',
     ]), tables: [{ name: 'life_tasks', rls_enabled: true }, { name: 'life_goals', rls_enabled: true }] },
-    site: { ...pass(SITE_ACCEPTANCE), coverage: {
-      public_routes_expected: 42, public_routes_tested: 42,
-      private_routes_expected: 77, private_routes_tested: 77,
+    site: { ...pass(SITE_ACCEPTANCE),
+      tested_public_routes: [...sourceRoutes.public_routes],
+      tested_private_routes: [...sourceRoutes.private_routes],
+      coverage: {
+      public_routes_expected: sourceRoutes.public_routes.length, public_routes_tested: sourceRoutes.public_routes.length,
+      private_routes_expected: sourceRoutes.private_routes.length, private_routes_tested: sourceRoutes.private_routes.length,
       interactive_controls_expected: 350, interactive_controls_tested: 350,
     } },
     additional_inventory_review: pass([
@@ -67,7 +74,7 @@ function fixture() {
     additional_features: {},
     workflows: Object.fromEntries(REQUIRED_WORKFLOWS.map(id => [id, pass(WORKFLOW_ACCEPTANCE)])),
   };
-  return { inventory, workspaceEvidence, fullEvidence };
+  return { inventory, workspaceEvidence, fullEvidence, sourceRoutes };
 }
 function evaluate(input = fixture()) {
   return evaluateFullPlatformReadiness({ ...input, expectedCommit: commit, now });
@@ -118,6 +125,9 @@ test('browser route/control incompleteness and a missing research workflow preve
   input.fullEvidence.site.coverage.interactive_controls_tested = 349;
   assert.equal(evaluate(input).decision, 'NO-GO');
   input.fullEvidence.site.coverage.interactive_controls_tested = 350;
+  input.fullEvidence.site.tested_private_routes = ['/home', '/files', '/notes', '/fake-route'];
+  assert.equal(evaluate(input).decision, 'NO-GO');
+  input.fullEvidence.site.tested_private_routes = [...input.sourceRoutes.private_routes];
   delete input.fullEvidence.workflows.team_to_meeting;
   assert.equal(evaluate(input).decision, 'NO-GO');
 });
