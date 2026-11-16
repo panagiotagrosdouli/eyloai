@@ -126,10 +126,11 @@ export function evaluateFullPlatformReadiness({
     || staging.owner_confirmed !== true || staging.connector_verified !== true) {
     issues.push('An independently verified nonproduction Supabase staging identity is required.');
   }
-  const ids = new Set((inventory?.products || []).map(product => product?.id));
+  const products = Array.isArray(inventory?.products) ? inventory.products : [];
+  const ids = new Set(products.map(product => product?.id));
   const perProduct = REQUIRED_PRODUCT_NAMES.map((name, index) => {
     const id = index + 1;
-    const row = inventory?.products?.find(product => product?.id === id);
+    const row = products.find(product => product?.id === id);
     const report = fullEvidence?.products?.[String(id)];
     const reasons = [];
     if (!ids.has(id) || row?.name !== name) reasons.push('Required product inventory entry missing or mismatched.');
