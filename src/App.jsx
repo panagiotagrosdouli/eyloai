@@ -4,7 +4,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -103,10 +103,11 @@ const PageLoader = () => (
 // workspace instead of being sent back to the public marketing experience.
 const PublicEntry = ({ children, workspacePath = '/home' }) => {
   const { status, initializeAuth } = useAuth();
+  const { search } = useLocation();
   useEffect(() => {
     if (status === 'idle') void initializeAuth();
   }, [initializeAuth, status]);
-  if (status === 'authenticated') return <Navigate to={workspacePath} replace />;
+  if (status === 'authenticated') return <Navigate to={{ pathname: workspacePath, search }} replace />;
   return children;
 };
 
@@ -126,7 +127,7 @@ const AuthenticatedApp = () => {
         <Route element={<AppLayout />}>
           <Route path="/home" element={<Home />} />
           <Route path="/workspace/careers" element={<Careers />} />
-          <Route path="/search" element={<Home searchOnly />} />
+          <Route path="/workspace/literature-search" element={<Home searchOnly />} />
           <Route path="/library" element={<Library />} />
           <Route path="/files" element={<EyloFiles />} />
           <Route path="/documents/new" element={<DocumentEditor />} />
@@ -211,7 +212,11 @@ function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/company" element={<CompanyPage />} />
               <Route path="/company/:section" element={<CompanyPage />} />
-              <Route path="/discover" element={<PublicEntry workspacePath="/search"><PublicDiscovery /></PublicEntry>} />
+              {/* EYLO's three public academic entry points work without an AI login. */}
+              <Route path="/search" element={<PublicEntry workspacePath="/workspace/literature-search"><PublicDiscovery /></PublicEntry>} />
+              <Route path="/discover" element={<PublicEntry workspacePath="/workspace/literature-search"><PublicDiscovery /></PublicEntry>} />
+              <Route path="/academics" element={<PublicEntry workspacePath="/researchers"><PublicResearchers /></PublicEntry>} />
+              <Route path="/find-phd" element={<Navigate to="/careers?q=PhD" replace />} />
               <Route path="/find-researchers" element={<PublicEntry workspacePath="/researchers"><PublicResearchers /></PublicEntry>} />
               <Route path="/careers" element={<PublicEntry workspacePath="/workspace/careers"><PublicCareers /></PublicEntry>} />
               {/* Authentication pages stay reachable even if session bootstrap fails. */}
