@@ -585,7 +585,9 @@ try {
   // page reload. These are isolated PostgREST fixtures, not live-RLS evidence.
   const libraryPaper = {
     id: 'library-paper-1', user_id: testUser.id, created_at: '2026-11-10T00:00:00.000Z',
-    data: { title: 'Library persistence test paper', source: 'OpenAlex', year: 2025 },
+    data: { title: 'Library persistence test paper', source: 'OpenAlex', year: 2025,
+      authors: 'Ada Lovelace; Grace Hopper', doi: 'doi:10.1234/EXAMPLE',
+      url: 'https://publisher.example/study?q=x_y&view=full' },
   };
   const libraryProject = {
     id: 'library-project-1', user_id: testUser.id, created_at: '2026-11-10T00:00:00.000Z',
@@ -629,7 +631,24 @@ try {
   await dataLab.reload();
   await dataLab.getByText('Library persistence test paper').waitFor();
   assert.equal(await dataLab.getByLabel('Link paper to a project').inputValue(), 'library-project-1');
+  for (const [label, filename] of [['Export BibTeX', 'eylo-saved-papers.bib'], ['Export RIS', 'eylo-saved-papers.ris']]) {
+    const download = dataLab.waitForEvent('download');
+    await dataLab.getByRole('button', { name: label, exact: true }).click();
+    const file = await download;
+    assert.equal(file.suggestedFilename(), filename);
+    const content = await readDataLabDownload(await file.path(), 'utf8');
+    assert.doesNotMatch(content, /library-paper-1|library-project-1/);
+    if (label === 'Export BibTeX') {
+      assert.match(content, /doi = \{10\.1234\/example\}/);
+      assert.ok(content.includes(String.raw`url = {https://publisher.example/study?q=x\_y\&view=full}`));
+      assert.match(content, /Ada Lovelace and Grace Hopper/);
+    } else {
+      assert.match(content, /DO  - 10\.1234\/example/);
+      assert.match(content, /AU  - Ada Lovelace\r\nAU  - Grace Hopper/);
+    }
+  }
   console.log('Library recovery and persisted project link passed against isolated PostgREST fixtures.');
+  console.log('Actual Library BibTeX/RIS downloads preserve separate authors, normalized DOI and escaped URL fields without internal IDs.');
 
   // Project-linked Literature Review protocol: save, reload and JSON export
   // against the same isolated PostgREST fixtures; no production data changes.

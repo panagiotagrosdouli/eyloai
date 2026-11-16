@@ -101,3 +101,38 @@ test('large collections have one distinct well-delimited bibliography record per
   assert.ok(!bib.includes('undefined'));
   assert.ok(!ris.includes('undefined'));
 });
+
+test('untrusted years cannot inject BibTeX keys or fields', () => {
+  const bib = toBibTeX([{ title: 'Study', authors: 'Ada Lovelace', year: '2025}, injected={value' }]);
+  assert.match(bib, /^@misc\{lovelacend1,\n/);
+  assert.doesNotMatch(bib, /injected|year = /);
+});
+
+test('DOI and URL values are escaped as literal BibTeX fields', () => {
+  const bib = toBibTeX([{ title: 'Study', doi: '10.1234/a}#b_{c}%25d', url: 'https://publisher.example/a%20b?q=x_y&z=2' }]);
+  assert.ok(bib.includes(String.raw`doi = {10.1234/a\}\#b\_\{c\}\%d}`));
+  assert.ok(bib.includes(String.raw`url = {https://publisher.example/a\%20b?q=x\_y\&z=2}`));
+});
+
+test('exports share DOI prefix/encoding validation with citation verification', () => {
+  for (const doi of ['doi:10.1234/EXAMPLE', 'https://doi.org/10.1234%2FEXAMPLE']) {
+    assert.match(toRIS([{ title: 'Study', doi }]), /DO  - 10\.1234\/example/);
+    assert.match(toBibTeX([{ title: 'Study', doi }]), /doi = \{10\.1234\/example\}/);
+  }
+  assert.doesNotMatch(toRIS([{ title: 'Study', doi: '10.1234/bad%ZZ' }]), /DO  - /);
+});
+
+test('semicolon-separated authors with ordinary spacing remain distinct RIS authors', () => {
+  for (const authors of ['Ada Lovelace; Grace Hopper', 'Ada Lovelace;Grace Hopper', 'Ada Lovelace ; Grace Hopper']) {
+    const ris = toRIS([{ title: 'Study', authors }]);
+    assert.equal([...ris.matchAll(/^AU  - /gm)].length, 2);
+    assert.match(ris, /AU  - Ada Lovelace\r\nAU  - Grace Hopper/);
+  }
+});
+
+test('IPv6 local and mapped-private hosts stay private while public IPv6 remains usable', () => {
+  for (const url of ['http://[::]/study', 'http://[::ffff:127.0.0.1]/study', 'http://[::ffff:192.168.1.1]/study', 'http://[fd00::abcd]/study', 'http://[fe90::1]/study']) {
+    assert.equal(publicBibliographyUrl(url), '', url);
+  }
+  assert.equal(publicBibliographyUrl('https://[2606:4700:4700::fc]/study'), 'https://[2606:4700:4700::fc]/study');
+});
