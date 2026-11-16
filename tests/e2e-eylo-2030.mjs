@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { summarizeUxObservations } from '../src/lib/ux-observation-summary.mjs';
 
 const base = process.env.EYLO_E2E_BASE_URL?.replace(/\/$/, '');
 const storageState = process.env.EYLO_E2E_STORAGE_STATE;
@@ -12,6 +13,7 @@ if (!base || !storageState) {
 }
 const widths = [320, 390, 768, 1024, 1440];
 const artifactDir = process.env.EYLO_E2E_ARTIFACT_DIR;
+const allowScreenshots = process.env.EYLO_E2E_ALLOW_SCREENSHOTS === '1';
 const browser = await chromium.launch({ headless: true });
 const observations = [];
 const screens = ['/home', '/search', '/projects', '/library', '/study-planner', '/opportunities', '/tools', '/research-journey'];
@@ -20,23 +22,31 @@ try {
     for (const colorScheme of ['light', 'dark']) {
       const context = await browser.newContext({ storageState, viewport: { width, height: 900 }, colorScheme, reducedMotion: 'reduce' });
       await context.addInitScript(() => {
-        window.__eyloUxVitals = { lcpMs: null, cls: 0 };
-        try {
-          new PerformanceObserver(list => {
-            for (const entry of list.getEntries()) window.__eyloUxVitals.lcpMs = entry.startTime;
-          }).observe({ type: 'largest-contentful-paint', buffered: true });
-        } catch { /* Unsupported browsers must report null LCP, not a fabricated score. */ }
-        try {
-          new PerformanceObserver(list => {
-            for (const entry of list.getEntries()) {
-              if (!entry.hadRecentInput) window.__eyloUxVitals.cls += entry.value;
-            }
-          }).observe({ type: 'layout-shift', buffered: true });
-        } catch { window.__eyloUxVitals.cls = null; }
+        const supported = window.PerformanceObserver?.supportedEntryTypes || [];
+        window.__eyloUxVitals = { lcpMs: null, cls: supported.includes('layout-shift') ? 0 : null, clsEntries: 0 };
+        if (supported.includes('largest-contentful-paint')) {
+          try {
+            new PerformanceObserver(list => {
+              for (const entry of list.getEntries()) window.__eyloUxVitals.lcpMs = entry.startTime;
+            }).observe({ type: 'largest-contentful-paint', buffered: true });
+          } catch { /* null means not measured, not 0. */ }
+        }
+        if (supported.includes('layout-shift')) {
+          try {
+            new PerformanceObserver(list => {
+              for (const entry of list.getEntries()) {
+                if (!entry.hadRecentInput) {
+                  window.__eyloUxVitals.cls += entry.value;
+                  window.__eyloUxVitals.clsEntries += 1;
+                }
+              }
+            }).observe({ type: 'layout-shift', buffered: true });
+          } catch { window.__eyloUxVitals.cls = null; }
+        }
       });
       const page = await context.newPage();
       const pageErrors = [];
-      page.on('pageerror', error => pageErrors.push(error.message));
+      page.on('pageerror', () => pageErrors.push('Uncaught browser exception (details omitted for privacy)'));
       for (const route of screens) {
         const begin = Date.now();
         await page.goto(base + route, { waitUntil: 'domcontentloaded' });
@@ -61,24 +71,55 @@ try {
           await page.getByRole('searchbox', { name: 'Find a tool or task' }).fill('thesis');
           await page.getByRole('link', { name: /Organize my thesis/i }).waitFor();
         }
-        if (artifactDir) {
-          await mkdir(artifactDir, { recursive: true });
-          await page.screenshot({ path: path.join(artifactDir, `${width}-${colorScheme}-${route.slice(1).replaceAll('/', '-')}.png`), fullPage: true, animations: 'disabled' });
-        }
+        // Bound the lab observation interval; do not claim field stability or INP.
+        await page.waitForTimeout(500);
         const vitals = await page.evaluate(() => {
           const nav = performance.getEntriesByType('navigation')[0];
           return {
             lcpMs: window.__eyloUxVitals?.lcpMs ?? null,
             cls: window.__eyloUxVitals?.cls ?? null,
+            clsEntries: window.__eyloUxVitals?.clsEntries ?? null,
             domContentLoadedMs: nav ? nav.domContentLoadedEventEnd : null,
           };
         });
-        observations.push({ route, width, colorScheme, navigationMs: Date.now() - begin,
-          lcpMs: vitals.lcpMs, cls: vitals.cls, domContentLoadedMs: vitals.domContentLoadedMs,
-          inpMs: null, // INP needs a representative interaction; navigation alone cannot measure it.
-          pageErrors: [...pageErrors] });
+        const navigationMs = Date.now() - begin;
+        if (artifactDir && allowScreenshots) {
+          await mkdir(artifactDir, { recursive: true });
+          await page.screenshot({ path: path.join(artifactDir, `${width}-${colorScheme}-${route.slice(1).replaceAll('/', '-')}.png`), fullPage: true, animations: 'disabled' });
+        }
+        observations.push({ route, width, colorScheme, navigationMs,
+          lcpMs: vitals.lcpMs, cls: vitals.cls, clsEntries: vitals.clsEntries,
+          domContentLoadedMs: vitals.domContentLoadedMs,
+          inpMs: null, // INP needs representative real interactions; never synthesize it.
+          pageErrors: pageErrors.splice(0) });
+        // Non-mutating keyboard smoke checks on the authenticated Home route.
+        // Run after performance sampling so interaction time never inflates
+        // navigation measurements or masquerades as real-user INP.
+        if (route === '/home') {
+          const skip = page.getByRole('link', { name: 'Skip to content' });
+          await skip.focus();
+          assert.equal(await skip.evaluate(node => document.activeElement === node), true,
+            'Skip link must accept keyboard focus');
+          await skip.press('Enter');
+          assert.equal(await page.evaluate(() => document.activeElement?.id), 'main-content',
+            'Skip link must focus the main content landmark');
+          if (width < 1024) {
+            const openMenu = page.getByRole('button', { name: 'Open navigation menu' });
+            await openMenu.click();
+            const panel = page.locator('#mobile-navigation-panel');
+            await panel.waitFor({ state: 'visible' });
+            const firstMenuLink = panel.getByRole('link').first();
+            await firstMenuLink.focus();
+            await firstMenuLink.press('Escape');
+            await page.getByRole('button', { name: 'Open navigation menu' }).waitFor();
+            assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')),
+              'Open navigation menu', 'Escape should return focus to mobile navigation toggle');
+          }
+          observations[observations.length - 1].keyboardChecks = 'passed';
+        }
       }
-      assert.deepEqual(pageErrors, [], 'Unexpected browser errors at ' + width + 'px');
+      assert.equal(observations.filter(item => item.width === width && item.colorScheme === colorScheme).flatMap(item => item.pageErrors).length, 0,
+        'Unexpected browser errors at ' + width + 'px');
       await context.close();
     }
   }
@@ -86,6 +127,8 @@ try {
   await browser.close();
 }
 if (artifactDir) {
+  await mkdir(artifactDir, { recursive: true });
   await writeFile(path.join(artifactDir, 'ux-observations.json'), JSON.stringify(observations, null, 2));
+  await writeFile(path.join(artifactDir, 'ux-summary.json'), JSON.stringify(summarizeUxObservations(observations), null, 2));
 }
 console.log(`EYLO authenticated UX smoke checks passed: ${observations.length} route/viewport/theme observations.`);
