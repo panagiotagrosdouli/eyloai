@@ -435,5 +435,11 @@
       "scope": "hosted-staging",
       "assertions": {}
     }
+  },
+  "schema": {
+    "status": "NOT_RUN",
+    "scope": "hosted-staging",
+    "tables": [],
+    "assertions": {}
   }
 }
