@@ -16,6 +16,6 @@ export function normalizeEyraConversation(value) {
       id: source.id, url: source.url.slice(0, 2000), title: String(source.title || '').slice(0, 1000), type: String(source.type || '').slice(0, 40), meta: String(source.meta || '').slice(0, 2000),
     }));
     if (message.role === 'eyra' && !checkEyraCitationIds(message.content, sources).valid) throw new Error('Conversation contains a citation outside its saved source set.');
-    return { role: message.role, content: message.content, timestamp: Number.isFinite(message.timestamp) ? message.timestamp : Date.now(), mode: String(message.mode || 'research').slice(0, 40), sources, ...(message.welcome ? { welcome: true } : {}) };
+    return { role: message.role, content: message.content, timestamp: Number.isFinite(message.timestamp) ? message.timestamp : Date.now(), mode: String(message.mode || 'research').slice(0, 40), sources, ...(message.retrievalAttempted === true && message.role === 'eyra' ? { retrievalAttempted: true } : {}), ...(message.welcome ? { welcome: true } : {}) };
   });
 }

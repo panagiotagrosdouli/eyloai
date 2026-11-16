@@ -104,6 +104,11 @@ try:
     sql((ROOT / 'tests/integration/discovery-quota-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/funding-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/eyra-conversations-postgres.sql').read_text())
+    if not bundle_replay:
+        sql((ROOT / 'tests/integration/eyra-run-ledger-postgres.sql').read_text())
+        print('PASS: EYRA durable run/action ledger owner RLS, once-only identity, client write denial and lifecycle CAS.', flush=True)
+    else:
+        print('NOT ACTIVATED: EYRA agent ledger is absent from the intentionally curated restoration bundle.', flush=True)
     sql((ROOT / 'tests/integration/research-records-postgres.sql').read_text())
     print('PASS: project research journal, experiments and publications roundtrip, preserve unrelated data, reject stale saves and deny outsider reads/writes/deletes.', flush=True)
     sql((ROOT / 'tests/integration/planning-documents-postgres.sql').read_text())

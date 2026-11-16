@@ -27,7 +27,8 @@
     "20261113180517_complete_workspace_products.sql",
     "20261115090000_research_dataset_catalog.sql",
     "20261114063216_account_deletion_lifecycle.sql",
-    "20261115181809_time_tracker_pause_resume.sql"
+    "20261115181809_time_tracker_pause_resume.sql",
+    "20261115233000_eyra_agent_runs.sql"
   ],
   "files": [
     {
@@ -221,6 +222,12 @@
       "sha256": "5dba26b99255a3d38d5c0cccb7a57bce7f2b3a89134eed360d7a9682888a12db",
       "classification": "canonical-local-replay",
       "reason": "Shared existing canonical trigger dependency; tested with canonical and legacy schemas. This manifest remains local-only."
+    },
+    {
+      "name": "20261115233000_eyra_agent_runs.sql",
+      "sha256": "99914aa4650382600f1c66513a3e0fe903a8d66385d4c7a9ee55837e7bd9aeee",
+      "classification": "canonical-local-replay",
+      "reason": "Owner-scoped execution ledger for idempotent run identity and once-only tool action reservations; validated on disposable PostgreSQL only. No remote migration approval."
     }
   ]
 }

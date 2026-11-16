@@ -15,5 +15,6 @@ test('late retrieval or model output cannot create an answer after user cancelle
   assert.match(source, /controller\.signal\.throwIfAborted\(\)/);
   assert.match(source, /if \(controller\.signal\.aborted\) return;/);
   assert.match(source, /if \(activeRequestRef\.current === controller\)/);
-  assert.match(source, /Generation stopped\. No new EYRA response was saved/);
+  assert.match(source, /A server-side workspace action may still finish/);
+  assert.match(source, /No new EYRA response was added to this conversation/);
 });
