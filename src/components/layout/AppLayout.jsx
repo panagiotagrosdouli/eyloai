@@ -134,6 +134,7 @@ export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [toolQuery, setToolQuery] = useState('');
   const toolsRef = useRef(null);
+  const mobilePanelRef = useRef(null);
   const mobileToggleRef = useRef(null);
   const { data: capabilities, loading: capabilitiesLoading } = useCapabilities();
   const aiAvailable = !capabilitiesLoading && capabilities.ai;
@@ -171,7 +172,7 @@ export default function AppLayout() {
 
   useEffect(() => {
     const close = event => {
-      if (!toolsRef.current?.contains(event.target)) setToolsOpen(false);
+      if (!toolsRef.current?.contains(event.target) && !mobilePanelRef.current?.contains(event.target)) setToolsOpen(false);
     };
     const closeWithKeyboard = event => {
       if (event.key === 'Escape') {
@@ -288,7 +289,7 @@ export default function AppLayout() {
         </div>
 
         {mobileOpen && (
-          <div id="mobile-navigation-panel" onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); setToolsOpen(false); setMobileOpen(false); mobileToggleRef.current?.focus(); } }} className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
+          <div ref={mobilePanelRef} id="mobile-navigation-panel" onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); setToolsOpen(false); setMobileOpen(false); mobileToggleRef.current?.focus(); } }} className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background px-4 py-4 lg:hidden">
             <div className="mx-auto max-w-xl">
               <div className="grid grid-cols-2 gap-2">
                 {PRIMARY_NAV.map(item => {

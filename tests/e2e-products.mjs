@@ -324,6 +324,17 @@ try {
   // wait for asynchronous Supabase sign-in/session persistence.
   await page.waitForURL(url => url.pathname !== "/login");
   await page.goto(host + "/tools");
+  // Regression: outside-click handling must not dismiss the mobile directory
+  // while a keyboard or touch user focuses and types into its search.
+  await page.getByRole("button", { name: "Open navigation menu" }).click();
+  const mobileMenu = page.locator("#mobile-navigation-panel");
+  await mobileMenu.getByRole("button", { name: "All tools", exact: true }).click();
+  const mobileToolSearch = mobileMenu.getByRole("searchbox", { name: "Find a tool" });
+  await mobileToolSearch.fill("funding");
+  await mobileMenu.getByRole("link", { name: /Funding & calls/ }).waitFor();
+  assert.equal(await mobileToolSearch.isVisible(), true, "Mobile search remains open while typing");
+  await mobileToolSearch.press("Escape");
+  await page.getByRole("button", { name: "Open navigation menu" }).waitFor();
   // The authenticated directory uses an outcome-first heading; match the
   // current accessible UI contract instead of a removed historical title.
   await page

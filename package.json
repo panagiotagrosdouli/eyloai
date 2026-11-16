@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "check:imports": "node scripts/check-local-imports.mjs",
-    "build": "npm run check:imports && vite build && node scripts/stamp-release.mjs",
+    "build": "npm run check:imports && vite build && node scripts/check-production-chunk-budget.mjs && node scripts/stamp-release.mjs",
+    "check:bundle": "node scripts/check-production-chunk-budget.mjs",
+    "benchmark:eyra:human": "node scripts/evaluate-eyra-quality.mjs",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json && tsc -p ./jsconfig.api.json",
