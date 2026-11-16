@@ -35,3 +35,55 @@ test('streaming cannot execute workspace mutation tools and is rejected before q
   globalThis.fetch=async url=>{calls++;assert.ok(String(url).endsWith('/auth/v1/user'));return new Response('{"id":"user-a"}');};
   try{const res=responseMock();await handler(request({enable_project_tools:true}),res);assert.equal(res.statusCode,400);assert.equal(res.payload.code,'INVALID_STREAM_MODE');assert.equal(calls,1);}finally{globalThis.fetch=old;}
 });
+
+test('client disconnect after partial streamed text cannot refund a consumed AI action', async () => {
+  const old = globalThis.fetch;
+  let refunds = 0, aborts = 0, providerRequests = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const target = String(url);
+    if (target.endsWith('/auth/v1/user')) return new Response('{"id":"user-a"}');
+    if (target.endsWith('/rpc/reserve_eyra_usage')) {
+      return new Response('[{"allowed":true,"used":1}]');
+    }
+    if (target.endsWith('/rpc/release_eyra_usage')) {
+      refunds++;
+      return new Response('{"released":true}');
+    }
+    assert.equal(target, 'https://api.openai.com/v1/responses');
+    providerRequests++;
+    const body = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(
+          'data: ' + JSON.stringify({ type: 'response.output_text.delta', delta: 'partial usable output' }) + '\n\n',
+        ));
+        options.signal.addEventListener('abort', () => {
+          aborts++;
+          controller.error(new DOMException('Client stopped receiving the stream.', 'AbortError'));
+        }, { once: true });
+      },
+    });
+    return new Response(body, { status: 200 });
+  };
+  try {
+    const res = responseMock();
+    let closeHandler = null;
+    res.on = (event, callback) => { if (event === 'close') closeHandler = callback; };
+    res.off = () => {};
+    const write = res.write.bind(res);
+    res.write = chunk => {
+      write(chunk);
+      if (chunk.includes('"type":"delta"')) {
+        res.destroyed = true;
+        closeHandler?.();
+      }
+    };
+    await handler(request({}), res);
+    assert.equal(providerRequests, 1);
+    assert.equal(aborts, 1);
+    assert.equal(refunds, 0, 'delivered partial output must not create a free replay');
+    assert.ok(res.chunks.some(chunk => chunk.includes('"type":"delta"')));
+    assert.ok(!res.chunks.some(chunk => chunk.includes('"type":"done"')));
+  } finally {
+    globalThis.fetch = old;
+  }
+});

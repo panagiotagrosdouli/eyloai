@@ -17,4 +17,5 @@ test('late retrieval or model output cannot create an answer after user cancelle
   assert.match(source, /if \(activeRequestRef\.current === controller\)/);
   assert.match(source, /A server-side workspace action may still finish/);
   assert.match(source, /No new EYRA response was added to this conversation/);
+  assert.match(source, /partial AI text was received.*monthly allowance/);
 });
