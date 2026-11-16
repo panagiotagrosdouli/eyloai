@@ -2,6 +2,7 @@ import ThemeToggle from '@/components/marketing/ThemeToggle';
 import '@/pages/landing.css';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Building2, ExternalLink, Loader2,
   RefreshCw, Search, ShieldCheck, Users, Download, Bookmark, BookmarkCheck, Clock3, GraduationCap, Trash2,
@@ -72,6 +73,7 @@ function PaperGroup({ title, eyebrow, description, papers, savedIds, onToggleSav
 }
 
 export default function PublicDiscovery() {
+  const { status: authStatus } = useAuth();
   const [params, setParams] = useSearchParams();
   const initialQuery = params.get('q') || '';
   const level = params.get('level') || 'researcher';
@@ -259,6 +261,9 @@ export default function PublicDiscovery() {
             <VoiceSearchButton onTranscript={text => setQuery(text)} />
             <button type="submit" className="rounded-lg company-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-[var(--company-soft)]">Refine</button>
           </form>
+          {authStatus === 'authenticated' && (
+            <Link to="/home" className="rounded-xl border border-[var(--company-border)] px-4 py-2 text-sm font-semibold text-[var(--company-muted)] hover:bg-[var(--company-soft)]">Discover</Link>
+          )}
           <Link to={buildResearchWorkspaceSignupHref(initialQuery)} className="hidden rounded-xl bg-[var(--company-soft)] px-4 py-2 text-sm font-semibold text-[var(--company-muted)] sm:block">Save research</Link>
           <div className="ml-auto sm:ml-0"><ThemeToggle /></div>
         </div>

@@ -101,7 +101,7 @@ const PageLoader = () => (
 
 // Public pages remain available to visitors; authenticated visitors stay in EYLO's
 // workspace instead of being sent back to the public marketing experience.
-const PublicEntry = ({ children, workspacePath = '/home' }) => {
+const PublicEntry = ({ children, workspacePath = '/search' }) => {
   const { status, initializeAuth } = useAuth();
   const { search } = useLocation();
   useEffect(() => {
