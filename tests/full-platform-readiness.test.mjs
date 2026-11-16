@@ -42,11 +42,18 @@ function fixture() {
   };
   const inventory = {
     schema_version: 1,
-    products: REQUIRED_PRODUCT_NAMES.map((name, i) => ({ id: i + 1, name, status: 'COMPLETE' })),
+    products: REQUIRED_PRODUCT_NAMES.map((name, i) => ({ id: i + 1, name, status: 'COMPLETE',
+      supabase_entities: i === 0 ? ['life_tasks', 'life_goals'] : [],
+    })),
     additional_features: [],
+    additional_entities: [],
   };
   const fullEvidence = {
     schema_version: 1, scope: 'full-platform-77', commit,
+    schema: { ...pass([
+      'all_required_tables_present', 'all_rls_enabled',
+      'migrations_reconciled', 'storage_policies_reviewed',
+    ]), tables: [{ name: 'life_tasks', rls_enabled: true }, { name: 'life_goals', rls_enabled: true }] },
     site: { ...pass(SITE_ACCEPTANCE), coverage: {
       public_routes_expected: 42, public_routes_tested: 42,
       private_routes_expected: 77, private_routes_tested: 77,
@@ -112,6 +119,18 @@ test('browser route/control incompleteness and a missing research workflow preve
   assert.equal(evaluate(input).decision, 'NO-GO');
   input.fullEvidence.site.coverage.interactive_controls_tested = 350;
   delete input.fullEvidence.workflows.team_to_meeting;
+  assert.equal(evaluate(input).decision, 'NO-GO');
+});
+
+test('database inventory requires all declared tables and RLS in isolated staging', () => {
+  const input = fixture();
+  input.fullEvidence.schema.tables.pop();
+  assert.equal(evaluate(input).database_schema.status, 'BLOCKED');
+  input.fullEvidence.schema.tables.push({ name: 'life_goals', rls_enabled: false });
+  assert.equal(evaluate(input).decision, 'NO-GO');
+  input.fullEvidence.schema.tables[1].rls_enabled = true;
+  assert.equal(evaluate(input).decision, 'READY_FOR_OWNER_REVIEW');
+  delete input.inventory.additional_entities;
   assert.equal(evaluate(input).decision, 'NO-GO');
 });
 
