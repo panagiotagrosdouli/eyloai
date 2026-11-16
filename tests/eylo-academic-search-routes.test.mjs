@@ -8,7 +8,7 @@ const home = readFileSync(new URL('../src/pages/Home.jsx', import.meta.url), 'ut
 const careers = readFileSync(new URL('../src/pages/Careers.jsx', import.meta.url), 'utf8');
 
 test('EYLO /search is public while the authenticated research workspace remains available', () => {
-  assert.match(app, /path="\/search" element=\{<PublicEntry workspacePath="\/workspace\/literature-search"><PublicDiscovery \/><\/PublicEntry>\}/);
+  assert.match(app, /path="\/search" element=\{<PublicDiscovery \/>\}/);
   assert.match(app, /path="\/workspace\/literature-search" element=\{<Home searchOnly \/>\}/);
 });
 
