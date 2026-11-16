@@ -41,6 +41,20 @@ Possible run states: `running`, `completed`, `failed`, `partial`, `cancelled`, `
 
 The endpoint never accepts a browser-supplied `user_id` or service key.
 
+## Manual stale-run reconciliation
+
+A serverless process crash can leave a run in `running` with one or more actions in `started`. The authenticated Command Center run inspector now exposes **Review stale run (30+ min)**. The owner must explicitly confirm the operation.
+
+`POST /api/eyra-runs` with `{ "id": "<uuid>", "action": "review_stale" }`:
+
+1. Authenticates the current user through Supabase Auth and reads only that user's run.
+2. Refuses records that are terminal, malformed, missing or updated within the past 30 minutes.
+3. Uses a conditional update scoped to `id`, `user_id`, `running` status and the observed `updated_at` timestamp to change a stale run to `needs_review`. A concurrent update causes a 409 instead of overwriting progress.
+4. Marks still-`started` actions `needs_review`, preserving previously confirmed outcomes. This is **not** a claim that the external operation succeeded or failed.
+5. Returns `manual_inspection_only`. **No model request, retry, external write, rollback or replay is attempted.**
+
+If updating action records fails after the parent transition, the API reports a partial reconciliation failure and the run remains `needs_review` for operator inspection. The age threshold and conditional update make this less likely to conflict with active work, but cannot prove that a remote side effect is absent. Verify actual workspace records before authorizing any new write.
+
 ## Verification
 
 - Node tests exercise run duplicates, ownership, collisions, action uniqueness, terminal-state CAS, unconfirmed writes, and action uncertainty.
