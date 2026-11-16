@@ -28,6 +28,7 @@ test('positive current-turn commands retain English and Greek project/paper writ
     ['Please make a new project for my thesis.', { project: true, paper: false }],
     ['Can you start a project about AI ethics?', { project: true, paper: false }],
     ['Create a project and save this article.', { project: true, paper: true }],
+    ['Create a project without a generated report.', { project: true, paper: false }],
     ['Save this paper to my Library.', { project: false, paper: true }],
     ['Add this publication to my Library.', { project: false, paper: true }],
     ['Store this article for later.', { project: false, paper: true }],
