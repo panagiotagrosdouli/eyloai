@@ -489,7 +489,9 @@ try {
   await page.route('https://api.semanticscholar.org/**', route => json(route, { data: [] }));
   await page.route('**/api/opportunities**', route => json(route, { items: [] }));
   await page.route('**/api/eyra', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Fixture: AI unavailable' }) }));
-  await page.goto(`${origin}/search?q=${encodeURIComponent(provenanceTitle)}&goal=review`);
+  // This provenance/Library persistence case belongs to the authenticated workspace,
+  // not the independent public /search page.
+  await page.goto(`${origin}/workspace/literature-search?q=${encodeURIComponent(provenanceTitle)}&goal=review`);
   await page.getByRole('button', { name: 'Research', exact: true }).click();
   await page.getByRole('heading', { name: provenanceTitle, exact: true }).waitFor();
   await page.getByText('Indexed by OpenAlex, Crossref · one publication, not independent studies.').waitFor();
