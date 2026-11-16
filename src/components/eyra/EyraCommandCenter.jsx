@@ -106,27 +106,29 @@ function compactQuery(content, workspaceContext) {
   return (cleaned.length >= 18 ? cleaned : `${cleaned} ${contextAnchor}`).trim().slice(0, 280) || content.slice(0, 280);
 }
 
-async function retrieveEvidence(content, mode, workspaceContext) {
+async function retrieveEvidence(content, mode, workspaceContext, signal) {
+  signal?.throwIfAborted();
   const intent = shouldRetrieve(content, mode);
   const query = compactQuery(content, workspaceContext);
   const tasks = [];
 
   if (intent.papers) {
-    tasks.push(searchAllPapersWithStatus(query, { limit: 16 }).then(result => ({
+    tasks.push(searchAllPapersWithStatus(query, { limit: 16, signal }).then(result => ({
       kind: 'papers',
       items: result.papers || [],
       status: result.source_status || [],
     })));
   }
   if (intent.people) {
-    tasks.push(searchOpenAlexAuthors(query, 6).then(items => ({ kind: 'researchers', items })));
-    tasks.push(searchOpenAlexInstitutions(query, 4).then(items => ({ kind: 'institutions', items })));
+    tasks.push(searchOpenAlexAuthors(query, 6, { signal, throwOnError: true }).then(items => ({ kind: 'researchers', items })));
+    tasks.push(searchOpenAlexInstitutions(query, 4, { signal, throwOnError: true }).then(items => ({ kind: 'institutions', items })));
   }
-  if (intent.funding) tasks.push(searchFundingOpportunities(query, 10).then(result => ({ kind: 'funding', items: result.items || [] })));
+  if (intent.funding) tasks.push(searchFundingOpportunities(query, 10, { signal }).then(result => ({ kind: 'funding', items: result.items || [] })));
 
   if (!tasks.length) return { query, blocks: [], sources: [], attempted: false };
 
   const settled = await Promise.allSettled(tasks);
+  signal?.throwIfAborted();
   /** @type {Record<string, {kind: string, items: any[], status?: any[]}>} */
   const groups = Object.fromEntries(
     settled.filter(result => result.status === 'fulfilled').map(result => [result.value.kind, result.value]),
@@ -574,6 +576,10 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     activeRequestRef.current = null;
     setLoading(false);
     setLiveDraft('');
+    // Stopping display cannot reverse an in-flight write. Require explicit
+    // re-authorization before a subsequent action to avoid accidental replay.
+    setPendingWriteReview(null);
+    setAllowWorkspaceActions(false);
     setActionError(allowWorkspaceActions
       ? 'Display stopped. A server-side workspace action may still finish. Check the relevant record and agent run status before retrying.'
       : 'Generation stopped. No new EYRA response was added to this conversation.');
@@ -616,6 +622,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
         content,
         activeMode,
         preferences.data_personalization ? workspaceContext : '',
+        controller.signal,
       );
       controller.signal.throwIfAborted();
       setLoadingStage('reasoning');
