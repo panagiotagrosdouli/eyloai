@@ -5,14 +5,14 @@
 // Intent matching deliberately prefers false negatives to false positives;
 // metadata, retrieved records and old chat turns are never authorization.
 const NEGATION = /\b(?:don't|do not|never|should not|shouldn't|without|avoid|instead of|rather than)\b|(?:^|\s)(?:μην|μη|χωρίς)(?=\s|$)/u;
-const EXPLANATION = /^(?:how\b|what\b|why\b|explain\b|describe\b|show me how\b|tell me (?:about|how)\b|could you explain\b|πώς\b|τι\b|γιατί\b|εξήγησέ?\b|εξήγησε\b|δείξε μου πώς\b)/u;
-const PROJECT_CREATE = /\b(?:create|make|start|set up)\b.{0,100}\b(?:new\s+)?project\b|\bproject\b.{0,90}\b(?:create|make|start|set up)\b|(?:δημιούργησε|δημιουργησε|δημιουργήστε|δημιουργηστε|δημιουργήσεις|δημιουργησεις|φτιάξε|φτιαξε|φτιάξεις|φτιαξεις)\b.{0,100}(?:έργο|πρότζεκτ)/u;
-const PAPER_SAVE = /\b(?:save|store|archive)\b.{0,120}\b(?:paper|article|publication)\b|\b(?:paper|article|publication)\b.{0,100}\b(?:save|store|archive)\b|\b(?:add|put)\b.{0,100}\b(?:paper|article|publication)\b.{0,100}\blibrary\b|\b(?:add|put)\b.{0,80}\blibrary\b|(?:αποθήκευσε|αποθηκευσε|αποθηκεύστε|αποθήκευσέ|αποθηκευσέ|πρόσθεσε|προσθεσε)\b.{0,120}(?:άρθρο|δημοσίευση|εργασία|βιβλιοθήκη)/u;
+const EXPLANATION = /^(?:how\b|what\b|why\b|explain\b|describe\b|show me how\b|tell me (?:about|how)\b|could you explain\b|πώς(?=\s|$)|τι(?=\s|$)|γιατί(?=\s|$)|εξήγησέ?(?=\s|$)|εξήγησε(?=\s|$)|δείξε μου πώς(?=\s|$))/u;
+const PROJECT_CREATE = /\b(?:create|make|start|set up)\b.{0,100}\b(?:new\s+)?project\b|\bproject\b.{0,90}\b(?:create|make|start|set up)\b|(?:δημιούργησε|δημιουργησε|δημιουργήστε|δημιουργηστε|δημιουργήσεις|δημιουργησεις|φτιάξε|φτιαξε|φτιάξεις|φτιαξεις)(?=\s|$).{0,100}(?:έργο|πρότζεκτ)/u;
+const PAPER_SAVE = /\b(?:save|store|archive)\b.{0,120}\b(?:paper|article|publication)\b|\b(?:paper|article|publication)\b.{0,100}\b(?:save|store|archive)\b|\b(?:add|put)\b.{0,100}\b(?:paper|article|publication)\b.{0,100}\blibrary\b|\b(?:add|put)\b.{0,80}\blibrary\b|(?:αποθήκευσε|αποθηκευσε|αποθηκεύστε|αποθήκευσέ|αποθηκευσέ|πρόσθεσε|προσθεσε)(?=\s|$).{0,120}(?:άρθρο|δημοσίευση|εργασία|βιβλιοθήκη)/u;
 
 // Split a turn into separate instructions: "Don't create a project, but save
 // this paper" can approve only the latter, without a negation in another
 // clause authorizing or suppressing unrelated work.
-const CLAUSES = /[;.!?\n]|,\s*|\b(?:but|however|instead|then)\b|\bαλλά\b|\bόμως\b/u;
+const CLAUSES = /[;.!?\n]|,\s*|\b(?:but|however|instead|then)\b|(?:^|\s)αλλά(?=\s|$)|(?:^|\s)όμως(?=\s|$)/u;
 
 export function requestedEyraWrites(request) {
   const text = typeof request === 'string' ? request.toLowerCase().trim() : '';
