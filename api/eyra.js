@@ -199,20 +199,22 @@ const PROJECT_TOOLS = [
 
 // OpenAI Responses function tool names support only [A-Za-z0-9_-].
 // Keep the dotted EYLO authorization/ledger IDs stable internally; translate
- // only at the provider boundary. Legacy dotted synthetic calls remain
- // allowlisted for backwards-compatible local regression fixtures.
+// only at the provider boundary. Legacy dotted synthetic calls remain
+// allowlisted for backwards-compatible local regression fixtures.
 const OPENAI_PROJECT_TOOLS = PROJECT_TOOLS.map(tool => ({
   ...tool, name: tool.name.replaceAll('.', '_'),
 }));
 if (new Set(OPENAI_PROJECT_TOOLS.map(tool => tool.name)).size !== PROJECT_TOOLS.length) {
   throw new Error('EYRA provider tool names are not unique.');
 }
-const TOOL_NAME_TO_CANONICAL = new Map([
-  ...PROJECT_TOOLS.map(tool => [tool.name, tool.name]),
-  ...OPENAI_PROJECT_TOOLS.map((tool, index) => [tool.name, PROJECT_TOOLS[index].name]),
-]);
+const TOOL_NAME_TO_CANONICAL = Object.fromEntries(
+  PROJECT_TOOLS.flatMap(tool => [
+    [tool.name, tool.name],
+    [tool.name.replaceAll('.', '_'), tool.name],
+  ]),
+);
 function canonicalToolName(providerName) {
-  return TOOL_NAME_TO_CANONICAL.get(providerName) || providerName;
+  return TOOL_NAME_TO_CANONICAL[providerName] || providerName;
 }
 
 const EYRA_INSTRUCTIONS = `You are EYRA, the research and innovation intelligence inside EYLO.
