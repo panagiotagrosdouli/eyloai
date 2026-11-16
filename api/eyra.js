@@ -1004,7 +1004,14 @@ export default async function handler(request, response) {
   const actionResults = [];
   let streamTimer;
   let streamController;
-  const stopStream = () => { if (!response.writableEnded) streamController?.abort(); };
+  let streamClientDisconnected = false;
+  let streamedTextDelivered = false;
+  const stopStream = () => {
+    if (!response.writableEnded) {
+      streamClientDisconnected = true;
+      streamController?.abort();
+    }
+  };
 
   try {
     const identity = await authenticate(request.headers.authorization);
@@ -1226,10 +1233,22 @@ export default async function handler(request, response) {
       response.setHeader('X-Content-Type-Options', 'nosniff');
       const send = value => { if (!response.destroyed) response.write(`data: ${JSON.stringify(value)}\n\n`); };
       try {
-        const final = await relayEyraResponse(openAiResponse.body, delta => send({ type: 'delta', delta }));
+        const final = await relayEyraResponse(openAiResponse.body, delta => {
+          // Partial output is already useful to the client. If it deliberately
+          // disconnects after receiving text, the consumed action must not be
+          // refunded and replayed without a quota debit.
+          if (delta) streamedTextDelivered = true;
+          send({ type: 'delta', delta });
+        });
         send({ type: 'done', ...final });
       } catch {
-        await releaseUsage(reservation); reservation = null;
+        if (!(streamClientDisconnected && streamedTextDelivered)) {
+          // Genuine upstream failures and zero-output disconnects remain
+          // refundable. After output delivery, client disconnect must not
+          // create unlimited free partial completions.
+          await releaseUsage(reservation);
+        }
+        reservation = null;
         send({ type: 'error', error: 'EYRA did not complete the response. The draft was not saved.', code: 'EYRA_INCOMPLETE' });
       }
       response.end();
