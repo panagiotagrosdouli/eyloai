@@ -85,7 +85,7 @@ test('signed-in public entry routes redirect into the authenticated workspace', 
   const layout = await readFile(new URL('../src/components/layout/AppLayout.jsx', import.meta.url), 'utf8');
   assert.match(app, /status === 'authenticated'\) return <Navigate to=\{\{ pathname: workspacePath, search \}\} replace \/>/);
   assert.match(app, /<Route path="\/" element=\{<PublicEntry><Landing \/><\/PublicEntry>\} \/>/);
-  assert.match(app, /<Route path="\/discover" element=\{<PublicEntry workspacePath="\/workspace\/literature-search">/);
+  assert.match(app, /<Route path="\/discover" element=\{<PublicEntry workspacePath="\/search">/);
   assert.match(app, /<Route path="\/find-researchers" element=\{<PublicEntry workspacePath="\/researchers">/);
   assert.match(app, /<Route path="\/careers" element=\{<PublicEntry workspacePath="\/workspace\/careers">/);
   assert.match(app, /<Route path="\/workspace\/careers" element=\{<Careers \/>\} \/>/);
