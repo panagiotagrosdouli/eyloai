@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { environment } from '@/lib/config/env';
 import { verifyUserOnce } from '@/lib/auth/sessionVerification.mjs';
+import { SessionChangedError } from '@/lib/auth/sessionRequest.mjs';
 
 export const isSupabaseConfigured = environment.ok;
 export const AUTH_REQUIRED_EVENT = 'eylo:auth-required';
@@ -148,18 +149,32 @@ export async function getUsableSession({
   forceRefresh = false,
   required = true,
   validate = false,
+  expectedUserId = undefined,
+  signal = undefined,
 } = {}) {
   const client = requireSupabase();
+  const assertCurrentAccount = async () => {
+    signal?.throwIfAborted();
+    if (expectedUserId) {
+      const current = await client.auth.getSession();
+      signal?.throwIfAborted();
+      if (current.error) throw current.error;
+      if (current.data?.session?.user?.id !== expectedUserId) throw new SessionChangedError();
+    }
+  };
+  await assertCurrentAccount();
 
   let result = forceRefresh
     ? await client.auth.refreshSession()
     : await client.auth.getSession();
+  await assertCurrentAccount();
   let session = result.data?.session ?? null;
 
   // An anonymous visitor has no refresh token. Do not attempt to refresh
   // an absent session: a missing session is normal, not an auth outage.
   if (!forceRefresh && session && (result.error || expiresSoon(session))) {
     result = await client.auth.refreshSession();
+    await assertCurrentAccount();
     session = result.data?.session ?? null;
   }
 
@@ -175,10 +190,11 @@ export async function getUsableSession({
 
   if (validate) {
     const verified = await verifyUserOnce(session.access_token, token => client.auth.getUser(token));
+    await assertCurrentAccount();
     if (verified.error || !verified.data?.user) {
       if (verified.error && isTransientAuthError(verified.error)) throw verified.error;
       if (!forceRefresh) {
-        const refreshed = await getUsableSession({ forceRefresh: true, required, validate: true });
+        const refreshed = await getUsableSession({ forceRefresh: true, required, validate: true, expectedUserId, signal });
         if (refreshed) return refreshed;
       }
       return authenticationFailure(
@@ -197,8 +213,15 @@ export async function getUsableSession({
  * Invalidate a token rejected by a protected server endpoint and notify the
  * router to send the user through a clean sign-in flow.
  */
-export async function invalidateAuthentication(cause) {
+export async function invalidateAuthentication(cause, rejectedAccessToken) {
   const client = requireSupabase();
+  if (rejectedAccessToken) {
+    const current = await client.auth.getSession();
+    if (current.error) throw current.error;
+    if (current.data?.session?.access_token !== rejectedAccessToken) {
+      return new SessionChangedError();
+    }
+  }
   try {
     await client.auth.signOut({ scope: 'local' });
   } catch {

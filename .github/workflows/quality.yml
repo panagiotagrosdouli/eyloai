@@ -53,6 +53,9 @@ jobs:
       - name: Run browser authentication regressions
         run: npm run test:e2e:auth
 
+      - name: Prevent cross-account authentication retries
+        run: npm run test:e2e:session
+
       - name: Verify canonical timer, quiz and learning workflows
         run: npm run test:e2e:learning
 

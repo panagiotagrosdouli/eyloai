@@ -4,10 +4,7 @@
 // server-side OpenAI endpoint. EYLO never substitutes template content and
 // presents it as live AI.
 
-import {
-  getUsableSession,
-  invalidateAuthentication,
-} from '@/lib/supabaseClient';
+import { protectedApiFetch } from '@/lib/protected-api';
 import { trackEyraActionCompleted } from '@/lib/product-analytics';
 import { readEyraEvents } from '@/lib/eyra-stream.mjs';
 
@@ -22,20 +19,10 @@ export class EyraRequestError extends Error {
   }
 }
 
-async function getAccessToken(forceRefresh = false) {
-  const session = await getUsableSession({
-    forceRefresh,
-    required: true,
-    validate: true,
-  });
-  return session.access_token;
-}
-
-function postAnalysis(accessToken, prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, resourceContext = undefined, latestUserRequest = undefined, writeConfirmed = false, runRequestId = undefined) {
-  return fetch('/api/eyra', {
+function postAnalysis(prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, resourceContext = undefined, latestUserRequest = undefined, writeConfirmed = false, runRequestId = undefined) {
+  return protectedApiFetch('/api/eyra', {
     method: 'POST',
     headers: {
-      authorization: `Bearer ${accessToken}`,
       'content-type': 'application/json',
     },
     signal,
@@ -59,22 +46,8 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProje
 
   // Stable across an authentication refresh/replay; a fresh invocation receives a new UUID.
   const runRequestId = enableProjectTools ? globalThis.crypto?.randomUUID?.() : undefined;
-  let accessToken = await getAccessToken();
   signal?.throwIfAborted();
-  let response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest, writeConfirmed, runRequestId);
-
-  // A cached browser session can outlive its access token. Refresh once and
-  // replay exactly the same request before requiring a new sign-in.
-  if (response.status === 401) {
-    accessToken = await getAccessToken(true);
-    signal?.throwIfAborted();
-    response = await postAnalysis(accessToken, cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest, writeConfirmed, runRequestId);
-  }
-
-  if (response.status === 401) {
-    const authError = await invalidateAuthentication();
-    throw new EyraRequestError(authError.message, 401);
-  }
+  const response = await postAnalysis(cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest, writeConfirmed, runRequestId);
 
   if (stream && response.ok) {
     let final = null;
