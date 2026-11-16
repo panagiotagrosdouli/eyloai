@@ -42,3 +42,16 @@ test('the opt-in UX suite separates raw observations, synthetic summaries and sc
   assert.match(suite, /waitForTimeout\(500\)/);
   assert.match(suite, /supported\.includes\('layout-shift'\)/);
 });
+
+test('the authenticated UX suite tests keyboard navigation without mutating research data', () => {
+  const suite = readFileSync(new URL('./e2e-eylo-2030.mjs', import.meta.url), 'utf8');
+  assert.match(suite, /getByRole\('link', \{ name: 'Skip to content' \}\)/);
+  assert.match(suite, /skip\.press\('Enter'\)/);
+  assert.match(suite, /document\.activeElement\?\.id/);
+  assert.match(suite, /firstMenuLink\.press\('Escape'\)/);
+  assert.match(suite, /Escape should return focus to mobile navigation toggle/);
+  assert.match(suite, /keyboardChecks = 'passed'/);
+  assert.ok(suite.indexOf('const navigationMs = Date.now() - begin') < suite.indexOf("skip.press('Enter')"),
+    'Keyboard interactions must not be counted in navigation performance');
+  assert.doesNotMatch(suite, /SavedPaper\.create\(|Project\.update\(|page\.getByRole\('button', \{ name: 'Save/);
+});
