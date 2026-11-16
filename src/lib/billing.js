@@ -1,9 +1,6 @@
 import { apiUrl } from '@/lib/api-url';
 import { FREE_MONTHLY_AI_ACTIONS } from '@/lib/eyra-usage-policy.mjs';
-import {
-  getUsableSession,
-  invalidateAuthentication,
-} from '@/lib/supabaseClient';
+import { protectedApiFetch } from '@/lib/protected-api';
 
 export const PLAN_RANK = { free: 0, pro: 1, founder: 2, institution: 3 };
 
@@ -19,42 +16,8 @@ const EARLY_ACCESS_STATUS = Object.freeze({
   },
 });
 
-async function sessionToken(forceRefresh = false) {
-  const session = await getUsableSession({
-    forceRefresh,
-    required: true,
-    validate: true,
-  });
-  return session.access_token;
-}
-
 async function billingRequest(options = {}) {
-  let token = await sessionToken();
-  let response = await fetch(apiUrl('/api/billing'), {
-    ...options,
-    headers: {
-      ...options.headers,
-      authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (response.status === 401) {
-    token = await sessionToken(true);
-    response = await fetch(apiUrl('/api/billing'), {
-      ...options,
-      headers: {
-        ...options.headers,
-        authorization: `Bearer ${token}`,
-      },
-    });
-  }
-
-  if (response.status === 401) {
-    const authError = await invalidateAuthentication();
-    throw authError;
-  }
-
-  return response;
+  return protectedApiFetch('/api/billing', options);
 }
 
 async function billingIsConfigured() {
