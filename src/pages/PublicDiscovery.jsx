@@ -271,8 +271,8 @@ export default function PublicDiscovery() {
             <nav className="space-y-1 text-[13px] text-[var(--company-muted)]">
               <button type="button" onClick={() => navigatePanel('discover')} aria-current={activePanel === 'discover' ? 'page' : undefined} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left ${activePanel === 'discover' ? 'bg-[var(--company-soft)] font-semibold text-[var(--company-muted)]' : 'hover:bg-[var(--company-soft)]'}`}><Search size={17}/> Discover</button>
               <button type="button" onClick={() => navigatePanel('papers')} aria-current={activePanel === 'papers' ? 'page' : undefined} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left ${activePanel === 'papers' ? 'bg-[var(--company-soft)] font-semibold text-[var(--company-muted)]' : 'hover:bg-[var(--company-soft)]'}`}><BookOpen size={17}/> Papers</button>
-              <Link to="/find-researchers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[var(--company-soft)]"><Users size={17}/> Researchers</Link>
-              <Link to="/careers" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[var(--company-soft)]"><GraduationCap size={17}/> Careers</Link>
+              <Link to="/academics" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[var(--company-soft)]"><Users size={17}/> Academics</Link>
+              <Link to="/find-phd" className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[var(--company-soft)]"><GraduationCap size={17}/> Find a PhD</Link>
             </nav>
             <div className="mt-7 border-t border-[var(--company-border)] pt-5 text-[13px] text-[var(--company-muted)]">
               <button type="button" onClick={() => navigatePanel('saved')} aria-current={activePanel === 'saved' ? 'page' : undefined} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left ${activePanel === 'saved' ? 'bg-[var(--company-soft)] font-semibold text-[var(--company-muted)]' : 'hover:bg-[var(--company-soft)]'}`}><Bookmark size={17}/> Saved <span className="ml-auto text-[11px]">{savedPapers.length || ''}</span></button>
@@ -283,8 +283,8 @@ export default function PublicDiscovery() {
         <div id="papers" className="min-w-0 px-4 py-10 sm:px-8 lg:px-10">
         <div className="mb-5 flex flex-wrap gap-2 text-xs lg:hidden" aria-label="Research sections">
           {['discover', 'papers', 'saved', 'history'].map(panel => <button key={panel} type="button" onClick={() => navigatePanel(panel)} aria-pressed={activePanel === panel} className={`rounded-full border px-4 py-2.5 capitalize ${activePanel === panel ? 'border-[var(--company-border)] bg-[var(--company-soft)] font-semibold text-[var(--company-muted)]' : 'border-[var(--company-border)] bg-[var(--company-surface)] text-[var(--company-muted)]'}`}>{panel}</button>)}
-          <Link to="/find-researchers" className="rounded-full border border-[var(--company-border)] px-4 py-2.5">Researchers</Link>
-          <Link to="/careers" className="rounded-full border border-[var(--company-border)] px-4 py-2.5">Careers</Link>
+          <Link to="/academics" className="rounded-full border border-[var(--company-border)] px-4 py-2.5">Academics</Link>
+          <Link to="/find-phd" className="rounded-full border border-[var(--company-border)] px-4 py-2.5">Find a PhD</Link>
         </div>
         {activePanel === 'saved' && <section aria-label="Saved papers" className="mx-auto max-w-5xl pb-12">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[.18em] text-[var(--company-muted)]">Your browser library</p><h1 className="mt-2 text-3xl font-bold tracking-tight">Saved papers</h1><p className="mt-2 text-sm text-[var(--company-muted)]">Saved only on this device and browser. Sign in to access your research workspace.</p></div>{savedPapers.length > 0 && <button type="button" onClick={() => { setSavedPapers([]); writeBrowserList(SAVED_KEY, []); }} className="inline-flex items-center gap-2 rounded-xl border border-[var(--company-border)] px-3 py-2 text-xs font-medium"><Trash2 size={14}/> Clear saved</button>}</div>
@@ -299,7 +299,21 @@ export default function PublicDiscovery() {
           <section className="mx-auto max-w-5xl py-8 text-center sm:py-12">
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Evidence discovery</p>
             <h1 className="mx-auto mt-4 max-w-4xl text-4xl font-bold leading-tight tracking-[-.055em] text-[var(--company-muted)] sm:text-6xl">Explore science with confidence.</h1>
-            <div className="mx-auto mt-8 max-w-5xl text-left"><GuidedSearch onSearch={runGuidedSearch} /></div>
+            <div className="mx-auto mt-8 grid max-w-5xl gap-3 text-left sm:grid-cols-3" aria-label="EYLO academic search tools">
+              <Link to="/search" className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-surface)] p-5 transition hover:border-primary/40">
+                <BookOpen className="mb-3 text-primary" size={22} /><span className="block text-base font-bold">Papers</span>
+                <span className="mt-1 block text-xs leading-5 text-muted-foreground">Find source-linked publications and export citations.</span>
+              </Link>
+              <Link to="/academics" className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-surface)] p-5 transition hover:border-primary/40">
+                <Users className="mb-3 text-primary" size={22} /><span className="block text-base font-bold">Academics</span>
+                <span className="mt-1 block text-xs leading-5 text-muted-foreground">Explore researchers and verified scholarly profiles.</span>
+              </Link>
+              <Link to="/find-phd" className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-surface)] p-5 transition hover:border-primary/40">
+                <GraduationCap className="mb-3 text-primary" size={22} /><span className="block text-base font-bold">Find a PhD</span>
+                <span className="mt-1 block text-xs leading-5 text-muted-foreground">Discover doctoral roles and check original listings.</span>
+              </Link>
+            </div>
+            <div className="mx-auto mt-6 max-w-5xl text-left"><GuidedSearch onSearch={runGuidedSearch} /></div>
             <div className="mx-auto mt-5 flex max-w-3xl flex-wrap items-center justify-center gap-2" aria-label="Example research searches">
               <span className="text-xs text-muted-foreground">Try an example:</span>
               {[
@@ -385,6 +399,15 @@ export default function PublicDiscovery() {
                 <p className="mt-4 text-xs text-[var(--company-muted)]">{level} · {goal} · {recency.replace('_', ' ')}</p>
                 <div className="mt-5 flex flex-wrap gap-2">{sourceIndexes.map(source => <span key={source} className="rounded-full border border-[var(--company-border)] bg-[var(--company-surface)] px-3 py-1.5 text-[10px] text-[var(--company-muted)]">{source}</span>)}</div>
                 <p className="mt-4 text-[10px] text-[var(--company-muted)]">{data.papers.length} deduplicated papers · {data.researchers.length} researchers · {data.institutions.length} institutions</p>
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <Link
+                    to={`/workspace/literature-search?${new URLSearchParams({ q: initialQuery, level, goal, recency }).toString()}`}
+                    className="inline-flex items-center gap-2 rounded-xl border border-[var(--company-border)] bg-[var(--company-surface)] px-4 py-3 text-sm font-semibold text-[var(--company-muted)]"
+                  >
+                    Continue topic with EYRA <ArrowRight size={14} />
+                  </Link>
+                  <span className="max-w-md text-xs leading-5 text-[var(--company-muted)]">EYRA reruns retrieval for this topic and adds optional AI analysis. EYLO evidence remains accessible even if AI is unavailable.</span>
+                </div>
                 <p className="mt-3 max-w-3xl text-xs leading-5 text-slate-400">Bibliographic records come from external indexes. EYLO does not independently verify peer review, claims, findings, or publication quality. Open the original source before relying on a result.</p>
                 {data.papers.length > 0 && (
                   <div className="mt-5 flex flex-wrap items-center gap-3">

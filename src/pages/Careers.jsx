@@ -172,6 +172,15 @@ export default function Careers() {
           {sourceNotice && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{sourceNotice}</div>}
           {error && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{error}</div>}
           {!loading && (error || sourceNotice) && <button type="button" onClick={() => runSearch(searchedQuery)} className="min-h-10 rounded-lg border border-border px-4 text-sm">Retry search</button>}
+          {!loading && (error || sourceNotice) && /\b(phd|doctoral|doctorate)\b/i.test(searchedQuery) && (
+            <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+              EYLO cannot confirm doctoral listings from an unavailable source. Continue your PhD search directly on{' '}
+              <a className="font-semibold text-primary underline" href="https://www.findaphd.com/phds/" target="_blank" rel="noopener noreferrer">FindAPhD</a>
+              {' '}or{' '}
+              <a className="font-semibold text-primary underline" href="https://euraxess.ec.europa.eu/jobs/search" target="_blank" rel="noopener noreferrer">EURAXESS</a>.
+              Verify funding, deadlines and eligibility on the original listing.
+            </div>
+          )}
           {countries.length > 1 && <label className="block text-sm">Listing location<select aria-label="Listing location" value={country} onChange={event => setCountry(event.target.value)} className="ml-2 max-w-full rounded-lg border border-border bg-background p-2"><option value="">All retrieved locations</option>{countries.map(value => <option key={value} value={value}>{value}</option>)}</select></label>}
           {loading && <div role="status" className="flex items-center gap-3 rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground"><Loader2 size={16} className="animate-spin" />Searching EURAXESS and loading Europe/UK and remote listings…</div>}
           {!loading && !error && items.length > 0 && <p className="text-xs text-muted-foreground">{rankedItems.length} matching research, Europe/UK and remote roles · {retrievedAt ? 'updated ' + new Date(retrievedAt).toLocaleString() : 'current source records'} · sorted by {cvText ? 'CV overlap' : 'search relevance'}</p>}
