@@ -24,7 +24,7 @@ import { listEyraConversations, saveEyraConversation, loadEyraConversation, rena
 import { snapshotPayload, snapshotIdentity, conversationExport } from '@/lib/eyra-snapshot.mjs';
 import { requestedEyraWrites } from '@/lib/eyra-write-intent.mjs';
 import { buildEyraConversationContext } from '@/lib/eyra-conversation-context.mjs';
-import { listEyraAgentRuns, loadEyraAgentRun, cancelEyraAgentRun, deleteEyraAgentRun } from '@/lib/eyra-run-history';
+import { listEyraAgentRuns, loadEyraAgentRun, cancelEyraAgentRun, reviewStaleEyraAgentRun, deleteEyraAgentRun } from '@/lib/eyra-run-history';
 
 // EYRA modes change the analysis lens; evidence rules stay identical.
 const MODES = [
@@ -796,6 +796,26 @@ Answer the user's latest request. Cite every externally verifiable claim with th
     }
   };
 
+  const markAgentRunForReview = async id => {
+    const owner = user?.id;
+    if (!owner || agentRunsBusy) return;
+    if (!window.confirm('Mark this stale execution for manual review? This never retries or reverses a previously started write.')) return;
+    setAgentRunsBusy(true); setAgentRunsError('');
+    try {
+      await reviewStaleEyraAgentRun(id);
+      if (ownerRef.current !== owner) return;
+      setAgentRuns(items => items.map(item => item.id === id
+        ? { ...item, status: 'needs_review' } : item));
+      setSelectedAgentRun(previous => previous?.run?.id === id
+        ? { ...previous, run: { ...previous.run, status: 'needs_review' } }
+        : previous);
+    } catch (error) {
+      if (ownerRef.current === owner) setAgentRunsError(error?.message || 'Stale run review was not confirmed.');
+    } finally {
+      if (ownerRef.current === owner) setAgentRunsBusy(false);
+    }
+  };
+
   const removeAgentRun = async id => {
     const owner = user?.id;
     if (!owner || agentRunsBusy) return;
@@ -1111,6 +1131,9 @@ Answer the user's latest request. Cite every externally verifiable claim with th
                         <button type="button" disabled={agentRunsBusy}
                           className="rounded-md border border-border px-2 py-1"
                           onClick={() => void cancelAgentRun(selectedAgentRun.run.id)}>Request cancellation</button>
+                        <button type="button" disabled={agentRunsBusy}
+                          className="rounded-md border border-border px-2 py-1"
+                          onClick={() => void markAgentRunForReview(selectedAgentRun.run.id)}>Review stale run (30+ min)</button>
                       )}
                       {selectedAgentRun.run.status !== 'running' && (
                         <button type="button" disabled={agentRunsBusy}
