@@ -4,6 +4,10 @@ import crypto from 'node:crypto';
 import { FREE_MONTHLY_AI_ACTIONS } from '../src/lib/eyra-usage-policy.mjs';
 import { matchesEyraResponseSchema } from '../src/lib/eyra-structured-contract.mjs';
 import { relayEyraResponse } from '../src/lib/eyra-stream.mjs';
+import {
+  durableRunsEnabled, UUID as RUN_UUID, requestFingerprint, startAgentRun,
+  reserveAgentAction, completeAgentAction, finalizeAgentRun, isAgentRunCancelled,
+} from '../server/eyra-run-ledger.mjs';
 import { requestedEyraWrites } from '../src/lib/eyra-write-intent.mjs';
 
 const MAX_PROMPT_LENGTH = 24_000;
@@ -76,6 +80,58 @@ const PROJECT_TOOLS = [
     name: 'learning.list_flashcard_decks',
     description: 'Read the authenticated user’s saved flashcard decks.',
     parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
+    strict: true,
+  },
+  {
+    type: 'function',
+    name: 'learning.list_lessons',
+    description: 'List at most 30 private lesson outlines for an owned course; metadata and objectives only, never full lesson content.',
+    parameters: {
+      type: 'object', properties: { course_id: { type: 'string' } },
+      required: ['course_id'], additionalProperties: false,
+    }, strict: true,
+  },
+  {
+    type: 'function',
+    name: 'learning.list_progress',
+    description: 'Read up to 30 own lesson completion statuses for an owned course. No quiz answers or private grader outputs.',
+    parameters: {
+      type: 'object', properties: { course_id: { type: 'string' } },
+      required: ['course_id'], additionalProperties: false,
+    }, strict: true,
+  },
+  {
+    type: 'function',
+    name: 'learning.list_courses',
+    description: 'List the authenticated user’s own learning courses; read-only metadata, not lesson content.',
+    parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
+    strict: true,
+  },
+  {
+    type: 'function',
+    name: 'learning.list_quizzes',
+    description: 'List the authenticated user’s own quizzes; read-only quiz metadata, not questions or grades.',
+    parameters: { type: 'object', properties: {}, required: [], additionalProperties: false },
+    strict: true,
+  },
+  {
+    type: 'function',
+    name: 'notes.search',
+    description: 'Search a bounded recent set of the user’s saved private notes by text; returns only matching metadata and short previews.',
+    parameters: {
+      type: 'object', properties: { query: { type: 'string' } },
+      required: ['query'], additionalProperties: false,
+    },
+    strict: true,
+  },
+  {
+    type: 'function',
+    name: 'library.search_papers',
+    description: 'Search the user’s saved papers by title, author or DOI across a bounded recent window; no external full-text access.',
+    parameters: {
+      type: 'object', properties: { query: { type: 'string' } },
+      required: ['query'], additionalProperties: false,
+    },
     strict: true,
   },
   {
@@ -391,7 +447,7 @@ function boundedWorkspaceRow(row, kind) {
 
 const TOOL_STRING_LIMITS = {
   title: 180, description: 4000, goal: 2000, milestones: 6000,
-  tasks: 6000, query: 180, doi: 255, id: 36,
+  tasks: 6000, query: 180, doi: 255, id: 36, course_id: 36,
 };
 
 function validatedEyraToolArguments(name, rawArguments) {
@@ -421,6 +477,39 @@ function validatedEyraToolArguments(name, rawArguments) {
     }
   }
   return argumentsObject;
+}
+
+async function boundedJsonResponse(result, maxBytes = 1_048_576) {
+  const declared = Number(result.headers?.get?.('content-length'));
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    throw new Error('Workspace record response exceeded its safety budget.');
+  }
+  const reader = result.body?.getReader?.();
+  if (!reader) {
+    const raw = await result.text();
+    if (Buffer.byteLength(raw, 'utf8') > maxBytes) {
+      throw new Error('Workspace record response exceeded its safety budget.');
+    }
+    try { return JSON.parse(raw); } catch { throw new Error('Workspace record response was invalid JSON.'); }
+  }
+  let bytes = 0;
+  const chunks = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!(value instanceof Uint8Array)) {
+      throw new Error('Invalid workspace record stream.');
+    }
+    bytes += value.byteLength;
+    if (bytes > maxBytes) {
+      await reader.cancel().catch(() => {});
+      throw new Error('Workspace record response exceeded its safety budget.');
+    }
+    chunks.push(value);
+  }
+  const joined = Buffer.concat(chunks.map(part => Buffer.from(part)));
+  try { return JSON.parse(joined.toString('utf8')); }
+  catch { throw new Error('Workspace record response was invalid JSON.'); }
 }
 
 async function executeProjectTool(name, rawArguments, identity) {
@@ -546,6 +635,137 @@ async function executeProjectTool(name, rawArguments, identity) {
         updated_date: row.updated_date || '',
       };
     });
+  }
+  if (name === 'learning.list_lessons' || name === 'learning.list_progress') {
+    if (!RUN_UUID.test(args.course_id)) throw new Error('A valid owned course UUID is required.');
+    const courseParams = new URLSearchParams({
+      select: 'id', id: `eq.${args.course_id}`, user_id: `eq.${identity.user.id}`, limit: '1',
+    });
+    const courseResponse = await fetch(
+      `${identity.supabaseUrl}/rest/v1/learning_courses?${courseParams}`, {
+        headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
+      });
+    if (!courseResponse.ok) throw new Error('Course ownership could not be verified.');
+    const ownedCourses = await courseResponse.json();
+    if (!Array.isArray(ownedCourses) || ownedCourses.length !== 1
+      || ownedCourses[0].id !== args.course_id) {
+      throw new Error('Course is not available to the authenticated user.');
+    }
+    const progress = name === 'learning.list_progress';
+    const table = progress ? 'learning_lesson_progress' : 'learning_lessons';
+    const select = progress
+      ? 'id,course_id,lesson_id,status,completed_at,updated_at'
+      : 'id,course_id,title,objective,position,quiz_id';
+    const params = new URLSearchParams({
+      select, user_id: `eq.${identity.user.id}`,
+      course_id: `eq.${args.course_id}`,
+      order: progress ? 'updated_at.desc' : 'position.asc',
+      limit: '30',
+    });
+    const upstream = await fetch(`${identity.supabaseUrl}/rest/v1/${table}?${params}`, {
+      headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
+    });
+    if (!upstream.ok) throw new Error('Learning lessons or progress are unavailable.');
+    const rows = await upstream.json();
+    if (!Array.isArray(rows)) throw new Error('Learning record service returned invalid results.');
+    const records = rows.slice(0, 30).map(row => {
+      if (!RUN_UUID.test(row?.id || '') || row.course_id !== args.course_id) {
+        throw new Error('Learning record ownership or course association could not be verified.');
+      }
+      if (progress) {
+        return {
+          id: row.id,
+          course_id: row.course_id,
+          lesson_id: typeof row.lesson_id === 'string' ? row.lesson_id : '',
+          status: typeof row.status === 'string' ? row.status.slice(0, 40) : '',
+          completed_at: typeof row.completed_at === 'string' ? row.completed_at.slice(0, 40) : null,
+        };
+      }
+      return {
+        id: row.id, course_id: row.course_id,
+        title: typeof row.title === 'string' ? row.title.slice(0, 180) : '',
+        objective: typeof row.objective === 'string' ? row.objective.slice(0, 350) : '',
+        position: Number.isInteger(row.position) ? row.position : null,
+        has_assessment: typeof row.quiz_id === 'string' && RUN_UUID.test(row.quiz_id),
+      };
+    });
+    return {
+      course_id: args.course_id,
+      count: records.length, records,
+      total_scope: 'last_30_records_only', source: 'authenticated_learning_workspace',
+      metadata_only: true,
+    };
+  }
+  if (name === 'learning.list_courses' || name === 'learning.list_quizzes') {
+    const table = name === 'learning.list_courses' ? 'learning_courses' : 'quizzes';
+    const select = name === 'learning.list_courses'
+      ? 'id,title,subject,description,updated_at'
+      : 'id,title,subject,updated_at';
+    const params = new URLSearchParams({
+      select, user_id: `eq.${identity.user.id}`,
+      order: 'updated_at.desc', limit: '20',
+    });
+    const upstream = await fetch(`${identity.supabaseUrl}/rest/v1/${table}?${params}`, {
+      headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
+    });
+    if (!upstream.ok) throw new Error('Learning records are temporarily unavailable.');
+    const rows = await upstream.json();
+    if (!Array.isArray(rows)) throw new Error('Learning records returned an invalid response.');
+    const records = rows.slice(0, 20).map(row => {
+      if (typeof row?.id !== 'string' || !RUN_UUID.test(row.id)) {
+        throw new Error('Learning records included an invalid ID.');
+      }
+      return {
+        id: row.id,
+        title: typeof row.title === 'string' ? row.title.slice(0, 180) : '',
+        subject: typeof row.subject === 'string' ? row.subject.slice(0, 180) : '',
+        ...(table === 'learning_courses' ? {
+          description: typeof row.description === 'string' ? row.description.slice(0, 300) : '',
+        } : {}),
+        updated_at: typeof row.updated_at === 'string' ? row.updated_at.slice(0, 40) : '',
+      };
+    });
+    return { records, count: records.length, metadata_only: true, source: 'authenticated_learning_workspace' };
+  }
+  if (name === 'notes.search' || name === 'library.search_papers') {
+    const query = typeof args.query === 'string' ? args.query.trim().toLocaleLowerCase() : '';
+    if (query.length < 3 || query.length > 120) {
+      throw new Error('A search query of 3–120 characters is required.');
+    }
+    const table = name === 'notes.search' ? 'notes' : 'saved_papers';
+    const params = new URLSearchParams({
+      select: 'id,data,updated_date',
+      user_id: `eq.${identity.user.id}`,
+      order: 'updated_date.desc', limit: '100',
+    });
+    const upstream = await fetch(`${identity.supabaseUrl}/rest/v1/${table}?${params}`, {
+      headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
+    });
+    if (!upstream.ok) throw new Error('Saved research search is unavailable.');
+    const rows = await boundedJsonResponse(upstream);
+    if (!Array.isArray(rows)) throw new Error('Saved research search returned an invalid list.');
+    const matching = rows.slice(0, 100).filter(row => {
+      if (typeof row?.id !== 'string' || !row.data || typeof row.data !== 'object'
+        || Array.isArray(row.data)) throw new Error('Saved research search returned an invalid record.');
+      const fields = table === 'notes'
+        ? [row.data.title, row.data.name, row.data.content, row.data.body]
+        : [row.data.title, row.data.authors, row.data.doi];
+      return fields.some(value => typeof value === 'string'
+        && value.toLocaleLowerCase().includes(query));
+    }).slice(0, 10);
+    const records = matching.map(row => table === 'notes'
+      ? {
+        id: row.id, title: String(row.data.title || row.data.name || '').slice(0, 180),
+        preview: String(row.data.content || row.data.body || '').slice(0, 300),
+        updated_date: String(row.updated_date || '').slice(0, 40),
+      }
+      : boundedWorkspaceRow(row, 'paper'));
+    return {
+      query: args.query.trim(), count: records.length, records,
+      scanned_recent_records: Math.min(rows.length, 100),
+      total_scope: 'last_100_records_only',
+      evidence_level: table === 'notes' ? 'user_saved_notes' : 'saved_bibliographic_metadata_only',
+    };
   }
   if (name === 'project.get') {
     const id = typeof args.id === 'string' ? args.id.trim() : '';
@@ -778,6 +998,10 @@ export default async function handler(request, response) {
   }
 
   let reservation = null;
+  let agentRunId = null;
+  let agentIdentity = null;
+  let runClosed = false;
+  const actionResults = [];
   let streamTimer;
   let streamController;
   const stopStream = () => { if (!response.writableEnded) streamController?.abort(); };
@@ -874,6 +1098,15 @@ export default async function handler(request, response) {
       });
     }
 
+    const durableRequested = durableRunsEnabled() && request.body?.enable_project_tools === true;
+    if (durableRequested && (typeof request.body?.run_request_id !== 'string'
+      || !RUN_UUID.test(request.body.run_request_id))) {
+      return response.status(400).json({
+        error: 'A stable UUID run request ID is required while the durable agent ledger is enabled.',
+        code: 'INVALID_RUN_REQUEST_ID',
+      });
+    }
+
     const usage = usageState(identity);
     reservation = await reserveUsage(identity, usage);
     if (!reservation.allowed) {
@@ -884,6 +1117,41 @@ export default async function handler(request, response) {
         usage: { used: reservation.used, limit: usage.limit, month: usage.month },
         upgrade_url: '/pricing',
       });
+    }
+
+    if (durableRequested) {
+      const fingerprint = requestFingerprint({
+        prompt, latest_user_request: latestUserRequest || null,
+        resource_context: request.body?.resource_context || null,
+        tools: true, schema: requestedSchema || null,
+        write_confirmed: request.body?.write_confirmed === true,
+      });
+      try {
+        const started = await startAgentRun(identity, request.body.run_request_id, fingerprint, currentIntent || prompt);
+        if (!started.created) {
+          await releaseUsage(reservation);
+          reservation = null;
+          return response.status(started.conflict ? 409 : 409).json({
+            error: started.conflict
+              ? 'This agent request ID already belongs to different instructions.'
+              : 'This agent run has already been started. Review its recorded status; writes are never automatically replayed.',
+            code: started.conflict ? 'RUN_REQUEST_CONFLICT' : 'RUN_ALREADY_EXISTS',
+            run_id: started.id, status: started.status,
+          });
+        }
+        agentRunId = started.id;
+        agentIdentity = identity;
+        // Every later error path retains a stable recovery handle.
+        response.setHeader('X-Eyra-Run-Id', agentRunId);
+      } catch (error) {
+        await releaseUsage(reservation);
+        reservation = null;
+        console.error('EYRA durable run unavailable', { reason: 'ledger_unavailable' });
+        return response.status(503).json({
+          error: 'Durable execution storage is unavailable; no agent action was started.',
+          code: 'AGENT_LEDGER_UNAVAILABLE',
+        });
+      }
     }
 
     /** @type {Record<string, any>} */
@@ -984,7 +1252,6 @@ export default async function handler(request, response) {
         code: 'EYRA_INCOMPLETE',
       });
     }
-    const actionResults = [];
     /** @type {Array<Record<string, any>>} */
     const toolTranscript = [
       { role: 'user', content: prompt },
@@ -1024,16 +1291,48 @@ export default async function handler(request, response) {
       for (const id of roundIds) seenToolCallIds.add(id);
       const outputs = [];
       for (const call of calls) {
+        let actionLedgerId = null;
         try {
+          if (agentRunId) {
+            if (await isAgentRunCancelled(identity, agentRunId)) {
+              throw new Error('This agent run was cancelled before the next action.');
+            }
+            const reserved = await reserveAgentAction(identity, agentRunId, call.call_id,
+              call.name, requestFingerprint({ name: call.name, arguments: call.arguments }));
+            if (!reserved.reserved) {
+              throw new Error('This tool action was already reserved or its outcome is uncertain. Review the run before retrying.');
+            }
+            actionLedgerId = reserved.id;
+          }
           if (call.name === 'project.create' && actionResults.some((action) => action.tool === 'project.create' && action.status === 'succeeded')) {
             throw new Error('Only one project can be created in a single EYRA request.');
           }
           const value = await executeProjectTool(call.name, call.arguments, identity);
+          if (actionLedgerId) {
+            await completeAgentAction(identity, actionLedgerId, 'succeeded',
+              { record_id: typeof value?.id === 'string' ? value.id.slice(0, 100) : null });
+          }
           actionResults.push({ action_id: call.call_id, tool: call.name, status: 'succeeded', result: value });
           outputs.push({ type: 'function_call_output', call_id: call.call_id, output: JSON.stringify({ ok: true, result: value }) });
         } catch (error) {
-          const safeError = error instanceof Error ? error.message : 'The project action failed.';
-          actionResults.push({ action_id: call.call_id, tool: call.name, status: 'failed', error: safeError });
+          let safeError = error instanceof Error ? error.message : 'The project action failed.';
+          if (actionLedgerId) {
+            // A write may have committed despite a response or transport error.
+            const uncertain = ['project.create', 'library.save_paper'].includes(call.name);
+            try {
+              await completeAgentAction(identity, actionLedgerId,
+                uncertain ? 'needs_review' : 'failed', { reason: 'execution_incomplete' });
+            } catch {
+              safeError = 'Action persistence is uncertain. Inspect the workspace and run ledger before attempting any retry.';
+            }
+            if (uncertain) safeError += ' Verify the workspace before a new write; the action may have committed.';
+          }
+          const needsReview = Boolean(actionLedgerId)
+            && ['project.create', 'library.save_paper'].includes(call.name);
+          actionResults.push({
+            action_id: call.call_id, tool: call.name,
+            status: needsReview ? 'needs_review' : 'failed', error: safeError,
+          });
           outputs.push({ type: 'function_call_output', call_id: call.call_id, output: JSON.stringify({ ok: false, error: safeError }) });
         }
       }
@@ -1131,7 +1430,15 @@ export default async function handler(request, response) {
       }
     }
 
+    const runStatus = actionResults.some(action => action.status === 'needs_review')
+      ? 'needs_review'
+      : actionResults.some(action => action.status === 'failed') ? 'partial' : 'completed';
+    if (agentRunId) {
+      await finalizeAgentRun(identity, agentRunId, runStatus, text, actionResults);
+      runClosed = true;
+    }
     return response.status(200).json({
+      ...(agentRunId ? { run_id: agentRunId, run_status: runStatus } : {}),
       ...(responseSchema ? { data } : {}),
       text,
       model: result.model || process.env.OPENAI_MODEL || 'gpt-5.6',
@@ -1145,7 +1452,9 @@ export default async function handler(request, response) {
       ...(actionResults.length ? { actions: actionResults } : {}),
     });
   } catch (error) {
-    await releaseUsage(reservation);
+    // Do not refund a request that already executed/attempted real tools.
+    // Network failure after a write must not make a further attempt free.
+    if (!actionResults.length) await releaseUsage(reservation);
     const timedOut = error?.name === 'TimeoutError';
     // Upstream exception messages can contain private research input.
     const safeErrorClass = ['TimeoutError', 'AbortError', 'TypeError'].includes(error?.name)
@@ -1162,6 +1471,15 @@ export default async function handler(request, response) {
     }
     return response.status(500).json({ error: 'EYRA is temporarily unavailable.' });
   } finally {
+    if (agentRunId && agentIdentity && !runClosed) {
+      try {
+        await finalizeAgentRun(agentIdentity, agentRunId,
+          actionResults.length ? 'needs_review' : 'failed', '', actionResults,
+          actionResults.length ? 'PARTIAL_EXECUTION_REQUIRES_REVIEW' : 'AGENT_INCOMPLETE');
+      } catch {
+        console.error('EYRA durable run remains unresolved; manual review required', { run_id: agentRunId });
+      }
+    }
     if (streamTimer) clearTimeout(streamTimer);
     response.off?.('close', stopStream);
   }

@@ -142,7 +142,14 @@ try {
         tables[table].push(row); rows = [row];
       } else {
         assert.equal(url.searchParams.get('user_id'), `eq.${user.id}`, 'writes must be owner filtered');
-        if (request.method() === 'PATCH') rows.forEach(row => Object.assign(row, request.postDataJSON(), { updated_at: now(), ...(['projects', 'life_tasks'].includes(table) ? { updated_date: now() } : {}) }));
+        if (request.method() === 'PATCH') rows.forEach(row => {
+          Object.assign(row, request.postDataJSON(), { updated_at: now(), ...(['projects', 'life_tasks'].includes(table) ? { updated_date: now() } : {}) });
+          // Reproduce the canonical conversation's optimistic version trigger.
+          if (table === 'eyra_conversations') {
+            row.version = (row.version || 1) + 1;
+            row.updated_date = now();
+          }
+        });
         else if (request.method() === 'DELETE') {
           const removed = rows.map(row => row.id); tables[table] = tables[table].filter(row => !matching(row));
           if (table === 'eyra_conversations') tables.eyra_messages = tables.eyra_messages.filter(row => !removed.includes(row.conversation_id));
@@ -275,6 +282,15 @@ try {
   await page.getByRole('button', { name: 'Save conversation snapshot', exact: true }).click();
   await page.getByRole('option', { name: /EYRA · Explain how to plan/ }).waitFor({ state: 'attached' });
   assert.equal(snapshotWrites, 2, 'retry repeats transport without duplicating records');
+  await page.getByRole('button', { name: 'Rename saved conversation', exact: true }).click();
+  await page.getByLabel('Conversation title').fill('Methods review — renamed');
+  await page.getByRole('button', { name: 'Save title', exact: true }).click();
+  await page.getByRole('option', { name: 'Methods review — renamed' }).waitFor({ state: 'attached' });
+  assert.equal(tables.eyra_conversations[0].title, 'Methods review — renamed');
+  assert.equal(tables.eyra_conversations[0].version, 2,
+    'rename must preserve optimistic versioning on the canonical conversation row');
+  assert.equal(tables.eyra_messages.at(-1).content.text, answer,
+    'renaming does not alter stored conversation messages');
 
   assert.equal(tables.ideas.length, 0, 'chat history never enters Idea Vault');
   assert.equal(tables.eyra_conversations.length, 1);
