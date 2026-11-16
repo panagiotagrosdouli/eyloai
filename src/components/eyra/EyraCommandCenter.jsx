@@ -582,7 +582,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     setAllowWorkspaceActions(false);
     setActionError(allowWorkspaceActions
       ? 'Display stopped. A server-side workspace action may still finish. Check the relevant record and agent run status before retrying.'
-      : 'Generation stopped. No new EYRA response was added to this conversation.');
+      : 'Generation stopped. No new EYRA response was added to this conversation. If partial AI text was received, this action may count toward your monthly allowance.');
   };
 
   const sendMessage = async (text, { writeConfirmed = false } = {}) => {
