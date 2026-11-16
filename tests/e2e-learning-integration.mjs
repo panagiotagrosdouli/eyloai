@@ -489,7 +489,9 @@ try {
   await page.route('https://api.semanticscholar.org/**', route => json(route, { data: [] }));
   await page.route('**/api/opportunities**', route => json(route, { items: [] }));
   await page.route('**/api/eyra', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Fixture: AI unavailable' }) }));
-  await page.goto(`${origin}/search?q=${encodeURIComponent(provenanceTitle)}&goal=review`);
+  // The authenticated provenance scenario must use the EYRA-assisted workspace route;
+  // /search is the independent public EYLO discovery experience.
+  await page.goto(`${origin}/workspace/literature-search?q=${encodeURIComponent(provenanceTitle)}&goal=review`);
   await page.getByRole('button', { name: 'Research', exact: true }).click();
   await page.getByRole('heading', { name: provenanceTitle, exact: true }).waitFor();
   await page.getByText('Indexed by OpenAlex, Crossref · one publication, not independent studies.').waitFor();
