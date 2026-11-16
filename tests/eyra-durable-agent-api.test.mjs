@@ -22,7 +22,8 @@ Object.assign(process.env, {
   EYLO_STAGING_SUPABASE_REF: 'abcdefghijklmnopqrst',
   EYLO_STAGING_CONFIRMED_REF: 'abcdefghijklmnopqrst',
 });
-for (const key of envKeys.slice(5)) delete process.env[key];
+for (const key of ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET',
+  'STRIPE_PRO_PRICE_ID', 'STRIPE_FOUNDER_PRICE_ID']) delete process.env[key];
 after(() => {
   for (const [key, value] of Object.entries(saved)) {
     if (value === undefined) delete process.env[key];
