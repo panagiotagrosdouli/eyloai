@@ -1,5 +1,6 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
+import { isBillingTestEnabled } from '../server/billing-activation.mjs';
 import crypto from 'node:crypto';
 
 const STRIPE_API_VERSION = '2026-06-24.dahlia';
@@ -54,13 +55,7 @@ async function identity(authorization) {
 }
 
 function stripeConfigured() {
-  return Boolean(
-    process.env.STRIPE_SECRET_KEY
-    && process.env.STRIPE_WEBHOOK_SECRET
-    && process.env.STRIPE_PRO_PRICE_ID
-    && process.env.STRIPE_FOUNDER_PRICE_ID
-    && supabaseServerKey()
-  );
+  return isBillingTestEnabled();
 }
 
 /**
@@ -89,7 +84,9 @@ async function stripeRequest(path, body, { idempotencyKey } = {}) {
 function applicationUrl() {
   // Never build billing return URLs from an untrusted incoming Host header.
   // Use a reviewed canonical origin; previews require an explicit APP_URL.
-  const raw = process.env.APP_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL || 'eyloai.vercel.app';
+  const raw = process.env.APP_URL || (process.env.EYLO_ENVIRONMENT === 'staging'
+    ? '' : process.env.VERCEL_PROJECT_PRODUCTION_URL || 'eyloai.vercel.app');
+  if (!raw) throw new Error('Staging billing requires an explicit reviewed APP_URL.');
   const candidate = raw.startsWith('https://') ? raw : `https://${raw}`;
   let url;
   try {
@@ -97,7 +94,8 @@ function applicationUrl() {
   } catch {
     throw new Error('Invalid configured billing return URL.');
   }
-  if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash || url.pathname !== '/') {
+  if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash || url.pathname !== '/'
+    || (process.env.EYLO_ENVIRONMENT === 'staging' && url.hostname === 'eyloai.vercel.app')) {
     throw new Error('Billing return URL must be a clean HTTPS origin.');
   }
   return url.origin;
@@ -117,6 +115,15 @@ export default async function handler(request, response) {
   if (!['GET', 'POST'].includes(request.method)) {
     response.setHeader('Allow', 'GET, POST');
     return response.status(405).json({ error: 'Method not allowed.' });
+  }
+
+  // An unaudited deployment must never initiate a Stripe API write, even if
+  // server secrets were accidentally configured in production.
+  if (request.method === 'POST' && !stripeConfigured()) {
+    return response.status(503).json({
+      error: 'Paid checkout is disabled until isolated staging test-mode approval.',
+      code: 'BILLING_TEST_DISABLED',
+    });
   }
 
   if (!readSupabaseApiConfig().hasPublicConfig) {
