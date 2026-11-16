@@ -31,3 +31,15 @@ test('consolidated API dispatch preserves existing endpoint behavior', async () 
   await handler({ method: 'GET', headers: {}, query: { endpoint: '__proto__' } }, unknown);
   assert.equal(unknown.statusCode, 404);
 });
+
+test('analytics consolidation preserves authentication boundary through the public route', async () => {
+  const unauthenticated = reply();
+  await handler({ method: 'GET', headers: {}, query: { endpoint: 'admin-analytics' } }, unauthenticated);
+  assert.equal(unauthenticated.statusCode, 401);
+  assert.equal(unauthenticated.headers['cache-control'], 'private, no-store');
+
+  const unsupported = reply();
+  await handler({ method: 'POST', headers: {}, query: { endpoint: 'admin-analytics' } }, unsupported);
+  assert.equal(unsupported.statusCode, 405);
+  assert.equal(unsupported.headers.allow, 'GET');
+});
