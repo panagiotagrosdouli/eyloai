@@ -7,8 +7,30 @@ import crypto from 'node:crypto';
 
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-export function durableRunsEnabled() {
-  return process.env.EYRA_DURABLE_RUNS_ENABLED === 'true';
+import { readSupabaseApiConfig } from './supabase-config.mjs';
+
+const STAGING_SUPABASE_HOST = /^https:\/\/([a-z]{20})\.supabase\.co$/;
+const FORBIDDEN_SUPABASE_REFS = new Set([
+  'kbzjngpzxpniaumlupaa', // EYLO production: never enable experimental ledger writes
+  'umzrggayitzfgrrofjnw', // unrelated historical project
+]);
+
+// The run ledger must never be activated merely by a production Vercel flag.
+// The two staging identity controls require separate confirmation before
+// server-only run/action writes can occur. This is a configuration gate, not
+// proof that migrations, RLS and two-account tests actually passed.
+export function durableRunsEnabled(env = process.env) {
+  const config = readSupabaseApiConfig(env);
+  const ref = STAGING_SUPABASE_HOST.exec(config.url)?.[1];
+  return Boolean(
+    env.EYRA_DURABLE_RUNS_ENABLED === 'true'
+    && env.EYLO_ENVIRONMENT === 'staging'
+    && ref && !FORBIDDEN_SUPABASE_REFS.has(ref)
+    && env.EYLO_STAGING_SUPABASE_REF === ref
+    && env.EYLO_STAGING_CONFIRMED_REF === ref
+    && config.hasPublicConfig
+    && config.hasServerConfig
+  );
 }
 
 export function requestFingerprint(request) {
