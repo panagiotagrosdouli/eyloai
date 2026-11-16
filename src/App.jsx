@@ -213,8 +213,8 @@ function App() {
               <Route path="/company" element={<CompanyPage />} />
               <Route path="/company/:section" element={<CompanyPage />} />
               {/* EYLO's three public academic entry points work without an AI login. */}
-              <Route path="/search" element={<PublicEntry workspacePath="/workspace/literature-search"><PublicDiscovery /></PublicEntry>} />
-              <Route path="/discover" element={<PublicEntry workspacePath="/workspace/literature-search"><PublicDiscovery /></PublicEntry>} />
+              <Route path="/search" element={<PublicDiscovery />} />
+              <Route path="/discover" element={<PublicEntry workspacePath="/search"><PublicDiscovery /></PublicEntry>} />
               <Route path="/academics" element={<PublicEntry workspacePath="/researchers"><PublicResearchers /></PublicEntry>} />
               <Route path="/find-phd" element={<Navigate to="/careers?q=PhD" replace />} />
               <Route path="/find-researchers" element={<PublicEntry workspacePath="/researchers"><PublicResearchers /></PublicEntry>} />
