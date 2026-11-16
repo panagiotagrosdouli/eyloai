@@ -125,9 +125,14 @@ export default function Home({ searchOnly = false }) {
             <span aria-hidden="true">←</span> Workspace
           </Link>
         </div>
+        <nav aria-label="EYLO academic tools" className="mb-5 grid gap-3 sm:grid-cols-3">
+          <Link to="/workspace/literature-search" aria-current="page" className="rounded-xl border border-primary/40 bg-primary/5 px-5 py-4 text-sm font-semibold">Papers <span className="mt-1 block text-xs font-normal text-muted-foreground">Search scientific publications</span></Link>
+          <Link to="/academics" className="rounded-xl border border-border bg-card px-5 py-4 text-sm font-semibold">Academics <span className="mt-1 block text-xs font-normal text-muted-foreground">Find researchers and supervisors</span></Link>
+          <Link to="/find-phd" className="rounded-xl border border-border bg-card px-5 py-4 text-sm font-semibold">Find a PhD <span className="mt-1 block text-xs font-normal text-muted-foreground">Explore doctoral research roles</span></Link>
+        </nav>
         <section aria-label="Research search" className="eylo-surface p-5 sm:p-8">
           <GuidedSearch key={currentQuery || "new-search"} onSearch={handleSearch} initialTopic={currentQuery} defaultLevel="researcher" />
-          <p className="mt-4 border-t border-border/60 pt-4 text-xs leading-5 text-muted-foreground">Retrieved papers link to their academic sources. EYRA’s interpretations are shown separately from source evidence.</p>
+          <p className="mt-4 border-t border-border/60 pt-4 text-xs leading-5 text-muted-foreground">Retrieved papers link to their academic sources. EYLO retrieves source-linked academic records independently. EYRA can help interpret them, but AI availability does not determine whether the evidence remains accessible.</p>
         </section>
       </div>
     );
