@@ -777,7 +777,7 @@ Rules:
             <div className="rounded-xl border border-dashed border-border p-6">
               <p className="text-sm font-medium">No papers linked yet</p>
               <p className="mt-1 text-sm text-muted-foreground">Save papers to your Library, then link them to this project.</p>
-              <Link to="/library" className="mt-3 inline-flex min-h-10 items-center text-sm font-medium text-primary hover:underline">Open Library</Link>
+              <Link to={'/library?project_id=' + encodeURIComponent(id)} className="mt-3 inline-flex min-h-10 items-center text-sm font-medium text-primary hover:underline">Open Library</Link>
             </div>
           )}
         </motion.section>

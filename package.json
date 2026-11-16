@@ -16,6 +16,7 @@
     "test:e2e:careers": "node tests/e2e-careers.mjs",
     "test:e2e:auth": "node tests/e2e-auth.mjs",
     "test:e2e:session": "node tests/e2e-session-boundary.mjs",
+    "test:e2e:library": "node tests/e2e-library-context.mjs",
     "test:e2e:learning": "node tests/e2e-learning-integration.mjs",
     "check": "npm run check:imports && npm run typecheck && npm run lint && npm run test && npm run build",
     "preview": "vite preview",

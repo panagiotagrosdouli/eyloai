@@ -42,12 +42,13 @@ test('protocol and thesis progress describe actual recorded fields only', () => 
 
 test('all project deep links encode identifiers rather than allowing route traversal', () => {
   const links = researchJourneyLinks(project.id);
-  for (const key of ['project', 'gaps', 'review', 'thesis']) {
+  for (const key of ['project', 'gaps', 'review', 'thesis', 'library']) {
     assert.ok(links[key].includes(encodeURIComponent(project.id)), key);
     assert.ok(!links[key].includes('/unsafe?'), key);
   }
   assert.equal(buildResearchJourney(null).length, 0);
   assert.equal(links.gaps.split('?')[0], '/research-gaps');
+  assert.equal(new URL(links.library, 'https://example.org').searchParams.get('project_id'), project.id);
 });
 
 test('research journey is protected and discoverable across existing workflows', () => {

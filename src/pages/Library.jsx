@@ -11,6 +11,9 @@ import { toBibTeX, toRIS } from '@/utils/citation-export';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
+import { loadLibraryView } from '@/lib/library-view.mjs';
+import { isSafeLiteratureSourceUrl } from '@/lib/literature-review-protocol.mjs';
 
 function downloadReferences(content, filename, mimeType) {
   const url = URL.createObjectURL(new Blob([content], { type: mimeType }));
@@ -37,6 +40,7 @@ function ProjectLinkControl({ item, projects, projectsLoaded, onLink, label }) {
       <select value={item.project_id || ''} onChange={event => onLink(item, event.target.value)} aria-label={`Link ${label} to a project`}
         className="min-h-10 min-w-44 rounded-lg border border-border bg-secondary px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40">
         <option value="">No project</option>
+        {item.project_id && !projects.some(project => project.id === item.project_id) && <option value={item.project_id} disabled>Current linked project (not loaded)</option>}
         {projects.map(project => <option key={project.id} value={project.id}>{project.title}</option>)}
       </select>
       {item.project_id && <Link to={`/projects/${item.project_id}`} className="inline-flex min-h-10 items-center text-primary hover:underline">Open project</Link>}
@@ -51,56 +55,60 @@ const TABS = [
 ];
 
 export default function Library() {
+  const { user } = useAuth();
   const [tab, setTab] = useState('papers');
   const [papers, setPapers] = useState([]);
   const [researchers, setResearchers] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
   const [projects, setProjects] = useState([]);
   const [projectsLoaded, setProjectsLoaded] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [fetching, setLoading] = useState(true);
+  const [loadedScope, setLoadedScope] = useState('');
+  const [attempt, setAttempt] = useState(0);
+  const [scopeProject, setScopeProject] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(50);
   const [searchTerm, setSearchTerm] = useState('');
   const [loadNotice, setLoadNotice] = useState('');
   const [failedCollections, setFailedCollections] = useState([]);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const projectId = searchParams.get('project_id') || '';
+  const focusedPaperId = searchParams.get('focus') || '';
+  const scopeKey = JSON.stringify([user?.id, projectId, focusedPaperId]);
+  const loading = fetching || loadedScope !== scopeKey;
   const { toast } = useToast();
 
-  useEffect(() => { loadAll(); }, []);
+  const loadAll = () => setAttempt(value => value + 1);
+  useEffect(() => {
+    let active = true;
+    const scope = JSON.stringify([user?.id, projectId, focusedPaperId]);
+    setLoading(true);
+    setLoadNotice('');
+    setFailedCollections([]);
+    setProjectsLoaded(false);
+    setScopeProject(null);
+    setPapers([]); setResearchers([]); setOpportunities([]);
+    loadLibraryView({ entities: base44.entities, ownerId: user?.id, projectId, paperId: focusedPaperId }).then(view => {
+      if (!active) return;
+      setPapers(view.papers); setResearchers(view.researchers); setOpportunities(view.opportunities);
+      setProjects(view.projects); setProjectsLoaded(view.projectsLoaded); setScopeProject(view.project);
+      setFailedCollections(view.failedCollections); setLoadNotice(view.notice);
+    }).catch(() => {
+      if (!active) return;
+      setProjects([]);
+      setFailedCollections(['papers', 'researchers', 'opportunities']);
+      setLoadNotice('The requested private Library view could not be loaded. Check access and retry, or explicitly open your entire Library.');
+    }).finally(() => {
+      if (active) { setLoadedScope(scope); setLoading(false); }
+    });
+    return () => { active = false; };
+  }, [user?.id, projectId, focusedPaperId, attempt]);
   useEffect(() => {
     setSearchTerm(searchParams.get('q') || '');
     const requestedTab = searchParams.get('tab');
     if (searchParams.get('focus')) setTab('papers');
     else if (TABS.some(candidate => candidate.key === requestedTab)) setTab(requestedTab);
   }, [searchParams]);
-
-  const loadAll = async () => {
-    setLoading(true);
-    setLoadNotice('');
-    setFailedCollections([]);
-    const requests = [
-      base44.entities.SavedPaper.list('-created_date', 1000),
-      base44.entities.SavedResearcher.list('-created_date', 1000),
-      base44.entities.SavedOpportunity.list('-created_date', 1000),
-      base44.entities.Project.list('-updated_date', 1000),
-    ];
-    const results = await Promise.allSettled(requests);
-    setPapers(results[0].status === 'fulfilled' ? results[0].value : []);
-    setResearchers(results[1].status === 'fulfilled' ? results[1].value : []);
-    setOpportunities(results[2].status === 'fulfilled' ? results[2].value : []);
-    setProjects(results[3].status === 'fulfilled' ? results[3].value : []);
-    setProjectsLoaded(results[3].status === 'fulfilled');
-    const collectionNames = ['papers', 'researchers', 'opportunities'];
-    const failed = collectionNames.filter((_, index) => results[index].status === 'rejected');
-    setFailedCollections(failed);
-    const failures = failed.length;
-    const projectFailure = results[3].status === 'rejected';
-    if (failures || projectFailure) {
-      const messages = [];
-      if (failures) messages.push(`${failures} saved collection${failures === 1 ? '' : 's'} could not be loaded`);
-      if (projectFailure) messages.push('project links could not be loaded');
-      setLoadNotice(`${messages.join('; ')}. Available records remain usable. Please retry when the connection recovers.`);
-    }
-    setLoading(false);
-  };
+  useEffect(() => { setVisibleCount(50); }, [scopeKey, searchTerm, tab]);
 
   const linkToProject = async (entityName, item, projectId, setItems, label) => {
     const project = projects.find(candidate => candidate.id === projectId);
@@ -144,16 +152,22 @@ export default function Library() {
     }
   };
 
+  const withinProject = items => projectId ? items.filter(item => item.project_id === projectId) : items;
   const filter = (items, fields) => {
-    if (!searchTerm.trim()) return items;
+    const scoped = withinProject(items);
+    if (!searchTerm.trim()) return scoped;
     const q = searchTerm.toLowerCase();
-    return items.filter(item => fields.some(f => String(item[f] || '').toLowerCase().includes(q)));
+    return scoped.filter(item => fields.some(f => String(item[f] || '').toLowerCase().includes(q)));
   };
 
-  const focusedPaperId = searchParams.get('focus');
   const filteredPapers = focusedPaperId
-    ? papers.filter(paper => String(paper.id) === focusedPaperId)
+    ? filter(papers, ['title', 'authors', 'source']).filter(paper => String(paper.id) === focusedPaperId)
     : filter(papers, ['title', 'authors', 'source']);
+  const filteredResearchers = filter(researchers, ['name', 'institution', 'research_areas']);
+  const filteredOpportunities = filter(opportunities, ['title', 'description', 'type']);
+  const allParams = new URLSearchParams(searchParams);
+  allParams.delete('project_id'); allParams.delete('focus');
+  const allLibraryHref = '/library' + (allParams.size ? '?' + allParams.toString() : '');
   const exportPaperReferences = format => {
     if (loading || failedCollections.includes('papers') || !filteredPapers.length) return;
     const bib = format === 'bibtex';
@@ -165,7 +179,8 @@ export default function Library() {
       description: 'Exported the saved metadata. Verify titles, authors, DOI and publication notices before scholarly use.' });
   };
 
-  const counts = { papers: papers.length, researchers: researchers.length, opportunities: opportunities.length };
+  const counts = { papers: withinProject(papers).length, researchers: withinProject(researchers).length, opportunities: withinProject(opportunities).length };
+  const filteredCount = tab === 'papers' ? filteredPapers.length : tab === 'researchers' ? filteredResearchers.length : filteredOpportunities.length;
   const failedCollectionMessage = 'This collection could not be loaded. Use Retry loading above instead of assuming it is empty.';
   return (
     <div className="eylo-page">
@@ -176,11 +191,33 @@ export default function Library() {
         <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">Your saved scientific literature, researchers and opportunities — organized for future reference.</p>
       </div>
 
-      {(papers.length >= 1000 || researchers.length >= 1000 || opportunities.length >= 1000 || projects.length >= 1000) && !loading && (
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <label className="min-w-0 flex-1 text-sm font-medium">Filter Library by project
+          <select aria-label="Filter Library by project" value={projectId} disabled={!projectsLoaded}
+            onChange={event => setSearchParams(current => {
+              const next = new URLSearchParams(current);
+              if (event.target.value) next.set('project_id', event.target.value); else next.delete('project_id');
+              next.delete('focus');
+              if (searchTerm) next.set('q', searchTerm); else next.delete('q');
+              return next;
+            })}
+            className="mt-2 block min-h-11 w-full max-w-xl rounded-lg border border-border bg-card px-3 text-sm">
+            <option value="">All projects</option>
+            {projectId && !projects.some(project => project.id === projectId) && <option value={projectId}>Selected project</option>}
+            {projects.map(project => <option key={project.id} value={project.id}>{project.title || 'Untitled project'}</option>)}
+          </select>
+        </label>
+        {(projectId || focusedPaperId) && <Link to={allLibraryHref} className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline">Show entire Library</Link>}
+      </div>
+      {scopeProject && <p role="status" className="mb-4 text-sm text-muted-foreground">Showing saved records linked to {scopeProject.title || 'this project'}. <Link to={'/literature-review?project_id=' + encodeURIComponent(scopeProject.id)} className="text-primary underline">Open review protocol</Link></p>}
+      {focusedPaperId && <p role="status" className="mb-4 text-sm text-muted-foreground">Publication link selected. Cards and citation exports use this publication only.</p>}
+
+      {(papers.length >= 1000 || researchers.length >= 1000 || opportunities.length >= 1000) && !loading && (
         <p role="status" className="mb-4 text-xs text-muted-foreground">
           Showing up to 1,000 recent records per collection. Older records are not loaded; full pagination is not yet available.
         </p>
       )}
+      {projects.length >= 1000 && !loading && <p role="status" className="mb-4 text-xs text-muted-foreground">The project picker includes up to 1,000 recent projects and the project opened by a direct link.</p>}
 
       {loadNotice && (
         <div role="status" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-foreground">
@@ -195,9 +232,9 @@ export default function Library() {
       {/* Stats */}
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
-          { key: 'papers', label: 'Saved Papers', value: papers.length, icon: FileText, color: 'text-primary bg-primary/10' },
-          { key: 'researchers', label: 'Researchers', value: researchers.length, icon: Users, color: 'text-accent bg-accent/10' },
-          { key: 'opportunities', label: 'Opportunities', value: opportunities.length, icon: Award, color: 'text-chart-3 bg-chart-3/10' },
+          { key: 'papers', label: 'Saved Papers', value: counts.papers, icon: FileText, color: 'text-primary bg-primary/10' },
+          { key: 'researchers', label: 'Researchers', value: counts.researchers, icon: Users, color: 'text-accent bg-accent/10' },
+          { key: 'opportunities', label: 'Opportunities', value: counts.opportunities, icon: Award, color: 'text-chart-3 bg-chart-3/10' },
         ].map(s => {
           const Icon = s.icon;
           return (
@@ -205,7 +242,7 @@ export default function Library() {
               <div className={`w-8 h-8 rounded-lg ${s.color} flex items-center justify-center mx-auto mb-2`}>
                 <Icon size={14} />
               </div>
-              <div className="font-bold text-xl font-heading">{failedCollections.includes(s.key) ? '—' : s.value}</div>
+              <div className="font-bold text-xl font-heading">{loading || failedCollections.includes(s.key) ? '—' : s.value}</div>
               <div className="text-xs text-muted-foreground">{s.label}</div>
             </div>
           );
@@ -279,9 +316,9 @@ export default function Library() {
               )}
               {failedCollections.includes('papers')
                 ? <p role="alert" className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">{failedCollectionMessage}</p>
-                : filter(papers, ['title', 'authors', 'source']).length === 0
-                ? <EmptyState icon={FileText} label={searchTerm.trim() ? 'No matching papers' : 'No saved papers yet'} sub={searchTerm.trim() ? 'Try another search term or clear the search.' : 'Start by exploring trusted sources and save useful results here.'} href="/search" action="Find publications" onClear={searchTerm.trim() ? () => setSearchTerm('') : undefined} />
-                : filter(papers, ['title', 'authors', 'source']).map(p => (
+                : filteredPapers.length === 0
+                ? <EmptyState icon={FileText} label={searchTerm.trim() ? 'No matching papers' : projectId ? 'No papers linked to this project' : 'No saved papers yet'} sub={searchTerm.trim() ? 'Try another search term or clear the search.' : 'Start by exploring trusted sources and save useful results here.'} href="/search" action="Find publications" onClear={searchTerm.trim() ? () => setSearchTerm('') : undefined} />
+                : filteredPapers.slice(0, visibleCount).map(p => (
                   <div key={p.id} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all group">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -300,7 +337,7 @@ export default function Library() {
                         <ProjectLinkControl item={p} projects={projects} projectsLoaded={projectsLoaded} label="paper" onLink={(item, projectId) => linkToProject('SavedPaper', item, projectId, setPapers, 'paper')} />
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
-                        {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" aria-label={`Open source for ${p.title}`} className="grid min-h-11 min-w-11 place-items-center rounded-lg hover:bg-secondary transition-colors"><ExternalLink size={16} className="text-muted-foreground" /></a>}
+                        {isSafeLiteratureSourceUrl(p.url) && <a href={p.url} target="_blank" rel="noopener noreferrer" aria-label={`Open source for ${p.title}`} className="grid min-h-11 min-w-11 place-items-center rounded-lg hover:bg-secondary transition-colors"><ExternalLink size={16} className="text-muted-foreground" /></a>}
                         <button onClick={() => deletePaper(p.id)} aria-label={`Remove ${p.title} from library`} className="grid min-h-11 min-w-11 place-items-center rounded-lg hover:bg-destructive/10 transition-colors">
                           <Trash2 size={13} className="text-destructive/60" />
                         </button>
@@ -317,9 +354,9 @@ export default function Library() {
             <div className="grid gap-3 sm:grid-cols-2">
               {failedCollections.includes('researchers')
                 ? <p role="alert" className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">{failedCollectionMessage}</p>
-                : filter(researchers, ['name', 'institution', 'research_areas']).length === 0
-                ? <EmptyState icon={Users} label={searchTerm.trim() ? 'No matching researchers' : 'No saved researchers yet'} sub={searchTerm.trim() ? 'Try another search term or clear the search.' : 'Start by exploring trusted sources and save useful results here.'} href="/researchers" action="Find researchers" onClear={searchTerm.trim() ? () => setSearchTerm('') : undefined} />
-                : filter(researchers, ['name', 'institution', 'research_areas']).map(r => (
+                : filteredResearchers.length === 0
+                ? <EmptyState icon={Users} label={searchTerm.trim() ? 'No matching researchers' : projectId ? 'No researchers linked to this project' : 'No saved researchers yet'} sub={searchTerm.trim() ? 'Try another search term or clear the search.' : 'Start by exploring trusted sources and save useful results here.'} href="/researchers" action="Find researchers" onClear={searchTerm.trim() ? () => setSearchTerm('') : undefined} />
+                : filteredResearchers.slice(0, visibleCount).map(r => (
                   <div key={r.id} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all group">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -333,7 +370,7 @@ export default function Library() {
                         <ProjectLinkControl item={r} projects={projects} projectsLoaded={projectsLoaded} label="researcher" onLink={(item, projectId) => linkToProject('SavedResearcher', item, projectId, setResearchers, 'researcher')} />
                       </div>
                       <div className="flex flex-col gap-1 flex-shrink-0">
-                        {r.profile_url && <a href={r.profile_url} target="_blank" rel="noopener noreferrer" aria-label={`Open researcher profile for ${r.name}`} className="grid min-h-11 min-w-11 place-items-center rounded-lg hover:bg-secondary transition-colors"><ExternalLink size={16} className="text-muted-foreground" /></a>}
+                        {isSafeLiteratureSourceUrl(r.profile_url) && <a href={r.profile_url} target="_blank" rel="noopener noreferrer" aria-label={`Open researcher profile for ${r.name}`} className="grid min-h-11 min-w-11 place-items-center rounded-lg hover:bg-secondary transition-colors"><ExternalLink size={16} className="text-muted-foreground" /></a>}
                         <button onClick={() => deleteResearcher(r.id)} aria-label={`Remove ${r.name} from library`} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
                           <Trash2 size={13} className="text-destructive/60" />
                         </button>
@@ -350,9 +387,9 @@ export default function Library() {
             <div className="space-y-3">
               {failedCollections.includes('opportunities')
                 ? <p role="alert" className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">{failedCollectionMessage}</p>
-                : filter(opportunities, ['title', 'description', 'type']).length === 0
-                ? <EmptyState icon={Award} label={searchTerm.trim() ? 'No matching opportunities' : 'No saved opportunities yet'} sub={searchTerm.trim() ? 'Try another search term or clear the search.' : 'Start by exploring trusted sources and save useful results here.'} href="/opportunities" action="Find funding" onClear={searchTerm.trim() ? () => setSearchTerm('') : undefined} />
-                : filter(opportunities, ['title', 'description', 'type']).map(o => (
+                : filteredOpportunities.length === 0
+                ? <EmptyState icon={Award} label={searchTerm.trim() ? 'No matching opportunities' : projectId ? 'No opportunities linked to this project' : 'No saved opportunities yet'} sub={searchTerm.trim() ? 'Try another search term or clear the search.' : 'Start by exploring trusted sources and save useful results here.'} href="/opportunities" action="Find funding" onClear={searchTerm.trim() ? () => setSearchTerm('') : undefined} />
+                : filteredOpportunities.slice(0, visibleCount).map(o => (
                   <div key={o.id} className="p-5 rounded-xl border border-border bg-card hover:border-primary/30 card-glow transition-all group">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
@@ -364,7 +401,7 @@ export default function Library() {
                         {o.amount && <p className="text-sm text-muted-foreground mt-1">{o.amount}</p>}
                         {o.eligibility && <p className="text-sm text-muted-foreground mt-1">Eligibility: {o.eligibility}</p>}
                         <p className="mt-2 text-xs text-muted-foreground">Verify eligibility and program terms at the official source.</p>
-                        {o.url && <a href={o.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex min-h-10 items-center gap-2 text-sm text-primary hover:underline">Open official source <ExternalLink size={14} aria-hidden="true" /></a>}
+                        {isSafeLiteratureSourceUrl(o.url) && <a href={o.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex min-h-10 items-center gap-2 text-sm text-primary hover:underline">Open official source <ExternalLink size={14} aria-hidden="true" /></a>}
                         <ProjectLinkControl item={o} projects={projects} projectsLoaded={projectsLoaded} label="opportunity" onLink={(item, projectId) => linkToProject('SavedOpportunity', item, projectId, setOpportunities, 'opportunity')} />
                       </div>
                       <button onClick={() => deleteOpportunity(o.id)} aria-label={`Remove ${o.title} from library`} className="grid min-h-11 min-w-11 shrink-0 place-items-center rounded-lg hover:bg-destructive/10 transition-colors">
@@ -378,6 +415,10 @@ export default function Library() {
           )}
         </motion.div>
       )}
+      {!loading && !failedCollections.includes(tab) && filteredCount > 0 && <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+        <p role="status" className="text-xs text-muted-foreground">Showing {Math.min(visibleCount, filteredCount)} of {filteredCount} loaded {tab}.</p>
+        {filteredCount > visibleCount && <button type="button" onClick={() => setVisibleCount(count => count + 50)} className="min-h-11 rounded-lg border border-border px-4 text-sm font-semibold">Show more records</button>}
+      </div>}
     </div>
   );
 }
