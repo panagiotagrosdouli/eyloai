@@ -14,7 +14,9 @@
       "interactive_controls_expected": null,
       "interactive_controls_tested": 0
     },
-    "assertions": {}
+    "assertions": {},
+    "tested_public_routes": [],
+    "tested_private_routes": []
   },
   "additional_inventory_review": {
     "status": "NOT_RUN",
