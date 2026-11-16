@@ -54,7 +54,7 @@ test('client disconnect after partial streamed text cannot refund a consumed AI 
     const body = new ReadableStream({
       start(controller) {
         controller.enqueue(new TextEncoder().encode(
-          'data: ' + JSON.stringify({ type: 'response.output_text.delta', delta: 'partial usable output' }) + '\\n\\n',
+          'data: ' + JSON.stringify({ type: 'response.output_text.delta', delta: 'partial usable output' }) + '\n\n',
         ));
         options.signal.addEventListener('abort', () => {
           aborts++;
