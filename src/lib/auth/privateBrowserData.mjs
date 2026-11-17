@@ -1,4 +1,5 @@
 import { researchCatalogStorageKey } from "../research-catalog.mjs";
+import { clearDeletedDiscoveryBrowserData } from "../discovery-browser-storage.mjs";
 const OWNER = "eylo:legacy-private-cache-owner:v1";
 const LEGACY_PREFIXES = [
   "eyra_future_me_",
@@ -30,6 +31,7 @@ export function clearDeletedOwnerBrowserData(local, session, userId) {
   if (!catalogKey) throw new Error("Expected deleted account identity.");
   local.removeItem(catalogKey);
   local.removeItem("eylo:offline:v1:" + userId);
+  clearDeletedDiscoveryBrowserData(local, userId);
   const conversationKey = `eyra:conversation:v3:${encodeURIComponent(userId)}`;
   const prefixes = [
     `eylo:notes:draft:${userId}:`,

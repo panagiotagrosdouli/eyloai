@@ -3,12 +3,13 @@ import '@/pages/landing.css';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
+import { discoveryBrowserScope, readDiscoveryBrowserList, writeDiscoveryBrowserList } from '@/lib/discovery-browser-storage.mjs';
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BookOpen, Building2, ExternalLink, Loader2,
   RefreshCw, Search, ShieldCheck, Users, Download, Bookmark, BookmarkCheck, Clock3, GraduationCap, Trash2,
 } from 'lucide-react';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchResearchPeopleByPublications, searchOpenAlexInstitutions } from '@/lib/eyra-api';
-import { buildResearchWorkspaceSignupHref } from '@/lib/discovery/workspaceSignup';
+import { buildResearchWorkspaceSignupHref, buildResearchWorkspacePath } from '@/lib/discovery/workspaceSignup';
 import { countAvailablePaperIndexes, formatUnavailableSource, PAPER_INDEX_SOURCE_IDS } from '@/lib/discovery-source-status';
 import { publicationTypeLabel } from '@/lib/publication-type-label';
 import GuidedSearch, { normalizeDiscoveryRequest } from '@/components/discovery/GuidedSearch';
@@ -20,19 +21,12 @@ function EmptyState({ children }) {
   return <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">{children}</div>;
 }
 
-const SAVED_KEY = 'eylo-public-saved-papers-v1';
-const HISTORY_KEY = 'eylo-public-search-history-v1';
-
-function readBrowserList(key) {
-  if (typeof window === 'undefined') return [];
-  try {
-    const value = JSON.parse(window.localStorage.getItem(key) || '[]');
-    return Array.isArray(value) ? value.slice(0, 100) : [];
-  } catch { return []; }
-}
-
-function writeBrowserList(key, value) {
-  try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* Browser storage may be unavailable. */ }
+// Legacy unscoped search history has no known owner; never silently attribute
+// it to another account using the same device.
+function browserStores() {
+  if (typeof window === 'undefined') return {};
+  try { return { local: window.localStorage, session: window.sessionStorage }; }
+  catch { return {}; }
 }
 
 function PaperCard({ paper, saved = false, onToggleSave }) {
@@ -73,7 +67,9 @@ function PaperGroup({ title, eyebrow, description, papers, savedIds, onToggleSav
 }
 
 export default function PublicDiscovery() {
-  const { status: authStatus } = useAuth();
+  const { status: authStatus, user, initializeAuth } = useAuth();
+  const scope = useMemo(() => discoveryBrowserScope(authStatus, user?.id), [authStatus, user?.id]);
+  const scopeKey = scope ? `${scope.storage}:${scope.namespace}` : '';
   const [params, setParams] = useSearchParams();
   const initialQuery = params.get('q') || '';
   const level = params.get('level') || 'researcher';
@@ -88,19 +84,25 @@ export default function PublicDiscovery() {
   const [attempt, setAttempt] = useState(0);
   const [activePanel, setActivePanel] = useState('discover');
   const [showRefinement, setShowRefinement] = useState(false);
-  const [savedPapers, setSavedPapers] = useState(() => readBrowserList(SAVED_KEY));
-  const [searchHistory, setSearchHistory] = useState(() => readBrowserList(HISTORY_KEY));
+  const [savedState, setSavedState] = useState({ scopeKey: '', values: [] });
+  const [historyState, setHistoryState] = useState({ scopeKey: '', values: [] });
+  // Hide records immediately when the current identity changes, before
+  // effects run, preventing any flash of another account's research.
+  const savedPapers = savedState.scopeKey === scopeKey ? savedState.values : [];
+  const searchHistory = historyState.scopeKey === scopeKey ? historyState.values : [];
   const savedIds = useMemo(() => new Set(savedPapers.map(paper => paper.url || paper.id || paper.title)), [savedPapers]);
 
   const toggleSavedPaper = paper => {
+    if (!scope) return;
     const identity = paper.url || paper.id || paper.title;
     if (!identity) return;
-    setSavedPapers(previous => {
-      const exists = previous.some(item => (item.url || item.id || item.title) === identity);
-      const next = exists ? previous.filter(item => (item.url || item.id || item.title) !== identity) : [{ id: paper.id, url: paper.url, title: paper.title, authors: paper.authors, year: paper.year, source: paper.source, source_index: paper.source_index, type: paper.type, summary: paper.summary, cited_by_count: paper.cited_by_count, open_access: paper.open_access }, ...previous].slice(0, 100);
-      writeBrowserList(SAVED_KEY, next);
-      return next;
-    });
+    const previous = readDiscoveryBrowserList(scope, 'saved', browserStores());
+    const exists = previous.some(item => (item.url || item.id || item.title) === identity);
+    const next = exists ? previous.filter(item => (item.url || item.id || item.title) !== identity)
+      : [{ id: paper.id, url: paper.url, title: paper.title, authors: paper.authors, year: paper.year, source: paper.source, source_index: paper.source_index, type: paper.type, summary: paper.summary, cited_by_count: paper.cited_by_count, open_access: paper.open_access }, ...previous].slice(0, 100);
+    if (writeDiscoveryBrowserList(scope, 'saved', next, browserStores())) {
+      setSavedState({ scopeKey, values: next });
+    }
   };
 
   const navigatePanel = panel => {
@@ -108,17 +110,29 @@ export default function PublicDiscovery() {
     if (panel !== 'saved' && panel !== 'history') window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  useEffect(() => {
+    // /search is public and bypasses PublicEntry; restore the auth identity
+    // explicitly before reading or writing any locally saved research.
+    if (authStatus === 'idle') void initializeAuth();
+  }, [authStatus, initializeAuth]);
+
+  useEffect(() => {
+    setSavedState({ scopeKey, values: readDiscoveryBrowserList(scope, 'saved', browserStores()) });
+    setHistoryState({ scopeKey, values: readDiscoveryBrowserList(scope, 'history', browserStores()) });
+  }, [scope, scopeKey]);
+
   useEffect(() => setQuery(initialQuery), [initialQuery]);
 
   useEffect(() => {
+    if (!scope) return;
     const queryValue = initialQuery.trim();
     if (!queryValue) return;
-    setSearchHistory(previous => {
-      const next = [{ query: queryValue, date: new Date().toISOString() }, ...previous.filter(item => item.query.toLowerCase() !== queryValue.toLowerCase())].slice(0, 25);
-      writeBrowserList(HISTORY_KEY, next);
-      return next;
-    });
-  }, [initialQuery]);
+    const previous = readDiscoveryBrowserList(scope, 'history', browserStores());
+    const next = [{ query: queryValue, date: new Date().toISOString() }, ...previous.filter(item => item?.query?.toLowerCase() !== queryValue.toLowerCase())].slice(0, 25);
+    if (writeDiscoveryBrowserList(scope, 'history', next, browserStores())) {
+      setHistoryState({ scopeKey, values: next });
+    }
+  }, [initialQuery, scope, scopeKey]);
 
   useEffect(() => {
     if (!refined) return;
@@ -264,7 +278,7 @@ export default function PublicDiscovery() {
           {authStatus === 'authenticated' && (
             <Link to="/home" className="rounded-xl border border-[var(--company-border)] px-4 py-2 text-sm font-semibold text-[var(--company-muted)] hover:bg-[var(--company-soft)]">Discover</Link>
           )}
-          <Link to={buildResearchWorkspaceSignupHref(initialQuery)} className="hidden rounded-xl bg-[var(--company-soft)] px-4 py-2 text-sm font-semibold text-[var(--company-muted)] sm:block">Save research</Link>
+          <Link to={authStatus === 'authenticated' ? buildResearchWorkspacePath(initialQuery) : buildResearchWorkspaceSignupHref(initialQuery)} className="hidden rounded-xl bg-[var(--company-soft)] px-4 py-2 text-sm font-semibold text-[var(--company-muted)] sm:block">{authStatus === 'authenticated' ? 'Create research project' : 'Save research'}</Link>
           <div className="ml-auto sm:ml-0"><ThemeToggle /></div>
         </div>
       </header>
@@ -292,11 +306,11 @@ export default function PublicDiscovery() {
           <Link to="/find-phd" className="rounded-full border border-[var(--company-border)] px-4 py-2.5">Find a PhD</Link>
         </div>
         {activePanel === 'saved' && <section aria-label="Saved papers" className="mx-auto max-w-5xl pb-12">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[.18em] text-[var(--company-muted)]">Your browser library</p><h1 className="mt-2 text-3xl font-bold tracking-tight">Saved papers</h1><p className="mt-2 text-sm text-[var(--company-muted)]">Saved only on this device and browser. Sign in to access your research workspace.</p></div>{savedPapers.length > 0 && <button type="button" onClick={() => { setSavedPapers([]); writeBrowserList(SAVED_KEY, []); }} className="inline-flex items-center gap-2 rounded-xl border border-[var(--company-border)] px-3 py-2 text-xs font-medium"><Trash2 size={14}/> Clear saved</button>}</div>
-          {savedPapers.length ? <div className="grid gap-4 lg:grid-cols-2">{savedPapers.map(paper => <PaperCard key={paper.url || paper.id || paper.title} paper={paper} saved onToggleSave={toggleSavedPaper}/>)}</div> : <EmptyState>Save a paper from your research results to see it here.</EmptyState>}
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[.18em] text-[var(--company-muted)]">Your browser library</p><h1 className="mt-2 text-3xl font-bold tracking-tight">Saved papers</h1><p className="mt-2 text-sm text-[var(--company-muted)]">{authStatus === 'authenticated' ? 'Saved for this account on this browser only; not synced to your Library.' : 'Guest saves last for this browser tab only. Sign in for a separate account library.'}</p></div>{savedPapers.length > 0 && <button type="button" onClick={() => { if (!scope) return; if (writeDiscoveryBrowserList(scope, 'saved', [], browserStores())) setSavedState({ scopeKey, values: [] }); }} className="inline-flex items-center gap-2 rounded-xl border border-[var(--company-border)] px-3 py-2 text-xs font-medium"><Trash2 size={14}/> Clear saved</button>}</div>
+          {savedPapers.length ? <div className="grid gap-4 lg:grid-cols-2">{savedPapers.map(paper => <PaperCard key={paper.url || paper.id || paper.title} paper={paper} saved onToggleSave={scope ? toggleSavedPaper : undefined}/>)}</div> : <EmptyState>Save a paper from your research results to see it here.</EmptyState>}
         </section>}
         {activePanel === 'history' && <section aria-label="Search history" className="mx-auto max-w-5xl pb-12">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[.18em] text-[var(--company-muted)]">Your browser history</p><h1 className="mt-2 text-3xl font-bold tracking-tight">Recent searches</h1><p className="mt-2 text-sm text-[var(--company-muted)]">Stored in this browser only. You can clear these searches any time.</p></div>{searchHistory.length > 0 && <button type="button" onClick={() => { setSearchHistory([]); writeBrowserList(HISTORY_KEY, []); }} className="inline-flex items-center gap-2 rounded-xl border border-[var(--company-border)] px-3 py-2 text-xs font-medium"><Trash2 size={14}/> Clear history</button>}</div>
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[.18em] text-[var(--company-muted)]">Your browser history</p><h1 className="mt-2 text-3xl font-bold tracking-tight">Recent searches</h1><p className="mt-2 text-sm text-[var(--company-muted)]">{authStatus === 'authenticated' ? 'Account-specific searches on this browser only. You can clear them any time.' : 'Guest searches last for this browser tab only. You can clear them any time.'}</p></div>{searchHistory.length > 0 && <button type="button" onClick={() => { if (!scope) return; if (writeDiscoveryBrowserList(scope, 'history', [], browserStores())) setHistoryState({ scopeKey, values: [] }); }} className="inline-flex items-center gap-2 rounded-xl border border-[var(--company-border)] px-3 py-2 text-xs font-medium"><Trash2 size={14}/> Clear history</button>}</div>
           {searchHistory.length ? <div className="divide-y divide-[#E5EBF0] rounded-xl border border-[var(--company-border)] bg-[var(--company-surface)]">{searchHistory.map(item => <button type="button" key={item.query} onClick={() => { setActivePanel('discover'); setParams({ q: item.query, level, goal, recency }); }} className="flex w-full items-center gap-3 p-4 text-left hover:bg-[var(--company-soft)]"><Clock3 className="shrink-0 text-[var(--company-muted)]" size={17}/><span className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--company-muted)]">{item.query}</span><ArrowRight size={16} className="text-[var(--company-muted)]"/></button>)}</div> : <EmptyState>Search a topic to build your history on this device.</EmptyState>}
         </section>}
         {(activePanel === 'discover' || activePanel === 'papers') && <div>
@@ -424,10 +438,10 @@ export default function PublicDiscovery() {
               </div>
             </section>
 
-            <PaperGroup savedIds={savedIds} onToggleSave={toggleSavedPaper} eyebrow="Your entry point" title="Start here" description="Selected as an intelligible entry path for your level; survey and overview records are preferred when available." papers={groups.start} />
-            <PaperGroup savedIds={savedIds} onToggleSave={toggleSavedPaper} eyebrow="Frontier scan" title="What is new now" description="Recent records are kept separate so you can see current directions without losing the field's foundations." papers={groups.latest} />
-            <PaperGroup savedIds={savedIds} onToggleSave={toggleSavedPaper} eyebrow="Context that matters" title="Foundational & survey work" description="Highly cited or broad synthesis papers for terminology, historical context, and established methods." papers={groups.foundational} />
-            <PaperGroup savedIds={savedIds} onToggleSave={toggleSavedPaper} eyebrow="Broaden the map" title="More relevant evidence" description="Additional deduplicated records from across the connected scholarly indexes." papers={groups.relevant} />
+            <PaperGroup savedIds={savedIds} onToggleSave={scope ? toggleSavedPaper : undefined} eyebrow="Your entry point" title="Start here" description="Selected as an intelligible entry path for your level; survey and overview records are preferred when available." papers={groups.start} />
+            <PaperGroup savedIds={savedIds} onToggleSave={scope ? toggleSavedPaper : undefined} eyebrow="Frontier scan" title="What is new now" description="Recent records are kept separate so you can see current directions without losing the field's foundations." papers={groups.latest} />
+            <PaperGroup savedIds={savedIds} onToggleSave={scope ? toggleSavedPaper : undefined} eyebrow="Context that matters" title="Foundational & survey work" description="Highly cited or broad synthesis papers for terminology, historical context, and established methods." papers={groups.foundational} />
+            <PaperGroup savedIds={savedIds} onToggleSave={scope ? toggleSavedPaper : undefined} eyebrow="Broaden the map" title="More relevant evidence" description="Additional deduplicated records from across the connected scholarly indexes." papers={groups.relevant} />
 
             <section>
               <div className="mb-5"><p className="text-[10px] font-bold uppercase tracking-wider text-primary">People behind the evidence</p><h2 className="mt-1 font-heading text-2xl font-bold">Researchers</h2><p className="mt-2 text-sm text-muted-foreground">Profiles come from author and topic-matched publication records; this is not an exhaustive directory or a guarantee of expertise, availability or endorsement.</p><Link to={`/find-researchers?q=${encodeURIComponent(initialQuery)}`} className="mt-3 inline-flex text-sm font-semibold text-primary">Explore more researchers <ArrowRight size={13} className="ml-1 mt-1" /></Link></div>
