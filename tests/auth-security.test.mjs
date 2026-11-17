@@ -86,7 +86,10 @@ test('signed-in public entry routes redirect into the authenticated workspace', 
   assert.match(app, /status === 'authenticated'\) return <Navigate to=\{\{ pathname: workspacePath, search \}\} replace \/>/);
   assert.match(app, /<Route path="\/" element=\{<PublicEntry><Landing \/><\/PublicEntry>\} \/>/);
   assert.match(app, /<Route path="\/discover" element=\{<PublicEntry workspacePath="\/search">/);
-  assert.match(app, /<Route path="\/find-researchers" element=\{<PublicEntry workspacePath="\/researchers">/);
+  // Independent EYLO Academics is available with or without a logged-in
+  // workspace; only workspace-specific routes are protected/redirected.
+  assert.match(app, /<Route path="\/academics" element=\{<PublicResearchers \/>\}/);
+  assert.match(app, /<Route path="\/find-researchers" element=\{<PublicResearchers \/>\}/);
   assert.match(app, /<Route path="\/careers" element=\{<PublicEntry workspacePath="\/workspace\/careers">/);
   assert.match(app, /<Route path="\/workspace\/careers" element=\{<Careers \/>\} \/>/);
   assert.match(app, /<Route path="\/careers" element=\{<PublicEntry workspacePath="\/workspace\/careers"><PublicCareers \/><\/PublicEntry>\} \/>/);
