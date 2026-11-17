@@ -124,6 +124,7 @@ export async function invokeEyra({ prompt = '', response_json_schema: responseSc
  * Execute only server-signed exact fields (never an LLM regeneration).
  * Requires a hosted durable ledger and explicit production feature approval.
  */
+/** @param {{ request?: string, approvalToken?: string, signal?: AbortSignal }} [options] */
 export async function approveEyraWrite({ request, approvalToken, signal } = {}) {
   if (typeof request !== 'string' || !request.trim()
     || typeof approvalToken !== 'string' || !approvalToken) {
