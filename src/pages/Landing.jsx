@@ -151,6 +151,7 @@ export default function Landing() {
             aria-label="Company navigation"
             className="hidden items-center gap-7 text-[13px] font-medium text-[var(--company-muted)] xl:flex"
           >
+            <Link to="/start">Start here</Link>
             <a href="#features">The platform</a>
             <a href="#eyra">Meet EYRA</a>
             <a href="#who-its-for">Who it’s for</a>
@@ -170,7 +171,7 @@ export default function Landing() {
               to="/discover"
               className="hidden min-h-10 items-center gap-2 rounded-xl company-primary px-3 text-xs font-semibold text-white transition sm:inline-flex sm:px-5 sm:text-[13px]"
             >
-              Enter EYLO AI <ArrowUpRight size={15} aria-hidden="true" />
+              Explore research <ArrowUpRight size={15} aria-hidden="true" />
             </Link>
             <button
               type="button"
@@ -210,6 +211,11 @@ export default function Landing() {
             </a>
           ))}
           <Link
+            to="/start"
+            onClick={() => setMenuOpen(false)}
+            className="rounded-lg p-3"
+          >Start here</Link>
+          <Link
             to="/company"
             onClick={() => setMenuOpen(false)}
             className="rounded-lg p-3"
@@ -242,7 +248,7 @@ export default function Landing() {
             className="rounded-lg p-3"
             onClick={() => setMenuOpen(false)}
           >
-            Enter EYLO AI
+            Explore research
           </Link>
         </nav>
       </header>
@@ -255,24 +261,24 @@ export default function Landing() {
                   className="h-1.5 w-1.5 rounded-full bg-[#24AAF3]"
                   aria-hidden="true"
                 />{" "}
-                Discovery. Intelligence. Progress.
+                QUESTION  ·  SOURCES  ·  NEXT STEP
               </p>
               <h1 className="max-w-[660px] text-[clamp(2.8rem,5.25vw,5.7rem)] font-bold leading-[1.04] tracking-[-.068em]">
-                A better way to
+                Find the evidence.
                 <br />
-                explore research
+                Keep the context
                 <span className="text-[#24AAF3]" aria-hidden="true">
                   .
                 </span>
               </h1>
               <p className="mt-7 max-w-[540px] text-lg leading-[1.7] text-[var(--company-muted)] sm:text-xl">
-                EYLO connects scientific discovery, AI assistance and your
-                research workspace—so a good question can become a meaningful
-                next step.
+                Start with a research question, follow source-linked records,
+                and keep the useful work together—papers, notes, and next steps.
+                EYRA can assist when the AI service is available.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/discover" className={primary}>
-                  Explore EYLO <ArrowRight size={17} aria-hidden="true" />
+                  Explore research <ArrowRight size={17} aria-hidden="true" />
                 </Link>
                 <a
                   href="#how-it-works"
@@ -473,18 +479,21 @@ export default function Landing() {
                   title: "Explore the landscape",
                   body: "Start with a question. Discover related publications, people and opportunities.",
                   icon: Compass,
+                  path: '/search', action: 'Try public research search',
                 },
                 {
                   title: "Connect your thinking",
                   body: "Save useful sources, capture notes and work through the question with EYRA.",
                   icon: BookOpen,
+                  path: '/library', action: 'Open my Library',
                 },
                 {
                   title: "Move the work forward",
                   body: "Organize your project, choose the next tasks and return to your research with context.",
                   icon: Layers3,
+                  path: '/projects', action: 'Open my projects',
                 },
-              ].map(({ title, body, icon: Icon }, index) => (
+              ].map(({ title, body, icon: Icon, path, action }, index) => (
                 <li
                   key={title}
                   className="border-t-2 border-[var(--company-border)] pt-6"
@@ -505,6 +514,9 @@ export default function Landing() {
                   <p className="mt-3 max-w-sm text-sm leading-7 text-[var(--company-muted)]">
                     {body}
                   </p>
+                  <Link to={path} className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--company-text)] underline-offset-4 hover:underline">
+                    {action} <ArrowRight size={15} aria-hidden="true" />
+                  </Link>
                 </li>
               ))}
             </ol>
@@ -700,6 +712,7 @@ export default function Landing() {
               </p>
             </div>
             <FooterGroup title="The platform">
+              <Link to="/start">Start here — simple guide</Link>
               <Link to="/discover">Discover research</Link>
               <a href="#eyra">Meet EYRA</a>
               <Link to="/register">Create a workspace</Link>

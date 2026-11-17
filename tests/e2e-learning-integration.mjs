@@ -161,6 +161,22 @@ try {
     if (single && !rows.length) return route.fulfill({ status: 406, headers, contentType: 'application/json', body: JSON.stringify({ code: 'PGRST116', message: 'No matching owner row' }) });
     return json(route, single ? rows[0] : rows.slice(Number(url.searchParams.get('offset')) || 0, (Number(url.searchParams.get('offset')) || 0) + (Number(url.searchParams.get('limit')) || rows.length)));
   });
+  // Real-browser acceptance for the public, AI-independent beginner entry.
+  const beforePublicAiCalls = aiCalls;
+  await page.goto(`${origin}/start`);
+  await page.getByRole('heading', { name: 'What would you like to do?' }).waitFor();
+  await page.getByRole('link', { name: 'Search publications' }).waitFor();
+  await page.getByRole('link', { name: 'Find researchers' }).waitFor();
+  await page.getByRole('link', { name: 'Explore careers' }).waitFor();
+  await page.getByRole('link', { name: 'Open my workspace' }).waitFor();
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Public getting-started mobile overflow');
+  assert.equal(aiCalls, beforePublicAiCalls, 'new visitors do not trigger an AI call on the public guide');
+  await capture(page, 'getting-started-mobile');
+  await page.getByRole('link', { name: 'Search publications' }).click();
+  await page.waitForURL('**/search');
+  assert.equal(new URL(page.url()).pathname, '/search');
+  console.log('PASS fixture: public first-use guide opens on mobile, presents real reachable research goals and works without AI or sign-in.');
+
   await page.goto(`${origin}/login`);
   await page.getByLabel('Email address').fill(user.email);
   await page.getByLabel('Password').fill('Fixture-password-123');
@@ -557,7 +573,26 @@ try {
     for await (const chunk of stream) content += chunk;
     const exported = JSON.parse(content); assert.equal(exported.workspace, kind); assert.equal(exported.records[0].title, `${title} retained draft`);
     await page.setViewportSize({ width: 390, height: 844 });
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${title} mobile overflow`);
+    const mobileWidth = await page.evaluate(() => {
+      const viewportWidth = innerWidth;
+      const documentWidth = document.documentElement.scrollWidth;
+      const offenders = [...document.querySelectorAll('body *')].filter(element => {
+        const rect = element.getBoundingClientRect();
+        return rect.width > 0 && (rect.right > viewportWidth + 1 || rect.left < -1)
+          && getComputedStyle(element).position !== 'fixed';
+      }).slice(0, 16).map(element => ({
+        tag: element.tagName.toLowerCase(),
+        className: typeof element.className === 'string' ? element.className.slice(0, 140) : '',
+        text: (element.textContent || '').trim().slice(0, 45),
+        left: Math.round(element.getBoundingClientRect().left),
+        right: Math.round(element.getBoundingClientRect().right),
+      }));
+      return { viewportWidth, documentWidth, offenders };
+    });
+    if (mobileWidth.documentWidth > mobileWidth.viewportWidth) {
+      console.error('Mobile overflow diagnostics (fixture only):', JSON.stringify(mobileWidth));
+    }
+    assert.ok(mobileWidth.documentWidth <= mobileWidth.viewportWidth, `${title} mobile overflow`);
     await capture(page, `research-${kind}-mobile`);
     await page.getByLabel('Find saved records').fill('unmatched-query'); await page.getByText('No records match your search.', { exact: true }).waitFor();
     await page.getByLabel('Find saved records').fill('');
@@ -571,6 +606,20 @@ try {
     await page.setViewportSize({ width: 1280, height: 900 });
     console.log(`PASS fixture: ${title} create/reload, owner-filtered CAS conflict and draft recovery, portable export, search, mobile and cancelled/confirmed deletion.`);
   }
+  await page.goto(`${origin}/projects/${tables.projects[0].id}/research/journal`);
+  // Direct deep-link Back must return to the owning project without creating
+  // a two-page loop between the parent and the journal on mobile.
+  await page.setViewportSize({ width: 390, height: 844 });
+  const parentBack = page.getByRole('link', { name: 'Back to Project', exact: true });
+  await parentBack.waitFor();
+  assert.equal(new URL(await parentBack.getAttribute('href'), origin).pathname, `/projects/${tables.projects[0].id}`);
+  await parentBack.click();
+  await page.waitForURL(`${origin}/projects/${tables.projects[0].id}`);
+  await page.getByRole('link', { name: 'Back to My workspace', exact: true }).waitFor();
+  assert.equal(await page.getByRole('link', { name: 'Back to previous EYLO page' }).count(), 0,
+    'returning to a direct deep-link parent must not suggest the departed child again');
+  console.log('PASS fixture: direct project deep-link Back returns to its owner without looping to the departed page.');
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(`${origin}/projects/${tables.projects[0].id}/research/journal`);
   await page.getByRole('button', { name: 'New entry', exact: true }).click();
   await page.getByLabel('Title', { exact: true }).fill('Must not leak to another project');

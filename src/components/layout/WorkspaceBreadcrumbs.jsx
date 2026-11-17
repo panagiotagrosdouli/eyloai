@@ -1,49 +1,38 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { useWorkspacePreviousHref, useWorkspaceFallbackBack } from '@/components/layout/WorkspaceNavigationProvider';
+import { getWorkspaceNavigation } from '@/lib/navigation/workspace-navigation.mjs';
 
-// Breadcrumbs are navigation aids, not a second title bar.
-// The final crumb is text; existing page-level headings remain authoritative.
-const ROUTE_LABELS = {
-  search: 'Discover', projects: 'My workspace', library: 'Library',
-  files: 'Files', notes: 'Notes', learn: 'Learn', 'study-planner': 'Study planner',
-  calendar: 'Calendar', tools: 'All tools', opportunities: 'Funding and calls',
-  researchers: 'Researchers', 'research-journey': 'Research Journey', 'research-gaps': 'Research gap finder',
-  'literature-review': 'Literature review protocol', 'knowledge-graph': 'Knowledge graph',
-  meetings: 'Meetings', 'grant-builder': 'Grant workspace',
-  'quiz-generator': 'Quiz generator', flashcards: 'Flashcards',
-  settings: 'Settings', profile: 'Profile', history: 'Search history',
-  'time-tracker': 'Time tracker', 'workspace': 'Workspace',
-  'labs': 'Research labs', 'data': 'Research Data Lab',
-};
-const isNavigable = path => (
-  ['/home', '/projects', '/tools', '/learn', '/life', '/workspace/search'].includes(path)
-  || /^\/projects\/[^/]+$/.test(path)
-);
-const labelFor = segment => ROUTE_LABELS[segment] || segment.replace(/-/g, ' ').replace(/^./, s => s.toUpperCase());
-
+// Browser back is never required: a direct deep link has a predictable parent.
 export default function WorkspaceBreadcrumbs() {
   const { pathname } = useLocation();
-  if (pathname === '/home' || pathname === '/search') return null;
-  const segments = pathname.split('/').filter(Boolean);
-  const crumbs = segments.map((segment, index) => {
-    const path = '/' + segments.slice(0, index + 1).join('/');
-    const dynamic = index > 0 && segments[index - 1] === 'projects' && segment !== 'workbench';
-    return { path, label: dynamic ? 'Project' : labelFor(segment) };
-  });
+  const previousHref = useWorkspacePreviousHref();
+  const discardDirectEntry = useWorkspaceFallbackBack();
+  const navigation = getWorkspaceNavigation(pathname);
+  if (!navigation.visible) return null;
   return (
-    <nav aria-label="Breadcrumb" className="mx-auto w-full max-w-7xl px-5 pt-4 sm:px-8">
-      <ol className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <li><Link to="/home" className="inline-flex min-h-8 items-center hover:text-primary">Home</Link></li>
-        {crumbs.map((crumb, index) => (
-          <li key={crumb.path} className="inline-flex min-h-8 items-center gap-2">
-            <span aria-hidden="true">/</span>
-            {index === crumbs.length - 1 ? <span aria-current="page" className="font-medium text-foreground">{crumb.label}</span>
-              : isNavigable(crumb.path)
-                ? <Link to={crumb.path} className="hover:text-primary">{crumb.label}</Link>
-                : <span>{crumb.label}</span>}
-          </li>
-        ))}
-      </ol>
-    </nav>
+    <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-x-5 gap-y-1 px-5 pt-4 sm:px-8">
+      <Link to={previousHref || navigation.backPath}
+        onClick={() => { if (!previousHref) discardDirectEntry(); }}
+        aria-label={previousHref ? 'Back to previous EYLO page' : 'Back to ' + navigation.backLabel}
+        className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground hover:border-primary/40 hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+        <ArrowLeft size={15} aria-hidden="true" />
+        {previousHref ? 'Back' : 'Back to ' + navigation.backLabel}
+      </Link>
+      <nav aria-label="Breadcrumb" className="min-w-0 flex-1">
+        <ol className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <li><Link to="/home" className="inline-flex min-h-8 items-center hover:text-primary">Home</Link></li>
+          {navigation.crumbs.map((crumb, index) => (
+            <li key={index} className="inline-flex min-h-8 items-center gap-2">
+              <span aria-hidden="true">/</span>
+              {crumb.path
+                ? <Link to={crumb.path} className="inline-flex min-h-8 items-center hover:text-primary">{crumb.label}</Link>
+                : <span aria-current="page" className="font-medium text-foreground">{crumb.label}</span>}
+            </li>
+          ))}
+        </ol>
+      </nav>
+    </div>
   );
 }
