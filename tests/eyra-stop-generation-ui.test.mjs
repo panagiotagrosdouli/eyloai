@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const source = readFileSync(new URL('../src/components/eyra/EyraCommandCenter.jsx', import.meta.url), 'utf8');
+const composer = readFileSync(new URL('../src/components/eyra/EyraComposer.jsx', import.meta.url), 'utf8');
 
 test('EYRA user can stop an active request from keyboard-accessible interface', () => {
-  assert.match(source, /aria-label="Stop EYRA generation"/);
+  assert.match(composer, /aria-label="Stop EYRA generation"/);
+  assert.match(source, /onStop=\{stopGeneration\}/);
   assert.match(source, /activeRequestRef\.current\.abort\(\)/);
   assert.match(source, /const controller = new AbortController\(\)/);
   assert.match(source, /signal: controller\.signal/);
