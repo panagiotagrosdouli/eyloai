@@ -79,3 +79,13 @@ test('Back never returns to a sign-in, recovery, callback or deletion form',()=>
     assert.deepEqual(advanceWorkspaceTrail(['/home'],path),['/home']);
   }
 });
+
+test('mobile Back never prints raw or noncanonical project identifiers',()=>{
+  const opaque='10000000-0000-0000-0000-000000000001';
+  const entry=getWorkspaceNavigation('/projects/'+opaque+'/research/journal');
+  assert.equal(entry.backPath,'/projects/'+opaque);
+  assert.equal(entry.backLabel,'Project');
+  assert.doesNotMatch(entry.backLabel,/10000000/);
+  const ordinary=getWorkspaceNavigation('/projects/123e4567-e89b-42d3-a456-426614174000/thesis');
+  assert.equal(ordinary.backLabel,'Project');
+});

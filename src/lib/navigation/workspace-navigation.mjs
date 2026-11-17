@@ -36,7 +36,9 @@ const readable = value => {
   return !text || UUID.test(value) ? 'Item' : text[0].toUpperCase() + text.slice(1);
 };
 const label = path => path === '/home' ? 'Home'
-  : path === '/search' ? 'Discover' : SECTIONS[path]?.[0] || readable(path.split('/').at(-1));
+  : path === '/search' ? 'Discover'
+  : /^\\/projects\\/[^/]+$/.test(path) ? 'Project'
+  : SECTIONS[path]?.[0] || readable(path.split('/').at(-1));
 const result = (crumbs, backPath) => ({
   visible: true, crumbs, backPath, backLabel: label(backPath)
 });
