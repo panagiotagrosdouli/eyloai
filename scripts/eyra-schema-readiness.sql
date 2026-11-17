@@ -30,7 +30,7 @@ snapshot AS (
  JOIN pg_namespace n ON n.oid=p.pronamespace
  WHERE n.nspname='public'
    AND p.proname='save_eyra_conversation_snapshot'
-   AND pg_get_function_identity_arguments(p.oid) LIKE 'p_title text, p_messages jsonb, p_snapshot_id uuid%'
+   AND pg_get_function_identity_arguments(p.oid) = 'p_title text, p_messages jsonb, p_snapshot_id uuid'
 )
 SELECT jsonb_build_object(
  'schema_version', 1,

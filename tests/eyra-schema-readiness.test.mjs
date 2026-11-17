@@ -73,6 +73,7 @@ test('schema probe is metadata-only inspection, never migration execution', () =
   assert.match(sql, /relrowsecurity/);
   assert.match(sql, /has_table_privilege/);
   assert.match(sql, /has_function_privilege/);
+  assert.match(sql, /pg_get_function_identity_arguments\(p\.oid\) = 'p_title text, p_messages jsonb, p_snapshot_id uuid'/);
   assert.doesNotMatch(sql, /^\s*(?:INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|GRANT|REVOKE|CALL|DO|TRUNCATE)\b/im);
   assert.match(sql, /SELECT jsonb_build_object/);
 });
