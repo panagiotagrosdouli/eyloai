@@ -95,3 +95,46 @@ test('public /search resolves auth and binds rendered lists to the current scope
   assert.match(page, /writeDiscoveryBrowserList\(scope, 'saved'/);
   assert.doesNotMatch(page, /eylo-public-(?:saved-papers|search-history)-v1/);
 });
+
+test('academic outreach letters and institutional emails are isolated across accounts and guests', () => {
+  const local = storage({ 'eylo-outreach-drafts-v1': JSON.stringify([{ email: 'previous-owner@university.edu', name: 'Legacy professor' }]) });
+  const session = storage();
+  const stores = { local, session };
+  const ownerA = discoveryBrowserScope('authenticated', 'researcher-a');
+  const ownerB = discoveryBrowserScope('authenticated', 'researcher-b');
+  const guest = discoveryBrowserScope('anonymous');
+  const aDraft = { key: 'a|climate', name: 'Professor A', email: 'a@example.edu', draft: 'Private A research idea' };
+  const bDraft = { key: 'b|climate', name: 'Professor B', email: 'b@example.edu', draft: 'Private B research idea' };
+  const guestDraft = { key: 'guest|climate', name: 'Guest', draft: 'Guest research idea' };
+  assert.deepEqual(readDiscoveryBrowserList(ownerB, 'outreach', stores), [], 'never migrate unscoped legacy outreach');
+  assert.equal(writeDiscoveryBrowserList(ownerA, 'outreach', [aDraft], stores), true);
+  assert.equal(writeDiscoveryBrowserList(ownerB, 'outreach', [bDraft], stores), true);
+  assert.equal(writeDiscoveryBrowserList(guest, 'outreach', [guestDraft], stores), true);
+  assert.deepEqual(readDiscoveryBrowserList(ownerA, 'outreach', stores), [aDraft]);
+  assert.deepEqual(readDiscoveryBrowserList(ownerB, 'outreach', stores), [bDraft]);
+  assert.deepEqual(readDiscoveryBrowserList(guest, 'outreach', stores), [guestDraft]);
+  assert.deepEqual(readDiscoveryBrowserList(guest, 'outreach', { local, session: storage() }), []);
+  assert.equal(readDiscoveryBrowserList(ownerA, 'outreach', stores)[0].email, 'a@example.edu');
+  assert.equal(local.getItem('eylo-outreach-drafts-v1').includes('previous-owner@university.edu'), true);
+  clearDeletedOwnerBrowserData(local, session, 'researcher-a');
+  assert.deepEqual(readDiscoveryBrowserList(ownerA, 'outreach', stores), []);
+  assert.deepEqual(readDiscoveryBrowserList(ownerB, 'outreach', stores), [bDraft]);
+  assert.deepEqual(readDiscoveryBrowserList(guest, 'outreach', stores), [guestDraft]);
+});
+
+test('academic outreach lists are bounded and the private draft UI clears at the account boundary', () => {
+  const stores = { local: storage(), session: storage() };
+  const owner = discoveryBrowserScope('authenticated', 'owner');
+  const drafts = Array.from({ length: 90 }, (_, i) => ({ key: 'draft-' + i }));
+  assert.equal(writeDiscoveryBrowserList(owner, 'outreach', drafts, stores), true);
+  assert.equal(readDiscoveryBrowserList(owner, 'outreach', stores).length, 50);
+  const academics = readFileSync(new URL('../src/pages/PublicResearchers.jsx', import.meta.url), 'utf8');
+  const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
+  assert.match(academics, /if \(authStatus === 'idle'\) void initializeAuth\(\)/);
+  assert.match(academics, /outreachState\.scopeKey === scopeKey \? outreachState\.values : \[\]/);
+  assert.match(academics, /draftState\.scopeKey === scopeKey/);
+  assert.match(academics, /writeDiscoveryBrowserList\(scope, 'outreach'/);
+  assert.doesNotMatch(academics, /eylo-outreach-drafts-v1/);
+  assert.match(app, /path="\/academics" element=\{<PublicResearchers \/>\}/);
+  assert.match(app, /path="\/find-researchers" element=\{<PublicResearchers \/>\}/);
+});
