@@ -7,11 +7,12 @@ const read = path => readFileSync(new URL(path, import.meta.url), 'utf8');
 
 test('one compact EYRA command center exposes both safe runs and evidence-limited citations', () => {
   const ui = read('../src/components/eyra/EyraCommandCenter.jsx');
+  const timeline = read('../src/components/eyra/EyraConversationTimeline.jsx');
   assert.match(ui, /listEyraAgentRuns/);
   assert.match(ui, /markAgentRunForReview/);
   assert.match(ui, /aria-label="EYRA agent runs"/);
-  assert.match(ui, /describeEyraCitedEvidence\(msg\.sources\)/);
-  assert.match(ui, /aria-label="EYRA retrieved source records"/);
+  assert.match(timeline, /describeEyraCitedEvidence\(msg\.sources\)/);
+  assert.match(timeline, /aria-label="EYRA retrieved source records"/);
   assert.match(ui, /buildEvidenceOnlyFallback\(evidence, error\)/);
   assert.doesNotMatch(ui, /buildVerifiedEvidenceFallback/);
   assert.match(ui, /preferences\.data_personalization && resourceContext/);
