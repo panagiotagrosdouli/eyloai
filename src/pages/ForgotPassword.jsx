@@ -48,7 +48,7 @@ export default function ForgotPassword() {
       title="Recover workspace access"
       subtitle="Request a secure link to choose a new password."
       footer={
-        <Link to={loginHref} className="font-medium text-cyan-300 hover:underline">
+        <Link to={loginHref} className="font-medium text-[var(--company-action)] hover:underline">
           <ArrowLeft className="mr-1 inline h-3 w-3" />Back to sign in
         </Link>
       }
@@ -66,14 +66,14 @@ export default function ForgotPassword() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-slate-300">Email address</Label>
+            <Label htmlFor="email" className="text-[var(--company-ink)]">Email address</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
               <Input id="email" type="email" autoComplete="email" autoFocus placeholder="you@example.com"
-                className="h-12 border-white/10 bg-white/[0.025] pl-10 text-white"
+                className="h-12 border-[var(--company-border)] bg-[var(--company-surface)] pl-10 text-[var(--company-ink)]"
                 aria-invalid={Boolean(errors.email)} disabled={isSubmitting} {...register("email")} />
             </div>
-            {errors.email && <p role="alert" className="text-xs text-red-300">{errors.email.message}</p>}
+            {errors.email && <p role="alert" className="text-xs text-[var(--company-error)]">{errors.email.message}</p>}
           </div>
 
           <Button type="submit" className="h-12 w-full font-semibold" disabled={isSubmitting}>
