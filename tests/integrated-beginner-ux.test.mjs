@@ -30,5 +30,5 @@ test('beginners can explore without login and return to human-readable project s
 test('one E2E scenario protects both onboarding and mobile research record overflow',()=>{
  const fixture=readFileSync(new URL('./e2e-learning-integration.mjs',import.meta.url),'utf8');
  assert.match(fixture,/public first-use guide opens on mobile/);
- assert.match(fixture,/Mobile overflow diagnostics \\(fixture only\\)/);
+ assert.ok(fixture.includes('Mobile overflow diagnostics (fixture only)'));
 });
