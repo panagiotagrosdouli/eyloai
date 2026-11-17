@@ -30,8 +30,8 @@ export function proposedEyraWriteActions(output, requestedWrites) {
     if (item.name === 'project.create') {
       for (const key of WRITE_FIELDS[item.name]) fields[key] = fields[key].trim();
     } else {
-      fields.doi = fields.doi.trim().replace(/^https?:\\/\\/(?:dx\\.)?doi\\.org\\//i, '')
-        .replace(/^doi:\\s*/i, '').toLowerCase();
+      fields.doi = fields.doi.trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '')
+        .replace(/^doi:\s*/i, '').toLowerCase();
     }
     if (item.name === 'project.create' && !String(fields.title || '').trim()) {
       throw new Error('A proposed project needs a title.');
