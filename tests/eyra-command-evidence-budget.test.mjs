@@ -97,7 +97,7 @@ test('source-linked prompt preserves full user question while bounding all surro
   assert.match(prompt, /NON-NEGOTIABLE RULES:\n- Cite record IDs/);
   assert.match(prompt, /\[P1\]/);
   assert.ok(prompt.includes('Context excerpts are bounded'));
-  assert.ok(prompt.includes('Workspace context'));
+  assert.match(prompt, /SAVED WORKSPACE CONTEXT \(user-provided; not independently verified\):/);
 });
 
 test('disabling personalization excludes saved workspace even when it is supplied', () => {
