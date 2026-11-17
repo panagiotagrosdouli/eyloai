@@ -1,12 +1,14 @@
 const MAX_RESEARCH_IDEA_LENGTH = 500;
 
-export function buildResearchWorkspaceSignupHref(query) {
+export function buildResearchWorkspacePath(query) {
   const idea = String(query || '').trim().slice(0, MAX_RESEARCH_IDEA_LENGTH);
   const projectParams = new URLSearchParams({ new: '1' });
   if (idea) projectParams.set('idea', idea);
+  return `/projects?${projectParams.toString()}`;
+}
 
-  const destination = `/projects?${projectParams.toString()}`;
-  const registrationParams = new URLSearchParams({ from: destination });
+export function buildResearchWorkspaceSignupHref(query) {
+  const registrationParams = new URLSearchParams({ from: buildResearchWorkspacePath(query) });
   return `/register?${registrationParams.toString()}`;
 }
 
