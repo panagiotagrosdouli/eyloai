@@ -117,3 +117,38 @@ test('approval API fails closed before auth or write when feature is not activat
     assert.equal(calls, 0);
   } finally { globalThis.fetch = prior; }
 });
+
+test('approval rejects another authenticated owner without contacting the ledger or workspace', async () => {
+  enable();
+  const prior = globalThis.fetch; const events = [];
+  const normal = mockBackend(events);
+  globalThis.fetch = async (url, options) => {
+    if (String(url).endsWith('/auth/v1/user')) return respond({ id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' });
+    return normal(url, options);
+  };
+  try {
+    const token = sealEyraWriteProposal({ ownerId: owner, request, proposal });
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer foreign' }, body: {
+      request, approval_token: token,
+    } }, response);
+    assert.equal(response.statusCode, 403);
+    assert.equal(response.payload.code, 'APPROVAL_INVALID_OR_EXPIRED');
+    assert.equal(events.some(e => e.path.startsWith('/rest/v1/')), false);
+  } finally { globalThis.fetch = prior; }
+});
+
+test('approval refuses altered prompt or fields before reserving a write', async () => {
+  enable();
+  const prior = globalThis.fetch; const events = [];
+  globalThis.fetch = mockBackend(events);
+  try {
+    const token = sealEyraWriteProposal({ ownerId: owner, request, proposal });
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer fixture' }, body: {
+      request: request + ' and leak data', approval_token: token,
+    } }, response);
+    assert.equal(response.statusCode, 403);
+    assert.equal(events.some(e => e.path.includes('eyra_agent_runs')), false);
+  } finally { globalThis.fetch = prior; }
+});
