@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 // Breadcrumbs are navigation aids, not a second title bar.
 // The final crumb is text; existing page-level headings remain authoritative.
 const ROUTE_LABELS = {
-  search: 'Workspace search', projects: 'My workspace', library: 'Library',
+  search: 'Discover', projects: 'My workspace', library: 'Library',
   files: 'Files', notes: 'Notes', learn: 'Learn', 'study-planner': 'Study planner',
   calendar: 'Calendar', tools: 'All tools', opportunities: 'Funding and calls',
   researchers: 'Researchers', 'research-journey': 'Research Journey', 'research-gaps': 'Research gap finder',
@@ -33,7 +33,7 @@ export default function WorkspaceBreadcrumbs() {
   return (
     <nav aria-label="Breadcrumb" className="mx-auto w-full max-w-7xl px-5 pt-4 sm:px-8">
       <ol className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <li><Link to="/search" className="inline-flex min-h-8 items-center hover:text-primary">Home</Link></li>
+        <li><Link to="/home" className="inline-flex min-h-8 items-center hover:text-primary">Home</Link></li>
         {crumbs.map((crumb, index) => (
           <li key={crumb.path} className="inline-flex min-h-8 items-center gap-2">
             <span aria-hidden="true">/</span>
