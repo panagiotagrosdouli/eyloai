@@ -28,7 +28,12 @@ export function buildEyraAnalysisEvidence(papers = [], researchers = [], institu
   const paperContext = selectedPapers.map((p, i) => {
     const paper = p && typeof p === 'object' ? p : {};
     const indexedBy = asText(paper.indexed_by, 60) || 'not supplied';
-    return `[P${i + 1}] "${asText(paper.title, 140) || 'Untitled'}" by ${asText(paper.authors, 75) || 'Unknown'} (${asText(paper.year, 8) || 'n/a'}) — ${asText(paper.cited_by_count, 12) || '0'} citations — Index: ${asText(paper.source_index || paper.source, 45) || 'not supplied'} — Co-indexed by: ${indexedBy} (one publication, not independent studies) — Abstract source: ${asText(paper.summary_source, 35) || 'not supplied'} — Metadata conflict: ${paper.metadata_conflict ? 'YES; verify source' : 'not detected; not independently verified'} — Type: ${asText(paper.discovery_category, 40) || 'not supplied'} — Record: ${sourceUrl(paper.url)}\nAbstract excerpt: ${asText(paper.summary, 180) || 'Not available'}`;
+    const full = `[P${i + 1}] "${asText(paper.title, 140) || 'Untitled'}" by ${asText(paper.authors, 75) || 'Unknown'} (${asText(paper.year, 8) || 'n/a'}) — ${asText(paper.cited_by_count, 12) || '0'} citations — Index: ${asText(paper.source_index || paper.source, 45) || 'not supplied'} — Co-indexed by: ${indexedBy} (one publication, not independent studies) — Abstract source: ${asText(paper.summary_source, 35) || 'not supplied'} — Metadata conflict: ${paper.metadata_conflict ? 'YES; verify source' : 'not detected; not independently verified'} — Type: ${asText(paper.discovery_category, 40) || 'not supplied'} — Record: ${sourceUrl(paper.url)}\nAbstract excerpt: ${asText(paper.summary, 180) || 'Not available'}`;
+    if (full.length <= 880) return full;
+    // For an unusually metadata-heavy record, retain its citation ID,
+    // source identity, URL and abstract. Trim optional metadata rather than
+    // silently removing a source or truncating the user's research question.
+    return `[P${i + 1}] "${asText(paper.title, 120) || 'Untitled'}" by ${asText(paper.authors, 70) || 'Unknown'} (${asText(paper.year, 8) || 'n/a'}) — Index: ${asText(paper.source_index || paper.source, 45) || 'not supplied'} — Co-indexed (one publication, not independent studies) — Metadata conflict: ${paper.metadata_conflict ? 'YES' : 'not detected; not independently verified'} — Record: ${sourceUrl(paper.url)}\nAbstract excerpt: ${asText(paper.summary, 180) || 'Not available'}`;
   }).join('\n\n');
   const researcherContext = selectedResearchers.map((r, i) => {
     const person = r && typeof r === 'object' ? r : {};
