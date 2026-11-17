@@ -101,6 +101,7 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProje
       text: result.text,
       preview_only: result.preview_only === true,
       write_proposals: Array.isArray(result.write_proposals) ? result.write_proposals : [],
+      write_approval_token: typeof result.write_approval_token === 'string' ? result.write_approval_token : null,
       actions: Array.isArray(result.actions) ? result.actions : [],
       run_id: typeof result.run_id === 'string' ? result.run_id : null,
       run_status: typeof result.run_status === 'string' ? result.run_status : null,
@@ -116,5 +117,35 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProje
 export async function invokeEyra({ prompt = '', response_json_schema: responseSchema, signal, enable_project_tools: enableProjectTools = false, tool_intent: toolIntent = '', latest_user_request: latestUserRequest, write_confirmed: writeConfirmed = false, preview_write_actions: previewWriteActions = false, resource_context: resourceContext, stream = false, on_delta: onDelta } = {}) {
   const result = await requestOpenAiAnalysis(prompt, responseSchema, signal, enableProjectTools, toolIntent, stream, onDelta, resourceContext, latestUserRequest, writeConfirmed, previewWriteActions);
   trackEyraActionCompleted();
+  return result;
+}
+
+/**
+ * Execute only server-signed exact fields (never an LLM regeneration).
+ * Requires a hosted durable ledger and explicit production feature approval.
+ */
+export async function approveEyraWrite({ request, approvalToken, signal } = {}) {
+  if (typeof request !== 'string' || !request.trim()
+    || typeof approvalToken !== 'string' || !approvalToken) {
+    throw new EyraRequestError('A reviewed exact-field approval is required.', 400);
+  }
+  signal?.throwIfAborted();
+  const response = await protectedApiFetch('/api/eyra-approve', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    signal,
+    body: JSON.stringify({ request, approval_token: approvalToken }),
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new EyraRequestError(
+      typeof result.error === 'string' ? result.error : 'EYRA could not confirm the approved record.',
+      response.status,
+      { ...result, run_id: result.run_id || response.headers?.get?.('x-eyra-run-id') || null },
+    );
+  }
+  if (result?.status !== 'completed' || typeof result.run_id !== 'string') {
+    throw new EyraRequestError('Approved record completion was not confirmed. Inspect run history.', 502);
+  }
   return result;
 }
