@@ -501,6 +501,31 @@ try {
   tables.saved_papers = retainedRows;
   console.log('PASS fixture: retained source beyond recent100 renders on desktop/mobile, saves and exports exact metadata; unavailable sources remain explicit until researcher removal. No hosted RLS claim.');
 
+  // When OpenAI throttles EYRA, the user can still open public scholarly
+  // discovery; a provider outage must never cause an automatic second AI call.
+  await page.route('**/api/eyra', async route => {
+    aiCalls++;
+    await route.fulfill({
+      status: 503, headers, contentType: 'application/json',
+      body: JSON.stringify({ error: 'Synthetic provider throttle', code: 'OPENAI_RATE_LIMITED', retry_after_seconds: 12 }),
+    });
+  });
+  await page.goto(`${origin}/home`);
+  await page.getByRole('complementary', { name: 'Research assistant and continuation' })
+    .getByRole('button', { name: 'Ask EYRA', exact: true }).click();
+  const beforeRecoveryCalls = aiCalls;
+  await page.getByLabel('Message EYRA').fill('Help me review the limitations in my research sources');
+  await page.getByLabel('Message EYRA').press('Enter');
+  const providerRecovery = page.getByRole('status', { name: 'EYRA provider recovery' });
+  await providerRecovery.waitFor();
+  await providerRecovery.getByText('EYRA is temporarily rate-limited').waitFor();
+  await providerRecovery.getByText(/12 seconds/).waitFor();
+  await capture(page, 'eyra-provider-recovery-mobile');
+  await providerRecovery.getByRole('link', { name: 'Browse publications without AI' }).click();
+  await page.waitForURL('**/search');
+  assert.equal(aiCalls, beforeRecoveryCalls + 1, 'EYRA failure must not trigger automatic retries');
+  console.log('PASS fixture: EYRA provider 429 offers source-only research recovery with one AI request and no automatic retry.');
+
   // Provider-shaped synthetic records exercise the real discovery normalizers,
   // card attribution and canonical Library persistence without live providers.
   const provenanceTitle = 'Coastal adaptation provenance fixture';
