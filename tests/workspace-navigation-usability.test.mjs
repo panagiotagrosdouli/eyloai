@@ -49,8 +49,13 @@ test('beginner guidance, Back and tool explanations are accessible',()=>{
   const home=readFileSync(new URL('../src/components/dashboard/EyraHome.jsx',import.meta.url),'utf8');
   const layout=readFileSync(new URL('../src/components/layout/AppLayout.jsx',import.meta.url),'utf8');
   assert.match(crumbs,/Back to previous EYLO page/);
-  assert.match(crumbs,/ownerRef\.current !== owner/);
-  assert.match(crumbs,/const safePreviousHref = ownerRef\.current === \(user\?\.id \?\? null\) \? previousHref : null/);
+  const provider=readFileSync(new URL('../src/components/layout/WorkspaceNavigationProvider.jsx',import.meta.url),'utf8');
+  const app=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
+  assert.match(provider,/const owner = user\?\.id \?\? null/);
+  assert.match(provider,/state\.owner === owner && state\.trail\.at\(-1\) === href/);
+  assert.match(provider,/advanceWorkspaceTrail\(trail, href\)/);
+  assert.match(app,/<WorkspaceNavigationProvider>/);
+  assert.match(crumbs,/useWorkspacePreviousHref\(\)/);
   assert.match(crumbs,/aria-label="Breadcrumb"/);
   assert.match(home,/New to EYLO\? Start here\./);
   assert.match(home,/aria-label="Common starting actions"/);
@@ -58,4 +63,13 @@ test('beginner guidance, Back and tool explanations are accessible',()=>{
   assert.match(home,/Browse all tools/);
   assert.match(layout,/See every feature and what it does/);
   assert.match(layout,/item\.desc &&/);
+});
+
+test('the Back provider spans public Discover and signed-in workspace pages',()=>{
+  const app=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8');
+  const open=app.indexOf('<WorkspaceNavigationProvider>');
+  const search=app.indexOf('<Route path="/search"');
+  const privateRoutes=app.indexOf('<Route path="/*"');
+  const close=app.indexOf('</WorkspaceNavigationProvider>');
+  assert.ok(open >= 0 && open < search && search < privateRoutes && privateRoutes < close);
 });

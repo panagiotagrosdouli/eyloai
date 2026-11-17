@@ -1,38 +1,22 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { useAuth } from '@/lib/AuthContext';
-import { advanceWorkspaceTrail, getWorkspaceNavigation } from '@/lib/navigation/workspace-navigation.mjs';
+import { useWorkspacePreviousHref } from '@/components/layout/WorkspaceNavigationProvider';
+import { getWorkspaceNavigation } from '@/lib/navigation/workspace-navigation.mjs';
 
-// Account-scoped, in-memory history. Direct links have a safe parent fallback.
+// Browser back is never required: a direct deep link has a predictable parent.
 export default function WorkspaceBreadcrumbs() {
-  const { pathname, search } = useLocation();
-  const { user } = useAuth();
-  const ownerRef = useRef(user?.id ?? null);
-  const trailRef = useRef([]);
-  const [previousHref, setPreviousHref] = useState(null);
-
-  useEffect(() => {
-    const owner = user?.id ?? null;
-    if (ownerRef.current !== owner) {
-      trailRef.current = [];
-      ownerRef.current = owner;
-    }
-    trailRef.current = advanceWorkspaceTrail(trailRef.current, pathname + search);
-    setPreviousHref(trailRef.current.length > 1 ? trailRef.current.at(-2) : null);
-  }, [pathname, search, user?.id]);
-
+  const { pathname } = useLocation();
+  const previousHref = useWorkspacePreviousHref();
   const navigation = getWorkspaceNavigation(pathname);
-  // Never expose a previous account route, even for the render before the reset effect.
-  const safePreviousHref = ownerRef.current === (user?.id ?? null) ? previousHref : null;
   if (!navigation.visible) return null;
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-x-5 gap-y-1 px-5 pt-4 sm:px-8">
-      <Link to={safePreviousHref || navigation.backPath}
-        aria-label={safePreviousHref ? 'Back to previous EYLO page' : 'Back to ' + navigation.backLabel}
+      <Link to={previousHref || navigation.backPath}
+        aria-label={previousHref ? 'Back to previous EYLO page' : 'Back to ' + navigation.backLabel}
         className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground hover:border-primary/40 hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
         <ArrowLeft size={15} aria-hidden="true" />
-        {safePreviousHref ? 'Back' : 'Back to ' + navigation.backLabel}
+        {previousHref ? 'Back' : 'Back to ' + navigation.backLabel}
       </Link>
       <nav aria-label="Breadcrumb" className="min-w-0 flex-1">
         <ol className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
