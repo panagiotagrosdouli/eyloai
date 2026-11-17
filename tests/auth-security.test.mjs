@@ -41,6 +41,36 @@ test('auth errors map sensitive provider messages to stable product errors', () 
   assert.match(timedOut.message, /connection and retry/i);
 });
 
+
+test('structured Supabase Auth codes produce safe, actionable errors independent of message text', () => {
+  const cases = [
+    ['invalid_credentials', AppErrorCode.INVALID_CREDENTIALS],
+    ['email_not_confirmed', AppErrorCode.EMAIL_NOT_CONFIRMED],
+    ['user_already_exists', AppErrorCode.USER_ALREADY_REGISTERED],
+    ['email_exists', AppErrorCode.USER_ALREADY_REGISTERED],
+    ['weak_password', AppErrorCode.WEAK_PASSWORD],
+    ['over_email_send_rate_limit', AppErrorCode.RATE_LIMITED],
+    ['email_address_invalid', AppErrorCode.INVALID_EMAIL],
+    ['email_address_not_authorized', AppErrorCode.EMAIL_SEND_FAILED],
+    ['email_provider_disabled', AppErrorCode.SIGNUP_DISABLED],
+    ['signup_disabled', AppErrorCode.SIGNUP_DISABLED],
+    ['otp_expired', AppErrorCode.EXPIRED_RECOVERY_LINK],
+    ['flow_state_expired', AppErrorCode.EXPIRED_RECOVERY_LINK],
+    ['flow_state_not_found', AppErrorCode.EXPIRED_RECOVERY_LINK],
+  ];
+  for (const [code, expected] of cases) {
+    const error = mapSupabaseError({ code, status: 400, message: 'Provider secret detail opaque-123' });
+    assert.equal(error.code, expected, code);
+    assert.doesNotMatch(error.message, /opaque-123|provider secret detail/i);
+  }
+
+  // Throttling must not be displayed as bad credentials or a delivered email.
+  const throttled = mapSupabaseError({ code: 'invalid_credentials', status: 429 });
+  assert.equal(throttled.code, AppErrorCode.RATE_LIMITED);
+  const outage = mapSupabaseError({ code: 'invalid_credentials', status: 503 });
+  assert.equal(outage.code, AppErrorCode.SERVICE_UNAVAILABLE);
+});
+
 test('expired session restoration keeps public sign-in routes available', async () => {
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8');
   const context = await readFile(new URL('../src/lib/AuthContext.jsx', import.meta.url), 'utf8');
