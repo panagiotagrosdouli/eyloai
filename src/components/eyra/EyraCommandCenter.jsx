@@ -139,6 +139,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const [conversationOwner, setConversationOwner] = useState(user?.id);
   const [allowWorkspaceActions, setAllowWorkspaceActions] = useState(false);
   const [pendingWriteReview, setPendingWriteReview] = useState(null);
+  const [writePreview, setWritePreview] = useState(null);
   const [liveDraft, setLiveDraft] = useState('');
   const [savedConversations, setSavedConversations] = useState([]);
   const [remoteConversation, setRemoteConversation] = useState(null);
@@ -186,6 +187,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     setMessages(loadConversation(user?.id)); setConversationOwner(user?.id);
     setWorkspaceContext(''); setContextStatus('idle'); setLiveDraft(''); setLoading(false);
     setRemoteConversation(null); setSavedConversations([]); setAllowWorkspaceActions(false);
+    setPendingWriteReview(null); setWritePreview(null);
     historyEpochRef.current += 1; snapshotRequestRef.current = null; historyWriteLockRef.current = false; setHistoryBusy(false);
     setSavingConversation(false); setSavedMessageIds(new Set()); setUserName(''); setActionError('');
     setCloudHistoryState({ ownerId: user?.id ?? null, status: 'checking' });
@@ -362,10 +364,12 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
       // This is a review of the user's request, not a preview of model-selected
       // database fields. Actual writes still require explicit API confirmation.
       setPendingWriteReview({ content, writeIntent });
+      setWritePreview(null);
       setActionError('');
       return;
     }
     setPendingWriteReview(null);
+    setWritePreview(null);
     const controller = new AbortController();
     activeRequestRef.current = controller;
     setInput('');
@@ -475,6 +479,49 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
         setLoading(false);
         setLiveDraft('');
         setAllowWorkspaceActions(false);
+      }
+    }
+  };
+
+  const previewPendingWrite = async () => {
+    const review = pendingWriteReview;
+    const owner = ownerRef.current;
+    if (!review || !owner || !allowWorkspaceActions || loading || activeRequestRef.current) return;
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
+    setLoading(true);
+    setWritePreview({ ownerId: owner, content: review.content, status: 'loading', proposals: [], error: '' });
+    try {
+      // This uses an authenticated API preview that does NOT execute model tool
+      // calls. It is not an approval token for the generated fields.
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: review.content,
+        latest_user_request: review.content,
+        tool_intent: review.content,
+        enable_project_tools: true,
+        preview_write_actions: true,
+        stream: false,
+        signal: controller.signal,
+      });
+      controller.signal.throwIfAborted();
+      if (ownerRef.current !== owner) return;
+      if (result?.preview_only !== true || !Array.isArray(result.write_proposals)) {
+        throw new Error('EYRA did not confirm a preview-only result.');
+      }
+      setWritePreview({
+        ownerId: owner, content: review.content, status: 'ready',
+        proposals: result.write_proposals, error: '',
+      });
+    } catch (error) {
+      if (controller.signal.aborted || ownerRef.current !== owner) return;
+      setWritePreview({
+        ownerId: owner, content: review.content, status: 'error', proposals: [],
+        error: 'The proposed fields could not be prepared. No workspace record was changed.',
+      });
+    } finally {
+      if (activeRequestRef.current === controller) {
+        activeRequestRef.current = null;
+        setLoading(false);
       }
     }
   };
@@ -815,7 +862,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
               </button>
               {remoteConversation && <button type="button" onClick={() => setRenameTitle(remoteConversation.title || '')} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Rename saved conversation</button>}
               {remoteConversation && <button type="button" onClick={() => void deleteSnapshot()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Delete saved snapshot</button>}
-              <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); }} />Allow authorized workspace and research tools for this request</label>
+              <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); setWritePreview(null); }} />Allow authorized workspace and research tools for this request</label>
             </div>
             <EyraAgentRunHistory
               open={showAgentRuns} runs={agentRuns} selected={selectedAgentRun}
@@ -842,10 +889,14 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
             )}
             <EyraWriteIntentReview
               review={pendingWriteReview}
-              onCancel={() => setPendingWriteReview(null)}
+              preview={writePreview?.ownerId === user?.id
+                && writePreview?.content === pendingWriteReview?.content ? writePreview : null}
+              onPreview={() => void previewPendingWrite()}
+              onCancel={() => { setPendingWriteReview(null); setWritePreview(null); }}
               onEdit={() => {
                 setInput(pendingWriteReview.content);
                 setPendingWriteReview(null);
+                setWritePreview(null);
                 inputRef.current?.focus();
               }}
               onConfirm={() => void sendMessage(pendingWriteReview.content, { writeConfirmed: true })}
