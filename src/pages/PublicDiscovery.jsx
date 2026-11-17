@@ -9,7 +9,7 @@ import {
   RefreshCw, Search, ShieldCheck, Users, Download, Bookmark, BookmarkCheck, Clock3, GraduationCap, Trash2,
 } from 'lucide-react';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchResearchPeopleByPublications, searchOpenAlexInstitutions } from '@/lib/eyra-api';
-import { buildResearchWorkspaceSignupHref } from '@/lib/discovery/workspaceSignup';
+import { buildResearchWorkspaceSignupHref, buildResearchWorkspacePath } from '@/lib/discovery/workspaceSignup';
 import { countAvailablePaperIndexes, formatUnavailableSource, PAPER_INDEX_SOURCE_IDS } from '@/lib/discovery-source-status';
 import { publicationTypeLabel } from '@/lib/publication-type-label';
 import GuidedSearch, { normalizeDiscoveryRequest } from '@/components/discovery/GuidedSearch';
@@ -278,7 +278,7 @@ export default function PublicDiscovery() {
           {authStatus === 'authenticated' && (
             <Link to="/home" className="rounded-xl border border-[var(--company-border)] px-4 py-2 text-sm font-semibold text-[var(--company-muted)] hover:bg-[var(--company-soft)]">Discover</Link>
           )}
-          <Link to={buildResearchWorkspaceSignupHref(initialQuery)} className="hidden rounded-xl bg-[var(--company-soft)] px-4 py-2 text-sm font-semibold text-[var(--company-muted)] sm:block">Save research</Link>
+          <Link to={authStatus === 'authenticated' ? buildResearchWorkspacePath(initialQuery) : buildResearchWorkspaceSignupHref(initialQuery)} className="hidden rounded-xl bg-[var(--company-soft)] px-4 py-2 text-sm font-semibold text-[var(--company-muted)] sm:block">{authStatus === 'authenticated' ? 'Create research project' : 'Save research'}</Link>
           <div className="ml-auto sm:ml-0"><ThemeToggle /></div>
         </div>
       </header>
