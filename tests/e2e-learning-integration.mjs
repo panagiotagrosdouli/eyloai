@@ -557,7 +557,26 @@ try {
     for await (const chunk of stream) content += chunk;
     const exported = JSON.parse(content); assert.equal(exported.workspace, kind); assert.equal(exported.records[0].title, `${title} retained draft`);
     await page.setViewportSize({ width: 390, height: 844 });
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${title} mobile overflow`);
+    const mobileWidth = await page.evaluate(() => {
+      const viewportWidth = innerWidth;
+      const documentWidth = document.documentElement.scrollWidth;
+      const offenders = [...document.querySelectorAll('body *')].filter(element => {
+        const rect = element.getBoundingClientRect();
+        return rect.width > 0 && (rect.right > viewportWidth + 1 || rect.left < -1)
+          && getComputedStyle(element).position !== 'fixed';
+      }).slice(0, 16).map(element => ({
+        tag: element.tagName.toLowerCase(),
+        className: typeof element.className === 'string' ? element.className.slice(0, 140) : '',
+        text: (element.textContent || '').trim().slice(0, 45),
+        left: Math.round(element.getBoundingClientRect().left),
+        right: Math.round(element.getBoundingClientRect().right),
+      }));
+      return { viewportWidth, documentWidth, offenders };
+    });
+    if (mobileWidth.documentWidth > mobileWidth.viewportWidth) {
+      console.error('Mobile overflow diagnostics (fixture only):', JSON.stringify(mobileWidth));
+    }
+    assert.ok(mobileWidth.documentWidth <= mobileWidth.viewportWidth, `${title} mobile overflow`);
     await capture(page, `research-${kind}-mobile`);
     await page.getByLabel('Find saved records').fill('unmatched-query'); await page.getByText('No records match your search.', { exact: true }).waitFor();
     await page.getByLabel('Find saved records').fill('');

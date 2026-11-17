@@ -7,6 +7,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
+import { WorkspaceNavigationProvider } from '@/components/layout/WorkspaceNavigationProvider';
 import ThemeWelcomeChoice from '@/components/marketing/ThemeWelcomeChoice';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { redactAnalyticsEvent } from '@/lib/product-analytics';
@@ -204,6 +205,7 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router basename={import.meta.env.BASE_URL === '/eyloai/' ? '/eyloai' : '/'}>
+          <WorkspaceNavigationProvider>
           <ScrollToTop />
           <ThemeWelcomeChoice />
           <RouteErrorBoundary>
@@ -231,6 +233,7 @@ function App() {
             </Routes>
           </Suspense>
           </RouteErrorBoundary>
+          </WorkspaceNavigationProvider>
         </Router>
         <Analytics beforeSend={redactAnalyticsEvent} />
         <Toaster />
