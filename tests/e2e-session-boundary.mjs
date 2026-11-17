@@ -158,6 +158,57 @@ try {
     assert.equal(await researchPage.getByRole('heading', { name: 'B-only research paper' }).count(), 0);
     await researchPage.close();
 
+    // Public EYLO Academics keeps source-backed profiles available to both
+    // signed-in and guest users, while owner drafts never cross an account.
+    await signIn(users[1].email);
+    const academicsPage = await context.newPage();
+    academicsPage.on('pageerror', error => errors.push(error.message));
+    await academicsPage.goto(origin + '/academics');
+    await academicsPage.getByRole('heading', { name: 'Find researchers.' }).waitFor();
+    assert.equal(new URL(academicsPage.url()).pathname, '/academics',
+      'Authenticated users should stay on independent EYLO academic discovery');
+    await academicsPage.evaluate(async ownerIds => {
+      const { discoveryBrowserScope, writeDiscoveryBrowserList } =
+        await import('/src/lib/discovery-browser-storage.mjs');
+      const stores = { local: window.localStorage, session: window.sessionStorage };
+      for (const [index, ownerId] of ownerIds.entries()) {
+        writeDiscoveryBrowserList(discoveryBrowserScope('authenticated', ownerId), 'outreach', [{
+          key: 'outreach-fixture-' + index,
+          name: index === 0 ? 'A-only academic outreach' : 'B-only academic outreach',
+          topic: 'Private doctoral enquiry',
+          email: index === 0 ? 'a@university.example' : 'b@university.example',
+          draft: index === 0 ? 'Owner A private idea' : 'Owner B private idea',
+          status: 'draft',
+        }], stores);
+      }
+      window.localStorage.setItem('eylo-outreach-drafts-v1',
+        JSON.stringify([{ key: 'legacy', name: 'Unscoped legacy professor', topic: 'Old private idea' }]));
+    }, users.map(user => user.id));
+    await academicsPage.reload();
+    await academicsPage.getByRole('heading', { name: 'Find researchers.' }).waitFor();
+    await academicsPage.getByText('B-only academic outreach').waitFor();
+    assert.equal(await academicsPage.getByText('A-only academic outreach').count(), 0);
+    assert.equal(await academicsPage.getByText('Unscoped legacy professor').count(), 0);
+
+    await academicsPage.evaluate(async email => {
+      const { requireSupabase } = await import('/src/lib/supabaseClient.js');
+      const result = await requireSupabase().auth.signInWithPassword({
+        email, password: 'Synthetic-fixture-only',
+      });
+      if (result.error) throw result.error;
+    }, users[0].email);
+    await academicsPage.getByText('A-only academic outreach').waitFor();
+    assert.equal(await academicsPage.getByText('B-only academic outreach').count(), 0);
+    await academicsPage.evaluate(async () => {
+      const { requireSupabase } = await import('/src/lib/supabaseClient.js');
+      const result = await requireSupabase().auth.signOut();
+      if (result.error) throw result.error;
+    });
+    await academicsPage.getByRole('heading', { name: 'Your research inquiries' }).waitFor({ state: 'detached' });
+    assert.equal(await academicsPage.getByText('A-only academic outreach').count(), 0);
+    assert.equal(await academicsPage.getByText('B-only academic outreach').count(), 0);
+    await academicsPage.close();
+
     assert.deepEqual(errors, []);
     await context.close();
     console.log(`PASS ${width}px: shared API, EYRA and Checkout callers cancel on account switch; no replay/sign-out, same-account refresh works. Actual Supabase client, synthetic HTTP; no live model/payment or hosted RLS claim.`);
