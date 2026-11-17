@@ -161,6 +161,22 @@ try {
     if (single && !rows.length) return route.fulfill({ status: 406, headers, contentType: 'application/json', body: JSON.stringify({ code: 'PGRST116', message: 'No matching owner row' }) });
     return json(route, single ? rows[0] : rows.slice(Number(url.searchParams.get('offset')) || 0, (Number(url.searchParams.get('offset')) || 0) + (Number(url.searchParams.get('limit')) || rows.length)));
   });
+  // Real-browser acceptance for the public, AI-independent beginner entry.
+  const beforePublicAiCalls = aiCalls;
+  await page.goto(`${origin}/start`);
+  await page.getByRole('heading', { name: 'What would you like to do?' }).waitFor();
+  await page.getByRole('link', { name: 'Search publications' }).waitFor();
+  await page.getByRole('link', { name: 'Find researchers' }).waitFor();
+  await page.getByRole('link', { name: 'Explore careers' }).waitFor();
+  await page.getByRole('link', { name: 'Open my workspace' }).waitFor();
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Public getting-started mobile overflow');
+  assert.equal(aiCalls, beforePublicAiCalls, 'new visitors do not trigger an AI call on the public guide');
+  await capture(page, 'getting-started-mobile');
+  await page.getByRole('link', { name: 'Search publications' }).click();
+  await page.waitForURL('**/search');
+  assert.equal(new URL(page.url()).pathname, '/search');
+  console.log('PASS fixture: public first-use guide opens on mobile, presents real reachable research goals and works without AI or sign-in.');
+
   await page.goto(`${origin}/login`);
   await page.getByLabel('Email address').fill(user.email);
   await page.getByLabel('Password').fill('Fixture-password-123');

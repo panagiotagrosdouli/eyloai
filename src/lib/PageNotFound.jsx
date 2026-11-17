@@ -21,6 +21,12 @@ export default function PageNotFound() {
             Go to EYLO
           </Link>
           <Link
+            to="/start"
+            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border px-5 text-sm font-semibold hover:bg-secondary"
+          >
+            Help me get started
+          </Link>
+          <Link
             to="/discover"
             className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border px-5 text-sm font-semibold hover:bg-secondary"
           >
