@@ -1,6 +1,7 @@
 import { billingActive } from './eyra-auth-boundary.mjs';
 import { usageState } from './eyra-usage-boundary.mjs';
 import { validatedEyraToolArguments, boundedJsonResponse } from './eyra-tool-contract.mjs';
+import { UUID as RUN_UUID } from './eyra-run-ledger.mjs';
 
 /** Owner-scoped agent tools. Writes retain explicit server-side permission checks. */
 function entityFromRow(row) {
