@@ -261,24 +261,24 @@ export default function Landing() {
                   className="h-1.5 w-1.5 rounded-full bg-[#24AAF3]"
                   aria-hidden="true"
                 />{" "}
-                Discovery. Intelligence. Progress.
+                QUESTION  ·  SOURCES  ·  NEXT STEP
               </p>
               <h1 className="max-w-[660px] text-[clamp(2.8rem,5.25vw,5.7rem)] font-bold leading-[1.04] tracking-[-.068em]">
-                A better way to
+                Find the evidence.
                 <br />
-                explore research
+                Keep the context
                 <span className="text-[#24AAF3]" aria-hidden="true">
                   .
                 </span>
               </h1>
               <p className="mt-7 max-w-[540px] text-lg leading-[1.7] text-[var(--company-muted)] sm:text-xl">
-                EYLO connects scientific discovery, AI assistance and your
-                research workspace—so a good question can become a meaningful
-                next step.
+                Start with a research question, follow source-linked records,
+                and keep the useful work together—papers, notes, and next steps.
+                EYRA can assist when the AI service is available.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/discover" className={primary}>
-                  Explore EYLO <ArrowRight size={17} aria-hidden="true" />
+                  Explore research <ArrowRight size={17} aria-hidden="true" />
                 </Link>
                 <a
                   href="#how-it-works"
