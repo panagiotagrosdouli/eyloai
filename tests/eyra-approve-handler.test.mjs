@@ -152,3 +152,35 @@ test('approval refuses altered prompt or fields before reserving a write', async
     assert.equal(events.some(e => e.path.includes('eyra_agent_runs')), false);
   } finally { globalThis.fetch = prior; }
 });
+
+test('two simultaneous uses of the same signed approval cannot insert two projects', async () => {
+  enable();
+  const prior = globalThis.fetch;
+  const events = [];
+  const normal = mockBackend(events);
+  let reservations = 0;
+  globalThis.fetch = async (url, options) => {
+    if (new URL(String(url)).pathname === '/rest/v1/eyra_agent_runs' && options?.method === 'POST') {
+      reservations += 1;
+      const replay = reservations > 1;
+      // A database unique constraint is modeled by exactly one successful
+      // representation; all concurrent duplicates yield no inserted row.
+      if (replay) {
+        events.push({ path: '/rest/v1/eyra_agent_runs', method: 'POST', body: JSON.parse(options.body) });
+        return respond([]);
+      }
+    }
+    return normal(url, options);
+  };
+  try {
+    const token = sealEyraWriteProposal({ ownerId: owner, request, proposal });
+    const responses = [responseMock(), responseMock()];
+    await Promise.all(responses.map(response => handler({
+      method: 'POST', headers: { authorization: 'Bearer fixture' },
+      body: { request, approval_token: token },
+    }, response)));
+    assert.deepEqual(responses.map(response => response.statusCode).sort(), [200, 409]);
+    assert.equal(reservations, 2);
+    assert.equal(events.filter(event => event.path === '/rest/v1/projects' && event.method === 'POST').length, 1);
+  } finally { globalThis.fetch = prior; }
+});
