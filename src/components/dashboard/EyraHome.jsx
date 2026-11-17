@@ -99,9 +99,9 @@ export default function EyraHome({ onSearch }) {
           </div>
           <nav aria-label="Common starting actions" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              {step:'1', title:'Find a publication', help:'Search scientific papers and open their original sources.', href:'/search', Icon:Search},
-              {step:'2', title:'Save and review papers', help:'See your saved papers. To save a new one, start in Discover.', href:'/library', Icon:Bookmark},
-              {step:'3', title:'Create a project', help:'Keep papers, ideas and next steps together.', href:'/projects?new=1', Icon:FolderOpen},
+              {step:'1', title:'Find a publication', help:'Search scientific papers and open their original sources.', href: '/search', Icon:Search},
+              {step:'2', title:'Save and review papers', help:'See your saved papers. To save a new one, start in Discover.', href: '/library', Icon:Bookmark},
+              {step:'3', title:'Create a project', help:'Keep papers, ideas and next steps together.', href: '/projects?new=1', Icon:FolderOpen},
             ].map(({step,title,help,href,Icon}) => (
               <Link key={href} to={href} className="group flex min-h-28 items-start gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/40 hover:bg-secondary/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary" aria-hidden="true">{step}</span>
@@ -114,10 +114,10 @@ export default function EyraHome({ onSearch }) {
             <summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">More things you can do — research, studies and funding</summary>
             <nav aria-label="More starting actions" className="mt-3 grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
               {[
-                {title:'Start a research journey', help:'Follow a question from sources to a review or thesis.', href:'/research-journey', Icon:BookOpen},
-                {title:'Plan my studies', help:'Organize sessions, courses and exams.', href:'/study-planner', Icon:BookOpen},
-                {title:'Find research funding', help:'Browse funding calls and eligibility.', href:'/opportunities', Icon:Zap},
-                {title:'View all tools', help:'See every other feature whenever you need it.', href:'/tools', Icon:Search},
+                {title:'Start a research journey', help:'Follow a question from sources to a review or thesis.', href: '/research-journey', Icon:BookOpen},
+                {title:'Plan my studies', help:'Organize sessions, courses and exams.', href: '/study-planner', Icon:BookOpen},
+                {title:'Find research funding', help:'Browse funding calls and eligibility.', href: '/opportunities', Icon:Zap},
+                {title:'View all tools', help:'See every other feature whenever you need it.', href: '/tools', Icon:Search},
               ].map(({title,help,href,Icon}) => (
                 <Link key={href} to={href} className="group flex min-h-20 items-start gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/40 hover:bg-secondary/30">
                   <Icon size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
