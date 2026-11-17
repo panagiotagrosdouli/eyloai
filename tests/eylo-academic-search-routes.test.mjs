@@ -13,7 +13,8 @@ test('EYLO /search is public while the authenticated research workspace remains 
 });
 
 test('Academic discovery, researcher search, and PhD routes remain separate', () => {
-  assert.match(app, /path="\/academics"/);
+  assert.match(app, /path="\/academics" element=\{<PublicResearchers \/>\}/);
+  assert.match(app, /path="\/find-researchers" element=\{<PublicResearchers \/>\}/);
   assert.match(app, /path="\/find-phd" element=\{<Navigate to="\/careers\?q=PhD" replace \/>\}/);
   assert.match(publicDiscovery, /aria-label="EYLO academic search tools"/);
   assert.match(home, /aria-label="EYLO academic tools"/);
