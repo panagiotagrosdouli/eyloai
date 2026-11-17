@@ -25,6 +25,14 @@ export function proposedEyraWriteActions(output, requestedWrites) {
     }
     const args = validatedEyraToolArguments(item.name, item.arguments);
     const fields = Object.fromEntries(WRITE_FIELDS[item.name].map(key => [key, args[key]]));
+    // Show the exact input values the executor will use. The project executor
+    // trims all text fields, and DOI storage normalizes the paper identifier.
+    if (item.name === 'project.create') {
+      for (const key of WRITE_FIELDS[item.name]) fields[key] = fields[key].trim();
+    } else {
+      fields.doi = fields.doi.trim().replace(/^https?:\\/\\/(?:dx\\.)?doi\\.org\\//i, '')
+        .replace(/^doi:\\s*/i, '').toLowerCase();
+    }
     if (item.name === 'project.create' && !String(fields.title || '').trim()) {
       throw new Error('A proposed project needs a title.');
     }
