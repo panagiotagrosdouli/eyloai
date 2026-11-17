@@ -22,7 +22,7 @@ import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
 import { useAuth } from '@/lib/AuthContext';
 import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conversation.mjs';
 import { EYRA_MODES, EYRA_QUICK_COMMANDS, EYRA_LANGUAGE_NAMES, EYRA_STYLE_INSTRUCTIONS, EYRA_BASE_SYSTEM } from '@/lib/eyra-next-policy.mjs';
-import { shouldRetrieve, compactQuery } from '@/lib/eyra-retrieval-plan.mjs';
+import { retrieveEyraEvidence } from '@/lib/eyra-retrieval-service.mjs';
 
 import { listEyraConversations, saveEyraConversation, loadEyraConversation, renameEyraConversation, deleteEyraConversation } from '@/lib/eyra-history';
 
@@ -41,36 +41,13 @@ const STYLE_INSTRUCTIONS = EYRA_STYLE_INSTRUCTIONS;
 const BASE_SYSTEM = EYRA_BASE_SYSTEM;
 
 async function retrieveEvidence(content, mode, workspaceContext, signal) {
-  signal?.throwIfAborted();
-  const intent = shouldRetrieve(content, mode);
-  const query = compactQuery(content, workspaceContext);
-  const tasks = [];
-
-  if (intent.papers) {
-    tasks.push(searchAllPapersWithStatus(query, { limit: 16, signal }).then(result => ({
-      kind: 'papers',
-      items: result.papers || [],
-      status: result.source_status || [],
-    })));
-  }
-  if (intent.people) {
-    tasks.push(searchOpenAlexAuthors(query, 6, { throwOnError: true, signal }).then(items => ({ kind: 'researchers', items })));
-    tasks.push(searchOpenAlexInstitutions(query, 4, { throwOnError: true, signal }).then(items => ({ kind: 'institutions', items })));
-  }
-  if (intent.funding) tasks.push(searchFundingOpportunities(query, 10, { signal }).then(result => ({ kind: 'funding', items: result.items || [] })));
-
-  if (!tasks.length) return { query, blocks: [], sources: [], attempted: false };
-
-  const settled = await Promise.allSettled(tasks);
-  signal?.throwIfAborted();
-  /** @type {Record<string, {kind: string, items: any[], status?: any[]}>} */
-  const groups = Object.fromEntries(
-    settled.filter(result => result.status === 'fulfilled').map(result => [result.value.kind, result.value]),
-  );
-  const failedCount = settled.filter(result => result.status === 'rejected').length;
-
-  const packet = buildEyraCommandEvidence(groups, failedCount);
-  return { query, ...packet, attempted: true };
+  return retrieveEyraEvidence(content, mode, workspaceContext, signal, {
+    searchPapers: searchAllPapersWithStatus,
+    searchAuthors: searchOpenAlexAuthors,
+    searchInstitutions: searchOpenAlexInstitutions,
+    searchFunding: searchFundingOpportunities,
+    buildEvidence: buildEyraCommandEvidence,
+  });
 }
 
 function createWelcomeMessage(name = '') {
