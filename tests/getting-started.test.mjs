@@ -23,3 +23,10 @@ test('every visitor can find the guide in the homepage, menu and 404',()=>{
  assert.match(landing,/path: '\/projects', action: 'Open my projects'/);
  assert.match(notFound,/to="\/start"/);
 });
+
+test('page crashes offer a safe public guide rather than trapping a beginner',()=>{
+ const boundary=source('components/system/RouteErrorBoundary.jsx');
+ assert.match(boundary,/to="\/start"/);
+ assert.match(boundary,/Not sure where to go\? Start here/);
+ assert.match(boundary,/hasError: false/);
+});

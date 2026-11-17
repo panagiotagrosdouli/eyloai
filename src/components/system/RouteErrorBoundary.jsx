@@ -47,6 +47,10 @@ export default class RouteErrorBoundary extends Component {
               Return to EYLO
             </Link>
           </div>
+          <Link to="/start" onClick={() => this.setState({ hasError: false })}
+            className="mt-5 inline-flex min-h-11 items-center justify-center text-sm font-semibold text-primary hover:underline">
+            Not sure where to go? Start here
+          </Link>
         </div>
       </main>
     );
