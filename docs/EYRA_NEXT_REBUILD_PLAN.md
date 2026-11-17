@@ -69,6 +69,8 @@ Interfaces:
 - A pure latest-turn authorization module protects the existing write-intent gate against historical prompt text and inconsistent client-supplied turns; adversarial tests exercise exact matching.
 - The server-side declarative tool registry is now separate from the request handler. Its tests freeze the current list of explicit write operations (`project.create` and `library.save_paper`) and reject duplicate or open argument schemas.
 - The full workspace/scholarly tool executor is isolated from the HTTP orchestrator; strict argument contracts and bounded PostgREST response parsing are tested independently.
+- Retrieval fanout for publications, authors, institutions and funding is now a transport-neutral module with partial-failure and cancellation tests. The React UI only supplies provider adapters.
+- The provider-facing server system prompt is separately versioned as an auditable module.
 - Identity-bounded project/paper/note context, monthly usage reservation/release, and false-write-permission protection are independent server modules with focused regression tests.
 - Offline unit tests cover mode identifiers, provider error classification and schema normalization, and Greek/English retrieval routing.
 
