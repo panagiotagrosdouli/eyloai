@@ -6,7 +6,7 @@ import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitu
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import { getPreferenceLocale, loadPreferences, subscribePreferences } from '@/lib/preferences';
 import { getLocalGreeting } from '@/lib/local-greeting';
-import { checkEyraCitationIds, isSafeEyraSourceUrl } from '@/lib/eyra-citation-ids.mjs';
+import { checkEyraCitationIds } from '@/lib/eyra-citation-ids.mjs';
 import { buildEyraCommandEvidence, buildEyraCommandPrompt } from '@/lib/eyra-command-evidence.mjs';
 import { describeEyraCitedEvidence } from '@/lib/eyra-evidence-status.mjs';
 import { buildEvidenceOnlyFallback } from '@/lib/eyra-evidence-fallback.mjs';
