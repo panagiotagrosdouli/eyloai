@@ -50,7 +50,7 @@ export function buildEyraAgentEvidence(agent, input) {
 }
 
 export function buildEyraAgentPrompt(agentPrompt, kind, evidence) {
-  const base = plain(agentPrompt, 12000);
+  const base = typeof agentPrompt === 'string' ? agentPrompt.trim().slice(0, 12000) : '';
   if (!base) throw new Error('No agent instructions available.');
   if (kind !== 'research' && kind !== 'funding') {
     return base + '\n\nIMPORTANT: This is a planning exercise, not verified live research. Do not claim you browsed databases or verified current programs, deadlines, funding, studies, institutions or market numbers. Label unverified examples and estimates as hypotheses requiring independent checks.';
