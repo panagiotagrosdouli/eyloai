@@ -16,6 +16,7 @@ import BrandLogo from '@/components/brand/BrandLogo';
 import { TypingIndicator, Message } from '@/components/eyra/EyraConversationTimeline';
 import { EyraModeSelector, EyraQuickCommands } from '@/components/eyra/EyraResearchControls';
 import EyraComposer from '@/components/eyra/EyraComposer';
+import EyraWriteIntentReview from '@/components/eyra/EyraWriteIntentReview';
 import { useAuth } from '@/lib/AuthContext';
 import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conversation.mjs';
 import { EYRA_MODES, EYRA_LANGUAGE_NAMES, EYRA_STYLE_INSTRUCTIONS, EYRA_BASE_SYSTEM } from '@/lib/eyra-next-policy.mjs';
@@ -883,28 +884,16 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
                   className="rounded-lg border border-border px-3 py-2 text-xs">Cancel rename</button>
               </form>
             )}
-            {pendingWriteReview && (
-              <section role="group" aria-label="Review EYRA write request"
-                className="mb-2 rounded-xl border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-foreground">
-                <p className="font-semibold">Review before sending a workspace write</p>
-                <p className="mt-1 text-muted-foreground">
-                  EYRA may {pendingWriteReview.writeIntent.project ? 'create a project' : 'save a paper'}
-                  {pendingWriteReview.writeIntent.project && pendingWriteReview.writeIntent.paper ? ' and save a paper' : ''}.
-                  The model will choose the proposed record fields. Verify the resulting record after completion.
-                </p>
-                <p className="mt-2 max-h-24 overflow-auto whitespace-pre-wrap break-words rounded-md border border-border p-2">
-                  {pendingWriteReview.content}
-                </p>
-                <div className="mt-2 flex flex-wrap justify-end gap-2">
-                  <button type="button" aria-label="Cancel pending EYRA write" className="rounded-lg border border-border px-3 py-2"
-                    onClick={() => setPendingWriteReview(null)}>Cancel</button>
-                  <button type="button" aria-label="Edit pending EYRA write" className="rounded-lg border border-border px-3 py-2"
-                    onClick={() => { setInput(pendingWriteReview.content); setPendingWriteReview(null); inputRef.current?.focus(); }}>Edit</button>
-                  <button type="button" aria-label="Confirm and send EYRA write" className="rounded-lg bg-primary px-3 py-2 text-primary-foreground"
-                    onClick={() => void sendMessage(pendingWriteReview.content, { writeConfirmed: true })}>Confirm and send</button>
-                </div>
-              </section>
-            )}
+            <EyraWriteIntentReview
+              review={pendingWriteReview}
+              onCancel={() => setPendingWriteReview(null)}
+              onEdit={() => {
+                setInput(pendingWriteReview.content);
+                setPendingWriteReview(null);
+                inputRef.current?.focus();
+              }}
+              onConfirm={() => void sendMessage(pendingWriteReview.content, { writeConfirmed: true })}
+            />
             <EyraComposer
               activeMode={activeMode} modeLabel={currentMode?.label}
               inputRef={inputRef} value={input} onChange={setInput}
