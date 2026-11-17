@@ -110,9 +110,12 @@ function ToolLink({ item, active }) {
       <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border ${active ? 'border-primary/20 bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground group-hover:text-foreground'}`}>
         <Icon size={15} aria-hidden="true" />
       </span>
-      <span className="flex min-w-0 flex-1 items-center gap-2">
-        <span className={`truncate text-sm font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{item.label}</span>
-        {item.badge && <span className="truncate text-[10px] font-normal text-muted-foreground">{item.badge}</span>}
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="flex min-w-0 items-center gap-2">
+          <span className={`truncate text-sm font-semibold ${active ? 'text-primary' : 'text-foreground'}`}>{item.label}</span>
+          {item.badge && <span className="truncate text-[10px] font-normal text-muted-foreground">{item.badge}</span>}
+        </span>
+        {item.desc && <span className="mt-1 text-xs leading-5 text-muted-foreground">{item.desc}</span>}
       </span>
     </Link>
   );
@@ -248,7 +251,7 @@ export default function AppLayout() {
                   <label className="relative block">
                     <span className="sr-only">Search EYLO tools</span>
                     <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <input value={toolQuery} onChange={event => setToolQuery(event.target.value)} autoFocus placeholder="Find a tool…"
+                    <input value={toolQuery} onChange={event => setToolQuery(event.target.value)} autoFocus placeholder="What do you want to do?…"
                       className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/40" />
                   </label>
                   <div className="mt-3 flex items-center justify-between gap-3 border-b border-border pb-3"><span className="text-xs text-muted-foreground">Choose a workflow</span><Link to="/tools" className="text-sm font-semibold text-primary hover:underline">Browse complete directory</Link></div>
@@ -296,11 +299,15 @@ export default function AppLayout() {
                   return <Link key={item.path} to={item.path} className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-medium ${active ? 'border-primary/30 bg-primary/5 text-primary' : 'border-border bg-card text-muted-foreground'}`}><Icon size={15} />{item.label}</Link>;
                 })}
               </div>
+              <Link to="/tools" className="mt-3 flex min-h-11 items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-3 py-3 text-sm font-semibold text-foreground">
+                <LayoutGrid size={17} aria-hidden="true" />
+                <span className="flex-1">Browse all tools<span className="mt-0.5 block text-xs font-normal text-muted-foreground">See every feature and what it does</span></span>
+              </Link>
               <div className="my-4 flex items-center justify-end gap-3"><ThemeToggle variant="workspace" /><ServiceStatus /></div>
               <button type="button" onClick={() => setCommandOpen(true)} className="mb-3 flex min-h-11 w-full items-center gap-2 rounded-xl border border-border px-3 text-sm font-medium"><Search size={16} />Search everything <span className="ml-auto text-xs text-muted-foreground">⌘/Ctrl K</span></button>
               <button type="button" onClick={() => setToolsOpen(value => !value)} aria-expanded={toolsOpen} aria-controls="mobile-tool-directory" className="flex min-h-11 w-full items-center justify-between rounded-xl border border-border px-3 text-sm font-semibold"><span>All tools</span><ChevronDown size={16} className={toolsOpen ? 'rotate-180' : ''} /></button>
               {toolsOpen && <div id="mobile-tool-directory" className="mt-3 space-y-4">
-                <label className="block"><span className="sr-only">Find a tool</span><input type="search" value={toolQuery} onChange={event => setToolQuery(event.target.value)} placeholder="Find a tool…" className="min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm" /></label>
+                <label className="block"><span className="sr-only">Find a tool</span><input type="search" value={toolQuery} onChange={event => setToolQuery(event.target.value)} placeholder="What do you want to do?…" className="min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm" /></label>
                 {visibleGroups.map(group => (
                   <section key={group.section}>
                     <p className="mb-1 px-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{group.section}</p>

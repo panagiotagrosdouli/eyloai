@@ -39,7 +39,7 @@ test('Public research discovery remains discipline-neutral', () => {
   assert.match(landing, /A better way to/);
   assert.match(landing, /explore research/);
   assert.match(landing, /source-linked research/i);
-  assert.match(landing, /Enter EYLO AI/);
+  assert.match(landing, /Explore research/);
   assert.match(landing, /to="\/discover"/);
   assert.doesNotMatch(landing, /role="search"/);
   assert.doesNotMatch(landing, /searchOpenAlexWorks/);

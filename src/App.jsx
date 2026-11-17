@@ -7,6 +7,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
+import { WorkspaceNavigationProvider } from '@/components/layout/WorkspaceNavigationProvider';
 import ThemeWelcomeChoice from '@/components/marketing/ThemeWelcomeChoice';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { redactAnalyticsEvent } from '@/lib/product-analytics';
@@ -18,6 +19,7 @@ import AuthCallback from '@/pages/AuthCallback';
 
 // Auth routes are eager so login and recovery render without waiting for a route chunk. Workspace surfaces remain lazy.
 const Landing = lazy(() => import('@/pages/Landing'));
+const GettingStarted = lazy(() => import('@/pages/GettingStarted'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const CompanyPage = lazy(() => import('@/pages/CompanyPage'));
 const PublicDiscovery = lazy(() => import('@/pages/PublicDiscovery'));
@@ -204,12 +206,14 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router basename={import.meta.env.BASE_URL === '/eyloai/' ? '/eyloai' : '/'}>
+          <WorkspaceNavigationProvider>
           <ScrollToTop />
           <ThemeWelcomeChoice />
           <RouteErrorBoundary>
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<PublicEntry><Landing /></PublicEntry>} />
+              <Route path="/start" element={<GettingStarted />} />
               <Route path="/plans" element={<PublicPlans standalone />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/company" element={<CompanyPage />} />
@@ -231,6 +235,7 @@ function App() {
             </Routes>
           </Suspense>
           </RouteErrorBoundary>
+          </WorkspaceNavigationProvider>
         </Router>
         <Analytics beforeSend={redactAnalyticsEvent} />
         <Toaster />
