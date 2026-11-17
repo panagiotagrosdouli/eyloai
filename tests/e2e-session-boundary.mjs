@@ -114,7 +114,7 @@ try {
     const researchPage = await context.newPage();
     researchPage.on('pageerror', error => errors.push(error.message));
     await researchPage.goto(origin + '/search');
-    await researchPage.getByRole('link', { name: 'Discover', exact: true }).waitFor();
+    await researchPage.getByText('Create research project', { exact: true }).waitFor({ state: 'attached' });
     await researchPage.evaluate(async ownerIds => {
       const { discoveryBrowserScope, writeDiscoveryBrowserList } =
         await import('/src/lib/discovery-browser-storage.mjs');
@@ -131,7 +131,7 @@ try {
         JSON.stringify([{ title: 'Unscoped legacy private research' }]));
     }, users.map(user => user.id));
     await researchPage.reload();
-    await researchPage.getByRole('link', { name: 'Discover', exact: true }).waitFor();
+    await researchPage.getByText('Create research project', { exact: true }).waitFor({ state: 'attached' });
     const openSaved = () => researchPage.locator('button:visible').filter({ hasText: /saved/i }).first().click();
     await openSaved();
     await researchPage.getByRole('heading', { name: 'B-only research paper' }).waitFor();
