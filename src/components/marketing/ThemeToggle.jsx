@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { savePreferences, subscribePreferences } from "@/lib/preferences";
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ variant = 'public' }) {
   const [dark, setDark] = useState(() =>
     document.documentElement.classList.contains("dark"),
   );
@@ -27,7 +27,9 @@ export default function ThemeToggle() {
         savePreferences({ theme: dark ? "light" : "dark" });
         setDark(!dark);
       }}
-      className="company-theme-toggle grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[var(--company-border)] bg-[var(--company-surface)] text-[var(--company-ink)]"
+      className={variant === 'workspace'
+        ? "grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-border bg-card text-foreground hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+        : "company-theme-toggle grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[var(--company-border)] bg-[var(--company-surface)] text-[var(--company-ink)]"}
     >
       {dark ? (
         <Sun size={19} aria-hidden="true" />
