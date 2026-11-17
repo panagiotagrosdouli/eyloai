@@ -21,7 +21,8 @@ test('UI submits authenticated, explicitly read-only write preview without a wri
 test('write preview shows model-proposed fields only as a non-binding draft', () => {
   assert.match(review, /Preview fields \(no save\)/);
   assert.match(review, /Exact fields proposed by EYRA — draft only/);
-  assert.match(review, /not a saved record/);
+  assert.match(review, /not a complete saved-record preview/);
+  assert.match(review, /Crossref-verified bibliographic metadata may be added/);
   assert.match(review, /verified durable ledger/);
   assert.match(review, /this preview cannot be confirmed here/);
   assert.match(review, /Object\.entries\(proposal\.fields\)/);
