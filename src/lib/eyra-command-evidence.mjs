@@ -74,9 +74,11 @@ export function buildEyraCommandEvidence(groups = {}, failedCount = 0) {
   const sources = [];
   const blocks = [];
   let size = 0;
-  for (const [kind, prefix, max] of [
-    ['papers', 'P', 8], ['researchers', 'R', 6],
-    ['institutions', 'I', 4], ['funding', 'F', 8],
+  for (const { kind, prefix, max } of [
+    { kind: 'papers', prefix: 'P', max: 8 },
+    { kind: 'researchers', prefix: 'R', max: 6 },
+    { kind: 'institutions', prefix: 'I', max: 4 },
+    { kind: 'funding', prefix: 'F', max: 8 },
   ]) {
     for (const item of groupsArray(groups, kind, max)) {
       const id = prefix + (sources.filter(source => source.id.startsWith(prefix)).length + 1);
