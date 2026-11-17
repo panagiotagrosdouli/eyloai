@@ -11,7 +11,7 @@ import { buildEyraCommandEvidence, buildEyraCommandPrompt } from '@/lib/eyra-com
 import { buildEvidenceOnlyFallback } from '@/lib/eyra-evidence-fallback.mjs';
 import {
   X, Mic, MicOff, Send, Sparkles, Loader2,
-  Volume2, VolumeX, Target, Trash2, Database
+  Volume2, VolumeX, Trash2, Database
 } from 'lucide-react';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { TypingIndicator, Message } from '@/components/eyra/EyraConversationTimeline';
