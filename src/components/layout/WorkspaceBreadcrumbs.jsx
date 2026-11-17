@@ -23,14 +23,16 @@ export default function WorkspaceBreadcrumbs() {
   }, [pathname, search, user?.id]);
 
   const navigation = getWorkspaceNavigation(pathname);
+  // Never expose a previous account route, even for the render before the reset effect.
+  const safePreviousHref = ownerRef.current === (user?.id ?? null) ? previousHref : null;
   if (!navigation.visible) return null;
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-x-5 gap-y-1 px-5 pt-4 sm:px-8">
-      <Link to={previousHref || navigation.backPath}
-        aria-label={previousHref ? 'Back to previous EYLO page' : 'Back to ' + navigation.backLabel}
+      <Link to={safePreviousHref || navigation.backPath}
+        aria-label={safePreviousHref ? 'Back to previous EYLO page' : 'Back to ' + navigation.backLabel}
         className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground hover:border-primary/40 hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
         <ArrowLeft size={15} aria-hidden="true" />
-        {previousHref ? 'Back' : 'Back to ' + navigation.backLabel}
+        {safePreviousHref ? 'Back' : 'Back to ' + navigation.backLabel}
       </Link>
       <nav aria-label="Breadcrumb" className="min-w-0 flex-1">
         <ol className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">

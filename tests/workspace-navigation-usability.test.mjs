@@ -50,6 +50,7 @@ test('beginner guidance, Back and tool explanations are accessible',()=>{
   const layout=readFileSync(new URL('../src/components/layout/AppLayout.jsx',import.meta.url),'utf8');
   assert.match(crumbs,/Back to previous EYLO page/);
   assert.match(crumbs,/ownerRef\.current !== owner/);
+  assert.match(crumbs,/const safePreviousHref = ownerRef\.current === \(user\?\.id \?\? null\) \? previousHref : null/);
   assert.match(crumbs,/aria-label="Breadcrumb"/);
   assert.match(home,/New to EYLO\? Start here\./);
   assert.match(home,/aria-label="Common starting actions"/);
