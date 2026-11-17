@@ -51,7 +51,7 @@ test('fail-closed staging config forbids secrets, paths, wrong project, same use
   assert.notEqual(parsed.expectedA, parsed.expectedB);
 });
 
-function makeMock({ leak = false, failedCleanup = false } = {}) {
+function makeMock({ leak = false, failedCleanup = false, silentDelete = false } = {}) {
   const table = new Map();
   const messages = new Map();
   const paths = [];
@@ -103,6 +103,7 @@ function makeMock({ leak = false, failedCleanup = false } = {}) {
       }
       if (method === 'DELETE') {
         if (failedCleanup) return respond(503, { code: 'TEST_DOWN' });
+        if (silentDelete) return respond(200, []); // RLS filtered: successful status, no deletion
         const version = url.searchParams.get('version')?.replace(/^eq\./, '');
         if (version && Number(version) !== row.version) return respond(200, []);
         table.delete(rowId);
@@ -154,6 +155,16 @@ test('cleanup uncertainty fails closed without exposing token or account data', 
     runEyraHostedStagingAcceptance(config, mock),
     /cleanup could not be confirmed/,
   );
+});
+
+test('silent 200 empty-row deletes cannot claim that staging snapshots were removed', async () => {
+  const config = validateEyraHostedStagingConfig(validEnv());
+  const mock = makeMock({ silentDelete: true });
+  await assert.rejects(
+    runEyraHostedStagingAcceptance(config, mock),
+    /cleanup could not be confirmed/,
+  );
+  assert.equal(mock.table.size, 2, 'fixture retains both rows to model a silent RLS-filtered delete');
 });
 
 test('runner refuses hand-built production configuration without any network call', async () => {
