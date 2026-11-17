@@ -182,6 +182,15 @@ try {
   await page.getByLabel('Password').fill('Fixture-password-123');
   await page.getByRole('button', { name: 'Continue with password' }).click();
   await page.getByRole('heading', { name: 'Continue your research' }).waitFor({ state: 'detached' });
+  // The signed-in home is the real EYLO dashboard, not a marketing image.
+  await page.goto(`${origin}/home`);
+  await page.getByRole('heading', { name: /Find the evidence/ }).waitFor();
+  await page.getByRole('navigation', { name: 'Common starting actions' }).getByRole('link', { name: /Find publications/ }).waitFor();
+  await page.getByRole('complementary', { name: 'Research assistant and continuation' }).waitFor();
+  await page.getByRole('button', { name: 'Ask EYRA', exact: true }).waitFor();
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Signed-in Home mobile overflow');
+  await capture(page, 'signed-in-evidence-first-home-mobile');
+  console.log('PASS fixture: evidence-first signed-in Home provides source search, saved work, no fake projects and honest EYRA status on mobile.');
   await page.goto(`${origin}/time-tracker`);
   await page.getByRole('heading', { name: 'EYLO Time Tracker' }).waitFor();
   await page.getByLabel('What are you working on?').fill('Review source methods');
