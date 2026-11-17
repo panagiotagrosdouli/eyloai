@@ -365,6 +365,25 @@ try {
   await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
   console.log('PASS fixture: ambiguous snapshot save retries the same UUID, private export and confirmed cascade deletion; cancelled deletion leaves records unchanged.');
 
+  // A missing hosted schema must not advertise cloud persistence.
+  const cloudSchemaMissing = route => route.fulfill({
+    status: 404, headers, contentType: 'application/json',
+    body: JSON.stringify({ code: 'PGRST205', message: 'Fixture table unavailable' }),
+  });
+  await page.route(`${supabaseUrl}/rest/v1/eyra_conversations**`, cloudSchemaMissing);
+  await page.goto(`${origin}/home`);
+  await page.locator('button[title="Ask EYRA"]').click();
+  const cloudNotice = page.getByRole('status', { name: 'Cloud conversation history' });
+  await cloudNotice.getByText(/Cloud conversation saving is not activated here/).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Save conversation snapshot', exact: true }).isDisabled(), true);
+  assert.equal(await page.getByLabel('Saved EYRA conversation').isDisabled(), true);
+  const exportWhileOffline = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export conversation', exact: true }).click();
+  assert.equal((await exportWhileOffline).suggestedFilename(), 'eyra-conversation.json');
+  await page.unroute(`${supabaseUrl}/rest/v1/eyra_conversations**`, cloudSchemaMissing);
+  console.log('PASS fixture: missing EYRA cloud history disables false cloud saves while local export remains available.');
+
+
 
   await page.goto(`${origin}/projects/${tables.projects[0].id}`);
   await page.getByRole('button', { name: 'Reproducibility', exact: true }).click();

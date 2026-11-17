@@ -116,15 +116,21 @@ test('disabling personalization excludes saved workspace even when it is supplie
   }), /at most 2,000/);
 });
 
-test('the Command Center propagates cancellation to each source and keeps audited response guards', () => {
+test('Command Center forwards cancellation to isolated source retrieval and keeps response guards', () => {
   const ui = readFileSync(new URL('../src/components/eyra/EyraCommandCenter.jsx', import.meta.url), 'utf8');
+  const retrieval = readFileSync(new URL('../src/lib/eyra-retrieval-service.mjs', import.meta.url), 'utf8');
   assert.match(ui, /async function retrieveEvidence\(content, mode, workspaceContext, signal\)/);
-  assert.match(ui, /searchAllPapersWithStatus\(query, \{ limit: 16, signal \}\)/);
-  assert.match(ui, /searchOpenAlexAuthors\(query, 6, \{ throwOnError: true, signal \}\)/);
-  assert.match(ui, /searchOpenAlexInstitutions\(query, 4, \{ throwOnError: true, signal \}\)/);
-  assert.match(ui, /searchFundingOpportunities\(query, 10, \{ signal \}\)/);
-  assert.match(ui, /signal\?\.throwIfAborted\(\)/);
-  assert.match(ui, /buildEyraCommandEvidence\(groups, failedCount\)/);
+  assert.match(ui, /retrieveEyraEvidence\(content, mode, workspaceContext, signal/);
+  assert.match(ui, /searchPapers: searchAllPapersWithStatus/);
+  assert.match(ui, /searchAuthors: searchOpenAlexAuthors/);
+  assert.match(ui, /searchInstitutions: searchOpenAlexInstitutions/);
+  assert.match(ui, /searchFunding: searchFundingOpportunities/);
+  assert.match(retrieval, /adapters\.searchPapers\(query, \{ limit: 16, signal \}\)/);
+  assert.match(retrieval, /adapters\.searchAuthors\(query, 6, \{ throwOnError: true, signal \}\)/);
+  assert.match(retrieval, /adapters\.searchInstitutions\(query, 4, \{ throwOnError: true, signal \}\)/);
+  assert.match(retrieval, /adapters\.searchFunding\(query, 10, \{ signal \}\)/);
+  assert.match(retrieval, /signal\?\.throwIfAborted\(\)/);
+  assert.match(retrieval, /adapters\.buildEvidence\(groups, failedCount\)/);
   assert.match(ui, /buildEyraCommandPrompt\(\{/);
   assert.match(ui, /controller\.signal,/);
   assert.match(ui, /checkEyraCitationIds\(baseAnswer, evidence\.sources\)/);

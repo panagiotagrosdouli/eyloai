@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { buildEvidenceOnlyFallback } from '../src/lib/eyra-evidence-fallback.mjs';
 
 const page = readFileSync(new URL('../src/components/eyra/EyraCommandCenter.jsx', import.meta.url), 'utf8');
+const timeline = readFileSync(new URL('../src/components/eyra/EyraConversationTimeline.jsx', import.meta.url), 'utf8');
 const evidence = { attempted: true, sources: [
   { id: 'P1', type: 'Paper', title: 'A [misleading](javascript:alert(1)) claim', url: 'https://doi.org/10.1234/example', meta: 'Abstract is unverified' },
   { id: 'F1', type: 'Funding', title: 'Grant', url: 'https://example.org/call' },
@@ -44,7 +45,7 @@ test('auth failures show a clear retry instead of a claimed synthesis', () => {
 
 test('EYRA source chips and fallback descriptions do not claim independent verification', () => {
   assert.match(page, /buildEvidenceOnlyFallback\(evidence, error\)/);
-  assert.match(page, /not independently verified/);
+  assert.match(timeline, /not independently verified/);
   assert.doesNotMatch(page, /buildVerifiedEvidenceFallback/);
   assert.doesNotMatch(page, /ShieldCheck/);
 });

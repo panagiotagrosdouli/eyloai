@@ -104,7 +104,7 @@ test('EYRA rejects a partial OpenAI generation even when it contains text', asyn
 
 test('EYRA records a failed quota refund when rollback RPC returns HTTP error', async () => {
   const source = (await import('node:fs')).readFileSync(
-    new URL('../api/eyra.js', import.meta.url), 'utf8',
+    new URL('../server/eyra-usage-boundary.mjs', import.meta.url), 'utf8',
   );
   assert.match(source, /const rollback = await fetch\(/);
   assert.match(source, /if \(!rollback\.ok\)/);
@@ -113,7 +113,7 @@ test('EYRA records a failed quota refund when rollback RPC returns HTTP error', 
 
 test('quota rollback errors include action ID for operator reconciliation', async () => {
   const source = (await import('node:fs')).readFileSync(
-    new URL('../api/eyra.js', import.meta.url), 'utf8',
+    new URL('../server/eyra-usage-boundary.mjs', import.meta.url), 'utf8',
   );
   assert.match(source, /EYRA usage rollback was rejected'[\s\S]*?actionId: reservation\.actionId/);
   assert.match(source, /EYRA usage rollback failed', \{ actionId: reservation\.actionId \}/);
