@@ -1,12 +1,12 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
 import { billingActive, serverHeaders, authenticate } from '../server/eyra-auth-boundary.mjs';
+import { usageState, reserveUsage, releaseUsage } from '../server/eyra-usage-boundary.mjs';
 import { currentUserRequest } from '../server/eyra-turn-authorization.mjs';
 import { PROJECT_TOOLS } from '../server/eyra-tool-registry.mjs';
 import { validatedEyraToolArguments, boundedJsonResponse } from '../server/eyra-tool-contract.mjs';
 import { loadAuthorizedResourceContext } from '../server/eyra-workspace-context.mjs';
 import crypto from 'node:crypto';
-import { FREE_MONTHLY_AI_ACTIONS } from '../src/lib/eyra-usage-policy.mjs';
 import { matchesEyraResponseSchema } from '../src/lib/eyra-structured-contract.mjs';
 import { relayEyraResponse } from '../src/lib/eyra-stream.mjs';
 import {
@@ -20,7 +20,6 @@ const MAX_PROMPT_LENGTH = 24_000;
 // Bound provider spending and prevent unexpectedly large responses on every model turn.
 const MAX_OUTPUT_TOKENS = 4_096;
 const MAX_SCHEMA_LENGTH = 32_000;
-const PLAN_LIMITS = { free: FREE_MONTHLY_AI_ACTIONS, pro: null, founder: null, institution: null };
 const EYRA_INSTRUCTIONS = `You are EYRA, the research and innovation intelligence inside EYLO.
 
 Act as a rigorous research analyst, strategic advisor, funding guide, startup co-founder, and team builder.
@@ -474,75 +473,6 @@ async function executeProjectTool(name, rawArguments, identity) {
   }
 
   throw new Error('Unsupported project tool.');
-}
-
-function usageState(identity) {
-  const month = new Date().toISOString().slice(0, 7);
-  const billingEnabled = billingActive();
-  const plan = billingEnabled && PLAN_LIMITS[identity.entitlement.plan] !== undefined
-    ? identity.entitlement.plan
-    : 'free';
-  return {
-    month,
-    plan,
-    used: 0,
-    limit: PLAN_LIMITS[plan],
-  };
-}
-
-async function reserveUsage(identity, usage) {
-  const actionId = crypto.randomUUID();
-  const result = await fetch(
-    `${identity.supabaseUrl}/rest/v1/rpc/reserve_eyra_usage`,
-    {
-      method: 'POST',
-      headers: serverHeaders(identity.serverKey),
-      body: JSON.stringify({
-        p_action_id: actionId,
-        p_user_id: identity.user.id,
-        p_usage_month: usage.month,
-        p_limit: usage.limit,
-      }),
-      signal: AbortSignal.timeout(15_000),
-    },
-  );
-  if (!result.ok) throw new Error(`Usage reservation failed: ${result.status}`);
-
-  const payload = await result.json();
-  const reservation = Array.isArray(payload) ? payload[0] : payload;
-  return {
-    allowed: reservation?.allowed === true,
-    used: Number(reservation?.used || 0),
-    actionId: reservation?.allowed === true ? actionId : null,
-    serverKey: identity.serverKey,
-    supabaseUrl: identity.supabaseUrl,
-  };
-}
-
-async function releaseUsage(reservation) {
-  if (!reservation?.actionId) return;
-
-  try {
-    const rollback = await fetch(
-      `${reservation.supabaseUrl}/rest/v1/rpc/release_eyra_usage`,
-      {
-        method: 'POST',
-        headers: serverHeaders(reservation.serverKey),
-        body: JSON.stringify({ p_action_id: reservation.actionId }),
-        signal: AbortSignal.timeout(15_000),
-      },
-    );
-    // HTTP failures do not throw in fetch. Report unsuccessful quota refunds
-    // so operators can investigate unexpected usage counts.
-    if (!rollback.ok) {
-      console.error('EYRA usage rollback was rejected', {
-        status: rollback.status,
-        actionId: reservation.actionId,
-      });
-    }
-  } catch {
-    console.error('EYRA usage rollback failed', { actionId: reservation.actionId });
-  }
 }
 
 export default async function handler(request, response) {
