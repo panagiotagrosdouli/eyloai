@@ -118,6 +118,16 @@ export default async function handler(request, response) {
     // historical messages, or a retrieved document.
     identity.explicitProjectCreate = requestedWrites.project && request.body?.write_confirmed === true;
     identity.explicitPaperSave = requestedWrites.paper && request.body?.write_confirmed === true;
+    // In approved-write mode, the old model-regeneration path must not bypass
+    // exact-field approval. All writes must use the separately verified token.
+    if (approvedEyraWritesEnabled() && request.body?.enable_project_tools === true
+      && request.body?.write_confirmed === true
+      && (requestedWrites.project || requestedWrites.paper)) {
+      return response.status(409).json({
+        code: 'EXACT_FIELD_APPROVAL_REQUIRED',
+        error: 'Preview the proposed fields and approve that signed draft before writing.',
+      });
+    }
     const previewWrites = request.body?.preview_write_actions === true;
     if (request.body?.preview_write_actions !== undefined
       && typeof request.body.preview_write_actions !== 'boolean') {
