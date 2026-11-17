@@ -70,12 +70,16 @@ export function mapSupabaseError(error) {
   if (providerCode === 'supabase_configuration_error') return createAppError(AppErrorCode.CONFIGURATION, error);
   // HTTP throttling or service failure takes precedence over payload hints.
   if (status === 429) return createAppError(AppErrorCode.RATE_LIMITED, error);
-  if (status >= 500 && providerCode !== 'email_address_not_authorized') return createAppError(AppErrorCode.SERVICE_UNAVAILABLE, error);
+  // Preserve the specific delivery failure UX even if Supabase returns HTTP 5xx.
+  if (providerCode === 'email_address_not_authorized'
+    || (providerCode === 'unexpected_failure' && message.includes('email'))
+    || message.includes('error sending confirmation email')
+    || message.includes('error sending email')) return createAppError(AppErrorCode.EMAIL_SEND_FAILED, error);
+  if (status >= 500) return createAppError(AppErrorCode.SERVICE_UNAVAILABLE, error);
   if (Object.hasOwn(authProviderCodes, providerCode)) return createAppError(authProviderCodes[providerCode], error);
 
   if ((providerCode === 'signup_disabled' || providerCode === 'email_provider_disabled') || message.includes('signups not allowed') || message.includes('signup is disabled')) return createAppError(AppErrorCode.SIGNUP_DISABLED, error);
   if (providerCode === 'email_address_invalid' || message.includes('email address is invalid') || message.includes('invalid email')) return createAppError(AppErrorCode.INVALID_EMAIL, error);
-  if (providerCode === 'email_address_not_authorized' || providerCode === 'unexpected_failure' && message.includes('email') || message.includes('error sending confirmation email') || message.includes('error sending email')) return createAppError(AppErrorCode.EMAIL_SEND_FAILED, error);
   if (status === 429 || providerCode === 'over_request_rate_limit' || message.includes('rate limit') || message.includes('too many requests')) return createAppError(AppErrorCode.RATE_LIMITED, error);
   if (status >= 500) return createAppError(AppErrorCode.SERVICE_UNAVAILABLE, error);
   if (message.includes('invalid login credentials')) return createAppError(AppErrorCode.INVALID_CREDENTIALS, error);
