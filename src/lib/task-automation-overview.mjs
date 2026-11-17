@@ -9,7 +9,10 @@ function validRuns(value) {
   return (Array.isArray(value) ? value : [])
     .filter(run => run && typeof run === 'object' && uuid(run.id)
       && typeof run.created_at === 'string' && !Number.isNaN(Date.parse(run.created_at))
-      && Array.isArray(run.task_ids))
+      && Array.isArray(run.task_ids)
+      && run.task_ids.length > 0 && run.task_ids.length <= 20
+      && run.task_ids.every(uuid)
+      && new Set(run.task_ids).size === run.task_ids.length)
     .slice(-MAX_RUNS_PER_PROJECT)
     .map(run => ({
       id: run.id,
