@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { TypingIndicator, Message } from '@/components/eyra/EyraConversationTimeline';
-import { EyraModeSelector, EyraQuickCommands } from '@/components/eyra/EyraResearchControls';
+import { EyraModeSelector, EyraQuickCommands, EYRA_MODE_ICONS } from '@/components/eyra/EyraResearchControls';
 import { useAuth } from '@/lib/AuthContext';
 import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conversation.mjs';
 import { EYRA_MODES, EYRA_LANGUAGE_NAMES, EYRA_STYLE_INSTRUCTIONS, EYRA_BASE_SYSTEM } from '@/lib/eyra-next-policy.mjs';
@@ -714,7 +714,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   };
 
   const currentMode = MODES.find(m => m.id === activeMode);
-  const ModeIcon = Sparkles;
+  const ModeIcon = EYRA_MODE_ICONS[activeMode] || Sparkles;
 
   if (!open) return null;
 
