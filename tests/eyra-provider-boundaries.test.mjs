@@ -96,3 +96,53 @@ test('EYRA reports missing OpenAI configuration without reserving usage or conta
   assert.equal(response.payload.code, 'OPENAI_NOT_CONFIGURED');
   assert.deepEqual(events, []);
 });
+
+
+test('EYRA distinguishes an exhausted API budget from transient throttling without retries', async () => {
+  process.env.OPENAI_API_KEY = 'sk-test-placeholder-only';
+  const events = mockServices(() => new Response(JSON.stringify({
+    error: { code: 'insufficient_quota', message: 'Private account billing details must never leak' },
+  }), { status: 429, headers: { 'retry-after': '1' } }));
+  const response = responseMock();
+  await handler(request(), response);
+  assert.equal(response.statusCode, 503);
+  assert.equal(response.payload.code, 'OPENAI_QUOTA_EXHAUSTED');
+  assert.doesNotMatch(JSON.stringify(response.payload), /Private account billing details/);
+  assert.deepEqual(events, ['reserved', 'provider', 'released']);
+});
+
+test('EYRA retries at most once for an explicitly short transient provider limit', async () => {
+  process.env.OPENAI_API_KEY = 'sk-test-placeholder-only';
+  let attempts = 0;
+  const events = mockServices(() => {
+    attempts += 1;
+    if (attempts === 1) {
+      return new Response(JSON.stringify({ error: { code: 'rate_limit_exceeded' } }),
+        { status: 429, headers: { 'retry-after': '0' } });
+    }
+    return new Response(JSON.stringify({
+      id: 'resp_after_retry', status: 'completed', model: 'test-model',
+      output: [{ type: 'message', content: [{ type: 'output_text', text: 'Retrieved analysis.' }] }],
+    }), { status: 200 });
+  });
+  const response = responseMock();
+  await handler(request(), response);
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.payload.text, 'Retrieved analysis.');
+  assert.equal(attempts, 2);
+  assert.deepEqual(events, ['reserved', 'provider', 'provider']);
+});
+
+test('EYRA publishes bounded Retry-After when throttling persists', async () => {
+  process.env.OPENAI_API_KEY = 'sk-test-placeholder-only';
+  const events = mockServices(() => new Response(JSON.stringify({ error: { code: 'rate_limit_exceeded' } }), {
+    status: 429, headers: { 'retry-after': '45' },
+  }));
+  const response = responseMock();
+  await handler(request(), response);
+  assert.equal(response.statusCode, 503);
+  assert.equal(response.payload.code, 'OPENAI_RATE_LIMITED');
+  assert.equal(response.payload.retry_after_seconds, 45);
+  assert.equal(response.headers['retry-after'], '45');
+  assert.deepEqual(events, ['reserved', 'provider', 'released']);
+});
