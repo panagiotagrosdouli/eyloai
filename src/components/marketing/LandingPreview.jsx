@@ -51,7 +51,7 @@ export default function LandingPreview() {
     buttons.current[next]?.focus();
   }
   return (
-    <figure className="relative min-w-0 py-5 lg:py-12">
+    <figure aria-label="EYLO interactive walkthrough" className="relative min-w-0 py-5 lg:py-12">
       <div
         className="pointer-events-none absolute -right-[8%] top-0 h-[60%] w-[72%] rounded-[70px] bg-[var(--company-tint)]"
         aria-hidden="true"
@@ -61,7 +61,7 @@ export default function LandingPreview() {
         aria-hidden="true"
       />
       <div className="relative overflow-hidden rounded-[20px] border border-[var(--company-border)] bg-[var(--company-surface)] shadow-[0_24px_75px_-25px_rgba(23,42,64,.25)]">
-        <div className="flex h-10 items-center justify-between border-b border-[var(--company-border)] bg-[var(--company-soft)] px-4">
+        <div className="flex h-10 items-center border-b border-[var(--company-border)] bg-[var(--company-soft)] px-4">
           <div className="flex gap-1.5" aria-hidden="true">
             {[0, 1, 2].map((dot) => (
               <span
@@ -70,9 +70,6 @@ export default function LandingPreview() {
               />
             ))}
           </div>
-          <span className="text-[10px] font-medium tracking-wide text-[var(--company-muted)]">
-            EXAMPLE · RESEARCH TRAIL
-          </span>
         </div>
         <div className="grid sm:grid-cols-[126px_minmax(0,1fr)]">
           <aside
@@ -264,9 +261,6 @@ export default function LandingPreview() {
           </div>
         </div>
       </div>
-      <figcaption className="relative mt-4 text-center text-xs leading-5 text-[var(--company-muted)]">
-        Example screens and sample content — not live research results or an AI answer.
-      </figcaption>
     </figure>
   );
 }

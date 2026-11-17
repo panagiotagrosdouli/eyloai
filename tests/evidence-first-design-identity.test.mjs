@@ -13,11 +13,15 @@ test('EYLO has a recognisable research trail rather than an AI-only promise', ()
   assert.doesNotMatch(landing,/A better way to\s*\n\s*<br \/>/);
 });
 
-test('marketing preview clearly distinguishes examples from live results',()=>{
+test('marketing walkthrough presents EYLO features without unnecessary labels',()=>{
   const preview=read('components/marketing/LandingPreview.jsx');
-  assert.match(preview,/EXAMPLE · RESEARCH TRAIL/);
-  assert.match(preview,/Example screens and sample content — not live research results or an AI answer/);
-  assert.match(preview,/figcaption className="relative mt-4 text-center text-xs/);
+  assert.match(preview,/aria-label="EYLO interactive walkthrough"/);
+  assert.doesNotMatch(preview,/EXAMPLE · RESEARCH TRAIL/);
+  assert.doesNotMatch(preview,/Example screens and sample content — not live research results or an AI answer/);
+  assert.doesNotMatch(preview,/<figcaption/);
+  assert.match(preview,/label: "Discover"/);
+  assert.match(preview,/label: "Workspace"/);
+  assert.match(preview,/label: "EYRA"/);
   assert.match(preview,/bg-\[var\(--company-surface\)\] text-\[var\(--company-ink\)\] shadow-sm/);
 });
 
