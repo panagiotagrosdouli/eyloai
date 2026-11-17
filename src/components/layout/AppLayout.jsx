@@ -12,6 +12,7 @@ import WorkspaceBreadcrumbs from '@/components/layout/WorkspaceBreadcrumbs';
 import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
 import NotificationsBell from '@/components/monitoring/NotificationsBell';
 import ServiceStatus from '@/components/system/ServiceStatus';
+import ThemeToggle from '@/components/marketing/ThemeToggle';
 import { useCapabilities } from '@/lib/capabilities';
 import { trackActivatedReturn } from '@/lib/product-analytics';
 import { useAuth } from '@/lib/AuthContext';
@@ -266,7 +267,7 @@ export default function AppLayout() {
           </nav>
 
           <div className="ml-auto hidden items-center gap-2 md:flex">
-            
+            <ThemeToggle variant="workspace" />
             <NotificationsBell />
             <button type="button" onClick={() => setEyraOpen(true)} disabled={!aiAvailable} title={aiAvailable ? 'Ask EYRA' : 'EYRA is unavailable on this deployment'}
               className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-45">
@@ -295,7 +296,7 @@ export default function AppLayout() {
                   return <Link key={item.path} to={item.path} className={`flex items-center gap-2 rounded-xl border p-3 text-sm font-medium ${active ? 'border-primary/30 bg-primary/5 text-primary' : 'border-border bg-card text-muted-foreground'}`}><Icon size={15} />{item.label}</Link>;
                 })}
               </div>
-              <div className="my-4 flex items-center justify-end gap-3"><ServiceStatus /></div>
+              <div className="my-4 flex items-center justify-end gap-3"><ThemeToggle variant="workspace" /><ServiceStatus /></div>
               <button type="button" onClick={() => setCommandOpen(true)} className="mb-3 flex min-h-11 w-full items-center gap-2 rounded-xl border border-border px-3 text-sm font-medium"><Search size={16} />Search everything <span className="ml-auto text-xs text-muted-foreground">⌘/Ctrl K</span></button>
               <button type="button" onClick={() => setToolsOpen(value => !value)} aria-expanded={toolsOpen} aria-controls="mobile-tool-directory" className="flex min-h-11 w-full items-center justify-between rounded-xl border border-border px-3 text-sm font-semibold"><span>All tools</span><ChevronDown size={16} className={toolsOpen ? 'rotate-180' : ''} /></button>
               {toolsOpen && <div id="mobile-tool-directory" className="mt-3 space-y-4">
