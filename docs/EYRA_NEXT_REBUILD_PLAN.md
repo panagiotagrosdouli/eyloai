@@ -74,6 +74,7 @@ Interfaces:
 - The provider-facing server system prompt is separately versioned as an auditable module.
 - Identity-bounded project/paper/note context, monthly usage reservation/release, and false-write-permission protection are independent server modules with focused regression tests.
 - Cloud-history capability detection now distinguishes missing Supabase schema/RPC from unrelated auth/network errors; Save and history restore are gated per account, while local JSON Export stays available. This is graceful degradation, not evidence that hosted migrations have been applied.
+- A 390px synthetic authenticated browser test simulates PostgREST `PGRST205` and verifies that cloud Save becomes disabled while Export still downloads locally. This is still not real hosted staging verification.
 - Offline unit tests cover mode identifiers, provider error classification and schema normalization, and Greek/English retrieval routing.
 
 **Explicit non-goals of this slice:** no declaration that the full EYRA has been rebuilt; no new endpoint, cloud persistence, schema migration, real model test, changed tool privileges, or production deployment. Keep this PR reviewable and verify CI at its exact head before considering integration.
