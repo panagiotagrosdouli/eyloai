@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import { approveEyraWrite } from '@/lib/eyra-intelligence';
 import { buildUserProfile } from '@/lib/second-brain';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
@@ -510,7 +511,9 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
       }
       setWritePreview({
         ownerId: owner, content: review.content, status: 'ready',
-        proposals: result.write_proposals, error: '',
+        proposals: result.write_proposals,
+        approvalToken: typeof result.write_approval_token === 'string' ? result.write_approval_token : null,
+        error: '',
       });
     } catch (error) {
       if (controller.signal.aborted || ownerRef.current !== owner) return;
@@ -518,6 +521,53 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
         ownerId: owner, content: review.content, status: 'error', proposals: [],
         error: 'The proposed fields could not be prepared. No workspace record was changed.',
       });
+    } finally {
+      if (activeRequestRef.current === controller) {
+        activeRequestRef.current = null;
+        setLoading(false);
+      }
+    }
+  };
+
+  const approvePendingExactFields = async () => {
+    const review = pendingWriteReview;
+    const preview = writePreview;
+    const owner = ownerRef.current;
+    if (!review || !owner || loading || activeRequestRef.current
+      || preview?.status !== 'ready' || preview.ownerId !== owner
+      || preview.content !== review.content || preview.proposals?.length !== 1
+      || typeof preview.approvalToken !== 'string' || !preview.approvalToken) return;
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
+    setLoading(true);
+    setActionError('');
+    // Token is single-attempt from the browser's perspective; the durable
+    // server ledger prevents a second write even after an ambiguous response.
+    setWritePreview({ ...preview, status: 'loading', approvalToken: null });
+    try {
+      const result = await approveEyraWrite({
+        request: review.content, approvalToken: preview.approvalToken, signal: controller.signal,
+      });
+      controller.signal.throwIfAborted();
+      if (ownerRef.current !== owner) return;
+      setPendingWriteReview(null);
+      setWritePreview(null);
+      setAllowWorkspaceActions(false);
+      setMessages(previous => [...previous,
+        { role: 'user', content: review.content, timestamp: Date.now() },
+        {
+          role: 'eyra', content: `Approved exact-field action completed. Execution ID: \`${result.run_id}\`.
+The saved record was returned by the server. Check the workspace for the final record.`,
+          timestamp: Date.now() + 1, mode: activeMode, sources: [],
+        },
+      ]);
+    } catch (error) {
+      if (ownerRef.current !== owner) return;
+      setWritePreview({
+        ...preview, status: 'error', approvalToken: null,
+        error: 'Exact-field execution was not confirmed. Inspect the workspace and run history before attempting a new approval.',
+      });
+      setActionError(error?.message || 'The approved action could not be verified.');
     } finally {
       if (activeRequestRef.current === controller) {
         activeRequestRef.current = null;
@@ -892,6 +942,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
               preview={writePreview?.ownerId === user?.id
                 && writePreview?.content === pendingWriteReview?.content ? writePreview : null}
               onPreview={() => void previewPendingWrite()}
+              onApprove={() => void approvePendingExactFields()}
               onCancel={() => { setPendingWriteReview(null); setWritePreview(null); }}
               onEdit={() => {
                 setInput(pendingWriteReview.content);
