@@ -40,6 +40,26 @@ export function createAppError(code, cause) {
   };
 }
 
+
+// Supabase Auth's stable API error codes are more reliable than English messages.
+// Keep user-facing text generic: do not expose raw provider text or email details.
+const authProviderCodes = Object.freeze({
+  invalid_credentials: AppErrorCode.INVALID_CREDENTIALS,
+  email_not_confirmed: AppErrorCode.EMAIL_NOT_CONFIRMED,
+  user_already_exists: AppErrorCode.USER_ALREADY_REGISTERED,
+  email_exists: AppErrorCode.USER_ALREADY_REGISTERED,
+  weak_password: AppErrorCode.WEAK_PASSWORD,
+  over_request_rate_limit: AppErrorCode.RATE_LIMITED,
+  over_email_send_rate_limit: AppErrorCode.RATE_LIMITED,
+  email_address_invalid: AppErrorCode.INVALID_EMAIL,
+  email_address_not_authorized: AppErrorCode.EMAIL_SEND_FAILED,
+  email_provider_disabled: AppErrorCode.SIGNUP_DISABLED,
+  signup_disabled: AppErrorCode.SIGNUP_DISABLED,
+  otp_expired: AppErrorCode.EXPIRED_RECOVERY_LINK,
+  flow_state_expired: AppErrorCode.EXPIRED_RECOVERY_LINK,
+  flow_state_not_found: AppErrorCode.EXPIRED_RECOVERY_LINK,
+});
+
 export function mapSupabaseError(error) {
   if (!error) return null;
 
@@ -48,6 +68,10 @@ export function mapSupabaseError(error) {
   const providerCode = String(error.code || '').toLowerCase();
 
   if (providerCode === 'supabase_configuration_error') return createAppError(AppErrorCode.CONFIGURATION, error);
+  // HTTP throttling or service failure takes precedence over payload hints.
+  if (status === 429) return createAppError(AppErrorCode.RATE_LIMITED, error);
+  if (status >= 500 && providerCode !== 'email_address_not_authorized') return createAppError(AppErrorCode.SERVICE_UNAVAILABLE, error);
+  if (Object.hasOwn(authProviderCodes, providerCode)) return createAppError(authProviderCodes[providerCode], error);
 
   if ((providerCode === 'signup_disabled' || providerCode === 'email_provider_disabled') || message.includes('signups not allowed') || message.includes('signup is disabled')) return createAppError(AppErrorCode.SIGNUP_DISABLED, error);
   if (providerCode === 'email_address_invalid' || message.includes('email address is invalid') || message.includes('invalid email')) return createAppError(AppErrorCode.INVALID_EMAIL, error);
