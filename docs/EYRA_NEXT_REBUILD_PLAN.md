@@ -70,6 +70,7 @@ Interfaces:
 - The server-side declarative tool registry is now separate from the request handler. Its tests freeze the current list of explicit write operations (`project.create` and `library.save_paper`) and reject duplicate or open argument schemas.
 - The full workspace/scholarly tool executor is isolated from the HTTP orchestrator; strict argument contracts and bounded PostgREST response parsing are tested independently.
 - Retrieval fanout for publications, authors, institutions and funding is now a transport-neutral module with partial-failure and cancellation tests. The React UI only supplies provider adapters.
+- Accessible EYRA conversation messages, source-chip evidence warnings and busy indicators have been moved into a reusable UI component, with source-integrity presentation tests.
 - The provider-facing server system prompt is separately versioned as an auditable module.
 - Identity-bounded project/paper/note context, monthly usage reservation/release, and false-write-permission protection are independent server modules with focused regression tests.
 - Cloud-history capability detection now distinguishes missing Supabase schema/RPC from unrelated auth/network errors; Save and history restore are gated per account, while local JSON Export stays available. This is graceful degradation, not evidence that hosted migrations have been applied.
