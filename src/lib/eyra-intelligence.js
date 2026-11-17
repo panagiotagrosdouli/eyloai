@@ -13,6 +13,9 @@ export class EyraRequestError extends Error {
     super(message);
     this.name = 'EyraRequestError';
     this.status = status;
+    this.code = typeof details.code === 'string' ? details.code : null;
+    this.retryAfterSeconds = Number.isFinite(details.retry_after_seconds)
+      ? Math.max(0, Math.min(120, details.retry_after_seconds)) : null;
     this.actions = Array.isArray(details.actions) ? details.actions : [];
     this.runId = typeof details.run_id === 'string' ? details.run_id : null;
     this.runStatus = typeof details.status === 'string' ? details.status : null;
