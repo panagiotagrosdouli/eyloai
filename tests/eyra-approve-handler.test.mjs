@@ -184,3 +184,44 @@ test('two simultaneous uses of the same signed approval cannot insert two projec
     assert.equal(events.filter(event => event.path === '/rest/v1/projects' && event.method === 'POST').length, 1);
   } finally { globalThis.fetch = prior; }
 });
+
+test('ambiguous post-write transport loss triggers needs_review and never retries', async () => {
+  enable();
+  const prior = globalThis.fetch;
+  const events = [];
+  const normal = mockBackend(events);
+  globalThis.fetch = async (url, options = {}) => {
+    const path = new URL(String(url)).pathname;
+    if (path === '/rest/v1/projects' && options.method === 'POST') {
+      events.push({ path, method: 'POST', body: JSON.parse(options.body) });
+      throw new Error('fixture: transport lost after irreversible attempt');
+    }
+    if (path === '/rest/v1/eyra_agent_actions' && options.method === 'PATCH') {
+      const body = JSON.parse(options.body);
+      events.push({ path, method: 'PATCH', body });
+      assert.equal(body.status, 'needs_review');
+      return respond([{ id: actionId, status: 'needs_review' }]);
+    }
+    if (path === '/rest/v1/eyra_agent_runs' && options.method === 'PATCH') {
+      const body = JSON.parse(options.body);
+      events.push({ path, method: 'PATCH', body });
+      assert.equal(body.status, 'needs_review');
+      return respond([{ id: runId, status: 'needs_review' }]);
+    }
+    return normal(url, options);
+  };
+  try {
+    const token = sealEyraWriteProposal({ ownerId: owner, request, proposal });
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer fixture' }, body: {
+      request, approval_token: token,
+    } }, response);
+    assert.equal(response.statusCode, 503);
+    assert.equal(response.payload.code, 'APPROVED_WRITE_OUTCOME_UNCERTAIN');
+    assert.equal(events.filter(e => e.path === '/rest/v1/projects' && e.method === 'POST').length, 1);
+    assert.ok(events.some(e => e.path === '/rest/v1/eyra_agent_actions'
+      && e.method === 'PATCH' && e.body.status === 'needs_review'));
+    assert.ok(events.some(e => e.path === '/rest/v1/eyra_agent_runs'
+      && e.method === 'PATCH' && e.body.status === 'needs_review'));
+  } finally { globalThis.fetch = prior; }
+});
