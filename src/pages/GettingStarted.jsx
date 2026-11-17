@@ -39,7 +39,7 @@ export default function GettingStarted() {
             <h3 className="mt-4 text-lg font-semibold">{label}</h3>
             <p className="mt-2 flex-1 text-sm leading-6 text-[var(--company-muted)]">{text}</p>
             <p className="mt-3 text-xs text-[var(--company-muted)]">{kind}</p>
-            <Link to={path} className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--company-border)] px-4 text-sm font-semibold text-[var(--company-action)] hover:bg-[var(--company-action)]/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#237eb5]">{button} <ArrowRight size={16} aria-hidden="true"/></Link>
+            <Link to={path} className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--company-border)] px-4 text-sm font-semibold text-[var(--company-action)] hover:bg-[var(--company-tint)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#237eb5]">{button} <ArrowRight size={16} aria-hidden="true"/></Link>
           </article>)}
         </div>
       </section>
