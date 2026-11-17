@@ -117,12 +117,24 @@ export default async function handler(request, response) {
         },
         signal: AbortSignal.timeout(TIMEOUT_MS),
       });
-      if (!upstream.ok) continue;
+      if (!upstream.ok) {
+        // Log only fixed source index and HTTP status, never query or response HTML.
+        console.warn('EURAXESS upstream HTTP failure', {
+          source_index: index, status: upstream.status,
+        });
+        continue;
+      }
       const html = await upstream.text();
-      if (html.length > 5_000_000) continue;
+      if (html.length > 5_000_000) {
+        console.warn('EURAXESS upstream size failure', { source_index: index });
+        continue;
+      }
       const items = extractJobs(html, source);
       const explicitEmpty = /class=["'][^"']*\bview-empty\b[^"']*["'][^>]*>[\s\S]{0,2000}?(?:no results|no jobs|no result|no content|no matching|your search yielded no)/i.test(html);
-      if (!items.length && !explicitEmpty) continue;
+      if (!items.length && !explicitEmpty) {
+        console.warn('EURAXESS upstream markup unrecognized', { source_index: index });
+        continue;
+      }
 
       response.setHeader('Cache-Control', 'public, s-maxage=900, stale-while-revalidate=1800');
       return response.status(200).json({

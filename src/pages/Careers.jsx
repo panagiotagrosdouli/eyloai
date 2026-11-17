@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Briefcase, ExternalLink, FileText, Loader2, MapPin, Search, ShieldCheck, Upload, X } from 'lucide-react';
 import { extractCvText } from '@/lib/cv-extraction';
+import { phdSourceLinks } from '@/lib/phd-search-links.mjs';
 import { broaderCareerSearchTerm, combineCareerSearchResults, cvSearchTerms, loadGeneralCareerListings, rankCareers, searchCareers } from '@/lib/careers-api';
 
 const TOPICS = ['PhD climate research', 'postdoctoral AI', 'public health research'];
@@ -9,6 +10,9 @@ const TOPICS = ['PhD climate research', 'postdoctoral AI', 'public health resear
 export default function Careers() {
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState(params.get('q') || '');
+  // Keep the PhD entry context as the person refines a topic or adds CV terms.
+  // This route is intentionally usable even when live EURAXESS ingestion fails.
+  const [phdEntry] = useState(() => /\b(?:ph\.?d\.?|doctoral|doctorate)\b/i.test(params.get('q') || ''));
   const [items, setItems] = useState([]);
   const [sourceUrl, setSourceUrl] = useState('');
   const [retrievedAt, setRetrievedAt] = useState('');
@@ -28,6 +32,8 @@ export default function Careers() {
   const [country, setCountry] = useState('');
   const activeSearch = useRef(null);
   const countries = useMemo(() => [...new Set(items.map(item => item.country).filter(Boolean))].sort(), [items]);
+  const showPhdSources = phdEntry || /\b(?:ph\.?d\.?|doctoral|doctorate)\b/i.test(query);
+  const phdLinks = useMemo(() => phdSourceLinks(query || searchedQuery), [query, searchedQuery]);
 
   const rankedItems = useMemo(() => rankCareers(items.filter(item => !country || item.country === country), cvText, searchedQuery), [items, cvText, searchedQuery, country]);
 
@@ -167,18 +173,38 @@ export default function Careers() {
         </form>
       </section>
 
+      {showPhdSources && (
+        <section aria-label="Find a PhD at original sources" className="mt-6 rounded-2xl border border-primary/20 bg-card p-5 sm:p-6">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">EYLO · Find a PhD</p>
+          <h2 className="mt-2 text-lg font-semibold text-foreground">Search doctoral opportunities at their source</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+            These direct searches remain available even when EYLO cannot retrieve EURAXESS listings.
+            Results open on the provider website, not inside EYLO. Check each project's
+            funding, application deadline, entry requirements and current availability there.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <a href={phdLinks.findaphd} target="_blank" rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+              {phdLinks.keywords ? `Search FindAPhD: ${phdLinks.keywords}` : 'Browse FindAPhD projects'}
+              <ExternalLink size={14} aria-hidden="true" />
+            </a>
+            <a href={phdLinks.euraxess} target="_blank" rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground">
+              Open EURAXESS job search <ExternalLink size={14} aria-hidden="true" />
+            </a>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">FindAPhD uses the topic above as search keywords; enter or change the research subject to update the link.</p>
+        </section>
+      )}
+
       <section className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]" aria-label="Career results">
         <div className="space-y-4">
           {sourceNotice && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{sourceNotice}</div>}
           {error && <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">{error}</div>}
           {!loading && (error || sourceNotice) && <button type="button" onClick={() => runSearch(searchedQuery)} className="min-h-10 rounded-lg border border-border px-4 text-sm">Retry search</button>}
-          {!loading && (error || sourceNotice) && /\b(phd|doctoral|doctorate)\b/i.test(searchedQuery) && (
-            <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
-              EYLO cannot confirm doctoral listings from an unavailable source. Continue your PhD search directly on{' '}
-              <a className="font-semibold text-primary underline" href="https://www.findaphd.com/phds/" target="_blank" rel="noopener noreferrer">FindAPhD</a>
-              {' '}or{' '}
-              <a className="font-semibold text-primary underline" href="https://euraxess.ec.europa.eu/jobs/search" target="_blank" rel="noopener noreferrer">EURAXESS</a>.
-              Verify funding, deadlines and eligibility on the original listing.
+          {!loading && (error || sourceNotice) && showPhdSources && (
+            <div role="status" className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+              EYLO could not verify all doctoral listings. Use the source-first PhD searches above to check current opportunities directly.
             </div>
           )}
           {countries.length > 1 && <label className="block text-sm">Listing location<select aria-label="Listing location" value={country} onChange={event => setCountry(event.target.value)} className="ml-2 max-w-full rounded-lg border border-border bg-background p-2"><option value="">All retrieved locations</option>{countries.map(value => <option key={value} value={value}>{value}</option>)}</select></label>}
