@@ -491,7 +491,7 @@ try {
   await page.route('**/api/eyra', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Fixture: AI unavailable' }) }));
   // The authenticated EYRA-enhanced synthesis route remains separate from EYLO's public /search.
   await page.goto(`${origin}/workspace/literature-search?q=${encodeURIComponent(provenanceTitle)}&goal=review`);
-  await page.getByRole('button', { name: 'Research', exact: true }).click();
+  // URL-provided q starts the authenticated search automatically; no Research button exists.
   await page.getByRole('heading', { name: provenanceTitle, exact: true }).waitFor();
   await page.getByText('Indexed by OpenAlex, Crossref · one publication, not independent studies.').waitFor();
   await page.getByText('Abstract metadata from Crossref.', { exact: true }).waitFor();
