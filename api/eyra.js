@@ -9,12 +9,12 @@ import {
   reserveAgentAction, completeAgentAction, finalizeAgentRun, isAgentRunCancelled,
 } from '../server/eyra-run-ledger.mjs';
 import { requestedEyraWrites } from '../src/lib/eyra-write-intent.mjs';
+import { inspectOpenAiLimit, outputText, outputRefusal, normalizeEyraSchema } from '../server/eyra-provider-contract.mjs';
 
 const MAX_PROMPT_LENGTH = 24_000;
 // Bound provider spending and prevent unexpectedly large responses on every model turn.
 const MAX_OUTPUT_TOKENS = 4_096;
 const MAX_SCHEMA_LENGTH = 32_000;
-const MAX_SCHEMA_DEPTH = 8;
 const PLAN_LIMITS = { free: FREE_MONTHLY_AI_ACTIONS, pro: null, founder: null, institution: null };
 const PROJECT_TOOLS = [
   {
@@ -221,71 +221,6 @@ Rules:
 - Report a paper as saved only when the Library write returns a persisted record and identifier.
 - Never describe a fallback or template as live research.
 - End free-form answers with one concrete next action or a focused strategic question.`;
-
-// Distinguish transient provider throttling from exhausted API billing quota.
-// Parse the provider's documented machine-readable code, never expose its
-// free-text error message or account information to browsers or logs.
-async function inspectOpenAiLimit(response) {
-  let code = '';
-  try {
-    const payload = await response.json();
-    code = String(payload?.error?.code || payload?.error?.type || '').slice(0, 80);
-  } catch { /* A malformed upstream failure remains a generic rate limit. */ }
-  const quotaExhausted = ['insufficient_quota', 'billing_hard_limit_reached', 'quota_exceeded'].includes(code);
-  const rawRetry = response.headers?.get?.('retry-after');
-  const retryAfter = rawRetry !== null && rawRetry !== undefined && /^\d{1,4}$/.test(String(rawRetry))
-    ? Math.min(300, Number(rawRetry)) : null;
-  return { quotaExhausted, retryAfter };
-}
-
-function outputText(openAiResponse) {
-  return (openAiResponse.output || [])
-    .flatMap((item) => item.content || [])
-    .filter((item) => item.type === 'output_text')
-    .map((item) => item.text)
-    .join('\n')
-    .trim();
-}
-
-function outputRefusal(openAiResponse) {
-  return (openAiResponse.output || [])
-    .flatMap((item) => item.content || [])
-    .find((item) => item.type === 'refusal')?.refusal;
-}
-
-function normalizeSchema(schema, depth = 0) {
-  if (!schema || typeof schema !== 'object' || Array.isArray(schema)) {
-    throw new Error('Invalid response schema.');
-  }
-  if (depth > MAX_SCHEMA_DEPTH) throw new Error('Response schema is too deeply nested.');
-
-  const normalized = {};
-  const scalarKeys = [
-    'type', 'description', 'enum', 'minimum', 'maximum',
-    'minLength', 'maxLength', 'minItems', 'maxItems',
-  ];
-
-  scalarKeys.forEach((key) => {
-    if (schema[key] !== undefined) normalized[key] = schema[key];
-  });
-
-  if (schema.properties || schema.type === 'object') {
-    const properties = schema.properties || {};
-    normalized.type = 'object';
-    normalized.properties = Object.fromEntries(
-      Object.entries(properties).map(([key, value]) => [key, normalizeSchema(value, depth + 1)])
-    );
-    normalized.required = Object.keys(properties);
-    normalized.additionalProperties = false;
-  }
-
-  if (schema.items || schema.type === 'array') {
-    normalized.type = 'array';
-    normalized.items = normalizeSchema(schema.items || { type: 'string' }, depth + 1);
-  }
-
-  return normalized;
-}
 
 function supabaseServerKey() {
   return process.env.SUPABASE_SECRET_KEY
@@ -1098,7 +1033,7 @@ export default async function handler(request, response) {
         return response.status(400).json({ error: 'The requested response structure is too large.' });
       }
       try {
-        responseSchema = normalizeSchema(requestedSchema);
+        responseSchema = normalizeEyraSchema(requestedSchema);
       } catch (error) {
         return response.status(400).json({
           error: error?.message || 'Invalid response schema.',
