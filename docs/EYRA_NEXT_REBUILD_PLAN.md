@@ -72,6 +72,7 @@ Interfaces:
 - Retrieval fanout for publications, authors, institutions and funding is now a transport-neutral module with partial-failure and cancellation tests. The React UI only supplies provider adapters.
 - The provider-facing server system prompt is separately versioned as an auditable module.
 - Identity-bounded project/paper/note context, monthly usage reservation/release, and false-write-permission protection are independent server modules with focused regression tests.
+- Cloud-history capability detection now distinguishes missing Supabase schema/RPC from unrelated auth/network errors; Save and history restore are gated per account, while local JSON Export stays available. This is graceful degradation, not evidence that hosted migrations have been applied.
 - Offline unit tests cover mode identifiers, provider error classification and schema normalization, and Greek/English retrieval routing.
 
 **Explicit non-goals of this slice:** no declaration that the full EYRA has been rebuilt; no new endpoint, cloud persistence, schema migration, real model test, changed tool privileges, or production deployment. Keep this PR reviewable and verify CI at its exact head before considering integration.
