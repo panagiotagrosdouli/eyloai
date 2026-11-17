@@ -6,7 +6,7 @@ test('getting started is public and independent of AI and sign-in',()=>{
  const app=source('App.jsx'),start=source('pages/GettingStarted.jsx');
  assert.match(app,/path="\/start" element=\{<GettingStarted \/>}/);
  assert.match(start,/You do not need research or technical experience/);
- for(const route of ['/search','/academics','/careers','/projects','/library','/contact']) {
+ for(const route of ['/search','/academics','/careers','/projects','/library','/company']) {
    assert.ok(start.includes("path:'"+route+"'") || start.includes('to="'+route+'"'),route);
  }
  assert.match(start,/No account needed to search/);
@@ -36,4 +36,11 @@ test('public entry does not promise AI before its provider succeeds',()=>{
  assert.doesNotMatch(landing,/Enter EYLO AI/);
  assert.match(landing,/Explore research <ArrowUpRight/);
  assert.match(landing,/to="\/discover"/);
+});
+
+test('first-time guidance does not direct users to disabled contact delivery',()=>{
+  const guide=source('pages/GettingStarted.jsx');
+  assert.match(guide,/to="\/company"/);
+  assert.match(guide,/Learn more about EYLO/);
+  assert.doesNotMatch(guide,/Contact EYLO for help/);
 });

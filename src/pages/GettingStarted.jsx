@@ -65,7 +65,7 @@ export default function GettingStarted() {
         </div>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link to="/search" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground"><Search size={16} aria-hidden="true"/>Try public research search</Link>
-          <Link to="/contact" className="inline-flex min-h-11 items-center rounded-xl border border-border px-5 text-sm font-semibold hover:bg-secondary">Contact EYLO for help</Link>
+          <Link to="/company" className="inline-flex min-h-11 items-center rounded-xl border border-border px-5 text-sm font-semibold hover:bg-secondary">Learn more about EYLO</Link>
         </div>
       </section>
     </div>
