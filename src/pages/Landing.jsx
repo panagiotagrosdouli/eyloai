@@ -171,7 +171,7 @@ export default function Landing() {
               to="/discover"
               className="hidden min-h-10 items-center gap-2 rounded-xl company-primary px-3 text-xs font-semibold text-white transition sm:inline-flex sm:px-5 sm:text-[13px]"
             >
-              Enter EYLO AI <ArrowUpRight size={15} aria-hidden="true" />
+              Explore research <ArrowUpRight size={15} aria-hidden="true" />
             </Link>
             <button
               type="button"
@@ -248,7 +248,7 @@ export default function Landing() {
             className="rounded-lg p-3"
             onClick={() => setMenuOpen(false)}
           >
-            Enter EYLO AI
+            Explore research
           </Link>
         </nav>
       </header>

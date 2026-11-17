@@ -30,3 +30,10 @@ test('page crashes offer a safe public guide rather than trapping a beginner',()
  assert.match(boundary,/Not sure where to go\? Start here/);
  assert.match(boundary,/hasError: false/);
 });
+
+test('public entry does not promise AI before its provider succeeds',()=>{
+ const landing=source('pages/Landing.jsx');
+ assert.doesNotMatch(landing,/Enter EYLO AI/);
+ assert.match(landing,/Explore research <ArrowUpRight/);
+ assert.match(landing,/to="\/discover"/);
+});
