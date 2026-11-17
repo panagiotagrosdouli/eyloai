@@ -69,6 +69,10 @@ test('structured Supabase Auth codes produce safe, actionable errors independent
   assert.equal(throttled.code, AppErrorCode.RATE_LIMITED);
   const outage = mapSupabaseError({ code: 'invalid_credentials', status: 503 });
   assert.equal(outage.code, AppErrorCode.SERVICE_UNAVAILABLE);
+  const providerDelivery = mapSupabaseError({
+    code: 'unexpected_failure', status: 500, message: 'Error sending confirmation email',
+  });
+  assert.equal(providerDelivery.code, AppErrorCode.EMAIL_SEND_FAILED);
 });
 
 
