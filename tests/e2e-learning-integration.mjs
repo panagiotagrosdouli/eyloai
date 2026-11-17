@@ -511,7 +511,8 @@ try {
     });
   });
   await page.goto(`${origin}/home`);
-  await page.getByRole('button', { name: 'Ask EYRA', exact: true }).click();
+  await page.getByRole('complementary', { name: 'Research assistant and continuation' })
+    .getByRole('button', { name: 'Ask EYRA', exact: true }).click();
   const beforeRecoveryCalls = aiCalls;
   await page.getByLabel('Message EYRA').fill('Help me review the limitations in my research sources');
   await page.getByLabel('Message EYRA').press('Enter');
