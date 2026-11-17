@@ -543,7 +543,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     setActionError('');
     // Token is single-attempt from the browser's perspective; the durable
     // server ledger prevents a second write even after an ambiguous response.
-    setWritePreview({ ...preview, status: 'loading', approvalToken: null });
+    setWritePreview({ ...preview, status: 'committing', approvalToken: null });
     try {
       const result = await approveEyraWrite({
         request: review.content, approvalToken: preview.approvalToken, signal: controller.signal,
