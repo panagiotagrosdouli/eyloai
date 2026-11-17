@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { buildUserProfile } from '@/lib/second-brain';
@@ -10,6 +11,7 @@ import { checkEyraCitationIds } from '@/lib/eyra-citation-ids.mjs';
 import { buildEyraCommandEvidence, buildEyraCommandPrompt } from '@/lib/eyra-command-evidence.mjs';
 import { describeEyraCitedEvidence } from '@/lib/eyra-evidence-status.mjs';
 import { buildEvidenceOnlyFallback } from '@/lib/eyra-evidence-fallback.mjs';
+import { eyraProviderRecoveryNotice } from '@/lib/eyra-provider-recovery.mjs';
 import {
   X, Mic, MicOff, Send, Sparkles, Loader2,
   Volume2, VolumeX, Target, FileText, Users,
@@ -386,6 +388,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const [savingMessageId, setSavingMessageId] = useState(null);
   const [copiedMessageId, setCopiedMessageId] = useState(null);
   const [actionError, setActionError] = useState('');
+  const [providerNotice, setProviderNotice] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -399,7 +402,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     setWorkspaceContext(''); setContextStatus('idle'); setLiveDraft(''); setLoading(false);
     setRemoteConversation(null); setSavedConversations([]); setAllowWorkspaceActions(false);
     historyEpochRef.current += 1; snapshotRequestRef.current = null; historyWriteLockRef.current = false; setHistoryBusy(false);
-    setSavingConversation(false); setSavedMessageIds(new Set()); setUserName(''); setActionError('');
+    setSavingConversation(false); setSavedMessageIds(new Set()); setUserName(''); setActionError(''); setProviderNotice(null);
     setShowAgentRuns(false); setAgentRuns([]); setSelectedAgentRun(null);
     setAgentRunsBusy(false); setAgentRunsError('');
   }, [user?.id]);
@@ -570,6 +573,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     activeRequestRef.current = controller;
     setInput('');
     setActionError('');
+    setProviderNotice(null);
     setLiveDraft('');
 
     const userMsg = { role: 'user', content, timestamp: Date.now() };
@@ -648,6 +652,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
       speak(eyraMsg.content);
     } catch (error) {
       if (controller.signal.aborted) return;
+      setProviderNotice(eyraProviderRecoveryNotice(error));
       const fallbackContent = buildEvidenceOnlyFallback(evidence, error);
       const toolActions = formatEyraToolActions(error?.actions);
       const runReference = typeof error?.runId === 'string'
@@ -902,6 +907,8 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     window.speechSynthesis?.cancel();
     setMessages([{ ...createWelcomeMessage(userName), mode: activeMode }]);
     setInput('');
+    setProviderNotice(null);
+    setActionError('');
   };
 
   const handleKeyDown = (e) => {
@@ -1161,7 +1168,16 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
               </div>
             </div>
             {actionError && (
-              <p role="alert" className="mt-2 text-center text-[10px] text-amber-300">{actionError}</p>
+              <p role="alert" className="mt-2 text-center text-xs leading-5 text-amber-300">{actionError}</p>
+            )}
+            {providerNotice && (
+              <section role="status" aria-label="EYRA provider recovery" className="mt-3 rounded-xl border border-amber-400/40 bg-amber-500/10 p-4">
+                <p className="text-sm font-semibold text-foreground">{providerNotice.title}</p>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">{providerNotice.message}</p>
+                <Link to="/search" onClick={onClose} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-background px-4 text-sm font-semibold text-primary hover:bg-secondary">
+                  Browse publications without AI <ExternalLink size={15} aria-hidden="true" />
+                </Link>
+              </section>
             )}
             <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">
               Responses may use workspace context and retrieved records · Enter to send · Shift+Enter for a new line

@@ -182,6 +182,15 @@ try {
   await page.getByLabel('Password').fill('Fixture-password-123');
   await page.getByRole('button', { name: 'Continue with password' }).click();
   await page.getByRole('heading', { name: 'Continue your research' }).waitFor({ state: 'detached' });
+  // The signed-in home is the real EYLO dashboard, not a marketing image.
+  await page.goto(`${origin}/home`);
+  await page.getByRole('heading', { name: /Find the evidence/ }).waitFor();
+  await page.getByRole('navigation', { name: 'Common starting actions' }).getByRole('link', { name: /Find publications/ }).waitFor();
+  await page.getByRole('complementary', { name: 'Research assistant and continuation' }).waitFor();
+  await page.getByRole('button', { name: 'Ask EYRA', exact: true }).waitFor();
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Signed-in Home mobile overflow');
+  await capture(page, 'signed-in-evidence-first-home-mobile');
+  console.log('PASS fixture: evidence-first signed-in Home provides source search, saved work, no fake projects and honest EYRA status on mobile.');
   await page.goto(`${origin}/time-tracker`);
   await page.getByRole('heading', { name: 'EYLO Time Tracker' }).waitFor();
   await page.getByLabel('What are you working on?').fill('Review source methods');
@@ -491,6 +500,31 @@ try {
   assert.equal(tables.projects[0].data.review_protocol.screening.length, 0);
   tables.saved_papers = retainedRows;
   console.log('PASS fixture: retained source beyond recent100 renders on desktop/mobile, saves and exports exact metadata; unavailable sources remain explicit until researcher removal. No hosted RLS claim.');
+
+  // When OpenAI throttles EYRA, the user can still open public scholarly
+  // discovery; a provider outage must never cause an automatic second AI call.
+  await page.route('**/api/eyra', async route => {
+    aiCalls++;
+    await route.fulfill({
+      status: 503, headers, contentType: 'application/json',
+      body: JSON.stringify({ error: 'Synthetic provider throttle', code: 'OPENAI_RATE_LIMITED', retry_after_seconds: 12 }),
+    });
+  });
+  await page.goto(`${origin}/home`);
+  await page.getByRole('complementary', { name: 'Research assistant and continuation' })
+    .getByRole('button', { name: 'Ask EYRA', exact: true }).click();
+  const beforeRecoveryCalls = aiCalls;
+  await page.getByLabel('Message EYRA').fill('Help me review the limitations in my research sources');
+  await page.getByLabel('Message EYRA').press('Enter');
+  const providerRecovery = page.getByRole('status', { name: 'EYRA provider recovery' });
+  await providerRecovery.waitFor();
+  await providerRecovery.getByText('EYRA is temporarily rate-limited').waitFor();
+  await providerRecovery.getByText(/12 seconds/).waitFor();
+  await capture(page, 'eyra-provider-recovery-mobile');
+  await providerRecovery.getByRole('link', { name: 'Browse publications without AI' }).click();
+  await page.waitForURL('**/search');
+  assert.equal(aiCalls, beforeRecoveryCalls + 1, 'EYRA failure must not trigger automatic retries');
+  console.log('PASS fixture: EYRA provider 429 offers source-only research recovery with one AI request and no automatic retry.');
 
   // Provider-shaped synthetic records exercise the real discovery normalizers,
   // card attribution and canonical Library persistence without live providers.
