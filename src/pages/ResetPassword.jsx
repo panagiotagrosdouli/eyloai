@@ -46,7 +46,7 @@ export default function ResetPassword() {
         icon={Lock}
         title="Workspace access restored"
         subtitle="Your password has been updated."
-        footer={<Link to={loginHref} className="font-medium text-cyan-300 hover:underline">Continue to sign in</Link>}
+        footer={<Link to={loginHref} className="font-medium text-[var(--company-action)] hover:underline">Continue to sign in</Link>}
       >
         <div role="status" className="rounded-xl border border-emerald-300/15 bg-emerald-300/[0.05] p-4 text-sm leading-6 text-emerald-100">
           You can now return to your saved evidence, projects and EYRA work with the new password.
@@ -65,34 +65,34 @@ export default function ResetPassword() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-slate-300">New password</Label>
+          <Label htmlFor="password" className="text-[var(--company-ink)]">New password</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
             <Input id="password" type="password" autoComplete="new-password" autoFocus placeholder="••••••••"
-              className="h-12 border-white/10 bg-white/[0.025] pl-10 text-white"
+              className="h-12 border-[var(--company-border)] bg-[var(--company-surface)] pl-10 text-[var(--company-ink)]"
               aria-invalid={Boolean(errors.password)} disabled={isSubmitting} {...register("password")} />
           </div>
-          {errors.password && <p role="alert" className="text-xs text-red-300">{errors.password.message}</p>}
+          {errors.password && <p role="alert" className="text-xs text-[var(--company-error)]">{errors.password.message}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword" className="text-slate-300">Confirm new password</Label>
+          <Label htmlFor="confirmPassword" className="text-[var(--company-ink)]">Confirm new password</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
             <Input id="confirmPassword" type="password" autoComplete="new-password" placeholder="••••••••"
-              className="h-12 border-white/10 bg-white/[0.025] pl-10 text-white"
+              className="h-12 border-[var(--company-border)] bg-[var(--company-surface)] pl-10 text-[var(--company-ink)]"
               aria-invalid={Boolean(errors.confirmPassword)} disabled={isSubmitting} {...register("confirmPassword")} />
           </div>
-          {errors.confirmPassword && <p role="alert" className="text-xs text-red-300">{errors.confirmPassword.message}</p>}
+          {errors.confirmPassword && <p role="alert" className="text-xs text-[var(--company-error)]">{errors.confirmPassword.message}</p>}
         </div>
 
         <Button type="submit" className="h-12 w-full font-semibold" disabled={isSubmitting}>
           {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Updating password…</> : "Update password"}
         </Button>
       </form>
-      <p className="mt-5 text-center text-sm text-slate-400">
+      <p className="mt-5 text-center text-sm text-[var(--company-muted)]">
         Recovery link expired?{" "}
-        <Link to={`/forgot-password${destination === "/home" ? "" : `?from=${encodeURIComponent(destination)}`}`} className="font-medium text-cyan-300 hover:underline">
+        <Link to={`/forgot-password${destination === "/home" ? "" : `?from=${encodeURIComponent(destination)}`}`} className="font-medium text-[var(--company-action)] hover:underline">
           Request a new one
         </Link>
       </p>
