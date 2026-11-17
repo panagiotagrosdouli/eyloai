@@ -1,5 +1,6 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
+import { billingActive, serverHeaders, authenticate } from '../server/eyra-auth-boundary.mjs';
 import crypto from 'node:crypto';
 import { FREE_MONTHLY_AI_ACTIONS } from '../src/lib/eyra-usage-policy.mjs';
 import { matchesEyraResponseSchema } from '../src/lib/eyra-structured-contract.mjs';
@@ -221,73 +222,6 @@ Rules:
 - Report a paper as saved only when the Library write returns a persisted record and identifier.
 - Never describe a fallback or template as live research.
 - End free-form answers with one concrete next action or a focused strategic question.`;
-
-function supabaseServerKey() {
-  return process.env.SUPABASE_SECRET_KEY
-    || process.env.SUPABASE_SERVICE_ROLE_KEY;
-}
-
-function serverHeaders(key) {
-  const headers = {
-    apikey: key,
-    accept: 'application/json',
-    'content-type': 'application/json',
-  };
-  if (!key.startsWith('sb_')) headers.authorization = `Bearer ${key}`;
-  return headers;
-}
-
-function billingActive() {
-  return Boolean(
-    process.env.STRIPE_SECRET_KEY
-    && process.env.STRIPE_WEBHOOK_SECRET
-    && process.env.STRIPE_PRO_PRICE_ID
-    && process.env.STRIPE_FOUNDER_PRICE_ID
-    && supabaseServerKey()
-  );
-}
-
-async function authenticate(authorization) {
-  const bearer = Array.isArray(authorization) ? authorization[0] : authorization;
-  if (!bearer?.startsWith('Bearer ') || !bearer.slice(7).trim()) {
-    console.warn('EYRA auth rejected', { reason: 'missing_bearer' });
-    return null;
-  }
-
-  const config = readSupabaseApiConfig();
-  if (!config.hasPublicConfig) {
-    console.error('EYRA auth rejected', { reason: 'missing_supabase_public_key' });
-    return null;
-  }
-  const { publicKey, url: supabaseUrl } = config;
-
-  const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
-    headers: { authorization: bearer, apikey: publicKey },
-    cache: 'no-store',
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (!authResponse.ok) {
-    console.warn('EYRA auth rejected', { reason: 'supabase_user_rejected', status: authResponse.status });
-    return null;
-  }
-  const user = await authResponse.json();
-
-  let entitlement = {};
-  const serverKey = supabaseServerKey();
-  if (billingActive()) {
-    const entitlementResponse = await fetch(
-      `${supabaseUrl}/rest/v1/billing_entitlements?user_id=eq.${encodeURIComponent(user.id)}&select=*&limit=1`,
-      { headers: serverHeaders(serverKey) },
-    );
-    if (!entitlementResponse.ok) {
-      throw new Error('Could not load EYRA billing entitlement.');
-    }
-    const rows = await entitlementResponse.json();
-    entitlement = rows?.[0] || {};
-  }
-
-  return { user, entitlement, serverKey, supabaseUrl, bearer, publicKey };
-}
 
 function entityFromRow(row) {
   if (!row || typeof row.id !== 'string' || !row.data || typeof row.data !== 'object' || Array.isArray(row.data)) {
