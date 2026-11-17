@@ -73,3 +73,9 @@ test('the Back provider spans public Discover and signed-in workspace pages',()=
   const close=app.indexOf('</WorkspaceNavigationProvider>');
   assert.ok(open >= 0 && open < search && search < privateRoutes && privateRoutes < close);
 });
+
+test('Back never returns to a sign-in, recovery, callback or deletion form',()=>{
+  for(const path of ['/login?from=%2Fprojects','/register','/forgot-password','/reset-password','/auth/callback?code=fixture','/account-deletion']){
+    assert.deepEqual(advanceWorkspaceTrail(['/home'],path),['/home']);
+  }
+});

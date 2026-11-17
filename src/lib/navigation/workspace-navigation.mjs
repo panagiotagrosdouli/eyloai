@@ -93,6 +93,9 @@ export function advanceWorkspaceTrail(trail, path) {
   const prior = (Array.isArray(trail) ? trail : [])
     .filter(isSafeWorkspaceHref).slice(-12);
   if (!isSafeWorkspaceHref(path)) return prior;
+  // Account sign-in, recovery and deletion entry screens must never become
+  // the destination of Back after a successful login or account change.
+  if (/^\/(?:login|register|forgot-password|reset-password|auth\/callback|account-deletion)(?:\?|$)/.test(path)) return prior;
   if (prior.at(-1) === path) return prior;
   const index = prior.lastIndexOf(path);
   return index >= 0 ? prior.slice(0,index+1) : [...prior,path].slice(-12);
