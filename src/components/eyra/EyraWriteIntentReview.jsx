@@ -5,7 +5,7 @@ import React from 'react';
  * NOT an exact-field preview of the model's proposed record. Server-side
  * authentication, write-intent validation and RLS remain mandatory.
  */
-export default function EyraWriteIntentReview({ review, onCancel, onEdit, onConfirm }) {
+export default function EyraWriteIntentReview({ review, onCancel, onEdit, onConfirm, onPreview, preview }) {
   if (!review) return null;
   return (
     <section role="group" aria-label="Review EYRA write request"
@@ -20,11 +20,36 @@ export default function EyraWriteIntentReview({ review, onCancel, onEdit, onConf
       <p className="mt-2 max-h-24 overflow-auto whitespace-pre-wrap break-words rounded-md border border-border p-2">
         {review.content}
       </p>
+      {preview?.status === 'ready' && (
+        <div role="status" aria-label="EYRA proposed record fields"
+          className="mt-2 rounded-lg border border-border bg-background p-2">
+          <p className="font-semibold">Exact fields proposed by EYRA — draft only</p>
+          {preview.proposals.length === 0 && <p>No record was proposed. Nothing was saved.</p>}
+          {preview.proposals.map((proposal, index) => (
+            <div key={proposal.tool + ':' + index} className="mt-2">
+              <p className="font-medium">{proposal.tool}</p>
+              {Object.entries(proposal.fields).map(([field, value]) => (
+                <p key={field} className="mt-1 break-words whitespace-pre-wrap">
+                  <strong>{field}:</strong> {String(value)}
+                </p>
+              ))}
+            </div>
+          ))}
+          <p className="mt-2 text-muted-foreground">
+            This is not a saved record, and approval is not bound to these draft fields.
+            Confirm and send may generate different values. The exact-field execution approval workflow is not active.
+          </p>
+        </div>
+      )}
+      {preview?.status === 'error' && <p role="alert" className="mt-2 text-destructive">{preview.error}</p>}
       <div className="mt-2 flex flex-wrap justify-end gap-2">
         <button type="button" aria-label="Cancel pending EYRA write" className="rounded-lg border border-border px-3 py-2"
           onClick={onCancel}>Cancel</button>
         <button type="button" aria-label="Edit pending EYRA write" className="rounded-lg border border-border px-3 py-2"
           onClick={onEdit}>Edit</button>
+        <button type="button" aria-label="Preview EYRA proposed write fields without saving"
+          disabled={preview?.status === 'loading'} className="rounded-lg border border-border px-3 py-2"
+          onClick={onPreview}>{preview?.status === 'loading' ? 'Preparing preview…' : 'Preview fields (no save)'}</button>
         <button type="button" aria-label="Confirm and send EYRA write" className="rounded-lg bg-primary px-3 py-2 text-primary-foreground"
           onClick={onConfirm}>Confirm and send</button>
       </div>
