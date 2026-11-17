@@ -46,6 +46,25 @@ test('malformed confirmed runs are not represented as successful runs', () => {
   assert.throws(() => summarizeTaskAutomations(null), /unavailable/);
 });
 
+test('do not count malformed, duplicate or empty task IDs as confirmed execution', () => {
+  const output = summarizeTaskAutomations([{
+    id: id(1), title: 'Research',
+    product_workflow_runs: [
+      { id: id(11), created_at: '2026-11-17T09:00:00Z', task_ids: [] },
+      { id: id(12), created_at: '2026-11-17T09:01:00Z', task_ids: ['not-a-task'] },
+      { id: id(13), created_at: '2026-11-17T09:02:00Z', task_ids: [id(30), id(30)] },
+      { id: id(14), created_at: '2026-11-17T09:03:00Z', task_ids: [id(31)] },
+    ],
+  }]);
+  assert.equal(output.visibleRuns, 1);
+  assert.equal(output.projects[0].runs[0].id, id(14));
+});
+
+test('signed-out state can display its error rather than an endless spinner', () => {
+  const page = readFileSync(new URL('../src/pages/TaskAutomations.jsx', import.meta.url), 'utf8');
+  assert.match(page, /const ownerId = user\?\.id \?\? null;/);
+});
+
 test('task automations route exposes the actual hub, never a silent project chooser redirect', () => {
   const app = readFileSync(new URL('../src/App.jsx', import.meta.url),'utf8');
   const layout = readFileSync(new URL('../src/components/layout/AppLayout.jsx', import.meta.url),'utf8');
