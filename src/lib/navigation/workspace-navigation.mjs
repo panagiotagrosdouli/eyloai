@@ -23,6 +23,11 @@ const SECTIONS = Object.freeze({
  '/profile':['Profile','/home'], '/settings':['Settings','/home'],
  '/pricing':['Plans and access','/home'], '/notifications':['Notifications','/home'],
 });
+const PROJECT_RESEARCH = Object.freeze({
+ journal:'Research Journal',
+ experiments:'Experiment Lab',
+ publications:'Publication Tracker'
+});
 const SPECIAL = Object.freeze({
  thesis:'Thesis studio', spreadsheet:'Spreadsheet', budget:'Research budget',
  decisions:'Project decisions', research:'Research records',
@@ -54,8 +59,10 @@ export function getWorkspaceNavigation(pathname) {
     if (!project[2]) return result([...crumbs,{label:'Project',path:null}],'/projects');
     crumbs.push({label:'Project',path:projectPath});
     const parts = project[2].split('/');
-    const name = parts[0] === 'workbench' && parts[1]
-      ? readable(parts[1]) : SPECIAL[parts[0]] || readable(parts[0]);
+    const name = parts[0] === 'research'
+      ? PROJECT_RESEARCH[parts[1]] || 'Research records'
+      : parts[0] === 'workbench' && parts[1]
+        ? readable(parts[1]) : SPECIAL[parts[0]] || readable(parts[0]);
     return result([...crumbs,{label:name,path:null}],projectPath);
   }
   if (path === '/life/goals') return result([

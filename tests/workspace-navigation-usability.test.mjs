@@ -89,3 +89,21 @@ test('mobile Back never prints raw or noncanonical project identifiers',()=>{
   const ordinary=getWorkspaceNavigation('/projects/123e4567-e89b-42d3-a456-426614174000/thesis');
   assert.equal(ordinary.backLabel,'Project');
 });
+
+test('nested research workspaces have exact, plain-language names',()=>{
+ const project='10000000-0000-0000-0000-000000000001';
+ const cases=[
+   ['/research/journal','Research Journal'],
+   ['/research/experiments','Experiment Lab'],
+   ['/research/publications','Publication Tracker'],
+   ['/research/unrecognized','Research records']
+ ];
+ for(const [suffix,title] of cases){
+   const page=getWorkspaceNavigation('/projects/'+project+suffix);
+   assert.equal(page.backPath,'/projects/'+project);
+   assert.equal(page.backLabel,'Project');
+   assert.equal(page.crumbs.at(-1).label,title);
+   assert.equal(page.crumbs[1].path,'/projects/'+project);
+   assert.doesNotMatch(page.crumbs.map(c=>c.label).join(' / '),/10000000/);
+ }
+});
