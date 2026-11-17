@@ -7,6 +7,7 @@ import { searchFundingOpportunities } from '@/lib/funding-api';
 import { getPreferenceLocale, loadPreferences, subscribePreferences } from '@/lib/preferences';
 import { getLocalGreeting } from '@/lib/local-greeting';
 import { checkEyraCitationIds, isSafeEyraSourceUrl } from '@/lib/eyra-citation-ids.mjs';
+import { buildEyraCommandEvidence, buildEyraCommandPrompt } from '@/lib/eyra-command-evidence.mjs';
 import { describeEyraCitedEvidence } from '@/lib/eyra-evidence-status.mjs';
 import { buildEvidenceOnlyFallback } from '@/lib/eyra-evidence-fallback.mjs';
 import {
@@ -106,57 +107,37 @@ function compactQuery(content, workspaceContext) {
   return (cleaned.length >= 18 ? cleaned : `${cleaned} ${contextAnchor}`).trim().slice(0, 280) || content.slice(0, 280);
 }
 
-async function retrieveEvidence(content, mode, workspaceContext) {
+async function retrieveEvidence(content, mode, workspaceContext, signal) {
+  signal?.throwIfAborted();
   const intent = shouldRetrieve(content, mode);
   const query = compactQuery(content, workspaceContext);
   const tasks = [];
 
   if (intent.papers) {
-    tasks.push(searchAllPapersWithStatus(query, { limit: 16 }).then(result => ({
+    tasks.push(searchAllPapersWithStatus(query, { limit: 16, signal }).then(result => ({
       kind: 'papers',
       items: result.papers || [],
       status: result.source_status || [],
     })));
   }
   if (intent.people) {
-    tasks.push(searchOpenAlexAuthors(query, 6).then(items => ({ kind: 'researchers', items })));
-    tasks.push(searchOpenAlexInstitutions(query, 4).then(items => ({ kind: 'institutions', items })));
+    tasks.push(searchOpenAlexAuthors(query, 6, { throwOnError: true, signal }).then(items => ({ kind: 'researchers', items })));
+    tasks.push(searchOpenAlexInstitutions(query, 4, { throwOnError: true, signal }).then(items => ({ kind: 'institutions', items })));
   }
-  if (intent.funding) tasks.push(searchFundingOpportunities(query, 10).then(result => ({ kind: 'funding', items: result.items || [] })));
+  if (intent.funding) tasks.push(searchFundingOpportunities(query, 10, { signal }).then(result => ({ kind: 'funding', items: result.items || [] })));
 
   if (!tasks.length) return { query, blocks: [], sources: [], attempted: false };
 
   const settled = await Promise.allSettled(tasks);
+  signal?.throwIfAborted();
   /** @type {Record<string, {kind: string, items: any[], status?: any[]}>} */
   const groups = Object.fromEntries(
     settled.filter(result => result.status === 'fulfilled').map(result => [result.value.kind, result.value]),
   );
-  const failed = settled.filter(result => result.status === 'rejected').map(result => result.reason?.message || 'source unavailable');
+  const failedCount = settled.filter(result => result.status === 'rejected').length;
 
-  const papers = (groups.papers?.items || []).slice(0, 8);
-  const researchers = (groups.researchers?.items || []).slice(0, 6);
-  const institutions = (groups.institutions?.items || []).slice(0, 4);
-  const funding = (groups.funding?.items || []).slice(0, 8);
-  const sources = [
-    ...papers.map((item, index) => ({ id: `P${index + 1}`, type: 'Paper', title: item.title, url: item.url, meta: [item.authors, item.year, item.source, item.summary_source ? `Abstract: ${item.summary_source}` : '', item.metadata_conflict ? 'Provider title conflict: check original' : ''].filter(Boolean).join(' · ') })),
-    ...researchers.map((item, index) => ({ id: `R${index + 1}`, type: 'Researcher', title: item.name, url: item.profile_url, meta: [item.institution, `${item.works_count || 0} works`].filter(Boolean).join(' · ') })),
-    ...institutions.map((item, index) => ({ id: `I${index + 1}`, type: 'Institution', title: item.name, url: item.url, meta: [item.country, `${item.works_count || 0} works`].filter(Boolean).join(' · ') })),
-    ...funding.map((item, index) => ({ id: `F${index + 1}`, type: 'Funding', title: item.title, url: item.source_url, meta: [item.agency, item.deadline].filter(Boolean).join(' · ') })),
-  ].filter(item => isSafeEyraSourceUrl(item.url));
-
-  const blocks = [
-    ...papers.map((item, index) => `[P${index + 1}] PAPER | ${item.title} | DOI ${item.doi || 'unavailable'} | source ID ${item.id || 'unavailable'} | ${item.authors || 'authors unavailable'} | ${item.year || 'year unavailable'} | ${item.source || 'source unavailable'} | abstract source ${item.summary_source || 'not supplied'} | indexed by ${(item.indexed_by || []).join(', ') || 'not supplied'} | metadata conflict ${item.metadata_conflict ? 'YES: verify original DOI record' : 'not detected; not independent verification'} | citations ${item.cited_by_count || 0} | ${item.summary || 'abstract unavailable'} | URL ${item.url}`),
-    ...researchers.map((item, index) => `[R${index + 1}] RESEARCHER | ${item.name} | ${item.institution || 'institution unavailable'} | ${item.research_areas || 'areas unavailable'} | ${item.works_count || 0} works | ${item.citation_count || 0} citations | URL ${item.profile_url}`),
-    ...institutions.map((item, index) => `[I${index + 1}] INSTITUTION | ${item.name} | ${item.type || 'type unavailable'} | ${item.country || 'country unavailable'} | ${item.works_count || 0} works | URL ${item.url}`),
-    ...funding.map((item, index) => `[F${index + 1}] FUNDING | ${item.title} | ${item.agency || 'agency unavailable'} | deadline ${item.deadline || 'not supplied'} | amount ${item.amount || 'not supplied'} | eligibility ${item.eligibility || 'open official record'} | ${item.description || ''} | URL ${item.source_url}`),
-  ];
-
-  const paperSourcesUnavailable = (groups.papers?.status || [])
-    .filter(source => source.status === 'unavailable')
-    .map(source => source.label);
-  if (paperSourcesUnavailable.length) blocks.push(`SOURCE STATUS | Partial scholarly retrieval: ${paperSourcesUnavailable.join(', ')} unavailable.`);
-  if (failed.length) blocks.push(`SOURCE STATUS | ${failed.length} retrieval task(s) unavailable: ${failed.join('; ')}`);
-  return { query, blocks, sources, attempted: true };
+  const packet = buildEyraCommandEvidence(groups, failedCount);
+  return { query, ...packet, attempted: true };
 }
 
 function createWelcomeMessage(name = '') {
@@ -605,16 +586,24 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
         content,
         activeMode,
         preferences.data_personalization ? workspaceContext : '',
+        controller.signal,
       );
       controller.signal.throwIfAborted();
       setLoadingStage('reasoning');
       const language = LANGUAGE_NAMES[preferences.language] || 'the language used by the user';
       const style = STYLE_INSTRUCTIONS[preferences.ai_response_style] || STYLE_INSTRUCTIONS.balanced;
-      const evidenceText = evidence.blocks.length
-        ? [...evidence.blocks.filter(block => block.startsWith('SOURCE STATUS')), ...evidence.blocks.filter(block => !block.startsWith('SOURCE STATUS'))].join('\n')
-        : evidence.attempted
-          ? 'Retrieval completed but returned no usable records.'
-          : 'No external retrieval was necessary for this planning request. Do not introduce external factual claims.';
+      const prompt = buildEyraCommandPrompt({
+        baseSystem: BASE_SYSTEM,
+        modePrompt: mode?.prompt || MODES[0].prompt,
+        language,
+        style,
+        personalized: preferences.data_personalization,
+        workspaceContext,
+        query: evidence.query,
+        evidenceBlocks: evidence.blocks,
+        history,
+        userRequest: content,
+      });
 
       const response = await base44.integrations.Core.InvokeLLM({
         enable_project_tools: allowWorkspaceActions,
@@ -624,35 +613,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
         latest_user_request: content,
         write_confirmed: allowWorkspaceActions && writeConfirmed,
         ...(preferences.data_personalization && resourceContext ? { resource_context: resourceContext } : {}),
-        prompt: `${BASE_SYSTEM}
-
-ANALYSIS MODE:
-${mode?.prompt || MODES[0].prompt}
-
-USER PREFERENCES:
-- Respond in ${language}.
-- ${style}
-
-SAVED WORKSPACE CONTEXT (user-provided; not independently verified):
-${preferences.data_personalization
-  ? (workspaceContext.slice(0, 5000) || 'Workspace context is unavailable.')
-  : 'Personalization is disabled. Do not use workspace activity.'}
-
-LIVE RETRIEVAL QUERY:
-${evidence.query}
-
-RETRIEVED EVIDENCE:
-${evidenceText.slice(0, 8000)}
-
-RECENT CONVERSATION:
-${history}
-
-LATEST USER REQUEST (preserved in full):
-${content}
-
-Context excerpts are bounded and may omit records or details. State those limits; do not infer a complete workspace or literature review.
-
-Answer the user's latest request. Cite every externally verifiable claim with the supplied identifier. If no record supports a named claim, omit it or label it as an unverified hypothesis. Explain why each recommendation follows from evidence or workspace context. Never claim that a person is available, that a user is eligible, or that a grant is open unless the supplied record states it.`,
+        prompt,
         signal: controller.signal,
       });
       controller.signal.throwIfAborted();
