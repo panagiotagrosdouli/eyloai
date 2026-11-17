@@ -7,7 +7,7 @@ import { summarizeTaskAutomations } from '@/lib/task-automation-overview.mjs';
 
 export default function TaskAutomations() {
   const { user } = useAuth();
-  const ownerId = user?.id;
+  const ownerId = user?.id ?? null;
   const [revision, setRevision] = useState(0);
   const [view, setView] = useState({ ownerId: null, loading: true, data: null, error: '' });
   useEffect(() => {
