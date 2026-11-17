@@ -1,4 +1,4 @@
-import { applyTheme } from '@/lib/theme';
+import { applyTheme } from './theme.js';
 
 export const DEFAULT_PREFERENCES = {
   language: 'en',
