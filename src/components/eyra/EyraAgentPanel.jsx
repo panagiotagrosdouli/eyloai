@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import { searchAllPapersWithStatus } from '@/lib/eyra-api';
+import { searchFundingOpportunities } from '@/lib/funding-api';
+import { buildEyraAgentEvidence, buildEyraAgentPrompt, eyraAgentFailureMessage } from '@/lib/eyra-agent-evidence.mjs';
 import ReactMarkdown from 'react-markdown';
 import {
   X, Sparkles, Loader2, FileText, Users, Award, Rocket,
-  Brain, RefreshCw, Search
+  Brain, RefreshCw, Search, ExternalLink, AlertCircle
 } from 'lucide-react';
 
 const AGENTS = [
@@ -15,7 +18,7 @@ const AGENTS = [
     color: 'text-primary',
     bg: 'bg-primary/10 border-primary/25',
     activeBg: 'bg-primary/15 border-primary/40',
-    description: 'Scans papers, finds researchers, detects gaps, builds literature review',
+    description: 'Retrieves real publications and drafts a source-linked research overview; gaps remain hypotheses',
     placeholder: 'e.g. AI for early cancer detection, quantum computing in cryptography...',
     prompt: (q) => `You are EYRA Research Agent — an autonomous research intelligence system.
 
@@ -99,7 +102,7 @@ Be specific and actionable — like an experienced research network strategist.`
     color: 'text-chart-3',
     bg: 'bg-chart-3/10 border-chart-3/25',
     activeBg: 'bg-chart-3/15 border-chart-3/40',
-    description: 'Searches grants, accelerators, competitions — evaluates eligibility & relevance',
+    description: 'Retrieves official funding listings and helps plan eligibility verification',
     placeholder: 'e.g. Find funding for my AI healthcare startup in Europe...',
     prompt: (q) => `You are EYRA Funding Agent — an autonomous funding intelligence system.
 
@@ -242,26 +245,122 @@ export default function EyraAgentPanel({ open, onClose, contextHint = '' }) {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [sources, setSources] = useState([]);
+  const [sourceNotice, setSourceNotice] = useState('');
+  const [stage, setStage] = useState('idle');
+  const abortRef = useRef(null);
+  const requestVersion = useRef(0);
+
+  const cancelPending = () => {
+    requestVersion.current += 1;
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setLoading(false);
+    setStage('idle');
+  };
+  useEffect(() => () => {
+    requestVersion.current += 1;
+    abortRef.current?.abort();
+  }, []);
 
   const handleRun = async () => {
-    if (!activeAgent || !query.trim()) return;
-    setLoading(true);
-    setResult(null);
+    const topic = query.trim();
+    if (!activeAgent || !topic || loading) return;
+    if (topic.length > 500 || (activeAgent === 'funding' && topic.length > 240)) {
+      setErrorMessage(activeAgent === 'funding'
+        ? 'Enter up to 240 characters for funding search. Your question was not shortened.'
+        : 'Enter up to 500 characters. Your question was not shortened.');
+      return;
+    }
     const agent = AGENTS.find(a => a.key === activeAgent);
-    const response = await base44.integrations.Core.InvokeLLM({
-      prompt: agent.prompt(query),
-    });
-    setResult(response);
-    setLoading(false);
+    if (!agent) return;
+    const version = ++requestVersion.current;
+    const controller = new AbortController();
+    abortRef.current?.abort();
+    abortRef.current = controller;
+    setLoading(true);
+    setErrorMessage('');
+    setResult(null);
+    setSources([]);
+    setSourceNotice('');
+    setStage('retrieving');
+    try {
+      let evidence = { status: 'planning_only', context: '', records: [] };
+      if (activeAgent === 'research') {
+        const bundle = await searchAllPapersWithStatus(topic, {
+          limit: 8, level: 'researcher', goal: 'review', recency: 'balanced',
+          signal: controller.signal,
+        });
+        if (controller.signal.aborted || requestVersion.current !== version) return;
+        evidence = buildEyraAgentEvidence('research', bundle.papers);
+        if (bundle.unavailable_source_count > 0) {
+          setSourceNotice('Some scholarly indexes were unavailable. These are retrieved records from the available indexes, not a complete literature review.');
+        }
+        if (!evidence.records.length) throw new Error('NO_VERIFIED_AGENT_SOURCES');
+      } else if (activeAgent === 'funding') {
+        const funding = await searchFundingOpportunities(topic, 8, { signal: controller.signal });
+        if (controller.signal.aborted || requestVersion.current !== version) return;
+        evidence = buildEyraAgentEvidence('funding', funding.items);
+        if (funding.partial_results) {
+          setSourceNotice('Some official funding portals were unavailable. Confirm eligibility and dates on the linked source.');
+        }
+        if (!evidence.records.length) throw new Error('NO_VERIFIED_AGENT_SOURCES');
+      } else {
+        setSourceNotice('This is an AI planning draft, not a live research or funding verification.');
+      }
+      setSources(evidence.records);
+      setStage('analyzing');
+      const prompt = buildEyraAgentPrompt(agent.prompt(topic), activeAgent, evidence);
+      const answer = await base44.integrations.Core.InvokeLLM({
+        prompt, signal: controller.signal,
+      });
+      if (controller.signal.aborted || requestVersion.current !== version) return;
+      if (typeof answer !== 'string' || !answer.trim()) {
+        throw new Error('EMPTY_AGENT_RESPONSE');
+      }
+      setResult(answer);
+    } catch (error) {
+      if (controller.signal.aborted || requestVersion.current !== version) return;
+      if (error?.message === 'NO_VERIFIED_AGENT_SOURCES') {
+        setErrorMessage(activeAgent === 'research'
+          ? 'No source-linked publications were retrieved. EYRA did not invent a literature report. Try a different topic or search Papers in EYLO.'
+          : 'No official funding listings were retrieved. EYRA did not invent grants, amounts or deadlines. Change the search or retry.');
+      } else {
+        setErrorMessage(eyraAgentFailureMessage(error));
+      }
+    } finally {
+      if (requestVersion.current === version) {
+        abortRef.current = null;
+        setLoading(false);
+        setStage('idle');
+      }
+    }
   };
 
-  const handleAgentSelect = (key) => {
+  const handleAgentSelect = key => {
+    cancelPending();
     setActiveAgent(key);
     setResult(null);
-    if (contextHint && !query) setQuery(contextHint);
+    setErrorMessage('');
+    setSourceNotice('');
+    setSources([]);
+    if (contextHint && !query) setQuery(contextHint.slice(0, 500));
   };
 
-  const reset = () => { setResult(null); setQuery(''); };
+  const reset = () => {
+    cancelPending();
+    setResult(null);
+    setQuery('');
+    setErrorMessage('');
+    setSourceNotice('');
+    setSources([]);
+  };
+
+  const closePanel = () => {
+    cancelPending();
+    onClose();
+  };
 
   if (!open) return null;
 
@@ -275,7 +374,7 @@ export default function EyraAgentPanel({ open, onClose, contextHint = '' }) {
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[100] flex items-center justify-center p-4"
         style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)' }}
-        onClick={e => e.target === e.currentTarget && onClose()}
+        onClick={e => e.target === e.currentTarget && closePanel()}
       >
         <motion.div
           initial={{ opacity: 0, y: 30, scale: 0.96 }}
@@ -292,9 +391,9 @@ export default function EyraAgentPanel({ open, onClose, contextHint = '' }) {
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold text-foreground">EYRA Agent System</p>
-              <p className="text-[10px] text-muted-foreground">Autonomous Research & Innovation Operating System</p>
+              <p className="text-[10px] text-muted-foreground">Evidence-aware research and planning assistants</p>
             </div>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground">
+            <button type="button" aria-label="Close EYRA agents" onClick={closePanel} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground">
               <X size={15} />
             </button>
           </div>
@@ -344,6 +443,8 @@ export default function EyraAgentPanel({ open, onClose, contextHint = '' }) {
                 <textarea
                   value={query}
                   onChange={e => setQuery(e.target.value)}
+                  maxLength={500}
+                  aria-label="EYRA agent research question"
                   placeholder={selectedAgent.placeholder}
                   rows={3}
                   className="w-full px-4 py-3 rounded-xl border border-border bg-secondary text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 resize-none mb-3"
@@ -359,6 +460,35 @@ export default function EyraAgentPanel({ open, onClose, contextHint = '' }) {
               </motion.div>
             )}
 
+            {errorMessage && !loading && (
+              <div role="alert" className="mx-5 my-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-foreground">
+                <span className="flex items-start gap-2"><AlertCircle size={17} aria-hidden="true" className="mt-0.5 shrink-0 text-destructive" />{errorMessage}</span>
+                <p className="mt-2 text-xs text-muted-foreground">Your question is preserved. You can retry without losing it.</p>
+              </div>
+            )}
+
+            {(sourceNotice || sources.length > 0) && !loading && (
+              <section aria-label="EYRA retrieved evidence" className="mx-5 my-3 rounded-xl border border-border bg-card p-4">
+                <p className="text-xs font-semibold text-foreground">{sources.length ? `${sources.length} source-linked records retrieved` : 'Evidence status'}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {sourceNotice || 'Records are indexed source metadata, not full-text claim verification. Confirm scientific claims and current conditions on the original sites.'}
+                </p>
+                {sources.length > 0 && (
+                  <ul className="mt-3 space-y-2">
+                    {sources.map(source => (
+                      <li key={source.id} className="flex items-start gap-2 text-xs">
+                        <span className="shrink-0 font-semibold text-primary">[{source.id}]</span>
+                        <a href={source.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-start gap-1 text-foreground underline underline-offset-2 hover:text-primary">
+                          {source.title} <ExternalLink size={12} className="shrink-0" aria-hidden="true" />
+                        </a>
+                        <span className="text-muted-foreground">({source.source})</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            )}
+
             {/* Loading */}
             {loading && (
               <div className="p-8 flex flex-col items-center gap-3">
@@ -366,7 +496,7 @@ export default function EyraAgentPanel({ open, onClose, contextHint = '' }) {
                   {React.createElement(selectedAgent.icon, { size: 22, className: 'text-white' })}
                 </div>
                 <p className="text-sm font-semibold text-foreground">{selectedAgent.label} is operating...</p>
-                <p className="text-xs text-muted-foreground">Analyzing, researching, and building your intelligence report</p>
+                <p className="text-xs text-muted-foreground">{stage === 'retrieving' ? 'Retrieving real source records…' : 'Analyzing retrieved evidence and drafting a response…'}</p>
                 <div className="flex gap-1.5 mt-2">
                   {[0, 1, 2, 3, 4].map(i => (
                     <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${i * 0.1}s` }} />
@@ -383,7 +513,7 @@ export default function EyraAgentPanel({ open, onClose, contextHint = '' }) {
                     <div className={`w-7 h-7 rounded-lg border flex items-center justify-center ${selectedAgent.bg}`}>
                       {React.createElement(selectedAgent.icon, { size: 13, className: selectedAgent.color })}
                     </div>
-                    <span className="text-xs font-semibold text-foreground">{selectedAgent.label} · Output</span>
+                    <span className="text-xs font-semibold text-foreground">{selectedAgent.label} · AI draft</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -402,6 +532,7 @@ export default function EyraAgentPanel({ open, onClose, contextHint = '' }) {
                 </div>
                 <div className="prose prose-sm max-w-none prose-headings:text-foreground prose-headings:font-bold prose-headings:text-sm prose-p:text-muted-foreground prose-li:text-muted-foreground prose-strong:text-foreground prose-p:my-1.5 prose-ul:my-1.5 prose-headings:mt-4 prose-headings:mb-2">
                   <ReactMarkdown>{result}</ReactMarkdown>
+                  <p className="mt-5 rounded-lg border border-border p-3 text-xs text-muted-foreground">AI interpretation is not scientific verification. For research and funding, consult the original linked sources above before relying on claims, deadlines or eligibility.</p>
                 </div>
               </motion.div>
             )}
@@ -414,12 +545,12 @@ export default function EyraAgentPanel({ open, onClose, contextHint = '' }) {
                 </div>
                 <h3 className="font-heading font-bold text-base mb-2">Autonomous Agent System</h3>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                  Select an agent above. Each one performs a full autonomous analysis — not just answering questions, but actively working on your behalf.
+                  Choose a specialist assistant. Research and funding modes first retrieve genuine source records; other modes produce clearly labeled planning drafts. No external writes are performed.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 text-left">
                   {[
-                    { icon: Search, label: 'Research Intelligence', desc: 'Full literature scan with gaps & roadmap' },
-                    { icon: Award, label: 'Funding Discovery', desc: 'Ranked opportunities with eligibility analysis' },
+                    { icon: Search, label: 'Research Intelligence', desc: 'Source-linked publications with tentative gaps & roadmap' },
+                    { icon: Award, label: 'Funding Discovery', desc: 'Official records with eligibility checks to confirm' },
                     { icon: Rocket, label: 'Startup Blueprint', desc: 'Complete business model to MVP roadmap' },
                   ].map(item => {
                     const Icon = item.icon;
