@@ -24,7 +24,7 @@ function groupsArray(groups, kind, limit) {
   if (!Array.isArray(records)) return [];
   const urlKey = kind === 'researchers' ? 'profile_url'
     : kind === 'funding' ? 'source_url' : 'url';
-  const nameKey = kind === 'researchers' ? 'name' : 'title';
+  const nameKey = kind === 'researchers' || kind === 'institutions' ? 'name' : 'title';
   return records.filter(item => item && typeof item === 'object'
     && safeSourceUrl(item[urlKey]) && clipped(item[nameKey], 180)).slice(0, limit);
 }
@@ -34,7 +34,7 @@ function makeRow(kind, item, id) {
     : kind === 'institutions' ? 'Institution' : 'Funding';
   const url = safeSourceUrl(kind === 'researchers' ? item.profile_url
     : kind === 'funding' ? item.source_url : item.url);
-  const title = clipped(kind === 'researchers' ? item.name : item.title, 140);
+  const title = clipped(kind === 'researchers' || kind === 'institutions' ? item.name : item.title, 140);
   const source = clipped(item.source_index || item.source || item.agency, 60);
   const meta = kind === 'papers'
     ? [item.authors, item.year, source, item.summary_source ? 'Abstract metadata' : 'Bibliographic metadata',
