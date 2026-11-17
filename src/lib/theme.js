@@ -18,6 +18,10 @@ export function applyTheme(theme) {
     root.classList.remove('light');
     root.classList.add('dark');
   }
+  // Native controls and the mobile browser chrome should match EYLO's palette.
+  const isDark = root.classList.contains('dark');
+  root.style.colorScheme = isDark ? 'dark' : 'light';
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isDark ? '#101d2c' : '#ffffff');
   try { localStorage.setItem('eylo_theme', theme); } catch { /* Display still works when browser storage is unavailable. */ }
 }
 
