@@ -33,6 +33,8 @@ test('appearance selection uses canonical preferences without blocking navigatio
   assert.match(chooser, /select\('dark'\)/);
   assert.match(chooser, /select\('system'\)/);
   assert.match(chooser, /aria-label="Choose appearance later"/);
+  assert.match(chooser, /pathname === '\/' \|\| pathname === '\/search' \|\| pathname === '\/discover'/);
+  assert.match(chooser, /if \(!visible \|\| !atPublicEntry\) return null/);
   assert.match(app, /<ThemeWelcomeChoice \/>/);
   assert.match(theme, /root\.style\.colorScheme/);
   assert.match(theme, /meta\[name="theme-color"\]/);
