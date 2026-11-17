@@ -34,7 +34,7 @@ test('getting started keeps the same public brand palette in both themes',()=>{
 test('research Home does not call unverified indexed records verified',()=>{
   const home=read('components/dashboard/EyraHome.jsx');
   assert.doesNotMatch(home,/Search verified research sources/);
-  assert.match(home,/Explore source-linked academic records/);
+  assert.match(home,/Begin with source-linked research/);
   assert.match(home,/Always check the original papers/);
-  assert.match(home,/EYRA can help with follow-up questions when available/);
+  assert.match(home,/AI configured does not guarantee a live response/);
 });

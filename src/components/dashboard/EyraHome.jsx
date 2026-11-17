@@ -83,7 +83,7 @@ export default function EyraHome({ onSearch }) {
                 <h1 id="home-title" className="mt-3 max-w-2xl text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl">
                   Find the evidence.<span className="block text-primary">Keep the context.</span>
                 </h1>
-                <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">Begin with source-linked research. Keep your real papers, ideas and projects together, and return to them whenever you need.</p>
+                <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">Begin with source-linked research. Always check the original papers. Keep your real papers, ideas and projects together, and return to them whenever you need.</p>
                 <form aria-label="Analyze a research topic" onSubmit={event => { event.preventDefault(); if (homeQuery.trim()) onSearch(homeQuery.trim()); }} className="mt-7 flex flex-col gap-3 sm:flex-row">
                   <label htmlFor="home-research-query" className="sr-only">Research topic or question</label>
                   <input id="home-research-query" type="search" value={homeQuery} onChange={event => setHomeQuery(event.target.value)}
