@@ -215,9 +215,9 @@ function App() {
               {/* EYLO's three public academic entry points work without an AI login. */}
               <Route path="/search" element={<PublicDiscovery />} />
               <Route path="/discover" element={<PublicEntry workspacePath="/search"><PublicDiscovery /></PublicEntry>} />
-              <Route path="/academics" element={<PublicEntry workspacePath="/researchers"><PublicResearchers /></PublicEntry>} />
+              <Route path="/academics" element={<PublicResearchers />} />
               <Route path="/find-phd" element={<Navigate to="/careers?q=PhD" replace />} />
-              <Route path="/find-researchers" element={<PublicEntry workspacePath="/researchers"><PublicResearchers /></PublicEntry>} />
+              <Route path="/find-researchers" element={<PublicResearchers />} />
               <Route path="/careers" element={<PublicEntry workspacePath="/workspace/careers"><PublicCareers /></PublicEntry>} />
               {/* Authentication pages stay reachable even if session bootstrap fails. */}
               <Route path="/login" element={<Login />} />
