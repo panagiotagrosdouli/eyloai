@@ -46,8 +46,9 @@ test('source labels are bounded and missing records do not imply verification', 
 
 test('compact EYRA remains consent-scoped and source chips no longer imply peer-reviewed claim verification', () => {
   const source = readFileSync(new URL('../src/components/eyra/EyraCommandCenter.jsx', import.meta.url), 'utf8');
-  assert.match(source, /describeEyraCitedEvidence\(msg\.sources\)/);
-  assert.match(source, /aria-label="EYRA retrieved source records"/);
+  const timeline = readFileSync(new URL('../src/components/eyra/EyraConversationTimeline.jsx', import.meta.url), 'utf8');
+  assert.match(timeline, /describeEyraCitedEvidence\(msg\.sources\)/);
+  assert.match(timeline, /aria-label="EYRA retrieved source records"/);
   assert.doesNotMatch(source, /<ShieldCheck/);
   assert.match(source, /preferences\.data_personalization && resourceContext/);
   assert.match(source, /checkEyraCitationIds\(baseAnswer, evidence\.sources\)/);
@@ -66,7 +67,8 @@ test('the missing-citation warning is safely persisted and restored for the same
 
 test('retrieval warning applies only to source-backed requests with no linked records', () => {
   const source = readFileSync(new URL('../src/components/eyra/EyraCommandCenter.jsx', import.meta.url), 'utf8');
-  assert.match(source, /msg\.retrievalAttempted && citedEvidence\?\.items\.length === 0/);
-  assert.match(source, /No retrieved records are linked to this answer/);
+  const timeline = readFileSync(new URL('../src/components/eyra/EyraConversationTimeline.jsx', import.meta.url), 'utf8');
+  assert.match(timeline, /msg\.retrievalAttempted && citedEvidence\?\.items\.length === 0/);
+  assert.match(timeline, /No retrieved records are linked to this answer/);
   assert.match(source, /retrievalAttempted: evidence\.attempted/);
 });
