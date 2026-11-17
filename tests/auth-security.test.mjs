@@ -167,3 +167,19 @@ test('password reset handles rejected authentication requests with a retryable e
   assert.match(page, /catch\s*\{\s*setFormError\(["']The account service could not be reached/);
   assert.match(page, /result\?\.error\?\.message\s*\|\|/);
 });
+
+test('all interactive Supabase Auth requests have a bounded deadline', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const auth = await readFile(new URL('../src/lib/supabase/auth.js', import.meta.url), 'utf8');
+  for (const operation of ['signInWithPassword', 'signUp', 'signInWithOAuth', 'signInWithOtp', 'signOut', 'resetPasswordForEmail', 'updateUser']) {
+    assert.match(auth, new RegExp('withAuthRequestDeadline\\(\\(\\) => client\\.auth\\.' + operation + '\\('));
+  }
+});
+
+test('timed-out account operations show an uncertainty-safe message, not endless loading', () => {
+  const error = Object.assign(new Error('Provider did not settle in time'), { code: 'AUTH_REQUEST_TIMEOUT' });
+  const mapped = mapSupabaseError(error);
+  assert.equal(mapped.code, AppErrorCode.REQUEST_TIMEOUT);
+  assert.match(mapped.message, /may still finish/);
+  assert.doesNotMatch(mapped.message, /Provider did not settle/);
+});
