@@ -7,6 +7,7 @@ import React from 'react';
  */
 export default function EyraWriteIntentReview({ review, onCancel, onEdit, onConfirm, onPreview, onApprove, preview }) {
   if (!review) return null;
+  const busy = preview?.status === 'loading' || preview?.status === 'committing';
   return (
     <section role="group" aria-label="Review EYRA write request"
       className="mb-2 rounded-xl border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-foreground">
@@ -20,10 +21,11 @@ export default function EyraWriteIntentReview({ review, onCancel, onEdit, onConf
       <p className="mt-2 max-h-24 overflow-auto whitespace-pre-wrap break-words rounded-md border border-border p-2">
         {review.content}
       </p>
-      {preview?.status === 'ready' && (
+      {(preview?.status === 'ready' || preview?.status === 'committing') && (
         <div role="status" aria-label="EYRA proposed record fields"
           className="mt-2 rounded-lg border border-border bg-background p-2">
           <p className="font-semibold">Exact fields proposed by EYRA — draft only</p>
+          {preview.status === 'committing' && <p role="status">Submitting exactly these fields. Do not retry; an already started write may still finish.</p>}
           {preview.proposals.length === 0 && <p>No record was proposed. Nothing was saved.</p>}
           {preview.proposals.map((proposal, index) => (
             <div key={proposal.tool + ':' + index} className="mt-2">
@@ -51,13 +53,13 @@ export default function EyraWriteIntentReview({ review, onCancel, onEdit, onConf
       {preview?.status === 'error' && <p role="alert" className="mt-2 text-destructive">{preview.error}</p>}
       <div className="mt-2 flex flex-wrap justify-end gap-2">
         <button type="button" aria-label="Cancel pending EYRA write" className="rounded-lg border border-border px-3 py-2"
-          onClick={onCancel}>Cancel</button>
+          onClick={onCancel} disabled={busy}>Cancel</button>
         <button type="button" aria-label="Edit pending EYRA write" className="rounded-lg border border-border px-3 py-2"
-          onClick={onEdit}>Edit</button>
+          onClick={onEdit} disabled={busy}>Edit</button>
         <button type="button" aria-label="Preview EYRA proposed write fields without saving"
-          disabled={preview?.status === 'loading'} className="rounded-lg border border-border px-3 py-2"
-          onClick={onPreview}>{preview?.status === 'loading' ? 'Preparing preview…' : 'Preview fields (no save)'}</button>
-        {preview?.status === 'ready' ? (
+          disabled={busy} className="rounded-lg border border-border px-3 py-2"
+          onClick={onPreview}>{preview?.status === 'loading' ? 'Preparing preview…' : preview?.status === 'committing' ? 'Saving reviewed fields…' : 'Preview fields (no save)'}</button>
+        {preview?.status === 'committing' ? null : preview?.status === 'ready' ? (
           preview.approvalToken && preview.proposals.length === 1 ? (
             <button type="button" aria-label="Approve exactly the displayed EYRA fields"
               className="rounded-lg bg-primary px-3 py-2 text-primary-foreground"
