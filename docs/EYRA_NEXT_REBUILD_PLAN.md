@@ -65,6 +65,8 @@ Interfaces:
 - Command Center consumes that registry, preserving existing visual icons and all existing workflows.
 - The backend provider contract now separates quota/rate-limit classification, Responses output parsing and strict schema normalization from the API handler.
 - The frontend retrieval planner now separates intent routing and bounded search-query construction from the React Command Center.
+- A new backend identity boundary isolates Supabase bearer verification and optional billing entitlements from the agent loop.
+- A pure latest-turn authorization module protects the existing write-intent gate against historical prompt text and inconsistent client-supplied turns; adversarial tests exercise exact matching.
 - Offline unit tests cover mode identifiers, provider error classification and schema normalization, and Greek/English retrieval routing.
 
 **Explicit non-goals of this slice:** no declaration that the full EYRA has been rebuilt; no new endpoint, cloud persistence, schema migration, real model test, changed tool privileges, or production deployment. Keep this PR reviewable and verify CI at its exact head before considering integration.
