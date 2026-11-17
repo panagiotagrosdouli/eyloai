@@ -22,6 +22,7 @@ import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
 import { useAuth } from '@/lib/AuthContext';
 import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conversation.mjs';
 import { EYRA_MODES, EYRA_QUICK_COMMANDS, EYRA_LANGUAGE_NAMES, EYRA_STYLE_INSTRUCTIONS, EYRA_BASE_SYSTEM } from '@/lib/eyra-next-policy.mjs';
+import { shouldRetrieve, compactQuery } from '@/lib/eyra-retrieval-plan.mjs';
 
 import { listEyraConversations, saveEyraConversation, loadEyraConversation, renameEyraConversation, deleteEyraConversation } from '@/lib/eyra-history';
 
@@ -38,35 +39,6 @@ const QUICK_COMMANDS = EYRA_QUICK_COMMANDS.map(command => ({ ...command, icon: C
 const LANGUAGE_NAMES = EYRA_LANGUAGE_NAMES;
 const STYLE_INSTRUCTIONS = EYRA_STYLE_INSTRUCTIONS;
 const BASE_SYSTEM = EYRA_BASE_SYSTEM;
-
-function shouldRetrieve(content, mode) {
-  const text = content.toLowerCase();
-  const funding = mode === 'funding' || /(grant|funding|call for|opportunit|χρηματοδ|επιχορήγ|πρόσκλησ)/i.test(text);
-  const people = mode === 'team' || /(collaborat|researcher|author|institution|university|team|consortium|συνεργά|ερευνητ|πανεπιστήμ|ομάδα)/i.test(text);
-  const papers = ['research', 'impact'].includes(mode)
-    || /(paper|literature|evidence|study|studies|research gap|method|citation|δημοσίευ|βιβλιογραφ|έρευν|μελέτ|μεθοδολογ)/i.test(text);
-  return { funding, people, papers };
-}
-
-function compactQuery(content, workspaceContext) {
-  const genericEnglish = /\b(my|current|project|work|research|review|analyze)\b/gi;
-  const genericGreek = /(μου|έργο|έρευνα|ανάλυσ[ηε]|αξιολόγησ[ηε])/gi;
-  const cleaned = content.replace(genericEnglish, ' ').replace(genericGreek, ' ').replace(/\s+/g, ' ').trim();
-  const interestLine = workspaceContext
-    .split('\n')
-    .find(line => line.startsWith('Research Interests:')) || '';
-  const interest = interestLine
-    .replace('Research Interests:', '')
-    .replace(/Not yet specified.*/i, '')
-    .trim()
-    .slice(0, 140);
-  const projectLine = workspaceContext
-    .split('\n')
-    .find(line => /^- ".+" \[(active|planning)\]:/i.test(line)) || '';
-  const project = projectLine.replace(/^- /, '').trim().slice(0, 180);
-  const contextAnchor = [interest, project].filter(Boolean).join(' ');
-  return (cleaned.length >= 18 ? cleaned : `${cleaned} ${contextAnchor}`).trim().slice(0, 280) || content.slice(0, 280);
-}
 
 async function retrieveEvidence(content, mode, workspaceContext, signal) {
   signal?.throwIfAborted();
