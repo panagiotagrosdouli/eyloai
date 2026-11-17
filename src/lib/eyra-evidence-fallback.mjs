@@ -1,4 +1,5 @@
 import { isSafeEyraSourceUrl } from './eyra-citation-ids.mjs';
+import { describeEyraFailure } from './eyra-failure-guidance.mjs';
 
 // Retrieved provider metadata is not an independently authenticated publication
 // or verification of the scientific claims in its abstract.
@@ -16,6 +17,9 @@ export function buildEvidenceOnlyFallback(evidence, error) {
     authIssue
       ? 'The AI session needs renewal, so no AI synthesis was produced. The source records below are provider metadata and require inspection of their originals.'
       : 'AI synthesis did not finish. The source records below are provider metadata, not a checked interpretation of the underlying research.',
+    '',
+    '### Why the analysis stopped',
+    describeEyraFailure(error),
   ];
 
   if (!sources.length) {
