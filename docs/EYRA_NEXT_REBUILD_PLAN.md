@@ -59,11 +59,13 @@ Interfaces:
 | 6 — UI | Reusable chat timeline, citations, tool review and recoverable error experiences | 390px mobile, keyboard, accessibility, signed-in end-to-end tests |
 | 7 — Launch | Real OpenAI success/quota, SMTP, backup/rollback, deployment SHA and monitoring | Independent production release gate #309; explicit owner decision |
 
-## First slice in this PR
+## Implemented reconstruction foundation in this PR
 
 - `src/lib/eyra-next-policy.mjs`: single presentation-independent registry of six modes, six quick commands, language/style preferences and common evidence-bound prompt.
 - Command Center consumes that registry, preserving existing visual icons and all existing workflows.
-- Offline unit tests prevent duplicate mode identifiers or accidental divergence from the evidence prompt.
+- The backend provider contract now separates quota/rate-limit classification, Responses output parsing and strict schema normalization from the API handler.
+- The frontend retrieval planner now separates intent routing and bounded search-query construction from the React Command Center.
+- Offline unit tests cover mode identifiers, provider error classification and schema normalization, and Greek/English retrieval routing.
 
 **Explicit non-goals of this slice:** no declaration that the full EYRA has been rebuilt; no new endpoint, cloud persistence, schema migration, real model test, changed tool privileges, or production deployment. Keep this PR reviewable and verify CI at its exact head before considering integration.
 
