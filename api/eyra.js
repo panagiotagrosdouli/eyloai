@@ -16,6 +16,7 @@ import {
 } from '../server/eyra-run-ledger.mjs';
 import { requestedEyraWrites } from '../src/lib/eyra-write-intent.mjs';
 import { inspectOpenAiLimit, outputText, outputRefusal, normalizeEyraSchema } from '../server/eyra-provider-contract.mjs';
+import { proposedEyraWriteActions, EYRA_WRITE_PREVIEW_INSTRUCTIONS } from '../server/eyra-write-preview.mjs';
 
 const MAX_PROMPT_LENGTH = 24_000;
 // Bound provider spending and prevent unexpectedly large responses on every model turn.
@@ -116,10 +117,25 @@ export default async function handler(request, response) {
     // historical messages, or a retrieved document.
     identity.explicitProjectCreate = requestedWrites.project && request.body?.write_confirmed === true;
     identity.explicitPaperSave = requestedWrites.paper && request.body?.write_confirmed === true;
+    const previewWrites = request.body?.preview_write_actions === true;
+    if (request.body?.preview_write_actions !== undefined
+      && typeof request.body.preview_write_actions !== 'boolean') {
+      return response.status(400).json({ error: 'Write preview must be a boolean.', code: 'INVALID_WRITE_PREVIEW' });
+    }
+    if (previewWrites && (request.body?.enable_project_tools !== true
+      || request.body?.write_confirmed === true
+      || (!requestedWrites.project && !requestedWrites.paper))) {
+      return response.status(400).json({
+        error: 'Write preview requires tools enabled, an explicit latest write request and no prior confirmation.',
+        code: 'INVALID_WRITE_PREVIEW',
+      });
+    }
+
 
     const requestedSchema = request.body?.response_json_schema;
     const stream = request.body?.stream === true;
     if (request.body?.stream !== undefined && typeof request.body.stream !== 'boolean') return response.status(400).json({ error: 'Streaming must be a boolean.' });
+    if (previewWrites && (stream || requestedSchema)) return response.status(400).json({ error: 'Write preview cannot be streamed or combined with structured output.', code: 'INVALID_WRITE_PREVIEW' });
     if (stream && (request.body?.enable_project_tools === true || requestedSchema)) return response.status(400).json({ error: 'Streaming is available for text conversations without record-modifying tools or structured output.', code: 'INVALID_STREAM_MODE' });
     let responseSchema;
 
@@ -147,7 +163,8 @@ export default async function handler(request, response) {
       });
     }
 
-    const durableRequested = durableRunsEnabled() && request.body?.enable_project_tools === true;
+    // Preview is read-only: no agent run or action ledger is started.
+    const durableRequested = !previewWrites && durableRunsEnabled() && request.body?.enable_project_tools === true;
     if (durableRequested && (typeof request.body?.run_request_id !== 'string'
       || !RUN_UUID.test(request.body.run_request_id))) {
       return response.status(400).json({
@@ -206,14 +223,15 @@ export default async function handler(request, response) {
     /** @type {Record<string, any>} */
     const requestBody = {
       model: process.env.OPENAI_MODEL || 'gpt-5.6',
-      instructions: EYRA_INSTRUCTIONS,
+      instructions: previewWrites ? EYRA_INSTRUCTIONS + '\n\n' + EYRA_WRITE_PREVIEW_INSTRUCTIONS : EYRA_INSTRUCTIONS,
       input: resourceInstructions
         ? [{ role: 'user', content: prompt }, { role: 'user', content: resourceInstructions }]
         : prompt,
       store: false,
       max_output_tokens: MAX_OUTPUT_TOKENS,
       ...(stream ? { stream: true } : {}),
-      ...(request.body?.enable_project_tools === true ? { tools: PROJECT_TOOLS, tool_choice: 'auto' } : {}),
+      ...(previewWrites ? { tools: PROJECT_TOOLS.filter(tool => ['project.create', 'library.save_paper'].includes(tool.name)), tool_choice: 'auto' }
+        : request.body?.enable_project_tools === true ? { tools: PROJECT_TOOLS, tool_choice: 'auto' } : {}),
     };
 
     if (request.body?.enable_project_tools !== undefined && typeof request.body.enable_project_tools !== 'boolean') {
@@ -313,6 +331,32 @@ export default async function handler(request, response) {
         code: 'EYRA_INCOMPLETE',
       });
     }
+    if (previewWrites) {
+      // The first provider output is a proposed write only. Never execute the
+      // model call here or pass it through the normal tool executor loop.
+      let proposals;
+      try {
+        proposals = proposedEyraWriteActions(result.output || [], requestedWrites);
+      } catch {
+        await releaseUsage(reservation); reservation = null;
+        return response.status(422).json({
+          error: 'EYRA could not prepare a valid draft write for review. No record was changed.',
+          code: 'INVALID_WRITE_PROPOSAL',
+        });
+      }
+      return response.status(200).json({
+        preview_only: true,
+        write_proposals: proposals,
+        text: proposals.length
+          ? 'Review the exact proposed fields. No record has been created or saved.'
+          : 'EYRA did not propose a record. No record has been created or saved.',
+        model: result.model || process.env.OPENAI_MODEL || 'gpt-5.6',
+        response_id: result.id,
+        plan: usage.plan,
+        usage: { used: reservation.used, limit: usage.limit, month: usage.month },
+      });
+    }
+
     /** @type {Array<Record<string, any>>} */
     const toolTranscript = [
       { role: 'user', content: prompt },
