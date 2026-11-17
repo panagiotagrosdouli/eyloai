@@ -41,7 +41,7 @@ export default function EyraWriteIntentReview({ review, onCancel, onEdit, onConf
             These are proposed fields, not a saved record. Exact-field execution is available only
             if an authenticated, expiring approval token and verified durable ledger are enabled.
           </p>
-          {!preview.approvalToken && (
+          {!preview.approvalToken && preview.status !== 'committing' && (
             <p className="mt-2 text-muted-foreground">
               Exact-field execution approval is not active in this environment. To avoid
               changing fields after review, this preview cannot be confirmed here.
