@@ -907,6 +907,8 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     window.speechSynthesis?.cancel();
     setMessages([{ ...createWelcomeMessage(userName), mode: activeMode }]);
     setInput('');
+    setProviderNotice(null);
+    setActionError('');
   };
 
   const handleKeyDown = (e) => {
