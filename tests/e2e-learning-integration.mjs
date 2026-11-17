@@ -372,7 +372,7 @@ try {
   });
   await page.route(`${supabaseUrl}/rest/v1/eyra_conversations**`, cloudSchemaMissing);
   await page.goto(`${origin}/home`);
-  await page.getByRole('button', { name: 'Ask EYRA', exact: true }).click();
+  await page.locator('button[title="Ask EYRA"]').click();
   const cloudNotice = page.getByRole('status', { name: 'Cloud conversation history' });
   await cloudNotice.getByText(/Cloud conversation saving is not activated here/).waitFor();
   assert.equal(await page.getByRole('button', { name: 'Save conversation snapshot', exact: true }).isDisabled(), true);
