@@ -1,3 +1,4 @@
+import { normalizeDoi } from './citation-verification.mjs';
 // A successful HTTP status is not proof of a valid scholarly record set.
 // Do not cache upstream error envelopes, truncated JSON, or login/challenge
 // responses as if they were genuine papers, authors or institutions.
@@ -31,7 +32,7 @@ export function validScholarlyProviderPayload(provider, bytes, { exactDoi = '' }
   if (provider === 'crossref') {
     const message = parsed.message;
     if (!message || typeof message !== 'object' || Array.isArray(message)) return false;
-    if (exactDoi) return typeof message.DOI === 'string' && message.DOI.trim().length > 0;
+    if (exactDoi) return normalizeDoi(message.DOI) === exactDoi;
     return Array.isArray(message.items);
   }
   return false;
