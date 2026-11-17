@@ -11,9 +11,9 @@ const app = read('../src/App.jsx');
 test('home uses real research and EYRA entry points without simulated completion', () => {
   assert.match(home, /onSearch\(homeQuery\.trim\(\)\)/);
   assert.match(home, /eylo:open-eyra/);
-  assert.match(home, /Start researching/);
-  assert.match(home, /Find research funding/);
-  assert.match(home, /View all tools/);
+  assert.match(home, /Analyze topic/);
+  assert.match(home, /Funding opportunities/);
+  assert.match(home, /Browse all tools/);
   assert.match(home, /profile\?\.tasks/);
   assert.match(home, /No upcoming deadlines/);
   assert.doesNotMatch(home, /Your research,<br/);
