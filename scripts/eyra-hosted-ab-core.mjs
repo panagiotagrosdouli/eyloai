@@ -209,7 +209,16 @@ export async function runEyraHostedStagingAcceptance(config, { fetchImpl = fetch
       try {
         const result = await call('DELETE', '/rest/v1/eyra_conversations?id=eq.' + id + '&select=id',
           undefined, { returnRows: true });
-        if (!result.ok) cleanupFailed = true;
+        // PostgREST can return 2xx with [] for an RLS-filtered DELETE.
+        // Verify owner-visible absence rather than trusting the status alone.
+        if (!result.ok) {
+          cleanupFailed = true;
+        } else {
+          const remaining = await call('GET', '/rest/v1/eyra_conversations?id=eq.' + id + '&select=id');
+          if (!remaining.ok || !Array.isArray(remaining.data) || remaining.data.length !== 0) {
+            cleanupFailed = true;
+          }
+        }
       } catch { cleanupFailed = true; }
     }
     if (cleanupFailed) {
