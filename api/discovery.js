@@ -3,6 +3,7 @@ import { applyCors } from '../src/lib/api-cors.mjs';
 import { fetchWithScholarlyBackoff } from '../src/lib/scholarly-provider-backoff.mjs';
 import { readBoundedScholarlyResponse, ScholarlyResponseTooLargeError } from '../src/lib/discovery-response-limit.mjs';
 import { normalizeDoi } from '../src/lib/citation-verification.mjs';
+import { validScholarlyProviderPayload } from '../src/lib/scholarly-provider-envelope.mjs';
 import { scholarlyResilience, providerMinimumGap } from '../server/scholarly-resilience.mjs';
 import { consumeDiscoveryQuota } from '../server/discovery-rate-limit.mjs';
 
@@ -212,7 +213,12 @@ export default async function handler(request, response) {
     const providerContentType = upstream.headers.get('content-type') || '';
     const htmlContent = /text\/html/i.test(providerContentType)
       || /^\s*(?:<!doctype\s+html|<html\b|<head\b|<body\b|<script\b)/i.test(body.toString('utf8', 0, 512));
-    if (upstream.ok && htmlContent) {
+    // HTTP 200 plus a plausible content type is insufficient: malformed JSON,
+    // upstream error objects and invalid Atom feeds cannot become cached
+    // scientific results. Do not expose provider body/error details to clients.
+    const invalidSource = upstream.ok && (htmlContent
+      || !validScholarlyProviderPayload(provider, body, { exactDoi }));
+    if (invalidSource) {
       return { status: 502, body: Buffer.from(JSON.stringify({ error: 'Scholarly source returned an invalid response.', code: 'INVALID_SOURCE_RESPONSE' })), invalid: true, cacheable: false };
     }
     return { status: upstream.status, body, retryAfter: upstream.headers.get('retry-after'), cacheable: upstream.ok };
