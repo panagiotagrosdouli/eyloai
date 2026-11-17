@@ -107,3 +107,12 @@ test('nested research workspaces have exact, plain-language names',()=>{
    assert.doesNotMatch(page.crumbs.map(c=>c.label).join(' / '),/10000000/);
  }
 });
+
+test('direct deep-link fallback clears the departed entry before navigation',()=>{
+ const provider=readFileSync(new URL('../src/components/layout/WorkspaceNavigationProvider.jsx',import.meta.url),'utf8');
+ const breadcrumbs=readFileSync(new URL('../src/components/layout/WorkspaceBreadcrumbs.jsx',import.meta.url),'utf8');
+ assert.match(provider,/const discardDirectEntry = useCallback/);
+ assert.match(provider,/current\.trail\.slice\(0, -1\)/);
+ assert.match(provider,/current\.owner !== owner/);
+ assert.match(breadcrumbs,/if \(!previousHref\) discardDirectEntry\(\)/);
+});

@@ -607,6 +607,20 @@ try {
     console.log(`PASS fixture: ${title} create/reload, owner-filtered CAS conflict and draft recovery, portable export, search, mobile and cancelled/confirmed deletion.`);
   }
   await page.goto(`${origin}/projects/${tables.projects[0].id}/research/journal`);
+  // Direct deep-link Back must return to the owning project without creating
+  // a two-page loop between the parent and the journal on mobile.
+  await page.setViewportSize({ width: 390, height: 844 });
+  const parentBack = page.getByRole('link', { name: 'Back to Project', exact: true });
+  await parentBack.waitFor();
+  assert.equal(new URL(await parentBack.getAttribute('href'), origin).pathname, `/projects/${tables.projects[0].id}`);
+  await parentBack.click();
+  await page.waitForURL(`${origin}/projects/${tables.projects[0].id}`);
+  await page.getByRole('link', { name: 'Back to My workspace', exact: true }).waitFor();
+  assert.equal(await page.getByRole('link', { name: 'Back to previous EYLO page' }).count(), 0,
+    'returning to a direct deep-link parent must not suggest the departed child again');
+  console.log('PASS fixture: direct project deep-link Back returns to its owner without looping to the departed page.');
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(`${origin}/projects/${tables.projects[0].id}/research/journal`);
   await page.getByRole('button', { name: 'New entry', exact: true }).click();
   await page.getByLabel('Title', { exact: true }).fill('Must not leak to another project');
   page.once('dialog', dialog => dialog.accept());
