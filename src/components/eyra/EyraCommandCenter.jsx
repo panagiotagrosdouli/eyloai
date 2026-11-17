@@ -11,17 +11,14 @@ import { buildEyraCommandEvidence, buildEyraCommandPrompt } from '@/lib/eyra-com
 import { buildEvidenceOnlyFallback } from '@/lib/eyra-evidence-fallback.mjs';
 import {
   X, Mic, MicOff, Send, Sparkles, Loader2,
-  Volume2, VolumeX, Target, FileText, Users,
-  Award, Map, AlertTriangle, Brain,
-  Rocket, BarChart3, BookOpen, Trash2,
-  Database
+  Volume2, VolumeX, Target, Trash2, Database
 } from 'lucide-react';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { TypingIndicator, Message } from '@/components/eyra/EyraConversationTimeline';
 import { EyraModeSelector, EyraQuickCommands } from '@/components/eyra/EyraResearchControls';
 import { useAuth } from '@/lib/AuthContext';
 import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conversation.mjs';
-import { EYRA_MODES, EYRA_QUICK_COMMANDS, EYRA_LANGUAGE_NAMES, EYRA_STYLE_INSTRUCTIONS, EYRA_BASE_SYSTEM } from '@/lib/eyra-next-policy.mjs';
+import { EYRA_MODES, EYRA_LANGUAGE_NAMES, EYRA_STYLE_INSTRUCTIONS, EYRA_BASE_SYSTEM } from '@/lib/eyra-next-policy.mjs';
 import { retrieveEyraEvidence } from '@/lib/eyra-retrieval-service.mjs';
 
 import { listEyraConversations, saveEyraConversation, loadEyraConversation, renameEyraConversation, deleteEyraConversation } from '@/lib/eyra-history';
