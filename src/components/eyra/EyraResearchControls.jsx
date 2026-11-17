@@ -2,7 +2,7 @@ import React from 'react';
 import { BookOpen, Brain, Award, Rocket, Users, BarChart3, Target, FileText, AlertTriangle, Map } from 'lucide-react';
 import { EYRA_MODES, EYRA_QUICK_COMMANDS } from '@/lib/eyra-next-policy.mjs';
 
-const MODE_ICONS = { research: BookOpen, strategy: Brain, funding: Award, startup: Rocket, team: Users, impact: BarChart3 };
+export const EYRA_MODE_ICONS = { research: BookOpen, strategy: Brain, funding: Award, startup: Rocket, team: Users, impact: BarChart3 };
 const COMMAND_ICONS = { project: Target, literature: FileText, gaps: AlertTriangle, funding: Award, team: Users, roadmap: Map };
 
 export function EyraModeSelector({ activeMode, onChange, disabled = false }) {
@@ -11,7 +11,7 @@ export function EyraModeSelector({ activeMode, onChange, disabled = false }) {
       <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-0.5" role="group" aria-label="EYRA research lens">
         <span className="mr-1 shrink-0 whitespace-nowrap text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Lens</span>
         {EYRA_MODES.map(mode => {
-          const Icon = MODE_ICONS[mode.id] || BookOpen;
+          const Icon = EYRA_MODE_ICONS[mode.id] || BookOpen;
           const active = activeMode === mode.id;
           return (
             <button key={mode.id} type="button" disabled={disabled} onClick={() => onChange(mode.id)}
