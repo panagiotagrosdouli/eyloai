@@ -71,6 +71,17 @@ test('structured Supabase Auth codes produce safe, actionable errors independent
   assert.equal(outage.code, AppErrorCode.SERVICE_UNAVAILABLE);
 });
 
+
+test('password recovery forms use the theme palette for links, labels and helper text', async () => {
+  for (const page of ['ForgotPassword', 'ResetPassword']) {
+    const source = await readFile(new URL(`../src/pages/${page}.jsx`, import.meta.url), 'utf8');
+    assert.match(source, /text-\[var\(--company-ink\)\]/);
+    assert.match(source, /text-\[var\(--company-action\)\]/);
+    assert.doesNotMatch(source, /text-(?:slate-300|slate-400|cyan-300)/);
+    assert.doesNotMatch(source, /bg-white\/\[0\.025\]|text-white/);
+  }
+});
+
 test('expired session restoration keeps public sign-in routes available', async () => {
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8');
   const context = await readFile(new URL('../src/lib/AuthContext.jsx', import.meta.url), 'utf8');
