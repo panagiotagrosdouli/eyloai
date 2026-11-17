@@ -17,6 +17,7 @@ import { TypingIndicator, Message } from '@/components/eyra/EyraConversationTime
 import { EyraModeSelector, EyraQuickCommands } from '@/components/eyra/EyraResearchControls';
 import EyraComposer from '@/components/eyra/EyraComposer';
 import EyraWriteIntentReview from '@/components/eyra/EyraWriteIntentReview';
+import EyraAgentRunHistory from '@/components/eyra/EyraAgentRunHistory';
 import { useAuth } from '@/lib/AuthContext';
 import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conversation.mjs';
 import { EYRA_MODES, EYRA_LANGUAGE_NAMES, EYRA_STYLE_INSTRUCTIONS, EYRA_BASE_SYSTEM } from '@/lib/eyra-next-policy.mjs';
@@ -816,60 +817,15 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
               {remoteConversation && <button type="button" onClick={() => void deleteSnapshot()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Delete saved snapshot</button>}
               <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); }} />Allow authorized workspace and research tools for this request</label>
             </div>
-            {showAgentRuns && (
-              <section aria-label="EYRA agent runs" className="mb-2 max-h-56 overflow-y-auto rounded-lg border border-border p-2 text-xs">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="font-semibold">Agent run history</span>
-                  <button type="button" onClick={() => void refreshAgentRuns()}
-                    disabled={agentRunsBusy} className="rounded-md border border-border px-2 py-1">Refresh</button>
-                </div>
-                {agentRunsError && <p role="alert" className="mb-2 text-destructive">{agentRunsError}</p>}
-                {!agentRunsError && !agentRunsBusy && agentRuns.length === 0 && (
-                  <p className="text-muted-foreground">No recorded agent runs in this environment.</p>
-                )}
-                {agentRuns.map(item => (
-                  <div key={item.id} className="mb-1 flex flex-wrap items-center gap-2 border-b border-border/70 py-1">
-                    <span className="min-w-0 flex-1 truncate">{item.input_preview || item.id}</span>
-                    <span className="font-medium">{item.status}</span>
-                    <button type="button" onClick={() => void inspectAgentRun(item.id)}
-                      disabled={agentRunsBusy} className="rounded-md border border-border px-2 py-1">Details</button>
-                  </div>
-                ))}
-                {selectedAgentRun && (
-                  <div className="mt-2 rounded-md border border-border bg-secondary/20 p-2">
-                    <p className="font-semibold">Run: {selectedAgentRun.run.id}</p>
-                    <p>Status: {selectedAgentRun.run.status}</p>
-                    <p className="break-words">Response: {selectedAgentRun.run.response_text || 'No recorded final response.'}</p>
-                    {selectedAgentRun.actions.map(action => (
-                      <p key={action.id} className="break-words">
-                        {action.tool_name}: {action.status}
-                        {action.status === 'needs_review' ? ' — inspect the saved record before retrying.' : ''}
-                      </p>
-                    ))}
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {selectedAgentRun.run.status === 'running' && (
-                        <>
-                        <button type="button" disabled={agentRunsBusy}
-                          className="rounded-md border border-border px-2 py-1"
-                          onClick={() => void cancelAgentRun(selectedAgentRun.run.id)}>Request cancellation</button>
-                        <button type="button" disabled={agentRunsBusy}
-                          className="rounded-md border border-border px-2 py-1"
-                          onClick={() => void markAgentRunForReview(selectedAgentRun.run.id)}>Review stale run (30+ min)</button>
-                        </>
-                      )}
-                      {selectedAgentRun.run.status !== 'running' && (
-                        <button type="button" disabled={agentRunsBusy}
-                          className="rounded-md border border-border px-2 py-1"
-                          onClick={() => void removeAgentRun(selectedAgentRun.run.id)}>Delete run history</button>
-                      )}
-                    </div>
-                  </div>
-                )}
-                <p className="mt-2 text-muted-foreground">
-                  Cancellation is cooperative. A previously initiated external write may still complete.
-                </p>
-              </section>
-            )}
+            <EyraAgentRunHistory
+              open={showAgentRuns} runs={agentRuns} selected={selectedAgentRun}
+              busy={agentRunsBusy} error={agentRunsError}
+              onRefresh={() => void refreshAgentRuns()}
+              onInspect={id => void inspectAgentRun(id)}
+              onCancel={id => void cancelAgentRun(id)}
+              onReviewStale={id => void markAgentRunForReview(id)}
+              onDelete={id => void removeAgentRun(id)}
+            />
             {renameTitle !== null && remoteConversation && (
               <form className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-border p-2"
                 onSubmit={event => { event.preventDefault(); void saveRenamedConversation(); }}>
