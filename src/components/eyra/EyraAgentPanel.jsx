@@ -285,6 +285,7 @@ export default function EyraAgentPanel({ open, onClose, contextHint = '' }) {
     setSources([]);
     setSourceNotice('');
     setStage('retrieving');
+    let sourceRetrievalComplete = false;
     try {
       let evidence = { status: 'planning_only', context: '', records: [] };
       if (activeAgent === 'research') {
@@ -309,6 +310,7 @@ export default function EyraAgentPanel({ open, onClose, contextHint = '' }) {
       } else {
         setSourceNotice('This is an AI planning draft, not a live research or funding verification.');
       }
+      sourceRetrievalComplete = true;
       setSources(evidence.records);
       setStage('analyzing');
       const prompt = buildEyraAgentPrompt(agent.prompt(topic), activeAgent, evidence);
@@ -326,6 +328,10 @@ export default function EyraAgentPanel({ open, onClose, contextHint = '' }) {
         setErrorMessage(activeAgent === 'research'
           ? 'No source-linked publications were retrieved. EYRA did not invent a literature report. Try a different topic or search Papers in EYLO.'
           : 'No official funding listings were retrieved. EYRA did not invent grants, amounts or deadlines. Change the search or retry.');
+      } else if (!sourceRetrievalComplete) {
+        setErrorMessage(activeAgent === 'funding'
+          ? 'Official funding search is temporarily unavailable. EYRA did not generate unsupported grants. Retry later.'
+          : 'Academic source search is temporarily unavailable. EYRA did not generate unsupported research findings. Retry later.');
       } else {
         setErrorMessage(eyraAgentFailureMessage(error));
       }
