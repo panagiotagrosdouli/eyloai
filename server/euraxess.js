@@ -1,9 +1,12 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 const SOURCE = 'https://euraxess.ec.europa.eu/jobs/search';
+// EURAXESS country portals are official mirrors, not third-party job aggregators.
+// Use only a fixed allowlist, never a URL derived from the user's query.
+const SEARCH_SOURCES = [SOURCE, 'https://www.euraxess.se/jobs/search'];
 const MAX_QUERY_LENGTH = 180;
 const MAX_RESULTS = 50;
 const MAX_PAGE = 99;
-const TIMEOUT_MS = 10000;
+const TIMEOUT_MS = 6000;
 
 function decodeEntities(value = '') {
   return String(value)
@@ -35,7 +38,7 @@ function matchingDivEnd(html, start) {
   return -1;
 }
 
-function extractJobs(html) {
+function extractJobs(html, sourcePage = SOURCE) {
   const records = [];
   // EURAXESS changed this wrapper from a class to an id. Accept both forms so
   // a markup-only upstream change does not turn a successful search into an
@@ -65,10 +68,13 @@ function extractJobs(html) {
       if (remove) description = description.replace(remove, ' ');
     }
     description = description.replace(/\bJOB\b/g, ' ').replace(/\s+/g, ' ').trim();
-    const posting = new URL(jobLink[1], SOURCE);
-    if (posting.protocol !== 'https:' || posting.hostname !== 'euraxess.ec.europa.eu'
-        || !/^\/jobs\/\d+\/?$/.test(posting.pathname) || posting.username || posting.password) continue;
-    const sourceUrl = posting.toString();
+    const posting = new URL(jobLink[1], sourcePage);
+    if (posting.protocol !== 'https:'
+        || !new Set(['euraxess.ec.europa.eu', 'www.euraxess.se']).has(posting.hostname)
+        || !/^\/jobs\/\d+\/?$/.test(posting.pathname)
+        || posting.username || posting.password) continue;
+    // The same official job ID may be served on national mirrors.
+    const sourceUrl = new URL(posting.pathname, SOURCE).toString();
     if (records.some(record => record.source_url === sourceUrl)) continue;
     records.push({
       id: sourceUrl,
@@ -96,43 +102,52 @@ export default async function handler(request, response) {
   const page = Number(request.query?.page || 0);
   if (!Number.isInteger(page) || page < 0 || page > MAX_PAGE) return response.status(400).json({ error: 'Invalid result page.' });
 
-  try {
-    const params = new URLSearchParams();
-    params.set('f[0]', 'keywords:' + query);
-    params.set('page', String(page));
-    const upstream = await fetch(SOURCE + '?' + params.toString(), {
-      headers: {
-        accept: 'text/html,application/xhtml+xml',
-        'user-agent': 'EYLO research careers search',
-      },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
-    if (!upstream.ok) {
-      return response.status(502).json({ error: 'EURAXESS is temporarily unavailable. Try again shortly.' });
+  const params = new URLSearchParams();
+  params.set('f[0]', 'keywords:' + query);
+  params.set('page', String(page));
+
+  // Fail over only to the official EURAXESS country mirror. A 200 maintenance
+  // or challenge page is never treated as an empty job search.
+  for (const [index, source] of SEARCH_SOURCES.entries()) {
+    try {
+      const upstream = await fetch(source + '?' + params.toString(), {
+        headers: {
+          accept: 'text/html,application/xhtml+xml',
+          'user-agent': 'EYLO research careers search',
+        },
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+      if (!upstream.ok) continue;
+      const html = await upstream.text();
+      if (html.length > 5_000_000) continue;
+      const items = extractJobs(html, source);
+      const explicitEmpty = /class=["'][^"']*\bview-empty\b[^"']*["'][^>]*>[\s\S]{0,2000}?(?:no results|no jobs|no result|no content|no matching|your search yielded no)/i.test(html);
+      if (!items.length && !explicitEmpty) continue;
+
+      response.setHeader('Cache-Control', 'public, s-maxage=900, stale-while-revalidate=1800');
+      return response.status(200).json({
+        query,
+        source: 'EURAXESS',
+        retrieved_at: new Date().toISOString(),
+        source_url: source + '?' + params.toString(),
+        ...(index > 0 ? { source_mirror: true } : {}),
+        items,
+        page,
+        has_more: /rel=["']next["']|class=["'][^"']*\bpager__item--next\b/i.test(html),
+      });
+    } catch (error) {
+      // Never log the full requested URL: search terms can be private.
+      console.warn('EURAXESS request failed', {
+        source_index: index,
+        reason: error?.name === 'TimeoutError' ? 'timeout' : 'upstream_error',
+      });
     }
-    const html = await upstream.text();
-    if (html.length > 5_000_000) return response.status(502).json({ error: 'EURAXESS returned an unexpectedly large search page.' });
-    const items = extractJobs(html);
-    // A maintenance/challenge page or changed markup is not a zero-result search.
-    // Only an explicit empty-results container establishes a legitimate empty set.
-    const explicitEmpty = /class=["'][^"']*\bview-empty\b[^"']*["'][^>]*>[\s\S]{0,2000}?(?:no results|no jobs|no result|no content|no matching|your search yielded no)/i.test(html);
-    if (!items.length && !explicitEmpty) {
-      return response.status(502).json({ error: 'EURAXESS returned an unrecognized search page. The source may be unavailable; retry or open EURAXESS directly.' });
-    }
-    response.setHeader('Cache-Control', 'public, s-maxage=900, stale-while-revalidate=1800');
-    return response.status(200).json({
-      query,
-      source: 'EURAXESS',
-      retrieved_at: new Date().toISOString(),
-      source_url: SOURCE + '?' + params.toString(),
-      items,
-      page,
-      has_more: /rel=["']next["']|class=["'][^"']*\bpager__item--next\b/i.test(html),
-    });
-  } catch (error) {
-    console.error('EURAXESS careers search failed', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-    });
-    return response.status(502).json({ error: 'Could not retrieve research roles from EURAXESS right now.' });
   }
+
+  response.setHeader('Cache-Control', 'no-store');
+  return response.status(502).json({
+    error: 'EURAXESS research listings are temporarily unavailable. Open the original source or retry.',
+    code: 'EURAXESS_UPSTREAM_UNAVAILABLE',
+    source_url: SOURCE,
+  });
 }

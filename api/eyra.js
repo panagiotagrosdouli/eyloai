@@ -222,6 +222,22 @@ Rules:
 - Never describe a fallback or template as live research.
 - End free-form answers with one concrete next action or a focused strategic question.`;
 
+// Distinguish transient provider throttling from exhausted API billing quota.
+// Parse the provider's documented machine-readable code, never expose its
+// free-text error message or account information to browsers or logs.
+async function inspectOpenAiLimit(response) {
+  let code = '';
+  try {
+    const payload = await response.json();
+    code = String(payload?.error?.code || payload?.error?.type || '').slice(0, 80);
+  } catch { /* A malformed upstream failure remains a generic rate limit. */ }
+  const quotaExhausted = ['insufficient_quota', 'billing_hard_limit_reached', 'quota_exceeded'].includes(code);
+  const rawRetry = response.headers?.get?.('retry-after');
+  const retryAfter = rawRetry !== null && rawRetry !== undefined && /^\d{1,4}$/.test(String(rawRetry))
+    ? Math.min(300, Number(rawRetry)) : null;
+  return { quotaExhausted, retryAfter };
+}
+
 function outputText(openAiResponse) {
   return (openAiResponse.output || [])
     .flatMap((item) => item.content || [])
@@ -1189,7 +1205,7 @@ export default async function handler(request, response) {
       streamTimer = setTimeout(() => streamController.abort(), 60_000);
       response.on?.('close', stopStream);
     }
-    const openAiResponse = await fetch('https://api.openai.com/v1/responses', {
+    const providerRequest = {
       method: 'POST',
       headers: {
         authorization: `Bearer ${apiKey}`,
@@ -1197,18 +1213,30 @@ export default async function handler(request, response) {
       },
       body: JSON.stringify(requestBody),
       signal: stream ? streamController.signal : AbortSignal.timeout(60_000),
-    });
+    };
+    let openAiResponse = await fetch('https://api.openai.com/v1/responses', providerRequest);
+    let limitDetails = null;
+    if (openAiResponse.status === 429) {
+      limitDetails = await inspectOpenAiLimit(openAiResponse);
+      // Retry at most once, and only when the provider explicitly indicates a
+      // short transient delay. Never retry exhausted quota or an unknown 429.
+      if (!limitDetails.quotaExhausted && limitDetails.retryAfter !== null && limitDetails.retryAfter <= 2) {
+        await new Promise(resolve => setTimeout(resolve, limitDetails.retryAfter * 1000));
+        openAiResponse = await fetch('https://api.openai.com/v1/responses', providerRequest);
+        limitDetails = openAiResponse.status === 429 ? await inspectOpenAiLimit(openAiResponse) : null;
+      }
+    }
 
     if (!openAiResponse.ok) {
-      const requestId = openAiResponse.headers.get('x-request-id');
+      const requestId = openAiResponse.headers?.get?.('x-request-id') || '';
       console.error('OpenAI request failed', { status: openAiResponse.status, requestId });
       await releaseUsage(reservation);
       reservation = null;
       if (openAiResponse.status === 429) {
-        return response.status(503).json({
-          error: 'EYRA provider is rate limited. Please try again later.',
-          code: 'OPENAI_RATE_LIMITED',
-        });
+        if (limitDetails?.retryAfter) response.setHeader('Retry-After', String(limitDetails.retryAfter));
+        return response.status(503).json(limitDetails?.quotaExhausted
+          ? { error: 'EYRA API quota is exhausted. An administrator must review OpenAI API billing and usage.', code: 'OPENAI_QUOTA_EXHAUSTED' }
+          : { error: 'EYRA provider is rate limited. Please retry after the provider delay.', code: 'OPENAI_RATE_LIMITED', ...(limitDetails?.retryAfter ? { retry_after_seconds: limitDetails.retryAfter } : {}) });
       }
       if (openAiResponse.status === 401 || openAiResponse.status === 403) {
         return response.status(503).json({
@@ -1356,8 +1384,16 @@ export default async function handler(request, response) {
         signal: AbortSignal.timeout(60_000),
       });
       if (!followup.ok) {
-        console.error('OpenAI tool follow-up failed', { status: followup.status, requestId: followup.headers.get('x-request-id') });
-        return response.status(502).json({ error: 'The project action ran, but EYRA could not prepare its final response.', code: 'TOOL_FOLLOWUP_FAILED', actions: actionResults });
+        const details = followup.status === 429 ? await inspectOpenAiLimit(followup) : null;
+        console.error('OpenAI tool follow-up failed', { status: followup.status, requestId: followup.headers?.get?.('x-request-id') || '' });
+        if (details?.retryAfter) response.setHeader('Retry-After', String(details.retryAfter));
+        return response.status(502).json({
+          error: details?.quotaExhausted
+            ? 'A workspace action ran, but EYRA API quota is exhausted. Review the completed actions before retrying.'
+            : 'A workspace action ran, but EYRA could not prepare its final response. Review completed actions before retrying.',
+          code: details?.quotaExhausted ? 'TOOL_FOLLOWUP_QUOTA_EXHAUSTED' : 'TOOL_FOLLOWUP_FAILED',
+          actions: actionResults,
+        });
       }
       result = await followup.json();
       if (result.status && result.status !== 'completed') {

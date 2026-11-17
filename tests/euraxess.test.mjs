@@ -113,3 +113,40 @@ test('EURAXESS pagination follows the upstream next-page marker even with a shor
     assert.equal(response.body.has_more, true);
   } finally { globalThis.fetch = previousFetch; }
 });
+
+
+test('EURAXESS can use its official national mirror after an upstream outage', async () => {
+  const previousFetch = globalThis.fetch;
+  const destinations = [];
+  globalThis.fetch = async url => {
+    destinations.push(new URL(url));
+    if (destinations.length === 1) return { ok: false, status: 503 };
+    return {
+      ok: true,
+      text: async () => currentEuraxessMarkup.replace('/jobs/478694', 'https://www.euraxess.se/jobs/478694'),
+    };
+  };
+  try {
+    const response = createResponse();
+    await handler({ method: 'GET', headers: {}, query: { q: 'climate' } }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.source_mirror, true);
+    assert.equal(destinations.length, 2);
+    assert.equal(destinations[1].hostname, 'www.euraxess.se');
+    assert.equal(response.body.items[0].source_url, 'https://euraxess.ec.europa.eu/jobs/478694');
+  } finally { globalThis.fetch = previousFetch; }
+});
+
+test('EURAXESS never invents a job when all official sources fail', async () => {
+  const previousFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async () => { calls += 1; return { ok: false, status: 502 }; };
+  try {
+    const response = createResponse();
+    await handler({ method: 'GET', headers: {}, query: { q: 'doctoral' } }, response);
+    assert.equal(response.statusCode, 502);
+    assert.equal(response.body.code, 'EURAXESS_UPSTREAM_UNAVAILABLE');
+    assert.equal(calls, 2);
+    assert.equal(response.body.items, undefined);
+  } finally { globalThis.fetch = previousFetch; }
+});
