@@ -25,6 +25,9 @@ test('Public to workspace handoff preserves the current search parameters', () =
 });
 
 test('PhD provider failures offer original sources without fabricating listings', () => {
-  assert.match(careers, /www\.findaphd\.com\/phds\//);
-  assert.match(careers, /euraxess\.ec\.europa\.eu\/jobs\/search/);
+  const links = readFileSync(new URL('../src/lib/phd-search-links.mjs', import.meta.url), 'utf8');
+  assert.match(links, /www\.findaphd\.com\/phds\//);
+  assert.match(links, /euraxess\.ec\.europa\.eu\/jobs\/search/);
+  assert.match(careers, /href=\{phdLinks\.findaphd\}/);
+  assert.match(careers, /href=\{phdLinks\.euraxess\}/);
 });
