@@ -22,7 +22,7 @@ export class EyraRequestError extends Error {
   }
 }
 
-function postAnalysis(prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, resourceContext = undefined, latestUserRequest = undefined, writeConfirmed = false, runRequestId = undefined) {
+function postAnalysis(prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, resourceContext = undefined, latestUserRequest = undefined, writeConfirmed = false, runRequestId = undefined, previewWriteActions = false) {
   return protectedApiFetch('/api/eyra', {
     method: 'POST',
     headers: {
@@ -38,19 +38,20 @@ function postAnalysis(prompt, responseSchema, signal, enableProjectTools = false
       ...(resourceContext ? { resource_context: resourceContext } : {}),
       ...(latestUserRequest !== undefined ? { latest_user_request: latestUserRequest } : {}),
       ...(writeConfirmed ? { write_confirmed: true } : {}),
+      ...(previewWriteActions ? { preview_write_actions: true } : {}),
       ...(enableProjectTools && runRequestId ? { run_request_id: runRequestId } : {}),
     }),
   });
 }
 
-async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, onDelta = undefined, resourceContext = undefined, latestUserRequest = undefined, writeConfirmed = false) {
+async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProjectTools = false, toolIntent = '', stream = false, onDelta = undefined, resourceContext = undefined, latestUserRequest = undefined, writeConfirmed = false, previewWriteActions = false) {
   const cleanPrompt = String(prompt || '').trim();
   if (!cleanPrompt) throw new EyraRequestError('Tell EYRA what you want to analyse.', 400);
 
   // Stable across an authentication refresh/replay; a fresh invocation receives a new UUID.
   const runRequestId = enableProjectTools ? globalThis.crypto?.randomUUID?.() : undefined;
   signal?.throwIfAborted();
-  const response = await postAnalysis(cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest, writeConfirmed, runRequestId);
+  const response = await postAnalysis(cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest, writeConfirmed, runRequestId, previewWriteActions);
 
   if (stream && response.ok) {
     let final = null;
@@ -98,6 +99,8 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProje
   if (enableProjectTools) {
     return {
       text: result.text,
+      preview_only: result.preview_only === true,
+      write_proposals: Array.isArray(result.write_proposals) ? result.write_proposals : [],
       actions: Array.isArray(result.actions) ? result.actions : [],
       run_id: typeof result.run_id === 'string' ? result.run_id : null,
       run_status: typeof result.run_status === 'string' ? result.run_status : null,
@@ -107,11 +110,11 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProje
 }
 
 /**
- * @param {{prompt?: string, response_json_schema?: Record<string, any>, signal?: AbortSignal, enable_project_tools?: boolean, tool_intent?: string, latest_user_request?: string, write_confirmed?: boolean, resource_context?: {kind:'project'|'paper'|'note', id:string}, stream?: boolean, on_delta?: (text: string) => void}} [options]
+ * @param {{prompt?: string, response_json_schema?: Record<string, any>, signal?: AbortSignal, enable_project_tools?: boolean, tool_intent?: string, latest_user_request?: string, write_confirmed?: boolean, preview_write_actions?: boolean, resource_context?: {kind:'project'|'paper'|'note', id:string}, stream?: boolean, on_delta?: (text: string) => void}} [options]
  * @returns {Promise<any>}
  */
-export async function invokeEyra({ prompt = '', response_json_schema: responseSchema, signal, enable_project_tools: enableProjectTools = false, tool_intent: toolIntent = '', latest_user_request: latestUserRequest, write_confirmed: writeConfirmed = false, resource_context: resourceContext, stream = false, on_delta: onDelta } = {}) {
-  const result = await requestOpenAiAnalysis(prompt, responseSchema, signal, enableProjectTools, toolIntent, stream, onDelta, resourceContext, latestUserRequest, writeConfirmed);
+export async function invokeEyra({ prompt = '', response_json_schema: responseSchema, signal, enable_project_tools: enableProjectTools = false, tool_intent: toolIntent = '', latest_user_request: latestUserRequest, write_confirmed: writeConfirmed = false, preview_write_actions: previewWriteActions = false, resource_context: resourceContext, stream = false, on_delta: onDelta } = {}) {
+  const result = await requestOpenAiAnalysis(prompt, responseSchema, signal, enableProjectTools, toolIntent, stream, onDelta, resourceContext, latestUserRequest, writeConfirmed, previewWriteActions);
   trackEyraActionCompleted();
   return result;
 }
