@@ -10,12 +10,12 @@ import { checkEyraCitationIds } from '@/lib/eyra-citation-ids.mjs';
 import { buildEyraCommandEvidence, buildEyraCommandPrompt } from '@/lib/eyra-command-evidence.mjs';
 import { buildEvidenceOnlyFallback } from '@/lib/eyra-evidence-fallback.mjs';
 import {
-  X, Mic, MicOff, Send, Sparkles, Loader2,
-  Volume2, VolumeX, Trash2, Database
+  X, Volume2, VolumeX, Trash2, Database
 } from 'lucide-react';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { TypingIndicator, Message } from '@/components/eyra/EyraConversationTimeline';
-import { EyraModeSelector, EyraQuickCommands, EYRA_MODE_ICONS } from '@/components/eyra/EyraResearchControls';
+import { EyraModeSelector, EyraQuickCommands } from '@/components/eyra/EyraResearchControls';
+import EyraComposer from '@/components/eyra/EyraComposer';
 import { useAuth } from '@/lib/AuthContext';
 import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conversation.mjs';
 import { EYRA_MODES, EYRA_LANGUAGE_NAMES, EYRA_STYLE_INSTRUCTIONS, EYRA_BASE_SYSTEM } from '@/lib/eyra-next-policy.mjs';
@@ -714,7 +714,6 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   };
 
   const currentMode = MODES.find(m => m.id === activeMode);
-  const ModeIcon = EYRA_MODE_ICONS[activeMode] || Sparkles;
 
   if (!open) return null;
 
@@ -906,42 +905,15 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
                 </div>
               </section>
             )}
-            <div className="flex items-end gap-2 rounded-xl border border-border bg-background p-2 transition-colors focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10">
-              <div className="mb-1.5 grid h-6 w-6 shrink-0 place-items-center rounded-md bg-secondary text-muted-foreground">
-                <ModeIcon size={11} />
-              </div>
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                aria-label="Message EYRA"
-                maxLength={allowWorkspaceActions ? 1000 : 2000}
-                placeholder={`Describe the outcome you need in ${currentMode?.label || 'Research'} mode…`}
-                rows={1}
-                className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none resize-none max-h-28 py-1.5"
-                style={{ minHeight: '34px' }}
-              />
-              <div className="flex items-center gap-1 flex-shrink-0 pb-1">
-                <button
-                  type="button"
-                  onClick={listening ? stopListening : startListening}
-                  aria-label={listening ? 'Stop voice input' : 'Start voice input'}
-                  className={`grid min-h-11 min-w-11 place-items-center rounded-lg transition-colors ${listening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-secondary text-muted-foreground'}`}>
-                  {listening ? <MicOff size={14} /> : <Mic size={14} />}
-                </button>
-                {loading && (
-                  <button type="button" aria-label="Stop EYRA generation" onClick={stopGeneration}
-                    className="min-h-11 rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-secondary">
-                    Stop
-                  </button>
-                )}
-                <button type="button" aria-label="Send message" onClick={() => sendMessage()} disabled={!input.trim() || loading}
-                  className="grid min-h-11 min-w-11 place-items-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40">
-                  {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                </button>
-              </div>
-            </div>
+            <EyraComposer
+              activeMode={activeMode} modeLabel={currentMode?.label}
+              inputRef={inputRef} value={input} onChange={setInput}
+              onKeyDown={handleKeyDown} onSend={() => void sendMessage()}
+              onStop={stopGeneration}
+              onStartListening={startListening} onStopListening={stopListening}
+              listening={listening} loading={loading}
+              allowWorkspaceActions={allowWorkspaceActions}
+            />
             {actionError && (
               <p role="alert" className="mt-2 text-center text-[10px] text-amber-300">{actionError}</p>
             )}
