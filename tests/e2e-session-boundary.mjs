@@ -108,6 +108,56 @@ try {
     }), 200);
     assert.equal(retryCalls, 2);
     assert.equal(refreshCalls, 1, 'Same-account refresh still works');
+
+    // Real browser account-switch regression for public EYLO Home. Unscoped
+    // legacy localStorage must not disclose prior users' saved research.
+    const researchPage = await context.newPage();
+    researchPage.on('pageerror', error => errors.push(error.message));
+    await researchPage.goto(origin + '/search');
+    await researchPage.getByRole('link', { name: 'Discover', exact: true }).waitFor();
+    await researchPage.evaluate(async ownerIds => {
+      const { discoveryBrowserScope, writeDiscoveryBrowserList } =
+        await import('/src/lib/discovery-browser-storage.mjs');
+      const stores = { local: window.localStorage, session: window.sessionStorage };
+      for (const [index, ownerId] of ownerIds.entries()) {
+        const owner = discoveryBrowserScope('authenticated', ownerId);
+        writeDiscoveryBrowserList(owner, 'saved', [{
+          id: 'browser-e2e-' + index,
+          title: index === 0 ? 'A-only research paper' : 'B-only research paper',
+          authors: 'Fixture author',
+        }], stores);
+      }
+      window.localStorage.setItem('eylo-public-saved-papers-v1',
+        JSON.stringify([{ title: 'Unscoped legacy private research' }]));
+    }, users.map(user => user.id));
+    await researchPage.reload();
+    await researchPage.getByRole('link', { name: 'Discover', exact: true }).waitFor();
+    const openSaved = () => researchPage.locator('button:visible').filter({ hasText: /^saved\\b/i }).first().click();
+    await openSaved();
+    await researchPage.getByRole('heading', { name: 'B-only research paper' }).waitFor();
+    assert.equal(await researchPage.getByRole('heading', { name: 'A-only research paper' }).count(), 0);
+    assert.equal(await researchPage.getByText('Unscoped legacy private research').count(), 0);
+
+    await researchPage.evaluate(async email => {
+      const { requireSupabase } = await import('/src/lib/supabaseClient.js');
+      const result = await requireSupabase().auth.signInWithPassword({
+        email, password: 'Synthetic-fixture-only',
+      });
+      if (result.error) throw result.error;
+    }, users[0].email);
+    await researchPage.getByRole('heading', { name: 'A-only research paper' }).waitFor();
+    assert.equal(await researchPage.getByRole('heading', { name: 'B-only research paper' }).count(), 0);
+
+    await researchPage.evaluate(async () => {
+      const { requireSupabase } = await import('/src/lib/supabaseClient.js');
+      const result = await requireSupabase().auth.signOut();
+      if (result.error) throw result.error;
+    });
+    await researchPage.getByText('Save a paper from your research results to see it here.').waitFor();
+    assert.equal(await researchPage.getByRole('heading', { name: 'A-only research paper' }).count(), 0);
+    assert.equal(await researchPage.getByRole('heading', { name: 'B-only research paper' }).count(), 0);
+    await researchPage.close();
+
     assert.deepEqual(errors, []);
     await context.close();
     console.log(`PASS ${width}px: shared API, EYRA and Checkout callers cancel on account switch; no replay/sign-out, same-account refresh works. Actual Supabase client, synthetic HTTP; no live model/payment or hosted RLS claim.`);
