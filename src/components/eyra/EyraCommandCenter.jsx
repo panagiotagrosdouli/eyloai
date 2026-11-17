@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { TypingIndicator, Message } from '@/components/eyra/EyraConversationTimeline';
+import { EyraModeSelector, EyraQuickCommands } from '@/components/eyra/EyraResearchControls';
 import { useAuth } from '@/lib/AuthContext';
 import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conversation.mjs';
 import { EYRA_MODES, EYRA_QUICK_COMMANDS, EYRA_LANGUAGE_NAMES, EYRA_STYLE_INSTRUCTIONS, EYRA_BASE_SYSTEM } from '@/lib/eyra-next-policy.mjs';
@@ -31,10 +32,7 @@ import { buildEyraConversationContext } from '@/lib/eyra-conversation-context.mj
 import { listEyraAgentRuns, loadEyraAgentRun, cancelEyraAgentRun, reviewStaleEyraAgentRun, deleteEyraAgentRun } from '@/lib/eyra-run-history';
 
 // Shared EYRA modes and epistemic rules; visual icons remain a UI concern.
-const MODE_ICONS = { research: BookOpen, strategy: Brain, funding: Award, startup: Rocket, team: Users, impact: BarChart3 };
-const COMMAND_ICONS = { project: Target, literature: FileText, gaps: AlertTriangle, funding: Award, team: Users, roadmap: Map };
-const MODES = EYRA_MODES.map(mode => ({ ...mode, icon: MODE_ICONS[mode.id] }));
-const QUICK_COMMANDS = EYRA_QUICK_COMMANDS.map(command => ({ ...command, icon: COMMAND_ICONS[command.id] }));
+const MODES = EYRA_MODES;
 const LANGUAGE_NAMES = EYRA_LANGUAGE_NAMES;
 const STYLE_INSTRUCTIONS = EYRA_STYLE_INSTRUCTIONS;
 const BASE_SYSTEM = EYRA_BASE_SYSTEM;
@@ -719,7 +717,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   };
 
   const currentMode = MODES.find(m => m.id === activeMode);
-  const ModeIcon = currentMode?.icon || Sparkles;
+  const ModeIcon = Sparkles;
 
   if (!open) return null;
 
@@ -771,45 +769,8 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
             </button>
           </div>
 
-          {/* Mode selector */}
-          <div className="relative z-10 shrink-0 border-b border-border bg-background px-3 py-2">
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
-              <span className="mr-1 shrink-0 whitespace-nowrap text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Lens</span>
-              {MODES.map(m => {
-                const Icon = m.icon;
-                const active = activeMode === m.id;
-                return (
-                  <button key={m.id} onClick={() => setActiveMode(m.id)}
-                    aria-pressed={active}
-                    className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
-                      active ? 'border-foreground bg-foreground text-background' : 'border-transparent text-muted-foreground hover:border-border hover:bg-secondary hover:text-foreground'
-                    }`}>
-                    <Icon size={11} />
-                    {m.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Quick commands — only on first message */}
-          {messages.length <= 1 && (
-            <div className="relative z-10 shrink-0 border-b border-border bg-secondary/20 px-3 pb-3 pt-3">
-              <p className="mb-2 px-1 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Start with an outcome</p>
-              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-                {QUICK_COMMANDS.map((cmd) => {
-                  const Icon = cmd.icon;
-                  return (
-                    <button key={cmd.label} onClick={() => sendMessage(cmd.prompt)}
-                      className="group flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2 text-left transition-colors hover:border-primary/30">
-                      <Icon size={11} className="shrink-0 text-muted-foreground group-hover:text-primary" />
-                      <span className="text-[11px] text-muted-foreground transition-colors group-hover:text-foreground">{cmd.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <EyraModeSelector activeMode={activeMode} onChange={setActiveMode} disabled={loading} />
+          {messages.length <= 1 && <EyraQuickCommands onSelect={prompt => void sendMessage(prompt)} disabled={loading} />}
 
           {/* Messages */}
           <div className="relative z-10 flex-1 overflow-y-auto px-4 py-3 space-y-4">
