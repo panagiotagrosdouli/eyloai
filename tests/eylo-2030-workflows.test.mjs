@@ -33,7 +33,7 @@ test('directory contains major research and workspace workflows and a keyboard-a
 test('breadcrumb navigation has a current-page indication and a Home return link', () => {
   assert.match(crumbs, /aria-label="Breadcrumb"/);
   assert.match(crumbs, /aria-current="page"/);
-  assert.match(crumbs, /to="\/search"/);
+  assert.match(crumbs, /to="\/home"/);
 });
 
 test('review and gap filters preserve explicit evidence records', () => {
