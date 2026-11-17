@@ -68,6 +68,8 @@ Interfaces:
 - A new backend identity boundary isolates Supabase bearer verification and optional billing entitlements from the agent loop.
 - A pure latest-turn authorization module protects the existing write-intent gate against historical prompt text and inconsistent client-supplied turns; adversarial tests exercise exact matching.
 - The server-side declarative tool registry is now separate from the request handler. Its tests freeze the current list of explicit write operations (`project.create` and `library.save_paper`) and reject duplicate or open argument schemas.
+- The full workspace/scholarly tool executor is isolated from the HTTP orchestrator; strict argument contracts and bounded PostgREST response parsing are tested independently.
+- Identity-bounded project/paper/note context, monthly usage reservation/release, and false-write-permission protection are independent server modules with focused regression tests.
 - Offline unit tests cover mode identifiers, provider error classification and schema normalization, and Greek/English retrieval routing.
 
 **Explicit non-goals of this slice:** no declaration that the full EYRA has been rebuilt; no new endpoint, cloud persistence, schema migration, real model test, changed tool privileges, or production deployment. Keep this PR reviewable and verify CI at its exact head before considering integration.
