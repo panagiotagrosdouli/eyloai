@@ -27,9 +27,13 @@ test('action status is tied to server-confirmed outcomes, not model predictions'
 test('workspace writes require a visible review step with edit, cancel and confirm controls', () => {
   assert.match(source, /requestedEyraWrites\(content\)/);
   assert.match(source, /setPendingWriteReview\(\{ content, writeIntent \}\)/);
-  assert.match(source, /aria-label="Review EYRA write request"/);
-  assert.match(source, /aria-label="Edit pending EYRA write"/);
-  assert.match(source, /aria-label="Cancel pending EYRA write"/);
-  assert.match(source, /aria-label="Confirm and send EYRA write"/);
+  const review = readFileSync(new URL('../src/components/eyra/EyraWriteIntentReview.jsx', import.meta.url), 'utf8');
+  assert.match(source, /<EyraWriteIntentReview/);
+  assert.match(review, /aria-label="Review EYRA write request"/);
+  assert.match(review, /aria-label="Edit pending EYRA write"/);
+  assert.match(review, /aria-label="Cancel pending EYRA write"/);
+  assert.match(review, /aria-label="Confirm and send EYRA write"/);
+  assert.match(source, /onConfirm=\{\(\) => void sendMessage\(pendingWriteReview\.content, \{ writeConfirmed: true \}\)\}/);
+  assert.match(review, /This confirms your requested intent only, not the exact record fields/);
   assert.match(source, /write_confirmed: allowWorkspaceActions && writeConfirmed/);
 });
