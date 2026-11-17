@@ -16,7 +16,7 @@ function asText(value, limit) {
 }
 
 function sourceUrl(value) {
-  const text = asText(value, 320);
+  const text = asText(value, 180);
   // Source URLs are evidence pointers, never dynamic instructions.
   return /^https:\/\//i.test(text) ? text : 'Not provided';
 }
@@ -27,17 +27,19 @@ export function buildEyraAnalysisEvidence(papers = [], researchers = [], institu
   const selectedInstitutions = (Array.isArray(institutions) ? institutions : []).slice(0, MAX_INSTITUTIONS);
   const paperContext = selectedPapers.map((p, i) => {
     const paper = p && typeof p === 'object' ? p : {};
-    const indexedBy = asText(paper.indexed_by, 110) || 'not supplied';
-    return `[P${i + 1}] "${asText(paper.title, 200) || 'Untitled'}" by ${asText(paper.authors, 130) || 'Unknown'} (${asText(paper.year, 8) || 'n/a'}) — ${asText(paper.cited_by_count, 12) || '0'} citations — Index: ${asText(paper.source_index || paper.source, 65) || 'not supplied'} — Co-indexed by: ${indexedBy} (one publication, not independent studies) — Abstract source: ${asText(paper.summary_source, 60) || 'not supplied'} — Metadata conflict: ${paper.metadata_conflict ? 'YES; verify source' : 'not detected; not independently verified'} — Category: ${asText(paper.discovery_category, 65) || 'not supplied'} — Record: ${sourceUrl(paper.url)}\nAbstract excerpt: ${asText(paper.summary, 260) || 'Not available'}`;
+    const indexedBy = asText(paper.indexed_by, 60) || 'not supplied';
+    return `[P${i + 1}] "${asText(paper.title, 140) || 'Untitled'}" by ${asText(paper.authors, 75) || 'Unknown'} (${asText(paper.year, 8) || 'n/a'}) — ${asText(paper.cited_by_count, 12) || '0'} citations — Index: ${asText(paper.source_index || paper.source, 45) || 'not supplied'} — Co-indexed by: ${indexedBy} (one publication, not independent studies) — Abstract source: ${asText(paper.summary_source, 35) || 'not supplied'} — Metadata conflict: ${paper.metadata_conflict ? 'YES; verify source' : 'not detected; not independently verified'} — Type: ${asText(paper.discovery_category, 40) || 'not supplied'} — Record: ${sourceUrl(paper.url)}\nAbstract excerpt: ${asText(paper.summary, 180) || 'Not available'}`;
   }).join('\n\n');
   const researcherContext = selectedResearchers.map((r, i) => {
     const person = r && typeof r === 'object' ? r : {};
-    return `[Researcher ${i + 1}] ${asText(person.name, 110) || 'Unnamed'} — ${asText(person.institution, 120) || 'Institution unknown'} — ${asText(person.works_count, 12) || 'n/a'} works, ${asText(person.citation_count, 12) || 'n/a'} citations — Areas: ${asText(person.research_areas, 180) || 'not supplied'}`;
+    return `[Researcher ${i + 1}] ${asText(person.name, 70) || 'Unnamed'} — ${asText(person.institution, 75) || 'Institution unknown'} — ${asText(person.works_count, 12) || 'n/a'} works, ${asText(person.citation_count, 12) || 'n/a'} citations — Areas: ${asText(person.research_areas, 100) || 'not supplied'}`;
   }).join('\n');
   const institutionContext = selectedInstitutions.map((inst, i) => {
     const institution = inst && typeof inst === 'object' ? inst : {};
-    return `[Institution ${i + 1}] ${asText(institution.name, 140) || 'Unnamed'} (${asText(institution.country, 65) || 'unknown country'}) — ${asText(institution.works_count, 12) || 'n/a'} works, ${asText(institution.cited_by_count, 12) || 'n/a'} citations`;
+    return `[Institution ${i + 1}] ${asText(institution.name, 85) || 'Unnamed'} (${asText(institution.country, 40) || 'unknown country'}) — ${asText(institution.works_count, 12) || 'n/a'} works, ${asText(institution.cited_by_count, 12) || 'n/a'} citations`;
   }).join('\n');
+  const contextSize = paperContext.length + researcherContext.length + institutionContext.length;
+  if (contextSize > 14_000) throw new Error('EYRA evidence context exceeds its bounded safety budget.');
   return { paperContext, researcherContext, institutionContext, paperCount: selectedPapers.length };
 }
 
