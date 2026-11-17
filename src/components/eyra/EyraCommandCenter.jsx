@@ -364,6 +364,9 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const [renameTitle, setRenameTitle] = useState(null);
   const [savingConversation, setSavingConversation] = useState(false);
   const [historyBusy, setHistoryBusy] = useState(false);
+  // Never show another account's cloud-history readiness across a session swap.
+  const [cloudHistoryState, setCloudHistoryState] = useState({ ownerId: null, status: 'checking' });
+  const [cloudHistoryCheck, setCloudHistoryCheck] = useState(0);
   const [showAgentRuns, setShowAgentRuns] = useState(false);
   const [agentRuns, setAgentRuns] = useState([]);
   const [selectedAgentRun, setSelectedAgentRun] = useState(null);
@@ -374,6 +377,9 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const historyWriteLockRef = useRef(false);
   const ownerRef = useRef(user?.id);
   ownerRef.current = user?.id;
+  const cloudHistoryStatus = cloudHistoryState.ownerId === (user?.id ?? null)
+    ? cloudHistoryState.status : 'checking';
+  const cloudHistoryReady = cloudHistoryStatus === 'available';
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingStage, setLoadingStage] = useState('retrieving');
@@ -403,6 +409,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     setRemoteConversation(null); setSavedConversations([]); setAllowWorkspaceActions(false);
     historyEpochRef.current += 1; snapshotRequestRef.current = null; historyWriteLockRef.current = false; setHistoryBusy(false);
     setSavingConversation(false); setSavedMessageIds(new Set()); setUserName(''); setActionError(''); setProviderNotice(null);
+    setCloudHistoryState({ ownerId: user?.id ?? null, status: 'checking' });
     setShowAgentRuns(false); setAgentRuns([]); setSelectedAgentRun(null);
     setAgentRunsBusy(false); setAgentRunsError('');
   }, [user?.id]);
@@ -410,12 +417,24 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   useEffect(() => {
     if (!open || !user?.id) return undefined;
     let live = true;
-    const epoch = historyEpochRef.current;
+    const ownerId = user.id, epoch = historyEpochRef.current;
+    setCloudHistoryState({ ownerId, status: 'checking' });
     listEyraConversations()
-      .then(rows => { if (live && epoch === historyEpochRef.current) setSavedConversations(rows); })
-      .catch(() => { if (live && epoch === historyEpochRef.current) setActionError('Saved conversations could not be loaded. You can continue this conversation in this tab.'); });
+      .then(rows => {
+        if (!live || ownerRef.current !== ownerId || epoch !== historyEpochRef.current) return;
+        setSavedConversations(rows);
+        setCloudHistoryState({ ownerId, status: 'available' });
+      })
+      .catch(error => {
+        if (!live || ownerRef.current !== ownerId || epoch !== historyEpochRef.current) return;
+        setSavedConversations([]);
+        setCloudHistoryState({
+          ownerId,
+          status: error?.code === 'EYRA_CLOUD_HISTORY_UNAVAILABLE' ? 'unavailable' : 'error',
+        });
+      });
     return () => { live = false; };
-  }, [open, user?.id]);
+  }, [open, user?.id, cloudHistoryCheck]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -778,7 +797,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
 
   const saveConversation = async () => {
     const owner = user?.id;
-    if (!owner || loading || savingConversation || historyBusy || historyWriteLockRef.current) return;
+    if (!owner || !cloudHistoryReady || loading || savingConversation || historyBusy || historyWriteLockRef.current) return;
     historyWriteLockRef.current = true; const epoch = ++historyEpochRef.current;
     setSavingConversation(true); setActionError('');
     try {
@@ -796,13 +815,20 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
       const saved = await saveEyraConversation(title, conversationMessages, identity.id);
       if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
       setRemoteConversation(saved); setSavedConversations(items => [saved, ...items.filter(item => item.id !== saved.id)].slice(0, 20));
-    } catch (error) { if (ownerRef.current === owner && historyEpochRef.current === epoch) setActionError(error?.message || 'Conversation was not saved.'); }
+    } catch (error) {
+      if (ownerRef.current === owner && historyEpochRef.current === epoch) {
+        if (error?.code === 'EYRA_CLOUD_HISTORY_UNAVAILABLE') {
+          setCloudHistoryState({ ownerId: owner, status: 'unavailable' });
+        }
+        setActionError(error?.message || 'Conversation was not saved.');
+      }
+    }
     finally { if (ownerRef.current === owner && historyEpochRef.current === epoch) { setSavingConversation(false); historyWriteLockRef.current = false; } }
   };
 
   const restoreConversation = async id => {
     const owner = user?.id;
-    if (!id || loading || historyWriteLockRef.current) return;
+    if (!id || !cloudHistoryReady || loading || historyWriteLockRef.current) return;
     const epoch = ++historyEpochRef.current; setHistoryBusy(true);
     try {
       const saved = await loadEyraConversation(id);
@@ -1029,8 +1055,8 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
           {/* Input */}
           <div className="relative z-10 shrink-0 border-t border-border bg-card px-4 py-3">
             <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-              <button type="button" onClick={() => void saveConversation()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
-              <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
+              <button type="button" onClick={() => void saveConversation()} disabled={!cloudHistoryReady || loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
+              <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={!cloudHistoryReady || loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
               <button type="button" onClick={exportConversation} disabled={loading || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Export conversation</button>
               <button type="button" onClick={() => { if (showAgentRuns) { setShowAgentRuns(false); setSelectedAgentRun(null); } else void refreshAgentRuns(); }}
                 disabled={agentRunsBusy} aria-expanded={showAgentRuns}
@@ -1041,6 +1067,21 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
               {remoteConversation && <button type="button" onClick={() => void deleteSnapshot()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Delete saved snapshot</button>}
               <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); }} />Allow authorized workspace and research tools for this request</label>
             </div>
+            {cloudHistoryStatus !== 'available' && (
+              <section role="status" aria-label="Cloud conversation history" className="mb-3 rounded-lg border border-border bg-secondary/30 p-3 text-xs leading-5 text-muted-foreground">
+                <p>{cloudHistoryStatus === 'checking'
+                  ? 'Checking whether cloud conversation history is available…'
+                  : cloudHistoryStatus === 'unavailable'
+                    ? 'Cloud conversation saving is not activated here. Your chat can continue in this tab; use Export conversation to keep a file on your device.'
+                    : 'Cloud conversation history could not be verified. Cloud saving is disabled until it can be checked. You can still export this tab.'}</p>
+                {cloudHistoryStatus !== 'checking' && (
+                  <button type="button" onClick={() => setCloudHistoryCheck(value => value + 1)}
+                    className="mt-2 min-h-10 rounded-lg border border-border bg-background px-3 font-semibold text-primary hover:bg-secondary">
+                    Check cloud history again
+                  </button>
+                )}
+              </section>
+            )}
             {showAgentRuns && (
               <section aria-label="EYRA agent runs" className="mb-2 max-h-56 overflow-y-auto rounded-lg border border-border p-2 text-xs">
                 <div className="mb-2 flex items-center justify-between gap-2">

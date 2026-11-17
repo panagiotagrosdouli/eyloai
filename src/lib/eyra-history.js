@@ -1,6 +1,7 @@
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 import { normalizeEyraConversation } from './eyra-conversation.mjs';
 import { snapshotPayload } from './eyra-snapshot.mjs';
+import { safeEyraCloudHistoryError } from './eyra-cloud-history.mjs';
 
 async function authenticatedClient() {
   const session = await getUsableSession({ required: true, validate: true });
@@ -9,13 +10,18 @@ async function authenticatedClient() {
 export async function listEyraConversations() {
   const { client, owner } = await authenticatedClient();
   const { data, error } = await client.from('eyra_conversations').select('id,title,version,updated_date').eq('user_id', owner).order('updated_date', { ascending: false }).order('id', { ascending: false }).limit(20);
-  if (error) throw new Error('Saved conversations are unavailable. Separate staging migrations may still be required.');
+  if (error) throw safeEyraCloudHistoryError(error, 'Saved conversations could not be checked right now. Export this tab to keep a local copy.');
   return data;
 }
 export async function saveEyraConversation(title, messages, snapshotId) {
   const { client } = await authenticatedClient();
   const { data, error } = await client.rpc('save_eyra_conversation_snapshot', { ...snapshotPayload(title, messages), p_snapshot_id: snapshotId });
-  if (error) throw new Error('Save was not confirmed. Retry without editing to reuse the same snapshot ID.');
+  if (error) {
+    if (['PGRST202', '42883', 'PGRST205', '42P01'].includes(String(error.code || ''))) {
+      throw safeEyraCloudHistoryError(error, 'Cloud history is not activated.');
+    }
+    throw new Error('Save was not confirmed. Retry without editing to reuse the same snapshot ID.');
+  }
   if (!data || data.id !== snapshotId) throw new Error('Save confirmation did not match this snapshot. Retry to verify.');
   return data;
 }
