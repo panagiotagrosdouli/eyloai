@@ -5,7 +5,7 @@ import React from 'react';
  * NOT an exact-field preview of the model's proposed record. Server-side
  * authentication, write-intent validation and RLS remain mandatory.
  */
-export default function EyraWriteIntentReview({ review, onCancel, onEdit, onConfirm, onPreview, preview }) {
+export default function EyraWriteIntentReview({ review, onCancel, onEdit, onConfirm, onPreview, onApprove, preview }) {
   if (!review) return null;
   return (
     <section role="group" aria-label="Review EYRA write request"
@@ -36,9 +36,16 @@ export default function EyraWriteIntentReview({ review, onCancel, onEdit, onConf
             </div>
           ))}
           <p className="mt-2 text-muted-foreground">
-            This is not a saved record, and approval is not bound to these draft fields.
-            Confirm and send may generate different values. The exact-field execution approval workflow is not active.
+            These are proposed fields, not a saved record. Exact-field execution is available only
+            if an authenticated, expiring approval token and verified durable ledger are enabled.
           </p>
+          {!preview.approvalToken && (
+            <p className="mt-2 text-muted-foreground">
+              Exact-field execution approval is not active in this environment. To avoid
+              changing fields after review, this preview cannot be confirmed here.
+              Edit your request or cancel instead.
+            </p>
+          )}
         </div>
       )}
       {preview?.status === 'error' && <p role="alert" className="mt-2 text-destructive">{preview.error}</p>}
@@ -50,8 +57,17 @@ export default function EyraWriteIntentReview({ review, onCancel, onEdit, onConf
         <button type="button" aria-label="Preview EYRA proposed write fields without saving"
           disabled={preview?.status === 'loading'} className="rounded-lg border border-border px-3 py-2"
           onClick={onPreview}>{preview?.status === 'loading' ? 'Preparing preview…' : 'Preview fields (no save)'}</button>
-        <button type="button" aria-label="Confirm and send EYRA write" className="rounded-lg bg-primary px-3 py-2 text-primary-foreground"
-          onClick={onConfirm}>Confirm and send</button>
+        {preview?.status === 'ready' ? (
+          preview.approvalToken && preview.proposals.length === 1 ? (
+            <button type="button" aria-label="Approve exactly the displayed EYRA fields"
+              className="rounded-lg bg-primary px-3 py-2 text-primary-foreground"
+              onClick={onApprove}>Approve exactly these fields</button>
+          ) : null
+        ) : preview?.status !== 'loading' ? (
+          <button type="button" aria-label="Confirm and send EYRA write"
+            className="rounded-lg bg-primary px-3 py-2 text-primary-foreground"
+            onClick={onConfirm}>Confirm and send (fields may differ)</button>
+        ) : null}
       </div>
     </section>
   );
