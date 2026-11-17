@@ -70,7 +70,7 @@ export default function EyraHome({ onSearch }) {
         <section aria-labelledby="home-title" className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-8">
           <p className="text-sm font-medium text-primary">{greeting.greeting}</p>
           <h1 id="home-title" className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">What would you like to work on?</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Search verified research sources, or ask EYRA to help you think through your next step.</p>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Explore source-linked academic records, check the original sources, and save useful work for later. EYRA can help with follow-up questions when available.</p>
           <form onSubmit={event => { event.preventDefault(); if (homeQuery.trim()) onSearch(homeQuery.trim()); }} className="mt-6 flex flex-col gap-3 sm:flex-row">
             <label htmlFor="home-research-query" className="sr-only">Research topic or question</label>
             <input id="home-research-query" type="search" value={homeQuery} onChange={event => setHomeQuery(event.target.value)}
@@ -80,7 +80,7 @@ export default function EyraHome({ onSearch }) {
             </button>
           </form>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground">Search retrieves academic sources; EYRA conversations are separate.</p>
+            <p className="text-xs text-muted-foreground">Academic search is separate from EYRA. Always check the original papers.</p>
             <button type="button" disabled={!eyraReady} onClick={() => window.dispatchEvent(new Event('eylo:open-eyra'))}
               className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold text-foreground hover:bg-secondary disabled:opacity-50">
               <Lightbulb size={16} aria-hidden="true" /> Ask EYRA
