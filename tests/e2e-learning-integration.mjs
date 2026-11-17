@@ -489,8 +489,9 @@ try {
   await page.route('https://api.semanticscholar.org/**', route => json(route, { data: [] }));
   await page.route('**/api/opportunities**', route => json(route, { items: [] }));
   await page.route('**/api/eyra', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Fixture: AI unavailable' }) }));
-  await page.goto(`${origin}/search?q=${encodeURIComponent(provenanceTitle)}&goal=review`);
-  await page.getByRole('button', { name: 'Research', exact: true }).click();
+  // Public /search is now the EYLO discovery home; this fixture exercises
+  // the authenticated literature-analysis workflow, which auto-runs URL queries.
+  await page.goto(`${origin}/workspace/literature-search?q=${encodeURIComponent(provenanceTitle)}&goal=review`);
   await page.getByRole('heading', { name: provenanceTitle, exact: true }).waitFor();
   await page.getByText('Indexed by OpenAlex, Crossref · one publication, not independent studies.').waitFor();
   await page.getByText('Abstract metadata from Crossref.', { exact: true }).waitFor();
