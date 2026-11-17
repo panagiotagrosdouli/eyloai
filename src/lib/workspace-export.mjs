@@ -26,6 +26,23 @@ export const PRIVATE_WORKSPACE_EXPORT_TABLES = Object.freeze([
   'research_datasets',
 ]);
 
+// Some features are not deployed to every database. Only these explicitly
+// optional collections may be marked unavailable when the Data API confirms
+// that a table is missing from its schema. Permission, network and other
+// errors must still fail the entire export.
+export const OPTIONAL_WORKSPACE_EXPORT_TABLES = Object.freeze([
+  'eyra_conversations', 'eyra_messages', 'grant_applications',
+  'eylo_directory', 'eylo_teams', 'eylo_team_invites',
+  'eylo_team_members', 'eylo_connections', 'eylo_community_posts',
+  'eylo_peer_submissions', 'eylo_peer_reviews', 'eylo_feedback',
+  'eylo_api_tokens',
+]);
+
+function unavailableOptionalCollection(table, error) {
+  return OPTIONAL_WORKSPACE_EXPORT_TABLES.includes(table)
+    && (error?.code === 'PGRST205' || error?.code === '42P01');
+}
+
 export const WORKSPACE_EXPORT_TABLES = Object.freeze([
   ...PRIVATE_WORKSPACE_EXPORT_TABLES,
   'eylo_directory', 'eylo_teams', 'eylo_team_invites', 'eylo_team_members',
@@ -78,13 +95,23 @@ export async function collectWorkspaceExport({
   let estimatedBytes = 0;
   const collections = {};
   const totals = {};
+  const unavailableCollections = [];
   for (const table of WORKSPACE_EXPORT_TABLES) {
     const { key } = workspaceExportQuery(table);
     const results = [];
     const seen = new Set();
     let offset = 0;
+    let unavailable = false;
     while (true) {
       const { data, error } = await fetchPage(table, { offset, limit: pageSize, userId });
+      if (error && offset === 0 && results.length === 0 && unavailableOptionalCollection(table, error)) {
+        // Do not present a missing collection as an empty one. Only the
+        // well-known missing-schema codes are tolerated, on optional tables,
+        // before any rows have been read. All other errors abort the export.
+        unavailable = true;
+        unavailableCollections.push(table);
+        break;
+      }
       if (error) throw new Error(`Cannot export ${table}: database read failed.`);
       if (!Array.isArray(data)) throw new Error(`Cannot export ${table}: invalid database response.`);
       if (data.length > pageSize) throw new Error(`Cannot export ${table}: unexpected page length.`);
@@ -123,8 +150,8 @@ export async function collectWorkspaceExport({
       }
       offset += pageSize;
     }
-    collections[table] = results;
-    totals[table] = results.length;
+    collections[table] = unavailable ? null : results;
+    totals[table] = unavailable ? null : results.length;
   }
 
   const result = {
@@ -132,7 +159,10 @@ export async function collectWorkspaceExport({
     version: 3,
     exported_at: exportedAt(),
     scope: 'authenticated-workspace-only',
+    completeness: unavailableCollections.length ? 'partial-optional-collections-unavailable' : 'all-configured-collections-read',
+    unavailable_collections: unavailableCollections,
     limitations: [
+      ...(unavailableCollections.length ? ['Some configured optional collections were unavailable through the connected database schema. They are marked null, not empty; their contents were not exported. Contact support for complete data access.'] : []),
       'Not a complete personal-data access or portability response.',
       'Excludes billing, Supabase Auth internal records, provider logs, operational logs and backups.',
       'File and document metadata/version records are included; uploaded file bytes are not. Download file contents separately from Files.',
@@ -147,7 +177,9 @@ export async function collectWorkspaceExport({
   };
   // Metadata, profile and all JSON punctuation also contribute to the final
   // download. Do not silently exceed the limit through user_metadata alone.
-  if (encodedLength(result) > maxExportBytes) {
+  // The caller downloads indented JSON; enforce the limit on those actual
+  // UTF-8 bytes, not the smaller compact representation.
+  if (encoder.encode(JSON.stringify(result, null, 2)).byteLength > maxExportBytes) {
     throw new WorkspaceExportSizeError();
   }
   return result;

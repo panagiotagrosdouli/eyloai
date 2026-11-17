@@ -50,6 +50,7 @@ const LiteratureReview = lazy(() => import('@/pages/LiteratureReview'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
 const ProductTools = lazy(() => import('@/pages/ProductTools'));
+const TaskAutomations = lazy(() => import('@/pages/TaskAutomations'));
 const ProductWorkbench = lazy(() => import('@/pages/ProductWorkbench'));
 const CollaborationTools = lazy(() => import('@/pages/CollaborationTools'));
 const OfflineWorkspace = lazy(() => import('@/pages/OfflineWorkspace'));
@@ -153,7 +154,7 @@ const AuthenticatedApp = () => {
           <Route path="/labs/data" element={<ResearchDataLab />} />
           <Route path="/knowledge-graph" element={<ResearchKnowledgeGraph />} />
           <Route path="/projects" element={<Projects />} />
-          <Route path="/automations" element={<Navigate to="/tools/workflows" replace />} />
+          <Route path="/automations" element={<TaskAutomations />} />
           <Route path="/tools" element={<ProductTools />} />
           <Route path="/tools/:tool" element={<ProductTools />} />
           <Route path="/collaboration/:tool" element={<CollaborationTools />} />

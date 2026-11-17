@@ -1,5 +1,6 @@
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
 import { hasAuthenticatedSignIn } from '@/lib/auth/sessionContract';
+import { withAuthRequestDeadline } from '@/lib/auth/authRequestDeadline.mjs';
 import { createAppError, AppErrorCode, mapSupabaseError } from './errors';
 
 const ok = (data) => ({ ok: true, data });
@@ -21,10 +22,10 @@ export async function getSession() {
 export async function signIn(email, password) {
   try {
     const client = requireSupabase();
-    const { data, error } = await client.auth.signInWithPassword({
+    const { data, error } = await withAuthRequestDeadline(() => client.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,
-    });
+    }));
     if (error) return fail(mapSupabaseError(error));
     if (!hasAuthenticatedSignIn(data)) return fail(createAppError(AppErrorCode.SERVICE_UNAVAILABLE));
     return ok(data);
@@ -37,14 +38,14 @@ export async function signUp(email, password, options = {}) {
   try {
     const client = requireSupabase();
     const { emailRedirectTo, ...userData } = options;
-    const { data, error } = await client.auth.signUp({
+    const { data, error } = await withAuthRequestDeadline(() => client.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
       options: {
         data: userData,
         ...(emailRedirectTo ? { emailRedirectTo } : {}),
       },
-    });
+    }));
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
@@ -55,13 +56,13 @@ export async function signUp(email, password, options = {}) {
 export async function signInWithOAuth(provider, redirectTo) {
   try {
     const client = requireSupabase();
-    const { data, error } = await client.auth.signInWithOAuth({
+    const { data, error } = await withAuthRequestDeadline(() => client.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo,
         skipBrowserRedirect: true,
       },
-    });
+    }));
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
@@ -72,14 +73,14 @@ export async function signInWithOAuth(provider, redirectTo) {
 export async function signInWithMagicLink(email, redirectTo) {
   try {
     const client = requireSupabase();
-    const { data, error } = await client.auth.signInWithOtp({
+    const { data, error } = await withAuthRequestDeadline(() => client.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
       options: {
         emailRedirectTo: redirectTo,
         // Magic-link login is not registration; reject automatic account creation.
         shouldCreateUser: false,
       },
-    });
+    }));
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
@@ -90,7 +91,7 @@ export async function signInWithMagicLink(email, redirectTo) {
 export async function signOut() {
   try {
     const client = requireSupabase();
-    const { error } = await client.auth.signOut();
+    const { error } = await withAuthRequestDeadline(() => client.auth.signOut());
     if (error) return fail(mapSupabaseError(error));
     return ok(null);
   } catch (error) {
@@ -113,10 +114,10 @@ export async function refreshSession() {
 export async function resetPassword(email, redirectTo) {
   try {
     const client = requireSupabase();
-    const { data, error } = await client.auth.resetPasswordForEmail(
+    const { data, error } = await withAuthRequestDeadline(() => client.auth.resetPasswordForEmail(
       email.trim().toLowerCase(),
       { redirectTo },
-    );
+    ));
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
@@ -127,7 +128,7 @@ export async function resetPassword(email, redirectTo) {
 export async function updatePassword(password) {
   try {
     const client = requireSupabase();
-    const { data, error } = await client.auth.updateUser({ password });
+    const { data, error } = await withAuthRequestDeadline(() => client.auth.updateUser({ password }));
     if (error) return fail(mapSupabaseError(error));
     return ok(data);
   } catch (error) {
