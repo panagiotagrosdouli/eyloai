@@ -17,6 +17,7 @@ import {
 import { requestedEyraWrites } from '../src/lib/eyra-write-intent.mjs';
 import { inspectOpenAiLimit, outputText, outputRefusal, normalizeEyraSchema } from '../server/eyra-provider-contract.mjs';
 import { proposedEyraWriteActions, EYRA_WRITE_PREVIEW_INSTRUCTIONS } from '../server/eyra-write-preview.mjs';
+import { approvedEyraWritesEnabled, sealEyraWriteProposal } from '../server/eyra-field-approval.mjs';
 
 const MAX_PROMPT_LENGTH = 24_000;
 // Bound provider spending and prevent unexpectedly large responses on every model turn.
@@ -347,6 +348,11 @@ export default async function handler(request, response) {
       return response.status(200).json({
         preview_only: true,
         write_proposals: proposals,
+        ...(approvedEyraWritesEnabled() && proposals.length === 1
+          ? { write_approval_token: sealEyraWriteProposal({
+              ownerId: identity.user.id, request: currentIntent, proposal: proposals[0],
+            }) }
+          : {}),
         text: proposals.length
           ? 'Review the exact proposed fields. No record has been created or saved.'
           : 'EYRA did not propose a record. No record has been created or saved.',
