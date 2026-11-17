@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Monitor, Moon, Sun, X } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { hasChosenTheme, savePreferences, subscribePreferences } from '@/lib/preferences';
 
 // The first visit is a real choice, not a permanent modal blocking access to
 // public papers, login, or assistive navigation. Any existing preference wins.
 export default function ThemeWelcomeChoice() {
+  const { pathname } = useLocation();
+  // Offer the choice where people first enter academic discovery, never over
+  // a document editor, quiz, checkout or any authenticated work in progress.
+  const atPublicEntry = pathname === '/' || pathname === '/search' || pathname === '/discover';
   const [visible, setVisible] = useState(() => !hasChosenTheme());
   useEffect(() => subscribePreferences(() => {
     if (hasChosenTheme()) setVisible(false);
   }), []);
-  if (!visible) return null;
+  if (!visible || !atPublicEntry) return null;
 
   const select = theme => {
     savePreferences({ theme });
