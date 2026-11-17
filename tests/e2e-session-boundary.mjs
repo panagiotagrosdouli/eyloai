@@ -132,7 +132,7 @@ try {
     }, users.map(user => user.id));
     await researchPage.reload();
     await researchPage.getByRole('link', { name: 'Discover', exact: true }).waitFor();
-    const openSaved = () => researchPage.locator('button:visible').filter({ hasText: /^saved/i }).first().click();
+    const openSaved = () => researchPage.locator('button:visible').filter({ hasText: /saved/i }).first().click();
     await openSaved();
     await researchPage.getByRole('heading', { name: 'B-only research paper' }).waitFor();
     assert.equal(await researchPage.getByRole('heading', { name: 'A-only research paper' }).count(), 0);
