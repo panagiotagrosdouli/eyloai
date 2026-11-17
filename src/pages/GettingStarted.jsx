@@ -26,7 +26,7 @@ export default function GettingStarted() {
       <section aria-labelledby="start-title" className="mt-8 rounded-3xl border border-[var(--company-border)] bg-[var(--company-surface)] p-6 shadow-sm sm:p-10">
         <p className="text-xs font-semibold uppercase tracking-[.16em] text-[var(--company-action)]">Welcome to EYLO</p>
         <h1 id="start-title" className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">What would you like to do?</h1>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--company-muted)]">Start with a question, explore source-linked research, and keep your next step in one workspace. You can try public search before signing in.</p>
+        <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--company-muted)]">You do not need research or technical experience. Start with a question, explore source-linked research, and keep your next step in one workspace. You can try public search before signing in.</p>
         <a href="#choose-goal" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--company-action)] px-5 text-sm font-semibold text-[var(--company-on-action)] hover:opacity-90">Choose a goal <ArrowRight size={16} aria-hidden="true"/></a>
       </section>
 
