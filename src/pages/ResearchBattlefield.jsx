@@ -8,6 +8,7 @@ import {
 import { searchOpenAlexAuthors, searchOpenAlexInstitutions, searchOpenAlexWorks } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import { normalizeResearchGapCandidates } from '@/lib/research-gap-candidates.mjs';
+import { buildEyraAnalysisEvidence, assertEyraGeneratedPromptWithinBudget } from '@/lib/eyra-evidence-budget.mjs';
 
 const EXAMPLES = [
   'AI for drug discovery',
@@ -36,6 +37,10 @@ export default function ResearchBattlefield() {
   const analyze = async (q) => {
     const searchQuery = q || query;
     if (!searchQuery.trim()) return;
+    if (searchQuery.length > 500) {
+      setAnalysisError('Enter a research topic of at most 500 characters. Your question was not shortened.');
+      return;
+    }
     setQuery(searchQuery);
     setLoading(true);
     setReport(null);
@@ -72,17 +77,8 @@ export default function ResearchBattlefield() {
     }));
 
     // Step 2: AI analyzes ONLY the real data
-    const researcherContext = researchers.map((r, i) =>
-      `[R${i + 1}] ${r.name} — ${r.institution} — ${r.works_count} works, ${r.citation_count} citations — Areas: ${r.research_areas}`
-    ).join('\n');
-
-    const institutionContext = institutions.map((inst, i) =>
-      `[I${i + 1}] ${inst.name} (${inst.country}) — ${inst.works_count} works, ${inst.cited_by_count} citations`
-    ).join('\n');
-
-    const paperContext = papers.map((p, i) =>
-      `[P${i + 1}] "${p.title}" by ${p.authors} (${p.year}) — abstract excerpt: ${p.summary || 'not available'} — source: ${p.url}`
-    ).join('\n');
+    const { paperContext, researcherContext, institutionContext } =
+      buildEyraAnalysisEvidence(papers, researchers, institutions);
 
     const hasSufficientData = researchers.length > 0 || institutions.length > 0 || papers.length > 0;
 
@@ -90,7 +86,7 @@ export default function ResearchBattlefield() {
     if (hasSufficientData) {
       try {
         aiAnalysis = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are EYRA Research Landscape Analyzer. Analyze ONLY the retrieved records below — do NOT invent papers, names, institutions, statistics, findings, or citations.
+        prompt: assertEyraGeneratedPromptWithinBudget(`You are EYRA Research Landscape Analyzer. Analyze ONLY the retrieved records below — do NOT invent papers, names, institutions, statistics, findings, or citations.
 
 Field: "${searchQuery}"
 
@@ -109,7 +105,7 @@ For research_gaps, suggest at most 3 tentative research questions only when retr
 
 Also return: field_summary (2 sentences), competition_level ("Highly Competitive"|"Competitive"|"Emerging"|"Limited Data", a result-count heuristic), maturity ("Early Stage"|"Growing"|"Mature", a rough summary of retrieved publication years), opportunity_score (1-100 planning heuristic, not a probability or validated metric), trend_direction ("Rising"|"Stable"|"Declining", only a rough publication recency signal), key_trends (up to 3 observations tied to titles/years), strategic_entry_points (cautious next-step ideas, not claims of a gap), and eyra_verdict (one sentence that states evidence limits).
 
-Funding records are retrieved separately from an official source. Do not generate or recommend funding programs in this response.`,
+Funding records are retrieved separately from an official source. Do not generate or recommend funding programs in this response.`),
         response_json_schema: {
           type: 'object',
           properties: {

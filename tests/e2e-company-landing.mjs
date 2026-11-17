@@ -184,6 +184,12 @@ try {
   assert.equal(await question.evaluate((el) => el.parentElement.open), false);
   assert.equal(authRequests, 0, "public company landing never calls Auth");
   await screenshot(page, "company-landing-desktop");
+  // A first-time visitor can choose an appearance without signing in.
+  await page.getByRole("complementary", { name: "Choose your EYLO appearance" }).waitFor();
+  await page.getByRole("button", { name: "Light", exact: true }).click();
+  assert.equal(await page.evaluate(() => document.documentElement.classList.contains("light")), true);
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem("eylo_prefs")).theme), "light");
+  assert.equal(await page.getByRole("complementary", { name: "Choose your EYLO appearance" }).count(), 0);
   // Theme uses the canonical preference and survives route changes and reloads.
   await page
     .getByRole("button", { name: "Switch to night mode", exact: true })
@@ -213,6 +219,8 @@ try {
   );
   await screenshot(page, "company-landing-night");
   await page.reload();
+  assert.equal(await page.getByRole("complementary", { name: "Choose your EYLO appearance" }).count(), 0,
+    "existing saved preference suppresses first-visit chooser");
   await page
     .getByRole("button", { name: "Switch to day mode", exact: true })
     .waitFor();

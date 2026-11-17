@@ -7,6 +7,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
+import ThemeWelcomeChoice from '@/components/marketing/ThemeWelcomeChoice';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { redactAnalyticsEvent } from '@/lib/product-analytics';
 import Login from '@/pages/Login';
@@ -204,6 +205,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router basename={import.meta.env.BASE_URL === '/eyloai/' ? '/eyloai' : '/'}>
           <ScrollToTop />
+          <ThemeWelcomeChoice />
           <RouteErrorBoundary>
           <Suspense fallback={<PageLoader />}>
             <Routes>

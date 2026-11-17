@@ -1,4 +1,4 @@
-import { applyTheme } from '@/lib/theme';
+import { applyTheme } from './theme.js';
 
 export const DEFAULT_PREFERENCES = {
   language: 'en',
@@ -48,6 +48,21 @@ function normalize(raw = {}) {
     ...raw,
     accessibility,
   };
+}
+
+// Existing saved theme preferences are respected; first-time visitors receive
+// a small non-blocking chooser. An explicit preference is never inferred from
+// default values when the browser has not stored anything yet.
+export function hasChosenTheme() {
+  if (typeof window === 'undefined') return true;
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (!stored) return false;
+    const parsed = JSON.parse(stored);
+    return ['light', 'dark', 'system'].includes(parsed?.theme);
+  } catch {
+    return false;
+  }
 }
 
 export function loadPreferences() {
