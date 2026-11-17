@@ -5,6 +5,8 @@ import { isSafeEyraSourceUrl } from './eyra-citation-ids.mjs';
 const EVIDENCE_CHAR_BUDGET = 7_600;
 export const EYRA_COMMAND_PROMPT_BUDGET = 20_000;
 
+const trustedInstructions = (value, max) => typeof value === 'string' ? value.trim().slice(0, max) : '';
+
 function clipped(value, limit) {
   const text = typeof value === 'string' ? value
     : typeof value === 'number' && Number.isFinite(value) ? String(value)
@@ -102,8 +104,8 @@ export function buildEyraCommandPrompt({
     throw new Error('EYRA requires a user question of at most 2,000 characters.');
   }
   const fullPrompt = [
-    clipped(baseSystem, 4_000),
-    'ANALYSIS MODE:\n' + clipped(modePrompt, 1_000),
+    trustedInstructions(baseSystem, 4_000),
+    'ANALYSIS MODE:\n' + trustedInstructions(modePrompt, 1_000),
     'USER PREFERENCES:\n- Respond in ' + clipped(language, 90) + '.\n- ' + clipped(style, 300),
     'SAVED WORKSPACE CONTEXT (user-provided; not independently verified):\n'
       + (personalized ? clipped(workspaceContext, 3_500) || 'Workspace context is unavailable.'
