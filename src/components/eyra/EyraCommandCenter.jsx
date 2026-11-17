@@ -226,6 +226,7 @@ function Message({ msg, onSave, onCopy, saved, copied, saving }) {
           <section className="mt-2 max-w-full rounded-xl border border-border/70 bg-card/70 p-2.5" aria-label="EYRA retrieved source records">
             <p className="mb-2 text-[11px] leading-relaxed text-muted-foreground">
               {citedEvidence.summary}
+              {' '}Retrieved records are not independently verified; inspect the original evidence before relying on a scientific claim.
             </p>
             <div className="flex max-w-full flex-wrap gap-1.5">
               {citedEvidence.items.slice(0, 8).map(source => (
