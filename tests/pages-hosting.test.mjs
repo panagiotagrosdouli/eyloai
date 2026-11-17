@@ -124,7 +124,10 @@ test('Public researcher outreach never claims mail app opening sends a message',
   const finder = read('src/pages/PublicResearchers.jsx');
   assert.ok(finder.includes('mailto:'));
   assert.ok(finder.includes('institutionalEmail'));
-  assert.ok(finder.includes('OUTREACH_KEY'));
+  assert.ok(finder.includes("writeDiscoveryBrowserList(scope, 'outreach'"));
+  assert.ok(finder.includes("readDiscoveryBrowserList(scope, 'outreach'"));
+  assert.ok(finder.includes("draftState.scopeKey === scopeKey"));
+  assert.ok(!finder.includes('eylo-outreach-drafts-v1'));
   assert.ok(finder.includes('Opening your email app does not send the message'));
   assert.ok(finder.includes('A meeting is confirmed only when the researcher agrees'));
   assert.ok(finder.includes('Browser storage'));
