@@ -71,6 +71,7 @@ Interfaces:
 - The full workspace/scholarly tool executor is isolated from the HTTP orchestrator; strict argument contracts and bounded PostgREST response parsing are tested independently.
 - Retrieval fanout for publications, authors, institutions and funding is now a transport-neutral module with partial-failure and cancellation tests. The React UI only supplies provider adapters.
 - Accessible EYRA conversation messages, source-chip evidence warnings and busy indicators have been moved into a reusable UI component, with source-integrity presentation tests.
+- An optional read-only write-proposal API and UI now show exact model-proposed project or paper fields **without executing tools**. This is a non-binding draft; actual field-locked, idempotent, owner-bound execution approval is still a separate blocked phase, and legacy intent confirmation remains available.
 - The provider-facing server system prompt is separately versioned as an auditable module.
 - Identity-bounded project/paper/note context, monthly usage reservation/release, and false-write-permission protection are independent server modules with focused regression tests.
 - Cloud-history capability detection now distinguishes missing Supabase schema/RPC from unrelated auth/network errors; Save and history restore are gated per account, while local JSON Export stays available. This is graceful degradation, not evidence that hosted migrations have been applied.
