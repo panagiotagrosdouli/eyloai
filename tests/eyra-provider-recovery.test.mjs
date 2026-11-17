@@ -26,6 +26,7 @@ test('EYRA provider recovery is account-scoped, accessible and never silently re
   assert.match(ui, /setUserName\(''\); setActionError\(''\); setProviderNotice\(null\)/);
   assert.match(ui, /setProviderNotice\(eyraProviderRecoveryNotice\(error\)\)/);
   assert.match(ui, /role="status" aria-label="EYRA provider recovery"/);
+  assert.match(ui, /setInput\(''\);\s+setProviderNotice\(null\);\s+setActionError\(''\);/);
   assert.match(ui, /to="\/search" onClick=\{onClose\}/);
   assert.match(ui, /Browse publications without AI/);
   assert.match(ui, /if \(controller\.signal\.aborted\) return/);
