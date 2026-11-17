@@ -1,7 +1,7 @@
 // Public academic search history can reveal sensitive research interests.
 // Never reuse unscoped legacy browser keys across authenticated identities.
 const PREFIX = 'eylo:research-home:v2';
-const ALLOWED_LISTS = new Set(['saved', 'history']);
+const ALLOWED_LISTS = new Set(['saved', 'history', 'outreach']);
 
 export function discoveryBrowserScope(authStatus, userId) {
   if (authStatus === 'authenticated') {
@@ -32,7 +32,7 @@ export function readDiscoveryBrowserList(scope, type, storages) {
   if (!key) return [];
   try {
     const value = JSON.parse(storageFor(scope, storages)?.getItem(key) || '[]');
-    return Array.isArray(value) ? value.slice(0, 100) : [];
+    return Array.isArray(value) ? value.slice(0, type === 'outreach' ? 50 : 100) : [];
   } catch {
     return [];
   }
@@ -42,7 +42,7 @@ export function writeDiscoveryBrowserList(scope, type, values, storages) {
   const key = discoveryBrowserListKey(scope, type);
   if (!key || !Array.isArray(values)) return false;
   try {
-    storageFor(scope, storages)?.setItem(key, JSON.stringify(values.slice(0, 100)));
+    storageFor(scope, storages)?.setItem(key, JSON.stringify(values.slice(0, type === 'outreach' ? 50 : 100)));
     return Boolean(storageFor(scope, storages));
   } catch {
     return false;
