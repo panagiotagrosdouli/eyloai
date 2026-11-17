@@ -627,7 +627,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
       const citations = checkEyraCitationIds(baseAnswer, evidence.sources);
       if (!citations.valid) throw Object.assign(
         new Error('EYRA cited an identifier outside the retrieved source records.'),
-        { actions: response?.actions || [] },
+        { code: 'EYRA_UNSUPPORTED_CITATION', actions: response?.actions || [] },
       );
       const toolActions = formatEyraToolActions(response?.actions);
       const runReference = typeof response?.run_id === 'string'
@@ -662,6 +662,13 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
         retrievalQuery: evidence.query,
         retrievalAttempted: evidence.attempted,
       }]);
+      if (!allowWorkspaceActions) {
+        // A failed read-only request must never be silently retried or charged
+        // a second time. Restore the full user question for an explicit edit
+        // and submit, without clobbering text entered during the failed run.
+        setInput(previous => previous.trim() ? previous : content);
+        setActionError('Your question is available in the composer for an explicit retry. No automatic AI request was sent.');
+      }
     } finally {
       if (activeRequestRef.current === controller) {
         activeRequestRef.current = null;
