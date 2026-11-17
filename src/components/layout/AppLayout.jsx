@@ -20,8 +20,8 @@ import { filterToolGroups } from '@/lib/tool-directory-search.mjs';
 
 // Keep primary destinations stable and human-readable; secondary workflows live in All tools.
 const PRIMARY_NAV = [
-  { label: 'Home', path: '/search', icon: Home },
-  { label: 'Discover', path: '/home', icon: Search },
+  { label: 'Home', path: '/home', icon: Home },
+  { label: 'Discover', path: '/search', icon: Search },
   { label: 'My workspace', path: '/projects', icon: FolderOpen },
   { label: 'Learn', path: '/learn', icon: GraduationCap },
 ];
@@ -221,7 +221,7 @@ export default function AppLayout() {
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-2 focus:z-[100] focus:rounded-lg focus:bg-background focus:p-3">Skip to content</a>
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center gap-2 px-4 sm:px-8">
-          <Link to="/search" className="mr-3 flex shrink-0 items-center" aria-label="EYLO home">
+          <Link to="/home" className="mr-3 flex shrink-0 items-center" aria-label="EYLO workspace home">
             <BrandLogo brand="eylo" size="nav" priority />
           </Link>
 
