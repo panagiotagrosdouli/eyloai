@@ -3,23 +3,25 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const ui = readFileSync(new URL('../src/components/eyra/EyraCommandCenter.jsx', import.meta.url), 'utf8');
+const viewer = readFileSync(new URL('../src/components/eyra/EyraAgentRunHistory.jsx', import.meta.url), 'utf8');
 const client = readFileSync(new URL('../src/lib/eyra-run-history.js', import.meta.url), 'utf8');
 const server = readFileSync(new URL('../api/eyra-runs.js', import.meta.url), 'utf8');
 
 test('EYRA exposes operator run history, details, cancellation and deletion controls', () => {
-  assert.match(ui, /aria-label="EYRA agent runs"/);
-  assert.match(ui, /Agent run history/);
+  assert.match(viewer, /aria-label="EYRA agent runs"/);
+  assert.match(viewer, /Agent run history/);
   assert.match(ui, /Agent runs/);
+  assert.match(ui, /<EyraAgentRunHistory/);
   assert.match(ui, /loadEyraAgentRun\(id\)/);
   assert.match(ui, /cancelEyraAgentRun\(id\)/);
   assert.match(ui, /deleteEyraAgentRun\(id\)/);
   assert.match(ui, /window\.confirm\('Request cancellation/);
   assert.match(ui, /window\.confirm\('Permanently delete this completed agent run/);
-  assert.match(ui, /inspect the saved record before retrying/);
+  assert.match(viewer, /inspect the saved record before retrying/);
 });
 
 test('run UI does not silently claim in-flight action cancellation is atomic', () => {
-  assert.match(ui, /Cancellation is cooperative/);
+  assert.match(viewer, /Cancellation is cooperative/);
   assert.match(server, /cancellation: 'best_effort'/);
   assert.match(server, /status: 'eq\.running'/);
   assert.match(server, /user_id: 'eq\.' \+ owner/);

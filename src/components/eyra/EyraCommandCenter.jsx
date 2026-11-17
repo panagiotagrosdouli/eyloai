@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import { approveEyraWrite } from '@/lib/eyra-intelligence';
 import { buildUserProfile } from '@/lib/second-brain';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
@@ -10,12 +11,14 @@ import { checkEyraCitationIds } from '@/lib/eyra-citation-ids.mjs';
 import { buildEyraCommandEvidence, buildEyraCommandPrompt } from '@/lib/eyra-command-evidence.mjs';
 import { buildEvidenceOnlyFallback } from '@/lib/eyra-evidence-fallback.mjs';
 import {
-  X, Mic, MicOff, Send, Sparkles, Loader2,
-  Volume2, VolumeX, Trash2, Database
+  X, Volume2, VolumeX, Trash2, Database
 } from 'lucide-react';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { TypingIndicator, Message } from '@/components/eyra/EyraConversationTimeline';
-import { EyraModeSelector, EyraQuickCommands, EYRA_MODE_ICONS } from '@/components/eyra/EyraResearchControls';
+import { EyraModeSelector, EyraQuickCommands } from '@/components/eyra/EyraResearchControls';
+import EyraComposer from '@/components/eyra/EyraComposer';
+import EyraWriteIntentReview from '@/components/eyra/EyraWriteIntentReview';
+import EyraAgentRunHistory from '@/components/eyra/EyraAgentRunHistory';
 import { useAuth } from '@/lib/AuthContext';
 import { eyraConversationKey, normalizeEyraConversation } from '@/lib/eyra-conversation.mjs';
 import { EYRA_MODES, EYRA_LANGUAGE_NAMES, EYRA_STYLE_INSTRUCTIONS, EYRA_BASE_SYSTEM } from '@/lib/eyra-next-policy.mjs';
@@ -137,6 +140,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const [conversationOwner, setConversationOwner] = useState(user?.id);
   const [allowWorkspaceActions, setAllowWorkspaceActions] = useState(false);
   const [pendingWriteReview, setPendingWriteReview] = useState(null);
+  const [writePreview, setWritePreview] = useState(null);
   const [liveDraft, setLiveDraft] = useState('');
   const [savedConversations, setSavedConversations] = useState([]);
   const [remoteConversation, setRemoteConversation] = useState(null);
@@ -184,6 +188,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     setMessages(loadConversation(user?.id)); setConversationOwner(user?.id);
     setWorkspaceContext(''); setContextStatus('idle'); setLiveDraft(''); setLoading(false);
     setRemoteConversation(null); setSavedConversations([]); setAllowWorkspaceActions(false);
+    setPendingWriteReview(null); setWritePreview(null);
     historyEpochRef.current += 1; snapshotRequestRef.current = null; historyWriteLockRef.current = false; setHistoryBusy(false);
     setSavingConversation(false); setSavedMessageIds(new Set()); setUserName(''); setActionError('');
     setCloudHistoryState({ ownerId: user?.id ?? null, status: 'checking' });
@@ -360,10 +365,12 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
       // This is a review of the user's request, not a preview of model-selected
       // database fields. Actual writes still require explicit API confirmation.
       setPendingWriteReview({ content, writeIntent });
+      setWritePreview(null);
       setActionError('');
       return;
     }
     setPendingWriteReview(null);
+    setWritePreview(null);
     const controller = new AbortController();
     activeRequestRef.current = controller;
     setInput('');
@@ -473,6 +480,98 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
         setLoading(false);
         setLiveDraft('');
         setAllowWorkspaceActions(false);
+      }
+    }
+  };
+
+  const previewPendingWrite = async () => {
+    const review = pendingWriteReview;
+    const owner = ownerRef.current;
+    if (!review || !owner || !allowWorkspaceActions || loading || activeRequestRef.current) return;
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
+    setLoading(true);
+    setWritePreview({ ownerId: owner, content: review.content, status: 'loading', proposals: [], error: '' });
+    try {
+      // This uses an authenticated API preview that does NOT execute model tool
+      // calls. It is not an approval token for the generated fields.
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: review.content,
+        latest_user_request: review.content,
+        tool_intent: review.content,
+        enable_project_tools: true,
+        preview_write_actions: true,
+        stream: false,
+        signal: controller.signal,
+      });
+      controller.signal.throwIfAborted();
+      if (ownerRef.current !== owner) return;
+      if (result?.preview_only !== true || !Array.isArray(result.write_proposals)) {
+        throw new Error('EYRA did not confirm a preview-only result.');
+      }
+      setWritePreview({
+        ownerId: owner, content: review.content, status: 'ready',
+        proposals: result.write_proposals,
+        approvalToken: typeof result.write_approval_token === 'string' ? result.write_approval_token : null,
+        error: '',
+      });
+    } catch (error) {
+      if (controller.signal.aborted || ownerRef.current !== owner) return;
+      setWritePreview({
+        ownerId: owner, content: review.content, status: 'error', proposals: [],
+        error: 'The proposed fields could not be prepared. No workspace record was changed.',
+      });
+    } finally {
+      if (activeRequestRef.current === controller) {
+        activeRequestRef.current = null;
+        setLoading(false);
+      }
+    }
+  };
+
+  const approvePendingExactFields = async () => {
+    const review = pendingWriteReview;
+    const preview = writePreview;
+    const owner = ownerRef.current;
+    if (!review || !owner || loading || activeRequestRef.current
+      || preview?.status !== 'ready' || preview.ownerId !== owner
+      || preview.content !== review.content || preview.proposals?.length !== 1
+      || typeof preview.approvalToken !== 'string' || !preview.approvalToken) return;
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
+    setLoading(true);
+    setActionError('');
+    // Token is single-attempt from the browser's perspective; the durable
+    // server ledger prevents a second write even after an ambiguous response.
+    setWritePreview({ ...preview, status: 'committing', approvalToken: null });
+    try {
+      const result = await approveEyraWrite({
+        request: review.content, approvalToken: preview.approvalToken, signal: controller.signal,
+      });
+      controller.signal.throwIfAborted();
+      if (ownerRef.current !== owner) return;
+      setPendingWriteReview(null);
+      setWritePreview(null);
+      setAllowWorkspaceActions(false);
+      setMessages(previous => [...previous,
+        { role: 'user', content: review.content, timestamp: Date.now() },
+        {
+          role: 'eyra', content: `Approved exact-field action completed. Execution ID: \`${result.run_id}\`.
+The saved record was returned by the server. Check the workspace for the final record.`,
+          timestamp: Date.now() + 1, mode: activeMode, sources: [],
+        },
+      ]);
+    } catch (error) {
+      if (ownerRef.current !== owner) return;
+      setWritePreview({
+        ...preview, status: 'error', approvalToken: null,
+        error: 'Exact-field execution was not confirmed. Inspect the workspace and run history before attempting a new approval.',
+      });
+      setActionError(error?.message || 'The approved action could not be verified.');
+    } finally {
+      if (activeRequestRef.current === controller) {
+        activeRequestRef.current = null;
+        setLoading(false);
       }
     }
   };
@@ -714,7 +813,6 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   };
 
   const currentMode = MODES.find(m => m.id === activeMode);
-  const ModeIcon = EYRA_MODE_ICONS[activeMode] || Sparkles;
 
   if (!open) return null;
 
@@ -814,62 +912,17 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
               </button>
               {remoteConversation && <button type="button" onClick={() => setRenameTitle(remoteConversation.title || '')} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Rename saved conversation</button>}
               {remoteConversation && <button type="button" onClick={() => void deleteSnapshot()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Delete saved snapshot</button>}
-              <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); }} />Allow authorized workspace and research tools for this request</label>
+              <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); setWritePreview(null); }} />Allow authorized workspace and research tools for this request</label>
             </div>
-            {showAgentRuns && (
-              <section aria-label="EYRA agent runs" className="mb-2 max-h-56 overflow-y-auto rounded-lg border border-border p-2 text-xs">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="font-semibold">Agent run history</span>
-                  <button type="button" onClick={() => void refreshAgentRuns()}
-                    disabled={agentRunsBusy} className="rounded-md border border-border px-2 py-1">Refresh</button>
-                </div>
-                {agentRunsError && <p role="alert" className="mb-2 text-destructive">{agentRunsError}</p>}
-                {!agentRunsError && !agentRunsBusy && agentRuns.length === 0 && (
-                  <p className="text-muted-foreground">No recorded agent runs in this environment.</p>
-                )}
-                {agentRuns.map(item => (
-                  <div key={item.id} className="mb-1 flex flex-wrap items-center gap-2 border-b border-border/70 py-1">
-                    <span className="min-w-0 flex-1 truncate">{item.input_preview || item.id}</span>
-                    <span className="font-medium">{item.status}</span>
-                    <button type="button" onClick={() => void inspectAgentRun(item.id)}
-                      disabled={agentRunsBusy} className="rounded-md border border-border px-2 py-1">Details</button>
-                  </div>
-                ))}
-                {selectedAgentRun && (
-                  <div className="mt-2 rounded-md border border-border bg-secondary/20 p-2">
-                    <p className="font-semibold">Run: {selectedAgentRun.run.id}</p>
-                    <p>Status: {selectedAgentRun.run.status}</p>
-                    <p className="break-words">Response: {selectedAgentRun.run.response_text || 'No recorded final response.'}</p>
-                    {selectedAgentRun.actions.map(action => (
-                      <p key={action.id} className="break-words">
-                        {action.tool_name}: {action.status}
-                        {action.status === 'needs_review' ? ' — inspect the saved record before retrying.' : ''}
-                      </p>
-                    ))}
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {selectedAgentRun.run.status === 'running' && (
-                        <>
-                        <button type="button" disabled={agentRunsBusy}
-                          className="rounded-md border border-border px-2 py-1"
-                          onClick={() => void cancelAgentRun(selectedAgentRun.run.id)}>Request cancellation</button>
-                        <button type="button" disabled={agentRunsBusy}
-                          className="rounded-md border border-border px-2 py-1"
-                          onClick={() => void markAgentRunForReview(selectedAgentRun.run.id)}>Review stale run (30+ min)</button>
-                        </>
-                      )}
-                      {selectedAgentRun.run.status !== 'running' && (
-                        <button type="button" disabled={agentRunsBusy}
-                          className="rounded-md border border-border px-2 py-1"
-                          onClick={() => void removeAgentRun(selectedAgentRun.run.id)}>Delete run history</button>
-                      )}
-                    </div>
-                  </div>
-                )}
-                <p className="mt-2 text-muted-foreground">
-                  Cancellation is cooperative. A previously initiated external write may still complete.
-                </p>
-              </section>
-            )}
+            <EyraAgentRunHistory
+              open={showAgentRuns} runs={agentRuns} selected={selectedAgentRun}
+              busy={agentRunsBusy} error={agentRunsError}
+              onRefresh={() => void refreshAgentRuns()}
+              onInspect={id => void inspectAgentRun(id)}
+              onCancel={id => void cancelAgentRun(id)}
+              onReviewStale={id => void markAgentRunForReview(id)}
+              onDelete={id => void removeAgentRun(id)}
+            />
             {renameTitle !== null && remoteConversation && (
               <form className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-border p-2"
                 onSubmit={event => { event.preventDefault(); void saveRenamedConversation(); }}>
@@ -884,64 +937,30 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
                   className="rounded-lg border border-border px-3 py-2 text-xs">Cancel rename</button>
               </form>
             )}
-            {pendingWriteReview && (
-              <section role="group" aria-label="Review EYRA write request"
-                className="mb-2 rounded-xl border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-foreground">
-                <p className="font-semibold">Review before sending a workspace write</p>
-                <p className="mt-1 text-muted-foreground">
-                  EYRA may {pendingWriteReview.writeIntent.project ? 'create a project' : 'save a paper'}
-                  {pendingWriteReview.writeIntent.project && pendingWriteReview.writeIntent.paper ? ' and save a paper' : ''}.
-                  The model will choose the proposed record fields. Verify the resulting record after completion.
-                </p>
-                <p className="mt-2 max-h-24 overflow-auto whitespace-pre-wrap break-words rounded-md border border-border p-2">
-                  {pendingWriteReview.content}
-                </p>
-                <div className="mt-2 flex flex-wrap justify-end gap-2">
-                  <button type="button" aria-label="Cancel pending EYRA write" className="rounded-lg border border-border px-3 py-2"
-                    onClick={() => setPendingWriteReview(null)}>Cancel</button>
-                  <button type="button" aria-label="Edit pending EYRA write" className="rounded-lg border border-border px-3 py-2"
-                    onClick={() => { setInput(pendingWriteReview.content); setPendingWriteReview(null); inputRef.current?.focus(); }}>Edit</button>
-                  <button type="button" aria-label="Confirm and send EYRA write" className="rounded-lg bg-primary px-3 py-2 text-primary-foreground"
-                    onClick={() => void sendMessage(pendingWriteReview.content, { writeConfirmed: true })}>Confirm and send</button>
-                </div>
-              </section>
-            )}
-            <div className="flex items-end gap-2 rounded-xl border border-border bg-background p-2 transition-colors focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10">
-              <div className="mb-1.5 grid h-6 w-6 shrink-0 place-items-center rounded-md bg-secondary text-muted-foreground">
-                <ModeIcon size={11} />
-              </div>
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                aria-label="Message EYRA"
-                maxLength={allowWorkspaceActions ? 1000 : 2000}
-                placeholder={`Describe the outcome you need in ${currentMode?.label || 'Research'} mode…`}
-                rows={1}
-                className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none resize-none max-h-28 py-1.5"
-                style={{ minHeight: '34px' }}
-              />
-              <div className="flex items-center gap-1 flex-shrink-0 pb-1">
-                <button
-                  type="button"
-                  onClick={listening ? stopListening : startListening}
-                  aria-label={listening ? 'Stop voice input' : 'Start voice input'}
-                  className={`grid min-h-11 min-w-11 place-items-center rounded-lg transition-colors ${listening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-secondary text-muted-foreground'}`}>
-                  {listening ? <MicOff size={14} /> : <Mic size={14} />}
-                </button>
-                {loading && (
-                  <button type="button" aria-label="Stop EYRA generation" onClick={stopGeneration}
-                    className="min-h-11 rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-secondary">
-                    Stop
-                  </button>
-                )}
-                <button type="button" aria-label="Send message" onClick={() => sendMessage()} disabled={!input.trim() || loading}
-                  className="grid min-h-11 min-w-11 place-items-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40">
-                  {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-                </button>
-              </div>
-            </div>
+            <EyraWriteIntentReview
+              review={pendingWriteReview}
+              preview={writePreview?.ownerId === user?.id
+                && writePreview?.content === pendingWriteReview?.content ? writePreview : null}
+              onPreview={() => void previewPendingWrite()}
+              onApprove={() => void approvePendingExactFields()}
+              onCancel={() => { setPendingWriteReview(null); setWritePreview(null); }}
+              onEdit={() => {
+                setInput(pendingWriteReview.content);
+                setPendingWriteReview(null);
+                setWritePreview(null);
+                inputRef.current?.focus();
+              }}
+              onConfirm={() => void sendMessage(pendingWriteReview.content, { writeConfirmed: true })}
+            />
+            <EyraComposer
+              activeMode={activeMode} modeLabel={currentMode?.label}
+              inputRef={inputRef} value={input} onChange={setInput}
+              onKeyDown={handleKeyDown} onSend={() => void sendMessage()}
+              onStop={stopGeneration}
+              onStartListening={startListening} onStopListening={stopListening}
+              listening={listening} loading={loading}
+              allowWorkspaceActions={allowWorkspaceActions}
+            />
             {actionError && (
               <p role="alert" className="mt-2 text-center text-[10px] text-amber-300">{actionError}</p>
             )}
