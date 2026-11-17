@@ -38,7 +38,9 @@ export default function EyraWriteIntentReview({ review, onCancel, onEdit, onConf
             </div>
           ))}
           <p className="mt-2 text-muted-foreground">
-            These are proposed fields, not a saved record. Exact-field execution is available only
+            These are the exact approved tool input fields, not a complete saved-record preview.
+            Server-generated status fields and Crossref-verified bibliographic metadata may be added to the saved record.
+            Exact-field execution is available only
             if an authenticated, expiring approval token and verified durable ledger are enabled.
           </p>
           {!preview.approvalToken && preview.status !== 'committing' && (

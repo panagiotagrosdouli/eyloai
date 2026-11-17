@@ -44,3 +44,17 @@ test('API opt-in preview never enters tool execution loop or writes a durable ag
   assert.ok(api.indexOf('if (previewWrites) {', api.indexOf('let result = await openAiResponse.json()')) <
     api.indexOf('for (let round = 0; round < 3; round += 1)'));
 });
+
+test('previews normalize exact tool inputs before signing, not hidden values after approval', () => {
+  const proposals = proposedEyraWriteActions([call('project.create', {
+    title: '  Research audit  ', description: '  Reviewed protocol  ',
+    goal: '  Reproduce  ', milestones: '', tasks: '',
+  })], { project: true });
+  assert.equal(proposals[0].fields.title, 'Research audit');
+  assert.equal(proposals[0].fields.description, 'Reviewed protocol');
+  assert.equal(proposals[0].fields.goal, 'Reproduce');
+  const paper = proposedEyraWriteActions([call('library.save_paper', {
+    doi: ' DOI:10.1234/ABC ', title: 'Metadata from provider',
+  })], { paper: true });
+  assert.equal(paper[0].fields.doi, '10.1234/abc');
+});
