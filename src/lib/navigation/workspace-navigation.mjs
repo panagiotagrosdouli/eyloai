@@ -37,7 +37,7 @@ const readable = value => {
 };
 const label = path => path === '/home' ? 'Home'
   : path === '/search' ? 'Discover'
-  : /^\\/projects\\/[^/]+$/.test(path) ? 'Project'
+  : path.startsWith('/projects/') && path.split('/').length === 3 ? 'Project'
   : SECTIONS[path]?.[0] || readable(path.split('/').at(-1));
 const result = (crumbs, backPath) => ({
   visible: true, crumbs, backPath, backLabel: label(backPath)
