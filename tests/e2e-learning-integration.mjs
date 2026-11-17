@@ -381,7 +381,7 @@ try {
     body: JSON.stringify({ code: 'PGRST205', message: 'Relation unavailable in fixture schema' }),
   });
   await page.route(`${supabaseUrl}/rest/v1/eyra_conversations**`, cloudSchemaMissing);
-  await page.reload();
+  await page.goto(`${origin}/home`);
   await page.getByRole('complementary', { name: 'Research assistant and continuation' })
     .getByRole('button', { name: 'Ask EYRA', exact: true }).click();
   const unavailableCloudHistory = page.getByRole('status', { name: 'Cloud conversation history' });
