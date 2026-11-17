@@ -43,7 +43,7 @@ test('large abstracts, institutional metadata and funding descriptions cannot ov
       institution: 'University ' + 'X'.repeat(15000), research_areas: 'Y'.repeat(9000),
     }))),
     institutions: group(Array.from({ length: 9 }, (_, i) => ({
-      title: 'Institution ' + i, url: 'https://openalex.org/I' + (i + 1),
+      name: 'Institution ' + i, url: 'https://openalex.org/I' + (i + 1),
       country: 'GR', works_count: 100,
     }))),
     funding: group(Array.from({ length: 14 }, (_, i) => ({
