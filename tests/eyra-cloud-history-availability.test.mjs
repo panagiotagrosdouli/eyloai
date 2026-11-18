@@ -33,3 +33,12 @@ test('UI waits for per-owner cloud readiness before enabling cloud Save', () => 
   assert.match(ui, /Re-check cloud history/);
   assert.match(api, /safeEyraCloudHistoryError\(error/);
 });
+
+test('missing schema warning allows accessible manual recheck after staging becomes available', () => {
+  const ui = readFileSync(new URL('../src/components/eyra/EyraCommandCenter.jsx', import.meta.url), 'utf8');
+  assert.match(ui, /cloudHistoryStatus === 'error' \|\| cloudHistoryStatus === 'unavailable'/);
+  assert.match(ui, /setCloudHistoryCheck\(value => value \+ 1\)/);
+  assert.match(ui, /min-h-11 rounded-md px-2 underline focus-visible:outline/);
+  assert.match(ui, /\[open, user\?\.id, cloudHistoryCheck\]/);
+  assert.match(ui, /if \(!owner \|\| !cloudHistoryReady \|\| loading/);
+});
