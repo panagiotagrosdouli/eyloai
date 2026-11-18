@@ -195,6 +195,66 @@ try:
         sql("do $$ begin if (select count(*) from eyra_messages where conversation_id='60000000-0000-4000-8000-000000000021') != 1 then raise exception 'Duplicate snapshot messages'; end if; end $$;")
         sql("delete from eyra_conversations where id='60000000-0000-4000-8000-000000000021';")
     print('PASS: two independent PostgreSQL snapshot retries return the same ID and persist exactly one message (three overlapping transaction rounds).', flush=True)
+    if not bundle_replay:
+        # Two independent service transactions must never reserve the same
+        # signed approval or its action twice. This is disposable local SQL
+        # verification, not hosted Supabase/PostgREST acceptance.
+        def reserve_once(statement):
+            return subprocess.check_output(
+                [*DOCKER, 'exec', '-i', NAME, 'psql', '-U', 'postgres', '-qAt', '-v', 'ON_ERROR_STOP=1'],
+                env=ENV, input=statement, text=True,
+            ).strip()
+
+        for _approval_round in range(3):
+            approval_request = str(uuid.uuid4())
+            reserve_run = f"""
+            begin;
+            set local role service_role;
+            insert into public.eyra_agent_runs(user_id,request_id,request_hash,input_preview)
+            values ('00000000-0000-0000-0000-000000000001',
+                    '{approval_request}',repeat('a',64),'Exact approved project fields')
+            on conflict (user_id,request_id) do nothing returning id;
+            do $ begin perform pg_sleep(0.2); end $;
+            commit;
+            """
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                run_results = list(pool.map(reserve_once, [reserve_run, reserve_run]))
+            winners = [result for result in run_results if result]
+            if len(winners) != 1:
+                raise AssertionError('Concurrent approval run reservation must have exactly one winner: ' + repr(run_results))
+            reserved_run_id = winners[0]
+            if str(uuid.UUID(reserved_run_id)) != reserved_run_id:
+                raise AssertionError('Invalid reserved approval run identity')
+
+            reserve_action = f"""
+            begin;
+            set local role service_role;
+            insert into public.eyra_agent_actions(run_id,user_id,call_id,tool_name,arguments_hash)
+            values ('{reserved_run_id}','00000000-0000-0000-0000-000000000001',
+                    'exact_fields_approved','project.create',repeat('b',64))
+            on conflict (run_id,call_id) do nothing returning id;
+            do $ begin perform pg_sleep(0.2); end $;
+            commit;
+            """
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                action_results = list(pool.map(reserve_once, [reserve_action, reserve_action]))
+            if len([result for result in action_results if result]) != 1:
+                raise AssertionError('Concurrent approval action reservation must have exactly one winner: ' + repr(action_results))
+            sql(f"""
+            do $ begin
+                if (select count(*) from public.eyra_agent_runs
+                    where user_id='00000000-0000-0000-0000-000000000001'
+                      and request_id='{approval_request}') != 1 then
+                    raise exception 'Duplicate durable approved run';
+                end if;
+                if (select count(*) from public.eyra_agent_actions
+                    where run_id='{reserved_run_id}' and call_id='exact_fields_approved') != 1 then
+                    raise exception 'Duplicate durable approved action';
+                end if;
+            end $;
+            delete from public.eyra_agent_runs where id='{reserved_run_id}';
+            """)
+        print('PASS: independent PostgreSQL approval run/action reservations have exactly one winner and no duplicates in three overlapping rounds.', flush=True)
     def concurrent_timer_transition(_index):
         statement = """
         begin;
