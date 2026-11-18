@@ -112,3 +112,23 @@ The audit branch includes independent, low-risk changes beyond documentation:
 **Integration risk:** #530 will also change the EYRA cloud history UX and must be reconciled after review. Do not claim that the new API classification alone enables cloud conversation saving. #528/#530/#531 are **118 commits behind main** when compared on 18 November, and their combined changes should not be force-copied into this branch. #536 is 2 commits behind the current main; rebase and rerun exact-head checks when constructing a combined candidate.
 
 **Validation:** The latest branch commit must pass Build, Product Quality and EYLO Quality Gate. Read-only inspection of PR statuses is not a substitute for a successful final-head CI result.
+
+## Integration update — 18 November 2026, latest audit branch
+
+**Branch candidate, not production deployment.** After the read-only audit, this same draft PR now contains:
+
+- **Security (#536):** full seven-file exact-field approval change integrated on top of newer main, including canonical input bounds, token-size checks, safe preview failure and independent PostgreSQL concurrent run/action race checks. The server's approved-write flag remains default-off. Original #536 exact-head CI passed; this **combined** branch needs its own CI.
+- **Schema readiness (#531):** all ten new files from the staging preflight branch plus its Python disposable-PostgreSQL test block transplanted into the newer #536 integration script, retaining *both* the concurrency and schema-negative controls. This new preflight is purely local/disposable or explicitly manual staging, never a production migration.
+- **Host API:** missing EYRA tables/RPC are explicitly unavailable, RLS/permission failures denied and upstream Auth outages are distinct from revoked sessions; endpoint-level synthetic tests added.
+- **Research trust:** untrusted evidence-context instruction guard and adversarial prompt tests added.
+- **User experience:** EYRA cloud-history warning now permits a manual re-check even after a missing-schema result, with an accessible touch target and fail-closed Save gating.
+- **CI least privilege:** no persisted checkout tokens in three existing quality/build jobs.
+
+**Do not merge #531 standalone:** this draft selectively integrates its tests and schema preflight against the current main tree, **not** the full older #528/#530 stack. Full combined functional review is still required for UX/auth/workspace code from #528 and any remaining #530 differences. Those legacy branches are far behind main and need line-level reconciliation, not blind wholesale replacement. Original draft PRs remain open.
+
+### Required next checks
+
+1. Wait for **exact final SHA** Build, Product Quality, EYLO Quality Gate, and EYRA schema preflight; a previous successful PR SHA does not cover this combination.
+2. Review overlapping Python integration and approval field contracts, then run the full disposable PostgreSQL suite. Any failed run must be diagnosed, not ignored.
+3. No real staging environment has been authorized or tested in this branch. Staging JWT/RLS, PostgREST persistence, Auth, OpenAI, SMTP, Stripe, UX screenshots and production scientific quality remain pending.
+4. Retain **NO-GO** until documented external acceptance. Do not merge automatically or promote deployment.
