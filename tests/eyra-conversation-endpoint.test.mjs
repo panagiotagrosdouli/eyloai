@@ -22,7 +22,7 @@ function json(status, data) {
   };
 }
 
-async function invoke(dbStatus, dbCode, authOk = true) {
+async function invoke(dbStatus, dbCode, authStatus = 200) {
   const oldUrl = process.env.VITE_SUPABASE_URL;
   const oldKey = process.env.VITE_SUPABASE_ANON_KEY;
   const oldFetch = globalThis.fetch;
@@ -33,7 +33,7 @@ async function invoke(dbStatus, dbCode, authOk = true) {
     assert.equal(options.headers.authorization, 'Bearer fixture-token');
     assert.ok(String(url).startsWith('https://test-project.supabase.co/'));
     if (String(url).includes('/auth/v1/user')) {
-      return json(authOk ? 200 : 401, authOk ? { id: OWNER } : { message: SECRET });
+      return json(authStatus, authStatus === 200 ? { id: OWNER } : { message: SECRET });
     }
     dbCalled = true;
     return json(dbStatus, dbStatus === 200
@@ -83,7 +83,17 @@ test('upstream temporary failures and truly empty history stay distinct', { conc
 });
 
 test('invalid session never requests private database history', { concurrency: false }, async () => {
-  const { response, dbCalled } = await invoke(200, undefined, false);
+  const { response, dbCalled } = await invoke(200, undefined, 401);
   assert.equal(response.statusCode, 401);
   assert.equal(dbCalled, false);
+});
+
+test('temporary upstream Auth outage is not misreported as a revoked user session', { concurrency: false }, async () => {
+  for (const status of [429, 500, 503]) {
+    const { response, dbCalled } = await invoke(200, undefined, status);
+    assert.equal(response.statusCode, 503);
+    assert.equal(response.body.code, 'AUTH_SERVICE_UNAVAILABLE');
+    assert.equal(dbCalled, false);
+    assert.doesNotMatch(JSON.stringify(response.body), /SHOULD_NOT_LEAK/);
+  }
 });
