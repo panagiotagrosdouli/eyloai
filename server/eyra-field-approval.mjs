@@ -1,8 +1,7 @@
 import crypto from 'node:crypto';
-import { validatedEyraToolArguments } from './eyra-tool-contract.mjs';
+import { boundedEyraApprovedProposal } from './eyra-approved-fields.mjs';
 
 const MAX_AGE_MS = 5 * 60_000;
-const WRITES = new Set(['project.create', 'library.save_paper']);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function approvedEyraWritesEnabled() {
@@ -17,15 +16,6 @@ function signingKey() {
   return process.env.EYRA_WRITE_APPROVAL_SECRET;
 }
 
-function canonicalProposal(proposal) {
-  if (!proposal || !WRITES.has(proposal.tool) || !proposal.fields
-    || typeof proposal.fields !== 'object' || Array.isArray(proposal.fields)) {
-    throw new Error('Invalid EYRA write proposal.');
-  }
-  const fields = validatedEyraToolArguments(proposal.tool, JSON.stringify(proposal.fields));
-  return { tool: proposal.tool, fields };
-}
-
 /** Signed, short-lived approval capability. Not a stored authorization or a replay guard. */
 export function sealEyraWriteProposal({ ownerId, request, proposal, now = Date.now(), id = crypto.randomUUID() }) {
   const key = signingKey();
@@ -34,7 +24,7 @@ export function sealEyraWriteProposal({ ownerId, request, proposal, now = Date.n
     || !UUID.test(id) || !Number.isSafeInteger(now) || now < 0) {
     throw new Error('Invalid EYRA write approval identity.');
   }
-  const approved = canonicalProposal(proposal);
+  const approved = boundedEyraApprovedProposal(proposal);
   const payload = {
     v: 1, owner_id: ownerId, request, tool: approved.tool,
     fields: approved.fields, id, issued_at: now, expires_at: now + MAX_AGE_MS,
@@ -67,5 +57,5 @@ export function verifyEyraWriteApproval(token, { ownerId, request, now = Date.no
     || data.expires_at - data.issued_at !== MAX_AGE_MS) {
     throw new Error('EYRA approval is expired or does not belong to this request.');
   }
-  return { id: data.id, proposal: canonicalProposal({ tool: data.tool, fields: data.fields }) };
+  return { id: data.id, proposal: boundedEyraApprovedProposal({ tool: data.tool, fields: data.fields }) };
 }
