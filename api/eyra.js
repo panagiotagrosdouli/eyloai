@@ -355,14 +355,24 @@ export default async function handler(request, response) {
           code: 'INVALID_WRITE_PROPOSAL',
         });
       }
+      let approvalToken = null;
+      if (approvedEyraWritesEnabled() && proposals.length === 1) {
+        try {
+          approvalToken = sealEyraWriteProposal({
+            ownerId: identity.user.id, request: currentIntent, proposal: proposals[0],
+          });
+        } catch {
+          await releaseUsage(reservation); reservation = null;
+          return response.status(422).json({
+            error: 'EYRA proposal is too large for exact-field approval. No record was changed.',
+            code: 'WRITE_APPROVAL_TOO_LARGE',
+          });
+        }
+      }
       return response.status(200).json({
         preview_only: true,
         write_proposals: proposals,
-        ...(approvedEyraWritesEnabled() && proposals.length === 1
-          ? { write_approval_token: sealEyraWriteProposal({
-              ownerId: identity.user.id, request: currentIntent, proposal: proposals[0],
-            }) }
-          : {}),
+        ...(approvalToken ? { write_approval_token: approvalToken } : {}),
         text: proposals.length
           ? 'Review the exact proposed fields. No record has been created or saved.'
           : 'EYRA did not propose a record. No record has been created or saved.',
