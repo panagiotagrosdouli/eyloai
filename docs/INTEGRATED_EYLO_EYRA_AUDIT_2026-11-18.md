@@ -132,3 +132,14 @@ The audit branch includes independent, low-risk changes beyond documentation:
 2. Review overlapping Python integration and approval field contracts, then run the full disposable PostgreSQL suite. Any failed run must be diagnosed, not ignored.
 3. No real staging environment has been authorized or tested in this branch. Staging JWT/RLS, PostgREST persistence, Auth, OpenAI, SMTP, Stripe, UX screenshots and production scientific quality remain pending.
 4. Retain **NO-GO** until documented external acceptance. Do not merge automatically or promote deployment.
+
+## Additional independently reconciled UX and Auth slices
+
+The large historical #528 PR remains stacked and cannot be copied wholesale. Two independently testable components have been ported into the newer combined branch:
+
+- **Task Automations UX (source #528/#519):** owner-scoped, read-only `/automations` hub; shows only persisted project workflow definitions and actual recorded run history, never fictitious scheduled background automation. Dedicated summary and route tests; authenticated account-bound queries, loading/error/empty states and mobile-friendly controls. The original redirect was replaced without removing other routes.
+- **Supabase Auth deadline (source #521):** bounded 15 s deadlines on seven interactive Auth operations, with an explicit uncertainty-safe timeout message. A timed-out request may still complete upstream, so clients must not blindly resubmit. Applied reviewed patch hunks to the **current** auth/error files instead of overwriting later main history; new pure and auth integration regression tests.
+
+CI evidence caveat: an intermediate branch SHA `a78a9c6c` failed Product Quality and EYLO Quality Gate because the new Task Automations route test was committed before the route was added. Its Build and disposable EYRA schema preflight passed. The route was subsequently committed at `913d0a44`. Final-head CI must be evaluated separately and cannot inherit prior pass/failure.
+
+All cloud-history persistence and action-write guards remain fail-closed until verified hosted staging, independent owner approval, and release gates.
