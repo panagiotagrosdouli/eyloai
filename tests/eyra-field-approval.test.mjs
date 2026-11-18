@@ -56,3 +56,15 @@ test('tampered signature or fields cannot authorize a different saved record', (
     ...proposal, fields: { ...proposal.fields, user_id: foreign },
   } }), /allowlisted schema/);
 });
+
+test('multilingual prompts cannot create an approval token larger than the verifier accepts', () => {
+  enable();
+  const largeButIndividuallyBounded = { tool: 'project.create', fields: {
+    title: 'Audited record',
+    description: 'd'.repeat(2400), goal: 'g'.repeat(1400),
+    milestones: 'm'.repeat(2200), tasks: 't'.repeat(500),
+  } };
+  assert.throws(() => sealEyraWriteProposal({
+    ownerId: owner, request: '文'.repeat(2000), proposal: largeButIndividuallyBounded,
+  }), /signed payload budget/);
+});
