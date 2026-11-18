@@ -1,4 +1,5 @@
 import { validatedEyraToolArguments } from './eyra-tool-contract.mjs';
+import { boundedEyraApprovedProposal } from './eyra-approved-fields.mjs';
 
 // A proposed write is a *draft*, never an authorization to execute it.
 // It must be based on the exact latest user turn, and retain the allowlisted
@@ -40,7 +41,7 @@ export function proposedEyraWriteActions(output, requestedWrites) {
       || !/^10\.\d{4,9}\/[\-._;()/:A-Z0-9]+$/i.test(String(fields.doi || '').trim()))) {
       throw new Error('A proposed paper needs a title and valid DOI syntax.');
     }
-    proposed.push({ tool: item.name, fields });
+    proposed.push(boundedEyraApprovedProposal({ tool: item.name, fields }));
   }
   return proposed;
 }
