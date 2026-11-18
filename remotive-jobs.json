@@ -1,7 +1,7 @@
 {
   "source": "Remotive",
   "source_url": "https://remotive.com/remote-jobs/api",
-  "retrieved_at": "2026-11-17T14:22:42.197Z",
+  "retrieved_at": "2026-11-18T13:56:36.536Z",
   "provider_delay_hours": 24,
   "items": [
     {
@@ -227,20 +227,6 @@
       "deadline": "",
       "source": "Remotive",
       "source_url": "https://remotive.com/remote-jobs/artificial-intelligence/ai-trainer-video-annotation-2091161"
-    },
-    {
-      "id": "remotive-2091158",
-      "title": "Software Engineer, AI Coding Tasks",
-      "organization": "Askable",
-      "country": "Worldwide",
-      "description": "We're looking for experienced software engineers to build AI coding tasks from a codebase they know well. US$1,000 per task, and you can do as many tasks as you want. You turn a real change from a repository you know into a task that today's best AI coding models struggle with: hard for the models, but fair for a skilled engineer. Your tasks are used to measure and train AI coding models. Remote, any location. US$1,000 per task that passes review. Minimum of one task a week, about 10 hours a week. How it works Apply. Complete a short screener interview and upload your resume. Propose. Once you're selected, pick a change from a repository you know and submit a short proposal. We approve it or suggest a better candidate. Build. In our platform, set up the repository as it was before the change, then write the brief, the correct solution and the grading checks. Stress-test. Try lazy, incorrect and shortcut solutions and make sure your checks catch them. Model testing. Run your task against leading AI models until strong models often fail but a skilled engineer can clearly solve it. Review. A reviewer checks your task and you revise it. Most tasks take more than one round. Next task. O",
-      "salary": "$1000 per task",
-      "category": "Software Development",
-      "job_type": "contract",
-      "published_at": "2026-10-17T16:04:29",
-      "deadline": "",
-      "source": "Remotive",
-      "source_url": "https://remotive.com/remote-jobs/software-development/software-engineer-ai-coding-tasks-2091158"
     }
   ]
 }
