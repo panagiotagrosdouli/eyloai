@@ -157,7 +157,16 @@ export default function Settings() {
       } finally {
         URL.revokeObjectURL(url);
       }
-      toast({ title: 'Workspace downloaded', description: 'Your saved research records were exported to this device. Keep the JSON file private.' });
+      const missing = exportData.unavailable_collections || [];
+      toast(missing.length
+        ? {
+            title: 'Partial workspace downloaded',
+            description: `${missing.length} optional collection(s) were unavailable and are marked as missing in the JSON file. This is not a complete data export; contact support for access to the omitted records. Keep the file private.`,
+          }
+        : {
+            title: 'Workspace downloaded',
+            description: 'Your saved research records were exported to this device. Keep the JSON file private.',
+          });
     } catch (error) {
       toast({
         title: 'Workspace export could not be completed',
