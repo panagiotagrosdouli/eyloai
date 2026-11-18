@@ -1,5 +1,6 @@
 import { applyCors } from '../src/lib/api-cors.mjs';
 import { readSupabaseApiConfig } from '../server/supabase-config.mjs';
+import { classifyEyraConversationReadHttpFailure } from '../src/lib/eyra-cloud-history.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const NOT_FOUND = { error: 'Conversation not found.', code: 'CONVERSATION_NOT_FOUND' };
@@ -58,7 +59,16 @@ export default async function handler(request, response) {
     const result = await fetch(url, {
       headers, cache: 'no-store', signal: AbortSignal.timeout(15000),
     });
-    if (!result.ok) throw new Error('Conversation database read failed.');
+    if (!result.ok) {
+      // Use only stable PostgREST codes, never expose database details or SQL.
+      // A missing schema is not an empty result set and must not look like
+      // an intermittent outage or a successful cloud Save.
+      const responseType = result.headers?.get('content-type') || '';
+      const failureBody = responseType.includes('application/json')
+        ? await result.json().catch(() => null) : null;
+      const failure = classifyEyraConversationReadHttpFailure(result.status, failureBody);
+      throw Object.assign(new Error(failure.message), { code: failure.code, status: failure.status });
+    }
     const rows = await result.json();
     if (!Array.isArray(rows)) throw new Error('Conversation database returned an invalid payload.');
     return rows;
@@ -68,7 +78,17 @@ export default async function handler(request, response) {
     const auth = await fetch(`${config.url}/auth/v1/user`, {
       headers, cache: 'no-store', signal: AbortSignal.timeout(15000),
     });
-    if (!auth.ok) return privateJson(response, 401, { error: 'Authentication required.' });
+    if (!auth.ok) {
+      // A provider outage is not proof that this user's session is invalid.
+      // Do not proceed to private reads in either case.
+      if (auth.status === 401 || auth.status === 403) {
+        return privateJson(response, 401, { error: 'Authentication required.' });
+      }
+      return privateJson(response, 503, {
+        error: 'Authentication service is temporarily unavailable.',
+        code: 'AUTH_SERVICE_UNAVAILABLE',
+      });
+    }
     const user = await auth.json();
     if (typeof user?.id !== 'string' || !UUID.test(user.id)) {
       return privateJson(response, 401, { error: 'Authentication required.' });
@@ -100,6 +120,10 @@ export default async function handler(request, response) {
       conversations, page, limit, has_more: conversations.length === limit,
     });
   } catch (error) {
+    if (error?.code === 'EYRA_CLOUD_HISTORY_UNAVAILABLE'
+      || error?.code === 'CONVERSATION_ACCESS_DENIED') {
+      return privateJson(response, error.status, { error: error.message, code: error.code });
+    }
     const timeout = error?.name === 'TimeoutError';
     console.error('EYRA conversation read unavailable', { reason: timeout ? 'timeout' : 'upstream' });
     return privateJson(response, timeout ? 504 : 503, {

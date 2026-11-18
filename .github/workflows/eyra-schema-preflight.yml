@@ -1,0 +1,36 @@
+name: EYRA schema preflight (disposable PostgreSQL)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/eyra-schema-preflight.yml'
+      - 'scripts/eyra-schema-readiness.sql'
+      - 'src/lib/eyra-schema-readiness.mjs'
+      - 'scripts/check-eyra-schema-readiness.mjs'
+      - 'scripts/integration/test-local-postgres.py'
+      - 'tests/eyra-schema-readiness.test.mjs'
+      - 'supabase/migrations/**'
+      - 'supabase/migration-review-plan.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-postgres-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out reviewed branch
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Test fail-closed metadata decisions
+        run: node --test tests/eyra-schema-readiness.test.mjs
+      - name: Execute read-only EYRA preflight and negative RLS/grant controls in disposable PostgreSQL
+        run: python3 scripts/integration/test-local-postgres.py

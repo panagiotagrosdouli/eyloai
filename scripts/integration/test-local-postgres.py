@@ -195,6 +195,66 @@ try:
         sql("do $$ begin if (select count(*) from eyra_messages where conversation_id='60000000-0000-4000-8000-000000000021') != 1 then raise exception 'Duplicate snapshot messages'; end if; end $$;")
         sql("delete from eyra_conversations where id='60000000-0000-4000-8000-000000000021';")
     print('PASS: two independent PostgreSQL snapshot retries return the same ID and persist exactly one message (three overlapping transaction rounds).', flush=True)
+    if not bundle_replay:
+        # Two independent service transactions must never reserve the same
+        # signed approval or its action twice. This is disposable local SQL
+        # verification, not hosted Supabase/PostgREST acceptance.
+        def reserve_once(statement):
+            return subprocess.check_output(
+                [*DOCKER, 'exec', '-i', NAME, 'psql', '-U', 'postgres', '-qAt', '-v', 'ON_ERROR_STOP=1'],
+                env=ENV, input=statement, text=True,
+            ).strip()
+
+        for _approval_round in range(3):
+            approval_request = str(uuid.uuid4())
+            reserve_run = f"""
+            begin;
+            set local role service_role;
+            insert into public.eyra_agent_runs(user_id,request_id,request_hash,input_preview)
+            values ('00000000-0000-0000-0000-000000000001',
+                    '{approval_request}',repeat('a',64),'Exact approved project fields')
+            on conflict (user_id,request_id) do nothing returning id;
+            do $eyra$ begin perform pg_sleep(0.2); end $eyra$;
+            commit;
+            """
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                run_results = list(pool.map(reserve_once, [reserve_run, reserve_run]))
+            winners = [result for result in run_results if result]
+            if len(winners) != 1:
+                raise AssertionError('Concurrent approval run reservation must have exactly one winner: ' + repr(run_results))
+            reserved_run_id = winners[0]
+            if str(uuid.UUID(reserved_run_id)) != reserved_run_id:
+                raise AssertionError('Invalid reserved approval run identity')
+
+            reserve_action = f"""
+            begin;
+            set local role service_role;
+            insert into public.eyra_agent_actions(run_id,user_id,call_id,tool_name,arguments_hash)
+            values ('{reserved_run_id}','00000000-0000-0000-0000-000000000001',
+                    'exact_fields_approved','project.create',repeat('b',64))
+            on conflict (run_id,call_id) do nothing returning id;
+            do $eyra$ begin perform pg_sleep(0.2); end $eyra$;
+            commit;
+            """
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                action_results = list(pool.map(reserve_once, [reserve_action, reserve_action]))
+            if len([result for result in action_results if result]) != 1:
+                raise AssertionError('Concurrent approval action reservation must have exactly one winner: ' + repr(action_results))
+            sql(f"""
+            do $eyra$ begin
+                if (select count(*) from public.eyra_agent_runs
+                    where user_id='00000000-0000-0000-0000-000000000001'
+                      and request_id='{approval_request}') != 1 then
+                    raise exception 'Duplicate durable approved run';
+                end if;
+                if (select count(*) from public.eyra_agent_actions
+                    where run_id='{reserved_run_id}' and call_id='exact_fields_approved') != 1 then
+                    raise exception 'Duplicate durable approved action';
+                end if;
+            end $eyra$;
+            delete from public.eyra_agent_runs where id='{reserved_run_id}';
+            """)
+        print('PASS: independent PostgreSQL approval run/action reservations have exactly one winner and no duplicates in three overlapping rounds.', flush=True)
     def concurrent_timer_transition(_index):
         statement = """
         begin;
@@ -216,6 +276,60 @@ try:
         sql("do $$ begin if not exists(select 1 from time_entries where id='70000000-0000-4000-8000-000000000002' and timer_revision=1 and jsonb_array_length(pause_intervals)=1) then raise exception 'Concurrent pause duplicated or lost history'; end if; end $$;")
         sql("delete from public.time_entries where id='70000000-0000-4000-8000-000000000002';")
     print('PASS: timer transitions serialize across independent PostgreSQL sessions; one stale request rejected with exactly one persisted pause (three rounds).', flush=True)
+    # The readiness SQL is now executed on the REAL disposable PostgreSQL
+    # schema, not just matched as source text. The synthetic migration registry
+    # is local-test metadata only: it is NEVER copied or written remotely.
+    if not bundle_replay:
+        eyra_files = [
+            '20261113090000_eyra_conversations.sql',
+            '20261113114924_eyra_conversation_snapshots.sql',
+            '20261113120556_eyra_snapshot_retry_identity.sql',
+            '20261115233000_eyra_agent_runs.sql',
+        ]
+        if any(name not in MIGRATIONS for name in eyra_files):
+            raise AssertionError('EYRA preflight fixture versions not in pinned local replay')
+        registry_versions = ','.join("('" + file.split('_')[0] + "')" for file in eyra_files)
+        sql("create schema supabase_migrations; "
+            "create table supabase_migrations.schema_migrations(version text primary key); "
+            "insert into supabase_migrations.schema_migrations(version) values " + registry_versions + ";")
+
+        def inspect_eyra_catalog():
+            output = subprocess.check_output([
+                *DOCKER, 'exec', '-i', NAME, 'psql', '-U', 'postgres',
+                '-qAt', '-v', 'ON_ERROR_STOP=1',
+            ], env=ENV, input=(ROOT / 'scripts/eyra-schema-readiness.sql').read_text(), text=True)
+            return json.loads(output.strip())
+
+        def assert_eyra_preflight(expected, context):
+            probe = inspect_eyra_catalog()
+            evaluation = subprocess.check_output([
+                'node', '--input-type=module', '-e',
+                "import {evaluateEyraSchemaReadiness as check} from './src/lib/eyra-schema-readiness.mjs';"
+                "let data=''; for await(const part of process.stdin) data+=part;"
+                "process.stdout.write(JSON.stringify(check(JSON.parse(data))));",
+            ], cwd=ROOT, input=json.dumps(probe), text=True)
+            result = json.loads(evaluation)
+            if result['schema_metadata_passed'] is not expected:
+                raise AssertionError('EYRA readiness ' + context + ': ' + repr(result))
+            if result['production_release_approved'] or result['remote_application_authorized']:
+                raise AssertionError('EYRA catalog metadata must never authorize a remote release')
+            return result
+
+        good_catalog = assert_eyra_preflight(True, 'canonical local schema')
+        if good_catalog['decision'] != 'HOSTED_TWO_ACCOUNT_ACCEPTANCE_REQUIRED':
+            raise AssertionError('Staging two-user acceptance must remain mandatory')
+        print('PASS: real disposable PostgreSQL EYRA metadata preflight verifies schema, grants and invoker RPC without authorizing release.', flush=True)
+
+        # Negative controls mutate ONLY this temporary database AFTER existing
+        # functional SQL tests, to verify SQL + evaluator really detect drift.
+        sql('revoke select on public.eyra_agent_runs from authenticated;')
+        assert_eyra_preflight(False, 'revoked authenticated run-ledger read')
+        sql('grant select on public.eyra_agent_runs to authenticated;')
+        sql('alter table public.eyra_messages disable row level security;')
+        assert_eyra_preflight(False, 'disabled message RLS')
+        print('PASS: local EYRA preflight fails closed for revoked SELECT and disabled RLS.', flush=True)
+    else:
+        print('SKIP: EYRA ledger metadata preflight requires the full canonical local migration replay.', flush=True)
     print('PASS: PostgreSQL migration execution, two-role workspace isolation, version history, search, project links and Storage metadata policies.', flush=True)
     print('NOT VERIFIED: hosted Supabase Auth, PostgREST, Storage bytes, deployed schema, or hosted service-role operations.', flush=True)
 finally:

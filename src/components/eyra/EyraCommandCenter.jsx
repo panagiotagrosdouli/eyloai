@@ -894,8 +894,9 @@ The saved record was returned by the server. Check the workspace for the final r
                   : cloudHistoryStatus === 'unavailable'
                     ? 'Cloud conversation saving is not activated here. You can keep chatting and use Export conversation to keep a file.'
                     : 'Cloud conversation history could not be checked. No saved conversations were assumed; use Export conversation to keep a file.'}</p>
-                {cloudHistoryStatus === 'error' && (
-                  <button type="button" className="mt-2 underline" onClick={() => setCloudHistoryCheck(value => value + 1)}>
+                {(cloudHistoryStatus === 'error' || cloudHistoryStatus === 'unavailable') && (
+                  <button type="button" className="mt-2 min-h-11 rounded-md px-2 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    onClick={() => setCloudHistoryCheck(value => value + 1)}>
                     Re-check cloud history
                   </button>
                 )}
