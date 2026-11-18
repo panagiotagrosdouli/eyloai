@@ -99,3 +99,16 @@ Use `docs/DISCOVERY_EVALUATION.md`: frozen heterogeneous questions, independent 
 - [ ] Explicit owner GO decision and controlled production rollout
 
 **Decision: NO-GO**. The above checks are not a request to apply database changes or to promote a deployment. Keep all feature flags fail-closed until their exact prerequisites are met.
+
+## Implemented audit-branch remediation (PR #538; not deployed)
+
+The audit branch includes independent, low-risk changes beyond documentation:
+
+1. GitHub workflows now use least-privilege `contents: read` for Build and no persisted checkout credentials for Build, Product Quality and EYLO Quality Gate. No workflow receives new secrets.
+2. `api/eyra-conversations.js` uses shared PostgREST-code classification for 404 missing EYRA table/RPC errors. Missing hosted schema returns an explicit sanitized 503 `EYRA_CLOUD_HISTORY_UNAVAILABLE`, not a fake empty response. Permission/auth errors return a separate sanitized denial; temporary provider failures remain service unavailable. Existing bearer authentication, owner filter, no-store and GET-only contract remain.
+3. New Node tests cover pure error classification **and** actual handler responses for missing schema, access denial, transient outage, authenticated empty list and bad user token. No live user data is touched.
+4. `src/lib/eyra-command-evidence.mjs` now explicitly marks fetched provider metadata as untrusted prompt context and tells the assistant not to execute embedded instructions; a unit test ensures the security boundary precedes the hostile provider payload. This is defense-in-depth, **not** a claim of prompt-injection immunity.
+
+**Integration risk:** #530 will also change the EYRA cloud history UX and must be reconciled after review. Do not claim that the new API classification alone enables cloud conversation saving. #528/#530/#531 are **118 commits behind main** when compared on 18 November, and their combined changes should not be force-copied into this branch. #536 is 2 commits behind the current main; rebase and rerun exact-head checks when constructing a combined candidate.
+
+**Validation:** The latest branch commit must pass Build, Product Quality and EYLO Quality Gate. Read-only inspection of PR statuses is not a substitute for a successful final-head CI result.
