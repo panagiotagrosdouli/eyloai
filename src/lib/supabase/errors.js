@@ -6,6 +6,7 @@ export const AppErrorCode = Object.freeze({
   WEAK_PASSWORD: 'weak_password',
   RATE_LIMITED: 'rate_limited',
   NETWORK: 'network_error',
+  REQUEST_TIMEOUT: 'auth_request_timeout',
   PROVIDER_DISABLED: 'provider_disabled',
   EXPIRED_RECOVERY_LINK: 'expired_recovery_link',
   SIGNUP_DISABLED: 'signup_disabled',
@@ -23,6 +24,7 @@ const messages = {
   [AppErrorCode.WEAK_PASSWORD]: 'Choose a stronger password with at least 8 characters.',
   [AppErrorCode.RATE_LIMITED]: 'Too many attempts. Please wait and try again.',
   [AppErrorCode.NETWORK]: 'Unable to reach the authentication service. Check your connection and retry.',
+  [AppErrorCode.REQUEST_TIMEOUT]: 'The account request timed out. It may still finish; check your sign-in status or inbox before submitting again.',
   [AppErrorCode.PROVIDER_DISABLED]: 'This sign-in provider is not available.',
   [AppErrorCode.EXPIRED_RECOVERY_LINK]: 'This recovery link is invalid or has expired.',
   [AppErrorCode.SIGNUP_DISABLED]: 'New registrations are temporarily disabled. Contact EYLO support.',
@@ -68,6 +70,7 @@ export function mapSupabaseError(error) {
   const providerCode = String(error.code || '').toLowerCase();
 
   if (providerCode === 'supabase_configuration_error') return createAppError(AppErrorCode.CONFIGURATION, error);
+  if (providerCode === 'auth_request_timeout') return createAppError(AppErrorCode.REQUEST_TIMEOUT, error);
   // HTTP throttling or service failure takes precedence over payload hints.
   if (status === 429) return createAppError(AppErrorCode.RATE_LIMITED, error);
   // Preserve the specific delivery failure UX even if Supabase returns HTTP 5xx.
