@@ -6,6 +6,7 @@ import { getLocalGreeting } from '@/lib/local-greeting';
 import { promiseWithTimeout } from '@/lib/promise-timeout';
 import { useCapabilities } from '@/lib/capabilities';
 import { useAuth } from '@/lib/AuthContext';
+import { visibleOwnerProfileState } from '@/lib/auth/owner-scoped-profile.mjs';
 
 const HOME_PROFILE_TIMEOUT_MS = 12_000;
 
@@ -51,7 +52,7 @@ export default function EyraHome({ onSearch }) {
 
   const retryProfile = () => setLoadAttempt(attempt => attempt + 1);
   // The render-time check closes the gap before React effects run on account change.
-  const ownedProfileState = profileState.ownerId === ownerId ? profileState : null;
+  const ownedProfileState = visibleOwnerProfileState(profileState, ownerId);
   const profile = ownedProfileState?.data ?? null;
   const loaded = ownedProfileState?.loaded ?? false;
   const profileError = ownedProfileState?.error ?? false;
