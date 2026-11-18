@@ -78,7 +78,17 @@ export default async function handler(request, response) {
     const auth = await fetch(`${config.url}/auth/v1/user`, {
       headers, cache: 'no-store', signal: AbortSignal.timeout(15000),
     });
-    if (!auth.ok) return privateJson(response, 401, { error: 'Authentication required.' });
+    if (!auth.ok) {
+      // A provider outage is not proof that this user's session is invalid.
+      // Do not proceed to private reads in either case.
+      if (auth.status === 401 || auth.status === 403) {
+        return privateJson(response, 401, { error: 'Authentication required.' });
+      }
+      return privateJson(response, 503, {
+        error: 'Authentication service is temporarily unavailable.',
+        code: 'AUTH_SERVICE_UNAVAILABLE',
+      });
+    }
     const user = await auth.json();
     if (typeof user?.id !== 'string' || !UUID.test(user.id)) {
       return privateJson(response, 401, { error: 'Authentication required.' });
