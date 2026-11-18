@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   collectWorkspaceExport, WORKSPACE_EXPORT_TABLES, assertWorkspaceExportOwner,
   MAX_WORKSPACE_EXPORT_BYTES, WorkspaceExportSizeError, fetchWorkspaceExportPage,
+  OPTIONAL_WORKSPACE_EXPORT_TABLES,
 } from '../src/lib/workspace-export.mjs';
 
 const owner = '00000000-0000-4000-8000-000000000001';
@@ -188,3 +189,62 @@ test('SDK export queries pin the owner, correct primary key and credential-safe 
   }
   assert.throws(()=>fetchWorkspaceExportPage(query,'auth.users',{userId:owner,offset:0,limit:1}),/Unknown/);
 });
+
+test('unavailable optional schema tables are reported as missing, never as empty', async () => {
+  const optional = new Set(OPTIONAL_WORKSPACE_EXPORT_TABLES);
+  const response = await collectWorkspaceExport({
+    userId: owner,
+    fetchPage: async table => optional.has(table)
+      ? { data: null, error: { code: 'PGRST205', message: 'Table absent from schema cache' } }
+      : { data: table === 'projects' ? [row('projects', 1)] : [], error: null },
+  });
+  assert.equal(response.completeness, 'partial-optional-collections-unavailable');
+  assert.deepEqual(response.unavailable_collections, OPTIONAL_WORKSPACE_EXPORT_TABLES);
+  for (const table of optional) {
+    assert.equal(response.collections[table], null, table);
+    assert.equal(response.record_counts[table], null, table);
+  }
+  assert.equal(response.collections.projects.length, 1);
+  assert.ok(response.limitations.some(value => value.includes('marked null')));
+});
+
+test('missing mandatory tables and permission or outage errors still fail closed', async () => {
+  for (const [table, code] of [
+    ['projects', 'PGRST205'],
+    ['projects', '42P01'],
+    ['eyra_messages', '42501'],
+    ['eyra_messages', 'PGRST000'],
+  ]) {
+    await assert.rejects(collectWorkspaceExport({
+      userId: owner,
+      fetchPage: async requestedTable => requestedTable === table
+        ? { data: null, error: { code } }
+        : { data: [], error: null },
+    }), /database read failed/, table + ':' + code);
+  }
+});
+
+test('a missing-schema response on later pages never hides previously read records', async () => {
+  await assert.rejects(collectWorkspaceExport({
+    userId: owner, pageSize: 2,
+    fetchPage: async (table, { offset }) => {
+      if (table !== 'eyra_messages') return { data: [], error: null };
+      if (offset === 0) return { data: [row(table, 1), row(table, 2)], error: null };
+      return { data: null, error: { code: '42P01' } };
+    },
+  }), /database read failed/);
+});
+
+test('download byte budget includes indentation used by the generated JSON file', async () => {
+  const fetchPage = makeFetcher().fetchPage;
+  const baseline = await collectWorkspaceExport({ userId: owner, fetchPage });
+  const bytes = text => new TextEncoder().encode(text).byteLength;
+  const compact = bytes(JSON.stringify(baseline));
+  const pretty = bytes(JSON.stringify(baseline, null, 2));
+  assert.ok(pretty > compact);
+  const ceiling = Math.floor((pretty + compact) / 2);
+  await assert.rejects(collectWorkspaceExport({
+    userId: owner, fetchPage, maxExportBytes: ceiling,
+  }), error => error instanceof WorkspaceExportSizeError);
+});
+
