@@ -26,26 +26,35 @@ function ProjectRow({ project }) {
 }
 
 export default function EyraHome({ onSearch }) {
-  const [profile, setProfile] = useState(null);
+  // Never render a cached research profile for a different authenticated owner.
+  // In-flight responses are also discarded when the account or load attempt changes.
+  const [profileState, setProfileState] = useState({ ownerId: null, data: null, loaded: false, error: false });
   const [homeQuery, setHomeQuery] = useState('');
-  const [profileError, setProfileError] = useState(false);
-  const [loaded, setLoaded] = useState(false);
   const { data: capabilities, loading: capabilitiesLoading } = useCapabilities();
   const { user: authUser } = useAuth();
+  const ownerId = authUser?.id ?? null;
 
   const [loadAttempt, setLoadAttempt] = useState(0);
   useEffect(() => {
     let active = true;
-    setLoaded(false);
-    setProfileError(false);
+    setProfileState({ ownerId, data: null, loaded: false, error: false });
+    if (!ownerId) return () => { active = false; };
     promiseWithTimeout(buildUserProfile(), HOME_PROFILE_TIMEOUT_MS, 'Workspace data took too long to load.')
-      .then(next => { if (active) setProfile(next); })
-      .catch(() => { if (active) setProfileError(true); })
-      .finally(() => { if (active) setLoaded(true); });
+      .then(next => {
+        if (active) setProfileState({ ownerId, data: next, loaded: true, error: false });
+      })
+      .catch(() => {
+        if (active) setProfileState({ ownerId, data: null, loaded: true, error: true });
+      });
     return () => { active = false; };
-  }, [loadAttempt]);
+  }, [loadAttempt, ownerId]);
 
   const retryProfile = () => setLoadAttempt(attempt => attempt + 1);
+  // The render-time check closes the gap before React effects run on account change.
+  const ownedProfileState = profileState.ownerId === ownerId ? profileState : null;
+  const profile = ownedProfileState?.data ?? null;
+  const loaded = ownedProfileState?.loaded ?? false;
+  const profileError = ownedProfileState?.error ?? false;
 
   const projects = profile?.activeProjects || [];
   const papers = profile?.papers || [];
