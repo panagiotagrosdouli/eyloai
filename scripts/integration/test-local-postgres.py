@@ -214,7 +214,7 @@ try:
             values ('00000000-0000-0000-0000-000000000001',
                     '{approval_request}',repeat('a',64),'Exact approved project fields')
             on conflict (user_id,request_id) do nothing returning id;
-            do $ begin perform pg_sleep(0.2); end $;
+            do $eyra$ begin perform pg_sleep(0.2); end $eyra$;
             commit;
             """
             with ThreadPoolExecutor(max_workers=2) as pool:
@@ -233,7 +233,7 @@ try:
             values ('{reserved_run_id}','00000000-0000-0000-0000-000000000001',
                     'exact_fields_approved','project.create',repeat('b',64))
             on conflict (run_id,call_id) do nothing returning id;
-            do $ begin perform pg_sleep(0.2); end $;
+            do $eyra$ begin perform pg_sleep(0.2); end $eyra$;
             commit;
             """
             with ThreadPoolExecutor(max_workers=2) as pool:
@@ -241,7 +241,7 @@ try:
             if len([result for result in action_results if result]) != 1:
                 raise AssertionError('Concurrent approval action reservation must have exactly one winner: ' + repr(action_results))
             sql(f"""
-            do $ begin
+            do $eyra$ begin
                 if (select count(*) from public.eyra_agent_runs
                     where user_id='00000000-0000-0000-0000-000000000001'
                       and request_id='{approval_request}') != 1 then
@@ -251,7 +251,7 @@ try:
                     where run_id='{reserved_run_id}' and call_id='exact_fields_approved') != 1 then
                     raise exception 'Duplicate durable approved action';
                 end if;
-            end $;
+            end $eyra$;
             delete from public.eyra_agent_runs where id='{reserved_run_id}';
             """)
         print('PASS: independent PostgreSQL approval run/action reservations have exactly one winner and no duplicates in three overlapping rounds.', flush=True)
