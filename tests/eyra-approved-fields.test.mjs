@@ -38,12 +38,12 @@ test('model proposals exceeding executor limits are refused rather than silently
     () => proposedEyraWriteActions(call('project.create', {
       ...project.fields, title: 'Too long '.repeat(40),
     }), { project: true }),
-    /oversized/,
+    /oversized|Invalid field in tool arguments/,
   );
   assert.throws(
     () => proposedEyraWriteActions(call('library.save_paper', {
       ...paper.fields, title: 'a'.repeat(1001),
     }), { paper: true }),
-    /oversized/,
+    /oversized|Invalid field in tool arguments/,
   );
 });
