@@ -31,7 +31,9 @@ export function sealEyraWriteProposal({ ownerId, request, proposal, now = Date.n
   };
   const encoded = Buffer.from(JSON.stringify(payload)).toString('base64url');
   const signature = crypto.createHmac('sha256', key).update(encoded).digest('base64url');
-  return encoded + '.' + signature;
+  const token = encoded + '.' + signature;
+  if (token.length > 16_000) throw new Error('EYRA approval token exceeds the signed payload budget.');
+  return token;
 }
 
 /** Verify the exact server-authenticated owner, user request, signature and expiration. */
