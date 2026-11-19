@@ -870,7 +870,7 @@ The saved record was returned by the server. Check the workspace for the final r
             {messages.map((msg) => (
               <Message
                 key={msg.timestamp}
-                msg={msg}
+                msg={msg.welcome ? { ...msg, mode: activeMode } : msg}
                 onSave={saveInsight}
                 onCopy={copyInsight}
                 saved={savedMessageIds.has(msg.timestamp)}
