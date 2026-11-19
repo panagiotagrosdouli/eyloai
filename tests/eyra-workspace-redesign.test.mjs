@@ -56,4 +56,10 @@ test('authenticated home still offers real search, EYRA, and workspace destinati
   assert.match(layout, /aria-label="Workspace navigation"/);
   assert.match(layout, /aria-label="Primary mobile navigation"/);
   assert.match(layout, /<EyraCommandCenter open=\{eyraOpen\}/);
+  const directory = read('pages/ProductTools.jsx');
+  assert.match(directory, /Tool directory/);
+  assert.match(directory, /aria-label="Browse EYLO tools"/);
+  assert.match(directory, /type="search"/);
+  assert.match(directory, /aria-pressed=\{category === name\}/);
+  assert.match(directory, /focus-visible:outline/);
 });
