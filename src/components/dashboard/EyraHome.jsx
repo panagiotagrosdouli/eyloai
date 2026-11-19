@@ -102,7 +102,7 @@ export default function EyraHome({ onSearch }) {
         <section aria-labelledby="start-here-title" className="mt-10">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 id="start-here-title" className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Start with one small step.</h2>
+              <h2 id="start-here-title" className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">New to EYLO? Start here.</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                 You do not need technical or research experience. Choose a simple task, and use Back or Home whenever you want.
               </p>
