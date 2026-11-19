@@ -845,9 +845,10 @@ The saved record was returned by the server. Check the workspace for the final r
                 <p id="eyra-dialog-title" className="sr-only">EYRA research assistant</p>
                 <span className="rounded-full border border-primary/15 bg-primary/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-primary">Research assistant</span>
               </div>
-              <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
                 <Database size={10} className={contextStatus === 'ready' ? 'text-primary' : 'text-muted-foreground'} />
-                <span>{contextStatus === 'ready' ? 'Workspace context ready · sources attached when retrieved' : contextStatus === 'loading' ? 'Preparing workspace context…' : 'Sources attached when retrieved'}</span>
+                <span className="truncate sm:hidden">{contextStatus === 'ready' ? 'Context ready' : contextStatus === 'loading' ? 'Preparing context…' : 'Sources on request'}</span>
+                <span className="hidden truncate sm:inline">{contextStatus === 'ready' ? 'Workspace context ready · sources attached when retrieved' : contextStatus === 'loading' ? 'Preparing workspace context…' : 'Sources attached when retrieved'}</span>
               </div>
             </div>
             <button onClick={() => setVoiceEnabled(!voiceEnabled)}
