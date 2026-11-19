@@ -12,3 +12,11 @@ test('EYRA accessible timeline keeps evidence warnings and explicit source links
   assert.match(timeline, /rel="noopener noreferrer"/);
   assert.match(timeline, /role="status" aria-live="polite"/);
 });
+
+test('EYRA scientific sources beyond the first eight remain available to keyboard users', () => {
+  const timeline = readFileSync(new URL('../src/components/eyra/EyraConversationTimeline.jsx', import.meta.url), 'utf8');
+  assert.match(timeline, /showAllSources \? citedEvidence\.items : citedEvidence\.items\.slice\(0, 8\)/);
+  assert.match(timeline, /aria-expanded=\{showAllSources\}/);
+  assert.match(timeline, /Show all EYRA source records/);
+  assert.match(timeline, /Show fewer EYRA source records/);
+});

@@ -15,13 +15,34 @@ export function checkEyraCitationIds(answer, sources = []) {
   };
 }
 
-/** External source navigation never uses javascript:, data:, file: or URL credentials. */
+/**
+ * External research links must be public HTTP(S) URLs, not local-network or
+ * credential-bearing destinations supplied by untrusted provider metadata.
+ * This is a navigation boundary, not a substitute for backend SSRF controls.
+ */
 export function isSafeEyraSourceUrl(input) {
   try {
     const url = new URL(String(input || ''));
-    return (url.protocol === 'https:' || url.protocol === 'http:')
-      && !url.username && !url.password
-      && Boolean(url.hostname);
+    if (!['https:', 'http:'].includes(url.protocol)
+      || url.username || url.password || !url.hostname) return false;
+
+    const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, '');
+    if (host === 'localhost' || host.endsWith('.localhost')
+      || host.endsWith('.local') || host.endsWith('.internal') || host.endsWith('.invalid')
+      || host === '0' || host === '::1' || host === '::'
+      || (host.includes(':') && (host.startsWith('fe80:') || host.startsWith('fc') || host.startsWith('fd')
+        || host.startsWith('::ffff:')))) return false;
+
+    if (/^\d+(?:\.\d+){3}$/.test(host)) {
+      const [a, b] = host.split('.').map(Number);
+      if (a === 0 || a === 10 || a === 127 || a >= 224
+        || (a === 100 && b >= 64 && b <= 127)
+        || (a === 169 && b === 254)
+        || (a === 172 && b >= 16 && b <= 31)
+        || (a === 192 && b === 168)
+        || (a === 198 && (b === 18 || b === 19))) return false;
+    }
+    return true;
   } catch {
     return false;
   }

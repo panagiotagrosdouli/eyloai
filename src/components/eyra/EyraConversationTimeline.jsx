@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { Sparkles, BookOpen, ExternalLink, Check, Copy, BookmarkPlus } from 'lucide-react';
@@ -23,6 +23,7 @@ export function TypingIndicator({ stage }) {
 }
 
 export function Message({ msg, onSave, onCopy, saved, copied, saving }) {
+  const [showAllSources, setShowAllSources] = useState(false);
   const isEyra = msg.role === 'eyra';
   const citedEvidence = isEyra ? describeEyraCitedEvidence(msg.sources) : null;
   return (
@@ -71,7 +72,7 @@ export function Message({ msg, onSave, onCopy, saved, copied, saving }) {
               {' '}Retrieved records are not independently verified; inspect the original evidence before relying on a scientific claim.
             </p>
             <div className="flex max-w-full flex-wrap gap-1.5">
-              {citedEvidence.items.slice(0, 8).map(source => (
+              {(showAllSources ? citedEvidence.items : citedEvidence.items.slice(0, 8)).map(source => (
                 <a
                   key={source.id}
                   href={source.url}
@@ -88,9 +89,15 @@ export function Message({ msg, onSave, onCopy, saved, copied, saving }) {
                 </a>
               ))}
               {citedEvidence.items.length > 8 && (
-                <span className="self-center px-2 py-1 text-xs text-muted-foreground">
-                  +{citedEvidence.items.length - 8} more linked records
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowAllSources(value => !value)}
+                  aria-expanded={showAllSources}
+                  aria-label={showAllSources ? 'Show fewer EYRA source records' : 'Show all EYRA source records'}
+                  className="min-h-9 rounded-lg border border-border bg-background px-3 py-1 text-xs font-semibold text-primary hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                >
+                  {showAllSources ? 'Show fewer sources' : `Show all ${citedEvidence.items.length} sources`}
+                </button>
               )}
             </div>
           </section>

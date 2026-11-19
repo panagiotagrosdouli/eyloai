@@ -37,3 +37,17 @@ test('external citations reject unsafe link schemes and embedded credentials', (
   assert.equal(isSafeEyraSourceUrl('https://doi.org/10.1000/example'), true);
   assert.equal(isSafeEyraSourceUrl('https://openalex.org/W100'), true);
 });
+
+test('untrusted scholarly links never route to loopback or private-network destinations', () => {
+  for (const url of [
+    'http://localhost:3000', 'https://research.local/paper',
+    'https://metadata.internal/admin', 'http://127.0.0.1:8000',
+    'http://10.0.0.7/secret', 'https://172.16.0.2/report',
+    'http://192.168.1.1/router', 'http://169.254.169.254/latest/meta-data',
+    'http://[::1]/api', 'http://[fe80::1]/'
+  ]) {
+    assert.equal(isSafeEyraSourceUrl(url), false, url);
+  }
+  assert.equal(isSafeEyraSourceUrl('https://api.crossref.org/works/10.1000/example'), true);
+  assert.equal(isSafeEyraSourceUrl('https://93.184.215.14/article'), true);
+});
