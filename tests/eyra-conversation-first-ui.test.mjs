@@ -22,9 +22,9 @@ test('EYRA is a full-height mobile-safe conversation-first dialog', () => {
 
 test('outcomes are in the empty conversation rather than permanent navigation', () => {
   assert.match(center, /msg\.welcome \? \(messages\.length === 1/);
-  assert.match(center, /<EyraQuickCommands onSelect=\{prompt => void sendMessage\(prompt\)\}/);
+  assert.match(center, /<EyraQuickCommands activeMode=\{activeMode\} onSelect=\{prompt => void sendMessage\(prompt\)\}/);
   assert.match(mode, /Start with a goal/);
-  assert.match(mode, /EYRA_QUICK_COMMANDS\.map/);
+  assert.match(mode, /suggestions\.map/);
   assert.match(mode, /aria-pressed=\{active\}/);
   assert.match(mode, /role="group" aria-label="EYRA research lens"/);
 });
@@ -57,4 +57,12 @@ test('messaging, voice, stop, export and safe scientific framing are retained', 
   assert.match(timeline, /describeEyraCitedEvidence\(msg\.sources\)/);
   assert.match(timeline, /not independently verified/);
   assert.match(timeline, /focus-visible:outline/);
+});
+
+test('each lens offers at most three relevant empty-state goals rather than six unrelated cards', () => {
+  assert.match(mode, /EYRA_MODE_STARTER_IDS/);
+  assert.match(mode, /funding: \['funding', 'project', 'roadmap'\]/);
+  assert.match(mode, /team: \['team', 'project', 'roadmap'\]/);
+  assert.match(mode, /relevantIds\.map\(id => EYRA_QUICK_COMMANDS\.find/);
+  assert.match(mode, /const suggestions =/);
 });
