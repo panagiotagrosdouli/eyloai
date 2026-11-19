@@ -8,16 +8,16 @@ import { describeEyraCitedEvidence } from '@/lib/eyra-evidence-status.mjs';
 /** Accessible EYRA timeline presentation: evidence cards never claim full-text validation. */
 export function TypingIndicator({ stage }) {
   return (
-    <div className="flex items-center gap-2 px-1 py-2" role="status" aria-live="polite">
-      <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-border bg-card text-primary">
-        <Sparkles size={11} />
+    <div className="flex items-center gap-3 px-1 py-3" role="status" aria-live="polite">
+      <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-primary/15 bg-primary/5 text-primary">
+        <Sparkles size={16} />
       </div>
       <div className="flex gap-1 ml-1">
         {[0, 1, 2].map(i => (
           <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
         ))}
       </div>
-      <span className="text-xs text-muted-foreground">{stage === 'retrieving' ? 'Retrieving live evidence…' : 'Synthesizing a cited answer…'}</span>
+      <span className="text-sm text-muted-foreground">{stage === 'retrieving' ? 'Retrieving live evidence…' : 'Synthesizing a cited answer…'}</span>
     </div>
   );
 }
@@ -30,31 +30,31 @@ export function Message({ msg, onSave, onCopy, saved, copied, saving }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className={`flex w-full min-w-0 gap-3 ${isEyra ? '' : 'flex-row-reverse'}`}
+      className={`flex w-full min-w-0 gap-3 sm:gap-4 ${isEyra ? '' : 'flex-row-reverse'}`}
     >
       {isEyra ? (
-        <EyraOrb className="mt-0.5 h-8 w-8" />
+        <EyraOrb className="mt-0.5 h-9 w-9 shadow-sm shadow-primary/15" />
       ) : (
-        <div className="w-7 h-7 rounded-full bg-secondary border border-border flex items-center justify-center flex-shrink-0 mt-0.5">
+        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-secondary/70">
           <span className="text-[10px] font-bold text-muted-foreground">You</span>
         </div>
       )}
-      <div className={`min-w-0 max-w-[92%] sm:max-w-[88%] ${isEyra ? 'w-full' : 'items-end flex flex-col'}`}>
+      <div className={`min-w-0 max-w-[calc(100%_-_3rem)] sm:max-w-[86%] ${isEyra ? 'w-full' : 'items-end flex flex-col'}`}>
         {isEyra && (
-          <div className="flex items-center gap-1.5 mb-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground">EYRA</p>
+          <div className="mb-2 flex items-center gap-2">
+            <p className="text-xs font-bold tracking-wide text-foreground">EYRA</p>
             {msg.mode && (
-              <span className="rounded border border-border px-1.5 py-0.5 text-[8px] font-medium uppercase tracking-wide text-muted-foreground">{msg.mode}</span>
+              <span className="rounded-full border border-border/70 bg-secondary/50 px-2 py-0.5 text-[10px] font-semibold capitalize text-muted-foreground">{msg.mode}</span>
             )}
           </div>
         )}
-        <div className={`w-full rounded-2xl px-4 py-3.5 text-sm leading-7 sm:text-[15px] ${
+        <div className={`w-full rounded-[20px] px-4 py-4 text-[15px] leading-7 sm:px-5 ${
           isEyra
-            ? 'bg-card border border-border/70 text-foreground shadow-sm'
-            : 'bg-foreground text-background'
+            ? 'border border-border/60 bg-card/90 text-foreground shadow-sm'
+            : 'bg-primary text-primary-foreground shadow-sm'
         }`}>
           {isEyra ? (
-            <div className="prose prose-sm max-w-none break-words prose-headings:text-foreground prose-headings:font-semibold prose-p:text-foreground prose-li:text-foreground prose-strong:text-primary prose-p:my-1 prose-ul:my-2 prose-h2:text-sm prose-h2:mb-1">
+            <div className="prose prose-sm max-w-none break-words prose-headings:text-foreground prose-headings:font-semibold prose-p:text-foreground prose-li:text-foreground prose-strong:text-primary prose-p:my-2 prose-p:leading-7 prose-ul:my-3 prose-h2:mb-2 prose-h2:text-base">
               <ReactMarkdown>{msg.content}</ReactMarkdown>
             </div>
           ) : (
@@ -65,8 +65,8 @@ export function Message({ msg, onSave, onCopy, saved, copied, saving }) {
           <p role="status" className="mt-2 max-w-full rounded-lg border border-border px-3 py-2 text-xs text-muted-foreground">No retrieved records are linked to this answer. Scientific claims remain unverified; refine your question or check original sources.</p>
         )}
         {isEyra && citedEvidence?.items.length > 0 && (
-          <section className="mt-2 max-w-full rounded-xl border border-border/70 bg-card/70 p-2.5" aria-label="EYRA retrieved source records">
-            <p className="mb-2 text-[11px] leading-relaxed text-muted-foreground">
+          <section className="mt-3 max-w-full rounded-2xl border border-border/60 bg-card/60 p-3 sm:p-4" aria-label="EYRA retrieved source records">
+            <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
               {citedEvidence.summary}
               {' '}Retrieved records are not independently verified; inspect the original evidence before relying on a scientific claim.
             </p>
