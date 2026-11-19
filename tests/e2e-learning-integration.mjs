@@ -376,7 +376,10 @@ try {
       localHasAnswer: sessionStorage.getItem('eyra:conversation:v3:' + encodeURIComponent(ownerId))?.includes(expectedText) ?? false,
     };
   }, { ownerId: user.id, expectedText: answer });
-  console.log('EYRA Clear boundary fixture state:', JSON.stringify(clearState));
+  assert.equal(clearState.visibleAnswer, false, 'Clear must remove the prior EYRA answer from the rendered transcript');
+  assert.equal(clearState.welcomeVisible, true, 'Clear must replace the transcript with its welcome state');
+  assert.equal(clearState.selectedSnapshot, '', 'Clear must deselect the cloud snapshot');
+  assert.equal(clearState.localHasAnswer, false, 'Clear must persist an empty local transcript');
   // Wait until Clear has committed to the DOM before allowing the stalled
   // history request to resolve. Two animation frames are not a reliable
   // synchronization barrier on loaded GitHub Actions runners.
