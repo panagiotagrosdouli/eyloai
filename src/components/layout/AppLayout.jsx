@@ -222,8 +222,8 @@ export default function AppLayout() {
   return (
     <div className={`eylo-app-canvas min-h-screen bg-background ${isWorkspaceHome ? "eylo-home-layout" : ""}`}>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-2 focus:z-[100] focus:rounded-lg focus:bg-background focus:p-3">Skip to content</a>
-      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center gap-2 px-4 sm:px-8">
+      <header className="sticky top-0 z-50 border-b border-border/70 bg-card/95 shadow-sm backdrop-blur-xl">
+        <div className="mx-auto flex h-[4.75rem] max-w-7xl items-center gap-3 px-4 sm:px-8">
           <Link to="/home" className="mr-3 flex shrink-0 items-center" aria-label="EYLO workspace home">
             <BrandLogo brand="eylo" size="nav" priority />
           </Link>
@@ -234,7 +234,7 @@ export default function AppLayout() {
               const active = primaryActive(item);
               return (
                 <Link key={item.path} to={item.path} aria-current={active ? 'page' : undefined}
-                  className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium transition-colors ${active ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>
+                  className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-medium transition-colors ${active ? 'bg-primary/10 text-primary shadow-sm' : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground'}`}>
                   <Icon size={14} aria-hidden="true" />{item.label}
                 </Link>
               );
@@ -273,7 +273,7 @@ export default function AppLayout() {
             <ThemeToggle variant="workspace" />
             <NotificationsBell />
             <button type="button" onClick={() => setEyraOpen(true)} disabled={!aiAvailable} title={aiAvailable ? 'Ask EYRA' : 'EYRA is unavailable on this deployment'}
-              className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-45">
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-45">
               <Sparkles size={14} />Ask EYRA
             </button>
             <button type="button" onClick={handleSignOut} disabled={signingOut}
@@ -328,7 +328,7 @@ export default function AppLayout() {
       </header>
       {signOutError && <p role="alert" className="border-b border-destructive/30 bg-destructive/10 px-4 py-3 text-center text-sm text-destructive">{signOutError}</p>}
 
-      <main id="main-content" tabIndex={-1} className="relative z-10 min-h-[calc(100vh-4.5rem)] pb-24 lg:pb-0"><WorkspaceBreadcrumbs /><Outlet /></main>
+      <main id="main-content" tabIndex={-1} className="relative z-10 min-h-[calc(100vh-4.75rem)] pb-24 lg:pb-0"><WorkspaceBreadcrumbs /><Outlet /></main>
       <GlobalCommandCenter open={commandOpen} onClose={() => setCommandOpen(false)} />
       <EyraCommandCenter open={eyraOpen} onClose={() => setEyraOpen(false)} resourceContext={eyraResourceContext} />
 
