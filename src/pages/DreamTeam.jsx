@@ -1,3 +1,4 @@
+import { downloadResearchReport } from '@/lib/research-report-export.mjs';
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchOpenAlexAuthors, searchOpenAlexInstitutions } from '@/lib/eyra-api';
@@ -207,6 +208,7 @@ Return project_summary, team_health_score, current_gaps, dream_team, hiring_sequ
     <div className="eylo-page">
       <div className="mb-6">
         <h1 className="eylo-page-heading">Team Planner</h1>
+        {team && <button type="button" onClick={() => downloadResearchReport({ tool: 'team-planner', query, analysis: team, sources: [...(team.candidate_researchers || []), ...(team.candidate_institutions || [])], caveat: 'Role assignments are suggestions; candidates are retrieved records, not vetted partners.' })} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-xs font-semibold text-primary hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">Export research report (JSON)</button>}
       </div>
 
       <div className="mb-4 rounded-xl border border-border bg-secondary/20 p-3 text-[11px] text-muted-foreground">
