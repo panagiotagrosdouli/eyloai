@@ -43,19 +43,35 @@ export default function OpportunityRadar() {
 
   const [selectedProjectId, setSelectedProjectId] = useState('');
 
-  useEffect(() => { loadContext(); }, []);
+  const [contextLoading, setContextLoading] = useState(true);
+  const [contextError, setContextError] = useState('');
+  const [contextRetry, setContextRetry] = useState(0);
 
-  const loadContext = async () => {
-    const [me, projs] = await Promise.all([
+  useEffect(() => {
+    let active = true;
+    setContextLoading(true);
+    setContextError('');
+    Promise.all([
       base44.auth.me(),
       base44.entities.Project.list('-updated_date', 10),
-    ]);
-    setUser(me);
-    setProjects(projs);
-    // Auto-select active project
-    const active = projs.find(p => p.status === 'active') || projs[0];
-    if (active) setSelectedProjectId(active.id);
-  };
+    ]).then(([me, projs]) => {
+      if (!active) return;
+      setUser(me);
+      setProjects(projs);
+      // A missing project still permits a general research-interest search.
+      const current = projs.find(p => p.status === 'active') || projs[0];
+      setSelectedProjectId(current?.id || '');
+    }).catch((error) => {
+      if (!active) return;
+      setUser(null);
+      setProjects([]);
+      setSelectedProjectId('');
+      setContextError(error?.message || 'Your research workspace could not be loaded.');
+    }).finally(() => {
+      if (active) setContextLoading(false);
+    });
+    return () => { active = false; };
+  }, [contextRetry]);
 
   const runRadar = async () => {
     setLoading(true);
@@ -279,13 +295,23 @@ Rules:
         </div>
         <button
           onClick={runRadar}
-          disabled={loading}
+          disabled={loading || contextLoading || Boolean(contextError) || !user}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 flex-shrink-0"
         >
           {loading ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
           {loading ? 'Scanning…' : hasRun ? 'Scan again' : 'Scan'}
         </button>
       </div>
+
+      {contextError && (
+        <div role="alert" className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300">
+          <p>{contextError}</p>
+          <button type="button" onClick={() => setContextRetry(count => count + 1)}
+            className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-red-500/30 px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+            Retry workspace connection
+          </button>
+        </div>
+      )}
 
       {radarError && (
         <div role="alert" className="mb-4 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-300">

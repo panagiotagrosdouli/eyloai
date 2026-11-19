@@ -30,7 +30,8 @@ function cleanSource(record, index) {
 export function buildResearchReport({ tool, query, analysis, sources = [], caveat = '' }) {
   if (!tool || typeof tool !== 'string') throw new TypeError('Tool name required');
   if (!analysis || typeof analysis !== 'object' || Array.isArray(analysis)) throw new TypeError('Completed analysis required');
-  if (!Array.isArray(sources) || sources.length > MAX_SOURCE_RECORDS) throw new RangeError('Too many source records to export');
+  if (!Array.isArray(sources)) throw new TypeError('Source records must be an array');
+  const includedSources = sources.slice(0, MAX_SOURCE_RECORDS);
   const report = {
     format: 'eylo-research-report-v1',
     tool: boundedString(tool),
@@ -41,7 +42,13 @@ export function buildResearchReport({ tool, query, analysis, sources = [], cavea
       retrieved_records: 'Source metadata only; original full-text and claims require human verification',
       note: boundedString(caveat),
     },
-    sources: sources.map(cleanSource),
+    source_coverage: {
+      retrieved_total: sources.length,
+      included: includedSources.length,
+      omitted: sources.length - includedSources.length,
+      truncated: sources.length > MAX_SOURCE_RECORDS,
+    },
+    sources: includedSources.map(cleanSource),
     analysis,
   };
   const json = JSON.stringify(report, null, 2);
