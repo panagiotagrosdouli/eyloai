@@ -30,8 +30,8 @@ export function isSafeEyraSourceUrl(input) {
     if (host === 'localhost' || host.endsWith('.localhost')
       || host.endsWith('.local') || host.endsWith('.internal') || host.endsWith('.invalid')
       || host === '0' || host === '::1' || host === '::'
-      || host.startsWith('fe80:') || host.startsWith('fc') || host.startsWith('fd')
-      || host.startsWith('::ffff:')) return false;
+      || (host.includes(':') && (host.startsWith('fe80:') || host.startsWith('fc') || host.startsWith('fd')
+        || host.startsWith('::ffff:')))) return false;
 
     if (/^\d+(?:\.\d+){3}$/.test(host)) {
       const [a, b] = host.split('.').map(Number);
