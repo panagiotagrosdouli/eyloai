@@ -76,31 +76,33 @@ export default function EyraHome({ onSearch }) {
 
   return (
     <div className="eylo-home min-h-[calc(100vh-4.5rem)] bg-background text-foreground">
-      <div className="mx-auto w-full max-w-7xl px-5 pb-20 pt-6 sm:px-8 sm:pt-8">
-        <section aria-labelledby="home-title" className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-8">
-          <p className="text-sm font-medium text-primary">{greeting.greeting}</p>
-          <h1 id="home-title" className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">What would you like to work on?</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Explore source-linked academic records, check the original sources, and save useful work for later. EYRA can help with follow-up questions when available.</p>
-          <form onSubmit={event => { event.preventDefault(); if (homeQuery.trim()) onSearch(homeQuery.trim()); }} className="mt-6 flex flex-col gap-3 sm:flex-row">
+      <div className="mx-auto w-full max-w-7xl px-4 pb-24 pt-6 sm:px-8 sm:pt-10">
+        <section aria-labelledby="home-title" className="relative isolate overflow-hidden rounded-[28px] border border-border/80 bg-gradient-to-br from-card via-card to-primary/5 p-6 shadow-sm sm:p-9 lg:p-12">
+          <div className="pointer-events-none absolute -right-20 -top-24 -z-10 h-72 w-72 rounded-full bg-primary/5 blur-3xl" aria-hidden="true" />
+          <p className="mb-4 inline-flex items-center rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-primary">Your research workspace</p>
+          <p className="text-sm font-medium text-muted-foreground">{greeting.greeting}</p>
+          <h1 id="home-title" className="mt-2 max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">What would you like to work on?</h1>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">Explore source-linked academic records, check the original sources, and save useful work for later. EYRA can help with follow-up questions when available.</p>
+          <form onSubmit={event => { event.preventDefault(); if (homeQuery.trim()) onSearch(homeQuery.trim()); }} className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-background p-2 shadow-sm sm:flex-row sm:items-center">
             <label htmlFor="home-research-query" className="sr-only">Research topic or question</label>
             <input id="home-research-query" type="search" value={homeQuery} onChange={event => setHomeQuery(event.target.value)}
-              placeholder="Enter a research topic or question…" className="min-h-12 min-w-0 flex-1 rounded-xl border border-border bg-background px-4 text-base text-foreground placeholder:text-muted-foreground" />
-            <button type="submit" disabled={!homeQuery.trim()} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+              placeholder="Enter a research topic or question…" className="min-h-12 min-w-0 flex-1 rounded-xl border border-transparent bg-transparent px-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary/30 focus:outline-none" />
+            <button type="submit" disabled={!homeQuery.trim()} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50">
               <Search size={17} aria-hidden="true" /> Start researching
             </button>
           </form>
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground">Academic search is separate from EYRA. Always check the original papers.</p>
             <button type="button" disabled={!eyraReady} onClick={() => window.dispatchEvent(new Event('eylo:open-eyra'))}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold text-foreground hover:bg-secondary disabled:opacity-50">
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50">
               <Lightbulb size={16} aria-hidden="true" /> Ask EYRA
             </button>
           </div>
         </section>
-        <section aria-labelledby="start-here-title" className="mt-7">
+        <section aria-labelledby="start-here-title" className="mt-10">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 id="start-here-title" className="text-xl font-semibold text-foreground">New to EYLO? Start here.</h2>
+              <h2 id="start-here-title" className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Start with one small step.</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                 You do not need technical or research experience. Choose a simple task, and use Back or Home whenever you want.
               </p>
@@ -113,14 +115,14 @@ export default function EyraHome({ onSearch }) {
               {step:'2', title:'Save and review papers', help:'See your saved papers. To save a new one, start in Discover.', href: '/library', Icon:Bookmark},
               {step:'3', title:'Create a project', help:'Keep papers, ideas and next steps together.', href: '/projects?new=1', Icon:FolderOpen},
             ].map(({step,title,help,href,Icon}) => (
-              <Link key={href} to={href} className="group flex min-h-28 items-start gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/40 hover:bg-secondary/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary" aria-hidden="true">{step}</span>
-                <span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-foreground">{title}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{help}</span></span>
+              <Link key={href} to={href} className="group flex min-h-32 items-start gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-sm font-bold text-primary" aria-hidden="true">{step}</span>
+                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-foreground">{title}</span><span className="mt-2 block text-xs leading-5 text-muted-foreground">{help}</span></span>
                 <Icon size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
               </Link>
             ))}
           </nav>
-          <details className="mt-4 rounded-xl border border-border bg-card/60 px-4 py-3">
+          <details className="mt-4 rounded-2xl border border-border/80 bg-card/60 px-4 py-3">
             <summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">More things you can do — research, studies and funding</summary>
             <nav aria-label="More starting actions" className="mt-3 grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
               {[
