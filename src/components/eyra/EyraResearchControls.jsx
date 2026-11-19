@@ -1,10 +1,12 @@
 import React from 'react';
-import { BookOpen, Brain, Award, Rocket, Users, BarChart3, Target, FileText, AlertTriangle, Map, ArrowUpRight } from 'lucide-react';
+import { BookOpen, Brain, Award, Rocket, Users, BarChart3, Target, FileText, AlertTriangle, Map, ArrowUpRight, PenLine, FlaskConical, Database, FolderKanban, MessageCircle, ScanSearch } from 'lucide-react';
 import { EYRA_MODES, EYRA_QUICK_COMMANDS } from '@/lib/eyra-next-policy.mjs';
 
 export const EYRA_MODE_ICONS = {
   research: BookOpen, strategy: Brain, funding: Award,
   startup: Rocket, team: Users, impact: BarChart3,
+  general: MessageCircle, literature: BookOpen, methodology: FlaskConical,
+  writing: PenLine, data: Database, project: FolderKanban, critical: ScanSearch,
 };
 const COMMAND_ICONS = {
   project: Target, literature: FileText, gaps: AlertTriangle,
@@ -39,6 +41,13 @@ export function EyraModeSelector({ activeMode, onChange, disabled = false }) {
 
 /** Keep each lens focused on a few genuinely relevant actions; prompts remain centrally defined. */
 export const EYRA_MODE_STARTER_IDS = Object.freeze({
+  general: ['project', 'literature', 'roadmap'],
+  literature: ['literature', 'gaps', 'project'],
+  methodology: ['literature', 'project', 'gaps'],
+  writing: ['literature', 'project', 'gaps'],
+  data: ['project', 'literature', 'roadmap'],
+  project: ['project', 'roadmap', 'literature'],
+  critical: ['gaps', 'literature', 'project'],
   research: ['literature', 'gaps', 'project'],
   strategy: ['project', 'roadmap', 'gaps'],
   funding: ['funding', 'project', 'roadmap'],
