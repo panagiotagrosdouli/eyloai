@@ -902,7 +902,7 @@ The saved record was returned by the server. Check the workspace for the final r
                   <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 font-medium text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden">
                     <History size={16} aria-hidden="true" />
                     <span className="truncate">History &amp; tools</span>
-                    <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
+                    <span className="ml-auto hidden shrink-0 text-[11px] text-muted-foreground sm:inline">
                       {cloudHistoryReady ? 'Cloud available' : cloudHistoryStatus === 'checking' ? 'Checking cloud…' : 'Local export available'}
                     </span>
                   </summary>
