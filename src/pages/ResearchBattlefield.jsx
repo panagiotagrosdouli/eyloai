@@ -1,3 +1,4 @@
+import { downloadResearchReport } from '@/lib/research-report-export.mjs';
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
@@ -170,6 +171,7 @@ Funding records are retrieved separately from an official source. Do not generat
       {/* Header */}
       <div className="mb-6">
         <h1 className="eylo-page-heading">Research Landscape</h1>
+        {report && <button type="button" onClick={() => downloadResearchReport({ tool: 'research-landscape', query, analysis: report, sources: [...(report.top_papers || []), ...(report.top_researchers || []), ...(report.leading_institutions || []), ...(report.major_funders || [])], caveat: 'Search results are incomplete; inferred gaps are hypotheses.' })} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-xs font-semibold text-primary hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">Export research report (JSON)</button>}
       </div>
 
       {/* Search */}
