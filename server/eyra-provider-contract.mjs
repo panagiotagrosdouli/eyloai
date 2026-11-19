@@ -42,6 +42,21 @@ export function normalizeEyraSchema(schema, depth = 0) {
     throw new Error('Invalid response schema.');
   }
   if (depth > MAX_SCHEMA_DEPTH) throw new Error('Response schema is too deeply nested.');
+  // Reject contradictory or malformed structural schema fields rather than
+  // silently coercing an array schema into an object (or vice versa).
+  if (schema.properties !== undefined &&
+      (!schema.properties || typeof schema.properties !== 'object' || Array.isArray(schema.properties))) {
+    throw new Error('Invalid response schema properties.');
+  }
+  if (schema.properties !== undefined && schema.type !== undefined && schema.type !== 'object') {
+    throw new Error('Response schema properties require object type.');
+  }
+  if (schema.items !== undefined && schema.type !== undefined && schema.type !== 'array') {
+    throw new Error('Response schema items require array type.');
+  }
+  if (schema.items !== undefined && schema.properties !== undefined) {
+    throw new Error('Response schema cannot declare both items and properties.');
+  }
 
   const normalized = {};
   const scalarKeys = [
