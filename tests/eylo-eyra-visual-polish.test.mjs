@@ -4,16 +4,15 @@ import { readFileSync } from 'node:fs';
 
 const source = path => readFileSync(new URL('../src/' + path, import.meta.url), 'utf8');
 
-test('both EYLO and EYRA logos are code-drawn and never use the black bitmap background', () => {
+test('original EYLO and EYRA brand assets are restored with responsive sizing and accessible labels', () => {
   const brand = source('components/brand/BrandLogo.jsx');
-  assert.match(brand, /function ResearchMark\(/);
-  assert.match(brand, /<svg /);
-  assert.match(brand, /<linearGradient /);
-  assert.match(brand, /<radialGradient /);
-  assert.match(brand, /role=\{decorative \? undefined : 'img'\}/);
-  assert.match(brand, /EYRA research assistant/);
-  assert.doesNotMatch(brand, /brand\/eyra\.png|bg-\[#050712\]|object-cover/);
+  assert.match(brand, /brand\/eylo-light\.svg/);
+  assert.match(brand, /brand\/eyra\.png/);
+  assert.match(brand, /import\.meta\.env\.BASE_URL/);
+  assert.match(brand, /alt=\{decorative \? '' : label\}/);
+  assert.match(brand, /loading=\{priority \? 'eager' : 'lazy'\}/);
   assert.match(brand, /export function EyraOrb/);
+  assert.doesNotMatch(brand, /function ResearchMark\(/);
 });
 
 test('all-tools menu defaults to curated shortcuts but still searches the full directory', () => {
