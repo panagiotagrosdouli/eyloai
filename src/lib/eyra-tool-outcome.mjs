@@ -16,3 +16,16 @@ export function hasEyraWriteReceipt(action) {
   // The owner-scoped server must return an actual saved record identifier.
   return typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 }
+
+export function formatEyraToolFailure(action) {
+  // Failure metadata can originate from upstream providers. Never echo raw
+  // error strings in the user-visible transcript: they can include private
+  // record text, tokens, URLs or untrusted Markdown.
+  const tool = typeof action?.tool === 'string'
+    && /^[a-z][a-z0-9_.-]{0,79}$/i.test(action.tool)
+    ? action.tool : 'Workspace action';
+  if (action?.status === 'needs_review') {
+    return `- **Outcome uncertain — manual review required:** ${tool}. Check the agent run and actual workspace record before retrying.`;
+  }
+  return `- ${tool} failed. Check the agent run and workspace record before retrying; the operation was not confirmed.`;
+}
