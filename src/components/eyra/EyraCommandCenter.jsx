@@ -823,7 +823,7 @@ The saved record was returned by the server. Check the workspace for the final r
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-4"
-        style={{ background: 'rgba(3, 6, 10, 0.62)', backdropFilter: 'blur(4px)' }}
+        style={{ background: 'rgba(15, 23, 42, 0.48)', backdropFilter: 'blur(10px)' }}
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <motion.div
@@ -835,16 +835,16 @@ The saved record was returned by the server. Check the workspace for the final r
           role="dialog"
           aria-modal="true"
           aria-labelledby="eyra-dialog-title"
-          className="relative flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden rounded-none border border-border bg-background shadow-2xl sm:h-[min(880px,calc(100dvh-2rem))] sm:w-[min(1020px,calc(100vw-2rem))] sm:rounded-[28px]"
+          className="relative isolate flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden rounded-none border border-border/60 bg-background shadow-[0_35px_100px_-30px_rgba(16,31,66,0.55)] sm:h-[min(900px,calc(100dvh-2rem))] sm:w-[min(1060px,calc(100vw-2rem))] sm:rounded-[32px]"
         >
           {/* Calm conversation header: history and tools live below, not above the transcript. */}
-          <div className="relative z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-card/90 px-4 py-3.5 sm:px-7">
+          <div className="relative z-10 flex shrink-0 items-center gap-3 border-b border-border/50 bg-card/70 px-4 py-3.5 backdrop-blur-xl sm:px-8 sm:py-4">
             <div className="flex min-w-0 flex-1 items-center gap-3">
-              <span className="hidden sm:block"><BrandLogo brand="eyra" size="compact" /></span>
-              <span className="sm:hidden"><EyraOrb className="h-10 w-10" /></span>
+              <span className="hidden rounded-2xl bg-gradient-to-br from-indigo-500/10 via-card to-cyan-400/10 px-2 py-1 ring-1 ring-primary/10 sm:block"><BrandLogo brand="eyra" size="compact" /></span>
+              <span className="sm:hidden"><EyraOrb className="h-10 w-10 shadow-sm shadow-primary/20" /></span>
               <div className="min-w-0">
-                <h2 id="eyra-dialog-title" className="text-base font-bold tracking-tight text-foreground">Your research copilot</h2>
-                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                <h2 id="eyra-dialog-title" className="text-base font-bold tracking-tight text-foreground sm:text-lg">Your research copilot</h2>
+                <p className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground sm:text-xs">
                   {contextStatus === 'ready' ? 'Workspace context available' : contextStatus === 'loading' ? 'Preparing workspace context…' : 'Sources are linked when retrieved'}
                 </p>
               </div>
@@ -867,17 +867,17 @@ The saved record was returned by the server. Check the workspace for the final r
           <EyraModeSelector activeMode={activeMode} onChange={setActiveMode} disabled={loading} />
 
           {/* Messages */}
-          <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain bg-gradient-to-b from-background via-background to-secondary/20 px-4 py-6 sm:px-8 sm:py-8">
-            <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-5">
+          <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain bg-gradient-to-b from-background via-card/30 to-background px-4 py-6 sm:px-8 sm:py-8" aria-label="EYRA conversation">
+            <div className={`mx-auto flex min-h-full w-full max-w-3xl flex-col gap-5 ${messages.length === 1 ? 'justify-center' : ''}`}>
               {messages.map(msg => msg.welcome ? (messages.length === 1 ? (
-                <section key={msg.timestamp} aria-label="Start a conversation with EYRA" className="rounded-[24px] border border-border/50 bg-card/65 p-5 shadow-sm sm:my-3 sm:p-8">
-                  <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card to-cyan-400/10 text-2xl font-bold text-primary shadow-sm" aria-hidden="true">✦</div>
-                  <p className="text-xs font-bold uppercase tracking-[0.15em] text-primary">EYRA · Research assistant</p>
+                <section key={msg.timestamp} aria-label="Start a conversation with EYRA" className="relative mx-auto w-full max-w-[740px] overflow-hidden rounded-[28px] border border-primary/10 bg-gradient-to-br from-card via-card to-primary/5 p-6 shadow-[0_24px_70px_-55px_rgba(67,89,200,0.55)] sm:p-9">
+                  <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-[20px] border border-primary/20 bg-gradient-to-br from-indigo-500/15 via-violet-400/10 to-cyan-400/15 text-2xl font-bold text-primary shadow-md shadow-primary/10" aria-hidden="true">✦</div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">EYRA / RESEARCH INTELLIGENCE</p>
                   <h3 className="mt-3 max-w-2xl text-2xl font-bold leading-snug tracking-tight text-foreground sm:text-3xl">
-                    What would you like to explore?
+                    Where should we begin?
                   </h3>
-                  <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                    Explore evidence, compare research options, or turn a question into a practical next step. I'll distinguish retrieved sources from interpretation.
+                  <p className="mt-3 max-w-xl text-[15px] leading-7 text-muted-foreground">
+                    Explore published evidence, evaluate opportunities and develop ideas with clear source boundaries. Ask anything or choose a starting point.
                   </p>
                   {messages.length === 1 && <EyraQuickCommands activeMode={activeMode} onSelect={prompt => void sendMessage(prompt)} disabled={loading} />}
                 </section>
@@ -896,10 +896,10 @@ The saved record was returned by the server. Check the workspace for the final r
           </div>
 
           {/* Composer stays visible; optional controls are accessible on demand. */}
-          <div className="relative z-10 shrink-0 border-t border-border/60 bg-card/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-7 sm:py-4">
+          <div className="relative z-10 shrink-0 border-t border-border/50 bg-card/90 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:px-8 sm:py-5">
             <div className="mx-auto w-full max-w-3xl">
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <details className="group min-w-0 max-w-full flex-1 rounded-xl border border-border/60 bg-background/75 text-xs text-muted-foreground">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <details className="group min-w-0 max-w-full flex-1 rounded-xl border border-border/50 bg-secondary/30 text-xs text-muted-foreground">
                   <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 font-medium text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden">
                     <History size={16} aria-hidden="true" />
                     <span className="truncate">History &amp; tools</span>
@@ -965,7 +965,7 @@ The saved record was returned by the server. Check the workspace for the final r
                   </div>
                 </details>
                 <button type="button" onClick={exportConversation} disabled={loading || historyBusy}
-                  className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 text-xs font-semibold text-foreground hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40">
+                  className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-transparent bg-secondary/60 px-3 text-xs font-semibold text-foreground transition-colors hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40">
                   <FileDown size={16} aria-hidden="true" /> Export conversation
                 </button>
               </div>
@@ -996,7 +996,7 @@ The saved record was returned by the server. Check the workspace for the final r
             {actionError && (
               <p role="alert" className="mt-2 text-center text-[10px] text-amber-300">{actionError}</p>
             )}
-            <p className="mt-2 text-center text-[11px] leading-5 text-muted-foreground">
+            <p className="mt-2 text-center text-[11px] leading-5 text-muted-foreground/80">
               Check original sources before relying on research claims · Enter to send · Shift+Enter for a new line
             </p>
             </div>
