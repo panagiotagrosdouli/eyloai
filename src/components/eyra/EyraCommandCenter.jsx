@@ -156,6 +156,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const [agentRunsBusy, setAgentRunsBusy] = useState(false);
   const [agentRunsError, setAgentRunsError] = useState('');
   const historyEpochRef = useRef(0);
+  const historyRestoreRef = useRef(null);
   const snapshotRequestRef = useRef(null);
   const historyWriteLockRef = useRef(false);
   const ownerRef = useRef(user?.id);
@@ -190,6 +191,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     setWorkspaceContext(''); setContextStatus('idle'); setLiveDraft(''); setLoading(false);
     setRemoteConversation(null); setSavedConversations([]); setAllowWorkspaceActions(false);
     setPendingWriteReview(null); setWritePreview(null);
+    historyRestoreRef.current?.abort(); historyRestoreRef.current = null;
     historyEpochRef.current += 1; snapshotRequestRef.current = null; historyWriteLockRef.current = false; setHistoryBusy(false);
     setSavingConversation(false); setSavedMessageIds(new Set()); setUserName(''); setActionError('');
     setCloudHistoryState({ ownerId: user?.id ?? null, status: 'checking' });
@@ -703,13 +705,22 @@ The saved record was returned by the server. Check the workspace for the final r
   const restoreConversation = async id => {
     const owner = user?.id;
     if (!id || !cloudHistoryReady || loading || historyWriteLockRef.current) return;
+    historyRestoreRef.current?.abort();
+    const controller = new AbortController();
+    historyRestoreRef.current = controller;
     const epoch = ++historyEpochRef.current; setHistoryBusy(true);
     try {
-      const saved = await loadEyraConversation(id);
-      if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
+      const saved = await loadEyraConversation(id, controller.signal);
+      if (controller.signal.aborted || ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
       setMessages(saved.messages); setRemoteConversation(saved); setRenameTitle(null); setActionError('');
-    } catch (error) { if (ownerRef.current === owner && historyEpochRef.current === epoch) setActionError(error?.message || 'Conversation could not be opened.'); }
-    finally { if (ownerRef.current === owner && historyEpochRef.current === epoch) setHistoryBusy(false); }
+    } catch (error) {
+      if (!controller.signal.aborted && ownerRef.current === owner && historyEpochRef.current === epoch) {
+        setActionError(error?.message || 'Conversation could not be opened.');
+      }
+    } finally {
+      if (historyRestoreRef.current === controller) historyRestoreRef.current = null;
+      if (ownerRef.current === owner && historyEpochRef.current === epoch) setHistoryBusy(false);
+    }
   };
 
   const saveRenamedConversation = async () => {
@@ -803,6 +814,7 @@ The saved record was returned by the server. Check the workspace for the final r
     if (!window.confirm('Clear the conversation in this tab? Conversations you explicitly saved remain available.')) return;
     // Invalidate any in-flight cloud restore before committing the clear.
     historyEpochRef.current += 1;
+    historyRestoreRef.current?.abort(); historyRestoreRef.current = null;
     activeRequestRef.current?.abort(); activeRequestRef.current = null;
     // Clear is an explicit destructive *local* user action. Commit the empty
     // transcript synchronously so an in-flight history load cannot leave the
