@@ -11,7 +11,7 @@ import { checkEyraCitationIds } from '@/lib/eyra-citation-ids.mjs';
 import { buildEyraCommandEvidence, buildEyraCommandPrompt } from '@/lib/eyra-command-evidence.mjs';
 import { buildEvidenceOnlyFallback } from '@/lib/eyra-evidence-fallback.mjs';
 import {
-  X, Volume2, VolumeX, Trash2, Database
+  X, Volume2, VolumeX, Trash2, Database, ChevronDown
 } from 'lucide-react';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { TypingIndicator, Message } from '@/components/eyra/EyraConversationTimeline';
@@ -908,7 +908,7 @@ The saved record was returned by the server. Check the workspace for the final r
             <details className="group mb-3 rounded-xl border border-border/70 bg-background/70 px-3 py-2 text-xs" aria-label="Conversation and agent tools">
               <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-3 font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
                 <span>History &amp; agent tools</span>
-                <span className="text-xs font-normal text-muted-foreground">Save · Export · Runs</span>
+                <span className="flex items-center gap-2 text-xs font-normal text-muted-foreground">Save · Export · Runs <ChevronDown size={15} aria-hidden="true" className="transition-transform group-open:rotate-180" /></span>
               </summary>
               <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/70 pt-3">
               <button type="button" onClick={() => void saveConversation()} disabled={!cloudHistoryReady || loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
