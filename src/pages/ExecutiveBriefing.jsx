@@ -187,7 +187,7 @@ Rules:
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="eylo-page-heading">Executive Briefing</h1>
-          {briefing && <button type="button" onClick={() => downloadResearchReport({ tool: 'executive-briefing', query: 'Current private workspace priorities', analysis: briefing, sources: [...(briefing.new_discoveries || []).map(item => ({ title: item.item, source_url: item.source_url, source: item.source })), ...(briefing.funding_alerts || []).map(item => ({ title: item.alert, source_url: item.source_url }))], caveat: 'Generated using owned workspace records and retrieved metadata; verify each cited original.' })} className="mt-2 inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-xs font-semibold text-primary">Export briefing (JSON)</button>
+          {briefing && <button type="button" onClick={() => downloadResearchReport({ tool: 'executive-briefing', query: 'Current private workspace priorities', analysis: briefing, sources: [...(briefing.new_discoveries || []).map(item => ({ title: item.item, source_url: item.source_url, source: item.source })), ...(briefing.funding_alerts || []).map(item => ({ title: item.alert, source_url: item.source_url }))], caveat: 'Generated using owned workspace records and retrieved metadata; verify each cited original.' })} className="mt-2 inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-xs font-semibold text-primary">Export briefing (JSON)</button>}
           {lastGenerated && (
             <p className="text-[10px] text-muted-foreground mt-0.5">Last generated: {moment(lastGenerated).fromNow()}</p>
           )}
