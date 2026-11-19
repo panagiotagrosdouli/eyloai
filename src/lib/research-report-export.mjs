@@ -57,8 +57,11 @@ export function downloadResearchReport(args) {
   try {
     anchor.href = url;
     anchor.download = 'eylo-' + args.tool.replace(/[^a-z0-9-]/gi, '-').toLowerCase().slice(0, 45) + '-report.json';
+    document.body.appendChild(anchor);
     anchor.click();
   } finally {
-    URL.revokeObjectURL(url);
+    anchor.remove();
+    // Safari and mobile browsers may start the Blob read after click returns.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 }
