@@ -12,6 +12,7 @@ test('EYRA keeps chat as primary surface with quick prompts inside scrolling con
   const composer = command.indexOf('<EyraComposer', quick);
   assert.ok(chat >= 0 && quick > chat && composer > quick);
   assert.match(command, /h-\[100dvh\]/);
+  assert.match(command, /msg=\{msg\.welcome \? \{ \.\.\.msg, mode: activeMode \} : msg\}/);
   assert.match(command, /sm:w-\[min\(1000px,calc\(100vw-2\.5rem\)\)\]/);
   assert.match(prompts, /grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3/);
   assert.match(prompts, /aria-pressed=\{active\}/);
