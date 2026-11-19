@@ -1,3 +1,4 @@
+import { assertPitchDeckEvidenceReferences } from '@/lib/pitch-deck-evidence.mjs';
 import { downloadResearchReport } from '@/lib/research-report-export.mjs';
 import React, { useMemo, useState } from 'react';
 import { jsPDF } from 'jspdf';
@@ -95,7 +96,7 @@ Rules:
 - Keep bullets concise and speaker notes practical.`,
         response_json_schema: SLIDE_SCHEMA,
       });
-      setDeck(result);
+      setDeck(assertPitchDeckEvidenceReferences(result, papers, funding));
       // Do not persist private draft content in a shared browser key. Use explicit exports.
     } catch (generationError) {
       setError(generationError?.message || 'The pitch deck could not be generated.');
