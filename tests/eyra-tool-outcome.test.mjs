@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { formatUnverifiedEyraToolAction, hasEyraWriteReceipt } from '../src/lib/eyra-tool-outcome.mjs';
+import { formatUnverifiedEyraToolAction, hasEyraWriteReceipt, formatEyraToolFailure } from '../src/lib/eyra-tool-outcome.mjs';
 
 test('missing, pending, and unknown status never claim that a write completed', () => {
   for (const action of [null, {}, { tool: 'project.create' }, { tool: 'project.create', status: 'queued' },
@@ -35,4 +35,20 @@ test('writes require a valid returned persisted record ID before claiming verifi
     }
     assert.equal(hasEyraWriteReceipt({ tool, status: 'pending', result: { id } }), false);
   }
+});
+
+test('failed and uncertain tool outcomes never reveal raw provider errors', () => {
+  const leaked = 'sk-secret <script>private notes</script> https://private.example/token';
+  for (const status of ['failed', 'needs_review']) {
+    const result = formatEyraToolFailure({ tool: 'project.create', status, error: leaked });
+    assert.doesNotMatch(result, /sk-secret|private notes|https:|<script>/);
+    assert.match(result, /before retrying/);
+    assert.match(result, /project\.create/);
+  }
+});
+
+test('untrusted tool names are not reflected in failure output', () => {
+  const result = formatEyraToolFailure({ tool: '<img src=x onerror=alert(1)>', status: 'failed', error: 'raw secret' });
+  assert.match(result, /Workspace action failed/);
+  assert.doesNotMatch(result, /img|onerror|raw secret/);
 });
