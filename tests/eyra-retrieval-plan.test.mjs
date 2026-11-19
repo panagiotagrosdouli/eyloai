@@ -26,3 +26,14 @@ test('retrieval input never creates unbounded provider query strings', () => {
   const query = compactQuery(content, '');
   assert.ok(query.length <= 280);
 });
+
+test('specialized scientific lenses retrieve literature without making generic chat a search', () => {
+  for (const mode of ['literature', 'methodology', 'critical']) {
+    assert.equal(shouldRetrieve('Explain the approach', mode).papers, true, mode);
+  }
+  assert.equal(shouldRetrieve('hello', 'general').papers, false);
+  assert.equal(shouldRetrieve('hello', 'writing').papers, false);
+  assert.equal(shouldRetrieve('hello', 'data').papers, false);
+  assert.equal(shouldRetrieve('hello', 'project').papers, false);
+  assert.equal(shouldRetrieve(null, 'general').papers, false);
+});
