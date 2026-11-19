@@ -11,7 +11,7 @@ import { checkEyraCitationIds } from '@/lib/eyra-citation-ids.mjs';
 import { buildEyraCommandEvidence, buildEyraCommandPrompt } from '@/lib/eyra-command-evidence.mjs';
 import { buildEvidenceOnlyFallback } from '@/lib/eyra-evidence-fallback.mjs';
 import {
-  X, Volume2, VolumeX, Trash2, Database, History, FileDown, LockKeyhole
+  X, Volume2, VolumeX, Trash2, History, FileDown
 } from 'lucide-react';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { TypingIndicator, Message } from '@/components/eyra/EyraConversationTimeline';
@@ -868,7 +868,7 @@ The saved record was returned by the server. Check the workspace for the final r
           {/* Messages */}
           <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-6 sm:px-8 sm:py-8">
             <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-5">
-              {messages.map(msg => msg.welcome ? (
+              {messages.map(msg => msg.welcome ? (messages.length === 1 ? (
                 <section key={msg.timestamp} aria-label="Start a conversation with EYRA" className="py-2 sm:py-6">
                   <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-xl font-bold text-primary" aria-hidden="true">✦</div>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">EYRA · Research assistant</p>
@@ -880,7 +880,7 @@ The saved record was returned by the server. Check the workspace for the final r
                   </p>
                   {messages.length === 1 && <EyraQuickCommands onSelect={prompt => void sendMessage(prompt)} disabled={loading} />}
                 </section>
-              ) : (
+              ) : null) : (
                 <Message key={msg.timestamp} msg={msg}
                   onSave={saveInsight} onCopy={copyInsight}
                   saved={savedMessageIds.has(msg.timestamp)}
