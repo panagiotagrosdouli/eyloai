@@ -154,7 +154,7 @@ export default function EyraHome({ onSearch }) {
           </div>
         )}
 
-        <div className="mt-10">
+        <div className="mt-12">
           <section aria-labelledby="continue-heading">
             <div className="mb-5 flex items-end justify-between gap-4 border-b border-border pb-4">
               <div>
@@ -173,8 +173,8 @@ export default function EyraHome({ onSearch }) {
                 <button type="button" onClick={retryProfile} className="mt-3 text-xs font-semibold text-primary hover:underline">Try again</button>
               </div>
             ) : (
-              <div className="space-y-7">
-                <div>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <div className="lg:col-span-2">
                   <div className="mb-3 flex items-center justify-between">
                     <h3 className="text-sm font-bold tracking-tight text-foreground">Active projects</h3>
                     <Link to="/projects" className="text-[11px] font-semibold text-muted-foreground hover:text-primary">View all</Link>
