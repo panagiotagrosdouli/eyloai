@@ -286,6 +286,7 @@ try {
   });
   await page.reload();
   await page.getByRole('button', { name: 'Ask EYRA', exact: true }).click();
+  await page.getByText('History & agent tools', { exact: true }).click();
   await page.getByText('Workspace context ready · sources attached when retrieved').waitFor();
   await page.getByRole('button', { name: 'Strategy', exact: true }).click();
   assert.equal(await page.getByRole('checkbox', { name: 'Allow authorized workspace and research tools for this request' }).isChecked(), false);
@@ -362,6 +363,7 @@ try {
   assert.equal(tables.eyra_messages.length, 0);
   await page.reload();
   await page.getByRole('button', { name: 'Ask EYRA', exact: true }).click();
+  await page.getByText('History & agent tools', { exact: true }).click();
   await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
   console.log('PASS fixture: ambiguous snapshot save retries the same UUID, private export and confirmed cascade deletion; cancelled deletion leaves records unchanged.');
 
@@ -373,6 +375,7 @@ try {
   await page.route(`${supabaseUrl}/rest/v1/eyra_conversations**`, cloudSchemaMissing);
   await page.goto(`${origin}/home`);
   await page.locator('button[title="Ask EYRA"]').click();
+  await page.getByText('History & agent tools', { exact: true }).click();
   const cloudNotice = page.getByRole('status', { name: 'Cloud conversation history' });
   await cloudNotice.getByText(/Cloud conversation saving is not activated here/).waitFor();
   assert.equal(await page.getByRole('button', { name: 'Save conversation snapshot', exact: true }).isDisabled(), true);
