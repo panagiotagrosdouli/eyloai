@@ -30,7 +30,7 @@ test('outcomes are in the empty conversation rather than permanent navigation', 
 test('nonessential cloud history and sensitive tools are secondary and fail closed', () => {
   const details = center.indexOf('<details className="group');
   const warning = center.indexOf('role="status" aria-label="Cloud conversation history"');
-  const controls = center.indexOf('Allow workspace tools for this request');
+  const controls = center.indexOf('Allow authorized workspace and research tools for this request');
   assert.ok(details > 0 && warning > details && controls > warning);
   assert.match(center, /History &amp; tools/);
   assert.match(center, /disabled=\{!cloudHistoryReady \|\| loading \|\| savingConversation \|\| historyBusy\}/);
