@@ -328,9 +328,21 @@ try {
   let releaseHistory;
   let markHistoryStarted;
   const historyStarted = new Promise(resolve => { markHistoryStarted = resolve; });
+  let markHistorySettled;
+  const historySettled = new Promise(resolve => { markHistorySettled = resolve; });
   const historyGate = new Promise(resolve => { releaseHistory = resolve; });
   await page.route(`${supabaseUrl}/rest/v1/eyra_messages**`, async route => {
-    markHistoryStarted(); await historyGate; await route.fallback();
+    markHistoryStarted();
+    try {
+      await historyGate;
+      // Clearing the transcript can abort this request; that is a valid
+      // outcome, not a missing response or a fixture transport failure.
+      if (!route.request().failure()) await route.fallback();
+    } catch (error) {
+      if (!/intercept|abort|closed|handled|invalid/i.test(String(error))) throw error;
+    } finally {
+      markHistorySettled();
+    }
   }, { times: 1 });
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
   await historyStarted;
@@ -345,8 +357,10 @@ try {
   // history request to resolve. Two animation frames are not a reliable
   // synchronization barrier on loaded GitHub Actions runners.
   await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
-  const historyResponse = page.waitForResponse(response => response.url().includes('/rest/v1/eyra_messages'));
-  releaseHistory(); await (await historyResponse).finished();
+  releaseHistory();
+  await historySettled;
+  // The cancelled request must not revive a stale transcript, regardless of
+  // whether the transport produced an HTTP response or requestfailed event.
   await page.waitForTimeout(250);
   assert.equal(await page.getByText(answer, { exact: true }).count(), 0, 'late history cannot restore a chat after clear');
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
