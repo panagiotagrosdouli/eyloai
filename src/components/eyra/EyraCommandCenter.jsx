@@ -936,7 +936,7 @@ The saved record was returned by the server. Check the workspace for the final r
                       <input type="checkbox" checked={allowWorkspaceActions} disabled={loading}
                         onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); setWritePreview(null); }}
                         className="h-4 w-4 shrink-0 accent-primary" />
-                      <span><span className="font-semibold">Allow workspace tools for this request</span><span className="block text-muted-foreground">Optional · private workspace actions require authorization and review.</span></span>
+                      <span><span className="font-semibold">Allow authorized workspace and research tools for this request</span><span className="block text-muted-foreground">Optional · private workspace actions require authorization and review.</span></span>
                     </label>
                     <EyraAgentRunHistory
                       open={showAgentRuns} runs={agentRuns} selected={selectedAgentRun}
