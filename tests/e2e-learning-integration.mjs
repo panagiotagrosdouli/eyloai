@@ -334,8 +334,13 @@ try {
   }, { times: 1 });
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
   await historyStarted;
-  page.once('dialog', dialog => dialog.accept());
-  await page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
+  // Explicitly require the confirmation dialog: a guarded/no-op Clear click
+  // must fail this test at the actual cause, not 20 seconds later at the DOM.
+  const clearConfirmation = page.waitForEvent('dialog', { timeout: 5000 });
+  const clearClick = page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
+  const clearDialog = await clearConfirmation;
+  await clearDialog.accept();
+  await clearClick;
   // Wait until Clear has committed to the DOM before allowing the stalled
   // history request to resolve. Two animation frames are not a reliable
   // synchronization barrier on loaded GitHub Actions runners.
