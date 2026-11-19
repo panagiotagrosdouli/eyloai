@@ -4,6 +4,7 @@
 import { base44 } from '@/api/base44Client';
 import { searchAllPapersWithStatus, searchOpenAlexAuthors, searchOpenAlexInstitutions } from './eyra-api';
 import { formatRetrievalWarning } from './discovery-source-status.js';
+import { createDiscoveryProgressEmitter } from './eyra-discovery-progress.mjs';
 import { searchFundingOpportunities } from './funding-api';
 import { filterUnsupportedEvidenceClaims } from './research-provenance.mjs';
 import { reviewableClaims, selectExcerptSupportedClaims } from './evidence-verification.mjs';
@@ -50,6 +51,7 @@ function buildRetrievalQuery(profile) {
 export async function runEyraDiscovery(input, onProgress, options = {}) {
   const { signal } = options;
   signal?.throwIfAborted();
+  const emitProgress = createDiscoveryProgressEmitter(onProgress, signal);
   const profile = normalizeRequest(input);
   const query = profile.topic;
   if (!query) throw new Error('Enter a research topic.');
@@ -58,7 +60,7 @@ export async function runEyraDiscovery(input, onProgress, options = {}) {
   const cacheKey = `discovery:${JSON.stringify(profile).toLowerCase()}`;
   const cached = getCached(cacheKey);
   if (cached) {
-    onProgress && onProgress({ ...cached, fromCache: true, status: 'complete' });
+    emitProgress({ ...cached, fromCache: true, status: 'complete' });
     return cached;
   }
 
@@ -72,7 +74,7 @@ export async function runEyraDiscovery(input, onProgress, options = {}) {
     funding_opportunities: [],
     status: 'loading',
   };
-  onProgress && onProgress({ ...partial });
+  emitProgress({ ...partial });
 
   // Fire all real-data fetches in parallel, each updating as it resolves
   const papersPromise = searchAllPapersWithStatus(retrievalQuery, { ...profile, limit: 24, signal }).then(bundle => {
@@ -80,7 +82,7 @@ export async function runEyraDiscovery(input, onProgress, options = {}) {
     partial.paperSourceStatus = bundle.source_status || [];
     partial.papersLoaded = true;
     partial.papersError = bundle.available_source_count === 0;
-    onProgress && onProgress({ ...partial });
+    emitProgress({ ...partial });
     return bundle;
   }).catch(() => {
     partial.papersLoaded = true;
@@ -88,33 +90,33 @@ export async function runEyraDiscovery(input, onProgress, options = {}) {
     partial.paperSourceStatus = [
       { id: 'paper_indexes', label: 'Scholarly paper indexes', status: 'unavailable', count: 0 },
     ];
-    onProgress && onProgress({ ...partial });
+    emitProgress({ ...partial });
     return { papers: [], source_status: partial.paperSourceStatus, available_source_count: 0 };
   });
 
   const researchersPromise = searchOpenAlexAuthors(query, 8, { throwOnError: true, signal }).then(researchers => {
     partial.researchers = researchers || [];
     partial.researchersLoaded = true;
-    onProgress && onProgress({ ...partial });
+    emitProgress({ ...partial });
     return researchers || [];
-  }).catch(() => { partial.researchersLoaded = true; partial.researchersError = true; onProgress && onProgress({ ...partial }); return []; });
+  }).catch(() => { partial.researchersLoaded = true; partial.researchersError = true; emitProgress({ ...partial }); return []; });
 
   const institutionsPromise = searchOpenAlexInstitutions(query, 6, { throwOnError: true, signal }).then(institutions => {
     partial.institutions = institutions || [];
     partial.institutionsLoaded = true;
-    onProgress && onProgress({ ...partial });
+    emitProgress({ ...partial });
     return institutions || [];
-  }).catch(() => { partial.institutionsLoaded = true; partial.institutionsError = true; onProgress && onProgress({ ...partial }); return []; });
+  }).catch(() => { partial.institutionsLoaded = true; partial.institutionsError = true; emitProgress({ ...partial }); return []; });
 
   const fundingPromise = searchFundingOpportunities(query, 5, { signal }).then((fundingResult) => {
     partial.funding_opportunities = fundingResult.items || [];
     partial.fundingLoaded = true;
-    onProgress && onProgress({ ...partial });
+    emitProgress({ ...partial });
     return fundingResult;
   }).catch((error) => {
     partial.fundingLoaded = true;
     partial.fundingError = error instanceof Error ? error.message : 'Funding source unavailable';
-    onProgress && onProgress({ ...partial });
+    emitProgress({ ...partial });
     return { items: [], error: partial.fundingError };
   });
 
@@ -129,7 +131,7 @@ export async function runEyraDiscovery(input, onProgress, options = {}) {
 
   // Analyze the retrieved scholarly evidence while the funding source is still running.
   partial.status = 'analyzing';
-  onProgress && onProgress({ ...partial });
+  emitProgress({ ...partial });
 
   // AI analyzes the real data. A model failure must not hide retrieved evidence.
   let aiAnalysis = {};
@@ -238,7 +240,7 @@ export async function runEyraDiscovery(input, onProgress, options = {}) {
   if (result.retrieval_status === 'complete' && result.ai_status === 'complete' && !evidenceReviewWarning) {
     setCache(cacheKey, result);
   }
-  onProgress && onProgress({ ...result });
+  emitProgress({ ...result });
   return result;
 }
 
