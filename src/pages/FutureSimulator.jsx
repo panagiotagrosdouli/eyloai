@@ -1,3 +1,4 @@
+import { downloadResearchReport } from '@/lib/research-report-export.mjs';
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchAllPapers } from '@/lib/eyra-api';
@@ -69,6 +70,7 @@ export default function FutureSimulator() {
   const [loading, setLoading] = useState(false);
   const [activePath, setActivePath] = useState('growth');
   const [evidenceCount, setEvidenceCount] = useState(0);
+  const [evidenceRecords, setEvidenceRecords] = useState([]);
   const [simulationError, setSimulationError] = useState('');
 
   const simulate = async (q) => {
@@ -77,10 +79,12 @@ export default function FutureSimulator() {
     setQuery(searchQuery);
     setLoading(true);
     setFutures(null);
+    setEvidenceRecords([]);
     setSimulationError('');
 
     try {
       const papers = await searchAllPapers(searchQuery);
+      setEvidenceRecords(papers.slice(0, 10));
       setEvidenceCount(papers.length);
       const evidenceContext = papers.slice(0, 10).map((paper, index) =>
         `[P${index + 1}] "${paper.title}" — ${paper.authors || 'Unknown'} (${paper.year || 'n/a'}) — ${paper.cited_by_count || 0} citations — ${paper.url}`
@@ -133,6 +137,7 @@ Return project_summary, conservative, growth, aggressive, eyra_recommendation, a
       {/* Header */}
       <div className="mb-6">
         <h1 className="eylo-page-heading">Scenario Planner</h1>
+        {futures && <button type="button" onClick={() => downloadResearchReport({ tool: 'scenario-planner', query, analysis: futures, sources: evidenceRecords, caveat: 'Scenario estimates are conditional planning assumptions, not forecasts.' })} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-xs font-semibold text-primary hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">Export research report (JSON)</button>}
       </div>
 
       <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] text-muted-foreground">
