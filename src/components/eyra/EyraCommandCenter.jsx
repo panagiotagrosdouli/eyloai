@@ -879,7 +879,7 @@ The saved record was returned by the server. Check the workspace for the final r
                   <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
                     Explore evidence, compare research options, or turn a question into a practical next step. I'll distinguish retrieved sources from interpretation.
                   </p>
-                  {messages.length === 1 && <EyraQuickCommands onSelect={prompt => void sendMessage(prompt)} disabled={loading} />}
+                  {messages.length === 1 && <EyraQuickCommands activeMode={activeMode} onSelect={prompt => void sendMessage(prompt)} disabled={loading} />}
                 </section>
               ) : null) : (
                 <Message key={msg.timestamp} msg={msg}
