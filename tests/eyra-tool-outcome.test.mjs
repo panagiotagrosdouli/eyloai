@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { formatUnverifiedEyraToolAction } from '../src/lib/eyra-tool-outcome.mjs';
+import { formatUnverifiedEyraToolAction, hasEyraWriteReceipt } from '../src/lib/eyra-tool-outcome.mjs';
 
 test('missing, pending, and unknown status never claim that a write completed', () => {
   for (const action of [null, {}, { tool: 'project.create' }, { tool: 'project.create', status: 'queued' },
@@ -24,4 +24,15 @@ test('malformed or untrusted tool identifiers are not echoed as markup', () => {
   const summary = formatUnverifiedEyraToolAction({ tool: '<script>alert(1)</script>', status: 'pending' });
   assert.match(summary, /Workspace action/);
   assert.doesNotMatch(summary, /script|alert/);
+});
+
+test('writes require a valid returned persisted record ID before claiming verification', () => {
+  const id = '10000000-0000-4000-8000-000000000001';
+  for (const tool of ['project.create', 'library.save_paper']) {
+    assert.equal(hasEyraWriteReceipt({ tool, status: 'succeeded', result: { id } }), true);
+    for (const result of [null, {}, { id: '' }, { id: 'unavailable' }, { id: '<script>' }]) {
+      assert.equal(hasEyraWriteReceipt({ tool, status: 'succeeded', result }), false);
+    }
+    assert.equal(hasEyraWriteReceipt({ tool, status: 'pending', result: { id } }), false);
+  }
 });
