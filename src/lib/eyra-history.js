@@ -1,5 +1,5 @@
 import { getUsableSession, requireSupabase } from '@/lib/supabaseClient';
-import { normalizeEyraConversation } from './eyra-conversation.mjs';
+import { restoreEyraConversationMessages } from './eyra-cloud-history-restore.mjs';
 import { snapshotPayload } from './eyra-snapshot.mjs';
 import { safeEyraCloudHistoryError } from './eyra-cloud-history.mjs';
 
@@ -55,7 +55,7 @@ export async function loadEyraConversation(id) {
   const { client, owner } = await authenticatedClient();
   const { data: thread, error } = await client.from('eyra_conversations').select('id,title,version,updated_date').eq('user_id', owner).eq('id', id).single();
   if (error || !thread) throw new Error('Conversation not found.');
-  const { data: rows, error: messagesError } = await client.from('eyra_messages').select('role,content,sources,created_date').eq('user_id', owner).eq('conversation_id', id).order('sequence_number', { ascending: true }).limit(30);
+  const { data: rows, error: messagesError } = await client.from('eyra_messages').select('role,content,sources,created_date').eq('user_id', owner).eq('conversation_id', id).order('sequence_number', { ascending: false }).limit(30);
   if (messagesError) throw new Error('Conversation messages could not be loaded.');
-  return { ...thread, messages: normalizeEyraConversation(rows.map(row => ({ role: row.role === 'assistant' ? 'eyra' : row.role, content: row.content.text, sources: row.sources, mode: 'saved', timestamp: Date.parse(row.created_date) }))) };
+  return { ...thread, messages: restoreEyraConversationMessages(Array.isArray(rows) ? rows.slice().reverse() : rows) };
 }
