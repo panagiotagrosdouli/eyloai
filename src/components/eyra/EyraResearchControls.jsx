@@ -1,49 +1,66 @@
 import React from 'react';
-import { BookOpen, Brain, Award, Rocket, Users, BarChart3, Target, FileText, AlertTriangle, Map } from 'lucide-react';
+import { BookOpen, Brain, Award, Rocket, Users, BarChart3, Target, FileText, AlertTriangle, Map, ArrowUpRight } from 'lucide-react';
 import { EYRA_MODES, EYRA_QUICK_COMMANDS } from '@/lib/eyra-next-policy.mjs';
 
-export const EYRA_MODE_ICONS = { research: BookOpen, strategy: Brain, funding: Award, startup: Rocket, team: Users, impact: BarChart3 };
-const COMMAND_ICONS = { project: Target, literature: FileText, gaps: AlertTriangle, funding: Award, team: Users, roadmap: Map };
+export const EYRA_MODE_ICONS = {
+  research: BookOpen, strategy: Brain, funding: Award,
+  startup: Rocket, team: Users, impact: BarChart3,
+};
+const COMMAND_ICONS = {
+  project: Target, literature: FileText, gaps: AlertTriangle,
+  funding: Award, team: Users, roadmap: Map,
+};
 
+/** Compact, always-visible research lens, horizontally scrollable without hiding choices. */
 export function EyraModeSelector({ activeMode, onChange, disabled = false }) {
   return (
-    <div className="relative z-10 shrink-0 border-b border-border bg-background px-3 py-2">
-      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-0.5" role="group" aria-label="EYRA research lens">
-        <span className="mr-1 shrink-0 whitespace-nowrap text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Lens</span>
+    <nav aria-label="EYRA research lens" className="shrink-0 border-b border-border/70 bg-background/95 px-4 py-2 sm:px-6">
+      <div role="group" aria-label="EYRA research lens" className="mx-auto flex max-w-4xl items-center gap-1 overflow-x-auto py-1 [scrollbar-width:thin]">
         {EYRA_MODES.map(mode => {
           const Icon = EYRA_MODE_ICONS[mode.id] || BookOpen;
           const active = activeMode === mode.id;
           return (
-            <button key={mode.id} type="button" disabled={disabled} onClick={() => onChange(mode.id)}
-              aria-pressed={active}
-              className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-colors disabled:opacity-60 ${
-                active ? 'border-foreground bg-foreground text-background' : 'border-transparent text-muted-foreground hover:border-border hover:bg-secondary hover:text-foreground'
-              }`}>
-              <Icon size={11} aria-hidden="true" />{mode.label}
+            <button
+              key={mode.id} type="button" disabled={disabled}
+              onClick={() => onChange(mode.id)} aria-pressed={active}
+              title={mode.prompt}
+              className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border px-3.5 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 ${active
+                ? 'border-primary/25 bg-primary/10 text-primary'
+                : 'border-transparent text-muted-foreground hover:border-border hover:bg-secondary hover:text-foreground'}`}
+            >
+              <Icon size={15} aria-hidden="true" />{mode.label}
             </button>
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }
 
+/** Suggested tasks belong to the empty-chat state, not a permanent second toolbar. */
 export function EyraQuickCommands({ onSelect, disabled = false }) {
   return (
-    <div className="relative z-10 shrink-0 border-b border-border bg-secondary/20 px-3 pb-3 pt-3">
-      <p className="mb-2 px-1 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Start with an outcome</p>
-      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+    <section aria-labelledby="eyra-start-outcome" className="mt-7">
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+        <h3 id="eyra-start-outcome" className="text-sm font-semibold text-foreground">Start with a goal</h3>
+        <p className="text-xs text-muted-foreground">Or write your own question below</p>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
         {EYRA_QUICK_COMMANDS.map(command => {
           const Icon = COMMAND_ICONS[command.id] || BookOpen;
           return (
-            <button key={command.id} type="button" disabled={disabled} onClick={() => onSelect(command.prompt)}
-              className="group flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2 text-left transition-colors hover:border-primary/30 disabled:opacity-60">
-              <Icon size={11} aria-hidden="true" className="shrink-0 text-muted-foreground group-hover:text-primary" />
-              <span className="text-[11px] text-muted-foreground transition-colors group-hover:text-foreground">{command.label}</span>
+            <button
+              key={command.id} type="button" disabled={disabled}
+              onClick={() => onSelect(command.prompt)}
+              className="group flex min-h-14 items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-left text-sm font-medium text-foreground transition-colors hover:border-primary/35 hover:bg-secondary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
+            >
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-secondary text-primary"><Icon size={18} aria-hidden="true" /></span>
+              <span className="min-w-0 flex-1">{command.label}</span>
+              <ArrowUpRight size={15} className="shrink-0 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
             </button>
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }
