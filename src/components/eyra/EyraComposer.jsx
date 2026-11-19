@@ -13,7 +13,7 @@ export default function EyraComposer({
 }) {
   const ModeIcon = EYRA_MODE_ICONS[activeMode] || Send;
   return (
-    <div className="rounded-[22px] border border-primary/20 bg-background p-3 shadow-[0_12px_38px_-28px_rgba(31,71,139,0.65)] transition-colors focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10">
+    <div className="rounded-[24px] border border-border/70 bg-background px-3 pb-2.5 pt-3 shadow-[0_18px_60px_-34px_rgba(66,75,156,0.65)] transition-all focus-within:border-primary/40 focus-within:shadow-[0_20px_65px_-35px_rgba(81,87,199,0.7)] focus-within:ring-2 focus-within:ring-primary/10 sm:px-4">
       <label htmlFor="eyra-message-input" className="sr-only">Message EYRA</label>
       <textarea
         id="eyra-message-input"
@@ -23,12 +23,12 @@ export default function EyraComposer({
         onKeyDown={onKeyDown}
         aria-label="Message EYRA"
         maxLength={allowWorkspaceActions ? 1000 : 2000}
-        placeholder={`Ask a question or describe your goal…`}
+        placeholder={`Ask EYRA anything about your research…`}
         rows={2}
-        className="block max-h-44 min-h-16 w-full resize-y bg-transparent px-3 py-2 text-[15px] leading-7 text-foreground placeholder:text-muted-foreground focus:outline-none sm:text-base"
+        className="block max-h-44 min-h-14 w-full resize-y bg-transparent px-2 py-1 text-[15px] leading-7 text-foreground placeholder:text-muted-foreground focus:outline-none sm:text-base"
       />
-      <div className="flex items-center justify-between gap-2 border-t border-border/40 px-1 pt-2.5">
-        <div className="inline-flex min-w-0 items-center gap-2 rounded-full bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+      <div className="flex items-center justify-between gap-2 border-t border-border/35 px-1 pt-2.5">
+        <div className="inline-flex min-w-0 items-center gap-2 rounded-full bg-secondary/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">
           <ModeIcon size={13} aria-hidden="true" />
           <span className="truncate">{modeLabel || 'Research'}</span>
           {allowWorkspaceActions && <span className="font-semibold text-primary">· Tools enabled</span>}
@@ -53,7 +53,7 @@ export default function EyraComposer({
           <button
             type="button" aria-label="Send message" onClick={onSend}
             disabled={!value.trim() || loading}
-            className="grid min-h-11 min-w-11 place-items-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20 transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-40"
+            className="grid min-h-11 min-w-11 place-items-center rounded-[14px] bg-primary text-primary-foreground shadow-md shadow-primary/25 transition-all hover:-translate-y-0.5 hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-40"
           >
             {loading ? <Loader2 size={17} className="animate-spin" /> : <Send size={17} />}
           </button>
