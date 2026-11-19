@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { approveEyraWrite } from '@/lib/eyra-intelligence';
@@ -800,12 +801,19 @@ The saved record was returned by the server. Check the workspace for the final r
   const clearConversation = () => {
     if (historyWriteLockRef.current) return;
     if (!window.confirm('Clear the conversation in this tab? Conversations you explicitly saved remain available.')) return;
-    historyEpochRef.current += 1; setHistoryBusy(false);
+    // Invalidate any in-flight cloud restore before committing the clear.
+    historyEpochRef.current += 1;
     activeRequestRef.current?.abort(); activeRequestRef.current = null;
-    setLoading(false); setLiveDraft(''); setRemoteConversation(null); setRenameTitle(null);
+    // Clear is an explicit destructive *local* user action. Commit the empty
+    // transcript synchronously so an in-flight history load cannot leave the
+    // old answer visible while React schedules unrelated async updates.
+    flushSync(() => {
+      setHistoryBusy(false);
+      setLoading(false); setLiveDraft(''); setRemoteConversation(null); setRenameTitle(null);
+      setMessages([{ ...createWelcomeMessage(userName), mode: activeMode }]);
+      setInput('');
+    });
     window.speechSynthesis?.cancel();
-    setMessages([{ ...createWelcomeMessage(userName), mode: activeMode }]);
-    setInput('');
   };
 
   const handleKeyDown = (e) => {
