@@ -14,16 +14,16 @@ test('EYRA is a full-height mobile-safe conversation-first dialog', () => {
   assert.match(center, /h-\[100dvh\]/);
   assert.match(center, /min-h-0 flex-1 overflow-y-auto/);
   assert.match(center, /max-w-3xl/);
-  assert.match(center, /min\(1020px,calc\(100vw-2rem\)\)/);
+  assert.match(center, /min\(1060px,calc\(100vw-2rem\)\)/);
   assert.match(center, /safe-area-inset-bottom/);
-  assert.match(center, /sm:hidden.*EyraOrb className="h-10 w-10"/);
-  assert.match(center, /hidden sm:block.*BrandLogo brand="eyra"/);
+  assert.match(center, /sm:hidden.*EyraOrb className="h-10 w-10 shadow-sm/);
+  assert.match(center, /hidden rounded-2xl.*sm:block.*BrandLogo brand="eyra"/);
 });
 
 test('outcomes are in the empty conversation rather than permanent navigation', () => {
   assert.match(center, /msg\.welcome \? \(messages\.length === 1/);
   assert.match(center, /<EyraQuickCommands activeMode=\{activeMode\} onSelect=\{prompt => void sendMessage\(prompt\)\}/);
-  assert.match(mode, /Start with a goal/);
+  assert.match(mode, /Try a starting point/);
   assert.match(mode, /suggestions\.map/);
   assert.match(mode, /aria-pressed=\{active\}/);
   assert.match(mode, /role="group" aria-label="EYRA research lens"/);
