@@ -11,7 +11,7 @@ import { checkEyraCitationIds } from '@/lib/eyra-citation-ids.mjs';
 import { buildEyraCommandEvidence, buildEyraCommandPrompt } from '@/lib/eyra-command-evidence.mjs';
 import { buildEvidenceOnlyFallback } from '@/lib/eyra-evidence-fallback.mjs';
 import {
-  X, Volume2, VolumeX, Trash2, Database
+  X, Volume2, VolumeX, Trash2, Database, History, FileDown, LockKeyhole
 } from 'lucide-react';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { TypingIndicator, Message } from '@/components/eyra/EyraConversationTimeline';
@@ -822,7 +822,7 @@ The saved record was returned by the server. Check the workspace for the final r
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:justify-end sm:p-4"
+        className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-4"
         style={{ background: 'rgba(3, 6, 10, 0.62)', backdropFilter: 'blur(4px)' }}
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
@@ -835,109 +835,139 @@ The saved record was returned by the server. Check the workspace for the final r
           role="dialog"
           aria-modal="true"
           aria-labelledby="eyra-dialog-title"
-          className="relative flex h-[92vh] max-h-screen w-full flex-col overflow-hidden rounded-t-2xl border border-border bg-background shadow-2xl shadow-black/40 sm:h-[780px] sm:w-[720px] sm:max-w-[calc(100vw-2rem)] sm:rounded-xl"
+          className="relative flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden rounded-none border border-border bg-background shadow-2xl sm:h-[min(860px,calc(100dvh-2rem))] sm:w-[min(960px,calc(100vw-2rem))] sm:rounded-3xl"
         >
-          {/* Header */}
-          <div className="relative z-10 flex shrink-0 items-center gap-3 border-b border-border bg-card px-4 py-3.5">
-            <BrandLogo brand="eyra" size="compact" />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p id="eyra-dialog-title" className="sr-only">EYRA research assistant</p>
-                <span className="rounded-md border border-border bg-background px-2 py-0.5 text-[8px] font-medium uppercase tracking-wider text-muted-foreground">Research assistant</span>
-              </div>
-              <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                <Database size={10} className={contextStatus === 'ready' ? 'text-primary' : 'text-muted-foreground'} />
-                <span>{contextStatus === 'ready' ? 'Workspace context ready · sources attached when retrieved' : contextStatus === 'loading' ? 'Preparing workspace context…' : 'Sources attached when retrieved'}</span>
+          {/* Calm conversation header: history and tools live below, not above the transcript. */}
+          <div className="relative z-10 flex shrink-0 items-center gap-3 border-b border-border/70 bg-card/70 px-4 py-3 sm:px-6">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <BrandLogo brand="eyra" size="compact" />
+              <div className="min-w-0">
+                <h2 id="eyra-dialog-title" className="text-sm font-semibold tracking-tight text-foreground">Your research copilot</h2>
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                  {contextStatus === 'ready' ? 'Workspace context available' : contextStatus === 'loading' ? 'Preparing workspace context…' : 'Sources are linked when retrieved'}
+                </p>
               </div>
             </div>
             <button onClick={() => setVoiceEnabled(!voiceEnabled)}
-              type="button"
-              aria-label={voiceEnabled ? 'Disable EYRA voice' : 'Enable EYRA voice'}
-              className={`p-2 rounded-lg transition-colors ${voiceEnabled ? 'bg-primary/15 text-primary' : 'hover:bg-secondary text-muted-foreground'}`}>
-              {voiceEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+              type="button" aria-label={voiceEnabled ? 'Disable EYRA voice' : 'Enable EYRA voice'}
+              className="grid min-h-11 min-w-11 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+              {voiceEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
             </button>
-            <button type="button" onClick={clearConversation} aria-label="Clear EYRA conversation" className="p-2 rounded-lg hover:bg-secondary text-muted-foreground transition-colors">
-              <Trash2 size={14} />
+            <button type="button" onClick={clearConversation} aria-label="Clear EYRA conversation"
+              className="grid min-h-11 min-w-11 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+              <Trash2 size={18} />
             </button>
-            <button type="button" onClick={onClose} aria-label="Close Ask EYRA" className="p-2 rounded-lg hover:bg-secondary text-muted-foreground transition-colors">
-              <X size={14} />
+            <button type="button" onClick={onClose} aria-label="Close Ask EYRA"
+              className="grid min-h-11 min-w-11 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+              <X size={19} />
             </button>
           </div>
 
           <EyraModeSelector activeMode={activeMode} onChange={setActiveMode} disabled={loading} />
-          {messages.length <= 1 && <EyraQuickCommands onSelect={prompt => void sendMessage(prompt)} disabled={loading} />}
 
           {/* Messages */}
-          <div className="relative z-10 flex-1 overflow-y-auto px-4 py-3 space-y-4">
-            {messages.map((msg) => (
-              <Message
-                key={msg.timestamp}
-                msg={msg}
-                onSave={saveInsight}
-                onCopy={copyInsight}
-                saved={savedMessageIds.has(msg.timestamp)}
-                saving={savingMessageId === msg.timestamp}
-                copied={copiedMessageId === msg.timestamp}
-              />
-            ))}
+          <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-6 sm:px-8 sm:py-8">
+            <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-5">
+              {messages.map(msg => msg.welcome ? (
+                <section key={msg.timestamp} aria-label="Start a conversation with EYRA" className="py-2 sm:py-6">
+                  <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-xl font-bold text-primary" aria-hidden="true">✦</div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">EYRA · Research assistant</p>
+                  <h3 className="mt-3 max-w-2xl text-2xl font-semibold leading-snug tracking-tight text-foreground sm:text-3xl">
+                    What would you like to explore?
+                  </h3>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+                    Explore evidence, compare research options, or turn a question into a practical next step. I'll distinguish retrieved sources from interpretation.
+                  </p>
+                  {messages.length === 1 && <EyraQuickCommands onSelect={prompt => void sendMessage(prompt)} disabled={loading} />}
+                </section>
+              ) : (
+                <Message key={msg.timestamp} msg={msg}
+                  onSave={saveInsight} onCopy={copyInsight}
+                  saved={savedMessageIds.has(msg.timestamp)}
+                  saving={savingMessageId === msg.timestamp}
+                  copied={copiedMessageId === msg.timestamp}
+                />
+              ))}
             {loading && <TypingIndicator stage={loadingStage} />}
             {loading && liveDraft && <section aria-label="EYRA draft response" className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm"><p className="mb-2 text-xs text-muted-foreground">Draft — sources are checked when the response finishes.</p><p className="whitespace-pre-wrap">{liveDraft}</p></section>}
-            <div ref={messagesEndRef} />
+              <div ref={messagesEndRef} />
+            </div>
           </div>
 
-          {/* Input */}
-          <div className="relative z-10 shrink-0 border-t border-border bg-card px-4 py-3">
-            {cloudHistoryStatus !== 'available' && (
-              <section role="status" aria-label="Cloud conversation history" className="mb-3 rounded-lg border border-border bg-secondary/30 p-3 text-xs leading-5 text-muted-foreground">
-                <p>{cloudHistoryStatus === 'checking'
-                  ? 'Checking whether cloud conversation history is available…'
-                  : cloudHistoryStatus === 'unavailable'
-                    ? 'Cloud conversation saving is not activated here. You can keep chatting and use Export conversation to keep a file.'
-                    : 'Cloud conversation history could not be checked. No saved conversations were assumed; use Export conversation to keep a file.'}</p>
-                {(cloudHistoryStatus === 'error' || cloudHistoryStatus === 'unavailable') && (
-                  <button type="button" className="mt-2 min-h-11 rounded-md px-2 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                    onClick={() => setCloudHistoryCheck(value => value + 1)}>
-                    Re-check cloud history
-                  </button>
-                )}
-              </section>
-            )}
-            <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-              <button type="button" onClick={() => void saveConversation()} disabled={!cloudHistoryReady || loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
-              <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={!cloudHistoryReady || loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
-              <button type="button" onClick={exportConversation} disabled={loading || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Export conversation</button>
-              <button type="button" onClick={() => { if (showAgentRuns) { setShowAgentRuns(false); setSelectedAgentRun(null); } else void refreshAgentRuns(); }}
-                disabled={agentRunsBusy} aria-expanded={showAgentRuns}
-                className="min-h-9 rounded-lg border border-border px-2">
-                {agentRunsBusy ? 'Loading runs…' : showAgentRuns ? 'Hide agent runs' : 'Agent runs'}
-              </button>
-              {remoteConversation && <button type="button" onClick={() => setRenameTitle(remoteConversation.title || '')} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Rename saved conversation</button>}
-              {remoteConversation && <button type="button" onClick={() => void deleteSnapshot()} disabled={loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Delete saved snapshot</button>}
-              <label className="flex items-center gap-2"><input type="checkbox" checked={allowWorkspaceActions} disabled={loading} onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); setWritePreview(null); }} />Allow authorized workspace and research tools for this request</label>
-            </div>
-            <EyraAgentRunHistory
-              open={showAgentRuns} runs={agentRuns} selected={selectedAgentRun}
-              busy={agentRunsBusy} error={agentRunsError}
-              onRefresh={() => void refreshAgentRuns()}
-              onInspect={id => void inspectAgentRun(id)}
-              onCancel={id => void cancelAgentRun(id)}
-              onReviewStale={id => void markAgentRunForReview(id)}
-              onDelete={id => void removeAgentRun(id)}
-            />
-            {renameTitle !== null && remoteConversation && (
-              <form className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-border p-2"
-                onSubmit={event => { event.preventDefault(); void saveRenamedConversation(); }}>
-                <label className="text-xs" htmlFor="eyra-conversation-title">Conversation title</label>
-                <input id="eyra-conversation-title" type="text" maxLength={180}
-                  value={renameTitle} onChange={event => setRenameTitle(event.target.value)}
-                  disabled={historyBusy} required
-                  className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm" />
-                <button type="submit" disabled={historyBusy || !renameTitle.trim()}
-                  className="rounded-lg bg-primary px-3 py-2 text-xs text-primary-foreground">Save title</button>
-                <button type="button" disabled={historyBusy} onClick={() => setRenameTitle(null)}
-                  className="rounded-lg border border-border px-3 py-2 text-xs">Cancel rename</button>
-              </form>
-            )}
+          {/* Composer stays visible; optional controls are accessible on demand. */}
+          <div className="relative z-10 shrink-0 border-t border-border bg-card/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-7 sm:py-4">
+            <div className="mx-auto w-full max-w-3xl">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <details className="group min-w-0 max-w-full flex-1 rounded-xl border border-border bg-background/70 text-xs text-muted-foreground">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 font-medium text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden">
+                    <History size={16} aria-hidden="true" />
+                    <span className="truncate">History &amp; tools</span>
+                    <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
+                      {cloudHistoryReady ? 'Cloud available' : cloudHistoryStatus === 'checking' ? 'Checking cloud…' : 'Local export available'}
+                    </span>
+                  </summary>
+                  <div className="max-h-[min(45dvh,340px)] space-y-3 overflow-y-auto border-t border-border p-3">
+                    {cloudHistoryStatus !== 'available' && (
+                      <section role="status" aria-label="Cloud conversation history" className="rounded-xl border border-border bg-secondary/30 p-3 text-xs leading-5 text-muted-foreground">
+                        <p>{cloudHistoryStatus === 'checking'
+                          ? 'Checking whether cloud conversation history is available…'
+                          : cloudHistoryStatus === 'unavailable'
+                            ? 'Cloud conversation saving is not activated here. You can keep chatting and use Export conversation to keep a file.'
+                            : 'Cloud conversation history could not be checked. No saved conversations were assumed; use Export conversation to keep a file.'}</p>
+                        {(cloudHistoryStatus === 'error' || cloudHistoryStatus === 'unavailable') && (
+                          <button type="button" className="mt-2 min-h-11 rounded-md px-2 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                            onClick={() => setCloudHistoryCheck(value => value + 1)}>
+                            Re-check cloud history
+                          </button>
+                        )}
+                      </section>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" onClick={() => void saveConversation()} disabled={!cloudHistoryReady || loading || savingConversation || historyBusy} className="min-h-11 rounded-xl border border-border px-3 disabled:cursor-not-allowed disabled:opacity-40">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
+                      <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={!cloudHistoryReady || loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-11 min-w-0 max-w-full rounded-xl border border-border bg-background px-3 disabled:opacity-40"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
+                      <button type="button" onClick={() => { if (showAgentRuns) { setShowAgentRuns(false); setSelectedAgentRun(null); } else void refreshAgentRuns(); }}
+                        disabled={agentRunsBusy} aria-expanded={showAgentRuns} className="min-h-11 rounded-xl border border-border px-3">
+                        {agentRunsBusy ? 'Loading runs…' : showAgentRuns ? 'Hide agent runs' : 'Agent runs'}
+                      </button>
+                      {remoteConversation && <button type="button" onClick={() => setRenameTitle(remoteConversation.title || '')} disabled={loading || savingConversation || historyBusy} className="min-h-11 rounded-xl border border-border px-3">Rename saved conversation</button>}
+                      {remoteConversation && <button type="button" onClick={() => void deleteSnapshot()} disabled={loading || savingConversation || historyBusy} className="min-h-11 rounded-xl border border-border px-3">Delete saved snapshot</button>}
+                    </div>
+                    <label className="flex min-h-11 items-center gap-3 rounded-xl border border-border px-3 py-2 text-xs leading-5 text-foreground">
+                      <input type="checkbox" checked={allowWorkspaceActions} disabled={loading}
+                        onChange={event => { setAllowWorkspaceActions(event.target.checked); setPendingWriteReview(null); setWritePreview(null); }}
+                        className="h-4 w-4 shrink-0 accent-primary" />
+                      <span><span className="font-semibold">Allow workspace tools for this request</span><span className="block text-muted-foreground">Optional · private workspace actions require authorization and review.</span></span>
+                    </label>
+                    <EyraAgentRunHistory
+                      open={showAgentRuns} runs={agentRuns} selected={selectedAgentRun}
+                      busy={agentRunsBusy} error={agentRunsError}
+                      onRefresh={() => void refreshAgentRuns()}
+                      onInspect={id => void inspectAgentRun(id)}
+                      onCancel={id => void cancelAgentRun(id)}
+                      onReviewStale={id => void markAgentRunForReview(id)}
+                      onDelete={id => void removeAgentRun(id)}
+                    />
+                    {renameTitle !== null && remoteConversation && (
+                      <form className="flex flex-wrap items-center gap-2 rounded-xl border border-border p-3"
+                        onSubmit={event => { event.preventDefault(); void saveRenamedConversation(); }}>
+                        <label className="text-xs" htmlFor="eyra-conversation-title">Conversation title</label>
+                        <input id="eyra-conversation-title" type="text" maxLength={180}
+                          value={renameTitle} onChange={event => setRenameTitle(event.target.value)}
+                          disabled={historyBusy} required
+                          className="min-h-11 min-w-0 flex-1 rounded-xl border border-border bg-background px-3 text-sm" />
+                        <button type="submit" disabled={historyBusy || !renameTitle.trim()}
+                          className="min-h-11 rounded-xl bg-primary px-4 text-xs text-primary-foreground">Save title</button>
+                        <button type="button" disabled={historyBusy} onClick={() => setRenameTitle(null)}
+                          className="min-h-11 rounded-xl border border-border px-3 text-xs">Cancel rename</button>
+                      </form>
+                    )}
+                  </div>
+                </details>
+                <button type="button" onClick={exportConversation} disabled={loading || historyBusy}
+                  className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40">
+                  <FileDown size={16} aria-hidden="true" /> Export conversation
+                </button>
+              </div>
             <EyraWriteIntentReview
               review={pendingWriteReview}
               preview={writePreview?.ownerId === user?.id
@@ -965,9 +995,10 @@ The saved record was returned by the server. Check the workspace for the final r
             {actionError && (
               <p role="alert" className="mt-2 text-center text-[10px] text-amber-300">{actionError}</p>
             )}
-            <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">
-              Responses may use workspace context and retrieved records · Enter to send · Shift+Enter for a new line
+            <p className="mt-2 text-center text-[11px] leading-5 text-muted-foreground">
+              Check original sources before relying on research claims · Enter to send · Shift+Enter for a new line
             </p>
+            </div>
           </div>
         </motion.div>
       </motion.div>
