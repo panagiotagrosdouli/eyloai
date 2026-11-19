@@ -16,3 +16,18 @@ test('EYRA provider instructions preserve research integrity and tool write boun
   }
   assert.ok(EYRA_INSTRUCTIONS.includes('Match the user\'s language.'));
 });
+
+
+test('EYRA distinguishes metadata from full-text evidence and avoids unsupported scientific claims', () => {
+  for (const requirement of [
+    'directly supported by retrieved text',
+    'unverified hypothesis',
+    'none establishes that you have read the full paper',
+    'sources disagree',
+    'actual supplied citation ID',
+    'citation identifier validation',
+    'never invent sample sizes',
+  ]) {
+    assert.ok(EYRA_INSTRUCTIONS.includes(requirement), `Missing scientific safeguard: ${requirement}`);
+  }
+});
