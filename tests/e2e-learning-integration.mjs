@@ -135,6 +135,17 @@ try {
     const expectedData = containment?.startsWith('cs.') ? JSON.parse(containment.slice(3)) : null;
     const matching = row => (expectedData === null || containsJson(row.data, expectedData)) && filters.every(([key, value]) => { const current = key.startsWith('data->>') ? row.data?.[key.slice(7)] : row[key]; return value === 'is.null' ? current == null : String(current) === value.slice(3); });
     let rows = tables[table].filter(matching);
+    // Honor the exact PostgREST ordering used by cloud conversation history.
+    // Without this the fixture returns insertion order even when production
+    // requests the latest messages first, masking order-related regressions.
+    const requestedOrder = url.searchParams.get('order') || '';
+    if (request.method() === 'GET' && table === 'eyra_messages'
+      && /^sequence_number\.(?:asc|desc)$/.test(requestedOrder)) {
+      const descending = requestedOrder.endsWith('.desc');
+      rows = [...rows].sort((a, b) => descending
+        ? b.sequence_number - a.sequence_number
+        : a.sequence_number - b.sequence_number);
+    }
     if (request.method() !== 'GET') {
       if (request.method() === 'POST') {
         const payload = request.postDataJSON(); assert.equal(payload.user_id, user.id);
