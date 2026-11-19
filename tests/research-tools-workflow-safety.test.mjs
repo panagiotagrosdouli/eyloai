@@ -49,6 +49,10 @@ test('research report strips unsafe or credential-bearing citation links', () =>
 
 test('research report fails closed for absent result and oversized data', () => {
   assert.throws(() => buildResearchReport({ tool: 'research', query: 'Q', analysis: null }), /Completed analysis/);
-  assert.throws(() => buildResearchReport({ tool: 'research', query: 'Q', analysis: {}, sources: Array.from({ length: 41 }, () => ({})) }), /Too many source records/);
+  const large = JSON.parse(buildResearchReport({ tool: 'research', query: 'Q', analysis: {}, sources: Array.from({ length: 41 }, (_, i) => ({ source_id: 'P' + i })) }));
+  assert.deepEqual(large.source_coverage, { retrieved_total: 41, included: 40, omitted: 1, truncated: true });
+  assert.equal(large.sources.length, 40);
+  assert.equal(large.sources[39].reference, 'P39');
+  assert.throws(() => buildResearchReport({ tool: 'research', query: 'Q', analysis: {}, sources: {} }), /Source records must be an array/);
   assert.throws(() => buildResearchReport({ tool: 'research', query: 'Q', analysis: { text: 'x'.repeat(1_100_000) } }), /exceeds 1 MB/);
 });
