@@ -14,7 +14,7 @@ function cleanSource(record, index) {
   if (typeof candidateUrl === 'string') {
     try {
       const parsed = new URL(candidateUrl);
-      if (parsed.protocol === 'https:' && !parsed.username && !parsed.password && !/[\\u0000-\\u001f\\u007f]/.test(candidateUrl)) url = parsed.href;
+      if (parsed.protocol === 'https:' && !parsed.username && !parsed.password && !Array.from(candidateUrl).some(ch => ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127)) url = parsed.href;
     } catch { /* Do not export unsafe external links. */ }
   }
   return {
