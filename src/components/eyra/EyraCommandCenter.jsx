@@ -822,7 +822,7 @@ The saved record was returned by the server. Check the workspace for the final r
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:justify-end sm:p-4"
+        className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-5"
         style={{ background: 'rgba(3, 6, 10, 0.62)', backdropFilter: 'blur(4px)' }}
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
@@ -835,17 +835,17 @@ The saved record was returned by the server. Check the workspace for the final r
           role="dialog"
           aria-modal="true"
           aria-labelledby="eyra-dialog-title"
-          className="relative flex h-[92vh] max-h-screen w-full flex-col overflow-hidden rounded-t-2xl border border-border bg-background shadow-2xl shadow-black/40 sm:h-[780px] sm:w-[720px] sm:max-w-[calc(100vw-2rem)] sm:rounded-xl"
+          className="relative flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden border border-border bg-background shadow-2xl shadow-black/30 sm:h-[min(90dvh,900px)] sm:w-[min(1000px,calc(100vw-2.5rem))] sm:rounded-[28px]"
         >
           {/* Header */}
-          <div className="relative z-10 flex shrink-0 items-center gap-3 border-b border-border bg-card px-4 py-3.5">
+          <div className="relative z-10 flex shrink-0 items-center gap-3 border-b border-border/70 bg-card/90 px-4 py-4 sm:px-6">
             <BrandLogo brand="eyra" size="compact" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <p id="eyra-dialog-title" className="sr-only">EYRA research assistant</p>
-                <span className="rounded-md border border-border bg-background px-2 py-0.5 text-[8px] font-medium uppercase tracking-wider text-muted-foreground">Research assistant</span>
+                <span className="rounded-full border border-primary/15 bg-primary/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-primary">Research assistant</span>
               </div>
-              <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+              <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Database size={10} className={contextStatus === 'ready' ? 'text-primary' : 'text-muted-foreground'} />
                 <span>{contextStatus === 'ready' ? 'Workspace context ready · sources attached when retrieved' : contextStatus === 'loading' ? 'Preparing workspace context…' : 'Sources attached when retrieved'}</span>
               </div>
@@ -853,10 +853,10 @@ The saved record was returned by the server. Check the workspace for the final r
             <button onClick={() => setVoiceEnabled(!voiceEnabled)}
               type="button"
               aria-label={voiceEnabled ? 'Disable EYRA voice' : 'Enable EYRA voice'}
-              className={`p-2 rounded-lg transition-colors ${voiceEnabled ? 'bg-primary/15 text-primary' : 'hover:bg-secondary text-muted-foreground'}`}>
+              className={`min-h-10 min-w-10 rounded-xl p-2 transition-colors ${voiceEnabled ? 'bg-primary/15 text-primary' : 'hover:bg-secondary text-muted-foreground'}`}>
               {voiceEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
             </button>
-            <button type="button" onClick={clearConversation} aria-label="Clear EYRA conversation" className="p-2 rounded-lg hover:bg-secondary text-muted-foreground transition-colors">
+            <button type="button" onClick={clearConversation} aria-label="Clear EYRA conversation" className="min-h-10 min-w-10 rounded-xl p-2 text-muted-foreground transition-colors hover:bg-secondary">
               <Trash2 size={14} />
             </button>
             <button type="button" onClick={onClose} aria-label="Close Ask EYRA" className="p-2 rounded-lg hover:bg-secondary text-muted-foreground transition-colors">
@@ -865,10 +865,8 @@ The saved record was returned by the server. Check the workspace for the final r
           </div>
 
           <EyraModeSelector activeMode={activeMode} onChange={setActiveMode} disabled={loading} />
-          {messages.length <= 1 && <EyraQuickCommands onSelect={prompt => void sendMessage(prompt)} disabled={loading} />}
-
           {/* Messages */}
-          <div className="relative z-10 flex-1 overflow-y-auto px-4 py-3 space-y-4">
+          <div className="relative z-10 min-h-0 flex-1 space-y-5 overflow-y-auto bg-background px-4 py-6 sm:px-8" aria-label="EYRA conversation">
             {messages.map((msg) => (
               <Message
                 key={msg.timestamp}
@@ -880,29 +878,39 @@ The saved record was returned by the server. Check the workspace for the final r
                 copied={copiedMessageId === msg.timestamp}
               />
             ))}
+            {messages.length <= 1 && !loading && (
+              <div className="mx-auto mt-6 w-full max-w-3xl">
+                <EyraQuickCommands onSelect={prompt => void sendMessage(prompt)} disabled={loading} />
+              </div>
+            )}
             {loading && <TypingIndicator stage={loadingStage} />}
             {loading && liveDraft && <section aria-label="EYRA draft response" className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm"><p className="mb-2 text-xs text-muted-foreground">Draft — sources are checked when the response finishes.</p><p className="whitespace-pre-wrap">{liveDraft}</p></section>}
             <div ref={messagesEndRef} />
           </div>
 
           {/* Input */}
-          <div className="relative z-10 shrink-0 border-t border-border bg-card px-4 py-3">
+          <div className="relative z-10 shrink-0 border-t border-border/80 bg-card/95 px-4 py-3 sm:px-8 sm:py-4">
             {cloudHistoryStatus !== 'available' && (
-              <section role="status" aria-label="Cloud conversation history" className="mb-3 rounded-lg border border-border bg-secondary/30 p-3 text-xs leading-5 text-muted-foreground">
+              <section role="status" aria-label="Cloud conversation history" className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/70 bg-secondary/30 px-3 py-2 text-xs leading-5 text-muted-foreground">
                 <p>{cloudHistoryStatus === 'checking'
                   ? 'Checking whether cloud conversation history is available…'
                   : cloudHistoryStatus === 'unavailable'
                     ? 'Cloud conversation saving is not activated here. You can keep chatting and use Export conversation to keep a file.'
                     : 'Cloud conversation history could not be checked. No saved conversations were assumed; use Export conversation to keep a file.'}</p>
                 {(cloudHistoryStatus === 'error' || cloudHistoryStatus === 'unavailable') && (
-                  <button type="button" className="mt-2 min-h-11 rounded-md px-2 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  <button type="button" className="min-h-9 shrink-0 rounded-lg px-2 font-semibold text-primary underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
                     onClick={() => setCloudHistoryCheck(value => value + 1)}>
                     Re-check cloud history
                   </button>
                 )}
               </section>
             )}
-            <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
+            <details className="group mb-3 rounded-xl border border-border/70 bg-background/70 px-3 py-2 text-xs" aria-label="Conversation and agent tools">
+              <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-3 font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                <span>History &amp; agent tools</span>
+                <span className="text-xs font-normal text-muted-foreground">Save · Export · Runs</span>
+              </summary>
+              <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border/70 pt-3">
               <button type="button" onClick={() => void saveConversation()} disabled={!cloudHistoryReady || loading || savingConversation || historyBusy} className="min-h-9 rounded-lg border border-border px-2">{savingConversation ? 'Saving…' : 'Save conversation snapshot'}</button>
               <select aria-label="Saved EYRA conversation" value={remoteConversation?.id || ''} disabled={!cloudHistoryReady || loading || savingConversation || historyBusy} onChange={event => void restoreConversation(event.target.value)} className="min-h-9 min-w-0 max-w-full rounded-lg border border-border bg-background px-2"><option value="">Open a saved conversation</option>{savedConversations.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select>
               <button type="button" onClick={exportConversation} disabled={loading || historyBusy} className="min-h-9 rounded-lg border border-border px-2">Export conversation</button>
@@ -938,6 +946,8 @@ The saved record was returned by the server. Check the workspace for the final r
                   className="rounded-lg border border-border px-3 py-2 text-xs">Cancel rename</button>
               </form>
             )}
+
+            </details>
             <EyraWriteIntentReview
               review={pendingWriteReview}
               preview={writePreview?.ownerId === user?.id
@@ -965,7 +975,7 @@ The saved record was returned by the server. Check the workspace for the final r
             {actionError && (
               <p role="alert" className="mt-2 text-center text-[10px] text-amber-300">{actionError}</p>
             )}
-            <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">
+            <p className="mt-2 text-center text-[11px] leading-5 text-muted-foreground">
               Responses may use workspace context and retrieved records · Enter to send · Shift+Enter for a new line
             </p>
           </div>
