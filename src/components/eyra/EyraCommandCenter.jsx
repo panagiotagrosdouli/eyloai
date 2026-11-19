@@ -835,15 +835,15 @@ The saved record was returned by the server. Check the workspace for the final r
           role="dialog"
           aria-modal="true"
           aria-labelledby="eyra-dialog-title"
-          className="relative flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden rounded-none border border-border bg-background shadow-2xl sm:h-[min(860px,calc(100dvh-2rem))] sm:w-[min(960px,calc(100vw-2rem))] sm:rounded-3xl"
+          className="relative flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden rounded-none border border-border bg-background shadow-2xl sm:h-[min(880px,calc(100dvh-2rem))] sm:w-[min(1020px,calc(100vw-2rem))] sm:rounded-[28px]"
         >
           {/* Calm conversation header: history and tools live below, not above the transcript. */}
-          <div className="relative z-10 flex shrink-0 items-center gap-3 border-b border-border/70 bg-card/70 px-4 py-3 sm:px-6">
+          <div className="relative z-10 flex shrink-0 items-center gap-3 border-b border-border/60 bg-card/90 px-4 py-3.5 sm:px-7">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <span className="hidden sm:block"><BrandLogo brand="eyra" size="compact" /></span>
               <span className="sm:hidden"><EyraOrb className="h-10 w-10" /></span>
               <div className="min-w-0">
-                <h2 id="eyra-dialog-title" className="text-sm font-semibold tracking-tight text-foreground">Your research copilot</h2>
+                <h2 id="eyra-dialog-title" className="text-base font-bold tracking-tight text-foreground">Your research copilot</h2>
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">
                   {contextStatus === 'ready' ? 'Workspace context available' : contextStatus === 'loading' ? 'Preparing workspace context…' : 'Sources are linked when retrieved'}
                 </p>
@@ -867,13 +867,13 @@ The saved record was returned by the server. Check the workspace for the final r
           <EyraModeSelector activeMode={activeMode} onChange={setActiveMode} disabled={loading} />
 
           {/* Messages */}
-          <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-6 sm:px-8 sm:py-8">
+          <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain bg-gradient-to-b from-background via-background to-secondary/20 px-4 py-6 sm:px-8 sm:py-8">
             <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-5">
               {messages.map(msg => msg.welcome ? (messages.length === 1 ? (
-                <section key={msg.timestamp} aria-label="Start a conversation with EYRA" className="py-2 sm:py-6">
-                  <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-xl font-bold text-primary" aria-hidden="true">✦</div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">EYRA · Research assistant</p>
-                  <h3 className="mt-3 max-w-2xl text-2xl font-semibold leading-snug tracking-tight text-foreground sm:text-3xl">
+                <section key={msg.timestamp} aria-label="Start a conversation with EYRA" className="rounded-[24px] border border-border/50 bg-card/65 p-5 shadow-sm sm:my-3 sm:p-8">
+                  <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card to-cyan-400/10 text-2xl font-bold text-primary shadow-sm" aria-hidden="true">✦</div>
+                  <p className="text-xs font-bold uppercase tracking-[0.15em] text-primary">EYRA · Research assistant</p>
+                  <h3 className="mt-3 max-w-2xl text-2xl font-bold leading-snug tracking-tight text-foreground sm:text-3xl">
                     What would you like to explore?
                   </h3>
                   <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -896,10 +896,10 @@ The saved record was returned by the server. Check the workspace for the final r
           </div>
 
           {/* Composer stays visible; optional controls are accessible on demand. */}
-          <div className="relative z-10 shrink-0 border-t border-border bg-card/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-7 sm:py-4">
+          <div className="relative z-10 shrink-0 border-t border-border/60 bg-card/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-7 sm:py-4">
             <div className="mx-auto w-full max-w-3xl">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <details className="group min-w-0 max-w-full flex-1 rounded-xl border border-border bg-background/70 text-xs text-muted-foreground">
+                <details className="group min-w-0 max-w-full flex-1 rounded-xl border border-border/60 bg-background/75 text-xs text-muted-foreground">
                   <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 font-medium text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden">
                     <History size={16} aria-hidden="true" />
                     <span className="truncate">History &amp; tools</span>
@@ -907,7 +907,7 @@ The saved record was returned by the server. Check the workspace for the final r
                       {cloudHistoryReady ? 'Cloud available' : cloudHistoryStatus === 'checking' ? 'Checking cloud…' : 'Local export available'}
                     </span>
                   </summary>
-                  <div className="max-h-[min(45dvh,340px)] space-y-3 overflow-y-auto border-t border-border p-3">
+                  <div className="max-h-[min(38dvh,290px)] space-y-3 overflow-y-auto border-t border-border p-3">
                     {cloudHistoryStatus !== 'available' && (
                       <section role="status" aria-label="Cloud conversation history" className="rounded-xl border border-border bg-secondary/30 p-3 text-xs leading-5 text-muted-foreground">
                         <p>{cloudHistoryStatus === 'checking'
@@ -965,7 +965,7 @@ The saved record was returned by the server. Check the workspace for the final r
                   </div>
                 </details>
                 <button type="button" onClick={exportConversation} disabled={loading || historyBusy}
-                  className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40">
+                  className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 text-xs font-semibold text-foreground hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40">
                   <FileDown size={16} aria-hidden="true" /> Export conversation
                 </button>
               </div>

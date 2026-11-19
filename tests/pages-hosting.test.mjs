@@ -17,7 +17,10 @@ test('GitHub Pages builds from Vite output and verifies deployed release', () =>
 test('Client router and brand assets respect /eyloai/ project hosting', () => {
   assert.match(read('vite.config.js'), /base: process\.env\.EYLO_GITHUB_PAGES/);
   assert.match(read('src/App.jsx'), /Router basename=/);
-  assert.match(read('src/components/brand/BrandLogo.jsx'), /import\.meta\.env\.BASE_URL/);
+  const brand = read('src/components/brand/BrandLogo.jsx');
+  assert.match(brand, /<svg /);
+  assert.doesNotMatch(brand, /(?:src|href)=['\"]\/brand\//);
+  // Inline brand SVGs have no asset path to misresolve on /eyloai/.
   assert.match(read('src/pages/Landing.jsx'), /import\.meta\.env\.BASE_URL/);
 });
 

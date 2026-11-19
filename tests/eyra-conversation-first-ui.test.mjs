@@ -14,7 +14,7 @@ test('EYRA is a full-height mobile-safe conversation-first dialog', () => {
   assert.match(center, /h-\[100dvh\]/);
   assert.match(center, /min-h-0 flex-1 overflow-y-auto/);
   assert.match(center, /max-w-3xl/);
-  assert.match(center, /min\(960px,calc\(100vw-2rem\)\)/);
+  assert.match(center, /min\(1020px,calc\(100vw-2rem\)\)/);
   assert.match(center, /safe-area-inset-bottom/);
   assert.match(center, /sm:hidden.*EyraOrb className="h-10 w-10"/);
   assert.match(center, /hidden sm:block.*BrandLogo brand="eyra"/);

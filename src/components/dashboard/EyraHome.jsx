@@ -66,7 +66,13 @@ export default function EyraHome({ onSearch }) {
   const greeting = getLocalGreeting(displayName);
   const eyraReady = !capabilitiesLoading && Boolean(capabilities?.ai);
 
-  const recentSearches = (profile?.searches || []).filter(item => item.query).slice(0, 3);
+  const seenQueries = new Set();
+  const recentSearches = (profile?.searches || []).filter(item => {
+    const query = String(item.query || '').trim();
+    if (!query || seenQueries.has(query.toLocaleLowerCase())) return false;
+    seenQueries.add(query.toLocaleLowerCase());
+    return true;
+  }).slice(0, 3);
   const today = new Date();
   const todayKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
   const upcoming = (profile?.tasks || [])
@@ -76,18 +82,18 @@ export default function EyraHome({ onSearch }) {
 
   return (
     <div className="eylo-home min-h-[calc(100vh-4.5rem)] bg-background text-foreground">
-      <div className="mx-auto w-full max-w-7xl px-4 pb-24 pt-6 sm:px-8 sm:pt-10">
-        <section aria-labelledby="home-title" className="relative isolate overflow-hidden rounded-[28px] border border-border/80 bg-gradient-to-br from-card via-card to-primary/5 p-6 shadow-sm sm:p-9 lg:p-12">
-          <div className="pointer-events-none absolute -right-20 -top-24 -z-10 h-72 w-72 rounded-full bg-primary/5 blur-3xl" aria-hidden="true" />
-          <p className="mb-4 inline-flex items-center rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-primary">Your research workspace</p>
+      <div className="mx-auto w-full max-w-[1440px] px-4 pb-24 pt-6 sm:px-8 sm:pt-10 lg:px-10">
+        <section aria-labelledby="home-title" className="relative isolate overflow-hidden rounded-[32px] border border-primary/10 bg-gradient-to-br from-card via-card to-primary/10 p-6 shadow-[0_20px_70px_-48px_rgba(31,71,139,0.5)] sm:p-9 lg:p-12">
+          <div className="pointer-events-none absolute -right-20 -top-24 -z-10 h-80 w-80 rounded-full bg-primary/10 blur-3xl" aria-hidden="true" />
+          <p className="mb-4 inline-flex items-center rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.1em] text-primary">Your research workspace</p>
           <p className="text-sm font-medium text-muted-foreground">{greeting.greeting}</p>
-          <h1 id="home-title" className="mt-2 max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">What would you like to work on?</h1>
+          <h1 id="home-title" className="mt-2 max-w-4xl text-3xl font-bold tracking-tight sm:text-4xl lg:text-[3.25rem] lg:leading-[1.12]">What would you like to work on?</h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">Explore source-linked academic records, check the original sources, and save useful work for later. EYRA can help with follow-up questions when available.</p>
-          <form onSubmit={event => { event.preventDefault(); if (homeQuery.trim()) onSearch(homeQuery.trim()); }} className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-background p-2 shadow-sm sm:flex-row sm:items-center">
+          <form onSubmit={event => { event.preventDefault(); if (homeQuery.trim()) onSearch(homeQuery.trim()); }} className="mt-8 flex flex-col gap-3 rounded-2xl border border-border/80 bg-card p-2.5 shadow-md shadow-primary/5 sm:flex-row sm:items-center">
             <label htmlFor="home-research-query" className="sr-only">Research topic or question</label>
             <input id="home-research-query" type="search" value={homeQuery} onChange={event => setHomeQuery(event.target.value)}
-              placeholder="Enter a research topic or question…" className="min-h-12 min-w-0 flex-1 rounded-xl border border-transparent bg-transparent px-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary/30 focus:outline-none" />
-            <button type="submit" disabled={!homeQuery.trim()} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50">
+              placeholder="Enter a research topic or question…" className="min-h-14 min-w-0 flex-1 rounded-xl border border-transparent bg-transparent px-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary/30 focus:outline-none" />
+            <button type="submit" disabled={!homeQuery.trim()} className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50">
               <Search size={17} aria-hidden="true" /> Start researching
             </button>
           </form>
@@ -115,7 +121,7 @@ export default function EyraHome({ onSearch }) {
               {step:'2', title:'Save and review papers', help:'See your saved papers. To save a new one, start in Discover.', href: '/library', Icon:Bookmark},
               {step:'3', title:'Create a project', help:'Keep papers, ideas and next steps together.', href: '/projects?new=1', Icon:FolderOpen},
             ].map(({step,title,help,href,Icon}) => (
-              <Link key={href} to={href} className="group flex min-h-32 items-start gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+              <Link key={href} to={href} className="group flex min-h-32 items-start gap-4 rounded-[22px] border border-border/70 bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-sm font-bold text-primary" aria-hidden="true">{step}</span>
                 <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-foreground">{title}</span><span className="mt-2 block text-xs leading-5 text-muted-foreground">{help}</span></span>
                 <Icon size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
@@ -148,12 +154,12 @@ export default function EyraHome({ onSearch }) {
           </div>
         )}
 
-        <div className="mt-10">
+        <div className="mt-12">
           <section aria-labelledby="continue-heading">
             <div className="mb-5 flex items-end justify-between gap-4 border-b border-border pb-4">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Your work</p>
-                <h2 id="continue-heading" className="mt-1 text-2xl font-semibold tracking-tight text-foreground">Pick up where you left off</h2>
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">Your work</p>
+                <h2 id="continue-heading" className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Pick up where you left off</h2>
               </div>
               <Link to="/projects" className="inline-flex min-h-9 items-center gap-1 text-xs font-semibold text-primary hover:underline">All projects <ArrowRight size={14} aria-hidden="true" /></Link>
             </div>
@@ -167,10 +173,10 @@ export default function EyraHome({ onSearch }) {
                 <button type="button" onClick={retryProfile} className="mt-3 text-xs font-semibold text-primary hover:underline">Try again</button>
               </div>
             ) : (
-              <div className="space-y-7">
-                <div>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <div className="lg:col-span-2">
                   <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Active projects</h3>
+                    <h3 className="text-sm font-bold tracking-tight text-foreground">Active projects</h3>
                     <Link to="/projects" className="text-[11px] font-semibold text-muted-foreground hover:text-primary">View all</Link>
                   </div>
                   {hasSourceWarning('projects') ? (
