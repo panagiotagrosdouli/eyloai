@@ -30,7 +30,7 @@ export function Message({ msg, onSave, onCopy, saved, copied, saving }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className={`flex gap-2.5 ${isEyra ? '' : 'flex-row-reverse'}`}
+      className={`flex w-full min-w-0 gap-3 ${isEyra ? '' : 'flex-row-reverse'}`}
     >
       {isEyra ? (
         <EyraOrb className="mt-0.5 h-8 w-8" />
@@ -39,7 +39,7 @@ export function Message({ msg, onSave, onCopy, saved, copied, saving }) {
           <span className="text-[10px] font-bold text-muted-foreground">You</span>
         </div>
       )}
-      <div className={`max-w-[86%] ${isEyra ? '' : 'items-end flex flex-col'}`}>
+      <div className={`min-w-0 max-w-[92%] sm:max-w-[88%] ${isEyra ? 'w-full' : 'items-end flex flex-col'}`}>
         {isEyra && (
           <div className="flex items-center gap-1.5 mb-1">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground">EYRA</p>
@@ -48,13 +48,13 @@ export function Message({ msg, onSave, onCopy, saved, copied, saving }) {
             )}
           </div>
         )}
-        <div className={`px-3.5 py-3 rounded-2xl text-sm leading-relaxed ${
+        <div className={`w-full rounded-2xl px-4 py-3.5 text-sm leading-7 sm:text-[15px] ${
           isEyra
-            ? 'bg-card border border-border/60 text-foreground'
+            ? 'bg-card border border-border/70 text-foreground shadow-sm'
             : 'bg-foreground text-background'
         }`}>
           {isEyra ? (
-            <div className="prose prose-sm max-w-none prose-headings:text-foreground prose-headings:font-semibold prose-p:text-foreground prose-li:text-foreground prose-strong:text-primary prose-p:my-1 prose-ul:my-2 prose-h2:text-sm prose-h2:mb-1">
+            <div className="prose prose-sm max-w-none break-words prose-headings:text-foreground prose-headings:font-semibold prose-p:text-foreground prose-li:text-foreground prose-strong:text-primary prose-p:my-1 prose-ul:my-2 prose-h2:text-sm prose-h2:mb-1">
               <ReactMarkdown>{msg.content}</ReactMarkdown>
             </div>
           ) : (
@@ -96,8 +96,8 @@ export function Message({ msg, onSave, onCopy, saved, copied, saving }) {
           </section>
         )}
 
-        <div className="mt-1 flex items-center gap-1 px-1">
-          <p className="mr-auto text-[9px] text-muted-foreground">
+        <div className="mt-2 flex flex-wrap items-center gap-1 px-1">
+          <p className="mr-auto text-xs text-muted-foreground">
             {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </p>
           {isEyra && (
@@ -105,7 +105,7 @@ export function Message({ msg, onSave, onCopy, saved, copied, saving }) {
               <button
                 type="button"
                 onClick={() => onCopy(msg)}
-                className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[9px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
                 aria-label="Copy EYRA response"
               >
                 {copied ? <Check size={10} /> : <Copy size={10} />}
@@ -115,7 +115,7 @@ export function Message({ msg, onSave, onCopy, saved, copied, saving }) {
                 type="button"
                 onClick={() => onSave(msg)}
                 disabled={saved || saving}
-                className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[9px] text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary disabled:opacity-70"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-70"
                 aria-label="Save EYRA response to Idea Vault"
               >
                 {saved ? <Check size={10} /> : <BookmarkPlus size={10} />}
