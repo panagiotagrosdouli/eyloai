@@ -19,7 +19,7 @@ test('Client router and brand assets respect /eyloai/ project hosting', () => {
   assert.match(read('src/App.jsx'), /Router basename=/);
   const brand = read('src/components/brand/BrandLogo.jsx');
   assert.match(brand, /<svg /);
-  assert.doesNotMatch(brand, /(?:src|href)=[\"']\\/brand\\//);
+  assert.doesNotMatch(brand, /(?:src|href)=['\"]\/brand\//);
   // Inline brand SVGs have no asset path to misresolve on /eyloai/.
   assert.match(read('src/pages/Landing.jsx'), /import\.meta\.env\.BASE_URL/);
 });
