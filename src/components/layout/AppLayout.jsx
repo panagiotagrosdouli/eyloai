@@ -97,13 +97,22 @@ const TOOL_GROUPS = [
 ];
 
 const ALL_TOOLS = TOOL_GROUPS.flatMap(group => group.items);
+// Curated first view: the complete, searchable catalog lives at /tools.
+const FEATURED_TOOL_PATHS = new Set([
+  '/search', '/library', '/projects', '/opportunities',
+  '/challenges', '/briefing', '/radar', '/labs/research-landscape',
+  '/researchers', '/study-planner', '/calendar', '/notes',
+]);
+const FEATURED_TOOL_GROUPS = TOOL_GROUPS
+  .map(group => ({ ...group, items: group.items.filter(item => FEATURED_TOOL_PATHS.has(item.path)) }))
+  .filter(group => group.items.length > 0);
 
 function ToolLink({ item, active }) {
   const Icon = item.icon;
   return (
     <Link
       to={item.path}
-      className={`group flex min-h-11 items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
+      className={`group flex min-h-12 items-center gap-3 rounded-xl border px-3.5 py-2.5 transition-colors ${
         active ? 'border-primary/15 bg-secondary/60' : 'border-transparent hover:bg-secondary/50'
       }`}
     >
@@ -168,6 +177,7 @@ export default function AppLayout() {
   const toolsActive = ALL_TOOLS.some(item => isActive(item.path)) && !PRIMARY_NAV.some(item => isActive(item.path));
   const primaryActive = item => isActive(item.path) || (item.path === '/projects' && ['/library', '/notes', '/files', '/life', '/calendar', '/workspace/search'].some(path => isActive(path)));
   const visibleGroups = filterToolGroups(TOOL_GROUPS, toolQuery);
+  const menuGroups = toolQuery.trim() ? visibleGroups : FEATURED_TOOL_GROUPS;
 
   useEffect(() => { trackActivatedReturn(); }, []);
 
@@ -247,23 +257,24 @@ export default function AppLayout() {
               </button>
 
               {toolsOpen && (
-                <div className="absolute left-0 top-full mt-2 w-[min(48rem,calc(100vw-2rem))] rounded-2xl border border-border/80 bg-popover p-4 shadow-xl">
+                <div className="absolute left-0 top-full mt-3 w-[min(43rem,calc(100vw-2rem))] rounded-[24px] border border-border/80 bg-popover p-5 shadow-2xl shadow-primary/10" role="region" aria-label="All tools quick finder">
                   <label className="relative block">
                     <span className="sr-only">Search EYLO tools</span>
                     <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <input value={toolQuery} onChange={event => setToolQuery(event.target.value)} autoFocus placeholder="What do you want to do?…"
-                      className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/40" />
+                      className="min-h-12 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/10" />
                   </label>
-                  <div className="mt-3 flex items-center justify-between gap-3 border-b border-border pb-3"><span className="text-xs text-muted-foreground">Choose a workflow</span><Link to="/tools" className="text-sm font-semibold text-primary hover:underline">Browse complete directory</Link></div>
-                   <div className="mt-3 grid max-h-[65vh] gap-5 overflow-y-auto p-1 sm:grid-cols-2">
-                    {visibleGroups.map(group => (
+                  <div className="mt-3 flex items-center justify-between gap-3 border-b border-border pb-3"><span className="text-sm font-semibold text-foreground">{toolQuery.trim() ? "Matching tools" : "Popular workflows"}</span><Link to="/tools" className="text-sm font-semibold text-primary hover:underline">Browse complete directory</Link></div>
+                   <div className="mt-4 grid max-h-[min(52dvh,370px)] gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
+                    {menuGroups.map(group => (
                       <section key={group.section}>
-                        <p className="mb-1 px-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{group.section}</p>
+                        <p className="mb-2 px-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{group.section}</p>
                         {group.items.map(item => <ToolLink key={item.path} item={item} active={isActive(item.path)} />)}
                       </section>
                     ))}
                   </div>
-                  {!visibleGroups.length && <p className="py-8 text-center text-sm text-muted-foreground">No tool matches “{toolQuery}”.</p>}
+                  {!menuGroups.length && <p className="py-8 text-center text-sm text-muted-foreground">No tool matches “{toolQuery}”.</p>}
+                  <p className="mt-4 border-t border-border/70 pt-3 text-xs text-muted-foreground">Find the full list of research, learning and workspace features in the <Link to="/tools" className="font-semibold text-primary hover:underline">tool directory</Link>.</p>
                 </div>
               )}
             </div>
@@ -306,15 +317,15 @@ export default function AppLayout() {
               <div className="my-4 flex items-center justify-end gap-3"><ThemeToggle variant="workspace" /><ServiceStatus /></div>
               <button type="button" onClick={() => setCommandOpen(true)} className="mb-3 flex min-h-11 w-full items-center gap-2 rounded-xl border border-border px-3 text-sm font-medium"><Search size={16} />Search everything <span className="ml-auto text-xs text-muted-foreground">⌘/Ctrl K</span></button>
               <button type="button" onClick={() => setToolsOpen(value => !value)} aria-expanded={toolsOpen} aria-controls="mobile-tool-directory" className="flex min-h-11 w-full items-center justify-between rounded-xl border border-border px-3 text-sm font-semibold"><span>All tools</span><ChevronDown size={16} className={toolsOpen ? 'rotate-180' : ''} /></button>
-              {toolsOpen && <div id="mobile-tool-directory" className="mt-3 space-y-4">
+              {toolsOpen && <div id="mobile-tool-directory" className="mt-3 max-h-[55dvh] space-y-4 overflow-y-auto rounded-2xl border border-border/70 bg-card p-3">
                 <label className="block"><span className="sr-only">Find a tool</span><input type="search" value={toolQuery} onChange={event => setToolQuery(event.target.value)} placeholder="What do you want to do?…" className="min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm" /></label>
-                {visibleGroups.map(group => (
+                {menuGroups.map(group => (
                   <section key={group.section}>
                     <p className="mb-1 px-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{group.section}</p>
                     <div className="grid gap-1 sm:grid-cols-2">{group.items.map(item => <ToolLink key={item.path} item={item} active={isActive(item.path)} />)}</div>
                   </section>
                 ))}
-                {!visibleGroups.length && <p className="text-sm text-muted-foreground">No matching tools.</p>}
+                {!menuGroups.length && <p className="text-sm text-muted-foreground">No matching tools.</p>}
               </div>}
               <div className="mt-4">
                 <button type="button" onClick={handleSignOut} disabled={signingOut}
