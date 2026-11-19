@@ -233,7 +233,7 @@ export default function AppLayout() {
     <div className={`eylo-app-canvas min-h-screen bg-background ${isWorkspaceHome ? "eylo-home-layout" : ""}`}>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-2 focus:z-[100] focus:rounded-lg focus:bg-background focus:p-3">Skip to content</a>
       <header className="sticky top-0 z-50 border-b border-border/70 bg-card/95 shadow-sm backdrop-blur-xl">
-        <div className="mx-auto flex h-[4.75rem] max-w-7xl items-center gap-3 px-4 sm:px-8">
+        <div className="mx-auto flex h-[4.75rem] max-w-[1440px] items-center gap-3 px-4 sm:px-8 lg:px-10">
           <Link to="/home" className="mr-3 flex shrink-0 items-center" aria-label="EYLO workspace home">
             <BrandLogo brand="eylo" size="nav" priority />
           </Link>
