@@ -29,7 +29,7 @@ import { listEyraConversations, saveEyraConversation, loadEyraConversation, rena
 
 import { snapshotPayload, snapshotIdentity, conversationExport } from '@/lib/eyra-snapshot.mjs';
 import { requestedEyraWrites } from '@/lib/eyra-write-intent.mjs';
-import { formatUnverifiedEyraToolAction } from '@/lib/eyra-tool-outcome.mjs';
+import { formatUnverifiedEyraToolAction, hasEyraWriteReceipt } from '@/lib/eyra-tool-outcome.mjs';
 import { buildEyraConversationContext } from '@/lib/eyra-conversation-context.mjs';
 import { listEyraAgentRuns, loadEyraAgentRun, cancelEyraAgentRun, reviewStaleEyraAgentRun, deleteEyraAgentRun } from '@/lib/eyra-run-history';
 
@@ -77,6 +77,7 @@ function formatEyraToolActions(actions) {
   if (!Array.isArray(actions) || !actions.length) return '';
   return actions.map(action => {
     if (!action || typeof action !== 'object') return formatUnverifiedEyraToolAction(action);
+    if (['project.create', 'library.save_paper'].includes(action.tool) && !hasEyraWriteReceipt(action)) return formatUnverifiedEyraToolAction(action);
     if (action.status === 'succeeded' && action.tool === 'project.create') {
       const p = action.result || {};
       return `- Created and verified project **${p.title || 'Untitled'}** (ID: \`${p.id || 'unavailable'}\`).`;
