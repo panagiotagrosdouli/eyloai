@@ -353,6 +353,19 @@ try {
   const clearDialog = await clearConfirmation;
   await clearDialog.accept();
   await clearClick;
+  // These fixture-only booleans diagnose whether Clear actually committed,
+  // without logging conversation text, auth headers or private records.
+  await page.waitForTimeout(200);
+  const clearState = await page.evaluate(({ ownerId, expectedText }) => {
+    const panel = document.querySelector('[aria-label="EYRA conversation"]');
+    return {
+      visibleAnswer: panel?.textContent?.includes(expectedText) ?? false,
+      welcomeVisible: Boolean(panel?.querySelector('[aria-label="Start a conversation with EYRA"]')),
+      selectedSnapshot: document.querySelector('[aria-label="Saved EYRA conversation"]')?.value || '',
+      localHasAnswer: sessionStorage.getItem('eyra:conversation:v3:' + encodeURIComponent(ownerId))?.includes(expectedText) ?? false,
+    };
+  }, { ownerId: user.id, expectedText: answer });
+  console.log('EYRA Clear boundary fixture state:', JSON.stringify(clearState));
   // Wait until Clear has committed to the DOM before allowing the stalled
   // history request to resolve. Two animation frames are not a reliable
   // synchronization barrier on loaded GitHub Actions runners.
