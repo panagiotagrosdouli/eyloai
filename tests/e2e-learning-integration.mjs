@@ -135,6 +135,17 @@ try {
     const expectedData = containment?.startsWith('cs.') ? JSON.parse(containment.slice(3)) : null;
     const matching = row => (expectedData === null || containsJson(row.data, expectedData)) && filters.every(([key, value]) => { const current = key.startsWith('data->>') ? row.data?.[key.slice(7)] : row[key]; return value === 'is.null' ? current == null : String(current) === value.slice(3); });
     let rows = tables[table].filter(matching);
+    // Honor the exact PostgREST ordering used by cloud conversation history.
+    // Without this the fixture returns insertion order even when production
+    // requests the latest messages first, masking order-related regressions.
+    const requestedOrder = url.searchParams.get('order') || '';
+    if (request.method() === 'GET' && table === 'eyra_messages'
+      && /^sequence_number\.(?:asc|desc)$/.test(requestedOrder)) {
+      const descending = requestedOrder.endsWith('.desc');
+      rows = [...rows].sort((a, b) => descending
+        ? b.sequence_number - a.sequence_number
+        : a.sequence_number - b.sequence_number);
+    }
     if (request.method() !== 'GET') {
       if (request.method() === 'POST') {
         const payload = request.postDataJSON(); assert.equal(payload.user_id, user.id);
@@ -328,9 +339,21 @@ try {
   let releaseHistory;
   let markHistoryStarted;
   const historyStarted = new Promise(resolve => { markHistoryStarted = resolve; });
+  let markHistorySettled;
+  const historySettled = new Promise(resolve => { markHistorySettled = resolve; });
   const historyGate = new Promise(resolve => { releaseHistory = resolve; });
   await page.route(`${supabaseUrl}/rest/v1/eyra_messages**`, async route => {
-    markHistoryStarted(); await historyGate; await route.fallback();
+    markHistoryStarted();
+    try {
+      await historyGate;
+      // Clearing the transcript can abort this request; that is a valid
+      // outcome, not a missing response or a fixture transport failure.
+      if (!route.request().failure()) await route.fallback();
+    } catch (error) {
+      if (!/intercept|abort|closed|handled|invalid/i.test(String(error))) throw error;
+    } finally {
+      markHistorySettled();
+    }
   }, { times: 1 });
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
   await historyStarted;
@@ -341,12 +364,30 @@ try {
   const clearDialog = await clearConfirmation;
   await clearDialog.accept();
   await clearClick;
+  // These fixture-only booleans diagnose whether Clear actually committed,
+  // without logging conversation text, auth headers or private records.
+  await page.waitForTimeout(200);
+  const clearState = await page.evaluate(({ ownerId, expectedText }) => {
+    const panel = document.querySelector('[aria-label="EYRA conversation"]');
+    return {
+      visibleAnswer: panel?.textContent?.includes(expectedText) ?? false,
+      welcomeVisible: Boolean(panel?.querySelector('[aria-label="Start a conversation with EYRA"]')),
+      selectedSnapshot: document.querySelector('[aria-label="Saved EYRA conversation"]')?.value || '',
+      localHasAnswer: sessionStorage.getItem('eyra:conversation:v3:' + encodeURIComponent(ownerId))?.includes(expectedText) ?? false,
+    };
+  }, { ownerId: user.id, expectedText: answer });
+  assert.equal(clearState.visibleAnswer, false, 'Clear must remove the prior EYRA answer from the rendered transcript');
+  assert.equal(clearState.welcomeVisible, true, 'Clear must replace the transcript with its welcome state');
+  assert.equal(clearState.selectedSnapshot, '', 'Clear must deselect the cloud snapshot');
+  assert.equal(clearState.localHasAnswer, false, 'Clear must persist an empty local transcript');
   // Wait until Clear has committed to the DOM before allowing the stalled
   // history request to resolve. Two animation frames are not a reliable
   // synchronization barrier on loaded GitHub Actions runners.
   await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
-  const historyResponse = page.waitForResponse(response => response.url().includes('/rest/v1/eyra_messages'));
-  releaseHistory(); await (await historyResponse).finished();
+  releaseHistory();
+  await historySettled;
+  // The cancelled request must not revive a stale transcript, regardless of
+  // whether the transport produced an HTTP response or requestfailed event.
   await page.waitForTimeout(250);
   assert.equal(await page.getByText(answer, { exact: true }).count(), 0, 'late history cannot restore a chat after clear');
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
