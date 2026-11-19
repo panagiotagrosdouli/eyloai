@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { savedChallengeKey } from '@/lib/challenge-records.mjs';
+import { downloadResearchReport } from '@/lib/research-report-export.mjs';
 import { base44 } from '@/api/base44Client';
 import { searchFundingOpportunities } from '@/lib/funding-api';
 import { useToast } from '@/components/ui/use-toast';
@@ -34,6 +36,9 @@ export default function OpportunityRadar() {
   const [sourceMeta, setSourceMeta] = useState(null);
   const [radarError, setRadarError] = useState('');
   const [rankingError, setRankingError] = useState('');
+  const pendingSaves = useRef(new Set());
+  const [savedKeys, setSavedKeys] = useState(() => new Set());
+  const [savingKeys, setSavingKeys] = useState(() => new Set());
   const { toast } = useToast();
 
   const [selectedProjectId, setSelectedProjectId] = useState('');
@@ -208,18 +213,49 @@ Rules:
   };
 
   const saveOpportunity = async (opp) => {
-    await base44.entities.SavedOpportunity.create({
-      title: opp.title,
-      type: opp.type || 'grant',
-      description: opp.description,
-      deadline: opp.deadline,
-      amount: opp.amount,
-      agency: opp.agency,
-      source: opp.source,
-      source_url: opp.source_url,
-      source_id: opp.source_id,
-    });
-    toast({ title: 'Saved to library' });
+    const key = savedChallengeKey({ ...opp, url: opp.source_url }) || String(opp.id || opp.title);
+    if (pendingSaves.current.has(key)) return;
+    if (savedKeys.has(key)) {
+      toast({ title: 'Already saved to your library' });
+      return;
+    }
+    pendingSaves.current.add(key);
+    setSavingKeys(current => new Set([...current, key]));
+    try {
+      // Verify against canonical owner-scoped saved records, not just this page's session.
+      const existing = await base44.entities.SavedOpportunity.list('-created_date', 1000);
+      if (existing.some(item => (savedChallengeKey({ ...item, url: item.source_url }) || String(item.id || item.title)) === key)) {
+        setSavedKeys(current => new Set([...current, key]));
+        toast({ title: 'Already saved to your library' });
+        return;
+      }
+      await base44.entities.SavedOpportunity.create({
+        title: opp.title,
+        type: opp.type || 'grant',
+        description: opp.description,
+        deadline: opp.deadline,
+        amount: opp.amount,
+        agency: opp.agency,
+        source: opp.source,
+        source_url: opp.source_url,
+        source_id: opp.source_id,
+      });
+      setSavedKeys(current => new Set([...current, key]));
+      toast({ title: 'Saved to your library' });
+    } catch (error) {
+      toast({
+        title: 'Could not save opportunity',
+        description: error?.message || 'Please retry.',
+        variant: 'destructive',
+      });
+    } finally {
+      pendingSaves.current.delete(key);
+      setSavingKeys(current => {
+        const next = new Set(current);
+        next.delete(key);
+        return next;
+      });
+    }
   };
 
   const filteredFeed = feed.filter(o => {
@@ -239,6 +275,7 @@ Rules:
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="eylo-page-heading">Opportunity Radar</h1>
+          {feed.length > 0 && <button type="button" onClick={() => downloadResearchReport({ tool: 'opportunity-review', query: projects.find(p => p.id === selectedProjectId)?.title || user?.research_interests || '', analysis: { opportunities: feed, recommendation: boardReport }, sources: feed, caveat: 'Official notice controls deadlines, eligibility and amount; ranking is AI-derived relevance, never award probability.' })} className="mt-2 inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-xs font-semibold text-primary">Export opportunity review (JSON)</button>}
         </div>
         <button
           onClick={runRadar}
@@ -460,8 +497,8 @@ Rules:
                         }`}>
                           {opp.match_score == null ? '—' : `${opp.match_score}`}
                         </div>
-                        <button onClick={() => saveOpportunity(opp)}
-                          className="p-1.5 rounded-lg hover:bg-secondary transition-colors" title="Save to library">
+                        <button type="button" onClick={() => saveOpportunity(opp)} disabled={savingKeys.has(savedChallengeKey({ ...opp, url: opp.source_url }) || String(opp.id || opp.title)) || savedKeys.has(savedChallengeKey({ ...opp, url: opp.source_url }) || String(opp.id || opp.title))} aria-label={savedKeys.has(savedChallengeKey({ ...opp, url: opp.source_url }) || String(opp.id || opp.title)) ? 'Already saved in library' : 'Save opportunity to library'}
+                          className="min-h-9 min-w-9 rounded-lg p-1.5 hover:bg-secondary transition-colors disabled:opacity-50" title="Save to library">
                           <Bookmark size={12} className="text-muted-foreground" />
                         </button>
                         <a href={opp.source_url} target="_blank" rel="noopener noreferrer"
