@@ -138,6 +138,7 @@ function formatEyraToolActions(actions) {
 export default function EyraCommandCenter({ open, onClose, resourceContext = null }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState(() => loadConversation(user?.id));
+  const [transcriptRevision, setTranscriptRevision] = useState(0);
   const [conversationOwner, setConversationOwner] = useState(user?.id);
   const [allowWorkspaceActions, setAllowWorkspaceActions] = useState(false);
   const [pendingWriteReview, setPendingWriteReview] = useState(null);
@@ -823,6 +824,8 @@ The saved record was returned by the server. Check the workspace for the final r
       setHistoryBusy(false);
       setLoading(false); setLiveDraft(''); setRemoteConversation(null); setRenameTitle(null);
       setMessages([{ ...createWelcomeMessage(userName), mode: activeMode }]);
+      // Force the old animated message subtree to unmount on an explicit Clear.
+      setTranscriptRevision(version => version + 1);
       setInput('');
     });
     window.speechSynthesis?.cancel();
@@ -888,7 +891,7 @@ The saved record was returned by the server. Check the workspace for the final r
 
           {/* Messages */}
           <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain bg-gradient-to-b from-background via-card/30 to-background px-4 py-6 sm:px-8 sm:py-8" aria-label="EYRA conversation">
-            <div className={`mx-auto flex min-h-full w-full max-w-3xl flex-col gap-5 ${messages.length === 1 ? 'justify-center' : ''}`}>
+            <div key={transcriptRevision} className={`mx-auto flex min-h-full w-full max-w-3xl flex-col gap-5 ${messages.length === 1 ? 'justify-center' : ''}`}>
               {messages.map(msg => msg.welcome ? (messages.length === 1 ? (
                 <section key={msg.timestamp} aria-label="Start a conversation with EYRA" className="relative mx-auto w-full max-w-[740px] overflow-hidden rounded-[28px] border border-primary/10 bg-gradient-to-br from-card via-card to-primary/5 p-6 shadow-[0_24px_70px_-55px_rgba(67,89,200,0.55)] sm:p-9">
                   <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-[20px] border border-primary/20 bg-gradient-to-br from-indigo-500/15 via-violet-400/10 to-cyan-400/15 text-2xl font-bold text-primary shadow-md shadow-primary/10" aria-hidden="true">✦</div>
