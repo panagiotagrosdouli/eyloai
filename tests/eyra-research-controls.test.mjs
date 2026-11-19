@@ -6,7 +6,10 @@ import { EYRA_MODES, EYRA_QUICK_COMMANDS } from '../src/lib/eyra-next-policy.mjs
 test('research lens and quick-action UI consume one canonical policy registry', () => {
   const controls = readFileSync(new URL('../src/components/eyra/EyraResearchControls.jsx', import.meta.url), 'utf8');
   const chat = readFileSync(new URL('../src/components/eyra/EyraCommandCenter.jsx', import.meta.url), 'utf8');
-  assert.equal(EYRA_MODES.length, 6);
+  assert.equal(EYRA_MODES.length, 13);
+  for (const id of ['general', 'literature', 'methodology', 'writing', 'data', 'project', 'critical']) {
+    assert.match(controls, new RegExp(`\\b${id}:`), `Missing navigation for ${id}`);
+  }
   assert.equal(EYRA_QUICK_COMMANDS.length, 6);
   assert.match(controls, /EYRA_MODES\.map/);
   assert.match(controls, /EYRA_QUICK_COMMANDS\.find\(command => command\.id === id\)/);
