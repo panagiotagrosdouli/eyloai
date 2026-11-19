@@ -13,9 +13,9 @@ export default function EyraComposer({
 }) {
   const ModeIcon = EYRA_MODE_ICONS[activeMode] || Send;
   return (
-    <div className="flex items-end gap-2 rounded-xl border border-border bg-background p-2 transition-colors focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10">
-      <div className="mb-1.5 grid h-6 w-6 shrink-0 place-items-center rounded-md bg-secondary text-muted-foreground">
-        <ModeIcon size={11} aria-hidden="true" />
+    <div className="flex items-end gap-3 rounded-2xl border border-border bg-background p-2.5 shadow-sm transition-colors focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 sm:p-3">
+      <div className="mb-2 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+        <ModeIcon size={17} aria-hidden="true" />
       </div>
       <textarea
         ref={inputRef}
@@ -26,13 +26,13 @@ export default function EyraComposer({
         maxLength={allowWorkspaceActions ? 1000 : 2000}
         placeholder={`Describe the outcome you need in ${modeLabel || 'Research'} mode…`}
         rows={1}
-        className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none resize-none max-h-28 py-1.5"
-        style={{ minHeight: '34px' }}
+        className="min-w-0 flex-1 resize-none bg-transparent py-2 text-sm leading-6 text-foreground placeholder:text-muted-foreground focus:outline-none max-h-40 sm:text-[15px]"
+        style={{ minHeight: '44px' }}
       />
       <div className="flex items-center gap-1 flex-shrink-0 pb-1">
         <button type="button" onClick={listening ? onStopListening : onStartListening}
           aria-label={listening ? 'Stop voice input' : 'Start voice input'}
-          className={`grid min-h-11 min-w-11 place-items-center rounded-lg transition-colors ${listening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-secondary text-muted-foreground'}`}>
+          className={`grid min-h-11 min-w-11 place-items-center rounded-xl transition-colors ${listening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-secondary text-muted-foreground'}`}>
           {listening ? <MicOff size={14} /> : <Mic size={14} />}
         </button>
         {loading && (
@@ -43,8 +43,8 @@ export default function EyraComposer({
         )}
         <button type="button" aria-label="Send message" onClick={onSend}
           disabled={!value.trim() || loading}
-          className="grid min-h-11 min-w-11 place-items-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40">
-          {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+          className="grid min-h-11 min-w-11 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-40">
+          {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={18} />}
         </button>
       </div>
     </div>
