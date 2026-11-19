@@ -108,29 +108,32 @@ function ToolDirectory() {
   ), [query, category]);
 
   return (
-    <div className="eylo-page mx-auto max-w-6xl">
-      <h1 className="eylo-page-heading">What would you like to do?</h1>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Find the right workflow for your goal. Existing project and research tools remain available here.</p>
-      <section aria-label="Browse EYLO tools" className="mt-6">
+    <div className="eylo-page mx-auto max-w-7xl">
+      <div className="relative overflow-hidden rounded-[28px] border border-border/80 bg-gradient-to-br from-card via-card to-primary/5 px-5 py-8 shadow-sm sm:px-9 sm:py-10">
+        <p className="mb-3 inline-flex rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-primary">Tool directory</p>
+        <h1 className="eylo-page-heading">What would you like to do?</h1>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">Find the right workflow for your goal. Existing project and research tools remain available here.</p>
+      </div>
+      <section aria-label="Browse EYLO tools" className="mt-8">
       <div>
-        <label htmlFor="tool-directory-search" className="mb-2 block text-sm font-medium">Find a tool or task</label>
+        <label htmlFor="tool-directory-search" className="mb-3 block text-sm font-semibold text-foreground">Find a tool or task</label>
         <input id="tool-directory-search" type="search" value={query} onChange={event => setQuery(event.target.value)}
-          placeholder="Try literature review, study plan, funding…" className="min-h-12 w-full rounded-xl border border-border bg-card px-4 text-base text-foreground" />
+          placeholder="Try literature review, study plan, funding…" className="min-h-14 w-full rounded-2xl border border-border bg-card px-5 text-base text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/10" />
       </div>
-      <div role="group" aria-label="Tool category" className="mt-4 flex flex-wrap gap-2">
+      <div role="group" aria-label="Tool category" className="mt-5 flex flex-wrap gap-2">
         {CATEGORIES.map(name => <button key={name} type="button" onClick={() => setCategory(name)} aria-pressed={category === name}
-          className={`min-h-11 rounded-xl border px-4 text-sm font-medium transition-colors ${category === name ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground hover:bg-secondary'}`}>{name}</button>)}
+          className={`min-h-11 rounded-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${category === name ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground hover:bg-secondary'}`}>{name}</button>)}
       </div>
-      <p role="status" className="mt-6 text-xs text-muted-foreground">{matches.length} {matches.length === 1 ? 'tool' : 'tools'} available</p>
-      {matches.length ? <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <p role="status" className="mt-7 text-xs font-medium text-muted-foreground">{matches.length} {matches.length === 1 ? 'tool' : 'tools'} available</p>
+      {matches.length ? <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {matches.map(item => <Link key={item.slug + ':' + item.category} to={toolHref(item)} aria-label={item.title + ': ' + item.description}
-          className="group flex min-h-36 flex-col rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary/40 hover:bg-secondary/30">
-          <span aria-hidden="true" className="text-xs font-semibold text-primary">{item.category}</span>
-          <h2 className="mt-2 text-base font-semibold text-foreground group-hover:text-primary">{item.title}</h2>
-          <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">{item.description}</p>
-          <span className="mt-3 text-sm font-semibold text-primary">Open tool <span aria-hidden="true">→</span></span>
+          className="group flex min-h-44 flex-col rounded-2xl border border-border/80 bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+          <span aria-hidden="true" className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">{item.category}</span>
+          <h2 className="mt-3 text-base font-bold text-foreground group-hover:text-primary">{item.title}</h2>
+          <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">{item.description}</p>
+          <span className="mt-5 text-sm font-semibold text-primary">Open tool <span aria-hidden="true">→</span></span>
         </Link>)}
-      </div> : <div className="mt-4 rounded-xl border border-dashed border-border bg-card p-8 text-center">
+      </div> : <div className="mt-4 rounded-2xl border border-dashed border-border bg-card p-10 text-center">
         <h2 className="text-base font-semibold">No tools found</h2>
         <p className="mt-2 text-sm text-muted-foreground">Try another term or clear the category filter.</p>
         <button type="button" onClick={() => { setQuery(''); setCategory('All'); }} className="mt-4 min-h-11 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">Show all tools</button>
