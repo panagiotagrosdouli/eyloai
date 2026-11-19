@@ -1,3 +1,4 @@
+import { downloadResearchReport } from '@/lib/research-report-export.mjs';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CheckCircle2, Download, ExternalLink, Loader2, Save, Sparkles,
@@ -223,19 +224,19 @@ Rules:
       draft.need_statement,
       '',
       'OBJECTIVES',
-      ...draft.objectives.map(item => `- ${item}`),
+      ...(draft.objectives || []).map(item => `- ${item}`),
       '',
       'WORK PACKAGES',
-      ...draft.work_packages.flatMap(item => [item.title, ...item.activities.map(activity => `- ${activity}`), ...item.deliverables.map(deliverable => `  Deliverable: ${deliverable}`)]),
+      ...(draft.work_packages || []).flatMap(item => [item.title, ...(item.activities || []).map(activity => `- ${activity}`), ...(item.deliverables || []).map(deliverable => `  Deliverable: ${deliverable}`)]),
       '',
       'IMPACT AND EVALUATION',
       draft.impact_and_evaluation,
       '',
       'MISSING INFORMATION',
-      ...draft.missing_information.map(item => `- ${item}`),
+      ...(draft.missing_information || []).map(item => `- ${item}`),
       '',
       'NEXT ACTIONS',
-      ...draft.next_actions.map(item => `- ${item}`),
+      ...(draft.next_actions || []).map(item => `- ${item}`),
     ].join('\n');
     const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
     const anchor = document.createElement('a');
@@ -274,7 +275,7 @@ Rules:
           {applicationLoading && <p role="status" className="mt-5 text-xs text-muted-foreground">Loading the draft for this project and opportunity…</p>}
           {draft && !applicationLoading && (
             <section className="mt-7 space-y-4">
-              <div className="flex items-center justify-between gap-3"><h2 className="font-heading text-xl font-bold">Application working draft</h2><button onClick={exportDraft} className="inline-flex items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-xs font-semibold text-background"><Download size={13} />Export draft</button></div>
+              <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="font-heading text-xl font-bold">Application working draft</h2><div className="flex flex-wrap gap-2"><button type="button" onClick={() => downloadResearchReport({ tool: 'grant-workspace', query: project?.title || '', analysis: { draft, status, notes }, sources: opportunity ? [opportunity] : [], caveat: 'Grant application working draft only; no eligibility confirmation or submission has occurred.' })} className="inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-xs font-semibold text-primary">Export structured draft (JSON)</button><button type="button" onClick={exportDraft} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-xs font-semibold text-background"><Download size={13} />Export draft</button></div></div>
               <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5"><p className="text-[10px] font-bold uppercase tracking-widest text-primary">Fit assessment</p><p className="mt-2 text-sm leading-6">{draft.fit_summary}</p></div>
               <div className="grid gap-4 lg:grid-cols-2">
                 <article className="rounded-2xl border border-border bg-card p-5"><h3 className="font-semibold">Project summary</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">{draft.project_summary}</p><h3 className="mt-5 font-semibold">Need statement</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">{draft.need_statement}</p></article>
