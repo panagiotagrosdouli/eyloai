@@ -36,7 +36,7 @@ For every query, independently label a pooled set of candidate records as releva
 Recommended primary metrics:
 
 - Precision@5
-- Precision@10
+- Precision@10 (now emitted by the same frozen-label evaluator; exact denominator 10 even when fewer records are returned)
 - nDCG@10
 - duplicate rate
 - metadata-noise rate

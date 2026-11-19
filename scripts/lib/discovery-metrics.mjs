@@ -56,6 +56,7 @@ export function evaluateQuery({ results, judgments, k = 10 }) {
   const sources = new Set(top.map(row => row.source_index).filter(Boolean));
   return {
     precision_at_5: precisionAtK(grades, 5),
+    precision_at_10: precisionAtK(grades, 10),
     ndcg_at_10: ndcgAtK(grades, idealGrades, 10),
     judged_at_10: top.length,
     duplicates_at_10: duplicates,
@@ -70,6 +71,7 @@ export function summarize(rows) {
   const mean = key => rows.reduce((sum, row) => sum + Number(row[key] || 0), 0) / rows.length;
   return {
     queries: rows.length, precision_at_5: mean('precision_at_5'),
+    precision_at_10: mean('precision_at_10'),
     ndcg_at_10: mean('ndcg_at_10'), duplicate_rate_at_10: mean('duplicate_rate_at_10'),
     zero_result_rate: rows.filter(row => row.zero_results).length / rows.length,
     mean_source_diversity_at_10: mean('sources_at_10'),
