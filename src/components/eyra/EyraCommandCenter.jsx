@@ -29,7 +29,7 @@ import { listEyraConversations, saveEyraConversation, loadEyraConversation, rena
 
 import { snapshotPayload, snapshotIdentity, conversationExport } from '@/lib/eyra-snapshot.mjs';
 import { requestedEyraWrites } from '@/lib/eyra-write-intent.mjs';
-import { formatUnverifiedEyraToolAction, hasEyraWriteReceipt } from '@/lib/eyra-tool-outcome.mjs';
+import { formatUnverifiedEyraToolAction, hasEyraWriteReceipt, formatEyraToolFailure } from '@/lib/eyra-tool-outcome.mjs';
 import { buildEyraConversationContext } from '@/lib/eyra-conversation-context.mjs';
 import { listEyraAgentRuns, loadEyraAgentRun, cancelEyraAgentRun, reviewStaleEyraAgentRun, deleteEyraAgentRun } from '@/lib/eyra-run-history';
 
@@ -129,10 +129,10 @@ function formatEyraToolActions(actions) {
       return `- Crossref DOI metadata verified for **${action.result?.title || 'publication'}** (${action.result?.doi || 'DOI unavailable'}); this is not a full-text review.`;
     }
     if (action.status === 'needs_review') {
-      return `- **Outcome uncertain — manual review required:** ${action.tool || 'Workspace action'}. ${action.error || 'Check the actual workspace record before retrying.'}`;
+      return formatEyraToolFailure(action);
     }
     if (action.status === 'failed') {
-      return `- ${action.tool || 'Workspace action'} failed: ${action.error || 'Check the workspace before retrying.'}`;
+      return formatEyraToolFailure(action);
     }
     return formatUnverifiedEyraToolAction(action);
   }).join('\n');
