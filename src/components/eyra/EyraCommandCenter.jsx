@@ -13,7 +13,7 @@ import { buildEvidenceOnlyFallback } from '@/lib/eyra-evidence-fallback.mjs';
 import {
   X, Volume2, VolumeX, Trash2, History, FileDown
 } from 'lucide-react';
-import BrandLogo from '@/components/brand/BrandLogo';
+import BrandLogo, { EyraOrb } from '@/components/brand/BrandLogo';
 import { TypingIndicator, Message } from '@/components/eyra/EyraConversationTimeline';
 import { EyraModeSelector, EyraQuickCommands } from '@/components/eyra/EyraResearchControls';
 import EyraComposer from '@/components/eyra/EyraComposer';
@@ -840,7 +840,8 @@ The saved record was returned by the server. Check the workspace for the final r
           {/* Calm conversation header: history and tools live below, not above the transcript. */}
           <div className="relative z-10 flex shrink-0 items-center gap-3 border-b border-border/70 bg-card/70 px-4 py-3 sm:px-6">
             <div className="flex min-w-0 flex-1 items-center gap-3">
-              <BrandLogo brand="eyra" size="compact" />
+              <span className="hidden sm:block"><BrandLogo brand="eyra" size="compact" /></span>
+              <span className="sm:hidden"><EyraOrb className="h-10 w-10" /></span>
               <div className="min-w-0">
                 <h2 id="eyra-dialog-title" className="text-sm font-semibold tracking-tight text-foreground">Your research copilot</h2>
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">
