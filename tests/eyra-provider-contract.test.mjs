@@ -65,6 +65,21 @@ test('normalizes nested strict response schema with all object fields required',
   assert.equal(schema.additionalProperties, false);
   assert.deepEqual(schema.properties.evidence.items.required, ['doi']);
   assert.throws(() => normalizeEyraSchema(null), /Invalid response schema/);
+  for (const properties of [[], 'not-an-object', null, 42]) {
+    assert.throws(() => normalizeEyraSchema({ type: 'object', properties }), /Invalid response schema properties/);
+  }
+  assert.throws(
+    () => normalizeEyraSchema({ type: 'array', properties: { value: { type: 'string' } } }),
+    /properties require object type/
+  );
+  assert.throws(
+    () => normalizeEyraSchema({ type: 'object', items: { type: 'string' } }),
+    /items require array type/
+  );
+  assert.throws(
+    () => normalizeEyraSchema({ properties: {}, items: { type: 'string' } }),
+    /both items and properties/
+  );
   let nested = { type: 'string' };
   for (let i = 0; i < 10; i++) nested = { type: 'array', items: nested };
   assert.throws(() => normalizeEyraSchema(nested), /too deeply nested/);
