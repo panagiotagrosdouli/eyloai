@@ -39,7 +39,7 @@ export function Message({ msg, onSave, onCopy, saved, copied, saving }) {
           <span className="text-[10px] font-bold text-muted-foreground">You</span>
         </div>
       )}
-      <div className={`min-w-0 max-w-[calc(100%-3.25rem)] flex-1 ${isEyra ? '' : 'items-end flex flex-col'}`}>
+      <div className={`min-w-0 max-w-[calc(100%_-_3.25rem)] flex-1 ${isEyra ? '' : 'items-end flex flex-col'}`}>
         {isEyra && (
           <div className="mb-2 flex items-center gap-2">
             <p className="text-xs font-bold tracking-wide text-foreground">EYRA</p>
