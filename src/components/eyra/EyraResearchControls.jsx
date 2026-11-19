@@ -37,8 +37,20 @@ export function EyraModeSelector({ activeMode, onChange, disabled = false }) {
   );
 }
 
+/** Keep each lens focused on a few genuinely relevant actions; prompts remain centrally defined. */
+export const EYRA_MODE_STARTER_IDS = Object.freeze({
+  research: ['literature', 'gaps', 'project'],
+  strategy: ['project', 'roadmap', 'gaps'],
+  funding: ['funding', 'project', 'roadmap'],
+  startup: ['roadmap', 'project', 'funding'],
+  team: ['team', 'project', 'roadmap'],
+  impact: ['gaps', 'roadmap', 'literature'],
+});
+
 /** Suggested tasks belong to the empty-chat state, not a permanent second toolbar. */
-export function EyraQuickCommands({ onSelect, disabled = false }) {
+export function EyraQuickCommands({ onSelect, activeMode = 'research', disabled = false }) {
+  const relevantIds = EYRA_MODE_STARTER_IDS[activeMode] || EYRA_MODE_STARTER_IDS.research;
+  const suggestions = relevantIds.map(id => EYRA_QUICK_COMMANDS.find(command => command.id === id)).filter(Boolean);
   return (
     <section aria-labelledby="eyra-start-outcome" className="mt-7">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
@@ -46,7 +58,7 @@ export function EyraQuickCommands({ onSelect, disabled = false }) {
         <p className="text-xs text-muted-foreground">Or write your own question below</p>
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
-        {EYRA_QUICK_COMMANDS.map(command => {
+        {suggestions.map(command => {
           const Icon = COMMAND_ICONS[command.id] || BookOpen;
           return (
             <button
