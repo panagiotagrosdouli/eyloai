@@ -1,3 +1,4 @@
+import { downloadResearchReport } from '@/lib/research-report-export.mjs';
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchAllPapers } from '@/lib/eyra-api';
@@ -42,6 +43,7 @@ export default function ImpactPredictor() {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [evidenceCount, setEvidenceCount] = useState(0);
+  const [evidenceRecords, setEvidenceRecords] = useState([]);
   const [analysisError, setAnalysisError] = useState('');
 
   const predict = async (q) => {
@@ -50,12 +52,14 @@ export default function ImpactPredictor() {
     setQuery(searchQuery);
     setLoading(true);
     setPrediction(null);
+    setEvidenceRecords([]);
     setAnalysisError('');
 
     const typeLabel = PREDICT_TYPES.find(t => t.key === predictType)?.label || 'Impact';
 
     try {
       const papers = await searchAllPapers(searchQuery);
+      setEvidenceRecords(papers.slice(0, 10));
       setEvidenceCount(papers.length);
       const evidenceContext = papers.slice(0, 10).map((paper, index) =>
         `[P${index + 1}] "${paper.title}" — ${paper.authors || 'Unknown'} (${paper.year || 'n/a'}) — ${paper.cited_by_count || 0} citations — ${paper.url}`
@@ -153,6 +157,7 @@ Return:
       {/* Header */}
       <div className="mb-6">
         <h1 className="eylo-page-heading">Impact Review</h1>
+        {prediction && <button type="button" onClick={() => downloadResearchReport({ tool: 'impact-review', query, analysis: prediction, sources: evidenceRecords, caveat: 'Scores are model judgements, not calibrated probabilities.' })} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-xs font-semibold text-primary hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">Export research report (JSON)</button>}
       </div>
 
       <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] text-muted-foreground">

@@ -1,3 +1,5 @@
+import { assertPitchDeckEvidenceReferences } from '@/lib/pitch-deck-evidence.mjs';
+import { downloadResearchReport } from '@/lib/research-report-export.mjs';
 import React, { useMemo, useState } from 'react';
 import { jsPDF } from 'jspdf';
 import {
@@ -94,8 +96,8 @@ Rules:
 - Keep bullets concise and speaker notes practical.`,
         response_json_schema: SLIDE_SCHEMA,
       });
-      setDeck(result);
-      localStorage.setItem('eyra_pitch_deck_latest_v2', JSON.stringify({ result, sources: { papers, funding }, savedAt: new Date().toISOString() }));
+      setDeck(assertPitchDeckEvidenceReferences(result, papers, funding));
+      // Do not persist private draft content in a shared browser key. Use explicit exports.
     } catch (generationError) {
       setError(generationError?.message || 'The pitch deck could not be generated.');
     } finally {
@@ -132,6 +134,31 @@ Rules:
         pdf.text(`Evidence: ${slide.evidence_ids.join(', ')}`, 48, 552);
       }
     });
+    // Appendix: preserve source traceability in the actual exported PDF.
+    // These are linked metadata records, not verification of individual claims.
+    const references = [...sourceMap.entries()].filter(([, item]) => typeof item.url === 'string' && /^https:\/\//i.test(item.url));
+    if (references.length) {
+      pdf.addPage();
+      pdf.setFillColor(8, 15, 30);
+      pdf.rect(0, 0, 842, 595, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(21);
+      pdf.text('References · retrieved records', 48, 70);
+      pdf.setFontSize(10);
+      pdf.setTextColor(203, 213, 225);
+      let y = 100;
+      for (const [id, record] of references) {
+        const lines = pdf.splitTextToSize(id + ' · ' + record.title + ' — ' + record.url, 740);
+        if (y + lines.length * 13 > 548) {
+          pdf.addPage();
+          pdf.setFillColor(8, 15, 30); pdf.rect(0, 0, 842, 595, 'F');
+          pdf.setTextColor(203, 213, 225); pdf.setFontSize(10);
+          y = 60;
+        }
+        pdf.text(lines, 48, y);
+        y += lines.length * 13 + 10;
+      }
+    }
     pdf.save('eylo-pitch-deck.pdf');
   };
 
@@ -166,7 +193,7 @@ Rules:
         <section className="mt-7">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div><h2 className="font-heading text-xl font-bold">{deck.deck_title}</h2><p className="text-xs text-muted-foreground">{deck.deck_subtitle} · {sources.papers.length} papers · {sources.funding.length} funding records</p></div>
-            <button onClick={exportPdf} className="inline-flex items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-xs font-semibold text-background"><Download size={13} /> Export PDF</button>
+            <div className="flex flex-wrap gap-2"><button type="button" onClick={() => downloadResearchReport({ tool: 'pitch-deck', query: idea, analysis: deck, sources: [...sources.papers.slice(0, 10), ...sources.funding.slice(0, 8)], caveat: 'Ten generated slides; citations point to retrieved metadata, not independently validated claims.' })} className="inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-xs font-semibold text-primary">Export editable data (JSON)</button><button type="button" onClick={exportPdf} className="inline-flex items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-xs font-semibold text-background"><Download size={13} /> Export PDF</button></div>
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             {deck.slides.map((slide, index) => (

@@ -1,3 +1,4 @@
+import { downloadResearchReport } from '@/lib/research-report-export.mjs';
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { searchFundingOpportunities } from '@/lib/funding-api';
@@ -195,6 +196,7 @@ Return one result for every supplied id. Do not add programs or change factual f
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="font-heading font-bold text-2xl">Challenges</h1>
+          {challenges.length > 0 && <button type="button" onClick={() => downloadResearchReport({ tool: 'open-challenges', query: manualQuery || 'research and innovation', analysis: { verified_opportunities: challenges }, sources: challenges.map(item => ({ ...item, title: item.title, source_url: item.url_hint, source: item.source || item.organizer })), caveat: 'Official provider supplied record facts; EYRA match reasons are unverified interpretations.' })} className="mt-2 inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-xs font-semibold text-primary">Export challenges (JSON)</button>}
         </div>
         <Link to="/library?tab=opportunities" className="inline-flex min-h-10 items-center rounded-lg border border-border px-3 text-xs font-medium text-primary hover:bg-secondary">
           View saved calls in Library

@@ -1,3 +1,4 @@
+import { downloadResearchReport } from '@/lib/research-report-export.mjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -133,6 +134,7 @@ export default function VoiceAssistant() {
     <div className="eylo-page">
       <header className="mb-7">
         <h1 className="eylo-page-heading">Voice</h1>
+        {result && <button type="button" onClick={() => downloadResearchReport({ tool: 'voice-workspace', query: transcript, analysis: { goal_analysis: result.goal_analysis || '', ai_error: result.ai_error || '', source_status: result.source_status || '' }, sources: [...(result.papers || []), ...(result.researchers || []), ...(result.funding_opportunities || [])], caveat: 'Browser microphone input is optional; text query and retrieved records are the basis of this analysis.' })} className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-xs font-semibold text-primary">Export spoken research (JSON)</button>}
       </header>
 
       <section className="rounded-3xl border border-primary/20 bg-card p-5 sm:p-8">
