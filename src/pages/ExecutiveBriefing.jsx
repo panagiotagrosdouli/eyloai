@@ -1,3 +1,5 @@
+import { readPrivateResearchCache, writePrivateResearchCache } from '@/lib/research-tool-private-cache.mjs';
+import { downloadResearchReport } from '@/lib/research-report-export.mjs';
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import {
@@ -31,19 +33,13 @@ export default function ExecutiveBriefing() {
       setUser(me);
       setProjects(projs);
 
-      const today = new Date().toDateString();
-      const cachedDate = localStorage.getItem('eyra_briefing_grounded_v2_date');
-      const cachedBriefing = localStorage.getItem('eyra_briefing_grounded_v2');
-      if (cachedDate === today && cachedBriefing) {
-        try {
-          const parsedBriefing = JSON.parse(cachedBriefing);
-          setBriefing(parsedBriefing);
-          setSourceCounts(parsedBriefing._source_counts || { papers: 0, funding: 0 });
-          setLastGenerated(new Date(localStorage.getItem('eyra_briefing_grounded_v2_ts') || Date.now()));
-        } catch {
-          localStorage.removeItem('eyra_briefing_grounded_v2');
-          localStorage.removeItem('eyra_briefing_grounded_v2_date');
-        }
+      // Only restore the current authenticated owner's current-session report.
+      // Legacy unscoped localStorage keys must never be read or trusted.
+      const cached = me?.id ? readPrivateResearchCache(sessionStorage, 'executive-briefing', me.id) : null;
+      if (cached) {
+        setBriefing(cached.analysis);
+        setSourceCounts(cached.analysis._source_counts || { papers: 0, funding: 0 });
+        setLastGenerated(new Date(cached.savedAt));
       }
     } catch (workspaceError) {
       setError(workspaceError?.message || 'Your briefing workspace could not be loaded.');
@@ -174,9 +170,7 @@ Rules:
       setProjects(projs);
       const now = new Date();
       setLastGenerated(now);
-      localStorage.setItem('eyra_briefing_grounded_v2_date', now.toDateString());
-      localStorage.setItem('eyra_briefing_grounded_v2', JSON.stringify(groundedBriefing));
-      localStorage.setItem('eyra_briefing_grounded_v2_ts', now.toISOString());
+      if (currentUser?.id) writePrivateResearchCache(sessionStorage, 'executive-briefing', currentUser.id, groundedBriefing, now);
     } catch (briefingError) {
       setError(briefingError?.message || 'The briefing could not be generated.');
     } finally {
@@ -193,6 +187,7 @@ Rules:
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="eylo-page-heading">Executive Briefing</h1>
+          {briefing && <button type="button" onClick={() => downloadResearchReport({ tool: 'executive-briefing', query: 'Current private workspace priorities', analysis: briefing, sources: [...(briefing.new_discoveries || []).map(item => ({ title: item.item, source_url: item.source_url, source: item.source })), ...(briefing.funding_alerts || []).map(item => ({ title: item.alert, source_url: item.source_url }))], caveat: 'Generated using owned workspace records and retrieved metadata; verify each cited original.' })} className="mt-2 inline-flex min-h-11 items-center rounded-xl border border-border px-3 text-xs font-semibold text-primary">Export briefing (JSON)</button>
           {lastGenerated && (
             <p className="text-[10px] text-muted-foreground mt-0.5">Last generated: {moment(lastGenerated).fromNow()}</p>
           )}
