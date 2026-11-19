@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { environment } from '@/lib/config/env';
 import { verifyUserOnce } from '@/lib/auth/sessionVerification.mjs';
 import { SessionChangedError } from '@/lib/auth/sessionRequest.mjs';
+import { mayRetrySupabaseGatewayRequest } from '@/lib/auth/gatewayRetryPolicy.mjs';
 
 export const isSupabaseConfigured = environment.ok;
 export const AUTH_REQUIRED_EVENT = 'eylo:auth-required';
@@ -60,15 +61,18 @@ const gatewayFetch = async (input, init) => {
     `${window.location.origin}/supabase/`,
     `${environment.values.VITE_SUPABASE_URL}/`,
   );
+  // A failed POST can still have reached Supabase; automatic replay may
+  // duplicate OTP emails or invalidate rotated refresh tokens.
+  const canRetryDirect = mayRetrySupabaseGatewayRequest(input, init);
   try {
     const response = await fetchWithTimeout(input, init);
     const type = response.headers.get('content-type') || '';
-    if ([404, 502, 503, 504].includes(response.status) && !type.includes('application/json')) {
+    if (canRetryDirect && [404, 502, 503, 504].includes(response.status) && !type.includes('application/json')) {
       return fetchWithTimeout(directUrl, init);
     }
     return response;
   } catch (error) {
-    if (error?.name === 'AbortError') throw error;
+    if (error?.name === 'AbortError' || !canRetryDirect) throw error;
     return fetchWithTimeout(directUrl, init);
   }
 };
