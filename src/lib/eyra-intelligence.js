@@ -6,7 +6,7 @@
 
 import { protectedApiFetch } from '@/lib/protected-api';
 import { trackEyraActionCompleted } from '@/lib/product-analytics';
-import { readEyraEvents } from '@/lib/eyra-stream.mjs';
+import { readEyraReply } from '@/lib/eyra-stream.mjs';
 
 export class EyraRequestError extends Error {
   constructor(message, status, details = {}) {
@@ -54,21 +54,14 @@ async function requestOpenAiAnalysis(prompt, responseSchema, signal, enableProje
   const response = await postAnalysis(cleanPrompt, responseSchema, signal, enableProjectTools, toolIntent, stream, resourceContext, latestUserRequest, writeConfirmed, runRequestId, previewWriteActions);
 
   if (stream && response.ok) {
-    let final = null;
-    for await (const event of readEyraEvents(response.body)) {
+    try {
+      return await readEyraReply(response.body, { signal, onDelta });
+    } catch (error) {
       signal?.throwIfAborted();
-      if (event.type === 'delta' && typeof event.delta === 'string') onDelta?.(event.delta);
-      else if (event.type === 'done') final = event;
-      else if (event.type === 'error') {
-        // Streaming can start with HTTP 200 and fail later. Preserve only
-        // explicitly allowlisted server codes, never arbitrary provider text.
-        const code = ['EYRA_INCOMPLETE', 'EYRA_STREAM_INCOMPLETE'].includes(event.code)
-          ? event.code : 'EYRA_STREAM_INCOMPLETE';
-        throw new EyraRequestError('EYRA did not complete the response.', 502, { code });
-      }
+      const code = ['EYRA_INCOMPLETE', 'EYRA_STREAM_INCOMPLETE'].includes(error?.code)
+        ? error.code : 'EYRA_STREAM_INCOMPLETE';
+      throw new EyraRequestError('EYRA did not complete the response.', 502, { code });
     }
-    if (!final?.text) throw new EyraRequestError('EYRA did not confirm the completed response.', 502);
-    return final.text;
   }
 
   const result = await response.json().catch(() => ({}));

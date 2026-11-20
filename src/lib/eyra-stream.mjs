@@ -39,6 +39,9 @@ export async function relayEyraResponse(body, onDelta) {
     } else if (event.type === 'response.completed') {
       if (event.response?.status !== 'completed') throw new Error('EYRA generation did not complete.');
       completed = event.response;
+      // The provider terminal event confirms completion. Waiting for transport
+      // EOF can turn a finished answer into a later timeout or disconnect.
+      break;
     } else if (event.type === 'response.incomplete') {
       // Use only provider-defined enum values; never log upstream error text.
       // OpenAI may exhaust the token budget before producing any visible text.
@@ -58,4 +61,35 @@ export async function relayEyraResponse(body, onDelta) {
   const finalText = (completed.output || []).flatMap(item => item.content || []).filter(item => item.type === 'output_text').map(item => item.text).join('\n').trim();
   if (!finalText || finalText.length > 40_000) throw new Error('EYRA completed without a valid final response.');
   return { text: finalText, response_id: completed.id, model: completed.model };
+}
+
+
+/**
+ * Read EYLO's relay protocol through its terminal event, not transport EOF.
+ * @param {ReadableStream<Uint8Array>} body
+ * @param {{signal?: AbortSignal, onDelta?: (delta: string) => void}} [options]
+ */
+export async function readEyraReply(body, { signal, onDelta } = {}) {
+  let characters = 0;
+  for await (const event of readEyraEvents(body)) {
+    signal?.throwIfAborted();
+    if (event.type === 'delta') {
+      if (typeof event.delta !== 'string') throw new Error('EYRA returned an invalid text event.');
+      characters += event.delta.length;
+      if (characters > 40_000) throw new Error('EYRA response exceeded its text budget.');
+      onDelta?.(event.delta);
+    } else if (event.type === 'done') {
+      if (typeof event.text !== 'string' || !event.text.trim() || event.text.length > 40_000) {
+        throw new Error('EYRA did not confirm the completed response.');
+      }
+      return event.text;
+    } else if (event.type === 'error') {
+      // Server codes are allowlisted; never repeat arbitrary error messages.
+      const code = ['EYRA_INCOMPLETE', 'EYRA_STREAM_INCOMPLETE'].includes(event.code)
+        ? event.code : 'EYRA_STREAM_INCOMPLETE';
+      throw Object.assign(new Error('EYRA did not complete the response.'), { code });
+    }
+  }
+  signal?.throwIfAborted();
+  throw new Error('EYRA did not confirm the completed response.');
 }

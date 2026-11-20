@@ -274,3 +274,16 @@ No SQL was applied. Legacy duplicate `20260803` versions and native-schema assum
 ## Remaining acceptance
 
 Run real staging registration/recovery, Projects CRUD/concurrency, Files bytes and two-user denial, Library/project linking, authorized EYRA with persisted conversations and citations, funding provenance, scheduled backend jobs, LiveKit participants and Stripe test-mode webhooks. Existing fixture tests cannot establish any of these. Account deletion, paid access, automations, all77 advanced product scopes and scientific human review remain open.
+
+
+## EYRA terminal-stream completion repair — 2026-11-20
+
+The server relay and browser previously waited for transport EOF after receiving their explicit terminal success event. A stalled connection or later disconnect could therefore discard an already confirmed answer, publish an incomplete-response error and refund a successfully completed request. This defect was reproduced with a nonclosing stream and a connection error after `response.completed`; it is not established as the historical cause of issue #507.
+
+The relay now stops at the provider's `response.completed`, validates the authoritative response as before, and releases its reader. The browser uses a shared `readEyraReply` helper that returns at EYLO's validated `done` event, releases the connection, preserves cancellation and allowlists incomplete-response error codes. Partial text, invalid/empty/oversized completions and workspace tool calls still cannot become confirmed free-text replies. A later transport event cannot reverse a valid terminal completion. Reference: [OpenAI Responses streaming events](https://developers.openai.com/api/reference/resources/responses/streaming-events), where `response.completed` is emitted when the model response is complete.
+
+Validation: 14 focused stream/handler tests; the full check passes 1,201 tests, imports, frontend/API typecheck, lint and build. A real Chromium/HTTP fixture verifies open-after-done streams, post-completion disconnects, rejection of partial/invalid responses, cancellation and all five connection cleanups. The complete Learning browser suite also passes with synthetic Auth/PostgREST/AI transport. No existing failing assertion was removed.
+
+Hosted acceptance remains open. Existing production OpenAI configuration metadata is present, but no usable local credential or authorized signed-in test session is available. No API key was created/decrypted/copied and no live OpenAI request was made. Supabase returned `Branching is supported only on the Pro plan or above` when asked for an isolated staging branch; no branch was created and no plan was changed. The only existing branch is the default production ref and must not be used for acceptance writes. Missing conversation/agent tables and migration-history reconciliation remain unresolved. No migration, production data mutation or production deployment was performed.
+
+Status: **IMPLEMENTED — UNVERIFIED** pending authenticated live provider and isolated staging persistence/isolation acceptance. Machine evidence: [terminal-stream verification](integration/eyra-terminal-stream-2026-11-20.json).
