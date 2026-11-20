@@ -3,9 +3,14 @@ import assert from 'node:assert/strict';
 import { shouldRetrieve, compactQuery } from '../src/lib/eyra-retrieval-plan.mjs';
 
 test('research retrieval planner respects explicit modes and Greek/English intent', () => {
-  assert.equal(shouldRetrieve('hello', 'research').papers, true);
-  assert.equal(shouldRetrieve('hello', 'funding').funding, true);
-  assert.equal(shouldRetrieve('hello', 'team').people, true);
+  // Pure greetings must not query providers regardless of the selected mode.
+  assert.equal(shouldRetrieve('hello', 'research').papers, false);
+  assert.equal(shouldRetrieve('hello', 'funding').funding, false);
+  assert.equal(shouldRetrieve('hello', 'team').people, false);
+  // Explicit research intent must still select the right provider.
+  assert.equal(shouldRetrieve('hello, find recent papers on DNA repair', 'research').papers, true);
+  assert.equal(shouldRetrieve('hello, find funding for DNA repair', 'funding').funding, true);
+  assert.equal(shouldRetrieve('hello, find university researchers', 'team').people, true);
   const scholarly = shouldRetrieve('Αναζήτησε επιστημονική βιβλιογραφία', 'strategy');
   assert.equal(scholarly.papers, true);
   const authors = shouldRetrieve('find university researchers', 'strategy');
