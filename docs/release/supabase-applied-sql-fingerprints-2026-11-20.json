@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "source": "Supabase production supabase_migrations.schema_migrations statements[1], read-only snapshot 2026-11-20",
+  "project_ref": "kbzjngpzxpniaumlupaa",
+  "remote_application_authorized": false,
+  "sql_text_comparison_only": true,
+  "items": [
+    {
+      "remote_version": "20260817083110",
+      "remote_name": "production_billing_entitlements",
+      "local_file": "20260811053718_production_billing_entitlements.sql",
+      "remote_md5": "0873007b008aebada77e111b44aa8c4b",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20260817083217",
+      "remote_name": "operational_services",
+      "local_file": "20260817090000_operational_services.sql",
+      "remote_md5": "727a23c638b294eaca040281e71e8fe2",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20260817083616",
+      "remote_name": "security_hardening",
+      "local_file": "20260817090500_security_hardening.sql",
+      "remote_md5": "46518c869218662e544fc3b73b19bea0",
+      "classification": "divergent_sql_requires_review"
+    },
+    {
+      "remote_version": "20260817083711",
+      "remote_name": "analytics_rpc_boundary",
+      "local_file": "20260817090600_analytics_rpc_boundary.sql",
+      "remote_md5": "c2baf96801794b0416236f3470a3a5c6",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20260817083904",
+      "remote_name": "analytics_smoke_verification",
+      "local_file": "20260817090700_analytics_smoke_verification.sql",
+      "remote_md5": "bafa48399b73ec21e43dcd0a910e4009",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115185428",
+      "remote_name": "shared_discovery_quota",
+      "local_file": "20261113113010_shared_discovery_quota.sql",
+      "remote_md5": "8c93f94168a5f253fedd086c102478c6",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115191303",
+      "remote_name": "bridge_legacy_workspace_schema",
+      "local_file": "20261115190203_bridge_legacy_workspace_schema.sql",
+      "remote_md5": "b057ce99ca8e04454ac9e7ec183ba80a",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115192654",
+      "remote_name": "eylo_life_tasks",
+      "local_file": "20261112161818_eylo_life_tasks.sql",
+      "remote_md5": "0df38d1ffe5daf10834d0c5b79a68641",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115192808",
+      "remote_name": "eylo_life_goals_milestones",
+      "local_file": "20261112163010_eylo_life_goals_milestones.sql",
+      "remote_md5": "2207aa457868ea4a4dcc8f0b0e6da6a4",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115193737",
+      "remote_name": "restore_missing_eylo_files_and_versions",
+      "local_file": "20261112190430_eylo_files.sql",
+      "remote_md5": "084af8eaa193f77be8a55d465f6b13ab",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115194119",
+      "remote_name": "restore_private_notes",
+      "local_file": "20261112154425_private_notes.sql",
+      "remote_md5": "185bfe5c1363367ab89b3bf65a0c99a3",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115194121",
+      "remote_name": "restore_study_flashcards",
+      "local_file": "20261112165449_eylo_study_flashcards.sql",
+      "remote_md5": "089a8e7f04d5c6ed6731b310e2c6252a",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115194124",
+      "remote_name": "restore_calendar_events",
+      "local_file": "20261112173500_eylo_calendar_events.sql",
+      "remote_md5": "e8f5b1d77a6c24d7ef6a7a46f09ffc7d",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115194126",
+      "remote_name": "restore_research_dataset_catalog",
+      "local_file": "20261115090000_research_dataset_catalog.sql",
+      "remote_md5": "0e6dfe58a7faa5dcca701e65d130ff5c",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115194209",
+      "remote_name": "restore_canonical_learning_time",
+      "local_file": "20261113062923_canonical_learning_time.sql",
+      "remote_md5": "2d258ad56c9b74e364a63a36ca257411",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115194212",
+      "remote_name": "restore_workspace_activity_history",
+      "local_file": "20261112181000_eylo_activity_history.sql",
+      "remote_md5": "0d633c96e2b82789a4455a5fd8929bb3",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115194215",
+      "remote_name": "restore_workspace_search",
+      "local_file": "20261112183722_universal_workspace_search.sql",
+      "remote_md5": "4431d31d01d2ba4f862ca40ca12d2ba1",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115194217",
+      "remote_name": "restore_private_file_search",
+      "local_file": "20261112200000_private_file_search.sql",
+      "remote_md5": "6c445dd41bc6605099979691459ad2e4",
+      "classification": "exact_sql_match"
+    },
+    {
+      "remote_version": "20261115194359",
+      "remote_name": "restore_time_tracker_pause_resume",
+      "local_file": "20261115181809_time_tracker_pause_resume.sql",
+      "remote_md5": "144690d7664519f5be27d1c1a9b642ac",
+      "classification": "exact_sql_match"
+    }
+  ]
+}
