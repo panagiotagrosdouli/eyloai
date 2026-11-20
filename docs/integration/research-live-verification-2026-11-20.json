@@ -1,0 +1,163 @@
+{
+  "observed_at_utc": "2026-11-20T19:50:54.457125+00:00",
+  "client_timezone": "Europe/Athens",
+  "scope": "Real production read-only research gateway and anonymous mobile browser checks; no fixtures, releases or administrative writes",
+  "observed_production_sha": "ffeda6b83582a54c7747bddb268d4b8d8290f543",
+  "current_source_main": "6af4e1be",
+  "vercel_project": {
+    "id": "prj_yiujFufSKIRnlmZUr9WG7jgf7qKL",
+    "team": "team_IUkyJtLhpTRBaUikmCSYHBDn",
+    "name": "eyloai",
+    "access_restored": true
+  },
+  "capabilities": {
+    "ai": true,
+    "billing": false,
+    "contact": false,
+    "scheduled_monitoring": false,
+    "institution_analytics": false
+  },
+  "providers": [
+    {
+      "provider": "openalex_works",
+      "status": 200,
+      "source": "openalex_works",
+      "cache": "MISS",
+      "records": 2
+    },
+    {
+      "provider": "openalex_authors",
+      "status": 200,
+      "source": "openalex_authors",
+      "cache": "MISS",
+      "records": 2
+    },
+    {
+      "provider": "openalex_institutions",
+      "status": 200,
+      "source": "openalex_institutions",
+      "cache": "MISS",
+      "records": 2
+    },
+    {
+      "provider": "arxiv",
+      "status": 200,
+      "source": "arxiv",
+      "cache": "MISS",
+      "records": 2
+    },
+    {
+      "provider": "europe_pmc",
+      "status": 200,
+      "source": "europe_pmc",
+      "cache": "MISS",
+      "records": 2
+    },
+    {
+      "provider": "crossref",
+      "status": 200,
+      "source": "crossref",
+      "cache": "MISS",
+      "records": 2
+    },
+    {
+      "provider": "semantic_scholar",
+      "status": 429,
+      "body": "{\"message\": \"Too Many Requests. Please wait and try again or apply for a key for higher rate limits. https://www.semanticscholar.org/product/api#api-key-form\", \"code\": \"429\"}"
+    }
+  ],
+  "browser": [
+    {
+      "url": "https://eyloai.vercel.app/discover?q=climate%20adaptation",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "api_responses": [
+        {
+          "provider": "openalex_works",
+          "status": 429
+        },
+        {
+          "provider": "crossref",
+          "status": 200
+        },
+        {
+          "provider": "semantic_scholar",
+          "status": 429
+        },
+        {
+          "provider": "openalex_institutions",
+          "status": 200
+        },
+        {
+          "provider": "openalex_authors",
+          "status": 200
+        },
+        {
+          "provider": "arxiv",
+          "status": 200
+        },
+        {
+          "provider": "openalex_works",
+          "status": 200
+        },
+        {
+          "provider": "europe_pmc",
+          "status": 200
+        }
+      ],
+      "previous_gateway_error_present": false,
+      "horizontal_overflow": false,
+      "rendered_heading_count": 40,
+      "rendered_result_summary": [
+        "24 deduplicated papers \u00b7 4 researchers \u00b7 6 institutions"
+      ],
+      "partial_coverage_notice": "Partial live retrieval. 4 of 5 scholarly paper indexes are available. Semantic Scholar is rate limited (HTTP 429)."
+    },
+    {
+      "url": "https://eyloai.vercel.app/find-researchers?q=climate%20adaptation",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "api_responses": [
+        {
+          "provider": "openalex_authors",
+          "status": 200
+        },
+        {
+          "provider": "openalex_works",
+          "status": 200
+        }
+      ],
+      "previous_gateway_error_present": false,
+      "horizontal_overflow": false,
+      "rendered_heading_count": 25,
+      "rendered_result_summary": [
+        "24 relevant public profiles found"
+      ],
+      "partial_coverage_notice": ""
+    }
+  ],
+  "browser_transport_note": "Sandbox Chromium did not trust interception CA; ignoreHTTPSErrors used for this diagnostic only.",
+  "quota_unavailable_log_scan": {
+    "window": "30m",
+    "matching_groups_returned": 0,
+    "limitation": "Point-in-time retained logs, not historical root-cause proof"
+  },
+  "conclusion": "Previously reported shared gateway503 did not reproduce; six provider routes returned real records; Semantic Scholar returned upstream429 and partial coverage remained usable. Public Discover and Researchers rendered live results.",
+  "not_verified": [
+    "Authenticated workspace research flows and persistence",
+    "EYRA real generation; ai flag is configuration presence only",
+    "Two-user database and Storage workflows",
+    "Billing, contact and scheduled monitoring",
+    "Independent scientific relevance and author-type review",
+    "Cause and timing of the external operational restoration"
+  ],
+  "mutations_performed": [],
+  "previous_pr_445": {
+    "merged": false,
+    "note": "The pending SUPABASE_URL compatibility patch is not the cause of the observed restoration; it was not deployed in this verification."
+  }
+}
