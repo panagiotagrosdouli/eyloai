@@ -61,7 +61,9 @@ function rpc(name, args) {
     if (existing) return existing;
     const thread = { id: args.p_snapshot_id, user_id: user.id, title: args.p_title, version: 1, updated_date: now() };
     tables.eyra_conversations.push(thread);
-    args.p_messages.forEach((m, index) => tables.eyra_messages.push({ id: randomUUID(), user_id: user.id, conversation_id: thread.id, sequence_number: index + 1, role: m.role, content: { text: m.text }, sources: m.sources, created_date: now() }));
+    // Cloud messages can share a timestamp; a timeline must not use it as a unique React key.
+    const sharedCreatedDate = now();
+    args.p_messages.forEach((m, index) => tables.eyra_messages.push({ id: randomUUID(), user_id: user.id, conversation_id: thread.id, sequence_number: index + 1, role: m.role, content: { text: m.text }, sources: m.sources, created_date: sharedCreatedDate }));
     return thread;
   }
   if (name === 'create_quiz') {
