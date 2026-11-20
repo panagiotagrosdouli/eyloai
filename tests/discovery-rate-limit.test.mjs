@@ -255,3 +255,44 @@ test('allowed Vercel request receives shared quota before provider response', as
   assert.match(requests[0], /rpc\/consume_discovery_rate_limit$/);
   assert.match(requests[1], /^https:\/\/api\.openalex\.org\/works\?/);
 });
+
+test('all scholarly providers can obtain the shared quota with server-only project configuration', async () => {
+  let requestedUrl;
+  const result = await consumeDiscoveryQuota({ headers: { 'x-vercel-forwarded-for': '203.0.113.12' } }, {
+    env: { VERCEL: '1', SUPABASE_URL: 'https://server-only.supabase.co', SUPABASE_SECRET_KEY: 'sb_secret_fixture' },
+    fetchImpl: async url => { requestedUrl = url; return Response.json([{ allowed: true, remaining: 119, retry_after_seconds: 300 }]); },
+  });
+  assert.equal(result.status, 'available');
+  assert.equal(result.allowed, true);
+  assert.equal(requestedUrl, 'https://server-only.supabase.co/rest/v1/rpc/consume_discovery_rate_limit');
+});
+
+test('every gateway provider works with standard server configuration while preserving quota enforcement', async t => {
+  const keys = ['VERCEL', 'SUPABASE_URL', 'VITE_SUPABASE_URL', 'SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY'];
+  const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]));
+  const originalFetch = globalThis.fetch;
+  process.env.VERCEL = '1';
+  process.env.SUPABASE_URL = 'https://server-gateway.supabase.co';
+  process.env.SUPABASE_SECRET_KEY = 'sb_secret_fixture';
+  delete process.env.VITE_SUPABASE_URL;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key]; else process.env[key] = value;
+    }
+  });
+  for (const provider of ['openalex_works', 'openalex_authors', 'openalex_institutions', 'arxiv', 'europe_pmc', 'crossref', 'semantic_scholar']) {
+    const calls = [];
+    globalThis.fetch = async url => {
+      calls.push(String(url));
+      if (String(url).includes('/rpc/consume_discovery_rate_limit')) return Response.json([{ allowed: true, remaining: 119, retry_after_seconds: 300 }]);
+      return new Response(provider === 'arxiv' ? '<feed></feed>' : '{"results":[]}', { headers: { 'content-type': provider === 'arxiv' ? 'application/atom+xml' : 'application/json' } });
+    };
+    const response = responseRecorder();
+    await handler({ method: 'GET', headers: { 'x-vercel-forwarded-for': '203.0.113.12' }, query: { provider, q: 'shared runtime config regression' } }, response);
+    assert.equal(response.statusCode, 200, provider);
+    assert.match(calls[0], /^https:\/\/server-gateway\.supabase\.co\/rest\/v1\/rpc\/consume_discovery_rate_limit$/);
+    assert.equal(calls.length, 2, `${provider} obtains quota before upstream access`);
+  }
+});

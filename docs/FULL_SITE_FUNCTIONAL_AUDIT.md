@@ -14,6 +14,14 @@ Audit date: 2026-11-15 (Europe/Athens). Base main: `5f270e8eaa177610e4be3e1e7a58
 | Deployment identity | Open website and API | Previous tracker404 is historical; current public endpoints respond | Current deployment reports main SHA; private ownership/configuration unknown | Read-only probe; no deployment performed | release:probe | capabilities and deployment-status200; connector search finds no EYLO Vercel project | PARTIALLY FUNCTIONAL |
 | EYRA, billing, contact, scheduling | AI requests, payments, messages, schedules | Public capability flags false | Provider/secret/backend configuration cannot be verified from public flags | No fake provider or live billing enabled | Existing tests only; credentials not configured locally | Public capability report disables these features | PARTIALLY FUNCTIONAL |
 
+## Shared research connection follow-up (2026-11-15)
+
+Live main `6adb14e` still returns `503 DISCOVERY_RATE_LIMIT_UNAVAILABLE`: the shared quota check fails before any scholarly source request. This affects every consumer of `/api/discovery`, including Discover, researcher search and source-backed research tools. The exact deployed quota failure classification remains inaccessible.
+
+A tested source defect is repaired: `readSupabaseApiConfig` now accepts standard server `SUPABASE_URL`, retains Vite compatibility, and rejects conflicting project URLs. This repairs server-only configuration across consumers of the shared adapter; it does not establish that production uses that configuration. No quota bypass, fake results, database writes or production deployment was introduced.
+
+Verification: `npm run check` passed imports, both typecheck projects, lint, 761 Node tests and build. Handler regression exercises all seven providers with server-only URL configuration and quota-before-provider ordering. Discovery Gateway browser fixtures pass. Fresh Vercel team-scoped list returns no projects and direct EYLO lookup returns404; Supabase still exposes only the unrelated project. Live restoration remains **BROKEN** until the intended configuration/RPC can be inspected and repaired. Code status: **IMPLEMENTED — UNVERIFIED**. See [repair instructions](release/RESEARCH_CONNECTION_REPAIR.md).
+
 ## Required environment evidence
 
 - Supabase list_projects returned only unrelated `umzrggayitzfgrrofjnw`; it was not queried or mutated. get_project for owner-identified production `kbzjngpzxpniaumlupaa` returned permission denied. Public production JavaScript independently references `kbzjngpzxpniaumlupaa`. No migration history, private schema, grants, bucket, or logs were accessible.

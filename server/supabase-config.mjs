@@ -4,7 +4,13 @@
  * credentials from being sent to an arbitrary host by a mistyped env value.
  */
 export function readSupabaseApiConfig(env = process.env) {
-  const url = String(env.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
+  const normalizeUrl = value => String(value || '').trim().replace(/\/$/, '');
+  const serverUrl = normalizeUrl(env.SUPABASE_URL);
+  const browserUrl = normalizeUrl(env.VITE_SUPABASE_URL);
+  // Runtime configuration need not duplicate Vite's build-time variable.
+  // A disagreement is unsafe: never silently select a different tenant.
+  const urlConflict = Boolean(serverUrl && browserUrl && serverUrl !== browserUrl);
+  const url = serverUrl || browserUrl;
   const publicKey = String(
     env.SUPABASE_PUBLISHABLE_KEY
     || env.SUPABASE_ANON_KEY
@@ -33,10 +39,11 @@ export function readSupabaseApiConfig(env = process.env) {
   }
 
   return {
-    url: validUrl ? url : '',
+    url: validUrl && !urlConflict ? url : '',
+    urlConflict,
     publicKey,
     serverKey,
-    hasPublicConfig: validUrl && Boolean(publicKey),
-    hasServerConfig: validUrl && Boolean(serverKey),
+    hasPublicConfig: validUrl && !urlConflict && Boolean(publicKey),
+    hasServerConfig: validUrl && !urlConflict && Boolean(serverKey),
   };
 }

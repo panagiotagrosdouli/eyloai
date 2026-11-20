@@ -19,7 +19,7 @@ const configured = {
 test('explains missing server configuration even when an OpenAI key is present', () => {
   const result = diagnoseConfiguration({ OPENAI_API_KEY: configured.OPENAI_API_KEY });
   assert.equal(result.services.ai.configured, false);
-  assert.ok(result.services.ai.missing.includes('VITE_SUPABASE_URL'));
+  assert.ok(result.services.ai.missing.includes('SUPABASE_URL or VITE_SUPABASE_URL'));
   assert.ok(result.services.ai.missing.some(name => name.includes('SUPABASE_SECRET_KEY')));
   assert.ok(!result.services.ai.missing.includes('OPENAI_API_KEY'));
   assert.equal(result.decision, 'CONFIGURATION_INCOMPLETE');
@@ -54,4 +54,14 @@ test('detects a legacy service-role JWT in public configuration without disclosi
   assert.equal(result.decision, 'UNSAFE_PUBLIC_CONFIGURATION');
   assert.ok(result.unsafe_public_variables.includes('VITE_SUPABASE_ANON_KEY'));
   assert.ok(!JSON.stringify(result).includes('never-disclose'));
+});
+
+
+test('diagnoses server-only configuration and conflicting project URLs without exposing values', () => {
+  const env = { SUPABASE_URL: configured.VITE_SUPABASE_URL, SUPABASE_SECRET_KEY: configured.SUPABASE_SECRET_KEY };
+  assert.equal(diagnoseConfiguration(env).services.discovery.configured, true);
+  const result = diagnoseConfiguration({ ...env, VITE_SUPABASE_URL: 'https://other.supabase.co' });
+  assert.equal(result.services.discovery.configured, false);
+  assert.ok(result.services.discovery.missing.some(name => name.includes('conflicting projects')));
+  assert.ok(!JSON.stringify(result).includes('https://other.supabase.co'));
 });

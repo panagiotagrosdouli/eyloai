@@ -44,3 +44,15 @@ test('serverless Supabase configuration accepts an explicit project and separate
   assert.equal(config.hasPublicConfig, true);
   assert.equal(config.hasServerConfig, true);
 });
+
+test('server configuration accepts SUPABASE_URL without requiring a Vite build variable', () => {
+  const config = readSupabaseApiConfig({ SUPABASE_URL: 'https://server-only.supabase.co/', SUPABASE_SECRET_KEY: 'fixture-private' });
+  assert.equal(config.url, 'https://server-only.supabase.co');
+  assert.equal(config.hasServerConfig, true);
+});
+
+test('different frontend and server projects fail closed rather than sending credentials to either', () => {
+  const config = readSupabaseApiConfig({ SUPABASE_URL: 'https://one.supabase.co', VITE_SUPABASE_URL: 'https://two.supabase.co', SUPABASE_SECRET_KEY: 'fixture-private' });
+  assert.equal(config.url, '');
+  assert.equal(config.hasServerConfig, false);
+});
