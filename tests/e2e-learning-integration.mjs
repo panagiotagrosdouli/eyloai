@@ -339,8 +339,15 @@ try {
   // A native confirmation dialog is already covered in the earlier clear.
   // Here, keep confirmation deterministic so the race test actually measures
   // Clear versus the held history response, not Playwright dialog timing.
-  await page.evaluate(() => { window.confirm = () => true; });
+  await page.evaluate(() => {
+    window.__eyraOriginalConfirm = window.confirm;
+    window.confirm = () => true;
+  });
   await page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
+  await page.evaluate(() => {
+    window.confirm = window.__eyraOriginalConfirm;
+    delete window.__eyraOriginalConfirm;
+  });
   // Verify the actual React clear committed before the delayed network
   // response is released. A real stale history restore must not resurrect it.
   await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
