@@ -33,6 +33,18 @@ This document distinguishes a deployed build from independently validated end-to
 3. **Broad EYRA acceptance gap:** tracker [#462](https://github.com/panagiotagrosdouli/eyloai/issues/462). Complete staged RLS checks, live source-to-claim evaluation and durable action verification; historical notes in that issue are not proof of current production schema.
 4. **Misleading fallback when no sources were requested:** fixed in the accompanying PR by replacing a source-record heading with an explicit AI-outage state. The AI stream failure itself is **not** claimed fixed.
 
+
+## Connected Supabase production read-only inspection (2026-11-20)
+
+Project `eyloai` (`kbzjngpzxpniaumlupaa`) was reported `ACTIVE_HEALTHY`. Its table inventory contains existing RLS-enabled workspace and billing tables, but **not** `public.eyra_conversations`, `public.eyra_messages`, `public.eyra_agent_runs` or `public.eyra_agent_actions`.
+
+- The repository ships proposed migration files `20261113090000_eyra_conversations.sql`, `20261113114924_eyra_conversation_snapshots.sql`, `20261113120556_eyra_snapshot_retry_identity.sql` and `20261115233000_eyra_agent_runs.sql`. Their headers explicitly require staging/release review; they were **not** applied to production.
+- Supabase's security advisor reports `auth_leaked_password_protection` disabled. An administrator should enable it in Auth settings and retest registration/reset flows; no credentials or Auth settings were changed here.
+- The security advisor also reports `discovery_rate_limits` with RLS enabled and no policies. This can be intentional for a server-only quota table and must be checked against server access paths before changing grants or policies.
+- This inspection does **not** prove two-user RLS isolation or that the production browser can save an EYRA conversation. Staging migrations, schema-level review, authorization tests, an approved rollback and explicit release approval remain required before applying DDL.
+
+Official references: https://supabase.com/docs/guides/auth/password-security and https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
+
 ## Safe go/no-go process
 
 1. Run `npm run check` and full Product quality, including browser fixture regressions. Verify that the tested PR head is the one merged and deployed.
