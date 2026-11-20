@@ -61,3 +61,9 @@ test('a duplicate exact match is never reported as verified', () => {
   assert.deepEqual(result.remote_only_versions, []);
   assert.equal(result.remote_history_verified, false);
 });
+
+test('empty remote inventory cannot be treated as a verified hosted migration history', () => {
+  const result = compareMigrationHistory([], []);
+  assert.equal(result.remote_history_verified, false);
+  assert.equal(result.remote_application_authorized, false);
+});
