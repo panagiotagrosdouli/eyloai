@@ -45,6 +45,19 @@ Project `eyloai` (`kbzjngpzxpniaumlupaa`) was reported `ACTIVE_HEALTHY`. Its tab
 
 Official references: https://supabase.com/docs/guides/auth/password-security and https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
 
+
+## Supabase staging exact failure — 20 Nov 2026, workflow logs
+
+The connected Supabase workflow logs for the linked `main` branch contain the explicit error **`Remote migration versions not found in local migrations directory.`** at 11:27:00 and 11:37:12 UTC.
+
+A read-only comparison of `supabase_migrations.schema_migrations` and the GitHub `supabase/migrations` directory found **19 remote version entries, 33 local SQL files, and zero exact timestamp matches**. The remote history uses hosted deployment-generated timestamps (for example `20261115185428`), while local reviewed files use distinct timestamps (for example `20261113113010_shared_discovery_quota.sql`). This is a migration-version history mismatch, not evidence that all remote schema objects are missing.
+
+The repository now includes the **read-only** `scripts/check-remote-migration-history.mjs` command to compare operator-exported version records with local filenames without database access, SQL execution, or remote migration-repair commands.
+
+Suggested procedure: independently review each applied remote entry's corresponding SQL and schema state, construct a documented historical mapping, and validate it against a disposable branch with the production release owner. Do not assume name similarity proves identical SQL. Never rename historical migrations or invoke `supabase migration repair`, reset, rebase or production DDL without explicit reviewed authorization and rollback.
+
+This finding leaves the staging release gate **blocked**, despite healthy frontend deployments.
+
 ## Safe go/no-go process
 
 1. Run `npm run check` and full Product quality, including browser fixture regressions. Verify that the tested PR head is the one merged and deployed.
