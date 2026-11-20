@@ -324,6 +324,8 @@ export default async function handler(request, response) {
         // generated text, auth headers or raw upstream error messages.
         const safeReasons = new Set([
           'EYRA generation did not complete.',
+          'EYRA provider exhausted output tokens.',
+          'EYRA provider stopped due to content filtering.',
           'EYRA stream did not confirm a completed text response.',
           'EYRA completed without a valid final response.',
           'EYRA response exceeded its text budget.',
