@@ -276,6 +276,7 @@ try {
 
   await page.route('**/api/capabilities', route => json(route, { ai: true, billing: false, contact: false, scheduled_monitoring: false, institution_analytics: false }));
   const answer = 'Use your saved task to plan the next step.';
+  const eyraTranscript = page.locator('[aria-label="EYRA conversation"]');
   await page.route('**/api/eyra', async route => {
     aiCalls++;
     const payload = route.request().postDataJSON();
@@ -292,7 +293,7 @@ try {
   assert.equal(await page.getByRole('checkbox', { name: 'Allow authorized workspace and research tools for this request' }).isChecked(), false);
   await page.getByLabel('Message EYRA').fill('Explain how to plan my next task');
   await page.getByLabel('Message EYRA').press('Enter');
-  await page.getByText(answer, { exact: true }).waitFor();
+  await eyraTranscript.getByText(answer, { exact: true }).waitFor();
   await page.getByRole('button', { name: 'Save conversation snapshot', exact: true }).click();
   await page.getByText(/Save was not confirmed/).waitFor();
   assert.equal(tables.eyra_conversations.length, 1, 'ambiguous transport failure can follow a committed write');
@@ -314,9 +315,9 @@ try {
   assert.equal(tables.eyra_messages.at(-1).content.text, answer);
   page.once('dialog', dialog => dialog.accept());
   await page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
-  await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
+  await eyraTranscript.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
-  await page.getByText(answer, { exact: true }).waitFor();
+  await eyraTranscript.getByText(answer, { exact: true }).waitFor();
   assert.equal(aiCalls, 1, 'restoring a saved conversation does not call a model');
   await page.getByText('saved', { exact: true }).waitFor();
   await capture(page, 'eyra-conversation-mobile');
@@ -355,13 +356,13 @@ try {
   assert.equal(clearConfirmCalls, 1, 'Clear during a pending restore must reach the confirmation handler exactly once');
   // Verify the actual React clear committed before the delayed network
   // response is released. A real stale history restore must not resurrect it.
-  await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
+  await eyraTranscript.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
   const historyResponse = page.waitForResponse(response => response.url().includes('/rest/v1/eyra_messages'));
   releaseHistory(); await (await historyResponse).finished();
   await page.waitForTimeout(250);
-  assert.equal(await page.getByText(answer, { exact: true }).count(), 0, 'late history cannot restore a chat after clear');
+  assert.equal(await eyraTranscript.getByText(answer, { exact: true }).count(), 0, 'late history cannot restore a chat after clear');
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
-  await page.getByText(answer, { exact: true }).waitFor();
+  await eyraTranscript.getByText(answer, { exact: true }).waitFor();
   console.log('PASS fixture: delayed history response cannot repopulate a cleared conversation.');
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export conversation', exact: true }).click();
