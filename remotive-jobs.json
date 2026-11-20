@@ -1,7 +1,7 @@
 {
   "source": "Remotive",
   "source_url": "https://remotive.com/remote-jobs/api",
-  "retrieved_at": "2026-11-19T14:25:05.855Z",
+  "retrieved_at": "2026-11-20T13:59:52.193Z",
   "provider_delay_hours": 24,
   "items": [
     {
@@ -199,20 +199,6 @@
       "deadline": "",
       "source": "Remotive",
       "source_url": "https://remotive.com/remote-jobs/software-development/senior-back-end-developer-2091135"
-    },
-    {
-      "id": "remotive-2091134",
-      "title": "Head of Engineering",
-      "organization": "Lemon.io",
-      "country": "Worldwide",
-      "description": "About Lemon.io Lemon.io is a profitable, growing talent marketplace that connects vetted senior engineers with companies that need them. We’ve been in business for 10 years, have 60 people across Ukraine, Europe, Canada, and the US, and process over $16M in annual GMV. We compress the traditional 2–5 week hiring timeline down to 24–48 hours through a curated, pre-vetted supply of developers. Hiring is still broken. Recruiters spend weeks building candidate pipelines on traditional platforms, burning energy on unqualified leads. We’re building the product that changes that. Giving recruiters qualified, vetted candidates within 24 hours without the grind. This is a pivotal moment: we’re transitioning from a services-driven marketplace to a technology-driven platform. We need an engineering leader who can drive that transformation. The Role You will own engineering at Lemon.io . You’ll lead a growing team of engineers, make critical architecture and prioritization decisions, and be directly accountable for the speed and quality of what we ship. This is not a management-layer role. You’ll be hands-on, deeply involved in product decisions, and working side by side with the founder. What",
-      "salary": "",
-      "category": "Software Development",
-      "job_type": "full_time",
-      "published_at": "2026-10-26T12:20:09",
-      "deadline": "",
-      "source": "Remotive",
-      "source_url": "https://remotive.com/remote-jobs/software-development/head-of-engineering-2091134"
     },
     {
       "id": "remotive-2091161",
