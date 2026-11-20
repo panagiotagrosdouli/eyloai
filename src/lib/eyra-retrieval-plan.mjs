@@ -3,8 +3,12 @@ export function shouldRetrieve(content, mode) {
   const text = content.toLowerCase();
   const funding = mode === 'funding' || /(grant|funding|call for|opportunit|χρηματοδ|επιχορήγ|πρόσκλησ)/i.test(text);
   const people = mode === 'team' || /(collaborat|researcher|author|institution|university|team|consortium|συνεργά|ερευνητ|πανεπιστήμ|ομάδα)/i.test(text);
-  const papers = ['research', 'impact'].includes(mode)
-    || /(paper|literature|evidence|study|studies|research gap|method|citation|δημοσίευ|βιβλιογραφ|έρευν|μελέτ|μεθοδολογ)/i.test(text);
+  // Conversational greetings need no scholarly retrieval even in research mode.
+  // Keep this narrow: requests containing additional research intent still
+  // follow the normal retrieval policy.
+  const greetingOnly = /^(?:hi|hello|hey|hey there|hello there|good morning|good afternoon|good evening|γεια|γεια σου|γεια σας|καλημέρα|καλησπέρα)[!?.\\s]*$/iu.test(text.trim());
+  const papers = !greetingOnly && (['research', 'impact'].includes(mode)
+    || /(paper|literature|evidence|study|studies|research gap|method|citation|δημοσίευ|βιβλιογραφ|έρευν|μελέτ|μεθοδολογ)/i.test(text));
   return { funding, people, papers };
 }
 
