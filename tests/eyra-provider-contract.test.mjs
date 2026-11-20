@@ -11,6 +11,14 @@ test('provider quota detection uses machine-readable fields, never free text', a
     error: { code: 'rate_limit_exceeded', message: 'private details' },
   }), { status: 429, headers: { 'retry-after': 'invalid' } }));
   assert.deepEqual(transient, { quotaExhausted: false, retryAfter: null });
+  const mixedSignals = await inspectOpenAiLimit(new Response(JSON.stringify({
+    error: { code: 'rate_limit_exceeded', type: 'insufficient_quota' },
+  }), { status: 429, headers: { 'retry-after': '1' } }));
+  assert.deepEqual(mixedSignals, { quotaExhausted: true, retryAfter: 1 });
+  const typeOnly = await inspectOpenAiLimit(new Response(JSON.stringify({
+    error: { type: 'billing_hard_limit_reached' },
+  }), { status: 429 }));
+  assert.deepEqual(typeOnly, { quotaExhausted: true, retryAfter: null });
   const bad = await inspectOpenAiLimit(new Response('invalid', { status: 429 }));
   assert.equal(bad.quotaExhausted, false);
 });
