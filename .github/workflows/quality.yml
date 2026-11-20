@@ -46,14 +46,14 @@ jobs:
       - name: Review canonical local migration manifest and legacy exclusions
         run: npm run db:review-plan
 
-      - name: EYRA terminal stream browser checks
-        run: npm run test:e2e:eyra-stream
-
       - name: Protect authenticated EYRA routing
         run: npm run test:eyra-auth
 
       - name: Install browser for authentication regression tests
         run: npx playwright install --with-deps chromium
+
+      - name: EYRA terminal stream browser checks
+        run: npm run test:e2e:eyra-stream
 
       - name: Run browser authentication regressions
         run: npm run test:e2e:auth
