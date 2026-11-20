@@ -341,13 +341,18 @@ try {
   // Clear versus the held history response, not Playwright dialog timing.
   await page.evaluate(() => {
     window.__eyraOriginalConfirm = window.confirm;
-    window.confirm = () => true;
+    window.__eyraConfirmCalls = 0;
+    window.confirm = () => { window.__eyraConfirmCalls++; return true; };
   });
   await page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
-  await page.evaluate(() => {
+  const clearConfirmCalls = await page.evaluate(() => {
+    const count = window.__eyraConfirmCalls;
     window.confirm = window.__eyraOriginalConfirm;
     delete window.__eyraOriginalConfirm;
+    delete window.__eyraConfirmCalls;
+    return count;
   });
+  assert.equal(clearConfirmCalls, 1, 'Clear during a pending restore must reach the confirmation handler exactly once');
   // Verify the actual React clear committed before the delayed network
   // response is released. A real stale history restore must not resurrect it.
   await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
