@@ -30,3 +30,21 @@ test('saved conversations bind to accounts, retain attribution and reject fabric
   assert.throws(()=>normalizeEyraConversation([{...messages[1],content:'Unsupported [P9]'}]),/citation/);
   assert.throws(()=>normalizeEyraConversation([{role:'user',content:'x'.repeat(24001)}]),/unsupported/);
 });
+
+test('incomplete OpenAI streams identify safe token-limit and content-filter categories', async () => {
+  for (const [reason, pattern] of [
+    ['max_output_tokens', /provider exhausted output tokens/],
+    ['content_filter', /provider stopped due to content filtering/],
+    ['untrusted-user-data-should-not-appear', /generation did not complete/],
+  ]) {
+    const event = { type: 'response.incomplete', response: { status: 'incomplete', incomplete_details: { reason } } };
+    await assert.rejects(relayEyraResponse(stream([event]), () => {}), pattern);
+  }
+  await assert.rejects(
+    relayEyraResponse(stream([{
+      type: 'response.incomplete',
+      response: { incomplete_details: { reason: 'secret-user-input' } },
+    }]), () => {}),
+    error => !String(error.message).includes('secret-user-input'),
+  );
+});
