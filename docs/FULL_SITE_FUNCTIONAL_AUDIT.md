@@ -6,13 +6,13 @@ Audit date: 2026-11-15 (Europe/Athens). Base main: `5f270e8eaa177610e4be3e1e7a58
 
 ## Latest research connection verification — 2026-11-20
 
-Fresh production checks supersede the November15 connection/access observations below **for the public research gateway only**. Vercel now exposes the correct EYLO project `prj_yiujFufSKIRnlmZUr9WG7jgf7qKL` under team `team_IUkyJtLhpTRBaUikmCSYHBDn`. Production reports commit `ffeda6b83582a54c7747bddb268d4b8d8290f543`; the shared quota guard remains in the deployed source.
+Fresh production checks supersede the November 15 connection/access observations below **for the public research gateway only**. Vercel now exposes the correct EYLO project `prj_yiujFufSKIRnlmZUr9WG7jgf7qKL` under team `team_IUkyJtLhpTRBaUikmCSYHBDn`. Production reports commit `ffeda6b83582a54c7747bddb268d4b8d8290f543`; the shared quota guard remains in the deployed source.
 
-- Six real gateway provider routes returned HTTP200 with records: OpenAlex works/authors/institutions, arXiv, Europe PMC and Crossref. Semantic Scholar returned an upstream429, distinct from EYLO quota failure.
-- Real anonymous mobile browser searches at390px rendered24 deduplicated papers in Discover and24 public profiles in Researchers. Neither page showed the previous gateway outage. Both fit the viewport. Discover explicitly disclosed four of five paper indexes available and the Semantic Scholar rate limit; OpenAlex recovered from an initial429 during the browser search.
-- The retained30-minute runtime scan returned no grouped `EYLO_DISCOVERY_QUOTA_UNAVAILABLE` entries. This is a point-in-time observation, not proof of historical cause or permanent availability.
+- Six real gateway provider routes returned HTTP 200 with records: OpenAlex works/authors/institutions, arXiv, Europe PMC and Crossref. Semantic Scholar returned an upstream 429, distinct from EYLO quota failure.
+- Real anonymous mobile browser searches at 390px rendered 24 deduplicated papers in Discover and24 public profiles in Researchers. Neither page showed the previous gateway outage. Both fit the viewport. Discover explicitly disclosed four of five paper indexes available and the Semantic Scholar rate limit; OpenAlex recovered from an initial 429 during the browser search.
+- The retained 30-minute runtime scan returned no grouped `EYLO_DISCOVERY_QUOTA_UNAVAILABLE` entries. This is a point-in-time observation, not proof of historical cause or permanent availability.
 - The `ai` capability now reports true; billing/contact/scheduling/institution flags remain false. Configuration presence does not certify AI generation.
-- This verification did **not** deploy, promote, merge PR445, change environment variables or modify database records. The pending URL-compatibility patch is not credited with restoring production. Chromium required a sandbox TLS interception exception; Python HTTPS probes verified normally. Authenticated research tools, private persistence and all77 product acceptance remain unverified.
+- This verification did **not** deploy, promote, merge PR #445, change environment variables or perform administrative database writes. The pending URL-compatibility patch is not credited with restoring production. Chromium required a sandbox TLS interception exception; Python HTTPS probes verified normally. Authenticated research tools, private persistence and acceptance of all 77 products remains unverified.
 
 Evidence: [real-service and browser results](integration/research-live-verification-2026-11-20.json). Research availability status: **PARTIALLY FUNCTIONAL** (public connection restored; one source rate limited; private workflows not accepted). Historical defects below remain open unless specifically superseded by this scoped evidence.
 
