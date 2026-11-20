@@ -18,7 +18,10 @@ function fakeSupabase({ userId = 'user-a', signedIn = true } = {}) {
         download: async path => objects.has(path)
           ? { data: objects.get(path), error: null }
           : { data: null, error: new Error('Object not found') },
-        remove: async paths => { paths.forEach(path => objects.delete(path)); return { error: null }; },
+        remove: async paths => {
+          if (paths.length > 1000) return { error: new Error('Storage allows at most 1000 objects per request') };
+          paths.forEach(path => objects.delete(path)); return { error: null };
+        },
       };
     } },
   };
@@ -26,12 +29,13 @@ function fakeSupabase({ userId = 'user-a', signedIn = true } = {}) {
 }
 
 class Query {
-  constructor(client, table) { this.client = client; this.table = table; this.action = 'select'; this.filters = []; this.orders = []; this.max = Infinity; }
+  constructor(client, table) { this.client = client; this.table = table; this.action = 'select'; this.filters = []; this.orders = []; this.max = 1000; this.start = 0; }
   select() { return this; }
   eq(key, value) { this.filters.push(row => row[key] === value); return this; }
   in(key, values) { this.filters.push(row => values.includes(row[key])); return this; }
   order(key, { ascending = true } = {}) { this.orders.push([key, ascending]); return this; }
   limit(count) { this.max = count; return this; }
+  range(start, end) { this.start = start; this.max = end - start + 1; return this; }
   insert(payload) { this.action = 'insert'; this.payload = payload; return this; }
   update(payload) { this.action = 'update'; this.payload = payload; return this; }
   delete() { this.action = 'delete'; return this; }
@@ -49,8 +53,14 @@ class Query {
       return { data: single ? result[0] : result, error: null };
     }
     let found = visible();
-    for (const [key, ascending] of this.orders) found.sort((a, b) => (a[key] ?? 0) < (b[key] ?? 0) ? (ascending ? -1 : 1) : (ascending ? 1 : -1));
-    found = found.slice(0, this.max);
+    found.sort((a, b) => {
+      for (const [key, ascending] of this.orders) {
+        if (a[key] === b[key]) continue;
+        return (a[key] ?? 0) < (b[key] ?? 0) ? (ascending ? -1 : 1) : (ascending ? 1 : -1);
+      }
+      return 0;
+    });
+    found = found.slice(this.start, this.start + this.max);
     if (this.action === 'update') found.forEach(row => Object.assign(row, this.payload));
     if (this.action === 'delete') {
       this.client.__tables[this.table] = rows.filter(row => !found.includes(row));
@@ -161,4 +171,97 @@ test('metadata failure after version insertion preserves the immutable version a
   assert.equal(reloaded.versions.length, 2);
   assert.equal(objects.size, 2);
   assert.equal((await service.download(reloaded.versions[0])).content, 'recoverable revision');
+});
+
+
+function seedVersionHistory(count) {
+  const setup = testClient();
+  setup.tables.eylo_files.push({ id: 'large-history', user_id: 'user-a', name: 'history.txt', updated_at: '2026-11-20T00:00:00Z' });
+  for (let number = 1; number <= count; number++) {
+    const path = `user-a/large-history/version-${number}`;
+    setup.tables.eylo_file_versions.push({ id: `version-${number}`, user_id: 'user-a', file_id: 'large-history', version_number: number, storage_path: path });
+    setup.objects.set(path, file('history.txt', `revision ${number}`));
+  }
+  return setup;
+}
+
+test('exact file history loads beyond the PostgREST row cap and retains newest-to-oldest order', async () => {
+  const { client } = seedVersionHistory(1005);
+  const saved = await createEyloFilesService(client).get('large-history');
+  assert.equal(saved.versions.length, 1005);
+  assert.equal(saved.versions[0].version_number, 1005);
+  assert.equal(saved.versions.at(-1).version_number, 1);
+});
+
+test('listing preserves complete version histories beyond the shared response row cap', async () => {
+  const { client } = seedVersionHistory(1005);
+  const [saved] = await createEyloFilesService(client).list();
+  assert.equal(saved.versions.length, 1005);
+  assert.equal(saved.latest_version_id, 'version-1005');
+});
+
+test('deletion removes bytes for every version beyond the PostgREST row cap', async () => {
+  const { client, objects } = seedVersionHistory(1005);
+  await createEyloFilesService(client).remove('large-history');
+  assert.equal(objects.size, 0, 'no old Storage objects survive because a metadata read was truncated');
+});
+
+test('failed later history pages abort deletion before any Storage removal', async () => {
+  const { client, objects } = seedVersionHistory(1005);
+  const original = client.from.bind(client);
+  client.from = table => {
+    const query = original(table);
+    const range = query.range.bind(query);
+    query.range = (start, end) => {
+      range(start, end);
+      if (start >= 200) query.execute = async () => ({ data: null, error: new Error('History page unavailable') });
+      return query;
+    };
+    return query;
+  };
+  await assert.rejects(createEyloFilesService(client).remove('large-history'), /History page unavailable/);
+  assert.equal(objects.size, 1005);
+  assert.equal(client.__tables.eylo_files.length, 1);
+});
+
+
+test('file selections batch version IDs to avoid oversized PostgREST filter URLs', async () => {
+  const { client, tables } = testClient();
+  for (let index = 0; index < 120; index++) {
+    const id = `file-${index}`;
+    tables.eylo_files.push({ id, user_id: 'user-a', name: id, updated_at: '2026-11-20' });
+    tables.eylo_file_versions.push({ id: `version-${index}`, user_id: 'user-a', file_id: id, version_number: 1 });
+  }
+  const sizes = [];
+  const original = client.from.bind(client);
+  client.from = table => {
+    const query = original(table);
+    const filter = query.in.bind(query);
+    query.in = (field, values) => { if (table === 'eylo_file_versions') sizes.push(values.length); return filter(field, values); };
+    return query;
+  };
+  const listed = await createEyloFilesService(client).list();
+  assert.equal(listed.length, 120);
+  assert.ok(listed.every(item => item.versions.length === 1));
+  assert.deepEqual(sizes, [50, 50, 20]);
+});
+
+test('excessive version history fails explicitly before destructive work rather than truncating', async () => {
+  const { client, objects } = seedVersionHistory(10001);
+  await assert.rejects(createEyloFilesService(client).remove('large-history'), /safety limit/);
+  assert.equal(objects.size, 10001);
+  assert.equal(client.__tables.eylo_files.length, 1);
+});
+
+test('a failed Storage batch keeps metadata and reports an incomplete deletion that can be retried', async () => {
+  const { client } = seedVersionHistory(1005);
+  const storage = client.storage.from.bind(client.storage);
+  let batches = 0;
+  client.storage.from = bucket => ({ ...storage(bucket), remove: async () => {
+    batches++;
+    return batches === 2 ? { error: new Error('temporary Storage outage') } : { error: null };
+  } });
+  await assert.rejects(createEyloFilesService(client).remove('large-history'), error => error.code === 'FILE_DELETE_INCOMPLETE');
+  assert.equal(batches, 2);
+  assert.equal(client.__tables.eylo_files.length, 1);
 });

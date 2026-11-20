@@ -16,6 +16,16 @@ Fresh production checks supersede the November 15 connection/access observations
 
 Evidence: [real-service and browser results](integration/research-live-verification-2026-11-20.json). Research availability status: **PARTIALLY FUNCTIONAL** (public connection restored; one source rate limited; private workflows not accepted). Historical defects below remain open unless specifically superseded by this scoped evidence.
 
+## Files persistence follow-up — 2026-11-20
+
+Current main includes the restored-public-research verification from PR #578. Fresh authorized production **catalog-only** reads now confirm `projects.updated_date`, `eylo_files` and `eylo_file_versions` exist. All three tables have RLS enabled; the `eylo-files` bucket is private with a 25 MB limit. File/project and composite version/owner foreign keys exist. The applied history includes `bridge_legacy_workspace_schema` and `restore_missing_eylo_files_and_versions`. This supersedes the old access-denied/missing-object assumptions below, but does not establish PostgREST cache behavior, real upload/download bytes or two-account acceptance.
+
+A reproducible source defect was fixed in the Files service: unpaginated version reads silently truncated at the PostgREST row cap, hiding history and leaving old Storage bytes after deletion. Version reads now use stable 200-row pages with explicit owner filters, at most 50 file IDs per filter, duplicate/ownership rejection, and an explicit 10,000-version safety bound. Deletion reads the complete bounded history first and removes Storage objects in batches of at most 1,000. A Storage batch failure retains parent metadata and reports an incomplete deletion; a retry may be needed because completed Storage batches cannot be rolled back.
+
+Evidence: four new tests failed before implementation; all 14 Files tests pass, including 1,005 versions and a 10,001-version guard. The full check passes 1,201 tests, imports, both TypeScript projects, lint and build. The browser Files workflow passes with isolated PostgREST/Storage transport; it does not establish hosted RLS or real service bytes. No migration or production write was performed. Status: **IMPLEMENTED — UNVERIFIED** pending separate staging acceptance.
+
+EYRA remains a distinct blocker: production catalog reads still find no `eyra_conversations`/`eyra_messages`; a 15-minute retained log query found no EYRA entries, which cannot prove provider success. AI-key reuse confirmation and authorized hosted acceptance remain separate from this Files change.
+
 ## Critical defects and current evidence
 
 | Feature | Real user action | Current defect | Root cause | Fix | Tests | Hosted verification | Status |

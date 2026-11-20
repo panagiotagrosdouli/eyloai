@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-20",
+  "base_main": "2484e478",
+  "feature": "EYLO Files complete bounded version history and Storage deletion",
+  "source_files": [
+    "src/services/eylo-files.mjs",
+    "tests/eylo-files.test.mjs"
+  ],
+  "root_cause": "Unpaginated PostgREST version reads truncated at the default response row cap; remove used the incomplete set of storage paths.",
+  "tests": {
+    "failing_before_fix": 4,
+    "files_tests_passed": 14,
+    "full_check_tests_passed": 1201,
+    "full_check": [
+      "imports",
+      "frontend and API typecheck",
+      "lint",
+      "Node tests",
+      "build"
+    ],
+    "browser_files": "PASS: existing Auth browser suite including Files upload/version/download/project-link/delete flow, with isolated PostgREST and Storage fixtures"
+  },
+  "bounds": {
+    "version_page_size": 200,
+    "file_ids_per_filter": 50,
+    "maximum_versions_before_explicit_error": 10000,
+    "storage_remove_batch": 1000
+  },
+  "database_changes": false,
+  "production_catalog_observations": {
+    "project_ref": "kbzjngpzxpniaumlupaa",
+    "projects_updated_date": true,
+    "file_tables_exist": true,
+    "rls_enabled": [
+      "projects",
+      "eylo_files",
+      "eylo_file_versions"
+    ],
+    "bucket_private": true,
+    "bucket_limit_bytes": 26214400,
+    "eyra_conversation_tables_exist": false
+  },
+  "limitations": [
+    "No hosted write or real Storage-byte tests",
+    "No two-user staging acceptance",
+    "Storage deletion is not atomic across batches; errors preserve parent metadata but already completed batches cannot be rolled back",
+    "No atomic snapshot is claimed for concurrent version-history changes",
+    "10,000-version safety limit aborts instead of returning an incomplete history"
+  ]
+}

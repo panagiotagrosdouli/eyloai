@@ -2,6 +2,40 @@ import { EYLO_FILE_BUCKET, safeStorageFilename, validateEyloFile } from '../lib/
 import { workspaceDataError } from '../lib/workspace-schema-error.mjs';
 
 const FILE_LIMIT = 500;
+const VERSION_PAGE_SIZE = 200;
+const VERSION_FILE_BATCH = 50;
+const VERSION_SAFETY_LIMIT = 10000;
+const STORAGE_DELETE_BATCH = 1000;
+
+// PostgREST applies a row cap even when no limit is requested. Read every
+// bounded page before returning history or deleting any Storage bytes.
+async function readFileVersions(client, ownerId, fileIds) {
+  const versions = [];
+  const seen = new Set();
+  for (let index = 0; index < fileIds.length; index += VERSION_FILE_BATCH) {
+    const ids = fileIds.slice(index, index + VERSION_FILE_BATCH);
+    for (let offset = 0; ; offset += VERSION_PAGE_SIZE) {
+      const { data, error } = await client.from('eylo_file_versions').select('*')
+        .eq('user_id', ownerId).in('file_id', ids)
+        .order('version_number', { ascending: false }).order('id', { ascending: true })
+        .range(offset, offset + VERSION_PAGE_SIZE - 1);
+      raise(error);
+      if (!Array.isArray(data)) throw new Error('File version history could not be verified. Reload and try again.');
+      for (const row of data) {
+        if (!row?.id || row.user_id !== ownerId || !ids.includes(row.file_id) || seen.has(row.id)) {
+          throw new Error('File version history changed or its ownership could not be verified. Reload before retrying.');
+        }
+        seen.add(row.id);
+        versions.push(row);
+      }
+      if (versions.length > VERSION_SAFETY_LIMIT) {
+        throw new Error('This selection exceeds the 10,000-version safety limit. Open an individual file or contact support before deleting it.');
+      }
+      if (data.length < VERSION_PAGE_SIZE) break;
+    }
+  }
+  return versions;
+}
 
 function raise(error) {
   if (error) throw workspaceDataError(error);
@@ -32,9 +66,7 @@ export function createEyloFilesService(client) {
         .eq('id', fileId).eq('user_id', user.id).single();
       raise(error);
       if (!file) throw new Error('File was not found or access was denied.');
-      const { data: versions, error: versionsError } = await supabase.from('eylo_file_versions').select('*')
-        .eq('file_id', fileId).eq('user_id', user.id).order('version_number', { ascending: false });
-      raise(versionsError);
+      const versions = await readFileVersions(supabase, user.id, [fileId]);
       return { ...file, latest_version_id: versions?.[0]?.id || null, versions: versions || [] };
     },
 
@@ -48,9 +80,7 @@ export function createEyloFilesService(client) {
       raise(error);
       const files = records || [];
       if (!files.length) return [];
-      const { data: versions, error: versionsError } = await supabase.from('eylo_file_versions').select('*')
-        .in('file_id', files.map(item => item.id)).order('version_number', { ascending: false });
-      raise(versionsError);
+      const versions = await readFileVersions(supabase, user.id, files.map(item => item.id));
       const byFile = new Map();
       for (const version of versions || []) {
         if (!byFile.has(version.file_id)) byFile.set(version.file_id, []);
@@ -177,13 +207,11 @@ export function createEyloFilesService(client) {
     async remove(fileId) {
       const supabase = fileClient(client);
       const user = await requireUser(supabase);
-      const { data: versions, error: versionsError } = await supabase.from('eylo_file_versions').select('storage_path')
-        .eq('file_id', fileId);
-      raise(versionsError);
+      const versions = await readFileVersions(supabase, user.id, [fileId]);
       const paths = (versions || []).map(item => item.storage_path);
-      if (paths.length) {
-        const { error: storageError } = await supabase.storage.from(EYLO_FILE_BUCKET).remove(paths);
-        raise(storageError);
+      for (let offset = 0; offset < paths.length; offset += STORAGE_DELETE_BATCH) {
+        const { error: storageError } = await supabase.storage.from(EYLO_FILE_BUCKET).remove(paths.slice(offset, offset + STORAGE_DELETE_BATCH));
+        if (storageError) throw Object.assign(new Error('File deletion could not finish. Some versions may already have been removed; reload and retry deletion.'), { code: 'FILE_DELETE_INCOMPLETE', cause: storageError });
       }
       const { data, error } = await supabase.from('eylo_files').delete().eq('id', fileId)
         .eq('user_id', user.id).select('id');
