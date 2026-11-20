@@ -39,7 +39,18 @@ export async function relayEyraResponse(body, onDelta) {
     } else if (event.type === 'response.completed') {
       if (event.response?.status !== 'completed') throw new Error('EYRA generation did not complete.');
       completed = event.response;
-    } else if (['error', 'response.failed', 'response.incomplete'].includes(event.type)) {
+    } else if (event.type === 'response.incomplete') {
+      // Use only provider-defined enum values; never log upstream error text.
+      // OpenAI may exhaust the token budget before producing any visible text.
+      const reason = event.response?.incomplete_details?.reason;
+      if (reason === 'max_output_tokens') {
+        throw new Error('EYRA provider exhausted output tokens.');
+      }
+      if (reason === 'content_filter') {
+        throw new Error('EYRA provider stopped due to content filtering.');
+      }
+      throw new Error('EYRA generation did not complete.');
+    } else if (['error', 'response.failed'].includes(event.type)) {
       throw new Error('EYRA generation did not complete.');
     }
   }
