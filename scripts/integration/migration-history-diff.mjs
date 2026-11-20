@@ -19,16 +19,25 @@ export function compareMigrationHistory(remoteEntries, localFiles) {
     const match = typeof filename === 'string' && VERSIONED_SQL.exec(filename);
     if (!match) throw new Error('Invalid local migration filename.');
     const version = match[1];
-    if (localVersions.has(version)) throw new Error('Duplicate local migration version.');
-    localVersions.set(version, filename);
+    const files = localVersions.get(version) || [];
+    files.push(filename);
+    localVersions.set(version, files);
   }
+  const ambiguousLocalVersions = [...localVersions]
+    .filter(([, files]) => files.length > 1)
+    .map(([version, files]) => ({ version, files: [...files].sort() }))
+    .sort((a, b) => a.version.localeCompare(b.version));
+  const exactMatches = [...remoteVersions]
+    .filter(version => localVersions.get(version)?.length === 1)
+    .sort();
   return {
     remote_count: remoteVersions.size,
     local_count: localFiles.length,
-    matching_versions: [...remoteVersions].filter(version => localVersions.has(version)).sort(),
+    matching_versions: exactMatches,
+    ambiguous_local_versions: ambiguousLocalVersions,
     remote_only_versions: [...remoteVersions].filter(version => !localVersions.has(version)).sort(),
-    local_only_files: [...localVersions].filter(([version]) => !remoteVersions.has(version)).map(([, name]) => name).sort(),
-    remote_history_verified: [...remoteVersions].every(version => localVersions.has(version)),
+    local_only_files: [...localVersions].filter(([version]) => !remoteVersions.has(version)).flatMap(([, files]) => files).sort(),
+    remote_history_verified: remoteVersions.size > 0 && ambiguousLocalVersions.length === 0 && [...remoteVersions].every(version => localVersions.get(version)?.length === 1),
     remote_application_authorized: false,
     note: 'Read-only version comparison. Do not rename migrations, repair history, apply SQL or reset a branch from this output.',
   };
