@@ -46,9 +46,10 @@ test('evidence-only fallback keeps its verifiable original-source links and expl
 
 test('failed authenticated requests preserve the source metadata without pretending AI finished', () => {
   const text = buildEvidenceOnlyFallback({ attempted: false, sources: [] }, { status: 401 });
-  assert.match(text, /session needs renewal/);
+  assert.match(text, /session needs to be renewed/);
   assert.match(text, /Sign in again/);
   assert.match(text, /No external retrieval was requested/);
+  assert.doesNotMatch(text, /Retrieved source records/);
   assert.doesNotMatch(text, /complete analysis was produced/i);
 });
 
