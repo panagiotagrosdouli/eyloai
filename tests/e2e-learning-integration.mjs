@@ -336,14 +336,13 @@ try {
   await historyStarted;
   // Explicitly require the confirmation dialog: a guarded/no-op Clear click
   // must fail this test at the actual cause, not 20 seconds later at the DOM.
-  const clearConfirmation = page.waitForEvent('dialog', { timeout: 5000 });
-  const clearClick = page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
-  const clearDialog = await clearConfirmation;
-  await clearDialog.accept();
-  await clearClick;
-  // Wait until Clear has committed to the DOM before allowing the stalled
-  // history request to resolve. Two animation frames are not a reliable
-  // synchronization barrier on loaded GitHub Actions runners.
+  // A native confirmation dialog is already covered in the earlier clear.
+  // Here, keep confirmation deterministic so the race test actually measures
+  // Clear versus the held history response, not Playwright dialog timing.
+  await page.evaluate(() => { window.confirm = () => true; });
+  await page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
+  // Verify the actual React clear committed before the delayed network
+  // response is released. A real stale history restore must not resurrect it.
   await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
   const historyResponse = page.waitForResponse(response => response.url().includes('/rest/v1/eyra_messages'));
   releaseHistory(); await (await historyResponse).finished();
