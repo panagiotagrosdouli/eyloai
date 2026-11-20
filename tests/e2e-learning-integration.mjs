@@ -354,6 +354,12 @@ try {
     return count;
   });
   assert.equal(clearConfirmCalls, 1, 'Clear during a pending restore must reach the confirmation handler exactly once');
+  const clearDiagnostics = await page.evaluate(() => ({
+    transcript: document.querySelector('[aria-label="EYRA conversation"]')?.innerText.slice(0, 600),
+    localKeys: Object.keys(sessionStorage).filter(key => key.includes('eyra')),
+    clearButtons: [...document.querySelectorAll('[aria-label="Clear EYRA conversation"]')].length,
+  }));
+  console.log('EYRA pending-restore clear diagnostics (synthetic fixture only):', JSON.stringify(clearDiagnostics));
   // Verify the actual React clear committed before the delayed network
   // response is released. A real stale history restore must not resurrect it.
   await eyraTranscript.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
