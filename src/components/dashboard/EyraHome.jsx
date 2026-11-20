@@ -82,70 +82,29 @@ export default function EyraHome({ onSearch }) {
 
   return (
     <div className="eylo-home min-h-[calc(100vh-4.5rem)] bg-background text-foreground">
-      <div className="mx-auto w-full max-w-[1440px] px-4 pb-24 pt-6 sm:px-8 sm:pt-10 lg:px-10">
-        <section aria-labelledby="home-title" className="relative isolate overflow-hidden rounded-[32px] border border-primary/10 bg-gradient-to-br from-card via-card to-primary/10 p-6 shadow-[0_20px_70px_-48px_rgba(31,71,139,0.5)] sm:p-9 lg:p-12">
-          <div className="pointer-events-none absolute -right-20 -top-24 -z-10 h-80 w-80 rounded-full bg-primary/10 blur-3xl" aria-hidden="true" />
-          <p className="mb-4 inline-flex items-center rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.1em] text-primary">Your research workspace</p>
+      <div className="mx-auto w-full max-w-[1440px] px-4 pb-16 pt-5 sm:px-8 sm:pt-7 lg:px-10">
+        <section aria-labelledby="home-title" className="relative isolate overflow-hidden rounded-[24px] border border-border/80 bg-card p-5 shadow-sm sm:p-7 lg:p-8">
+          <p className="mb-3 inline-flex items-center text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Your research workspace</p>
           <p className="text-sm font-medium text-muted-foreground">{greeting.greeting}</p>
-          <h1 id="home-title" className="mt-2 max-w-4xl text-3xl font-bold tracking-tight sm:text-4xl lg:text-[3.25rem] lg:leading-[1.12]">What would you like to work on?</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">Explore source-linked academic records, check the original sources, and save useful work for later. EYRA can help with follow-up questions when available.</p>
-          <form onSubmit={event => { event.preventDefault(); if (homeQuery.trim()) onSearch(homeQuery.trim()); }} className="mt-8 flex flex-col gap-3 rounded-2xl border border-border/80 bg-card p-2.5 shadow-md shadow-primary/5 sm:flex-row sm:items-center">
+          <h1 id="home-title" className="mt-1.5 max-w-4xl text-[1.65rem] font-semibold leading-tight tracking-tight sm:text-3xl lg:text-[2.35rem]">What would you like to work on?</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Explore source-linked academic records, check the original sources, and save useful work for later. EYRA can help with follow-up questions when available.</p>
+          <form onSubmit={event => { event.preventDefault(); if (homeQuery.trim()) onSearch(homeQuery.trim()); }} className="mt-5 flex flex-col gap-2 rounded-xl border border-border bg-background p-2 sm:flex-row sm:items-center">
             <label htmlFor="home-research-query" className="sr-only">Research topic or question</label>
             <input id="home-research-query" type="search" value={homeQuery} onChange={event => setHomeQuery(event.target.value)}
-              placeholder="Enter a research topic or question…" className="min-h-14 min-w-0 flex-1 rounded-xl border border-transparent bg-transparent px-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary/30 focus:outline-none" />
-            <button type="submit" disabled={!homeQuery.trim()} className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50">
+              placeholder="Search a topic or question…" className="min-h-12 min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary/30 focus:outline-none" />
+            <button type="submit" disabled={!homeQuery.trim()} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50">
               <Search size={17} aria-hidden="true" /> Start researching
             </button>
           </form>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground">Academic search is separate from EYRA. Always check the original papers.</p>
             <button type="button" disabled={!eyraReady} onClick={() => window.dispatchEvent(new Event('eylo:open-eyra'))}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50">
+              className="hidden min-h-10 items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 sm:inline-flex focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50">
               <Lightbulb size={16} aria-hidden="true" /> Ask EYRA
             </button>
           </div>
         </section>
-        <section aria-labelledby="start-here-title" className="mt-10">
-          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 id="start-here-title" className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">New to EYLO? Start here.</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                You do not need technical or research experience. Choose a simple task, and use Back or Home whenever you want.
-              </p>
-            </div>
-            <Link to="/tools" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-primary hover:bg-secondary">Browse all tools <ArrowRight size={15} aria-hidden="true" /></Link>
-          </div>
-          <nav aria-label="Common starting actions" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              {step:'1', title:'Find a publication', help:'Search scientific papers and open their original sources.', href: '/search', Icon:Search},
-              {step:'2', title:'Save and review papers', help:'See your saved papers. To save a new one, start in Discover.', href: '/library', Icon:Bookmark},
-              {step:'3', title:'Create a project', help:'Keep papers, ideas and next steps together.', href: '/projects?new=1', Icon:FolderOpen},
-            ].map(({step,title,help,href,Icon}) => (
-              <Link key={href} to={href} className="group flex min-h-32 items-start gap-4 rounded-[22px] border border-border/70 bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-sm font-bold text-primary" aria-hidden="true">{step}</span>
-                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-foreground">{title}</span><span className="mt-2 block text-xs leading-5 text-muted-foreground">{help}</span></span>
-                <Icon size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
-              </Link>
-            ))}
-          </nav>
-          <details className="mt-4 rounded-2xl border border-border/80 bg-card/60 px-4 py-3">
-            <summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">More things you can do — research, studies and funding</summary>
-            <nav aria-label="More starting actions" className="mt-3 grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
-              {[
-                {title:'Start a research journey', help:'Follow a question from sources to a review or thesis.', href: '/research-journey', Icon:BookOpen},
-                {title:'Plan my studies', help:'Organize sessions, courses and exams.', href: '/study-planner', Icon:BookOpen},
-                {title:'Find research funding', help:'Browse funding calls and eligibility.', href: '/opportunities', Icon:Zap},
-                {title:'View all tools', help:'See every other feature whenever you need it.', href: '/tools', Icon:Search},
-              ].map(({title,help,href,Icon}) => (
-                <Link key={href} to={href} className="group flex min-h-20 items-start gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/40 hover:bg-secondary/30">
-                  <Icon size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
-                  <span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-foreground">{title}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{help}</span></span>
-                  <ArrowRight size={15} className="mt-1 shrink-0 text-muted-foreground" aria-hidden="true" />
-                </Link>
-              ))}
-            </nav>
-          </details>
-        </section>
+
 
         {loaded && workspaceWarnings.length > 0 && (
           <div role="status" className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground">
@@ -154,12 +113,12 @@ export default function EyraHome({ onSearch }) {
           </div>
         )}
 
-        <div className="mt-12">
+        <div className="mt-7 sm:mt-8">
           <section aria-labelledby="continue-heading">
             <div className="mb-5 flex items-end justify-between gap-4 border-b border-border pb-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">Your work</p>
-                <h2 id="continue-heading" className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Pick up where you left off</h2>
+                <h2 id="continue-heading" className="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Pick up where you left off</h2>
               </div>
               <Link to="/projects" className="inline-flex min-h-9 items-center gap-1 text-xs font-semibold text-primary hover:underline">All projects <ArrowRight size={14} aria-hidden="true" /></Link>
             </div>
@@ -283,6 +242,48 @@ export default function EyraHome({ onSearch }) {
 
 
         </div>
+
+        <section aria-labelledby="start-here-title" className="mt-9 border-t border-border/70 pt-7">
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 id="start-here-title" className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">New to EYLO? Start here.</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                You do not need technical or research experience. Choose a simple task, and use Back or Home whenever you want.
+              </p>
+            </div>
+            <Link to="/tools" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-primary hover:bg-secondary">Browse all tools <ArrowRight size={15} aria-hidden="true" /></Link>
+          </div>
+          <nav aria-label="Common starting actions" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {step:'1', title:'Find a publication', help:'Search scientific papers and open their original sources.', href: '/search', Icon:Search},
+              {step:'2', title:'Save and review papers', help:'See your saved papers. To save a new one, start in Discover.', href: '/library', Icon:Bookmark},
+              {step:'3', title:'Create a project', help:'Keep papers, ideas and next steps together.', href: '/projects?new=1', Icon:FolderOpen},
+            ].map(({step,title,help,href,Icon}) => (
+              <Link key={href} to={href} className="group flex min-h-24 items-start gap-3 rounded-2xl border border-border/70 bg-card p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-sm font-bold text-primary" aria-hidden="true">{step}</span>
+                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-foreground">{title}</span><span className="mt-2 block text-xs leading-5 text-muted-foreground">{help}</span></span>
+                <Icon size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
+              </Link>
+            ))}
+          </nav>
+          <details className="mt-4 rounded-2xl border border-border/80 bg-card/60 px-4 py-3">
+            <summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">More things you can do — research, studies and funding</summary>
+            <nav aria-label="More starting actions" className="mt-3 grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
+              {[
+                {title:'Start a research journey', help:'Follow a question from sources to a review or thesis.', href: '/research-journey', Icon:BookOpen},
+                {title:'Plan my studies', help:'Organize sessions, courses and exams.', href: '/study-planner', Icon:BookOpen},
+                {title:'Find research funding', help:'Browse funding calls and eligibility.', href: '/opportunities', Icon:Zap},
+                {title:'View all tools', help:'See every other feature whenever you need it.', href: '/tools', Icon:Search},
+              ].map(({title,help,href,Icon}) => (
+                <Link key={href} to={href} className="group flex min-h-20 items-start gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/40 hover:bg-secondary/30">
+                  <Icon size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
+                  <span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-foreground">{title}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{help}</span></span>
+                  <ArrowRight size={15} className="mt-1 shrink-0 text-muted-foreground" aria-hidden="true" />
+                </Link>
+              ))}
+            </nav>
+          </details>
+        </section>
       </div>
     </div>
   );

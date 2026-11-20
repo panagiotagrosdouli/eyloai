@@ -300,3 +300,19 @@ Status: **IMPLEMENTED — UNVERIFIED** pending authenticated live provider and i
 
 
 Combined local candidate verification of Files PR #579 and EYRA streaming PR #580 passes **1,208 Node tests**, imports, typechecks, lint, build and the real HTTP/browser relay fixture. The new browser test is included in the existing Product quality workflow. This candidate was not deployed. The production metadata-only EYRA preflight returns `BLOCKED_SCHEMA_OR_GRANTS`: all four conversation/agent tables and the idempotent snapshot RPC are absent. Its `remote_application_authorized` and `production_release_approved` flags remain false; no metadata observation is treated as migration authorization.
+
+
+## Signed-in EYLO/EYRA design review — 2026-11-20
+
+Reviewed the current source UI with a local fixture login and sample records at 1440×1000 and 390×844, in light/dark themes. These screenshots are not a production/customer session or real provider acceptance. No horizontal overflow or page errors occurred in eight captures. [Design evidence](integration/post-login-design-review-2026-11-20.json) includes the screenshot directory and remaining recommendations.
+
+Two visible defects were reproduced and repaired: mobile EYRA opened scrolled to the welcome card's bottom, clipping its title; the dark workspace header rendered the dark-lettering logo intended for light backgrounds. The single welcome state now starts at the top, ongoing conversations still follow their last message, and composer focus avoids scrolling the page. The dark signed-in shell now uses the already supplied light-lettering SVG. Existing palette, navigation and provider behavior are preserved. Full check: 1,208 Node tests plus imports/typecheck/lint/build pass; browser regressions exercise welcome geometry and the dark SVG (including Vite-inlined data URLs). Status: **IMPLEMENTED — UNVERIFIED** for hosted acceptance.
+
+Design recommendations remain review proposals: a more compact returning-user Home with recent work higher, and a persistent context-aware EYRA workspace alongside quick entry. They are not presented as implemented redesigns.
+
+
+### Post-login visual refinement — 2026-11-20
+
+User direction: retain the existing EYLO/EYRA identity and improve it. Home now uses a compact hero and places ongoing projects before onboarding. EYRA uses a simpler welcome area, compact suggestion rows and one composer focus ring. Existing navigation, source checks, permissions and cloud failure states remain in place.
+
+Local Playwright capture covers 1440×1000 and 390×844 in light/dark, with no horizontal overflow or page errors. These are actual source screens after synthetic fixture login, not authenticated production verification. Updated screenshots and observations are in `docs/integration/screenshots/post-login-design-2026-11-20/` and `docs/integration/post-login-design-review-2026-11-20.json`. Hosted EYRA persistence acceptance remains blocked by the previously recorded missing production schema; this visual change does not resolve that dependency.

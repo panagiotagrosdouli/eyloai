@@ -1,0 +1,237 @@
+{
+  "base_main": "e5fe0364",
+  "scope": "Real source UI after local fixture login; sample records; no production session, customer content or model requests",
+  "screens": [
+    {
+      "screen": "EYLO",
+      "device": "desktop",
+      "theme": "light",
+      "width": 1440,
+      "height": 1000,
+      "overflow": false,
+      "errors": [],
+      "headings": [
+        "What would you like to work on?",
+        "Pick up where you left off",
+        "Active projects",
+        "Upcoming deadlines",
+        "Recent searches",
+        "Saved papers",
+        "Research ideas",
+        "New to EYLO? Start here.",
+        "Workspace overview",
+        "Today's tasks1",
+        "Calendar1",
+        "Recent projects2",
+        "Recent notes1",
+        "Study planner1",
+        "Flashcards1",
+        "Saved research1",
+        "Recent activity1",
+        "EYLO products"
+      ]
+    },
+    {
+      "screen": "EYRA",
+      "device": "desktop",
+      "theme": "light",
+      "width": 1440,
+      "height": 1000,
+      "overflow": false,
+      "errors": [],
+      "dialog": {
+        "x": 190,
+        "y": 50,
+        "width": 1060,
+        "height": 900
+      },
+      "composer": {
+        "x": 353,
+        "y": 783,
+        "width": 734,
+        "height": 56
+      }
+    },
+    {
+      "screen": "EYLO",
+      "device": "desktop",
+      "theme": "dark",
+      "width": 1440,
+      "height": 1000,
+      "overflow": false,
+      "errors": [],
+      "headings": [
+        "What would you like to work on?",
+        "Pick up where you left off",
+        "Active projects",
+        "Upcoming deadlines",
+        "Recent searches",
+        "Saved papers",
+        "Research ideas",
+        "New to EYLO? Start here.",
+        "Workspace overview",
+        "Today's tasks1",
+        "Calendar1",
+        "Recent projects2",
+        "Recent notes1",
+        "Study planner1",
+        "Flashcards1",
+        "Saved research1",
+        "Recent activity1",
+        "EYLO products"
+      ]
+    },
+    {
+      "screen": "EYRA",
+      "device": "desktop",
+      "theme": "dark",
+      "width": 1440,
+      "height": 1000,
+      "overflow": false,
+      "errors": [],
+      "dialog": {
+        "x": 190,
+        "y": 50,
+        "width": 1060,
+        "height": 900
+      },
+      "composer": {
+        "x": 353,
+        "y": 783,
+        "width": 734,
+        "height": 56
+      }
+    },
+    {
+      "screen": "EYLO",
+      "device": "mobile",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "errors": [],
+      "headings": [
+        "What would you like to work on?",
+        "Pick up where you left off",
+        "Active projects",
+        "Upcoming deadlines",
+        "Recent searches",
+        "Saved papers",
+        "Research ideas",
+        "New to EYLO? Start here.",
+        "Workspace overview",
+        "Today's tasks1",
+        "Calendar1",
+        "Recent projects2",
+        "Recent notes1",
+        "Study planner1",
+        "Flashcards1",
+        "Saved research1",
+        "Recent activity1",
+        "EYLO products"
+      ]
+    },
+    {
+      "screen": "EYRA",
+      "device": "mobile",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "errors": [],
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "composer": {
+        "x": 26,
+        "y": 653,
+        "width": 338,
+        "height": 64
+      }
+    },
+    {
+      "screen": "EYLO",
+      "device": "mobile",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "errors": [],
+      "headings": [
+        "What would you like to work on?",
+        "Pick up where you left off",
+        "Active projects",
+        "Upcoming deadlines",
+        "Recent searches",
+        "Saved papers",
+        "Research ideas",
+        "New to EYLO? Start here.",
+        "Workspace overview",
+        "Today's tasks1",
+        "Calendar1",
+        "Recent projects2",
+        "Recent notes1",
+        "Study planner1",
+        "Flashcards1",
+        "Saved research1",
+        "Recent activity1",
+        "EYLO products"
+      ]
+    },
+    {
+      "screen": "EYRA",
+      "device": "mobile",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "errors": [],
+      "dialog": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "composer": {
+        "x": 26,
+        "y": 653,
+        "width": 338,
+        "height": 64
+      }
+    }
+  ],
+  "findings": [
+    {
+      "feature": "Mobile EYRA welcome",
+      "before": "Initial scroll-to-end clipped the welcome heading before the user had started a conversation",
+      "fix": "Scroll single welcome state to top; retain end-of-conversation scrolling for actual messages; focus composer without scrolling the page",
+      "status": "IMPLEMENTED \u2014 UNVERIFIED"
+    },
+    {
+      "feature": "Dark signed-in EYLO logo",
+      "before": "Dark lettering from the light-background SVG was nearly invisible on the dark header",
+      "fix": "Use the existing light-lettering eylo-dark.svg inside the signed-in dark shell",
+      "status": "IMPLEMENTED \u2014 UNVERIFIED"
+    }
+  ],
+  "design_recommendations": [
+    "Retain existing identity; compact Home and simpler EYRA implemented per user direction."
+  ],
+  "verification": {
+    "full_check_node_tests": 1208,
+    "full_check": "PASS: imports, both typecheck projects, lint, tests and build",
+    "visual_checks": "8 desktop/mobile/light/dark views; no horizontal overflow or browser page errors; dark asset and mobile welcome assertions passed",
+    "learning_browser_suite": "PASS: full Learning suite with synthetic transport, including new dark-logo and mobile welcome visibility assertions",
+    "live_account_or_provider_acceptance": false
+  },
+  "screenshots_directory": "screenshots/post-login-design-2026-11-20",
+  "production_deployment": false,
+  "refinements": [
+    "Preserve blue/navy identity and existing logos",
+    "Compact Home hero and move onboarding after ongoing work",
+    "Simplify EYRA welcome, suggestion rows and composer focus"
+  ]
+}

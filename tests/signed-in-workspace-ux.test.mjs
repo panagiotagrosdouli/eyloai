@@ -9,7 +9,7 @@ test('signed-in Home keeps evidence-first actions prominent and uses responsive 
   assert.match(home, /Your research workspace/);
   assert.match(home, /What would you like to work on\?/);
   assert.match(home, /New to EYLO\? Start here\./);
-  assert.match(home, /bg-gradient-to-br from-card via-card to-primary\/10/);
+  assert.ok(home.indexOf('id="continue-heading"') < home.indexOf('id="start-here-title"'), 'Returning users reach their work before onboarding');
   assert.match(home, /onSearch\(homeQuery\.trim\(\)\)/);
   assert.match(home, /eylo:open-eyra/);
   assert.match(home, /disabled=\{!eyraReady\}/);

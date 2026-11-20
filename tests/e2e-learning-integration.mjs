@@ -189,6 +189,22 @@ try {
   await page.getByLabel('Password').fill('Fixture-password-123');
   await page.getByRole('button', { name: 'Continue with password' }).click();
   await page.getByRole('heading', { name: 'Continue your research' }).waitFor({ state: 'detached' });
+  await page.getByRole('link', { name: 'EYLO workspace home', exact: true }).waitFor();
+  await page.evaluate(async () => {
+    const { savePreferences } = await import('/src/lib/preferences.js');
+    savePreferences({ theme: 'dark' });
+  });
+  await page.waitForFunction(() => {
+    const logo = document.querySelector('[aria-label="EYLO workspace home"] img');
+    if (!logo || !document.documentElement.classList.contains('dark')) return false;
+    const image = getComputedStyle(logo).content;
+    // Vite can inline the supplied SVG as a data URL instead of keeping its filename.
+    return image.includes('eylo-dark') || decodeURIComponent(image).includes('#e9f2fb');
+  });
+  await page.evaluate(async () => {
+    const { savePreferences } = await import('/src/lib/preferences.js');
+    savePreferences({ theme: 'light' });
+  });
   await page.goto(`${origin}/time-tracker`);
   await page.getByRole('heading', { name: 'EYLO Time Tracker' }).waitFor();
   await page.getByLabel('What are you working on?').fill('Review source methods');
@@ -294,6 +310,14 @@ try {
   });
   await page.reload();
   await page.getByRole('button', { name: 'Ask EYRA', exact: true }).click();
+  await page.waitForFunction(() => {
+    const viewport = document.querySelector('[aria-label="EYRA conversation"]');
+    const heading = viewport?.querySelector('h3');
+    if (!viewport || !heading) return false;
+    const bounds = viewport.getBoundingClientRect();
+    const title = heading.getBoundingClientRect();
+    return title.top >= bounds.top && title.bottom <= bounds.bottom && viewport.scrollTop === 0;
+  }, undefined, { timeout: 5000 });
   await page.getByText('History & tools', { exact: true }).click();
   await page.getByText('Workspace context available', { exact: true }).waitFor();
   await page.getByRole('button', { name: 'Strategy', exact: true }).click();

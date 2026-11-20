@@ -52,7 +52,7 @@ export function EyraQuickCommands({ onSelect, activeMode = 'research', disabled 
   const relevantIds = EYRA_MODE_STARTER_IDS[activeMode] || EYRA_MODE_STARTER_IDS.research;
   const suggestions = relevantIds.map(id => EYRA_QUICK_COMMANDS.find(command => command.id === id)).filter(Boolean);
   return (
-    <section aria-labelledby="eyra-start-outcome" className="mt-8 sm:mt-9">
+    <section aria-labelledby="eyra-start-outcome" className="mt-6">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
         <h3 id="eyra-start-outcome" className="text-sm font-bold tracking-tight text-foreground">Try a starting point</h3>
         <p className="text-xs text-muted-foreground">Or ask your own question</p>
@@ -64,11 +64,11 @@ export function EyraQuickCommands({ onSelect, activeMode = 'research', disabled 
             <button
               key={command.id} type="button" disabled={disabled}
               onClick={() => onSelect(command.prompt)}
-              className="group flex min-h-24 items-start gap-2.5 rounded-[18px] border border-border/60 bg-background/80 px-3.5 py-3.5 text-left text-[13px] font-semibold leading-5 text-foreground transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-card hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 sm:flex-col sm:justify-between"
+              className="group flex min-h-14 items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3.5 py-3 text-left text-[13px] font-medium leading-5 text-foreground transition-colors hover:border-primary/40 hover:bg-secondary/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
             >
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Icon size={18} aria-hidden="true" /></span>
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon size={18} aria-hidden="true" /></span>
               <span className="min-w-0 flex-1">{command.label}</span>
-              <ArrowUpRight size={15} className="ml-auto shrink-0 text-muted-foreground group-hover:text-primary sm:hidden" aria-hidden="true" />
+              <ArrowUpRight size={15} className="ml-auto shrink-0 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
             </button>
           );
         })}

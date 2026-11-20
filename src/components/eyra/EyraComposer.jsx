@@ -13,7 +13,7 @@ export default function EyraComposer({
 }) {
   const ModeIcon = EYRA_MODE_ICONS[activeMode] || Send;
   return (
-    <div className="rounded-[24px] border border-border/70 bg-background px-3 pb-2.5 pt-3 shadow-[0_18px_60px_-34px_rgba(66,75,156,0.65)] transition-all focus-within:border-primary/40 focus-within:shadow-[0_20px_65px_-35px_rgba(81,87,199,0.7)] focus-within:ring-2 focus-within:ring-primary/10 sm:px-4">
+    <div className="eyra-composer rounded-2xl border border-border bg-background px-3 pb-2.5 pt-3 shadow-sm transition-shadow focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/15 sm:px-4">
       <label htmlFor="eyra-message-input" className="sr-only">Message EYRA</label>
       <textarea
         id="eyra-message-input"
