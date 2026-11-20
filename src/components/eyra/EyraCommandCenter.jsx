@@ -707,11 +707,15 @@ The saved record was returned by the server. Check the workspace for the final r
     try {
       const saved = await loadEyraConversation(id);
       if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
-      // React may commit a queued restore after the user clears this tab.
-      // Check the generation again when the state update is applied, not only
-      // when the network response resolves. A stale restore must be a no-op.
-      setMessages(previous => (ownerRef.current === owner && historyEpochRef.current === epoch
-        ? saved.messages : previous));
+      // Commit a completed history restore synchronously. Otherwise React can
+      // defer the update until *after* a subsequent user Clear, resurrecting
+      // the old transcript even when the response passed the epoch guard.
+      // The owner/epoch check above rejects responses arriving after Clear.
+      flushSync(() => {
+        if (ownerRef.current === owner && historyEpochRef.current === epoch) {
+          setMessages(saved.messages);
+        }
+      });
       if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
       setRemoteConversation(saved); setRenameTitle(null); setActionError('');
     } catch (error) { if (ownerRef.current === owner && historyEpochRef.current === epoch) setActionError(error?.message || 'Conversation could not be opened.'); }
