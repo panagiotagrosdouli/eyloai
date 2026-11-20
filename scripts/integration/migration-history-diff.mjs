@@ -1,5 +1,5 @@
 // Pure, read-only comparison. Never generate SQL or authorize migration repair.
-const VERSIONED_SQL = /^(\d{8,14})_[a-z0-9_]+\\.sql$/i;
+const VERSIONED_SQL = /^(\d{8,14})_[a-z0-9_]+\.sql$/i;
 const VERSION = /^\d{8,14}$/;
 
 export function compareMigrationHistory(remoteEntries, localFiles) {
