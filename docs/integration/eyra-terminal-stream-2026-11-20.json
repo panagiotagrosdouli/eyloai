@@ -1,0 +1,65 @@
+{
+  "date": "2026-11-20",
+  "base_main": "2484e478",
+  "feature": "EYRA terminal stream completion",
+  "root_cause": "Both provider relay and browser waited for transport EOF after a valid terminal event; later stalls/errors could discard a finished answer.",
+  "historical_live_root_cause_proven": false,
+  "files": [
+    "src/lib/eyra-stream.mjs",
+    "src/lib/eyra-intelligence.js"
+  ],
+  "tests": {
+    "reproduced_failures_before_fix": 2,
+    "focused_stream_and_handler_tests": 14,
+    "full_check_node_tests": 1201,
+    "full_check": "PASS: imports, frontend/API typecheck, lint, tests, build",
+    "real_browser_http_fixture": "PASS: five cases, synthetic relay events, actual open HTTP streams and reader/connection cleanup",
+    "learning_browser_suite": "PASS: synthetic Auth/PostgREST/AI transport",
+    "combined_files_and_eyra_check": {
+      "source_commits": [
+        "ec9e82e4c097d2d12adc8db4bff7c9a9318fc3bd",
+        "96e00b22"
+      ],
+      "node_tests": 1208,
+      "result": "PASS: imports, typechecks, lint, tests, build and browser HTTP streaming fixture"
+    }
+  },
+  "provider_contract_reference": "https://developers.openai.com/api/reference/resources/responses/streaming-events",
+  "staging": {
+    "attempted_branch": "eylo-eyra-staging-20261120",
+    "result": "BLOCKED",
+    "reason": "Branching is supported only on the Pro plan or above",
+    "branch_created": false,
+    "billing_plan_changed": false
+  },
+  "credentials": {
+    "existing_production_key_configured": true,
+    "local_key_present": false,
+    "new_key_created": false,
+    "secret_decrypted_or_copied": false,
+    "live_provider_call_made": false
+  },
+  "remaining": [
+    "Authorized signed-in test session or isolated staging environment",
+    "Real provider success and latency/error acceptance",
+    "Conversation and agent schema chain in separately approved staging",
+    "Migration-history reconciliation and two-user persistence/isolation tests"
+  ],
+  "mutations": {
+    "production_deployed": false,
+    "database_migrations": false,
+    "production_data_writes": false
+  },
+  "hosted_metadata_preflight": {
+    "decision": "BLOCKED_SCHEMA_OR_GRANTS",
+    "missing_tables": [
+      "eyra_conversations",
+      "eyra_messages",
+      "eyra_agent_runs",
+      "eyra_agent_actions"
+    ],
+    "snapshot_rpc_present": false,
+    "remote_application_authorized": false,
+    "production_release_approved": false
+  }
+}

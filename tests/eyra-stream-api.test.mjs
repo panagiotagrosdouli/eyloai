@@ -35,3 +35,44 @@ test('streaming cannot execute workspace mutation tools and is rejected before q
   globalThis.fetch=async url=>{calls++;assert.ok(String(url).endsWith('/auth/v1/user'));return new Response('{"id":"user-a"}');};
   try{const res=responseMock();await handler(request({enable_project_tools:true}),res);assert.equal(res.statusCode,400);assert.equal(res.payload.code,'INVALID_STREAM_MODE');assert.equal(calls,1);}finally{globalThis.fetch=old;}
 });
+
+test('completed provider stream ends the authenticated response without EOF and keeps its single usage reservation', async () => {
+  const old = globalThis.fetch;
+  let reserved = 0;
+  let refunded = 0;
+  let cancelled = false;
+  let controller;
+  globalThis.fetch = async url => {
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: 'user-a' });
+    if (String(url).endsWith('/rpc/reserve_eyra_usage')) { reserved++; return Response.json([{ allowed: true, used: 1 }]); }
+    if (String(url).endsWith('/rpc/release_eyra_usage')) { refunded++; return Response.json(true); }
+    return new Response(new ReadableStream({
+      start(value) {
+        controller = value;
+        value.enqueue(new TextEncoder().encode([
+          { type: 'response.output_text.delta', delta: 'Confirmed answer.' },
+          { type: 'response.completed', response: { id: 'terminal-fixture', status: 'completed', output: [{ content: [{ type: 'output_text', text: 'Confirmed answer.' }] }] } },
+        ].map(event => `data: ${JSON.stringify(event)}\n\n`).join('')));
+      },
+      cancel() { cancelled = true; },
+    }));
+  };
+  let timer;
+  try {
+    const response = responseMock();
+    await Promise.race([
+      handler(request({}), response),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('API waited for EOF')), 300); }),
+    ]);
+    assert.equal(response.writableEnded, true);
+    assert.equal(reserved, 1);
+    assert.equal(refunded, 0);
+    assert.equal(cancelled, true);
+    assert.equal((response.chunks.join('').match(/"type":"done"/g) || []).length, 1);
+    assert.doesNotMatch(response.chunks.join(''), /"type":"error"/);
+  } finally {
+    clearTimeout(timer);
+    if (!cancelled && controller) controller.close();
+    globalThis.fetch = old;
+  }
+});

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readEyraEvents, relayEyraResponse } from '../src/lib/eyra-stream.mjs';
+import { readEyraEvents, relayEyraResponse, readEyraReply } from '../src/lib/eyra-stream.mjs';
 import { eyraConversationKey, normalizeEyraConversation } from '../src/lib/eyra-conversation.mjs';
 
 function stream(events, split = false) {
@@ -47,4 +47,93 @@ test('incomplete OpenAI streams identify safe token-limit and content-filter cat
     }]), () => {}),
     error => !String(error.message).includes('secret-user-input'),
   );
+});
+
+test('a confirmed provider response completes without waiting for a transport EOF and releases its reader', async () => {
+  let controller;
+  let cancelled = false;
+  const body = new ReadableStream({
+    start(value) {
+      controller = value;
+      value.enqueue(new TextEncoder().encode([
+        { type: 'response.output_text.delta', delta: 'Confirmed research answer.' },
+        completed('Confirmed research answer.'),
+      ].map(event => `data: ${JSON.stringify(event)}\n\n`).join('')));
+    },
+    cancel() { cancelled = true; },
+  });
+  let timer;
+  try {
+    const result = await Promise.race([
+      relayEyraResponse(body, () => {}),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Completed response incorrectly waited for EOF')), 300); }),
+    ]);
+    assert.equal(result.text, 'Confirmed research answer.');
+    assert.equal(cancelled, true);
+    assert.equal(body.locked, false);
+  } finally {
+    clearTimeout(timer);
+    if (!cancelled) controller.close();
+  }
+});
+
+test('a connection error after the completed provider event cannot discard the authoritative answer', async () => {
+  const body = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode([
+        { type: 'response.output_text.delta', delta: 'Verified completion.' },
+        completed('Verified completion.'),
+      ].map(event => `data: ${JSON.stringify(event)}\n\n`).join('')));
+    },
+    pull(controller) { controller.error(new Error('Transport closed after completion')); },
+  });
+  assert.equal((await relayEyraResponse(body, () => {})).text, 'Verified completion.');
+});
+
+
+test('browser relay accepts a valid done event promptly even when the server connection stays open', async () => {
+  let cancelled = false;
+  const deltas = [];
+  const body = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode([
+        { type: 'delta', delta: 'Draft answer.' },
+        { type: 'done', text: 'Confirmed answer.' },
+      ].map(event => `data: ${JSON.stringify(event)}\n\n`).join('')));
+    },
+    cancel() { cancelled = true; },
+  });
+  let timer;
+  try {
+    const result = await Promise.race([
+      readEyraReply(body, { onDelta: delta => deltas.push(delta) }),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Browser waited for EOF')), 300); }),
+    ]);
+    assert.equal(result, 'Confirmed answer.');
+    assert.deepEqual(deltas, ['Draft answer.']);
+    assert.equal(cancelled, true);
+    assert.equal(body.locked, false);
+  } finally { clearTimeout(timer); if (!cancelled) await body.cancel(); }
+});
+
+test('browser relay rejects partial text, invalid completions and non-allowlisted error content', async () => {
+  for (const text of ['', '  ', 42, { fabricated: true }, 'x'.repeat(40001)]) {
+    await assert.rejects(readEyraReply(stream([{ type: 'done', text }])), /did not confirm/);
+  }
+  await assert.rejects(readEyraReply(stream([{ type: 'delta', delta: 'partial' }])), /did not confirm/);
+  await assert.rejects(readEyraReply(stream([{ type: 'error', code: 'EYRA_INCOMPLETE', error: 'private-provider-body' }])), error => error.code === 'EYRA_INCOMPLETE' && !error.message.includes('private-provider-body'));
+  await assert.rejects(readEyraReply(stream([{ type: 'error', code: 'private-provider-body' }])), error => error.code === 'EYRA_STREAM_INCOMPLETE');
+});
+
+test('a user cancellation before completion still rejects the browser reply', async () => {
+  const controller = new AbortController();
+  const body = stream([{ type: 'delta', delta: 'draft' }, { type: 'done', text: 'final' }]);
+  await assert.rejects(readEyraReply(body, { signal: controller.signal, onDelta: () => controller.abort() }), error => error.name === 'AbortError');
+  assert.equal(body.locked, false);
+});
+
+test('a malformed provider completion stays rejected despite a terminal event', async () => {
+  for (const output of [[], [{ type: 'function_call', name: 'project.create' }], [{ content: [{ type: 'output_text', text: ' ' }] }]]) {
+    await assert.rejects(relayEyraResponse(stream([{ type: 'response.output_text.delta', delta: 'draft' }, { type: 'response.completed', response: { status: 'completed', output } }]), () => {}));
+  }
 });
