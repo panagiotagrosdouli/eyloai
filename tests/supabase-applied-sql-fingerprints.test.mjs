@@ -14,8 +14,8 @@ test('every applied remote SQL fingerprint is traceable to a reviewed local SQL 
   assert.equal(exact.length, 18);
   assert.deepEqual(divergent.map(item => item.remote_name), ['security_hardening']);
   for (const item of manifest.items) {
-    assert.match(item.remote_version, /^\\d{14}$/);
-    assert.match(item.local_file, /^\\d{8,14}_[a-z0-9_]+\\.sql$/);
+    assert.match(item.remote_version, /^\d{14}$/);
+    assert.match(item.local_file, /^\d{8,14}_[a-z0-9_]+\.sql$/);
     assert.match(item.remote_md5, /^[0-9a-f]{32}$/);
     const source = readFileSync(new URL('supabase/migrations/' + item.local_file, root), 'utf8');
     const localFingerprint = createHash('md5').update(source).digest('hex');
@@ -26,5 +26,5 @@ test('the historical profiles RLS policy divergence remains explicitly blocked f
   const item = manifest.items.find(row => row.remote_name === 'security_hardening');
   assert.equal(item.classification, 'divergent_sql_requires_review');
   const local = readFileSync(new URL('supabase/migrations/' + item.local_file, root), 'utf8');
-  assert.match(local, /auth\\.uid\\(\\)\\) = user_id/);
+  assert.match(local, /auth\.uid\(\)\) = user_id/);
 });
