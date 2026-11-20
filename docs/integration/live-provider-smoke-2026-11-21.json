@@ -1,0 +1,51 @@
+[
+  {
+    "provider": "openalex_works",
+    "status": 200,
+    "records": 2,
+    "content_type": "application/json; charset=utf-8",
+    "code": null
+  },
+  {
+    "provider": "openalex_authors",
+    "status": 200,
+    "records": 2,
+    "content_type": "application/json; charset=utf-8",
+    "code": null
+  },
+  {
+    "provider": "openalex_institutions",
+    "status": 200,
+    "records": 2,
+    "content_type": "application/json; charset=utf-8",
+    "code": null
+  },
+  {
+    "provider": "arxiv",
+    "status": 200,
+    "records": 2,
+    "content_type": "application/atom+xml; charset=utf-8",
+    "code": null
+  },
+  {
+    "provider": "europe_pmc",
+    "status": 200,
+    "records": 2,
+    "content_type": "application/json; charset=utf-8",
+    "code": null
+  },
+  {
+    "provider": "crossref",
+    "status": 200,
+    "records": 2,
+    "content_type": "application/json; charset=utf-8",
+    "code": null
+  },
+  {
+    "provider": "semantic_scholar",
+    "status": 429,
+    "records": 0,
+    "content_type": "application/json; charset=utf-8",
+    "code": "429"
+  }
+]

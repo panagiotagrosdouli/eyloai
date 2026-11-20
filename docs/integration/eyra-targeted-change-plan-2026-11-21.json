@@ -1,0 +1,32 @@
+{
+  "project_ref": "kbzjngpzxpniaumlupaa",
+  "base_commit": "5eb1c1dac10e5d2900ac69fb20fc9adb8c702026",
+  "status": "REVIEW_REQUIRED",
+  "remote_application_authorized": false,
+  "ordered_candidates": [
+    {
+      "file": "20261113090000_eyra_conversations.sql",
+      "sha256": "8ec0bb81df8733471037609a93413e597c34aad2c7ab61c90eb7613fc9bb62cb"
+    },
+    {
+      "file": "20261113114924_eyra_conversation_snapshots.sql",
+      "sha256": "e58b684da4e47de4bdf786bee7935b5ced70807a95c6a3161b828ac8c5c82a8a"
+    },
+    {
+      "file": "20261113120556_eyra_snapshot_retry_identity.sql",
+      "sha256": "9a2eb1b5d9b6ddc025d7816a3edcf9350e022d4669c2d87a7a7460eb5599da42"
+    },
+    {
+      "file": "20261115233000_eyra_agent_runs.sql",
+      "sha256": "99914aa4650382600f1c66513a3e0fe903a8d66385d4c7a9ee55837e7bd9aeee"
+    }
+  ],
+  "observed_absent_tables": [
+    "eyra_conversations",
+    "eyra_messages",
+    "eyra_agent_runs",
+    "eyra_agent_actions"
+  ],
+  "staging_verified": false,
+  "production_release_approved": false
+}
