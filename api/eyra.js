@@ -318,7 +318,21 @@ export default async function handler(request, response) {
       try {
         const final = await relayEyraResponse(openAiResponse.body, delta => send({ type: 'delta', delta }));
         send({ type: 'done', ...final });
-      } catch {
+      } catch (error) {
+        // A successful HTTP 200 can still end with an incomplete provider
+        // stream. Record only allowlisted diagnostic categories, never prompts,
+        // generated text, auth headers or raw upstream error messages.
+        const safeReasons = new Set([
+          'EYRA generation did not complete.',
+          'EYRA stream did not confirm a completed text response.',
+          'EYRA completed without a valid final response.',
+          'EYRA response exceeded its text budget.',
+          'EYRA stream ended in an incomplete event.',
+        ]);
+        console.warn('EYRA provider stream did not complete', {
+          reason: safeReasons.has(error?.message) ? error.message : 'stream_transport_or_parse_failure',
+          requestId: openAiResponse.headers?.get?.('x-request-id') || null,
+        });
         await releaseUsage(reservation); reservation = null;
         send({ type: 'error', error: 'EYRA did not complete the response. The draft was not saved.', code: 'EYRA_INCOMPLETE' });
       }
