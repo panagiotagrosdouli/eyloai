@@ -137,6 +137,11 @@ try {
     const expectedData = containment?.startsWith('cs.') ? JSON.parse(containment.slice(3)) : null;
     const matching = row => (expectedData === null || containsJson(row.data, expectedData)) && filters.every(([key, value]) => { const current = key.startsWith('data->>') ? row.data?.[key.slice(7)] : row[key]; return value === 'is.null' ? current == null : String(current) === value.slice(3); });
     let rows = tables[table].filter(matching);
+    // Mirror the PostgREST order requested by the production history loader.
+    // It fetches newest sequence numbers first, then reverses that page.
+    if (table === 'eyra_messages' && url.searchParams.get('order') === 'sequence_number.desc') {
+      rows = [...rows].sort((left, right) => right.sequence_number - left.sequence_number);
+    }
     if (request.method() !== 'GET') {
       if (request.method() === 'POST') {
         const payload = request.postDataJSON(); assert.equal(payload.user_id, user.id);
