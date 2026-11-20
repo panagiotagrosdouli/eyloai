@@ -12,6 +12,22 @@ export function buildEvidenceOnlyFallback(evidence, error) {
   const records = Array.isArray(evidence?.sources) ? evidence.sources : [];
   const sources = records.filter(source => source && isSafeEyraSourceUrl(source.url));
   const authIssue = error?.status === 401 || /auth|session|sign in/i.test(error?.message || '');
+  // Do not claim that evidence was retrieved for a greeting or failed search.
+  if (!sources.length) {
+    return [
+      '## EYRA response unavailable',
+      'AI synthesis did not finish. No completed answer is available.',
+      '',
+      '### Why the analysis stopped',
+      describeEyraFailure(error),
+      '',
+      evidence?.attempted
+        ? 'No usable source records were returned. Retrieval failure and absence of results must not be confused; retry or inspect a provider directly.'
+        : 'No external retrieval was requested. Retry after the service is available; no evidence-based answer is available.',
+      ...(authIssue ? ['Refresh your secure session before requesting a new AI synthesis.'] : []),
+    ].join('\n');
+  }
+
   const lines = [
     '## Retrieved source records (not independently verified)',
     authIssue
@@ -21,13 +37,6 @@ export function buildEvidenceOnlyFallback(evidence, error) {
     '### Why the analysis stopped',
     describeEyraFailure(error),
   ];
-
-  if (!sources.length) {
-    lines.push('', evidence?.attempted
-      ? 'No usable source records are available for this request. Retrieval failure and absence of results must not be confused; retry or inspect a provider directly.'
-      : 'No external retrieval was requested. Refresh your secure session if needed and retry; no evidence-based answer is available.');
-    return lines.join('\n');
-  }
 
   const grouped = sources.reduce((groups, source) => {
     const type = ['Paper', 'Funding', 'Researcher', 'Institution'].includes(source.type) ? source.type : 'Other';

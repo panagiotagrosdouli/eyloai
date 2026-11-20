@@ -49,3 +49,18 @@ test('EYRA source chips and fallback descriptions do not claim independent verif
   assert.doesNotMatch(page, /buildVerifiedEvidenceFallback/);
   assert.doesNotMatch(page, /ShieldCheck/);
 });
+
+test('greeting failure does not imply any scholarly source records were loaded', () => {
+  const text = buildEvidenceOnlyFallback({ attempted: false, sources: [] }, { code: 'EYRA_INCOMPLETE' });
+  assert.match(text, /## EYRA response unavailable/);
+  assert.match(text, /No external retrieval was requested/);
+  assert.match(text, /Partial text was not treated as a finished scientific answer/);
+  assert.doesNotMatch(text, /Retrieved source records|source records below|provider metadata/);
+});
+
+test('a failed source search reports uncertainty without claiming zero scientific results', () => {
+  const text = buildEvidenceOnlyFallback({ attempted: true, sources: [] }, { code: 'EYRA_INCOMPLETE' });
+  assert.match(text, /## EYRA response unavailable/);
+  assert.match(text, /Retrieval failure and absence of results must not be confused/);
+  assert.doesNotMatch(text, /Retrieved source records/);
+});
