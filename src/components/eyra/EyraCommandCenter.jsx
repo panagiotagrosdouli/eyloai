@@ -707,7 +707,13 @@ The saved record was returned by the server. Check the workspace for the final r
     try {
       const saved = await loadEyraConversation(id);
       if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
-      setMessages(saved.messages); setRemoteConversation(saved); setRenameTitle(null); setActionError('');
+      // React may commit a queued restore after the user clears this tab.
+      // Check the generation again when the state update is applied, not only
+      // when the network response resolves. A stale restore must be a no-op.
+      setMessages(previous => (ownerRef.current === owner && historyEpochRef.current === epoch
+        ? saved.messages : previous));
+      if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
+      setRemoteConversation(saved); setRenameTitle(null); setActionError('');
     } catch (error) { if (ownerRef.current === owner && historyEpochRef.current === epoch) setActionError(error?.message || 'Conversation could not be opened.'); }
     finally { if (ownerRef.current === owner && historyEpochRef.current === epoch) setHistoryBusy(false); }
   };
