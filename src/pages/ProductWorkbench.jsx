@@ -9,6 +9,7 @@ import {
 } from "@/lib/product-operation-recovery.mjs";
 import { getUsableSession, requireSupabase } from "@/lib/supabaseClient";
 import { invokeEyra } from "@/lib/eyra-intelligence";
+import { buildWorkbenchAnalysisPrompt, canAnalyseWorkbenchTool } from "@/lib/workbench-analysis.mjs";
 import ProjectDocumentWorkspace, {
   downloadWorkspace,
   workspaceButton as button,
@@ -116,7 +117,8 @@ function Editor({
     [answers, setAnswers] = useState({}),
     [formId, setFormId] = useState(""),
     [acting, setActing] = useState(false),
-    [ai, setAi] = useState("");
+    [ai, setAi] = useState(""),
+    [analysisId, setAnalysisId] = useState("");
   useEffect(() => {
     alive.current = true;
     return () => {
@@ -132,6 +134,7 @@ function Editor({
     if (!row || window.confirm("Discard the open record draft?")) {
       setRow(structuredClone(record));
       setAi("");
+      setAnalysisId("");
       start.current = 0;
     }
   };
@@ -231,6 +234,33 @@ function Editor({
     } catch (f) {
       if (alive.current) setError(f.message);
     } finally {
+      if (alive.current) setActing(false);
+    }
+  };
+  const analyseRecord = async (record) => {
+    setActing(true);
+    setError("");
+    setAi("");
+    setAnalysisId("");
+    try {
+      validateWorkbenchRecord(tool, record);
+      controller.current = new AbortController();
+      const result = await invokeEyra({
+        prompt: buildWorkbenchAnalysisPrompt(tool, record),
+        signal: AbortSignal.any([
+          controller.current.signal,
+          AbortSignal.timeout(45000),
+        ]),
+      });
+      if (alive.current) {
+        setAi(String(result));
+        setAnalysisId(record.id);
+        setNotice("EYRA draft analysis generated. It is not verified evidence and is not saved automatically.");
+      }
+    } catch (failure) {
+      if (alive.current) setError(failure.message || "EYRA analysis failed.");
+    } finally {
+      controller.current = null;
       if (alive.current) setActing(false);
     }
   };
@@ -439,9 +469,14 @@ function Editor({
                 </button>
               </div>
             )}
-            {ai && (
+            {ai && !analysisId && (
               <p className="whitespace-pre-wrap rounded-lg border border-border p-3 text-sm">
                 {ai}
+              </p>
+            )}
+            {canAnalyseWorkbenchTool(tool) && (
+              <p className="text-xs text-muted-foreground">
+                Apply this draft before requesting EYRA analysis below. Analysis is optional and sends only the selected record fields to EYRA.
               </p>
             )}
             <div className="flex flex-wrap gap-2">
@@ -519,6 +554,29 @@ function Editor({
             >
               Remove record
             </button>
+            {canAnalyseWorkbenchTool(tool) && (
+              <button
+                className={button}
+                disabled={busy || acting || Boolean(row)}
+                onClick={() => analyseRecord(record)}
+              >
+                Analyse with EYRA — actionable plan
+              </button>
+            )}
+            {analysisId === record.id && ai && (
+              <section className="space-y-3 rounded-lg border border-border p-3" aria-label="EYRA draft analysis">
+                <p className="text-xs text-muted-foreground">
+                  AI-generated proposal based only on this record; no external facts or research sources were verified. Not saved automatically.
+                </p>
+                <p className="whitespace-pre-wrap text-sm">{ai}</p>
+                <button
+                  className={button}
+                  onClick={() => downloadWorkspace(ai, `eylo-${tool}-analysis.txt`, "text/plain;charset=utf-8")}
+                >
+                  Download analysis
+                </button>
+              </section>
+            )}
             {["workflows", "studio", "conferences"].includes(tool) && (
               <button
                 className={button}
@@ -628,6 +686,14 @@ function Editor({
           )}
         </article>
       ))}
+      {acting && canAnalyseWorkbenchTool(tool) && (
+        <div className="flex items-center gap-3" role="status">
+          <span>Generating evidence-conscious EYRA analysis…</span>
+          <button className={button} onClick={() => controller.current?.abort()}>
+            Cancel analysis
+          </button>
+        </div>
+      )}
       {tool === "workflows" && (
         <section aria-label="Confirmed task runs">
           <h2 className="font-semibold">Confirmed task runs</h2>
