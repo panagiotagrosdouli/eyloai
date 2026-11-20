@@ -309,3 +309,10 @@ Reviewed the current source UI with a local fixture login and sample records at 
 Two visible defects were reproduced and repaired: mobile EYRA opened scrolled to the welcome card's bottom, clipping its title; the dark workspace header rendered the dark-lettering logo intended for light backgrounds. The single welcome state now starts at the top, ongoing conversations still follow their last message, and composer focus avoids scrolling the page. The dark signed-in shell now uses the already supplied light-lettering SVG. Existing palette, navigation and provider behavior are preserved. Full check: 1,208 Node tests plus imports/typecheck/lint/build pass; browser regressions exercise welcome geometry and the dark SVG (including Vite-inlined data URLs). Status: **IMPLEMENTED — UNVERIFIED** for hosted acceptance.
 
 Design recommendations remain review proposals: a more compact returning-user Home with recent work higher, and a persistent context-aware EYRA workspace alongside quick entry. They are not presented as implemented redesigns.
+
+
+### Post-login visual refinement — 2026-11-20
+
+User direction: retain the existing EYLO/EYRA identity and improve it. Home now uses a compact hero and places ongoing projects before onboarding. EYRA uses a simpler welcome area, compact suggestion rows and one composer focus ring. Existing navigation, source checks, permissions and cloud failure states remain in place.
+
+Local Playwright capture covers 1440×1000 and 390×844 in light/dark, with no horizontal overflow or page errors. These are actual source screens after synthetic fixture login, not authenticated production verification. Updated screenshots and observations are in `docs/integration/screenshots/post-login-design-2026-11-20/` and `docs/integration/post-login-design-review-2026-11-20.json`. Hosted EYRA persistence acceptance remains blocked by the previously recorded missing production schema; this visual change does not resolve that dependency.

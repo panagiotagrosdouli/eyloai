@@ -12,13 +12,13 @@
       "errors": [],
       "headings": [
         "What would you like to work on?",
-        "New to EYLO? Start here.",
         "Pick up where you left off",
         "Active projects",
         "Upcoming deadlines",
         "Recent searches",
         "Saved papers",
         "Research ideas",
+        "New to EYLO? Start here.",
         "Workspace overview",
         "Today's tasks1",
         "Calendar1",
@@ -47,7 +47,7 @@
       },
       "composer": {
         "x": 353,
-        "y": 779,
+        "y": 783,
         "width": 734,
         "height": 56
       }
@@ -62,13 +62,13 @@
       "errors": [],
       "headings": [
         "What would you like to work on?",
-        "New to EYLO? Start here.",
         "Pick up where you left off",
         "Active projects",
         "Upcoming deadlines",
         "Recent searches",
         "Saved papers",
         "Research ideas",
+        "New to EYLO? Start here.",
         "Workspace overview",
         "Today's tasks1",
         "Calendar1",
@@ -97,7 +97,7 @@
       },
       "composer": {
         "x": 353,
-        "y": 779,
+        "y": 783,
         "width": 734,
         "height": 56
       }
@@ -112,13 +112,13 @@
       "errors": [],
       "headings": [
         "What would you like to work on?",
-        "New to EYLO? Start here.",
         "Pick up where you left off",
         "Active projects",
         "Upcoming deadlines",
         "Recent searches",
         "Saved papers",
         "Research ideas",
+        "New to EYLO? Start here.",
         "Workspace overview",
         "Today's tasks1",
         "Calendar1",
@@ -162,13 +162,13 @@
       "errors": [],
       "headings": [
         "What would you like to work on?",
-        "New to EYLO? Start here.",
         "Pick up where you left off",
         "Active projects",
         "Upcoming deadlines",
         "Recent searches",
         "Saved papers",
         "Research ideas",
+        "New to EYLO? Start here.",
         "Workspace overview",
         "Today's tasks1",
         "Calendar1",
@@ -218,9 +218,7 @@
     }
   ],
   "design_recommendations": [
-    "Keep the existing navy/blue palette and brand assets",
-    "Make returning-user Home more compact and put recent projects/tasks above the new-user guide",
-    "Consider a persistent EYRA workspace view with project context while retaining the quick modal entry point"
+    "Retain existing identity; compact Home and simpler EYRA implemented per user direction."
   ],
   "verification": {
     "full_check_node_tests": 1208,
@@ -230,5 +228,10 @@
     "live_account_or_provider_acceptance": false
   },
   "screenshots_directory": "screenshots/post-login-design-2026-11-20",
-  "production_deployment": false
+  "production_deployment": false,
+  "refinements": [
+    "Preserve blue/navy identity and existing logos",
+    "Compact Home hero and move onboarding after ongoing work",
+    "Simplify EYRA welcome, suggestion rows and composer focus"
+  ]
 }
