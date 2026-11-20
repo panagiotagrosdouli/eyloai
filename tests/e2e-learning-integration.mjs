@@ -61,7 +61,9 @@ function rpc(name, args) {
     if (existing) return existing;
     const thread = { id: args.p_snapshot_id, user_id: user.id, title: args.p_title, version: 1, updated_date: now() };
     tables.eyra_conversations.push(thread);
-    args.p_messages.forEach((m, index) => tables.eyra_messages.push({ id: randomUUID(), user_id: user.id, conversation_id: thread.id, sequence_number: index + 1, role: m.role, content: { text: m.text }, sources: m.sources, created_date: now() }));
+    // Cloud messages can share a timestamp; a timeline must not use it as a unique React key.
+    const sharedCreatedDate = now();
+    args.p_messages.forEach((m, index) => tables.eyra_messages.push({ id: randomUUID(), user_id: user.id, conversation_id: thread.id, sequence_number: index + 1, role: m.role, content: { text: m.text }, sources: m.sources, created_date: sharedCreatedDate }));
     return thread;
   }
   if (name === 'create_quiz') {
@@ -135,6 +137,11 @@ try {
     const expectedData = containment?.startsWith('cs.') ? JSON.parse(containment.slice(3)) : null;
     const matching = row => (expectedData === null || containsJson(row.data, expectedData)) && filters.every(([key, value]) => { const current = key.startsWith('data->>') ? row.data?.[key.slice(7)] : row[key]; return value === 'is.null' ? current == null : String(current) === value.slice(3); });
     let rows = tables[table].filter(matching);
+    // Mirror the PostgREST order requested by the production history loader.
+    // It fetches newest sequence numbers first, then reverses that page.
+    if (table === 'eyra_messages' && url.searchParams.get('order') === 'sequence_number.desc') {
+      rows = [...rows].sort((left, right) => right.sequence_number - left.sequence_number);
+    }
     if (request.method() !== 'GET') {
       if (request.method() === 'POST') {
         const payload = request.postDataJSON(); assert.equal(payload.user_id, user.id);
@@ -276,6 +283,7 @@ try {
 
   await page.route('**/api/capabilities', route => json(route, { ai: true, billing: false, contact: false, scheduled_monitoring: false, institution_analytics: false }));
   const answer = 'Use your saved task to plan the next step.';
+  const eyraTranscript = page.locator('[aria-label="EYRA conversation"]');
   await page.route('**/api/eyra', async route => {
     aiCalls++;
     const payload = route.request().postDataJSON();
@@ -292,7 +300,7 @@ try {
   assert.equal(await page.getByRole('checkbox', { name: 'Allow authorized workspace and research tools for this request' }).isChecked(), false);
   await page.getByLabel('Message EYRA').fill('Explain how to plan my next task');
   await page.getByLabel('Message EYRA').press('Enter');
-  await page.getByText(answer, { exact: true }).waitFor();
+  await eyraTranscript.getByText(answer, { exact: true }).waitFor();
   await page.getByRole('button', { name: 'Save conversation snapshot', exact: true }).click();
   await page.getByText(/Save was not confirmed/).waitFor();
   assert.equal(tables.eyra_conversations.length, 1, 'ambiguous transport failure can follow a committed write');
@@ -314,9 +322,9 @@ try {
   assert.equal(tables.eyra_messages.at(-1).content.text, answer);
   page.once('dialog', dialog => dialog.accept());
   await page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
-  await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
+  await eyraTranscript.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
-  await page.getByText(answer, { exact: true }).waitFor();
+  await eyraTranscript.getByText(answer, { exact: true }).waitFor();
   assert.equal(aiCalls, 1, 'restoring a saved conversation does not call a model');
   await page.getByText('saved', { exact: true }).waitFor();
   await capture(page, 'eyra-conversation-mobile');
@@ -336,21 +344,38 @@ try {
   await historyStarted;
   // Explicitly require the confirmation dialog: a guarded/no-op Clear click
   // must fail this test at the actual cause, not 20 seconds later at the DOM.
-  const clearConfirmation = page.waitForEvent('dialog', { timeout: 5000 });
-  const clearClick = page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
-  const clearDialog = await clearConfirmation;
-  await clearDialog.accept();
-  await clearClick;
-  // Wait until Clear has committed to the DOM before allowing the stalled
-  // history request to resolve. Two animation frames are not a reliable
-  // synchronization barrier on loaded GitHub Actions runners.
-  await page.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
+  // A native confirmation dialog is already covered in the earlier clear.
+  // Here, keep confirmation deterministic so the race test actually measures
+  // Clear versus the held history response, not Playwright dialog timing.
+  await page.evaluate(() => {
+    window.__eyraOriginalConfirm = window.confirm;
+    window.__eyraConfirmCalls = 0;
+    window.confirm = () => { window.__eyraConfirmCalls++; return true; };
+  });
+  await page.getByRole('button', { name: 'Clear EYRA conversation' }).click();
+  const clearConfirmCalls = await page.evaluate(() => {
+    const count = window.__eyraConfirmCalls;
+    window.confirm = window.__eyraOriginalConfirm;
+    delete window.__eyraOriginalConfirm;
+    delete window.__eyraConfirmCalls;
+    return count;
+  });
+  assert.equal(clearConfirmCalls, 1, 'Clear during a pending restore must reach the confirmation handler exactly once');
+  const clearDiagnostics = await page.evaluate(() => ({
+    transcript: document.querySelector('[aria-label="EYRA conversation"]')?.innerText.slice(0, 600),
+    localKeys: Object.keys(sessionStorage).filter(key => key.includes('eyra')),
+    clearButtons: [...document.querySelectorAll('[aria-label="Clear EYRA conversation"]')].length,
+  }));
+  console.log('EYRA pending-restore clear diagnostics (synthetic fixture only):', JSON.stringify(clearDiagnostics));
+  // Verify the actual React clear committed before the delayed network
+  // response is released. A real stale history restore must not resurrect it.
+  await eyraTranscript.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
   const historyResponse = page.waitForResponse(response => response.url().includes('/rest/v1/eyra_messages'));
   releaseHistory(); await (await historyResponse).finished();
   await page.waitForTimeout(250);
-  assert.equal(await page.getByText(answer, { exact: true }).count(), 0, 'late history cannot restore a chat after clear');
+  assert.equal(await eyraTranscript.getByText(answer, { exact: true }).count(), 0, 'late history cannot restore a chat after clear');
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
-  await page.getByText(answer, { exact: true }).waitFor();
+  await eyraTranscript.getByText(answer, { exact: true }).waitFor();
   console.log('PASS fixture: delayed history response cannot repopulate a cleared conversation.');
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export conversation', exact: true }).click();
