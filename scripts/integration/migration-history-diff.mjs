@@ -37,7 +37,7 @@ export function compareMigrationHistory(remoteEntries, localFiles) {
     ambiguous_local_versions: ambiguousLocalVersions,
     remote_only_versions: [...remoteVersions].filter(version => !localVersions.has(version)).sort(),
     local_only_files: [...localVersions].filter(([version]) => !remoteVersions.has(version)).flatMap(([, files]) => files).sort(),
-    remote_history_verified: ambiguousLocalVersions.length === 0 && [...remoteVersions].every(version => localVersions.get(version)?.length === 1),
+    remote_history_verified: remoteVersions.size > 0 && ambiguousLocalVersions.length === 0 && [...remoteVersions].every(version => localVersions.get(version)?.length === 1),
     remote_application_authorized: false,
     note: 'Read-only version comparison. Do not rename migrations, repair history, apply SQL or reset a branch from this output.',
   };
