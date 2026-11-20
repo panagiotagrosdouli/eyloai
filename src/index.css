@@ -530,3 +530,9 @@ body { min-width: 320px; background: hsl(var(--background)); letter-spacing: -0.
   --input: 211 27% 27%;
   --ring: 203 70% 70%;
 }
+
+
+/* Use the supplied light-lettering mark inside the signed-in dark shell. */
+:root.dark .eylo-app-canvas .company-brand {
+  content: url("../public/brand/eylo-dark.svg");
+}

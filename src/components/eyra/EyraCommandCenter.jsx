@@ -178,6 +178,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const [copiedMessageId, setCopiedMessageId] = useState(null);
   const [actionError, setActionError] = useState('');
   const messagesEndRef = useRef(null);
+  const conversationScrollRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
   const dialogRef = useRef(null);
@@ -220,7 +221,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
 
   useEffect(() => {
     if (!open) return undefined;
-    const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 100);
+    const focusTimer = window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 100);
     return () => window.clearTimeout(focusTimer);
   }, [open]);
 
@@ -286,9 +287,16 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   }, [open, user?.id]);
 
   useEffect(() => {
+    if (!open) return;
+    if (messages.length === 1 && messages[0]?.welcome) {
+      // The welcome card can exceed the mobile transcript height. Start at
+      // its heading; only active conversations should follow the last message.
+      conversationScrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+      return;
+    }
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     messagesEndRef.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
-  }, [messages, loading]);
+  }, [messages, loading, open]);
 
   useEffect(() => {
     const key = eyraConversationKey(user?.id);
@@ -885,7 +893,7 @@ The saved record was returned by the server. Check the workspace for the final r
           <EyraModeSelector activeMode={activeMode} onChange={setActiveMode} disabled={loading} />
 
           {/* Messages */}
-          <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain bg-gradient-to-b from-background via-card/30 to-background px-4 py-6 sm:px-8 sm:py-8" aria-label="EYRA conversation">
+          <div ref={conversationScrollRef} className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain bg-gradient-to-b from-background via-card/30 to-background px-4 py-6 sm:px-8 sm:py-8" aria-label="EYRA conversation">
             <div className={`mx-auto flex min-h-full w-full max-w-3xl flex-col gap-5 ${messages.length === 1 ? 'justify-center' : ''}`}>
               {messages.map((msg, index) => msg.welcome ? (messages.length === 1 ? (
                 <section key={`${msg.timestamp}-${index}`} aria-label="Start a conversation with EYRA" className="relative mx-auto w-full max-w-[740px] overflow-hidden rounded-[28px] border border-primary/10 bg-gradient-to-br from-card via-card to-primary/5 p-6 shadow-[0_24px_70px_-55px_rgba(67,89,200,0.55)] sm:p-9">
