@@ -68,7 +68,7 @@ export default function Landing() {
             <img src={import.meta.env.BASE_URL + "brand/eylo-light.svg"} alt="EYLO" className="company-brand h-9 w-auto" width="148" height="43" />
           </Link>
           <nav className="hidden items-center gap-7 text-sm font-medium text-[var(--company-muted)] lg:flex" aria-label="Main navigation">
-            <a href="#how-it-works">How it works</a>
+            <Link to="/start">Start here</Link>\n            <a href="#how-it-works">How it works</a>
             <a href="#for-you">Who it helps</a>
             <a href="#trust">Trust & privacy</a>
             <a href="#questions">Questions</a>
@@ -85,7 +85,7 @@ export default function Landing() {
         </div>
         {menuOpen && <nav id="eylo-mobile-menu" aria-label="Mobile navigation" className="grid gap-1 border-t border-[var(--company-border)] px-5 py-3 lg:hidden">
           {[["How it works", "#how-it-works"], ["Who it helps", "#for-you"], ["Trust & privacy", "#trust"], ["Questions", "#questions"], ["Plans", "#premium"]].map(([label, href]) => <a className="rounded-lg px-3 py-3 text-sm" key={href} href={href} onClick={() => setMenuOpen(false)}>{label}</a>)}
-          <Link className="rounded-lg px-3 py-3 text-sm" to="/discover" onClick={() => setMenuOpen(false)}>Try research discovery</Link>
+          <Link className="rounded-lg px-3 py-3 text-sm" to="/start" onClick={() => setMenuOpen(false)}>Choose your starting point</Link>\n          <Link className="rounded-lg px-3 py-3 text-sm" to="/discover" onClick={() => setMenuOpen(false)}>Try research discovery</Link>
           <Link className="rounded-lg px-3 py-3 text-sm" to="/login" onClick={() => setMenuOpen(false)}>Log in</Link>
         </nav>}
       </header>
@@ -105,7 +105,7 @@ export default function Landing() {
                 EYLO helps you find scientific research, check where it came from, and keep the useful work in one place. No research expertise needed to take the first step.
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
-                <Link to="/discover" className={btn}>Search research for free <ArrowRight size={18} /></Link>
+                <Link to="/discover" className={btn}>Search research for free <ArrowRight size={18} /></Link>\n                <Link to="/start" className={outline}>Help me choose <ArrowRight size={17} /></Link>
                 <a className={outline} href="#how-it-works">See a simple example <ArrowRight size={17} /></a>
               </div>
               <p className="mt-4 flex items-center gap-2 text-sm text-[var(--company-muted)]"><Check size={16} /> No account needed to explore public research.</p>
