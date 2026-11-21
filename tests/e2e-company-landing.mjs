@@ -121,7 +121,8 @@ try {
   for (const width of [1024, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, 'landing fits width ' + width);
-    const menu = page.getByRole('button', { name: 'Open menu', exact: true });
+    if (width < 1024) {
+      const menu = page.getByRole('button', { name: 'Open menu', exact: true });
     await menu.click();
     assert.equal(await menu.getAttribute('aria-expanded'), 'true');
     await page.keyboard.press('Escape');
@@ -130,7 +131,8 @@ try {
     await menu.click();
     await page.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('link', { name: 'Choose your starting point' }).click();
     assert.equal(new URL(page.url()).pathname, '/eyloai/start');
-    await page.goto(base);
+      await page.goto(base);
+    }
     if (width === 390) await screenshot(page, 'company-landing-mobile');
   }
 
