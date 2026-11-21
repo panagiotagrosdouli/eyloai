@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Brain, Award, Rocket, Users, BarChart3, Target, FileText, AlertTriangle, Map, ArrowUpRight, Sparkles } from 'lucide-react';
+import { BookOpen, Brain, Award, Rocket, Users, BarChart3, Target, FileText, AlertTriangle, Map, ArrowUpRight, Sparkles, PenLine, CalendarCheck } from 'lucide-react';
 import { EYRA_MODES, EYRA_QUICK_COMMANDS } from '@/lib/eyra-next-policy.mjs';
 
 export const EYRA_MODE_ICONS = {
@@ -8,6 +8,7 @@ export const EYRA_MODE_ICONS = {
   startup: Rocket, team: Users, impact: BarChart3,
 };
 const COMMAND_ICONS = {
+  explain: BookOpen, write: PenLine, plan: CalendarCheck,
   project: Target, literature: FileText, gaps: AlertTriangle,
   funding: Award, team: Users, roadmap: Map,
 };
@@ -40,7 +41,7 @@ export function EyraModeSelector({ activeMode, onChange, disabled = false }) {
 
 /** Keep each lens focused on a few genuinely relevant actions; prompts remain centrally defined. */
 export const EYRA_MODE_STARTER_IDS = Object.freeze({
-  general: ['project', 'roadmap', 'literature'],
+  general: ['explain', 'write', 'plan'],
   research: ['literature', 'gaps', 'project'],
   strategy: ['project', 'roadmap', 'gaps'],
   funding: ['funding', 'project', 'roadmap'],
