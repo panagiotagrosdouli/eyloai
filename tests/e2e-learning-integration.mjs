@@ -179,6 +179,13 @@ try {
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Public getting-started mobile overflow');
   assert.equal(aiCalls, beforePublicAiCalls, 'new visitors do not trigger an AI call on the public guide');
   await capture(page, 'getting-started-mobile');
+  await page.getByRole('link', { name: 'See plans and availability' }).click();
+  await page.waitForURL('**/pricing');
+  await page.goBack();
+  await page.getByRole('link', { name: 'Contact EYLO' }).click();
+  await page.getByRole('heading', { name: 'Get in touch.' }).waitFor();
+  assert.equal(new URL(page.url()).pathname, '/contact');
+  await page.goBack();
   await page.getByRole('link', { name: 'Search publications' }).click();
   await page.waitForURL('**/search');
   assert.equal(new URL(page.url()).pathname, '/search');

@@ -1,0 +1,35 @@
+{
+  "status": "Illustrative EUR planning inputs only. Replace every figure with verified inputs before making decisions.",
+  "baseline": {
+    "openingCash": 10000,
+    "netPrice": 15,
+    "monthlyAdds": 5,
+    "salesStartMonth": 4,
+    "churn": 0.05,
+    "freeUsers": 30,
+    "freeAiCost": 0.20,
+    "paidAiCost": 2,
+    "storagePerUser": 0.10,
+    "providerFixed": 25,
+    "hosting": 50,
+    "supportHours": 8,
+    "supportRate": 20,
+    "paymentRate": 0.03,
+    "paymentFixed": 0.30,
+    "acquisition": 100,
+    "overhead": 100,
+    "hiringStartMonth": 13,
+    "payroll": 0,
+    "scaleStartMonth": 13,
+    "scaleCost": 0
+  },
+  "scenarios": {
+    "no_revenue": { "monthlyAdds": 0 },
+    "early_paid": {},
+    "moderate_growth": { "monthlyAdds": 20, "freeUsers": 100, "supportHours": 16, "acquisition": 350 },
+    "high_ai_usage": { "paidAiCost": 10, "freeAiCost": 1.50 },
+    "higher_provider_cost": { "providerFixed": 300 },
+    "team_hiring": { "hiringStartMonth": 7, "payroll": 3500 },
+    "infrastructure_scaling": { "scaleStartMonth": 6, "scaleCost": 250, "storagePerUser": 0.50 }
+  }
+}
