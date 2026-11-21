@@ -12,7 +12,7 @@ import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard'
 
 const HOME_PATHS = [
   { id: 'ask', label: 'Ask & explore', intro: 'Explore a question and choose how to continue.', examples: [
-    { label: 'Ask EYRA', to: '/home', desc: 'Use the AI assistant when available' },
+    { label: 'My projects', to: '/projects', desc: 'Resume your saved work' },
     { label: 'Explore research', to: '/search', desc: 'Find source-linked scholarly evidence' },
     { label: 'Learn something new', to: '/learn', desc: 'Open learning activities' },
   ] },
