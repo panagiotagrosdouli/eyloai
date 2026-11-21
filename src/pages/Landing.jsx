@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight, ArrowUpRight, BookOpen, Check, ChevronDown,
@@ -37,6 +37,17 @@ const outline = "inline-flex min-h-12 items-center justify-center gap-2 rounded-
 
 export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButton = useRef(null);
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const handleEscape = event => {
+      if (event.key !== "Escape") return;
+      setMenuOpen(false);
+      menuButton.current?.focus();
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [menuOpen]);
   const [person, setPerson] = useState(0);
   const active = people[person];
 
@@ -59,7 +70,7 @@ export default function Landing() {
             <ThemeToggle />
             <Link to="/login" className="hidden text-sm font-semibold sm:inline-flex">Log in</Link>
             <Link to="/discover" className={btn + " hidden sm:inline-flex"}>Try it free <ArrowUpRight size={16} aria-hidden="true" /></Link>
-            <button type="button" className="grid h-11 w-11 place-items-center rounded-lg border border-[var(--company-border)] lg:hidden" aria-controls="eylo-mobile-menu" aria-expanded={menuOpen} aria-label={menuOpen ? "Close menu" : "Open menu"} onClick={() => setMenuOpen(!menuOpen)}>
+            <button type="button" ref={menuButton} className="grid h-11 w-11 place-items-center rounded-lg border border-[var(--company-border)] lg:hidden" aria-controls="eylo-mobile-menu" aria-expanded={menuOpen} aria-label={menuOpen ? "Close menu" : "Open menu"} onClick={() => setMenuOpen(!menuOpen)}>
               {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
@@ -71,7 +82,7 @@ export default function Landing() {
         </nav>}
       </header>
 
-      <main id="main-content">
+      <main id="main-content" tabIndex={-1}>
         <section className="relative overflow-hidden px-5 pb-20 pt-16 sm:px-9 sm:pt-24 lg:px-12 lg:pb-28">
           <div className="pointer-events-none absolute -right-24 top-2 h-[420px] w-[420px] rounded-full bg-[#24AAF3]/10 blur-3xl" />
           <div className="relative mx-auto grid max-w-[1240px] items-center gap-14 lg:grid-cols-[1.05fr_.95fr]">
