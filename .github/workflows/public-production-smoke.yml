@@ -3,6 +3,10 @@ name: Public production smoke
 on:
   workflow_dispatch:
     inputs:
+      expected_commit:
+        description: 'Full Git SHA of the reviewed deployment'
+        required: true
+        type: string
       target_url:
         description: 'Reviewed public HTTPS origin to check'
         required: true
@@ -20,7 +24,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Check public landing, release manifest and robots policy
+      - name: Check public routes and deployed commit
         env:
+          EYLO_EXPECTED_GIT_SHA: ${{ inputs.expected_commit }}
           EYLO_SMOKE_URL: ${{ inputs.target_url }}
-        run: node scripts/smoke-public.mjs
+        run: |
+          : "${EYLO_EXPECTED_GIT_SHA:?Provide the reviewed commit SHA}"
+          node scripts/smoke-public.mjs
