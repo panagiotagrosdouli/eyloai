@@ -113,6 +113,7 @@ try {
     await page.getByRole('heading', { level: 1 }).first().waitFor();
     assert.equal(await page.evaluate(() => document.documentElement.classList.contains('dark')), true, route + ' retains theme');
     await page.setViewportSize({ width: 320, height: 900 });
+    await page.waitForFunction(() => innerWidth === 320 && document.documentElement.scrollWidth <= innerWidth + 1);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, route + ' fits 320px');
     await page.setViewportSize({ width: 1440, height: 1000 });
   }
@@ -121,6 +122,7 @@ try {
   await page.getByRole('button', { name: 'Switch to day mode', exact: true }).click();
   for (const width of [1024, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
+    await page.waitForFunction(expected => innerWidth === expected && document.documentElement.scrollWidth <= innerWidth + 1, width);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, 'landing fits width ' + width);
     if (width < 1024) {
       const menu = page.getByRole('button', { name: 'Open menu', exact: true });
