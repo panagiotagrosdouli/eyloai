@@ -21,15 +21,15 @@ import { filterToolGroups } from '@/lib/tool-directory-search.mjs';
 // Keep primary destinations stable and human-readable; secondary workflows live in All tools.
 const PRIMARY_NAV = [
   { label: 'Home', path: '/home', icon: Home },
-  { label: 'Discover', path: '/search', icon: Search },
-  { label: 'My workspace', path: '/projects', icon: FolderOpen },
   { label: 'Learn', path: '/learn', icon: GraduationCap },
+  { label: 'Create', path: '/documents/new', icon: FilePlus2 },
+  { label: 'Projects', path: '/projects', icon: FolderOpen },
 ];
 
 const TOOL_GROUPS = [
   {
-    section: 'Research calls',
-    description: 'Funding and collaboration opportunities',
+    section: 'Research & opportunities',
+    description: 'Academic literature, researchers and funding',
     items: [
       { label: 'Researchers', path: '/researchers', icon: Users, desc: 'Find experts and collaborators' },
       { label: 'Careers', path: '/workspace/careers', icon: Briefcase, desc: 'Explore research career opportunities' },
@@ -37,8 +37,8 @@ const TOOL_GROUPS = [
     ],
   },
   {
-    section: 'Workspace',
-    description: 'Research work that stays connected to projects',
+    section: 'Workspace & everyday tools',
+    description: 'Documents, projects, study, tasks and personal organization',
     items: [
       { label: 'EYLO Files', path: '/files', icon: File, desc: 'Private project files with version history' },
       { label: 'Time Tracker', path: '/time-tracker', icon: Clock3, desc: 'Track project work and Life tasks' },
@@ -69,8 +69,8 @@ const TOOL_GROUPS = [
     ],
   },
   {
-    section: 'Research tools',
-    description: 'Planning and analysis tools',
+    section: 'Specialized research tools',
+    description: 'Advanced evidence analysis and planning tools',
     items: [
       { label: 'Open challenges', path: '/challenges', icon: Trophy, desc: 'Research and innovation challenges', badge: 'Live sources' },
       { label: 'Executive briefing', path: '/briefing', icon: Brain, desc: 'A sourced view of priorities and risks', badge: 'Assisted' },
