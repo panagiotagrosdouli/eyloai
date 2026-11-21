@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowRight, ArrowUpRight, BookOpen, Check, ChevronDown, Clock3,
+  ArrowRight, ArrowUpRight, BookOpen, Check, ChevronDown,
   ExternalLink, FolderOpen, GraduationCap, LockKeyhole, Menu,
   Search, ShieldCheck, Sparkles, UsersRound, X,
 } from "lucide-react";
