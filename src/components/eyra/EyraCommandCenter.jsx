@@ -52,9 +52,9 @@ function createWelcomeMessage(name = '') {
   const localGreeting = getLocalGreeting(name);
   return {
     role: 'eyra',
-    content: `${localGreeting.greeting} I can review evidence, challenge assumptions, compare options, and turn your workspace into a clear next action. What outcome do you want from this session?`,
+    content: `${localGreeting.greeting} I can help you think through questions, learn, write, plan and explore research. What would you like to do?`,
     timestamp: Date.now(),
-    mode: 'research',
+    mode: 'general',
     welcome: true,
   };
 }
@@ -168,7 +168,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const [loadingStage, setLoadingStage] = useState('retrieving');
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [listening, setListening] = useState(false);
-  const [activeMode, setActiveMode] = useState('research');
+  const [activeMode, setActiveMode] = useState('general');
   const [preferences, setPreferences] = useState(loadPreferences);
   const [workspaceContext, setWorkspaceContext] = useState('');
   const [contextStatus, setContextStatus] = useState('idle');
@@ -913,7 +913,7 @@ The saved record was returned by the server. Check the workspace for the final r
                     Where should we begin?
                   </h3>
                   <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
-                    Work through a question, review your sources, or decide what to do next.
+                    Ask a question, create a plan, explore an idea or review evidence.
                   </p>
                   {messages.length === 1 && <EyraQuickCommands activeMode={activeMode} onSelect={prompt => void sendMessage(prompt)} disabled={loading} />}
                 </section>
