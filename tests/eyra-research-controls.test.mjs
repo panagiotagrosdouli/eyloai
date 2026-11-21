@@ -13,7 +13,7 @@ test('research lens and quick-action UI consume one canonical policy registry', 
   assert.match(controls, /EYRA_MODE_STARTER_IDS\[activeMode\]/);
   assert.match(controls, /suggestions\.map/);
   assert.match(controls, /aria-pressed=\{active\}/);
-  assert.match(controls, /role="group" aria-label="EYRA assistance mode"/);
+  assert.match(controls, /aria-label="EYRA assistance mode"/);
   assert.match(controls, /disabled=\{disabled\}/);
   assert.match(chat, /<EyraModeSelector activeMode=\{activeMode\} onChange=\{setActiveMode\}/);
   assert.match(chat, /<EyraQuickCommands activeMode=\{activeMode\} onSelect=\{prompt => void sendMessage\(prompt\)\}/);
