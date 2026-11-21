@@ -205,7 +205,7 @@ export default function Landing() {
       <footer className="border-t border-[var(--company-border)] px-5 py-9 sm:px-9 lg:px-12">
         <div className="mx-auto flex max-w-[1240px] flex-col justify-between gap-5 text-sm text-[var(--company-muted)] md:flex-row md:items-center">
           <p>© {new Date().getFullYear()} EYLO. Ask, learn, create and organize with clarity.</p>
-          <div className="flex flex-wrap gap-x-6 gap-y-3"><Link to="/company">About</Link><Link to="/contact">Contact</Link><Link to="/company/careers">Careers</Link><Link to="/discover">Discovery</Link></div>
+          <div className="flex flex-wrap gap-x-6 gap-y-3"><Link to="/company">About</Link><Link to="/company/what-we-do">What we do</Link><Link to="/company/vision">Vision</Link><Link to="/contact">Contact</Link><Link to="/company/careers">Careers</Link><Link to="/discover">Discovery</Link></div>
         </div>
       </footer>
     </div>
