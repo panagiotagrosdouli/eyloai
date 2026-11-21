@@ -188,7 +188,7 @@ export default function Contact() {
                 role="status"
                 className="text-sm text-green-800 dark:text-green-300"
               >
-                Thank you. Your message was sent to the EYLO team.
+                Thank you. The email provider accepted your message. Delivery to the EYLO inbox has not yet been confirmed.
               </p>
             )}
             <button
