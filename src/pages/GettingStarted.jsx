@@ -32,6 +32,8 @@ const STEPS = [
 ];
 
 export default function GettingStarted() {
+  const [audience, setAudience] = useState('ask');
+  const selected = AUDIENCES.find(item => item.id === audience) || AUDIENCES[0];
   return <main id="main-content" tabIndex={-1} className="eylo-company min-h-screen bg-[var(--company-surface)] px-4 py-8 text-[var(--company-ink)] sm:px-8 sm:py-12">
     <div className="mx-auto max-w-6xl">
       <header className="flex flex-wrap items-center justify-between gap-3">
