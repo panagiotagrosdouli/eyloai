@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight, ArrowUpRight, BookOpen, Check, ChevronDown,
-  ExternalLink, FolderOpen, GraduationCap, LockKeyhole, Menu,
-  Search, ShieldCheck, Sparkles, UsersRound, X,
+  ExternalLink, FolderOpen, LockKeyhole, Menu,
+  Search, ShieldCheck, Sparkles, X,
 } from "lucide-react";
 import ThemeToggle from "@/components/marketing/ThemeToggle";
 import PublicPlans from "@/components/marketing/PublicPlans";
