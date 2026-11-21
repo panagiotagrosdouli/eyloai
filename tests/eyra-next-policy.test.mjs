@@ -12,8 +12,8 @@ test('EYRA Next modes and shortcuts have unique stable identifiers and explicit 
     assert.ok(entries.every(item => /^[a-z]+$/.test(item.id) && item.label && item.prompt.length > 30));
   }
   assert.equal(getEyraMode('research').id, 'research');
-  assert.equal(getEyraMode('unknown').id, 'research');
-  assert.equal(EYRA_MODES.length, 6);
+  assert.equal(getEyraMode('unknown').id, 'general');
+  assert.equal(EYRA_MODES.length, 7);
 });
 
 test('every mode inherits one common scientific trust boundary', () => {
