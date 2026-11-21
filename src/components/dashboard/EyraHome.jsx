@@ -26,7 +26,7 @@ function ProjectRow({ project }) {
   );
 }
 
-export default function EyraHome({ onSearch }) {
+export default function EyraHome() {
   // Never render a cached research profile for a different authenticated owner.
   // In-flight responses are also discarded when the account or load attempt changes.
   const [profileState, setProfileState] = useState({ ownerId: null, data: null, loaded: false, error: false });
