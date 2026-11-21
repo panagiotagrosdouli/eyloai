@@ -1,8 +1,9 @@
 import React from 'react';
-import { BookOpen, Brain, Award, Rocket, Users, BarChart3, Target, FileText, AlertTriangle, Map, ArrowUpRight } from 'lucide-react';
+import { BookOpen, Brain, Award, Rocket, Users, BarChart3, Target, FileText, AlertTriangle, Map, ArrowUpRight, Sparkles } from 'lucide-react';
 import { EYRA_MODES, EYRA_QUICK_COMMANDS } from '@/lib/eyra-next-policy.mjs';
 
 export const EYRA_MODE_ICONS = {
+  general: Sparkles,
   research: BookOpen, strategy: Brain, funding: Award,
   startup: Rocket, team: Users, impact: BarChart3,
 };
@@ -14,7 +15,7 @@ const COMMAND_ICONS = {
 /** Compact, always-visible research lens, horizontally scrollable without hiding choices. */
 export function EyraModeSelector({ activeMode, onChange, disabled = false }) {
   return (
-    <nav aria-label="EYRA research lens" className="shrink-0 border-b border-border/40 bg-card/40 px-3 py-2.5 sm:px-8">
+    <nav aria-label="EYRA assistance mode" className="shrink-0 border-b border-border/40 bg-card/40 px-3 py-2.5 sm:px-8">
       <div role="group" aria-label="EYRA research lens" className="mx-auto flex max-w-3xl items-center gap-1.5 overflow-x-auto rounded-2xl bg-secondary/30 p-1.5 [scrollbar-width:thin]">
         {EYRA_MODES.map(mode => {
           const Icon = EYRA_MODE_ICONS[mode.id] || BookOpen;
@@ -39,6 +40,7 @@ export function EyraModeSelector({ activeMode, onChange, disabled = false }) {
 
 /** Keep each lens focused on a few genuinely relevant actions; prompts remain centrally defined. */
 export const EYRA_MODE_STARTER_IDS = Object.freeze({
+  general: ['project', 'roadmap', 'literature'],
   research: ['literature', 'gaps', 'project'],
   strategy: ['project', 'roadmap', 'gaps'],
   funding: ['funding', 'project', 'roadmap'],
