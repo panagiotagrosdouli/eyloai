@@ -172,17 +172,20 @@ try {
   const beforePublicAiCalls = aiCalls;
   await page.goto(`${origin}/start`);
   await page.getByRole('heading', { name: 'What would you like to do?' }).waitFor();
-  await page.getByRole('link', { name: 'Search publications' }).waitFor();
-  await page.getByRole('link', { name: 'Find researchers' }).waitFor();
-  await page.getByRole('link', { name: 'Explore careers' }).waitFor();
-  await page.getByRole('link', { name: 'Open my workspace' }).waitFor();
+  await page.getByRole('button', { name: 'Ask & explore' }).waitFor();
+  await page.getByRole('button', { name: 'Create & learn' }).waitFor();
+  await page.getByRole('button', { name: 'Plan & organize' }).waitFor();
+  await page.getByRole('button', { name: 'Research & evidence' }).click();
+  await page.getByRole('link', { name: /Search scientific literature/ }).waitFor();
+  await page.getByRole('link', { name: /Find researchers/ }).waitFor();
+  await page.getByRole('link', { name: /Save my evidence/ }).waitFor();
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Public getting-started mobile overflow');
   assert.equal(aiCalls, beforePublicAiCalls, 'new visitors do not trigger an AI call on the public guide');
   await capture(page, 'getting-started-mobile');
-  await page.getByRole('link', { name: 'Search publications' }).click();
+  await page.getByRole('link', { name: /Search scientific literature/ }).click();
   await page.waitForURL('**/search');
   assert.equal(new URL(page.url()).pathname, '/search');
-  console.log('PASS fixture: public first-use guide opens on mobile, presents real reachable research goals and works without AI or sign-in.');
+  console.log('PASS fixture: public first-use guide opens on mobile, presents goal-based everyday and research pathways and works without AI or sign-in.');
 
   await page.goto(`${origin}/login`);
   await page.getByLabel('Email address').fill(user.email);
