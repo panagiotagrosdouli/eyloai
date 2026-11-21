@@ -31,7 +31,7 @@ test('Corporate landing and public discovery share EYLO blue/navy while signed-i
   assert.match(landing, /var\(--company-surface\)/);
   assert.match(landing, /#24AAF3/);
   assert.match(landing, /brand\/eylo-light\.svg/);
-  assert.match(landing, /Explore research/);
+  assert.match(landing, /Explore EYLO/);
   assert.match(discovery, /var\(--company-ink\)/);
   assert.match(discovery, /eylo-public-discovery/);
   assert.match(discovery, /BrandLogo/);
