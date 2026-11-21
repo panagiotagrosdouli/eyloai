@@ -10,34 +10,15 @@ import PublicPlans from "@/components/marketing/PublicPlans";
 import "./landing.css";
 
 const people = [
-  {
-    label: "I teach or research",
-    icon: GraduationCap,
-    problem: "I need a reliable starting point for a new research question.",
-    example: "What does recent research say about AI in higher education?",
-    result: "Find source-linked papers, identify authors and save useful evidence for a project.",
-  },
-  {
-    label: "I work in a business",
-    icon: UsersRound,
-    problem: "I need to understand a technical question without sorting through dozens of tabs.",
-    example: "What research supports the benefits of a four-day workweek?",
-    result: "Explore published evidence and its limits before making a business decision.",
-  },
-  {
-    label: "I have a new idea",
-    icon: Sparkles,
-    problem: "I want to see what is already known before investing time in my idea.",
-    example: "What is known about biodegradable packaging materials?",
-    result: "Discover relevant work, researchers and possible next steps.",
-  },
+  {label:"Starting a literature review",icon:BookOpen,problem:"I need to understand the current state of research.",example:"What does current evidence say about AI feedback in higher education?",result:"Find relevant records, trace their sources and organize the literature."},
+  {label:"Finding a research gap",icon:Search,problem:"I need to identify what remains unanswered.",example:"Which open questions remain in explainable AI for medical imaging?",result:"Compare published work and formulate candidate gaps for manual validation."},
+  {label:"Building a research project",icon:UsersRound,problem:"I need collaborators, evidence and a credible next research step.",example:"Who is publishing on biodegradable polymer membranes?",result:"Explore researchers, save evidence and develop a research plan."},
 ];
-
 const faqs = [
   ["What exactly does EYLO do?", "EYLO helps you find scholarly sources, see the original records, organize useful findings and plan your next research step. Think of it as a place to move from a question to evidence you can check."],
   ["Why use EYLO rather than ChatGPT?", "ChatGPT is a general-purpose assistant. EYLO is built around a research workflow: finding records in scholarly indexes, linking to original sources, saving evidence and organizing research projects. EYRA helps you reason over that context, but its answers still need checking."],
   ["How does this save me time?", "Instead of searching several academic sites separately and losing track of useful papers, you can discover records and organize them in one workspace. The time saved will depend on your task; we do not claim a measured time-saving figure."],
-  ["Can I use EYLO if I am not a researcher?", "Yes. Professionals, founders and curious learners can explore published research too. EYLO is most useful when your question benefits from scholarly evidence, rather than general web browsing."],
+  ["Who is EYLO built for?", "EYLO is designed first for researchers, PhD candidates, postdoctoral researchers and academic research teams who need source-backed discovery and a connected project workspace."],
   ["Can I trust the information?", "EYLO distinguishes source-linked records from AI interpretation. A published paper is not automatically correct, and AI can make mistakes. Read the original work and verify important claims before acting."],
   ["How can I verify a paper is real?", "Open the link to its original scholarly record and inspect its authors, publication details and identifier when provided. Availability and completeness depend on each upstream source."],
   ["Do I need technical training?", "No technical setup is needed to try public discovery. Start with a plain-language question; select your goal and level to help guide the results."],
@@ -96,16 +77,16 @@ export default function Landing() {
           <div className="relative mx-auto grid max-w-[1240px] items-center gap-14 lg:grid-cols-[1.05fr_.95fr]">
             <div>
               <p className="inline-flex items-center gap-2 rounded-full border border-[var(--company-border)] bg-[var(--company-soft)] px-4 py-2 text-xs font-semibold text-[var(--company-muted)]">
-                <Search size={15} /> Your research question. Real sources. A clear next step.
+                <Search size={15} /> Built for researchers · Sources · Research workflows
               </p>
               <h1 className="mt-7 max-w-[700px] text-[clamp(2.7rem,5.3vw,5.5rem)] font-bold leading-[1.07] tracking-[-.06em]">
-                Stop guessing.<br /><span className="text-[#168bca]">Start with evidence.</span>
+                From research question<br /><span className="text-[#168bca]">to evidence and action.</span>
               </h1>
               <p className="mt-7 max-w-xl text-lg leading-[1.8] text-[var(--company-muted)]">
-                EYLO helps you find scientific research, check where it came from, and keep the useful work in one place. No research expertise needed to take the first step.
+                EYLO is a connected research workspace for researchers. Discover scholarly publications, verify original sources, explore authors and carry evidence into research projects with EYRA assistance.
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
-                <Link to="/discover" className={btn}>Search research for free <ArrowRight size={18} /></Link>\n                <Link to="/start" className={outline}>Help me choose <ArrowRight size={17} /></Link>
+                <Link to="/discover" className={btn}>Explore scholarly literature <ArrowRight size={18} /></Link>\n                <Link to="/start" className={outline}>Help me choose <ArrowRight size={17} /></Link>
                 <a className={outline} href="#how-it-works">See a simple example <ArrowRight size={17} /></a>
               </div>
               <p className="mt-4 flex items-center gap-2 text-sm text-[var(--company-muted)]"><Check size={16} /> No account needed to explore public research.</p>
@@ -117,12 +98,12 @@ export default function Landing() {
               </div>
               <div className="mt-6 rounded-2xl bg-[var(--company-surface)] p-5">
                 <p className="text-xs font-semibold text-[#168bca]">01 · ASK</p>
-                <p className="mt-2 text-lg font-semibold">“How does remote work affect productivity?”</p>
+                <p className="mt-2 text-lg font-semibold">“What research gaps exist in explainable AI for medical imaging?”</p>
               </div>
               <div className="ml-5 h-6 border-l-2 border-dashed border-[var(--company-border)]" />
               <div className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-surface)] p-5">
                 <p className="text-xs font-semibold text-[#168bca]">02 · CHECK</p>
-                <p className="mt-2 text-base font-semibold">Discover relevant studies</p>
+                <p className="mt-2 text-base font-semibold">Discover relevant publications</p>
                 <p className="mt-2 text-sm leading-6 text-[var(--company-muted)]">Follow the original records to inspect authors, methods and findings.</p>
                 <div className="mt-4 flex flex-wrap gap-2">{["OpenAlex", "Crossref", "Semantic Scholar"].map(s => <span key={s} className="rounded-lg bg-[var(--company-soft)] px-3 py-1.5 text-xs text-[var(--company-muted)]">{s}</span>)}</div>
               </div>
@@ -140,7 +121,7 @@ export default function Landing() {
           <div className="mx-auto max-w-[1240px]">
             <p className="text-sm font-bold uppercase tracking-[.16em] text-[#168bca]">What you get</p>
             <h2 className="mt-3 max-w-3xl text-3xl font-bold tracking-[-.04em] sm:text-5xl">From a question to a useful next step.</h2>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--company-muted)]">A clear workflow, whether you are preparing a lecture, evaluating a business idea or exploring a subject for the first time.</p>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--company-muted)]">One workflow for a literature review, research gap exploration, collaborator discovery and a research project.</p>
             <div className="mt-10 grid gap-5 md:grid-cols-3">
               {[
                 {icon: Search, name: "Find", text: "Search scholarly records from connected research indexes. Open original sources instead of relying only on a summary."},
@@ -157,8 +138,8 @@ export default function Landing() {
 
         <section id="for-you" className="scroll-mt-24 px-5 py-20 sm:px-9 lg:px-12">
           <div className="mx-auto max-w-[1240px]">
-            <p className="text-sm font-bold uppercase tracking-[.16em] text-[#168bca]">Made for real questions</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-[-.04em] sm:text-5xl">How could EYLO help you?</h2>
+            <p className="text-sm font-bold uppercase tracking-[.16em] text-[#168bca]">For different research goals</p>
+            <h2 className="mt-3 text-3xl font-bold tracking-[-.04em] sm:text-5xl">Where are you in your research?</h2>
             <div className="mt-9 flex flex-wrap gap-3" role="group" aria-label="Choose your role">
               {people.map(({label, icon: Icon}, i) => <button key={label} type="button" aria-pressed={person === i} onClick={() => setPerson(i)} className={"inline-flex min-h-12 items-center gap-2 rounded-xl border px-5 text-sm font-semibold transition " + (person === i ? "border-[#168bca] bg-[#168bca] text-white" : "border-[var(--company-border)] bg-[var(--company-soft)]")}>
                 <Icon size={17} /> {label}
@@ -203,7 +184,7 @@ export default function Landing() {
         </section>
 
         <section id="questions" className="scroll-mt-24 px-5 py-20 sm:px-9 lg:px-12">
-          <div className="mx-auto max-w-[940px]"><p className="text-sm font-bold uppercase tracking-[.16em] text-[#168bca]">Straight answers</p><h2 className="mt-3 text-3xl font-bold tracking-[-.04em] sm:text-5xl">15 questions worth asking.</h2><p className="mt-4 text-base leading-8 text-[var(--company-muted)]">Especially if you are new to research tools or skeptical of AI.</p>
+          <div className="mx-auto max-w-[940px]"><p className="text-sm font-bold uppercase tracking-[.16em] text-[#168bca]">Straight answers</p><h2 className="mt-3 text-3xl font-bold tracking-[-.04em] sm:text-5xl">15 questions worth asking.</h2><p className="mt-4 text-base leading-8 text-[var(--company-muted)]">Clear answers about scholarly sources, scientific rigor, privacy, funding and research workflows.</p>
             <div className="mt-9 divide-y divide-[var(--company-border)] border-y border-[var(--company-border)]">
               {faqs.map(([question, answer], i) => <details key={question} className="group py-1" open={i === 0 ? true : undefined}>
                 <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-4 text-left text-base font-semibold sm:text-lg"><span><span className="mr-3 text-sm text-[var(--company-muted)]">{String(i + 1).padStart(2, "0")}</span>{question}</span><ChevronDown size={19} className="shrink-0 transition group-open:rotate-180" aria-hidden="true" /></summary>
@@ -215,7 +196,7 @@ export default function Landing() {
 
         <section className="bg-[#102a3d] px-5 py-20 text-white sm:px-9 lg:px-12">
           <div className="mx-auto flex max-w-[1240px] flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
-            <div><p className="text-sm font-bold uppercase tracking-[.16em] text-[#91d8ff]">Your first five minutes</p><h2 className="mt-3 max-w-2xl text-3xl font-bold tracking-[-.04em] sm:text-5xl">Bring one question. See what the evidence says.</h2><p className="mt-5 max-w-2xl text-base leading-7 text-white/75">Search public research, open an original record, and decide for yourself whether EYLO helps.</p></div>
+            <div><p className="text-sm font-bold uppercase tracking-[.16em] text-[#91d8ff]">Your first five minutes</p><h2 className="mt-3 max-w-2xl text-3xl font-bold tracking-[-.04em] sm:text-5xl">Bring one research question. Trace the evidence.</h2><p className="mt-5 max-w-2xl text-base leading-7 text-white/75">Search scholarly indexes, inspect an original research record and decide whether the workflow supports your research.</p></div>
             <Link to="/discover" className="inline-flex min-h-14 shrink-0 items-center gap-2 rounded-xl bg-white px-7 text-base font-bold text-[#102a3d] transition hover:bg-[#daf3ff]">Explore without signing up <ArrowRight size={20} /></Link>
           </div>
         </section>
