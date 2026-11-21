@@ -1,0 +1,23 @@
+name: EYLO hosted production provenance (manual)
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-release-probe:
+    name: Check deployed SHA and public flags (not pilot approval)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Compare deployed revision to reviewed main
+        run: |
+          test "${GITHUB_REF_NAME}" = "main"
+          node scripts/verify-hosted-release.mjs "${GITHUB_SHA}"
