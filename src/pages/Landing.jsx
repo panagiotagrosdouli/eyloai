@@ -190,7 +190,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section id="premium" className="scroll-mt-24 border-y border-[var(--company-border)] bg-[var(--company-soft)] px-5 py-20 sm:px-9 lg:px-12">
+        <section className="scroll-mt-24 border-y border-[var(--company-border)] bg-[var(--company-soft)] px-5 py-20 sm:px-9 lg:px-12">
           <div className="mx-auto max-w-[1240px]"><p className="text-sm font-bold uppercase tracking-[.16em] text-[#168bca]">Access & plans</p><h2 className="mt-3 text-3xl font-bold tracking-[-.04em] sm:text-5xl">Start exploring before you sign up.</h2><p className="mt-4 max-w-2xl text-base leading-8 text-[var(--company-muted)]">Public discovery is available without an account. Saving work and using EYRA require authentication. The options below describe current or planned access; paid checkout may still be in early access.</p><div className="mt-9"><PublicPlans /></div></div>
         </section>
 
