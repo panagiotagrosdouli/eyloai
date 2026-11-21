@@ -7,6 +7,7 @@ import { promiseWithTimeout } from '@/lib/promise-timeout';
 import { useCapabilities } from '@/lib/capabilities';
 import { useAuth } from '@/lib/AuthContext';
 import { visibleOwnerProfileState } from '@/lib/auth/owner-scoped-profile.mjs';
+import GoalPaths from '@/components/dashboard/GoalPaths';
 
 const HOME_PROFILE_TIMEOUT_MS = 12_000;
 
@@ -111,6 +112,7 @@ export default function EyraHome() {
           </div>
           <p className="mt-4 text-xs leading-5 text-muted-foreground">AI answers may be inaccurate. Review important results before relying on them. Sending a question to EYRA requires your confirmation in the chat.</p>
         </section>
+        <GoalPaths />
 
 
         {loaded && workspaceWarnings.length > 0 && (
