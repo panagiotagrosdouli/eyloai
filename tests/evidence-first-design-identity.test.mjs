@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 const read = path => readFileSync(new URL('../src/' + path, import.meta.url), 'utf8');
 
-test('EYLO has a recognisable research trail rather than an AI-only promise', () => {
+test('EYLO landing presents an all-purpose entry and keeps evidence traceability', () => {
   const landing = read('pages/Landing.jsx');
-  assert.match(landing,/QUESTION  ·  SOURCES  ·  NEXT STEP/);
-  assert.match(landing,/Find the evidence\./);
-  assert.match(landing,/Keep the context/);
-  assert.match(landing,/EYRA can assist when the AI service is available/);
-  assert.match(landing,/Explore research <ArrowRight/);
-  assert.doesNotMatch(landing,/A better way to\s*\n\s*<br \/>/);
+  assert.match(landing, /One place to ask, learn/);
+  assert.match(landing, /Your next step/);
+  assert.match(landing, /source-linked research|scholarly records/i);
+  assert.match(landing, /to="\/start"/);
+  assert.match(landing, /to="\/discover"/);
+  assert.doesNotMatch(landing, /guaranteed correct answers/i);
 });
 
 test('marketing walkthrough presents EYLO features without unnecessary labels',()=>{
@@ -32,13 +32,14 @@ test('getting started keeps the same public brand palette in both themes',()=>{
   assert.match(guide,/border-\[var\(--company-border\)\]/);
   assert.match(guide,/text-\[var\(--company-muted\)\]/);
   assert.doesNotMatch(guide,/\bbg-background\b|\btext-muted-foreground\b/);
-  assert.match(guide,/try public search before signing in/);
+  assert.match(guide,/public academic records without signing in/i);
 });
 
-test('research Home does not call unverified indexed records verified',()=>{
-  const home=read('components/dashboard/EyraHome.jsx');
-  assert.doesNotMatch(home,/Search verified research sources/);
-  assert.match(home,/Explore source-linked academic records/);
-  assert.match(home,/Always check the original papers/);
-  assert.match(home,/EYRA can help with follow-up questions when available/);
+test('EYRA-first Home preserves evidence as a separate, verifiable workflow', () => {
+  const home = read('components/dashboard/EyraHome.jsx');
+  assert.match(home, /What can EYLO help you do today/);
+  assert.match(home, /Research sources/);
+  assert.match(home, /AI answers may be inaccurate/);
+  assert.match(home, /eylo:open-eyra/);
+  assert.doesNotMatch(home, /Search verified research sources/);
 });
