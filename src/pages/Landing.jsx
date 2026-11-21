@@ -16,23 +16,22 @@ const people = [
   {label:"Research & evidence",icon:Search,problem:"I want to check a claim against published work.",example:"What does research say about sleep and learning?",result:"Find scholarly records, follow original sources and save useful evidence."},
 ];
 const faqs = [
-  ["What exactly does EYLO do?", "EYLO helps you find scholarly sources, see the original records, organize useful findings and plan your next research step. Think of it as a place to move from a question to evidence you can check."],
-  ["Why use EYLO rather than ChatGPT?", "ChatGPT is a general-purpose assistant. EYLO is built around a research workflow: finding records in scholarly indexes, linking to original sources, saving evidence and organizing research projects. EYRA helps you reason over that context, but its answers still need checking."],
-  ["How does this save me time?", "Instead of searching several academic sites separately and losing track of useful papers, you can discover records and organize them in one workspace. The time saved will depend on your task; we do not claim a measured time-saving figure."],
-  ["Who is EYLO built for?", "EYLO is designed first for researchers, PhD candidates, postdoctoral researchers and academic research teams who need source-backed discovery and a connected project workspace."],
-  ["Can I trust the information?", "EYLO distinguishes source-linked records from AI interpretation. A published paper is not automatically correct, and AI can make mistakes. Read the original work and verify important claims before acting."],
-  ["How can I verify a paper is real?", "Open the link to its original scholarly record and inspect its authors, publication details and identifier when provided. Availability and completeness depend on each upstream source."],
-  ["Do I need technical training?", "No technical setup is needed to try public discovery. Start with a plain-language question; select your goal and level to help guide the results."],
-  ["Can you show me value in five minutes?", "Try a question in public discovery, open an original source and compare the results with what you already knew. You can do this before creating an account."],
-  ["How much does it cost?", "Public scholarly discovery can be tried without an account. Saving work and EYRA require signing in; access and limits depend on the current plan. Check the plans section for published tiers. Paid checkout may be unavailable during early access."],
-  ["What happens to my data?", "Saved workspace records are scoped to your signed-in account. EYLO uses external scholarly services and an AI provider for relevant functions. Avoid entering confidential data until you have reviewed the privacy information and terms."],
-  ["What is EYRA?", "EYRA is EYLO's AI research assistant. It can work with your selected question and saved project context to help interpret information and suggest next steps. It does not replace expert judgment."],
-  ["Can it find funding?", "EYLO includes funding discovery based on official US Grants.gov records for signed-in users. It does not currently cover every country; you must check eligibility, deadlines and terms with the official funder."],
-  ["Can I save and revisit my work?", "Yes. A signed-in workspace can keep saved evidence, researchers, projects and related notes for later use."],
-  ["Who is behind EYLO?", "EYLO is an evolving product. Visit the About and Contact pages to learn about the project or raise a question. Do not rely on an assumed response time or support guarantee."],
-  ["Why trust a new startup?", "Try the public discovery flow and inspect sources yourself. EYLO does not claim independently proven performance, institutional partnerships or production adoption. We prefer visible limitations to unsupported promises."],
+  ["What is EYLO?", "EYLO is a workspace that combines AI assistance with tools for learning, creating documents, organizing tasks and projects, and exploring scholarly research. Some features require an account."],
+  ["How is EYLO different from ChatGPT?", "EYLO connects its AI assistant EYRA with specialized tools and saved work. It is an evolving product, not a claim to match every feature or model capability of ChatGPT."],
+  ["What can I do today?", "You can try public scientific discovery without signing in. With an account you can access available workspace tools such as projects, tasks, documents, learning, and eligible AI functions."],
+  ["Is EYLO only for researchers?", "No. EYLO is intended for anyone who wants to ask, learn, create, plan or research. Its scholarly search and research funding tools are specialist options within a broader workspace."],
+  ["Can I trust EYRA's answers?", "AI outputs can be wrong. Verify important facts, especially for scientific, financial, legal and health decisions. Source-linked scholarly records are for checking evidence, not a guarantee of scientific truth."],
+  ["How do I verify scientific results?", "Open the original scholarly record and inspect authors, publication details and linked identifiers where available. The quality and completeness of metadata depend on the source."],
+  ["Do I need technical experience?", "You can begin with a simple goal using the Start here page. Some functions need a signed-in account; advanced tools have their own workflows."],
+  ["Can I try EYLO before signing up?", "Yes, public scholarly discovery is available without an account. Most personalized workspace features and EYRA require signing in."],
+  ["How much does EYLO cost?", "See the current or planned plans below. Paid checkout may be unavailable during early access; features and access levels depend on configuration."],
+  ["What about my privacy?", "Saved workspace records are scoped to the signed-in user. Some features depend on external AI or scholarly services. Review the applicable privacy terms before sharing sensitive material."],
+  ["What is EYRA?", "EYRA is EYLO's AI assistant, available when the service and account entitlements permit. It can help think through questions and selected context; its output still needs checking."],
+  ["Does EYLO help with research funding?", "EYLO includes a specialized funding workflow using official US Grants.gov records. It is not a worldwide grants directory; always check the official eligibility rules."],
+  ["Can I save my work?", "Authenticated users can save project and research work in their workspace. Some public discovery saving may be browser-scoped, so check where a particular item is stored."],
+  ["Who is behind EYLO?", "Visit the About and Contact pages to learn about the project and get in touch. Support availability and response times should not be assumed."],
+  ["Why should I trust a new product?", "Try available functionality, review its limitations and judge whether it suits your workflow. EYLO does not claim independently verified performance, institutional adoption or feature parity with ChatGPT."],
 ];
-
 const btn = "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl company-primary px-6 text-sm font-semibold transition";
 const outline = "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[var(--company-border)] px-6 text-sm font-semibold transition hover:bg-[var(--company-soft)]";
 
@@ -156,7 +155,7 @@ export default function Landing() {
         <section id="trust" className="scroll-mt-24 border-y border-[var(--company-border)] bg-[var(--company-soft)] px-5 py-20 sm:px-9 lg:px-12">
           <div className="mx-auto max-w-[1240px]">
             <p className="text-sm font-bold uppercase tracking-[.16em] text-[#168bca]">Trust before hype</p>
-            <h2 className="mt-3 max-w-3xl text-3xl font-bold tracking-[-.04em] sm:text-5xl">You stay in control of the judgment.</h2>
+            <h2 className="mt-3 max-w-3xl text-3xl font-bold tracking-[-.04em] sm:text-5xl">Stay in control of important decisions.</h2>
             <div className="mt-10 grid gap-5 md:grid-cols-3">
               {[
                 {icon: ExternalLink, title: "Follow the source", body: "EYLO links to scholarly records from services such as OpenAlex, arXiv, Europe PMC, Crossref and Semantic Scholar. Verify the paper itself."},
@@ -165,14 +164,14 @@ export default function Landing() {
               ].map(({icon: Icon,title,body}) => <article key={title} className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-surface)] p-7"><Icon size={26} className="text-[#168bca]" /><h3 className="mt-5 text-xl font-bold">{title}</h3><p className="mt-3 text-sm leading-7 text-[var(--company-muted)]">{body}</p></article>)}
             </div>
             <div className="mt-8 rounded-2xl border border-[var(--company-border)] bg-[var(--company-surface)] p-6 text-sm leading-7 text-[var(--company-muted)]">
-              <strong className="text-[var(--company-ink)]">What we will not promise:</strong> EYLO is not a systematic-review tool, not a guarantee of correct AI answers and not a substitute for expert advice. Funding discovery currently focuses on official US Grants.gov records, and eligibility must be confirmed at the source.
+              <strong className="text-[var(--company-ink)]">What we will not promise:</strong> EYLO is not a guarantee of correct AI answers or a substitute for expert advice. Its scholarly discovery is not a systematic-review protocol. Funding discovery currently focuses on official US Grants.gov records, and eligibility must be confirmed at the source.
             </div>
           </div>
         </section>
 
         <section className="px-5 py-20 sm:px-9 lg:px-12" id="eyra">
           <div className="mx-auto grid max-w-[1240px] items-center gap-10 lg:grid-cols-[1fr_.9fr]">
-            <div><p className="text-sm font-bold uppercase tracking-[.16em] text-[#168bca]">Meet EYRA</p><h2 className="mt-3 text-3xl font-bold tracking-[-.04em] sm:text-5xl">Not just another chat window.</h2><p className="mt-6 max-w-xl text-base leading-8 text-[var(--company-muted)]">EYRA is the assistant inside EYLO. With the research context you choose, it can help you explore a question, connect ideas and decide what to investigate next. You verify the conclusions.</p><Link to="/register" className={btn + " mt-7"}>Create a research workspace <ArrowRight size={17} /></Link></div>
+            <div><p className="text-sm font-bold uppercase tracking-[.16em] text-[#168bca]">Meet EYRA</p><h2 className="mt-3 text-3xl font-bold tracking-[-.04em] sm:text-5xl">Not just another chat window.</h2><p className="mt-6 max-w-xl text-base leading-8 text-[var(--company-muted)]">EYRA is the AI assistant inside EYLO. It can help you explore questions and work with selected context when available. EYLO also offers separate tools for learning, creation, planning and research. Check important answers.</p><Link to="/register" className={btn + " mt-7"}>Create your workspace <ArrowRight size={17} /></Link></div>
             <div className="rounded-[24px] border border-[var(--company-border)] bg-[var(--company-soft)] p-7">
               <p className="text-sm font-semibold text-[var(--company-muted)]">What connects EYLO tools?</p>
               <ul className="mt-6 space-y-5">{["AI assistance through EYRA when available", "Learning, documents, tasks and project tools", "Specialized scholarly discovery with original source links", "One workspace to return to your work"].map(item => <li key={item} className="flex items-start gap-3 text-base leading-7"><Check className="mt-1 shrink-0 text-[#168bca]" size={19} />{item}</li>)}</ul>
