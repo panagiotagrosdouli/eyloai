@@ -125,7 +125,7 @@ try {
     await page.waitForFunction(expected => innerWidth === expected && document.documentElement.scrollWidth <= innerWidth + 1, width);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, 'landing fits width ' + width);
     if (width < 1024) {
-      const menu = page.getByRole('button', { name: 'Open menu', exact: true });
+      const menu = page.locator('button[aria-controls="eylo-mobile-menu"]');
     await menu.click();
     assert.equal(await menu.getAttribute('aria-expanded'), 'true');
     await page.keyboard.press('Escape');
