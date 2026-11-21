@@ -37,7 +37,7 @@ test('home prioritizes EYRA and presents owner-isolated work in a responsive gri
   assert.match(home, /const seenQueries = new Set\(\)/);
   assert.match(home, /seenQueries\.has\(query\.toLocaleLowerCase\(\)\)/);
   assert.match(home, /visibleOwnerProfileState\(profileState, ownerId\)/);
-  assert.match(home, /onSearch\(homeQuery\.trim\(\)\)/);
+  assert.match(home, /CustomEvent.*eylo:open-eyra/);
   assert.match(home, /eylo:open-eyra/);
   for (const route of ['/search', '/library', '/projects?new=1', '/study-planner']) {
     assert.ok(home.includes(route), 'missing original functional route ' + route);
