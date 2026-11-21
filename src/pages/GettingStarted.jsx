@@ -4,20 +4,25 @@ import './landing.css';
 import { ArrowLeft, ArrowRight, BookOpen, Briefcase, FolderOpen, HelpCircle, Search, Users } from 'lucide-react';
 
 const AUDIENCES = [
-  {id:'literature',name:'Literature review',Icon:BookOpen,problem:'I want to establish what has been published and where evidence is limited.',actions:[
-    {label:'Search scholarly publications',path:'/search',detail:'Find linked records from research indexes',Icon:Search},
-    {label:'Save selected literature',path:'/library',detail:'Sign in to collect sources in your library',Icon:FolderOpen},
-    {label:'Develop my review',path:'/literature-review',detail:'Continue into the research writing workflow',Icon:BookOpen},
+  {id:'ask',name:'Ask & explore',Icon:HelpCircle,problem:'I have a question and want to explore a topic.',actions:[
+    {label:'Ask EYRA',path:'/login?from=%2Fhome',detail:'Sign in to use AI assistance when available',Icon:HelpCircle},
+    {label:'Find trustworthy sources',path:'/search',detail:'Discover scientific records without signing in',Icon:Search},
+    {label:'Learn a new subject',path:'/learn',detail:'Open learning tools in your workspace',Icon:BookOpen},
   ]},
-  {id:'gaps',name:'Research gaps & questions',Icon:HelpCircle,problem:'I want to clarify what we know, what remains uncertain and what question to investigate next.',actions:[
-    {label:'Explore a topic',path:'/search',detail:'Examine recent and foundational records',Icon:Search},
-    {label:'Explore research gaps',path:'/research-gaps',detail:'Use as hypotheses to check against original sources',Icon:HelpCircle},
-    {label:'Build a research project',path:'/projects',detail:'Keep sources and milestones connected',Icon:FolderOpen},
+  {id:'create',name:'Create & learn',Icon:BookOpen,problem:'I want to write, study or turn an idea into something useful.',actions:[
+    {label:'Create a document',path:'/documents/new',detail:'Write and organize content in your workspace',Icon:BookOpen},
+    {label:'Explore learning tools',path:'/learn',detail:'Build knowledge with learning activities',Icon:HelpCircle},
+    {label:'Organize my ideas',path:'/projects',detail:'Keep progress and decisions in one place',Icon:FolderOpen},
   ]},
-  {id:'collaboration',name:'Collaborations & funding',Icon:Users,problem:'I want to identify researchers, institutions and funding routes for a project.',actions:[
-    {label:'Find relevant researchers',path:'/academics',detail:'Explore publications and author records',Icon:Users},
-    {label:'Explore funding',path:'/opportunities',detail:'Currently US Grants.gov; verify program eligibility',Icon:Briefcase},
-    {label:'Plan my project',path:'/projects',detail:'Organize research milestones and evidence',Icon:FolderOpen},
+  {id:'organize',name:'Plan & organize',Icon:FolderOpen,problem:'I want to manage projects, tasks and next steps.',actions:[
+    {label:'My projects',path:'/projects',detail:'Keep work, milestones and ideas connected',Icon:FolderOpen},
+    {label:'My tasks',path:'/life',detail:'Track what matters next',Icon:Briefcase},
+    {label:'Explore opportunities',path:'/opportunities',detail:'Specialized research funding records; eligibility varies',Icon:Users},
+  ]},
+  {id:'research',name:'Research & evidence',Icon:Search,problem:'I need scientific evidence and reliable original sources.',actions:[
+    {label:'Search scientific literature',path:'/search',detail:'Trace records to scholarly indexes',Icon:Search},
+    {label:'Find researchers',path:'/academics',detail:'Discover academic authors and institutions',Icon:Users},
+    {label:'Save my evidence',path:'/library',detail:'Keep important research together',Icon:FolderOpen},
   ]},
 ];
 const STEPS = [
@@ -37,14 +42,14 @@ export default function GettingStarted() {
       <section aria-labelledby="start-title" className="mt-8 rounded-3xl border border-[var(--company-border)] bg-[var(--company-surface)] p-6 shadow-sm sm:p-10">
         <p className="text-xs font-semibold uppercase tracking-[.16em] text-[var(--company-action)]">Welcome to EYLO</p>
         <h1 id="start-title" className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">What would you like to do?</h1>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--company-muted)]">Start with your research goal, examine source-linked publications, and continue with evidence, collaborators or project planning. Public scholarly discovery is available before signing in.</p>
-        <a href="#choose-goal" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--company-action)] px-5 text-sm font-semibold text-[var(--company-on-action)] hover:opacity-90">Choose a research goal <ArrowRight size={16} aria-hidden="true"/></a>
+        <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--company-muted)]">EYLO brings together AI assistance, learning, creation, planning and research tools. Choose what you want to do first; some features require an account.</p>
+        <a href="#choose-goal" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--company-action)] px-5 text-sm font-semibold text-[var(--company-on-action)] hover:opacity-90">Choose a goal <ArrowRight size={16} aria-hidden="true"/></a>
       </section>
 
       <section id="choose-goal" aria-labelledby="choose-title" className="scroll-mt-8 pt-12">
-        <h2 id="choose-title" className="text-2xl font-semibold">Choose your research goal</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--company-muted)]">Choose the stage of your research. This changes suggested tools, not your account profile.</p>
-        <div role="group" aria-label="Your research goal" className="mt-6 flex flex-wrap gap-3">
+        <h2 id="choose-title" className="text-2xl font-semibold">What would you like help with?</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--company-muted)]">Choose a goal. This changes suggestions on this page, not your account settings.</p>
+        <div role="group" aria-label="Your goal" className="mt-6 flex flex-wrap gap-3">
           {AUDIENCES.map(item => <button key={item.id} type="button" aria-pressed={audience === item.id} onClick={() => setAudience(item.id)} className={`inline-flex min-h-12 items-center gap-2 rounded-xl border px-5 text-sm font-semibold ${audience === item.id ? 'border-[#237eb5] bg-[var(--company-tint)] text-[var(--company-ink)]' : 'border-[var(--company-border)]'}`}><item.Icon size={18} aria-hidden="true" />{item.name}</button>)}
         </div>
         <div className="mt-5 rounded-2xl border border-[var(--company-border)] bg-[var(--company-soft)] p-6">
