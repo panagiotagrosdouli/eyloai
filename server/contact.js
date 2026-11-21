@@ -44,12 +44,13 @@ export default async function handler(req, res) {
       signal: AbortSignal.timeout(12000),
     });
     if (!result.ok) {
-      console.error('Careers delivery failed:', result.status);
+      console.error('EYLO contact provider rejected request, HTTP status:', result.status);
       return res.status(502).json({ error: 'Message could not be delivered. Please try again.' });
     }
-    return res.status(200).json({ ok: true });
-  } catch (error) {
-    console.error('Careers delivery error:', error instanceof Error ? error.message : 'unknown');
+    return res.status(200).json({ ok: true, delivery_status: 'accepted_by_provider' });
+  } catch {
+    // Avoid logging arbitrary upstream error text, which can include request data.
+    console.error('EYLO contact provider request failed.');
     return res.status(502).json({ error: 'Message could not be delivered. Please try again.' });
   }
 }
