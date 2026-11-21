@@ -99,7 +99,8 @@ try {
 
   // Appearance preferences work regardless of which persona was selected.
   const chooser = page.getByRole('complementary', { name: 'Choose your EYLO appearance' });
-  if (await chooser.count()) await chooser.getByRole('button', { name: 'Light', exact: true }).click();
+  await chooser.waitFor();
+  await chooser.getByRole('button', { name: 'Light', exact: true }).click();
   await page.getByRole('button', { name: 'Switch to night mode', exact: true }).click();
   assert.equal(await page.evaluate(() => document.documentElement.classList.contains('dark')), true);
   await page.reload();
