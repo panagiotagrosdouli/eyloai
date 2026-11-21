@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Bookmark, ChevronRight, FolderOpen, Lightbulb, Loader2, Plus, Search, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Bookmark, ChevronRight, FolderOpen, Lightbulb, Loader2, Plus, Search, Zap } from 'lucide-react';
 import { buildUserProfile } from '@/lib/second-brain';
 import { getLocalGreeting } from '@/lib/local-greeting';
 import { promiseWithTimeout } from '@/lib/promise-timeout';
 import { useCapabilities } from '@/lib/capabilities';
 import { useAuth } from '@/lib/AuthContext';
 import { visibleOwnerProfileState } from '@/lib/auth/owner-scoped-profile.mjs';
-import GoalPaths from '@/components/dashboard/GoalPaths';
 
 const HOME_PROFILE_TIMEOUT_MS = 12_000;
 
@@ -27,7 +26,7 @@ function ProjectRow({ project }) {
   );
 }
 
-export default function EyraHome() {
+export default function EyraHome({ onSearch }) {
   // Never render a cached research profile for a different authenticated owner.
   // In-flight responses are also discarded when the account or load attempt changes.
   const [profileState, setProfileState] = useState({ ownerId: null, data: null, loaded: false, error: false });
@@ -85,34 +84,26 @@ export default function EyraHome() {
     <div className="eylo-home min-h-[calc(100vh-4.5rem)] bg-background text-foreground">
       <div className="mx-auto w-full max-w-[1440px] px-4 pb-16 pt-5 sm:px-8 sm:pt-7 lg:px-10">
         <section aria-labelledby="home-title" className="relative isolate overflow-hidden rounded-[24px] border border-border/80 bg-card p-5 shadow-sm sm:p-7 lg:p-8">
-          <p className="mb-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary"><Sparkles size={16} aria-hidden="true" /> EYLO · Your AI workspace</p>
+          <p className="mb-3 inline-flex items-center text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Your research workspace</p>
           <p className="text-sm font-medium text-muted-foreground">{greeting.greeting}</p>
-          <h1 id="home-title" className="mt-2 max-w-4xl text-[1.8rem] font-semibold leading-tight tracking-tight sm:text-4xl lg:text-[2.7rem]">What can EYLO help you do today?</h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">Ask EYRA, explore a topic, create something, or organize your work. Start with a question; choose a tool only when you need it.</p>
-          {eyraReady ? (
-            <form onSubmit={event => { event.preventDefault(); const prompt = homeQuery.trim(); if (!prompt) return; window.dispatchEvent(new CustomEvent('eylo:open-eyra', { detail: { prompt } })); setHomeQuery(''); }} className="mt-7 flex flex-col gap-2 rounded-2xl border border-primary/25 bg-background p-2 shadow-sm sm:flex-row sm:items-center">
-              <label htmlFor="home-research-query" className="sr-only">Your question for EYRA</label>
-              <input id="home-research-query" type="text" value={homeQuery} onChange={event => setHomeQuery(event.target.value)}
-                placeholder="Ask EYRA anything…" className="min-h-12 min-w-0 flex-1 rounded-xl border border-transparent bg-transparent px-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary/30 focus:outline-none" />
-              <button type="submit" disabled={!homeQuery.trim()} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50">
-                <Sparkles size={17} aria-hidden="true" /> Continue with EYRA
-              </button>
-            </form>
-          ) : (
-            <div className="mt-7 rounded-xl border border-border bg-background p-5" role="status">
-              <p className="text-sm font-semibold text-foreground">{capabilitiesLoading ? 'Checking AI availability…' : 'EYRA is not available right now'}</p>
-              <p className="mt-2 text-sm text-muted-foreground">You can still search scholarly sources, learn and use your workspace tools.</p>
-            </div>
-          )}
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <Link to="/search" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground hover:border-primary/40"><Search size={16} /> Research sources <ArrowRight size={15} /></Link>
-            <Link to="/documents/new" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground hover:border-primary/40"><BookOpen size={16} /> Create a document</Link>
-            <Link to="/projects" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground hover:border-primary/40"><FolderOpen size={16} /> My projects</Link>
-            {eyraReady && <button type="button" onClick={() => window.dispatchEvent(new Event('eylo:open-eyra'))} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-primary/30 px-4 text-sm font-semibold text-primary hover:bg-primary/5"><Lightbulb size={16} /> Open EYRA</button>}
+          <h1 id="home-title" className="mt-1.5 max-w-4xl text-[1.65rem] font-semibold leading-tight tracking-tight sm:text-3xl lg:text-[2.35rem]">What would you like to work on?</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Explore source-linked academic records, check the original sources, and save useful work for later. EYRA can help with follow-up questions when available.</p>
+          <form onSubmit={event => { event.preventDefault(); if (homeQuery.trim()) onSearch(homeQuery.trim()); }} className="mt-5 flex flex-col gap-2 rounded-xl border border-border bg-background p-2 sm:flex-row sm:items-center">
+            <label htmlFor="home-research-query" className="sr-only">Research topic or question</label>
+            <input id="home-research-query" type="search" value={homeQuery} onChange={event => setHomeQuery(event.target.value)}
+              placeholder="Search a topic or question…" className="min-h-12 min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary/30 focus:outline-none" />
+            <button type="submit" disabled={!homeQuery.trim()} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50">
+              <Search size={17} aria-hidden="true" /> Start researching
+            </button>
+          </form>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+            <p className="text-xs text-muted-foreground">Academic search is separate from EYRA. Always check the original papers.</p>
+            <button type="button" disabled={!eyraReady} onClick={() => window.dispatchEvent(new Event('eylo:open-eyra'))}
+              className="hidden min-h-10 items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 sm:inline-flex focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50">
+              <Lightbulb size={16} aria-hidden="true" /> Ask EYRA
+            </button>
           </div>
-          <p className="mt-4 text-xs leading-5 text-muted-foreground">AI answers may be inaccurate. Review important results before relying on them. Sending a question to EYRA requires your confirmation in the chat.</p>
         </section>
-        <GoalPaths />
 
 
         {loaded && workspaceWarnings.length > 0 && (

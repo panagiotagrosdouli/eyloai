@@ -9,7 +9,7 @@ const css = readFileSync(new URL('../src/index.css', import.meta.url), 'utf8');
 test('authenticated primary navigation is goal-first without losing EYRA and tools', () => {
   const navigation = layout.match(/const PRIMARY_NAV = \[([\s\S]*?)\];/)?.[1];
   assert.ok(navigation, 'primary navigation should be declared');
-  for (const label of ['Home', 'Learn', 'Create', 'Projects']) {
+  for (const label of ['Home', 'Discover', 'My workspace', 'Learn']) {
     assert.match(navigation, new RegExp("label: '" + label + "'"));
   }
   assert.equal((navigation.match(/path:/g) || []).length, 4);

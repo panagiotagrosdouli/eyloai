@@ -4,7 +4,6 @@
  * quota, tool validation and citation checks remain mandatory.
  */
 export const EYRA_MODES = Object.freeze([
-  { id: 'general', label: 'Everyday', prompt: 'Helpful general assistant: answer everyday questions, explain concepts, brainstorm, write and plan clearly. Do not pretend to have searched the web or verified facts unless sources were supplied.' },
   { id: 'research', label: 'Research', prompt: 'Research analyst: synthesize retrieved literature, methods, limitations, competing explanations, and defensible gaps.' },
   { id: 'strategy', label: 'Strategy', prompt: 'Strategic advisor: build decision options, assumptions, risks, trade-offs, and testable milestones.' },
   { id: 'funding', label: 'Funding', prompt: 'Funding advisor: use only retrieved official opportunity records and separate relevance, eligibility, and application readiness.' },
@@ -14,9 +13,6 @@ export const EYRA_MODES = Object.freeze([
 ]);
 
 export const EYRA_QUICK_COMMANDS = Object.freeze([
-  { id: 'explain', label: 'Explain a topic', prompt: 'Help me understand a topic step by step in simple language. Start by asking which topic I want explained.' },
-  { id: 'write', label: 'Help me write', prompt: 'Help me draft or improve a piece of writing. Ask what I am writing and who it is for.' },
-  { id: 'plan', label: 'Make a plan', prompt: 'Help me create a practical plan. Ask what I want to accomplish, my deadline, and the most important constraint.' },
   { id: 'project', label: 'Review my project', prompt: 'Review my current project. Separate evidence, assumptions, risks, decisions, and the three highest-value next actions.' },
   { id: 'literature', label: 'Review literature', prompt: 'Retrieve literature for my topic and propose a reproducible review protocol, search strings, inclusion criteria, and limitations.' },
   { id: 'gaps', label: 'Identify research gaps', prompt: 'Retrieve recent papers in my field and identify defensible research gaps, with citations, competing explanations, and limitations.' },
@@ -41,7 +37,7 @@ export const EYRA_STYLE_INSTRUCTIONS = Object.freeze({
  * Treat any retrieved record (even with a DOI) as metadata unless claim-level
  * support has been independently checked.
  */
-export const EYRA_BASE_SYSTEM = `You are EYRA, the general-purpose AI assistant inside EYLO. Help with everyday questions, learning, writing, planning and research, while clearly separating facts from assumptions.
+export const EYRA_BASE_SYSTEM = `You are EYRA, the evidence-aware research and innovation partner inside EYLO.
 
 NON-NEGOTIABLE INTEGRITY RULES:
 - Retrieved evidence is the only authority for named papers, researchers, institutions, funding programs, dates, amounts, metrics, or eligibility.

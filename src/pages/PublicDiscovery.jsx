@@ -331,16 +331,15 @@ export default function PublicDiscovery() {
             </div>
             <div className="mx-auto mt-6 max-w-5xl text-left"><GuidedSearch onSearch={runGuidedSearch} /></div>
             <div className="mx-auto mt-5 flex max-w-3xl flex-wrap items-center justify-center gap-2" aria-label="Example research searches">
-              <span className="w-full text-center text-sm font-medium text-[var(--company-muted)]">Try an evidence-based question:</span>
+              <span className="text-xs text-muted-foreground">Try an example:</span>
               {[
-                { audience: 'Learn', query: 'AI in higher education learning outcomes' },
-                { audience: 'Explore an idea', query: 'Sustainable packaging materials research' },
-                { audience: 'Research', query: 'Explainable AI medical imaging limitations' },
+                'Climate change adaptation',
+                'Public health interventions',
+                'Machine learning interpretability',
               ].map(example => (
-                <button key={example.audience} type="button" onClick={() => setParams({ q: example.query })}
-                  className="flex min-h-12 flex-col items-start justify-center rounded-xl border border-border bg-card px-4 py-2 text-left text-xs text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5">
-                  <span className="font-bold text-primary">{example.audience}</span>
-                  <span className="mt-1 text-muted-foreground">{example.query}</span>
+                <button key={example} type="button" onClick={() => setParams({ q: example })}
+                  className="rounded-full border border-border bg-card px-3 py-2 text-xs text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5">
+                  {example}
                 </button>
               ))}
             </div>

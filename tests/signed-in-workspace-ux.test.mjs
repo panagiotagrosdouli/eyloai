@@ -4,13 +4,16 @@ import { readFileSync } from 'node:fs';
 
 const read = path => readFileSync(new URL('../src/' + path, import.meta.url), 'utf8');
 
-test('signed-in Home makes EYRA primary and retains owner-isolated work', () => {
+test('signed-in Home keeps evidence-first actions prominent and uses responsive layout', () => {
   const home = read('components/dashboard/EyraHome.jsx');
-  assert.match(home, /Your AI workspace/);
-  assert.match(home, /What can EYLO help you do today/);
+  assert.match(home, /Your research workspace/);
+  assert.match(home, /What would you like to work on\?/);
+  assert.match(home, /New to EYLO\? Start here\./);
+  assert.ok(home.indexOf('id="continue-heading"') < home.indexOf('id="start-here-title"'), 'Returning users reach their work before onboarding');
+  assert.match(home, /onSearch\(homeQuery\.trim\(\)\)/);
   assert.match(home, /eylo:open-eyra/);
-  assert.match(home, /EYRA is not available right now/);
-  assert.match(home, /visibleOwnerProfileState/);
+  assert.match(home, /disabled=\{!eyraReady\}/);
+  assert.match(home, /visibleOwnerProfileState\(profileState, ownerId\)/);
   for (const target of ['/search', '/library', '/projects?new=1', '/study-planner', '/opportunities']) {
     assert.ok(home.includes(target), 'missing functional path: ' + target);
   }

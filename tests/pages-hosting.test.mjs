@@ -40,10 +40,10 @@ test('Public research discovery remains discipline-neutral', () => {
   for (const content of [landing, discover]) {
     assert.doesNotMatch(content, /Visual[- ]inertial|ORB-SLAM|autonomous vehicles/i);
   }
-  assert.match(landing, /One place to ask, learn/);
-  assert.match(landing, /create and do more/);
-  assert.match(landing, /source-linked research|scholarly records/i);
-  assert.match(landing, /Explore EYLO/);
+  assert.match(landing, /Find the evidence\./);
+  assert.match(landing, /Keep the context/);
+  assert.match(landing, /source-linked research/i);
+  assert.match(landing, /Explore research/);
   assert.match(landing, /to="\/discover"/);
   assert.doesNotMatch(landing, /role="search"/);
   assert.doesNotMatch(landing, /searchOpenAlexWorks/);
