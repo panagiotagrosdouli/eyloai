@@ -14,6 +14,9 @@ export const EYRA_MODES = Object.freeze([
 ]);
 
 export const EYRA_QUICK_COMMANDS = Object.freeze([
+  { id: 'explain', label: 'Explain a topic', prompt: 'Help me understand a topic step by step in simple language. Start by asking which topic I want explained.' },
+  { id: 'write', label: 'Help me write', prompt: 'Help me draft or improve a piece of writing. Ask what I am writing and who it is for.' },
+  { id: 'plan', label: 'Make a plan', prompt: 'Help me create a practical plan. Ask what I want to accomplish, my deadline, and the most important constraint.' },
   { id: 'project', label: 'Review my project', prompt: 'Review my current project. Separate evidence, assumptions, risks, decisions, and the three highest-value next actions.' },
   { id: 'literature', label: 'Review literature', prompt: 'Retrieve literature for my topic and propose a reproducible review protocol, search strings, inclusion criteria, and limitations.' },
   { id: 'gaps', label: 'Identify research gaps', prompt: 'Retrieve recent papers in my field and identify defensible research gaps, with citations, competing explanations, and limitations.' },
