@@ -10,10 +10,10 @@ import PublicPlans from "@/components/marketing/PublicPlans";
 import "./landing.css";
 
 const people = [
-  {label:"Ask & explore",icon:Sparkles,problem:"I have a question and want a clearer starting point.",example:"How should I approach a difficult decision?",result:"Use EYRA for AI-assisted thinking when signed in, then explore specialized tools for the next step."},
-  {label:"Learn & create",icon:BookOpen,problem:"I want to learn, write or develop something useful.",example:"How should I structure a learning plan?",result:"Work with learning tools, documents and saved ideas in one workspace."},
-  {label:"Plan & organize",icon:FolderOpen,problem:"I want to keep tasks, projects and priorities together.",example:"How do I organize a new project?",result:"Keep project work, tasks and next steps in one place."},
-  {label:"Research & evidence",icon:Search,problem:"I want to check a claim against published work.",example:"What does research say about sleep and learning?",result:"Find scholarly records, follow original sources and save useful evidence."},
+  {label:"Ask & explore",path:"/login?from=%2Fhome",icon:Sparkles,problem:"I have a question and want a clearer starting point.",example:"How should I approach a difficult decision?",result:"Use EYRA for AI-assisted thinking when signed in, then explore specialized tools for the next step."},
+  {label:"Learn & create",path:"/start",icon:BookOpen,problem:"I want to learn, write or develop something useful.",example:"How should I structure a learning plan?",result:"Work with learning tools, documents and saved ideas in one workspace."},
+  {label:"Plan & organize",path:"/login?from=%2Fprojects",icon:FolderOpen,problem:"I want to keep tasks, projects and priorities together.",example:"How do I organize a new project?",result:"Keep project work, tasks and next steps in one place."},
+  {label:"Research & evidence",path:"/discover",icon:Search,problem:"I want to check a claim against published work.",example:"What does research say about sleep and learning?",result:"Find scholarly records, follow original sources and save useful evidence."},
 ];
 const faqs = [
   ["What is EYLO?", "EYLO is a workspace that combines AI assistance with tools for learning, creating documents, organizing tasks and projects, and exploring scholarly research. Some features require an account."],
@@ -86,7 +86,7 @@ export default function Landing() {
                 EYLO brings together an AI assistant and connected tools for learning, writing, organizing projects and exploring research. Start with your goal, not a long menu of features.
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
-                <Link to="/discover" className={btn}>Explore EYLO <ArrowRight size={18} /></Link>\n                <Link to="/start" className={outline}>Help me choose <ArrowRight size={17} /></Link>
+                <Link to="/start" className={btn}>Explore EYLO <ArrowRight size={18} /></Link>\n                <Link to="/start" className={outline}>Help me choose <ArrowRight size={17} /></Link>
                 <a className={outline} href="#how-it-works">See a simple example <ArrowRight size={17} /></a>
               </div>
               <p className="mt-4 flex items-center gap-2 text-sm text-[var(--company-muted)]"><Check size={16} /> No account needed to explore public research.</p>
@@ -132,7 +132,7 @@ export default function Landing() {
                 <h3 className="mt-8 text-2xl font-bold">{name}</h3><p className="mt-3 text-sm leading-7 text-[var(--company-muted)]">{text}</p>
               </article>)}
             </div>
-            <div className="mt-8 flex flex-wrap items-center gap-4"><Link to="/discover" className={btn}>Find your starting point <ArrowRight size={17} /></Link><span className="text-sm text-[var(--company-muted)]">Public research discovery needs no signup; most workspace tools require an account.</span></div>
+            <div className="mt-8 flex flex-wrap items-center gap-4"><Link to="/start" className={btn}>Find your starting point <ArrowRight size={17} /></Link><span className="text-sm text-[var(--company-muted)]">Public research discovery needs no signup; most workspace tools require an account.</span></div>
           </div>
         </section>
 
@@ -147,7 +147,7 @@ export default function Landing() {
             </div>
             <div className="mt-5 grid gap-8 rounded-[26px] border border-[var(--company-border)] bg-[var(--company-soft)] p-7 sm:p-10 lg:grid-cols-2">
               <div><p className="text-sm font-semibold text-[#168bca]">Your challenge</p><h3 className="mt-3 text-2xl font-bold leading-snug">{active.problem}</h3><p className="mt-6 text-sm font-semibold text-[var(--company-muted)]">Example question</p><p className="mt-2 rounded-xl border border-[var(--company-border)] bg-[var(--company-surface)] p-5 text-base">“{active.example}”</p></div>
-              <div className="flex flex-col justify-center"><p className="text-sm font-semibold text-[#168bca]">What EYLO can help you do</p><p className="mt-3 text-xl leading-relaxed">{active.result}</p><p className="mt-5 text-sm leading-7 text-[var(--company-muted)]">Illustrative use case; available features vary by plan and configuration.</p><Link to="/discover" className={btn + " mt-7 self-start"}>Explore this path <ArrowRight size={17} /></Link></div>
+              <div className="flex flex-col justify-center"><p className="text-sm font-semibold text-[#168bca]">What EYLO can help you do</p><p className="mt-3 text-xl leading-relaxed">{active.result}</p><p className="mt-5 text-sm leading-7 text-[var(--company-muted)]">Illustrative use case; available features vary by plan and configuration.</p><Link to={active.path} className={btn + " mt-7 self-start"}>Explore this path <ArrowRight size={17} /></Link></div>
             </div>
           </div>
         </section>
