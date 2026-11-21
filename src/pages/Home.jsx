@@ -11,32 +11,32 @@ import EyraHome from '@/components/dashboard/EyraHome';
 import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
 
 const HOME_PATHS = [
-  { id: 'academic', label: 'Research & teaching', intro: 'Build a source-backed research foundation.', examples: [
-    { label: 'Find publications', to: '/search', desc: 'Start with a research question' },
-    { label: 'Find researchers', to: '/academics', desc: 'Explore authors and institutions' },
-    { label: 'My research library', to: '/library', desc: 'Return to saved evidence' },
+  { id: 'literature', label: 'Literature review', intro: 'Build a traceable evidence base for your question.', examples: [
+    { label: 'Discover publications', to: '/search', desc: 'Review source-linked scholarly records' },
+    { label: 'Open my library', to: '/library', desc: 'Revisit saved evidence' },
+    { label: 'Literature review tools', to: '/literature-review', desc: 'Continue your synthesis workflow' },
   ] },
-  { id: 'professional', label: 'Professional decision', intro: 'Check the evidence behind a work-related question.', examples: [
-    { label: 'Check the research', to: '/search', desc: 'Open and verify scientific records' },
-    { label: 'Explore experts', to: '/researchers', desc: 'Find people working on the topic' },
-    { label: 'Organize a project', to: '/projects', desc: 'Keep notes and next steps together' },
+  { id: 'gaps', label: 'Research gaps', intro: 'Identify unanswered questions and verify candidate gaps.', examples: [
+    { label: 'Find latest research', to: '/search', desc: 'Examine recent and foundational evidence' },
+    { label: 'Research gaps', to: '/research-gaps', desc: 'Investigate possibilities, not automatic proof' },
+    { label: 'Build a project', to: '/projects', desc: 'Turn a question into research milestones' },
   ] },
-  { id: 'founder', label: 'New venture or idea', intro: 'Investigate an idea before making a major commitment.', examples: [
-    { label: 'Explore existing research', to: '/search', desc: 'Discover what is already known' },
-    { label: 'Find potential collaborators', to: '/researchers', desc: 'Identify relevant research expertise' },
-    { label: 'Find funding records', to: '/opportunities', desc: 'US Grants.gov coverage; verify eligibility' },
+  { id: 'team', label: 'Collaborations & funding', intro: 'Find relevant people and investigate research opportunities.', examples: [
+    { label: 'Find academic researchers', to: '/researchers', desc: 'Discover authors and research expertise' },
+    { label: 'Funding records', to: '/opportunities', desc: 'Currently Grants.gov; verify eligibility' },
+    { label: 'Plan my project', to: '/projects', desc: 'Connect evidence and milestones' },
   ] },
 ];
 
 function GoalPaths() {
-  const [audience, setAudience] = useState('academic');
+  const [audience, setAudience] = useState('literature');
   const selected = HOME_PATHS.find(item => item.id === audience) || HOME_PATHS[0];
   return <section aria-labelledby="goal-path-title" className="eylo-page mx-auto max-w-7xl pb-7">
     <div className="rounded-2xl border border-border bg-card p-5 sm:p-7">
-      <p className="text-xs font-bold uppercase tracking-widest text-primary">A simpler way to start</p>
-      <h2 id="goal-path-title" className="mt-2 text-xl font-semibold sm:text-2xl">What are you trying to achieve?</h2>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">Choose a path for useful next steps. This does not change your account settings.</p>
-      <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Choose your goal">
+      <p className="text-xs font-bold uppercase tracking-widest text-primary">Your research workflow</p>
+      <h2 id="goal-path-title" className="mt-2 text-xl font-semibold sm:text-2xl">What is your research goal?</h2>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">Choose your current research task. This only changes the suggested next steps.</p>
+      <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Choose your research goal">
         {HOME_PATHS.map(item => <button key={item.id} type="button" aria-pressed={audience === item.id} onClick={() => setAudience(item.id)} className={`min-h-11 rounded-xl border px-4 text-sm font-semibold ${audience === item.id ? 'border-primary bg-primary/10 text-primary' : 'border-border text-foreground hover:bg-secondary'}`}>{item.label}</button>)}
       </div>
       <p className="mt-5 text-sm text-muted-foreground">{selected.intro}</p>
