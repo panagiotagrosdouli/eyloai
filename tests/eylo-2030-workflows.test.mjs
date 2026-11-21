@@ -9,7 +9,7 @@ const crumbs = read('../src/components/layout/WorkspaceBreadcrumbs.jsx');
 const app = read('../src/App.jsx');
 
 test('home uses real research and EYRA entry points without simulated completion', () => {
-  assert.match(home, /onSearch\(homeQuery\.trim\(\)\)/);
+  assert.match(home, /CustomEvent.*eylo:open-eyra/);
   assert.match(home, /eylo:open-eyra/);
   assert.match(home, /Continue with EYRA/);
   assert.match(home, /Find research funding/);
