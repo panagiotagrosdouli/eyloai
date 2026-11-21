@@ -82,6 +82,7 @@ test('Contact only confirms accepted provider requests and escapes visitor HTML'
   await handler(request({ name: '<script>alert(1)</script>', message: '<img src=x onerror=alert(1)> — research collaboration' }), res);
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.ok, true);
+  assert.equal(res.body.delivery_status, 'accepted_by_provider');
   assert.equal(payload.to[0], 'fixture@example.test');
   assert.equal(payload.reply_to, 'visitor@example.test');
   assert.ok(payload.html.includes('&lt;script&gt;'));
@@ -117,4 +118,24 @@ test('Contact rejects disallowed origins before calling provider', async () => {
   await handler(req, res);
   assert.equal(res.statusCode, 403);
   assert.equal(called, false);
+});
+
+test('Contact never logs arbitrary upstream exceptions containing visitor details', async () => {
+  configure();
+  process.env.CONTACT_PUBLIC_ENABLED = '1';
+  const previousError = console.error;
+  const logged = [];
+  console.error = (...args) => logged.push(args.map(String).join(' '));
+  globalThis.fetch = async () => { throw new Error('secret user email visitor@example.test provider rejected'); };
+  try {
+    const res = response();
+    await handler(request(), res);
+    assert.equal(res.statusCode, 502);
+    assert.equal(res.body.ok, undefined);
+    assert.equal(logged.length, 1);
+    assert.ok(!logged.join(' ').includes('visitor@example.test'));
+    assert.ok(!logged.join(' ').includes('secret'));
+  } finally {
+    console.error = previousError;
+  }
 });
