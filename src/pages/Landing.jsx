@@ -21,6 +21,7 @@ import {
 import LandingPreview from "@/components/marketing/LandingPreview";
 import ThemeToggle from "@/components/marketing/ThemeToggle";
 import PublicPlans from "@/components/marketing/PublicPlans";
+import { EYLO_STARTUP_QUESTIONS, EYLO_ACCOUNT_QUESTION } from "@/lib/eylo-startup-questions.mjs";
 import "./landing.css";
 
 const audiences = [
@@ -75,33 +76,7 @@ const capabilities = [
     cta: "Create your workspace",
   },
 ];
-const questions = [
-  {
-    question: "What can I do with EYLO?",
-    answer:
-      "Explore scholarly publications, researchers and opportunities, then organize what you find in a private workspace with notes, projects and tasks. EYRA adds AI assistance to help you work through questions and plan your next steps.",
-  },
-  {
-    question: "Can I explore before creating an account?",
-    answer:
-      "Yes. Public research discovery is available without an account. Sign in when you want to save work, use your private workspace and access authenticated EYRA features.",
-  },
-  {
-    question: "Is EYLO only for one field of research?",
-    answer:
-      "EYLO is designed for exploration across disciplines, from education and the humanities to health, science and technology. Coverage varies by topic and by the scholarly sources available.",
-  },
-  {
-    question: "How should I use EYRA’s answers?",
-    answer:
-      "Use EYRA as support for your thinking. Check cited records, read the original sources and review any proposed action before confirming it. Your academic judgment remains essential.",
-  },
-  {
-    question: "How can I discuss EYLO with my research group?",
-    answer:
-      "Get in touch to tell us about your research or academic workflow. We welcome conversations about collaboration, feedback and the needs of research groups.",
-  },
-];
+const questions = [...EYLO_STARTUP_QUESTIONS, EYLO_ACCOUNT_QUESTION];
 const companyLinks = [
   { to: "/company", label: "About EYLO" },
   { to: "/company/what-we-do", label: "What we do" },
@@ -625,7 +600,7 @@ export default function Landing() {
         >
           <div className="mx-auto grid max-w-[1350px] gap-10 lg:grid-cols-[.75fr_1.25fr]">
             <div>
-              <p className={tag}>A few things to know</p>
+              <p className={tag}>Clear answers before you begin</p>
               <h2 className="mt-4 text-[clamp(2.2rem,4vw,3.4rem)] font-bold leading-[1.12] tracking-[-.055em]">
                 Curious?
                 <br />
