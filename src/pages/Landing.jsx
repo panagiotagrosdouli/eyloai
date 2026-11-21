@@ -133,6 +133,7 @@ export default function Landing() {
             <Link to="/company">About EYLO</Link>
             <Link to="/contact">Contact</Link>
             <a href="#premium">Plans</a>
+            <a href="#questions">Questions answered</a>
           </nav>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
@@ -217,6 +218,13 @@ export default function Landing() {
             className="rounded-lg p-3"
           >
             Plans & Premium
+          </a>
+          <a
+            href="#questions"
+            onClick={() => setMenuOpen(false)}
+            className="rounded-lg p-3"
+          >
+            Questions & answers
           </a>
           <Link
             to="/discover"
