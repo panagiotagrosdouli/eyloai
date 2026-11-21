@@ -1,13 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './landing.css';
 import { ArrowLeft, ArrowRight, BookOpen, Briefcase, FolderOpen, HelpCircle, Search, Users } from 'lucide-react';
 
-const GOALS = [
-  { label:'I want to find a scientific paper', text:'Enter a research topic and open records from the original scholarly sources.',path:'/search',button:'Search publications',Icon:Search,kind:'No account needed to search' },
-  { label:'I want to find a researcher',text:'Look for academic experts and check their public research records.',path:'/academics',button:'Find researchers',Icon:Users,kind:'Public researcher discovery' },
-  { label:'I want to find a PhD or research job',text:'Explore available research careers and follow the official opportunity links.',path:'/careers',button:'Explore careers',Icon:Briefcase,kind:'Some upstream sources may be unavailable' },
-  { label:'I want to organize my work',text:'Use a private project for saved papers, notes, tasks and decisions.',path:'/projects',button:'Open my workspace',Icon:FolderOpen,kind:'Sign-in required for private work' },
+const AUDIENCES = [
+  {
+    id: 'academic', name: 'Academic or researcher', Icon: BookOpen,
+    problem: 'I need reliable scientific evidence for teaching, writing or a research project.',
+    actions: [
+      { label: 'Find papers for my topic', path: '/search', detail: 'Search original scholarly records', Icon: Search },
+      { label: 'Find researchers in my field', path: '/academics', detail: 'Explore people and publications', Icon: Users },
+      { label: 'Organize my research', path: '/projects', detail: 'Sign in to save papers and decisions', Icon: FolderOpen },
+    ],
+  },
+  {
+    id: 'professional', name: 'Professional', Icon: Briefcase,
+    problem: 'I need trustworthy evidence to inform an important work decision.',
+    actions: [
+      { label: 'Check what research says', path: '/search', detail: 'Find sources before relying on a claim', Icon: Search },
+      { label: 'Find specialists', path: '/academics', detail: 'See researchers and their work', Icon: Users },
+      { label: 'Keep my findings together', path: '/projects', detail: 'Sign in to return to your evidence', Icon: FolderOpen },
+    ],
+  },
+  {
+    id: 'founder', name: 'Founder or idea builder', Icon: HelpCircle,
+    problem: 'I want to validate an idea with published evidence before making plans.',
+    actions: [
+      { label: 'Research my idea', path: '/search', detail: 'Explore what is already known', Icon: Search },
+      { label: 'Find potential experts', path: '/academics', detail: 'Investigate relevant research teams', Icon: Users },
+      { label: 'Explore funding records', path: '/opportunities', detail: 'Sign-in required; US Grants.gov coverage', Icon: Briefcase },
+    ],
+  },
 ];
 const STEPS = [
   {title:'Explore',text:'Start with a topic. Look at the original research sources before drawing conclusions.',path:'/search',action:'Try research search'},
@@ -31,16 +54,22 @@ export default function GettingStarted() {
       </section>
 
       <section id="choose-goal" aria-labelledby="choose-title" className="scroll-mt-8 pt-12">
-        <h2 id="choose-title" className="text-2xl font-semibold">Start with a goal</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--company-muted)]">These options take you to real EYLO features. Research links and your private workspace remain separate from AI availability.</p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {GOALS.map(({label,text,path,button,Icon,kind}) => <article key={path} className="flex min-w-0 flex-col rounded-2xl border border-[var(--company-border)] bg-[var(--company-surface)] p-6 shadow-sm">
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--company-tint)] text-[var(--company-action)]"><Icon size={21} aria-hidden="true"/></span>
-            <h3 className="mt-4 text-lg font-semibold">{label}</h3>
-            <p className="mt-2 flex-1 text-sm leading-6 text-[var(--company-muted)]">{text}</p>
-            <p className="mt-3 text-xs text-[var(--company-muted)]">{kind}</p>
-            <Link to={path} className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--company-border)] px-4 text-sm font-semibold text-[var(--company-action)] hover:bg-[var(--company-tint)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#237eb5]">{button} <ArrowRight size={16} aria-hidden="true"/></Link>
-          </article>)}
+        <h2 id="choose-title" className="text-2xl font-semibold">Choose what describes you best</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--company-muted)]">You can always switch. The choice only changes recommendations on this page; it does not create a user profile.</p>
+        <div role="group" aria-label="Your role" className="mt-6 flex flex-wrap gap-3">
+          {AUDIENCES.map(item => <button key={item.id} type="button" aria-pressed={audience === item.id} onClick={() => setAudience(item.id)} className={`inline-flex min-h-12 items-center gap-2 rounded-xl border px-5 text-sm font-semibold ${audience === item.id ? 'border-[#237eb5] bg-[var(--company-tint)] text-[var(--company-ink)]' : 'border-[var(--company-border)]'}`}><item.Icon size={18} aria-hidden="true" />{item.name}</button>)}
+        </div>
+        <div className="mt-5 rounded-2xl border border-[var(--company-border)] bg-[var(--company-soft)] p-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--company-muted)]">Your starting point</p>
+          <h3 className="mt-2 text-xl font-semibold">{selected.problem}</h3>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {selected.actions.map(({label, path, detail, Icon}) => <Link key={path} to={path} className="group flex flex-col rounded-xl border border-[var(--company-border)] bg-[var(--company-surface)] p-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#237eb5]">
+              <Icon size={24} className="text-[var(--company-action)]" aria-hidden="true" />
+              <span className="mt-4 text-base font-semibold">{label}</span>
+              <span className="mt-2 flex-1 text-sm leading-6 text-[var(--company-muted)]">{detail}</span>
+              <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--company-action)]">Open feature <ArrowRight size={16} aria-hidden="true"/></span>
+            </Link>)}
+          </div>
         </div>
       </section>
 
