@@ -1,13 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './landing.css';
 import { ArrowLeft, ArrowRight, BookOpen, Briefcase, FolderOpen, HelpCircle, Search, Users } from 'lucide-react';
 
-const GOALS = [
-  { label:'I want to find a scientific paper', text:'Enter a research topic and open records from the original scholarly sources.',path:'/search',button:'Search publications',Icon:Search,kind:'No account needed to search' },
-  { label:'I want to find a researcher',text:'Look for academic experts and check their public research records.',path:'/academics',button:'Find researchers',Icon:Users,kind:'Public researcher discovery' },
-  { label:'I want to find a PhD or research job',text:'Explore available research careers and follow the official opportunity links.',path:'/careers',button:'Explore careers',Icon:Briefcase,kind:'Some upstream sources may be unavailable' },
-  { label:'I want to organize my work',text:'Use a private project for saved papers, notes, tasks and decisions.',path:'/projects',button:'Open my workspace',Icon:FolderOpen,kind:'Sign-in required for private work' },
+const AUDIENCES = [
+  {id:'ask',name:'Ask & explore',Icon:HelpCircle,problem:'I have a question and want to explore a topic.',actions:[
+    {label:'Ask EYRA',path:'/login?from=%2Fhome',detail:'Sign in to use AI assistance when available',Icon:HelpCircle},
+    {label:'Find trustworthy sources',path:'/search',detail:'Discover scientific records without signing in',Icon:Search},
+    {label:'Learn a new subject',path:'/learn',detail:'Open learning tools in your workspace',Icon:BookOpen},
+  ]},
+  {id:'create',name:'Create & learn',Icon:BookOpen,problem:'I want to write, study or turn an idea into something useful.',actions:[
+    {label:'Create a document',path:'/documents/new',detail:'Write and organize content in your workspace',Icon:BookOpen},
+    {label:'Explore learning tools',path:'/learn',detail:'Build knowledge with learning activities',Icon:HelpCircle},
+    {label:'Organize my ideas',path:'/projects',detail:'Keep progress and decisions in one place',Icon:FolderOpen},
+  ]},
+  {id:'organize',name:'Plan & organize',Icon:FolderOpen,problem:'I want to manage projects, tasks and next steps.',actions:[
+    {label:'My projects',path:'/projects',detail:'Keep work, milestones and ideas connected',Icon:FolderOpen},
+    {label:'My tasks',path:'/life',detail:'Track what matters next',Icon:Briefcase},
+    {label:'Explore opportunities',path:'/opportunities',detail:'Specialized research funding records; eligibility varies',Icon:Users},
+  ]},
+  {id:'research',name:'Research & evidence',Icon:Search,problem:'I need scientific evidence and reliable original sources.',actions:[
+    {label:'Search scientific literature',path:'/search',detail:'Trace records to scholarly indexes',Icon:Search},
+    {label:'Find researchers',path:'/academics',detail:'Discover academic authors and institutions',Icon:Users},
+    {label:'Save my evidence',path:'/library',detail:'Keep important research together',Icon:FolderOpen},
+  ]},
 ];
 const STEPS = [
   {title:'Explore',text:'Start with a topic. Look at the original research sources before drawing conclusions.',path:'/search',action:'Try research search'},
@@ -16,6 +32,8 @@ const STEPS = [
 ];
 
 export default function GettingStarted() {
+  const [audience, setAudience] = useState('ask');
+  const selected = AUDIENCES.find(item => item.id === audience) || AUDIENCES[0];
   return <main id="main-content" tabIndex={-1} className="eylo-company min-h-screen bg-[var(--company-surface)] px-4 py-8 text-[var(--company-ink)] sm:px-8 sm:py-12">
     <div className="mx-auto max-w-6xl">
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -26,21 +44,27 @@ export default function GettingStarted() {
       <section aria-labelledby="start-title" className="mt-8 rounded-3xl border border-[var(--company-border)] bg-[var(--company-surface)] p-6 shadow-sm sm:p-10">
         <p className="text-xs font-semibold uppercase tracking-[.16em] text-[var(--company-action)]">Welcome to EYLO</p>
         <h1 id="start-title" className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">What would you like to do?</h1>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--company-muted)]">You do not need research or technical experience. Start with a question, explore source-linked research, and keep your next step in one workspace. You can try public search before signing in.</p>
+        <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--company-muted)]">EYLO brings together AI assistance, learning, creation, planning and research tools. Choose what you want to do first; some features require an account.</p>
         <a href="#choose-goal" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--company-action)] px-5 text-sm font-semibold text-[var(--company-on-action)] hover:opacity-90">Choose a goal <ArrowRight size={16} aria-hidden="true"/></a>
       </section>
 
       <section id="choose-goal" aria-labelledby="choose-title" className="scroll-mt-8 pt-12">
-        <h2 id="choose-title" className="text-2xl font-semibold">Start with a goal</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--company-muted)]">These options take you to real EYLO features. Research links and your private workspace remain separate from AI availability.</p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {GOALS.map(({label,text,path,button,Icon,kind}) => <article key={path} className="flex min-w-0 flex-col rounded-2xl border border-[var(--company-border)] bg-[var(--company-surface)] p-6 shadow-sm">
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--company-tint)] text-[var(--company-action)]"><Icon size={21} aria-hidden="true"/></span>
-            <h3 className="mt-4 text-lg font-semibold">{label}</h3>
-            <p className="mt-2 flex-1 text-sm leading-6 text-[var(--company-muted)]">{text}</p>
-            <p className="mt-3 text-xs text-[var(--company-muted)]">{kind}</p>
-            <Link to={path} className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--company-border)] px-4 text-sm font-semibold text-[var(--company-action)] hover:bg-[var(--company-tint)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#237eb5]">{button} <ArrowRight size={16} aria-hidden="true"/></Link>
-          </article>)}
+        <h2 id="choose-title" className="text-2xl font-semibold">What would you like help with?</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--company-muted)]">Choose a goal. This changes suggestions on this page, not your account settings.</p>
+        <div role="group" aria-label="Your goal" className="mt-6 flex flex-wrap gap-3">
+          {AUDIENCES.map(item => <button key={item.id} type="button" aria-pressed={audience === item.id} onClick={() => setAudience(item.id)} className={`inline-flex min-h-12 items-center gap-2 rounded-xl border px-5 text-sm font-semibold ${audience === item.id ? 'border-[#237eb5] bg-[var(--company-tint)] text-[var(--company-ink)]' : 'border-[var(--company-border)]'}`}><item.Icon size={18} aria-hidden="true" />{item.name}</button>)}
+        </div>
+        <div className="mt-5 rounded-2xl border border-[var(--company-border)] bg-[var(--company-soft)] p-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--company-muted)]">Your starting point</p>
+          <h3 className="mt-2 text-xl font-semibold">{selected.problem}</h3>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {selected.actions.map(({label, path, detail, Icon}) => <Link key={path} to={path} className="group flex flex-col rounded-xl border border-[var(--company-border)] bg-[var(--company-surface)] p-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#237eb5]">
+              <Icon size={24} className="text-[var(--company-action)]" aria-hidden="true" />
+              <span className="mt-4 text-base font-semibold">{label}</span>
+              <span className="mt-2 flex-1 text-sm leading-6 text-[var(--company-muted)]">{detail}</span>
+              <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--company-action)]">Open feature <ArrowRight size={16} aria-hidden="true"/></span>
+            </Link>)}
+          </div>
         </div>
       </section>
 

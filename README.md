@@ -1,10 +1,14 @@
 # EYLO
 
-EYLO is a research workspace that helps a user turn a question into a source-backed next step.
+EYLO is a growing AI-assisted workspace for asking questions, learning, creating documents, organizing projects and exploring scientific research.
 
-It combines live scholarly discovery, AI-assisted reasoning, researchers, funding records and project execution while keeping evidence, inference and uncertainty distinguishable.
+EYRA is the AI assistant inside EYLO. Availability depends on server configuration, authentication and plan access. EYRA can make mistakes, and its responses should be reviewed before important decisions.
 
 **Live product:** [eyloai.vercel.app](https://eyloai.vercel.app/)
+
+## Who EYLO is for
+
+EYLO is designed for people with different goals, not only researchers. A visitor can start with an everyday question, a learning task, a document or project, or a scholarly research topic. EYLO does not claim feature parity with ChatGPT; specialized research remains a distinctive part of the workspace.
 
 ## Careers & collaboration
 
@@ -12,16 +16,12 @@ The public landing page includes a Careers section for future collaboration in r
 
 ## Core experience
 
-A useful EYLO journey is deliberately narrow:
+1. Start from a simple goal: ask, learn, create, organize or research.
+2. If EYRA is available, type a question on the signed-in home page and review it in the EYRA chat before sending. The home page never automatically submits an AI request.
+3. Choose an existing specialized tool when needed: learning, documents, tasks, projects or scholarly discovery.
+4. Return to saved workspace context through your authenticated account.
 
-1. Enter a research topic.
-2. State your level, goal and recency preference.
-3. Retrieve and deduplicate records from connected scholarly indexes.
-4. Separate recent, foundational and entry-point literature.
-5. Save relevant evidence, researchers and opportunities to a private workspace.
-6. Use EYRA to reason over that context and define the next research action.
-
-Public evidence discovery is available before account creation. Saving work, project context, funding search and EYRA actions require authentication.
+Public scholarly discovery is available without account creation. Saving private work, AI assistance and other personalized features require authentication. Capabilities may be restricted or unavailable depending on configuration and entitlements.
 
 ## Current capabilities
 

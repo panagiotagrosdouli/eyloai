@@ -10,7 +10,7 @@ const publicSearch = readFileSync(new URL('../src/pages/PublicDiscovery.jsx', im
 test('Home restores the existing private dashboard; Discover restores public scholarly search', () => {
   const nav = layout.match(/const PRIMARY_NAV = \[([\s\S]*?)\];/)?.[1] || '';
   assert.match(nav, /label: 'Home', path: '\/home', icon: Home/);
-  assert.match(nav, /label: 'Discover', path: '\/search', icon: Search/);
+  assert.match(nav, /label: 'Create', path: '\/documents\/new', icon: FilePlus2/);
   assert.match(app, /path="\/home" element=\{<Home \/>\}/);
   assert.match(app, /path="\/search" element=\{<PublicDiscovery \/>\}/);
 });
@@ -29,6 +29,6 @@ test('Existing discovery aliases, EYRA workflows and other routes are kept intac
   assert.match(app, /path="\/academics"/);
   assert.match(app, /path="\/find-phd"/);
   assert.match(app, /path="\/projects"/);
-  assert.match(layout, /label: 'My workspace', path: '\/projects'/);
+  assert.match(layout, /label: 'Projects', path: '\/projects'/);
   assert.match(layout, /label: 'Learn', path: '\/learn'/);
 });
