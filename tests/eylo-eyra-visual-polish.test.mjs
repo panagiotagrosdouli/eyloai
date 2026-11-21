@@ -29,7 +29,7 @@ test('all-tools menu defaults to curated shortcuts but still searches the full d
   assert.match(layout, /<EyraCommandCenter open=\{eyraOpen\}/);
 });
 
-test('home prioritizes research search and presents owner-isolated work in a responsive grid', () => {
+test('home prioritizes EYRA and presents owner-isolated work in a responsive grid', () => {
   const home = source('components/dashboard/EyraHome.jsx');
   assert.match(home, /max-w-\[1440px\]/);
   assert.match(home, /grid gap-6 lg:grid-cols-2/);
