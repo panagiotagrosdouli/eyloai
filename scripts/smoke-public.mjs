@@ -19,6 +19,12 @@ try {
   process.exit(2);
 }
 
+const expectedSha = process.env.EYLO_EXPECTED_GIT_SHA?.toLowerCase();
+if (expectedSha && !/^[a-f0-9]{40}$/.test(expectedSha)) {
+  console.error('EYLO_EXPECTED_GIT_SHA must be a 40-character commit SHA');
+  process.exit(2);
+}
+
 const checks = [
   { path: '/', type: 'html', label: 'Landing HTML' },
   { path: '/release.json', type: 'json', label: 'Release manifest' },
@@ -32,6 +38,10 @@ const checks = [
   { path: '/api/capabilities', type: 'capabilities', label: 'Server capability endpoint' },
 ];
 
+if (expectedSha) {
+  checks.push({ path: '/api/deployment-status', type: 'provenance', label: 'Server deployment commit' });
+}
+
 let failed = false;
 for (const check of checks) {
   const controller = new AbortController();
@@ -41,7 +51,7 @@ for (const check of checks) {
     const response = await fetch(url, {
       signal: controller.signal,
       redirect: 'manual',
-      headers: { Accept: ['json', 'capabilities'].includes(check.type) ? 'application/json' : '*/*' },
+      headers: { Accept: ['json', 'capabilities', 'provenance'].includes(check.type) ? 'application/json' : '*/*' },
     });
     if (response.status !== 200) throw new Error(`HTTP ${response.status} (expected 200)`);
     const body = await response.text();
@@ -66,12 +76,14 @@ for (const check of checks) {
         throw new Error('Missing release identifier');
       }
       console.log(`  release: ${data.release}`);
-      const expectedSha = process.env.EYLO_EXPECTED_GIT_SHA;
-      if (expectedSha) {
-        if (!/^[a-f0-9]{40}$/i.test(expectedSha)) throw new Error('EYLO_EXPECTED_GIT_SHA must be a 40-character commit SHA');
-        if (data.git_commit?.toLowerCase() !== expectedSha.toLowerCase()) {
-          throw new Error(`Stale deployment: expected commit ${expectedSha.slice(0, 12)}, served ${String(data.git_commit || 'unknown').slice(0, 12)}`);
-        }
+      if (expectedSha && data.git_commit?.toLowerCase() !== expectedSha) {
+        throw new Error(`Release manifest does not identify expected commit ${expectedSha}`);
+      }
+    }
+    if (check.type === 'provenance') {
+      const data = JSON.parse(body);
+      if (data.provenance_verified !== true || data.deployment_sha?.toLowerCase() !== expectedSha) {
+        throw new Error(`Server provenance does not identify expected commit ${expectedSha}`);
       }
     }
     console.log(`PASS ${check.label}: ${url.pathname}`);
