@@ -18,8 +18,8 @@ test('one router contains both the public guide and account-safe Back provider',
 
 test('beginners can explore without login and return to human-readable project sections',()=>{
  const guide=read('pages/GettingStarted.jsx');
- assert.match(guide,/No account needed to search/);
- assert.match(guide,/Sign-in required for private work/);
+ assert.match(guide,/public academic records without signing in/i);
+ assert.match(guide,/some features require an account/i);
  const research=getWorkspaceNavigation('/projects/10000000-0000-0000-0000-000000000001/research/journal');
  assert.equal(research.backLabel,'Project');
  assert.equal(research.crumbs.at(-1).label,'Research Journal');
