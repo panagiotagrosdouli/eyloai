@@ -66,6 +66,8 @@ export default function GettingStarted() {
         </div>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link to="/search" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[var(--company-action)] px-5 text-sm font-semibold text-[var(--company-on-action)]"><Search size={16} aria-hidden="true"/>Try public research search</Link>
+          <Link to="/pricing" className="inline-flex min-h-11 items-center rounded-xl border border-[var(--company-border)] px-5 text-sm font-semibold hover:bg-[var(--company-soft)]">See plans and availability</Link>
+          <Link to="/contact" className="inline-flex min-h-11 items-center rounded-xl border border-[var(--company-border)] px-5 text-sm font-semibold hover:bg-[var(--company-soft)]">Contact EYLO</Link>
           <Link to="/company" className="inline-flex min-h-11 items-center rounded-xl border border-[var(--company-border)] px-5 text-sm font-semibold hover:bg-[var(--company-soft)]">Learn more about EYLO</Link>
         </div>
       </section>
