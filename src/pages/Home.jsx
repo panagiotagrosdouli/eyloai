@@ -10,6 +10,47 @@ import LoadingState from '@/components/discovery/LoadingState';
 import EyraHome from '@/components/dashboard/EyraHome';
 import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
 
+const HOME_PATHS = [
+  { id: 'academic', label: 'Research & teaching', intro: 'Build a source-backed research foundation.', examples: [
+    { label: 'Find publications', to: '/search', desc: 'Start with a research question' },
+    { label: 'Find researchers', to: '/academics', desc: 'Explore authors and institutions' },
+    { label: 'My research library', to: '/library', desc: 'Return to saved evidence' },
+  ] },
+  { id: 'professional', label: 'Professional decision', intro: 'Check the evidence behind a work-related question.', examples: [
+    { label: 'Check the research', to: '/search', desc: 'Open and verify scientific records' },
+    { label: 'Explore experts', to: '/researchers', desc: 'Find people working on the topic' },
+    { label: 'Organize a project', to: '/projects', desc: 'Keep notes and next steps together' },
+  ] },
+  { id: 'founder', label: 'New venture or idea', intro: 'Investigate an idea before making a major commitment.', examples: [
+    { label: 'Explore existing research', to: '/search', desc: 'Discover what is already known' },
+    { label: 'Find potential collaborators', to: '/researchers', desc: 'Identify relevant research expertise' },
+    { label: 'Find funding records', to: '/opportunities', desc: 'US Grants.gov coverage; verify eligibility' },
+  ] },
+];
+
+function GoalPaths() {
+  const [audience, setAudience] = useState('academic');
+  const selected = HOME_PATHS.find(item => item.id === audience) || HOME_PATHS[0];
+  return <section aria-labelledby="goal-path-title" className="eylo-page mx-auto max-w-7xl pb-7">
+    <div className="rounded-2xl border border-border bg-card p-5 sm:p-7">
+      <p className="text-xs font-bold uppercase tracking-widest text-primary">A simpler way to start</p>
+      <h2 id="goal-path-title" className="mt-2 text-xl font-semibold sm:text-2xl">What are you trying to achieve?</h2>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">Choose a path for useful next steps. This does not change your account settings.</p>
+      <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Choose your goal">
+        {HOME_PATHS.map(item => <button key={item.id} type="button" aria-pressed={audience === item.id} onClick={() => setAudience(item.id)} className={`min-h-11 rounded-xl border px-4 text-sm font-semibold ${audience === item.id ? 'border-primary bg-primary/10 text-primary' : 'border-border text-foreground hover:bg-secondary'}`}>{item.label}</button>)}
+      </div>
+      <p className="mt-5 text-sm text-muted-foreground">{selected.intro}</p>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {selected.examples.map(item => <Link key={item.to} to={item.to} className="group flex min-h-28 flex-col rounded-xl border border-border bg-background p-4 hover:border-primary/50">
+          <span className="text-sm font-semibold">{item.label}</span>
+          <span className="mt-2 flex-1 text-xs leading-5 text-muted-foreground">{item.desc}</span>
+          <span className="mt-3 text-xs font-semibold text-primary">Open feature →</span>
+        </Link>)}
+      </div>
+    </div>
+  </section>;
+}
+
 export default function Home({ searchOnly = false }) {
   const [state, setState] = useState(searchOnly ? 'search' : 'dashboard'); // dashboard | search | loading | results
   const [results, setResults] = useState(null);
@@ -138,5 +179,5 @@ export default function Home({ searchOnly = false }) {
     );
   }
 
-  return <><EyraHome onSearch={handleSearch} /><details className="eylo-page mx-auto max-w-7xl pb-12"><summary className="min-h-11 cursor-pointer rounded-xl border border-border bg-card px-5 py-4 text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">More from your workspace — tasks, calendar and saved work</summary><div className="pt-6"><PersonalizedDashboard /></div></details></>;
+  return <><EyraHome onSearch={handleSearch} /><GoalPaths /><details className="eylo-page mx-auto max-w-7xl pb-12"><summary className="min-h-11 cursor-pointer rounded-xl border border-border bg-card px-5 py-4 text-sm font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">More from your workspace — tasks, calendar and saved work</summary><div className="pt-6"><PersonalizedDashboard /></div></details></>;
 }
