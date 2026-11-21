@@ -183,6 +183,16 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const recognitionRef = useRef(null);
   const dialogRef = useRef(null);
   const activeRequestRef = useRef(null);
+  // The home composer can pass an unsent draft into EYRA. This never starts
+  // an AI request: the user must review the prompt and press Send.
+  useEffect(() => {
+    const receiveHomePrompt = event => {
+      const prompt = typeof event.detail?.prompt === 'string' ? event.detail.prompt.trim() : '';
+      if (prompt) setInput(prompt);
+    };
+    window.addEventListener('eylo:open-eyra', receiveHomePrompt);
+    return () => window.removeEventListener('eylo:open-eyra', receiveHomePrompt);
+  }, []);
   useEffect(() => () => { activeRequestRef.current?.abort(); }, []);
 
   useEffect(() => {
