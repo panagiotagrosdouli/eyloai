@@ -1,4 +1,6 @@
-# EYLO company readiness | 21 November 2026
+# EYLO company readiness | 22 November 2026
+
+_Assessment sections A–I retain their 21 November review; sections J–K were added on 22 November. This update does not revalidate the earlier business, pricing, legal or customer assumptions._
 
 ## A. Company readiness
 
