@@ -228,6 +228,26 @@ export default async function handler(request, response) {
       response.setHeader('X-Content-Type-Options', 'nosniff');
       return response.status(502).json(JSON.parse(outcome.body.toString()));
     }
+    // Provider error bodies are untrusted and vary by service. Do not relay
+    // them to researchers or store them in browser/provider caches. Preserve
+    // the HTTP status and a stable error code so the UI can explain outages.
+    if (outcome.status < 200 || outcome.status >= 300) {
+      response.setHeader('Cache-Control', 'no-store');
+      response.setHeader('X-Content-Type-Options', 'nosniff');
+      response.setHeader('X-EYLO-Source', provider);
+      const retryAfterValue = String(outcome.retryAfter || '').trim();
+      const retryAfterSeconds = /^\d{1,5}$/.test(retryAfterValue) ? Number(retryAfterValue) : NaN;
+      if (Number.isInteger(retryAfterSeconds) && retryAfterSeconds >= 1 && retryAfterSeconds <= 86_400) {
+        response.setHeader('Retry-After', String(retryAfterSeconds));
+      }
+      const code = outcome.status === 429
+        ? 'SOURCE_RATE_LIMITED'
+        : outcome.status >= 500 ? 'SOURCE_UNAVAILABLE' : 'SOURCE_REQUEST_FAILED';
+      const error = outcome.status === 429
+        ? 'Scholarly source is rate limited.'
+        : outcome.status >= 500 ? 'Scholarly source is temporarily unavailable.' : 'Scholarly source rejected the request.';
+      return response.status(outcome.status).json({ error, code });
+    }
     response.status(outcome.status);
     if (outcome.retryAfter) response.setHeader('Retry-After', outcome.retryAfter);
     response.setHeader('X-EYLO-Cache', outcome.cache);
