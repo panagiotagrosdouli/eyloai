@@ -291,9 +291,9 @@ test('discovery proxy only accepts GET', async () => {
 
 test('discovery proxy never caches upstream errors or provider rate limits', async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => new Response(JSON.stringify({ error: 'rate limited' }), {
+  globalThis.fetch = async () => new Response(JSON.stringify({ error: 'provider key xyz', message: 'private upstream detail' }), {
     status: 429,
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', 'retry-after': '8' },
   });
   try {
     const response = createResponse();
@@ -301,6 +301,9 @@ test('discovery proxy never caches upstream errors or provider rate limits', asy
     assert.equal(response.statusCode, 429);
     assert.equal(response.headers['cache-control'], 'no-store');
     assert.equal(response.headers['x-eylo-source'], 'openalex_works');
+    assert.equal(response.headers['retry-after'], '8');
+    assert.equal(response.payload.code, 'SOURCE_RATE_LIMITED');
+    assert.doesNotMatch(JSON.stringify(response.payload), /provider key xyz|private upstream detail/);
   } finally {
     globalThis.fetch = originalFetch;
   }
