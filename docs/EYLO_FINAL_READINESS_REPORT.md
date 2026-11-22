@@ -44,7 +44,7 @@ Live GET checks on 2026-11-22 returned 200 for `/release.json`, `/api/capabiliti
 
 ## Database and privacy status
 
-Supabase project `kbzjngpzxpniaumlupaa` reports `ACTIVE_HEALTHY`. Read-only catalog inspection confirms several core tables, including Projects, Files and File Versions, but also confirms absent EYRA, grant-application, team/community/directory/API-token, and meeting-participant tables. The migration registry lists 19 migrations through `20261115194359`.
+Supabase project `kbzjngpzxpniaumlupaa` reports `ACTIVE_HEALTHY`. Read-only catalog inspection confirms several core tables, including Projects, Files and File Versions, but also confirms absent EYRA, grant-application, team/community/directory/API-token, and meeting-participant tables. The migration registry lists 19 migrations through `20261115194359`. The only listed Supabase development branch reports `MIGRATIONS_FAILED` although its preview project status is `ACTIVE_HEALTHY`; it is not accepted as a healthy staging environment. No reset or migration operation was performed.
 
 A current verified production backup/recovery point is **not evidenced in the connected tools**. Production schema changes remain blocked until recovery evidence is verified. Privacy controls, account deletion/export behavior and jurisdiction-specific legal review are not certified.
 
@@ -60,7 +60,7 @@ Billing, contact/support delivery, scheduled monitoring and institution analytic
 
 1. Verify a current production recovery point for the correct Supabase project.
 2. Resolve and verify the targeted EYRA schema and hosted persistence flow after that gate.
-3. Complete two-account staging acceptance for authentication, RLS, Library, Projects, Files, EYRA and feature-specific modules.
+3. Diagnose the existing Supabase development branch migration failure without resetting it, then complete two-account acceptance on a healthy isolated staging environment for authentication, RLS, Library, Projects, Files, EYRA and feature-specific modules.
 4. Review Auth leaked-password protection and verify intended server-only access for discovery rate-limit records.
 5. Complete provider, source-quality, citation and human-judged relevance evaluation.
 6. Keep billing and contact disabled until their test-mode and real-delivery acceptance passes.
