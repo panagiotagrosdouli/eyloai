@@ -22,7 +22,7 @@ begin
   actual as (
     select tbl.relname as table_name, idx.relname as index_name,
            i.indisvalid, i.indisready,
-           array_agg(att.attname order by key.ordinality) as columns
+           array_agg(att.attname::text order by key.ordinality) as columns
       from pg_index i
       join pg_class tbl on tbl.oid = i.indrelid
       join pg_namespace ns on ns.oid = tbl.relnamespace
