@@ -26,7 +26,8 @@ async function jsonBody(response) {
     return value;
   } finally { await reader.cancel().catch(() => {}); }
 }
-export async function probeReleaseTarget({ baseUrl, expectedCommit, fetcher = fetch }) {
+export async function probeReleaseTarget({ baseUrl, expectedCommit, fetcher = fetch, billingRequired = true }) {
+  if (typeof billingRequired !== 'boolean') throw new Error('billingRequired must be an explicit boolean.');
   const base = new URL(baseUrl);
   if (base.protocol !== 'https:' || base.username || base.password || base.search || base.hash || (base.pathname !== '/' && base.pathname !== '')) throw new Error('Use a public HTTPS origin without credentials, paths or query parameters.');
   if (!SHA.test(expectedCommit || '')) throw new Error('An exact reviewed commit is required.');
@@ -56,7 +57,8 @@ export async function probeReleaseTarget({ baseUrl, expectedCommit, fetcher = fe
   if (!identityVerified) issues.push('Browser manifest and server deployment provenance do not establish the reviewed commit.');
   const flags = Object.fromEntries(CAPABILITIES.map(key => [key, typeof capabilities.value?.[key] === 'boolean' ? capabilities.value[key] : null]));
   if (Object.values(flags).some(value => value === null)) issues.push('Capabilities response does not match the public boolean contract.');
-  for (const key of ['ai', 'contact', 'billing']) if (flags[key] !== true) issues.push(`${key} is not reported configured; real provider acceptance is still required even when configured.`);
+  const requiredCapabilities = billingRequired ? ['ai', 'contact', 'billing'] : ['ai', 'contact'];
+  for (const key of requiredCapabilities) if (flags[key] !== true) issues.push(`${key} is not reported configured; real provider acceptance is still required even when configured.`);
   const discoveryAvailable = !discovery.error && Array.isArray(discovery.value?.results)
     && discovery.value.results.some(record => typeof record?.id === 'string' && record.id.length > 0
       && typeof record.title === 'string' && record.title.trim().length > 0);
@@ -64,6 +66,7 @@ export async function probeReleaseTarget({ baseUrl, expectedCommit, fetcher = fe
   return { schema_version: 1, scope: 'public-readonly', target_origin: base.origin, expected_commit: expectedCommit, observed_manifest_sha: manifestSha, observed_deployment_sha: deploymentSha,
     identity_verified: identityVerified, configured_capabilities: flags, discovery_available: discoveryAvailable, decision: issues.length ? 'PROBE_FAILED' : 'PROBE_PASSED',
     market_readiness_proven: false, production_authorized: false,
+    required_capabilities: requiredCapabilities, excluded_capabilities: billingRequired ? [] : ['billing'],
     note: 'Public GET identity/configuration and one scholarly smoke query only. The query consumes normal discovery quota. This does not verify project ownership, Auth, RLS, Storage, scientific relevance, legal acceptance or authorize any write.',
     endpoints: reads.map(({ path, status, error }) => ({ path, status, error })), issues };
 }
