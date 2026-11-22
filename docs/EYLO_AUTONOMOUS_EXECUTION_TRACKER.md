@@ -21,7 +21,7 @@ The current execution workspace contains the task attachment but no local Git ch
 - Current Supabase security advisors: leaked-password protection disabled (WARN); `discovery_rate_limits` has RLS enabled and no policies (INFO; fail-closed behavior may be intentional and must be checked against the service access path before changing it).
 - Current performance advisors report 13 unindexed foreign keys and unused-index observations. No index or schema changes were made.
 - The repository records 1,220 Node tests, imports, typechecks, lint, production build, full synthetic-transport Auth/product/Learning browser suites, and disposable PostgreSQL integration passing on the preceding release candidate `1b2fcebc331c825a20458cda7be2a7ba7464bf02`. This execution independently observed only the Vercel success status on that SHA and current main; it did not rerun those checks.
-- The public release probe remains `PROBE_FAILED` for commercial readiness because contact and billing are unconfigured. Public reachability does not prove private-account workflows.
+- Vercel production error/fatal log grouping over the latest 30 minutes returned no groups; traffic coverage is unknown. The public release probe remains `PROBE_FAILED` for commercial readiness because contact and billing are unconfigured. Public reachability does not prove private-account workflows.
 
 ## Feature inventory and state
 
