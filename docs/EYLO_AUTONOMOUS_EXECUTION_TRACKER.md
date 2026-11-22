@@ -1,0 +1,78 @@
+# EYLO Autonomous Execution Tracker
+
+Last reviewed: 2026-11-22 (Europe/Athens)
+Current main commit: `c7b331454d54ca72486a799994c13ca7cbec4aeb`
+Production: `https://eyloai.vercel.app`, Vercel deployment `dpl_Af3vmLQDRc8gHXs8D1EAVN6wmaqF` (READY; production alias)
+Execution phase: production acceptance and P0 blocker resolution
+Release state: **NO-GO**
+
+## Scope and source of truth
+
+This tracker continues the existing product work; it does not restart completed tasks. The repository's 77-product inventory and route/action mapping are in [the full-site functional audit](FULL_SITE_FUNCTIONAL_AUDIT.md) and [source inventory](integration/full-site-source-inventory.json). The current execution baseline and detailed acceptance sequence are in [the launch execution record](release/EYLO_LAUNCH_EXECUTION_2026-11-22.md).
+
+The current execution workspace contains the task attachment but no local Git checkout. Repository review and read-only hosted checks were performed through the connected GitHub, Vercel and Supabase tools. No application source was changed and no repository test was run in this execution.
+
+## Current verified baseline
+
+- GitHub `main` is `c7b331454d54ca72486a799994c13ca7cbec4aeb`. The Vercel production alias `eyloai.vercel.app` serves a READY deployment for the same commit.
+- Live GET checks on 2026-11-22: `/release.json` 200 with the same commit; `/api/capabilities` 200 (`ai=true`, `contact=false`, `billing=false`, `scheduled_monitoring=false`, `institution_analytics=false`); one OpenAlex climate-adaptation discovery request returned HTTP 200 and a real indexed record.
+- Supabase project `kbzjngpzxpniaumlupaa` is `ACTIVE_HEALTHY`. Its migration registry currently lists 19 migrations through `20261115194359`.
+- Read-only schema inventory confirms EYRA conversations/messages/runs/actions, grant applications, ten team/directory/community/peer-review/API-token tables, and meeting participants are absent. Core Projects, Files, File Versions, Notes, and Learning tables are present. This is a catalog observation, not two-account acceptance.
+- Current Supabase security advisors: leaked-password protection disabled (WARN); `discovery_rate_limits` has RLS enabled and no policies (INFO; fail-closed behavior may be intentional and must be checked against the service access path before changing it).
+- Current performance advisors report 13 unindexed foreign keys and unused-index observations. No index or schema changes were made.
+- The repository records 1,220 Node tests, imports, typechecks, lint, production build, full synthetic-transport Auth/product/Learning browser suites, and disposable PostgreSQL integration passing on the preceding release candidate `1b2fcebc331c825a20458cda7be2a7ba7464bf02`. This execution independently observed only the Vercel success status on that SHA and current main; it did not rerun those checks.
+- The public release probe remains `PROBE_FAILED` for commercial readiness because contact and billing are unconfigured. Public reachability does not prove private-account workflows.
+
+## Feature inventory and state
+
+| ID | Feature | State | Next action |
+|---|---|---|---|
+| REL-001 | Production identity and public deployment | HOSTED VERIFIED for commit identity and public GET checks | Keep provenance and core smoke checks on the resulting reviewed deployment |
+| DISC-001 | Public scholarly discovery | PARTIALLY FUNCTIONAL; one live OpenAlex result; no current multi-domain human relevance evaluation | Run multi-domain provider and quality acceptance, with source verification and partial-outage cases |
+| AUTH-001 | Authentication and recovery | UNVERIFIED on hosted accounts | Use isolated staging and two consenting disposable accounts; verify recovery delivery and session boundaries |
+| LIB-001 | Library persistence and export | UNVERIFIED for real hosted accounts | Save, reload, link, export and delete a paper in staging; test cross-owner exact-ID denial |
+| PROJ-001 | Project persistence and CRUD | UNVERIFIED for real hosted accounts | Create, edit and reload project/milestone data in staging; exercise ownership denial |
+| FILES-001 | File upload, version, download and delete | IMPLEMENTED — HOSTED ACCEPTANCE INCOMPLETE | Verify real Storage bytes, version history, deletion and cross-owner denial in staging |
+| EYRA-001 | EYRA model response, history and approved actions | BLOCKED: four required persistence tables absent | Verify recovery point first; review exact approved migration source/hashes; apply only after gates; then test real model, citations, persistence and two-account boundaries |
+| GRANT-001 | Funding records and applications | BLOCKED: `grant_applications` absent | Review migration/dependencies and test isolated staging before any production migration |
+| TEAM-001 | Teams, directory, connections, community, peer review, feedback and API tokens | BLOCKED: ten `eylo_*` tables absent | Map each feature to source, permissions and dependent migrations; validate on isolated staging |
+| MEET-001 | Native meeting participants | BLOCKED: `meeting_participants` absent | Review migration dependencies; test membership and access on isolated staging |
+| BILL-001 | Billing and entitlements | UNAVAILABLE; capability false | Keep disabled; prove test checkout, signed webhooks, idempotency, entitlement transitions and refunds before considering activation |
+| CONTACT-001 | Contact/support delivery | UNAVAILABLE; capability false | Configure and verify the real delivery provider and support destination before enabling |
+| MON-001 | Scheduled monitoring | UNAVAILABLE; capability false | Keep disabled until consent, scheduling, retries and persisted outcomes pass acceptance |
+| ANALYTICS-001 | Institution analytics | UNAVAILABLE; capability false | Keep disabled until permission and aggregation acceptance passes |
+| SEC-001 | Security and privacy | OPEN | Review Auth leaked-password protection setting; verify RLS and storage ownership with two accounts; complete deletion/export and legal review |
+| OPS-001 | Recovery and operations | BLOCKED by missing backup/recovery evidence | Provide a current verified recovery point or access to its evidence; document restoration procedure and test it in staging |
+| SCI-001 | Scientific quality | NOT SCIENTIFICALLY EVALUATED | Establish human judgments and report Precision@5, Precision@10 and nDCG@10 by domain and intent |
+| BIZ-001 | Commercial validation | NOT VALIDATED | Obtain real researcher/buyer feedback and validate pricing; no traction or revenue evidence is recorded |
+
+## Defect and blocker ledger
+
+1. **P0 / external dependency — production recoverability.** The required current backup/recovery point is not available in connected-tool evidence. No production schema change is authorized by this tracker until recovery evidence is verified.
+2. **P0 / persistence — EYRA schema.** Four EYRA tables are absent from the production catalog. Exact targeted SQL fingerprints and prerequisite checks are recorded in the previous preflight; hosted two-account acceptance remains incomplete.
+3. **P0 / acceptance — private-user workflows.** Auth, cross-user RLS, real storage bytes, EYRA responses and persisted actions have not been verified with two consenting accounts in isolated staging.
+4. **P1 / feature schemas.** Grant applications, team/community/directory/API-token surfaces, and meeting participants have missing tables. Historical migrations must be reviewed and staged separately; do not bulk-replay them.
+5. **P1 / security configuration.** Leaked-password protection is disabled. The RLS/no-policy finding for `discovery_rate_limits` is informational and fail-closed by default; inspect its intended server-only access before deciding whether it is a defect.
+6. **P2 / performance.** Thirteen unindexed foreign keys are reported. Review query paths and existing indexes before preparing a safe, measured migration.
+7. **P3 / commercial operation.** Billing and contact are disabled. Monitoring and institution analytics are disabled. No live payments or external messages were initiated.
+8. **Scientific/business evidence.** One real search record is not a relevance study; no user research, market traction, revenue or partnership evidence is claimed.
+9. **Execution environment.** No local source checkout is mounted, so code edits and repository tests could not be run in this session. Source changes must resume in a checkout that can run the project's documented checks.
+
+## Decisions and safety record
+
+- No production DDL, data writes, new Auth accounts, secret reads, payment actions, environment-variable changes, production promotion, or external communications were performed in this execution.
+- Keep production release status NO-GO until the acceptance gates and owner evidence in `docs/LAUNCH_READINESS_GATE.md` are complete.
+- The task's authorized engineering scope does not replace the explicit recovery-point prerequisite for production schema changes.
+- Do not describe implementation as hosted acceptance, scientific validation, security compliance, or commercial validation without the corresponding evidence.
+
+## Exact next actions
+
+1. Obtain or verify a current recoverable backup/recovery point for the correct production Supabase project, `kbzjngpzxpniaumlupaa`.
+2. In a local checkout of the reviewed commit, rerun `npm run check` and inspect current source/migrations and the prior EYRA SQL fingerprints.
+3. Once recovery evidence is recorded, apply only the already approved targeted EYRA migration scope, then rerun schema/RLS/grant/RPC checks. Do not apply other historical migrations.
+4. Set up an explicitly isolated staging Supabase project and matching preview deployment; run two-account Auth, Library, Projects, Files, EYRA, funding, team and meeting workflows.
+5. Review and close each remaining feature, security, scientific and commercial blocker with reproducible evidence; update this tracker after each unit.
+
+## Resume instruction
+
+Continue from main `c7b331454d54ca72486a799994c13ca7cbec4aeb`. First verify the production backup/recovery point for project `kbzjngpzxpniaumlupaa`. Until then, do not apply production DDL. In parallel, obtain a local repository checkout and rerun the documented checks; then continue with the targeted EYRA preflight and isolated two-account staging acceptance.
