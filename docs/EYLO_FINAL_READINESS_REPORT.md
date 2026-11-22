@@ -26,7 +26,7 @@ Repository documentation records that 1,220 Node tests, import checks, API/front
 
 Current GitHub combined status checks observed in this review report a successful Vercel status for both `1b2fcebc` and current main `c7b331454d54ca72486a799994c13ca7cbec4aeb`. This execution did not run repository code or rerun the tests because no local checkout is present. Synthetic fixtures and disposable databases do not establish live provider, Auth, RLS, Storage or customer acceptance.
 
-Live GET checks on 2026-11-22 returned 200 for `/release.json`, `/api/capabilities` and a single scholarly discovery query. The release probe is still `PROBE_FAILED` for commercial readiness because contact and billing are not configured.
+Live GET checks on 2026-11-22 returned 200 for `/release.json`, `/api/capabilities` and a single scholarly discovery query. Vercel error/fatal log grouping for the production deployment over the latest 30 minutes returned no groups; traffic coverage is unknown. The release probe is still `PROBE_FAILED` for commercial readiness because contact and billing are not configured.
 
 ## Scientific quality
 
