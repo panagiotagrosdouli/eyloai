@@ -97,6 +97,9 @@ try:
                 sql((ROOT / 'supabase/migrations' / name).read_text())  # Idempotent replay preserves rows.
                 sql((ROOT / 'tests/integration/legacy-schema-postgres.sql').read_text())
                 print('PASS: legacy content/timestamps/trigger states preserved, bidirectional writes, canonical profile upsert and unchanged RLS isolation.', flush=True)
+    if not bundle_replay:
+        sql((ROOT / 'tests/integration/workspace-foreign-key-indexes-postgres.sql').read_text())
+        print('PASS: all 13 advisor-reported workspace foreign keys have valid supporting indexes.', flush=True)
     sql((ROOT / 'tests/integration/workspace-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/learning-time-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/timer-pauses-postgres.sql').read_text())
