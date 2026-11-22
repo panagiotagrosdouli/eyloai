@@ -1,0 +1,171 @@
+{
+  "scope": "Read-only catalog inspection of literal public CREATE TABLE declarations across historical repository migrations; not a complete runtime schema contract. Historical scheduled-monitoring system_secrets is not automatically an activation candidate.",
+  "project": "kbzjngpzxpniaumlupaa",
+  "tables": [
+    {
+      "name": "activity_events",
+      "present": true
+    },
+    {
+      "name": "billing_entitlements",
+      "present": true
+    },
+    {
+      "name": "calendar_events",
+      "present": true
+    },
+    {
+      "name": "discovery_rate_limits",
+      "present": true
+    },
+    {
+      "name": "eylo_api_tokens",
+      "present": false
+    },
+    {
+      "name": "eylo_community_posts",
+      "present": false
+    },
+    {
+      "name": "eylo_connections",
+      "present": false
+    },
+    {
+      "name": "eylo_directory",
+      "present": false
+    },
+    {
+      "name": "eylo_feedback",
+      "present": false
+    },
+    {
+      "name": "eylo_file_versions",
+      "present": true
+    },
+    {
+      "name": "eylo_files",
+      "present": true
+    },
+    {
+      "name": "eylo_peer_reviews",
+      "present": false
+    },
+    {
+      "name": "eylo_peer_submissions",
+      "present": false
+    },
+    {
+      "name": "eylo_team_invites",
+      "present": false
+    },
+    {
+      "name": "eylo_team_members",
+      "present": false
+    },
+    {
+      "name": "eylo_teams",
+      "present": false
+    },
+    {
+      "name": "eyra_agent_actions",
+      "present": false
+    },
+    {
+      "name": "eyra_agent_runs",
+      "present": false
+    },
+    {
+      "name": "eyra_conversations",
+      "present": false
+    },
+    {
+      "name": "eyra_messages",
+      "present": false
+    },
+    {
+      "name": "eyra_usage_actions",
+      "present": true
+    },
+    {
+      "name": "grant_applications",
+      "present": false
+    },
+    {
+      "name": "institution_memberships",
+      "present": true
+    },
+    {
+      "name": "learning_courses",
+      "present": true
+    },
+    {
+      "name": "learning_enrollments",
+      "present": true
+    },
+    {
+      "name": "learning_lesson_progress",
+      "present": true
+    },
+    {
+      "name": "learning_lessons",
+      "present": true
+    },
+    {
+      "name": "life_goals",
+      "present": true
+    },
+    {
+      "name": "life_tasks",
+      "present": true
+    },
+    {
+      "name": "meeting_participants",
+      "present": false
+    },
+    {
+      "name": "note_versions",
+      "present": true
+    },
+    {
+      "name": "notes",
+      "present": true
+    },
+    {
+      "name": "profiles",
+      "present": true
+    },
+    {
+      "name": "quiz_attempts",
+      "present": true
+    },
+    {
+      "name": "quiz_questions",
+      "present": true
+    },
+    {
+      "name": "quizzes",
+      "present": true
+    },
+    {
+      "name": "research_datasets",
+      "present": true
+    },
+    {
+      "name": "stripe_webhook_events",
+      "present": true
+    },
+    {
+      "name": "study_flashcard_decks",
+      "present": true
+    },
+    {
+      "name": "system_secrets",
+      "present": false
+    },
+    {
+      "name": "time_entries",
+      "present": true
+    }
+  ],
+  "production_schema_modified": false
+}
