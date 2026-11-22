@@ -24,7 +24,7 @@ The repository describes a React 18/Vite application with React Router, Supabase
 
 Repository documentation records that 1,220 Node tests, import checks, API/frontend typechecks, lint and production build passed on release candidate `1b2fcebc331c825a20458cda7be2a7ba7464bf02`, along with synthetic-transport Auth, product and Learning browser suites and disposable PostgreSQL integration.
 
-GitHub Actions on PR head `71d06c0d548d9925ed2d453c4ec302ad7c67bfe9` completed successfully for `Build`, `EYLO Quality Gate`, and `Product quality`. The product-quality job passed production build, typecheck, lint, core regression tests, EYRA terminal stream, Auth, Library, Learning, all 22 product workflows, public landing, gateway error attribution, local-time greeting, partial-source resilience, secure service credentials and deterministic relevance benchmark. The Vercel preview for that head reached READY. This execution did not run repository code locally because no checkout is mounted; the CI checks ran against the actual PR source. Synthetic fixtures and disposable databases do not establish live provider, Auth, RLS, Storage or customer acceptance.
+GitHub Actions on PR #595 head `179eb8a05e041ef1f75c3cbe8afd2e35886954d5` passed `Build`, `EYLO Quality Gate`, `Product quality`, and `EYRA schema preflight (disposable PostgreSQL)`. Product quality passed production build, typecheck, lint, core regression tests, EYRA terminal stream, Auth, Library, Learning, all 22 product workflows, public landing, gateway error attribution, local-time greeting, partial-source resilience, secure service credentials and deterministic relevance benchmark. The disposable PostgreSQL replay included the 13 exact FK-index assertions. The Vercel preview for that head reached READY. PRs #593 and #594 also retain passing CI and READY previews. Repository checks ran against the actual PR source because no local checkout was mounted. Synthetic fixtures and disposable databases do not establish live provider, Auth, RLS, Storage or customer acceptance.
 
 Live GET checks on 2026-11-22 returned 200 for `/release.json`, `/api/capabilities` and a single scholarly discovery query. Vercel error/fatal log grouping for the production deployment over the latest 30 minutes returned no groups; traffic coverage is unknown. The release probe is still `PROBE_FAILED` for commercial readiness because contact and billing are not configured.
 
@@ -39,7 +39,7 @@ Live GET checks on 2026-11-22 returned 200 for `/release.json`, `/api/capabiliti
 - The Supabase security advisor reports leaked-password protection disabled (WARN).
 - It reports RLS enabled without policies on `public.discovery_rate_limits` (INFO). This is fail-closed, but the expected server-side access path should be confirmed before changing it.
 - Two-account RLS/Storage acceptance is outstanding; no user-isolation claim is made.
-- Supabase performance advisor reports 13 unindexed foreign keys; these are optimization findings requiring query-aware review.
+- Supabase performance advisor reports 13 unindexed foreign keys. PR #595 proposes additive indexes; its exact catalog assertions passed in disposable PostgreSQL, but the hosted migration has not been applied or rechecked.
 - No production secrets were read or printed.
 
 ## Database and privacy status
@@ -70,4 +70,4 @@ Billing, contact/support delivery, scheduled monitoring and institution analytic
 
 **NO-GO.** Production deployment identity and a narrow public discovery smoke check pass. Core private-account acceptance, EYRA persistence, scientific quality, recovery, billing/contact, and business/legal readiness remain open. Do not claim the platform is fully functional, scientifically validated, secure, compliant, or launch-ready.
 
-See the [execution tracker](EYLO_AUTONOMOUS_EXECUTION_TRACKER.md) for the feature inventory and exact next engineering action.
+The execution and business-foundation work is recorded in open PRs #593 and #594; the FK-index source change is in open PR #595. None is merged. See the [execution tracker](EYLO_AUTONOMOUS_EXECUTION_TRACKER.md) for the feature inventory and exact next engineering action.
