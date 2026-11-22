@@ -16,7 +16,7 @@ The current execution workspace contains the task attachment but no local Git ch
 
 - GitHub `main` is `c7b331454d54ca72486a799994c13ca7cbec4aeb`. The Vercel production alias `eyloai.vercel.app` serves a READY deployment for the same commit.
 - Live GET checks on 2026-11-22: `/release.json` 200 with the same commit; `/api/capabilities` 200 (`ai=true`, `contact=false`, `billing=false`, `scheduled_monitoring=false`, `institution_analytics=false`); one OpenAlex climate-adaptation discovery request returned HTTP 200 and a real indexed record.
-- Supabase project `kbzjngpzxpniaumlupaa` is `ACTIVE_HEALTHY`. Its migration registry currently lists 19 migrations through `20261115194359`.
+- Supabase project `kbzjngpzxpniaumlupaa` is `ACTIVE_HEALTHY`. Its migration registry currently lists 19 migrations through `20261115194359`. The only listed development branch, named `main`, has branch status `MIGRATIONS_FAILED` while its preview project reports `ACTIVE_HEALTHY`; this is not verified staging acceptance, and no reset, delete or migration action was taken.
 - Read-only schema inventory confirms EYRA conversations/messages/runs/actions, grant applications, ten team/directory/community/peer-review/API-token tables, and meeting participants are absent. Core Projects, Files, File Versions, Notes, and Learning tables are present. This is a catalog observation, not two-account acceptance.
 - Current Supabase security advisors: leaked-password protection disabled (WARN); `discovery_rate_limits` has RLS enabled and no policies (INFO; fail-closed behavior may be intentional and must be checked against the service access path before changing it).
 - Current performance advisors report 13 unindexed foreign keys and unused-index observations. No index or schema changes were made.
@@ -56,7 +56,7 @@ The current execution workspace contains the task attachment but no local Git ch
 6. **P2 / performance.** Thirteen unindexed foreign keys are reported. Review query paths and existing indexes before preparing a safe, measured migration.
 7. **P3 / commercial operation.** Billing and contact are disabled. Monitoring and institution analytics are disabled. No live payments or external messages were initiated.
 8. **Scientific/business evidence.** One real search record is not a relevance study; no user research, market traction, revenue or partnership evidence is claimed.
-9. **Execution environment.** No local source checkout is mounted, so code edits and repository tests could not be run in this session. Source changes must resume in a checkout that can run the project's documented checks.
+9. **Staging and execution environment.** The only listed Supabase development branch reports `MIGRATIONS_FAILED`; do not reset or reuse it without inspecting the failure and confirming its data/state. No local source checkout is mounted, so code edits and repository tests could not be run in this session. Source changes must resume in a checkout that can run the project's documented checks.
 
 ## Decisions and safety record
 
@@ -70,7 +70,7 @@ The current execution workspace contains the task attachment but no local Git ch
 1. Obtain or verify a current recoverable backup/recovery point for the correct production Supabase project, `kbzjngpzxpniaumlupaa`.
 2. In a local checkout of the reviewed commit, rerun `npm run check` and inspect current source/migrations and the prior EYRA SQL fingerprints.
 3. Once recovery evidence is recorded, apply only the already approved targeted EYRA migration scope, then rerun schema/RLS/grant/RPC checks. Do not apply other historical migrations.
-4. Set up an explicitly isolated staging Supabase project and matching preview deployment; run two-account Auth, Library, Projects, Files, EYRA, funding, team and meeting workflows.
+4. Diagnose the existing Supabase development branch's `MIGRATIONS_FAILED` state without resetting it; establish an explicitly isolated, healthy staging Supabase project and matching preview deployment; then run two-account Auth, Library, Projects, Files, EYRA, funding, team and meeting workflows.
 5. Review and close each remaining feature, security, scientific and commercial blocker with reproducible evidence; update this tracker after each unit.
 
 ## Resume instruction
