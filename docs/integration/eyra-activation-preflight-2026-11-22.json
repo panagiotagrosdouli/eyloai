@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-22",
+  "target": "kbzjngpzxpniaumlupaa",
+  "user_authorized_targeted_scope": true,
+  "schema_changed": false,
+  "source_fingerprints_match": true,
+  "absent_tables": [
+    "eyra_conversations",
+    "eyra_messages",
+    "eyra_agent_runs",
+    "eyra_agent_actions"
+  ],
+  "prerequisites": {
+    "auth_users": true,
+    "auth_uid": true,
+    "uuid_function": true,
+    "conflicting_functions": []
+  },
+  "disposable_postgres": "PASS: full integration runner; synthetic Auth, actual PostgreSQL",
+  "hosted_two_account_acceptance": false,
+  "backup_verified": false,
+  "latest_ready_commit": "1b2fcebc331c825a20458cda7be2a7ba7464bf02",
+  "public_domain_commit": "1b2fcebc331c825a20458cda7be2a7ba7464bf02",
+  "latest_deployment_aliases": [],
+  "blocking_dependencies": [
+    "Verified recent production backup/recovery point",
+    "Hosted two-account acceptance environment/session",
+    "Promote and verify the reviewed application deployment"
+  ],
+  "product_ready": false,
+  "application_promoted": true,
+  "public_identity_verified": true,
+  "full_check": {
+    "tests": 1220,
+    "passed": 1220,
+    "failed": 0,
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS"
+  },
+  "browser_suites": {
+    "auth": "PASS after fixing recovery-response listener race",
+    "products": "PASS: all22 workflows",
+    "learning": "PASS"
+  },
+  "browser_transport": "synthetic Auth/PostgREST/AI; not hosted account acceptance",
+  "recent_runtime_errors": "No error/fatal groups returned for promoted deployment over10min; no traffic-coverage guarantee"
+}

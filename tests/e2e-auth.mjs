@@ -124,8 +124,9 @@ try {
   });
   await recovery.goto(`${baseUrl}/forgot-password`);
   await recovery.getByLabel('Email address').fill('researcher@example.org');
+  const recoveryResponse = recovery.waitForResponse((response) => response.url().includes('/auth/v1/recover') && response.status() === 503);
   await recovery.getByRole('button', { name: 'Send password-reset link' }).click();
-  await recovery.waitForResponse((response) => response.url().includes('/auth/v1/recover') && response.status() === 503);
+  await recoveryResponse;
   const recoveryError = recovery.getByRole('alert').filter({ hasText: /account service is temporarily unavailable/i });
   await recoveryError.waitFor();
   assert.equal(recoveryCalls, 1, 'one recovery request should produce one visible outage error');
