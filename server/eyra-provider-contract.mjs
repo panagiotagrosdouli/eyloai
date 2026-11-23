@@ -3,12 +3,17 @@
  * which is untrusted. Never expose raw upstream error bodies to users or logs.
  */
 export async function inspectOpenAiLimit(response) {
-  let code = '';
+  let signals = [];
   try {
     const payload = await response.json();
-    code = String(payload?.error?.code || payload?.error?.type || '').slice(0, 80);
+    // Provider errors can supply both `code` and `type`. Either may carry
+    // an exhausted-quota indicator; do not let a generic code mask it.
+    signals = [payload?.error?.code, payload?.error?.type]
+      .filter(value => typeof value === 'string')
+      .map(value => value.slice(0, 80));
   } catch { /* Malformed provider errors are generic rate limits. */ }
-  const quotaExhausted = ['insufficient_quota', 'billing_hard_limit_reached', 'quota_exceeded'].includes(code);
+  const quotaExhausted = signals.some(signal =>
+    ['insufficient_quota', 'billing_hard_limit_reached', 'quota_exceeded'].includes(signal));
   const rawRetry = response.headers?.get?.('retry-after');
   const retryAfter = rawRetry !== null && rawRetry !== undefined && /^\d{1,4}$/.test(String(rawRetry))
     ? Math.min(300, Number(rawRetry)) : null;
