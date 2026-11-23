@@ -5,6 +5,7 @@ This checkpoint records work against the actual repository and separates local s
 ## Source and inventory
 
 - Reviewed `main` at `c7aadf64c773a47435e3fd0fc38d404550fb8556` and refreshed the existing staging Files PR branch by merging that latest `main` into it. The resulting local review candidate is `a868bf97f97685afd35a172ee4f1878f917ffb24`.
+- The refreshed PR head is `c1d76454877f8cb3385b2834ea269ae2f9560d59`, with the same reviewed source tree. The preview build and all three PR workflows (Build, EYLO Quality Gate, Product quality) completed successfully.
 - Regenerated `docs/integration/full-site-source-inventory.json` from that candidate. The static scan found 90 route entries, 704 source files, 1,065 UI action candidates, 262 SQL declarations, references to 37 table names, and 235 environment-variable references. These are review candidates, not proof that controls or workflows work.
 - The existing product tracker still records 77 modules as PARTIAL and zero as fully accepted. The detailed matrix remains the source of truth for per-product scope.
 
@@ -15,6 +16,8 @@ On the merged candidate, `npm ci` completed and `npm run check` passed: local im
 `npm run release:readiness` returned NO-GO. Its evidence belongs to a different commit and does not verify this candidate's CI artifact, isolated staging, two-account Auth/RLS, privacy, UX, backup restore, operations, or legal review.
 
 The synthetic Auth browser suite could not start in this execution environment: Chromium's required Unix socket call is denied by the sandbox (`Operation not permitted`). This is an execution-environment blocker, not a product pass or a product defect. No authenticated hosted-browser suite was run.
+
+GitHub's Product quality workflow did run its browser suites and passed Auth, Library, timer/quiz/Learn, 22 product workflows, public landing and discovery gateway checks, plus the deterministic relevance benchmark. These use the repository's synthetic/fixture transport; they do not prove hosted account isolation, real Storage bytes, or live provider acceptance.
 
 ## Public production observation
 
