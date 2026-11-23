@@ -1,8 +1,10 @@
 # Full site functional audit
 
-Audit date: 2026-11-15 (Europe/Athens). Base main: `5f270e8eaa177610e4be3e1e7a587abde7bd59af`.
+Audit updated: 2026-11-23 (Europe/Athens). Latest production main reviewed: `c7aadf64c773a47435e3fd0fc38d404550fb8556`. The current PR review candidate, refreshed from that main, is recorded in [the 23 November execution checkpoint](release/EYLO_EXECUTION_2026-11-23.md).
 
 **Production acceptance remains blocked.** This register preserves the 77-product matrix and enumerates routes, endpoints and database sources. A static inventory is not an exhaustive behavioral review. Every untested action remains unverified. See [machine inventory](integration/full-site-source-inventory.json) for source file/line action candidates, table reads and environment variable names. No credentials or user records are included.
+
+The machine inventory was regenerated against the 23 November review candidate. A fresh public read-only probe confirmed source provenance and one scholarly response, but failed its strict readiness decision because contact and billing are disabled. Local source checks pass; hosted private workflows remain unaccepted. Historical sections below retain their original dates and should be interpreted within their stated scopes.
 
 ## Latest research connection verification — 2026-11-20
 

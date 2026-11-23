@@ -58,6 +58,15 @@ test('green provenance and capability flags cannot hide a discovery quota outage
   assert.ok(!JSON.stringify(result).includes('never reflect'));
 });
 
+test('public smoke identifies a safe scholarly provider rate-limit code without retaining its body', async () => {
+  const result = await probeReleaseTarget({ baseUrl: 'https://preview.example.org', expectedCommit: commit,
+    fetcher: fetcher({ '/api/discovery': () => Response.json({ code: 'SOURCE_RATE_LIMITED', error: 'private provider detail' }, { status: 429 }) }) });
+  const discovery = result.endpoints.find(endpoint => endpoint.path.startsWith('/api/discovery'));
+  assert.equal(discovery.status, 429);
+  assert.match(discovery.error, /SOURCE_RATE_LIMITED/);
+  assert.doesNotMatch(JSON.stringify(result), /private provider detail/);
+});
+
 test('discovery HTTP200 error, empty results and SPA fallback cannot satisfy smoke retrieval', async () => {
   for (const response of [Response.json({ error: 'unavailable' }), Response.json({ results: [] }), new Response('<html>fallback</html>')]) {
     const result = await probeReleaseTarget({ baseUrl: 'https://preview.example.org', expectedCommit: commit,

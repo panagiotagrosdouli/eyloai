@@ -3,7 +3,10 @@
 const SHA = /^[a-f0-9]{40}$/i;
 const CAPABILITIES = ['ai', 'contact', 'billing', 'scheduled_monitoring', 'institution_analytics'];
 const DISCOVERY_PATH = '/api/discovery?provider=openalex_works&q=climate%20adaptation&limit=1';
-const DISCOVERY_ERROR_CODES = new Set(['DISCOVERY_RATE_LIMIT_UNAVAILABLE', 'DISCOVERY_RATE_LIMITED', 'SOURCE_RESPONSE_TOO_LARGE']);
+const DISCOVERY_ERROR_CODES = new Set([
+  'DISCOVERY_RATE_LIMIT_UNAVAILABLE', 'DISCOVERY_RATE_LIMITED', 'SOURCE_RESPONSE_TOO_LARGE',
+  'SOURCE_RATE_LIMITED', 'SOURCE_UNAVAILABLE', 'SOURCE_REQUEST_FAILED',
+]);
 async function jsonBody(response) {
   if (!/application\/json\b/i.test(response.headers.get('content-type') || '')) {
     await response.body?.cancel().catch(() => {});
