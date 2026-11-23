@@ -1,9 +1,23 @@
 {
   "source": "Remotive",
   "source_url": "https://remotive.com/remote-jobs/api",
-  "retrieved_at": "2026-11-18T13:56:36.536Z",
+  "retrieved_at": "2026-11-23T15:57:10.946Z",
   "provider_delay_hours": 24,
   "items": [
+    {
+      "id": "remotive-2091177",
+      "title": "Content Reviewer - United States",
+      "organization": "TELUS Digital",
+      "country": "USA",
+      "description": "Every search represents someone seeking reliable information. They depend on search results being accurate, trustworthy, and relevant to their local context. But search engines only learn to return trustworthy information if human evaluators with deep research expertise and cultural knowledge verify and correct them. Your linguistic precision, fact-checking rigor, and understanding of how your culture communicates and values information is irreplaceable in building search systems that people can actually trust. In this role, you will evaluate search queries, results, and AI-generated content for factual accuracy, authority, relevance, and user intent alignment. Your judgment determines whether search systems return trustworthy, contextually appropriate information. Analyze multi-turn search queries and web results for factual accuracy, source authority, and user intent alignment Conduct cross-referencing and fact-checking using regional sources, specialized databases, academic resources, and web directories Assess localized content relevancy across diverse domains—news, sports, local culture, technical queries considering regional context and cultural nuance Evaluate AI-generated c",
+      "salary": "$14/hour",
+      "category": "All others",
+      "job_type": "part_time",
+      "published_at": "2026-11-19T14:58:42",
+      "deadline": "",
+      "source": "Remotive",
+      "source_url": "https://remotive.com/remote-jobs/all-others/content-reviewer-united-states-2091177"
+    },
     {
       "id": "remotive-2069746",
       "title": "Tech Lead Full-Stack Rails Engineer",
@@ -65,7 +79,7 @@
       "title": "Customer Service Representative",
       "organization": "ShyftOff",
       "country": "USA",
-      "description": "ShyftOff connects independent customer service professionals with opportunities to support leading brands across industries like healthcare, financial services, insurance, retail, and technology. As an independent agent on the ShyftOff platform, you'll have opportunities to help customers answer questions, resolve issues, and deliver exceptional service, all from the comfort of your home. Compensation: $14–$20 per hour, depending on the program and applicable compensation structure. Why Join ShyftOff? Choose your own schedule: Select available shifts in 30-minute increments. Accept opportunities that fit your life, with no minimum hour commitments. 100% remote: Provide customer service from home, without a commute or traditional office schedule. Competitive earnings: Access opportunities with competitive, program-specific compensation rates disclosed before you commit. Weekly payments: Get paid weekly for completed services, subject to program terms. Multiple opportunities: Explore customer service programs across a variety of industries based on your qualifications and availability. Priority Boarding: Top-performing, reliable agents receive priority access to available shifts, hel",
+      "description": "Work From Home. Pick Your Schedule. Get Paid Weekly. Welcome to ShyftOff! Tired of traditional jobs that expect you to build your life around a fixed schedule? At ShyftOff, we believe work should fit into your life, not the other way around! We're changing the way customer service works by connecting independent professionals with exciting opportunities to support established businesses, all from the comfort of home. Whether you're looking to earn extra income, take greater control of your schedule, or explore a flexible remote opportunity, ShyftOff gives you the freedom to work differently. Why Choose ShyftOff? No commute. No traditional fixed schedule. More flexibility. More control. 100% Remote: Forget the commute! Work from the comfort of your own home. Weekly Pay: Get paid every week for eligible completed work. You Make Your Schedule: Choose available shifts that fit your lifestyle. Work when opportunities align with your availability. Earn $14-$20 Per Hour: Competitive campaign pay with opportunities to increase your earnings based on program and eligibility. Important: Applications will only be considered if you apply on the ShyftOff website at https://www.shyftoff.com/agen",
       "salary": "$14 - $20/hour",
       "category": "Customer Service",
       "job_type": "contract",
@@ -199,20 +213,6 @@
       "deadline": "",
       "source": "Remotive",
       "source_url": "https://remotive.com/remote-jobs/software-development/senior-back-end-developer-2091135"
-    },
-    {
-      "id": "remotive-2091134",
-      "title": "Head of Engineering",
-      "organization": "Lemon.io",
-      "country": "Worldwide",
-      "description": "About Lemon.io Lemon.io is a profitable, growing talent marketplace that connects vetted senior engineers with companies that need them. We’ve been in business for 10 years, have 60 people across Ukraine, Europe, Canada, and the US, and process over $16M in annual GMV. We compress the traditional 2–5 week hiring timeline down to 24–48 hours through a curated, pre-vetted supply of developers. Hiring is still broken. Recruiters spend weeks building candidate pipelines on traditional platforms, burning energy on unqualified leads. We’re building the product that changes that. Giving recruiters qualified, vetted candidates within 24 hours without the grind. This is a pivotal moment: we’re transitioning from a services-driven marketplace to a technology-driven platform. We need an engineering leader who can drive that transformation. The Role You will own engineering at Lemon.io . You’ll lead a growing team of engineers, make critical architecture and prioritization decisions, and be directly accountable for the speed and quality of what we ship. This is not a management-layer role. You’ll be hands-on, deeply involved in product decisions, and working side by side with the founder. What",
-      "salary": "",
-      "category": "Software Development",
-      "job_type": "full_time",
-      "published_at": "2026-10-26T12:20:09",
-      "deadline": "",
-      "source": "Remotive",
-      "source_url": "https://remotive.com/remote-jobs/software-development/head-of-engineering-2091134"
     },
     {
       "id": "remotive-2091161",
