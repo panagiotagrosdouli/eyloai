@@ -23,7 +23,7 @@ const stanceTone = (stance) => ({
 
 const markdownBlock = (heading, value) => {
   const text = String(value || '').trim();
-  return '## ' + heading + '\n\n' + (text ? text.split(/\\r?\\n/).map((line) => '> ' + line).join('\\n') : '> Not recorded.') + '\n';
+  return '## ' + heading + '\n\n' + (text ? text.split(/\r?\n/).map((line) => '> ' + line).join('\n') : '> Not recorded.') + '\n';
 };
 
 function decisionBriefMarkdown(decision, project) {
@@ -33,8 +33,8 @@ function decisionBriefMarkdown(decision, project) {
     ? decision.evidence.map((item, index) => {
       const source = item.source_label || 'Source label not recorded';
       const url = item.source_url ? ' — <' + item.source_url + '>' : '';
-      return (index + 1) + '. **' + stanceLabel(item.stance) + '** — ' + (item.claim || 'Claim or observation not recorded') + '\\n   Source: ' + source + url;
-    }).join('\\n')
+      return (index + 1) + '. **' + stanceLabel(item.stance) + '** — ' + (item.claim || 'Claim or observation not recorded') + '\n   Source: ' + source + url;
+    }).join('\n')
     : 'No sources recorded.';
   const updated = Number.isFinite(Date.parse(decision.updated_date))
     ? new Date(decision.updated_date).toISOString().slice(0, 10)
@@ -51,11 +51,11 @@ function decisionBriefMarkdown(decision, project) {
     markdownBlock('Recorded choice', decision.decision),
     '## Alternatives',
     '',
-    alternatives.length ? alternatives.map((item) => '- ' + item).join('\\n') : 'None recorded.',
+    alternatives.length ? alternatives.map((item) => '- ' + item).join('\n') : 'None recorded.',
     '',
     '## Criteria',
     '',
-    criteria.length ? criteria.map((item) => '- ' + item).join('\\n') : 'None recorded.',
+    criteria.length ? criteria.map((item) => '- ' + item).join('\n') : 'None recorded.',
     '',
     '## Evidence and sources',
     '',
@@ -64,7 +64,7 @@ function decisionBriefMarkdown(decision, project) {
     markdownBlock('Reasoning and trade-offs', decision.rationale),
     markdownBlock('Outcome and follow-up', decision.outcome),
     '> Evidence relationships are recorded by the project owner. EYLO does not independently verify whether a source supports or challenges this decision.',
-  ].filter((section) => section !== '').join('\\n');
+  ].filter((section) => section !== '').join('\n');
 }
 
 function downloadDecisionBrief(decision, project) {
@@ -73,7 +73,7 @@ function downloadDecisionBrief(decision, project) {
   const link = document.createElement('a');
   const filename = (decision.title || 'research-decision')
     .normalize('NFKD')
-    .replace(/[\\u0300-\\u036f]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-zA-Z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
     .toLowerCase() || 'research-decision';
