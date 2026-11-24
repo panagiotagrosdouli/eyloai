@@ -240,18 +240,18 @@ export default function Landing() {
                   className="h-1.5 w-1.5 rounded-full bg-[#24AAF3]"
                   aria-hidden="true"
                 />{" "}
-                PAPERS  ·  DECISIONS  ·  REVIEW
+                DISCOVER  ·  THINK  ·  MOVE FORWARD
               </p>
               <h1 className="max-w-[660px] text-[clamp(2.8rem,5.25vw,5.7rem)] font-bold leading-[1.04] tracking-[-.068em]">
-                Your evidence.
+                Research,
                 <br />
-                Your decision trail
+                connected to action
                 <span className="text-[#24AAF3]" aria-hidden="true">
                   .
                 </span>
               </h1>
               <p className="mt-7 max-w-[540px] text-lg leading-[1.7] text-[var(--company-muted)] sm:text-xl">
-                EYLO keeps a project decision beside its evidence: record what supports or challenges a choice, the alternatives and criteria you used, and when to revisit it.
+                Find source-linked research, think through questions with EYRA and keep notes, decisions and next steps together in one workspace. Built for students, academics and researchers who want to move a project forward—not just collect papers.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/discover" className={primary}>
@@ -373,6 +373,57 @@ export default function Landing() {
                 ),
               )}
             </div>
+          </div>
+        </section>
+        <section
+          id="what-makes-eylo-different"
+          tabIndex={-1}
+          className="scroll-mt-24 px-5 py-20 sm:px-9 sm:py-24 lg:px-16"
+        >
+          <div className="mx-auto grid max-w-[1350px] gap-10 lg:grid-cols-[.85fr_1.15fr] lg:items-end">
+            <div>
+              <p className={tag}>What makes EYLO different</p>
+              <h2 className="mt-4 max-w-2xl text-[clamp(2.2rem,4vw,3.8rem)] font-bold leading-[1.12] tracking-[-.055em]">
+                The research stays connected to the work.
+              </h2>
+            </div>
+            <p className="max-w-2xl text-base leading-8 text-[var(--company-muted)]">
+              EYLO links source discovery, AI-assisted thinking with EYRA and
+              project work in one place. Your sources, notes, decisions and
+              follow-up stay with the same project, so you can return to the
+              reasoning behind your next step.
+            </p>
+          </div>
+          <div className="mx-auto mt-10 grid max-w-[1350px] gap-4 sm:grid-cols-3">
+            {[
+              {
+                title: "Discover from sources",
+                body: "Explore publications, researchers and opportunities with links back to original records.",
+              },
+              {
+                title: "Think with EYRA",
+                body: "Work through a research question and plan next steps with an AI partner you guide.",
+              },
+              {
+                title: "Carry work forward",
+                body: "Keep notes, project decisions, tasks and review points together as your research develops.",
+              },
+            ].map(({ title, body }, index) => (
+              <article
+                key={title}
+                className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-soft)] p-6"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[.14em] text-[var(--company-muted)]">
+                  0{index + 1}
+                </p>
+                <h3 className="mt-5 text-lg font-semibold tracking-[-.03em]">
+                  {title}
+                </h3>
+                <p className="mt-2 text-sm leading-7 text-[var(--company-muted)]">
+                  {body}
+                </p>
+              </article>
+            ))}
           </div>
         </section>
         <section
@@ -568,11 +619,9 @@ export default function Landing() {
           className="scroll-mt-24 border-y border-[var(--company-border)] bg-[var(--company-soft)] px-5 py-20 sm:px-9 sm:py-24 lg:px-16"
         >
           <div className="mx-auto max-w-[1350px]">
-            <p className={tag}>Built around the way you work</p>
+            <p className={tag}>Who EYLO is for</p>
             <h2 className="mt-4 max-w-3xl text-[clamp(2.2rem,4vw,3.8rem)] font-bold leading-[1.12] tracking-[-.055em]">
-              Different starting points.
-              <br />
-              The same curiosity.
+              For students, academics and researchers.
             </h2>
             <div className="mt-12 grid gap-9 md:grid-cols-3">
               {audiences.map(({ label, icon: Icon, title, body, outcome }) => (
