@@ -6,9 +6,9 @@ const read = path => readFileSync(new URL('../src/' + path, import.meta.url), 'u
 test('EYLO has a recognisable research trail rather than an AI-only promise', () => {
   const landing = read('pages/Landing.jsx');
   assert.match(landing,/RESEARCH · AI · PROJECTS/);
-  assert.match(landing,/Move research/);
-  assert.match(landing,/forward/);
-  assert.match(landing,/EYLO brings research discovery, an AI partner called EYRA/);
+  assert.match(landing,/Your research,/);
+  assert.match(landing,/all in one place/);
+  assert.match(landing,/Find papers, think through questions with EYRA/);
   assert.match(landing,/Explore research <ArrowRight/);
   assert.doesNotMatch(landing,/A better way to\s*\n\s*<br \/>/);
 });
