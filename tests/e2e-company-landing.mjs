@@ -131,10 +131,10 @@ try {
     "https://panagiotagrosdouli.github.io/eyloai/",
   );
   for (const heading of [
-    "Less scattered.",
-    "Your questions.",
-    "For students, academics and researchers.",
-    "Built around evidence.",
+    "Find it. Think it through. Move it forward.",
+    "Your research keeps its thread.",
+    "Students. Academics. Researchers.",
+    "Why EYLO",
   ])
     assert.ok(
       (await page.getByRole("heading").filter({ hasText: heading }).count()) >
