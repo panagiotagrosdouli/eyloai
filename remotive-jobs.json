@@ -1,7 +1,7 @@
 {
   "source": "Remotive",
   "source_url": "https://remotive.com/remote-jobs/api",
-  "retrieved_at": "2026-11-23T15:57:10.946Z",
+  "retrieved_at": "2026-11-24T15:52:37.718Z",
   "provider_delay_hours": 24,
   "items": [
     {
@@ -202,7 +202,7 @@
     },
     {
       "id": "remotive-2091135",
-      "title": "Senior Back-end Developer",
+      "title": "Senior Back-end Developerusa",
       "organization": "Lemon.io",
       "country": "Europe, USA, Canada, Australia, Singapore, Mexico, Saudi Arabia",
       "description": "Lemon.io helps companies in the US and Europe hire experienced engineers, from funded startups to teams like Klarna, Retool, and Pinterest. We’ve been doing this since 2015, and more than 1,500 companies have hired engineers through us. Currently, we have a few open positions from our client, an AI-native cloud company. AI teams use its platform to run inference on open-source models, fine-tune them and rent large GPU clusters. The fleet is set to grow about 10×; the team won't. That's where you come in. Who they’re looking for : Site Reliability Engineer, Senior Back-end Developer with Golang, Senior Back-end Developer with Python, AI Infrastructure Engineer, Distributed Storage Engineer, DevOps. Requirements for Senior Back-end Developers with Golang 5+ years of commercial experience with Golang 2+ years of commercial experience with Kubernetes 1+ year of experience in AI-assisted coding Experience with distributed systems Requirements for Senior Back-end Developers with Python 5+ years of commercial experience with Python 2+ years of commercial experience with Linux 2+ years of commercial experience with Kubernetes 1+ year of experience in AI-assisted coding Experience with dist",
@@ -212,21 +212,7 @@
       "published_at": "2026-10-27T12:56:13",
       "deadline": "",
       "source": "Remotive",
-      "source_url": "https://remotive.com/remote-jobs/software-development/senior-back-end-developer-2091135"
-    },
-    {
-      "id": "remotive-2091161",
-      "title": "AI Trainer - Video Annotation",
-      "organization": "iMerit Technology",
-      "country": "Worldwide",
-      "description": "AI Trainer - Video Annotation Remote | Independent Contractor Prove your skills. Get certified. Robotics AI is advancing rapidly, and high-quality video data helps intelligent systems better understand the world around them. We are inviting detail-oriented professionals to complete our certification process for potential robotics AI projects. ▌ What you will do As part of the certification process, you will demonstrate your ability to: Annotate short video clips by identifying objects, actions and events. Evaluate video quality, relevance and accuracy against established guidelines. Assess the clarity and plausibility of movements. Apply instructions consistently and identify potential quality issues. ▌ What you bring Strong attention to detail and analytical thinking. Strong written English and the ability to follow detailed instructions independently. A commitment to accuracy and consistency. No previous AI or robotics experience required. ▌ What the work looks like You may review short videos and be asked to tag objects or actions, rate video clarity or camera angles on a 1 to 10 scale, or assess whether movements are clearly visible and plausible. Please note: We currently have",
-      "salary": "70K-80K",
-      "category": "Artificial Intelligence",
-      "job_type": "freelance",
-      "published_at": "2026-10-22T18:40:19",
-      "deadline": "",
-      "source": "Remotive",
-      "source_url": "https://remotive.com/remote-jobs/artificial-intelligence/ai-trainer-video-annotation-2091161"
+      "source_url": "https://remotive.com/remote-jobs/software-development/senior-back-end-developerusa-2091135"
     }
   ]
 }
