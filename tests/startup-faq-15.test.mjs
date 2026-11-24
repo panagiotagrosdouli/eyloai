@@ -18,17 +18,18 @@ test('startup launch provides exactly 15 distinct, plain-language questions with
 
 test('concise EYLO homepage explains its product and keeps clear navigation', () => {
   const landing = read('src/pages/Landing.jsx');
-  assert.match(landing, /LandingPreview/);
-  assert.match(landing, /Your research,/);
-  assert.match(landing, /Find papers, think through questions with EYRA/);
-  assert.match(landing, /href="#how-it-works"/);
-  assert.match(landing, /href="#why-eylo"/);
-  assert.match(landing, /href="#who-its-for"/);
-  assert.match(landing, /<Link to="\\/start">Start here<\\/Link>/);
-  assert.match(landing, /brand\\/eylo-light\\.svg/);
-  assert.match(landing, /aria-label="Company navigation"/);
-  assert.match(landing, /aria-label="Mobile navigation"/);
-  assert.doesNotMatch(landing, /PublicPlans|questions\\.map/);
+  assert.ok(landing.includes('LandingPreview'));
+  assert.ok(landing.includes('Your research,'));
+  assert.ok(landing.includes('Find papers, think through questions with EYRA'));
+  assert.ok(landing.includes('href="#how-it-works"'));
+  assert.ok(landing.includes('href="#why-eylo"'));
+  assert.ok(landing.includes('href="#who-its-for"'));
+  assert.ok(landing.includes('<Link to="/start">Start here</Link>'));
+  assert.ok(landing.includes('brand/eylo-light.svg'));
+  assert.ok(landing.includes('aria-label="Company navigation"'));
+  assert.ok(landing.includes('aria-label="Mobile navigation"'));
+  assert.ok(!landing.includes('PublicPlans'));
+  assert.ok(!landing.includes('questions.map'));
 });
 
 test('EYRA product explanations avoid unsupported claims about startup readiness', () => {
