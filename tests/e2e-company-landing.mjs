@@ -124,7 +124,7 @@ try {
   assert.equal(await page.getByRole("heading", { level: 1 }).count(), 1);
   assert.match(
     await page.getByRole("heading", { level: 1 }).innerText(),
-    /Research,\s*connected to action/,
+    /Move research\s*forward/,
   );
   assert.equal(
     await page.locator('link[rel="canonical"]').getAttribute("href"),
