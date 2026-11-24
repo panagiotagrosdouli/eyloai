@@ -5,10 +5,10 @@ const read = path => readFileSync(new URL('../src/' + path, import.meta.url), 'u
 
 test('EYLO has a recognisable research trail rather than an AI-only promise', () => {
   const landing = read('pages/Landing.jsx');
-  assert.match(landing,/QUESTION  ·  SOURCES  ·  NEXT STEP/);
-  assert.match(landing,/Find the evidence\./);
-  assert.match(landing,/Keep the context/);
-  assert.match(landing,/EYRA can assist when the AI service is available/);
+  assert.match(landing,/PAPERS  ·  DECISIONS  ·  REVIEW/);
+  assert.match(landing,/Your evidence\./);
+  assert.match(landing,/Your decision trail/);
+  assert.match(landing,/EYLO keeps a project decision beside its evidence/);
   assert.match(landing,/Explore research <ArrowRight/);
   assert.doesNotMatch(landing,/A better way to\s*\n\s*<br \/>/);
 });
