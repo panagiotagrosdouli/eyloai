@@ -3,13 +3,23 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, CalendarClock, ExternalLink, Plus, Save, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import {
-  createDecisionDraft, DECISION_STATUSES, normalizeDecision,
+  createDecisionDraft, DECISION_STATUSES, EVIDENCE_STANCES, normalizeDecision,
   normalizeDecisionList, validateDecision,
 } from '@/lib/decision-workspace.mjs';
 
 const inputClass = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40';
 const labelClass = 'mb-1.5 block text-xs font-medium text-muted-foreground';
 const newRowId = () => globalThis.crypto?.randomUUID?.() || ('row-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+const stanceLabel = (stance) => ({
+  supports: 'Supports',
+  challenges: 'Challenges',
+  context: 'Context',
+})[stance] || 'Context';
+const stanceTone = (stance) => ({
+  supports: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  challenges: 'bg-rose-500/10 text-rose-700 dark:text-rose-300',
+  context: 'bg-secondary text-muted-foreground',
+})[stance] || 'bg-secondary text-muted-foreground';
 
 function ListEditor({ label, description, items, onChange, placeholder, max = 12 }) {
   const add = () => onChange([...items, { id: newRowId(), text: '' }]);
@@ -41,18 +51,19 @@ function EvidenceEditor({ items, onChange }) {
     <fieldset className="space-y-3">
       <legend className="text-sm font-medium text-foreground">Evidence and sources</legend>
       <div className="flex items-start justify-between gap-3">
-        <div><p className="text-xs text-muted-foreground">Record what supports or challenges this decision. EYLO does not independently verify these sources.</p></div>
-        <button type="button" onClick={() => onChange([...items, { id: newRowId(), claim: '', source_label: '', source_url: '' }])} disabled={items.length >= 40} className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg border border-border px-2.5 text-xs font-medium hover:bg-secondary disabled:opacity-50"><Plus size={13} /> Add source</button>
+        <div><p className="text-xs text-muted-foreground">Classify each source as support, challenge or context. This is your assessment; EYLO does not verify it.</p></div>
+        <button type="button" onClick={() => onChange([...items, { id: newRowId(), stance: 'context', claim: '', source_label: '', source_url: '' }])} disabled={items.length >= 40} className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg border border-border px-2.5 text-xs font-medium hover:bg-secondary disabled:opacity-50"><Plus size={13} /> Add source</button>
       </div>
       {items.length === 0 && <p className="rounded-lg border border-dashed border-border px-3 py-2.5 text-xs text-muted-foreground">No sources attached. You can save a draft and add evidence later.</p>}
       {items.map((item, index) => (
-        <div key={item.id} className="grid gap-2 rounded-lg border border-border bg-background/60 p-3 sm:grid-cols-[1fr_1fr_auto]">
+        <div key={item.id} className="grid gap-3 rounded-lg border border-border bg-background/60 p-3 md:grid-cols-[1fr_1.4fr_160px_auto]">
           <div><label className={labelClass} htmlFor={'evidence-claim-' + item.id}>Claim or observation {index + 1}</label><input id={'evidence-claim-' + item.id} value={item.claim} maxLength={1000} onChange={(event) => update(item.id, 'claim', event.target.value)} className={inputClass} /></div>
           <div className="grid gap-2 sm:grid-cols-2">
             <div><label className={labelClass} htmlFor={'evidence-label-' + item.id}>Source label</label><input id={'evidence-label-' + item.id} value={item.source_label} maxLength={200} onChange={(event) => update(item.id, 'source_label', event.target.value)} className={inputClass} /></div>
             <div><label className={labelClass} htmlFor={'evidence-url-' + item.id}>Source URL (optional)</label><input id={'evidence-url-' + item.id} type="url" value={item.source_url} maxLength={1000} onChange={(event) => update(item.id, 'source_url', event.target.value)} className={inputClass} placeholder="https://" /></div>
           </div>
-          <button type="button" onClick={() => remove(item.id)} aria-label={'Remove evidence source ' + (index + 1)} className="grid min-h-10 w-10 place-self-end rounded-lg border border-border text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:self-center"><Trash2 size={14} /></button>
+          <div><label className={labelClass} htmlFor={'evidence-stance-' + item.id}>Relationship to decision</label><select id={'evidence-stance-' + item.id} value={item.stance || 'context'} onChange={(event) => update(item.id, 'stance', event.target.value)} className={inputClass}>{EVIDENCE_STANCES.map((stance) => <option key={stance} value={stance}>{stanceLabel(stance)}</option>)}</select></div>
+          <button type="button" onClick={() => remove(item.id)} aria-label={'Remove evidence source ' + (index + 1)} className="grid min-h-10 w-10 place-self-end rounded-lg border border-border text-muted-foreground hover:bg-destructive/10 hover:text-destructive md:self-center"><Trash2 size={14} /></button>
         </div>
       ))}
     </fieldset>
@@ -165,7 +176,7 @@ export default function ProjectDecisions() {
       {!loading && ordered.length > 0 && <section className="space-y-3" aria-label="Saved decisions"><h2 className="text-sm font-semibold text-foreground">Saved decisions <span className="ml-1 text-xs font-normal text-muted-foreground">({ordered.length})</span></h2>{ordered.map((decision) => <article key={decision.id} className="rounded-xl border border-border bg-card p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold text-foreground">{decision.title}</h3><span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] capitalize text-muted-foreground">{decision.status}</span></div><p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{decision.question}</p></div><div className="flex shrink-0 gap-2"><button type="button" onClick={() => edit(decision)} disabled={saving} className="min-h-9 rounded-lg border border-border px-3 text-xs font-medium hover:bg-secondary">Edit</button><button type="button" onClick={() => remove(decision)} disabled={saving} aria-label={'Delete ' + decision.title} className="grid min-h-9 w-9 place-items-center rounded-lg border border-border text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 size={14} /></button></div></div>
         {decision.review_date && <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"><CalendarClock size={13} /> Review by <time dateTime={decision.review_date}>{decision.review_date}</time></p>}
-        <div className="mt-4 grid gap-3 sm:grid-cols-3"><div className="rounded-lg bg-secondary/40 p-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Alternatives</p><p className="mt-1 text-sm text-foreground">{decision.alternatives.length ? decision.alternatives.map((item) => item.text).join(' · ') : 'Not recorded'}</p></div><div className="rounded-lg bg-secondary/40 p-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Criteria</p><p className="mt-1 text-sm text-foreground">{decision.criteria.length ? decision.criteria.map((item) => item.text).join(' · ') : 'Not recorded'}</p></div><div className="rounded-lg bg-secondary/40 p-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Sources</p><div className="mt-1 space-y-1">{decision.evidence.length ? decision.evidence.slice(0, 3).map((item) => <p key={item.id} className="truncate text-sm text-foreground">{item.claim} <span className="text-muted-foreground">— {item.source_label}</span>{item.source_url && <a className="ml-1 inline-flex text-primary hover:underline" href={item.source_url} target="_blank" rel="noreferrer" aria-label={'Open source ' + item.source_label + ' in a new tab'}><ExternalLink size={12} /></a>}</p>) : <p className="text-sm text-muted-foreground">No sources attached</p>}{decision.evidence.length > 3 && <p className="text-xs text-muted-foreground">+{decision.evidence.length - 3} more</p>}</div></div></div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3"><div className="rounded-lg bg-secondary/40 p-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Alternatives</p><p className="mt-1 text-sm text-foreground">{decision.alternatives.length ? decision.alternatives.map((item) => item.text).join(' · ') : 'Not recorded'}</p></div><div className="rounded-lg bg-secondary/40 p-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Criteria</p><p className="mt-1 text-sm text-foreground">{decision.criteria.length ? decision.criteria.map((item) => item.text).join(' · ') : 'Not recorded'}</p></div><div className="rounded-lg bg-secondary/40 p-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Evidence balance</p><div className="mt-2 flex flex-wrap gap-1">{EVIDENCE_STANCES.map((stance) => <span key={stance} className={'rounded-full px-2 py-1 text-[10px] font-medium ' + stanceTone(stance)}>{decision.evidence.filter((item) => item.stance === stance).length} {stanceLabel(stance).toLowerCase()}</span>)}</div><div className="mt-3 space-y-1">{decision.evidence.length ? decision.evidence.slice(0, 3).map((item) => <p key={item.id} className="truncate text-sm text-foreground"><span className={'mr-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ' + stanceTone(item.stance)}>{stanceLabel(item.stance)}</span>{item.claim} <span className="text-muted-foreground">— {item.source_label}</span>{item.source_url && <a className="ml-1 inline-flex text-primary hover:underline" href={item.source_url} target="_blank" rel="noreferrer" aria-label={'Open source ' + item.source_label + ' in a new tab'}><ExternalLink size={12} /></a>}</p>) : <p className="text-sm text-muted-foreground">No sources attached</p>}{decision.evidence.length > 3 && <p className="text-xs text-muted-foreground">+{decision.evidence.length - 3} more</p>}</div></div></div>
         {decision.decision && <p className="mt-3 text-sm"><span className="font-medium text-foreground">Recorded choice:</span> <span className="text-muted-foreground">{decision.decision}</span></p>}
         {(decision.rationale || decision.outcome) && <details className="mt-3 rounded-lg border border-border px-3 py-2"><summary className="min-h-8 cursor-pointer text-xs font-medium text-primary">Reasoning and follow-up</summary><div className="space-y-3 py-2 text-sm text-muted-foreground">{decision.rationale && <p className="whitespace-pre-wrap">{decision.rationale}</p>}{decision.outcome && <p className="whitespace-pre-wrap"><span className="font-medium text-foreground">Outcome: </span>{decision.outcome}</p>}</div></details>}
         <p className="mt-3 text-[11px] text-muted-foreground">{Number.isFinite(Date.parse(decision.updated_date)) ? 'Updated ' + new Date(decision.updated_date).toLocaleDateString() : 'Update date unavailable'}</p>
