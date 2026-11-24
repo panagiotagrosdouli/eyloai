@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, CalendarClock, ExternalLink, Plus, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, CalendarClock, Download, ExternalLink, Plus, Save, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import {
   createDecisionDraft, DECISION_STATUSES, EVIDENCE_STANCES, normalizeDecision,
@@ -20,6 +20,70 @@ const stanceTone = (stance) => ({
   challenges: 'bg-rose-500/10 text-rose-700 dark:text-rose-300',
   context: 'bg-secondary text-muted-foreground',
 })[stance] || 'bg-secondary text-muted-foreground';
+
+const markdownBlock = (heading, value) => {
+  const text = String(value || '').trim();
+  return '## ' + heading + '\n\n' + (text ? text.split(/\\r?\\n/).map((line) => '> ' + line).join('\\n') : '> Not recorded.') + '\n';
+};
+
+function decisionBriefMarkdown(decision, project) {
+  const alternatives = decision.alternatives?.map((item) => item.text).filter(Boolean) || [];
+  const criteria = decision.criteria?.map((item) => item.text).filter(Boolean) || [];
+  const evidence = decision.evidence?.length
+    ? decision.evidence.map((item, index) => {
+      const source = item.source_label || 'Source label not recorded';
+      const url = item.source_url ? ' — <' + item.source_url + '>' : '';
+      return (index + 1) + '. **' + stanceLabel(item.stance) + '** — ' + (item.claim || 'Claim or observation not recorded') + '\\n   Source: ' + source + url;
+    }).join('\\n')
+    : 'No sources recorded.';
+  const updated = Number.isFinite(Date.parse(decision.updated_date))
+    ? new Date(decision.updated_date).toISOString().slice(0, 10)
+    : 'Not recorded';
+  return [
+    '# ' + (decision.title || 'Research decision'),
+    '',
+    '**Project:** ' + (project?.title || 'Untitled project'),
+    '**Status:** ' + (decision.status || 'Not recorded'),
+    '**Last updated:** ' + updated,
+    decision.review_date ? '**Review date:** ' + decision.review_date : '',
+    '',
+    markdownBlock('Question', decision.question),
+    markdownBlock('Recorded choice', decision.decision),
+    '## Alternatives',
+    '',
+    alternatives.length ? alternatives.map((item) => '- ' + item).join('\\n') : 'None recorded.',
+    '',
+    '## Criteria',
+    '',
+    criteria.length ? criteria.map((item) => '- ' + item).join('\\n') : 'None recorded.',
+    '',
+    '## Evidence and sources',
+    '',
+    evidence,
+    '',
+    markdownBlock('Reasoning and trade-offs', decision.rationale),
+    markdownBlock('Outcome and follow-up', decision.outcome),
+    '> Evidence relationships are recorded by the project owner. EYLO does not independently verify whether a source supports or challenges this decision.',
+  ].filter((section) => section !== '').join('\\n');
+}
+
+function downloadDecisionBrief(decision, project) {
+  const blob = new Blob([decisionBriefMarkdown(decision, project)], { type: 'text/markdown;charset=utf-8' });
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  const filename = (decision.title || 'research-decision')
+    .normalize('NFKD')
+    .replace(/[\\u0300-\\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase() || 'research-decision';
+  link.href = objectUrl;
+  link.download = filename + '-brief.md';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+}
 
 function ListEditor({ label, description, items, onChange, placeholder, max = 12 }) {
   const add = () => onChange([...items, { id: newRowId(), text: '' }]);
@@ -174,7 +238,7 @@ export default function ProjectDecisions() {
         <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4"><button type="button" onClick={() => setDraft(null)} disabled={saving} className="min-h-10 rounded-lg border border-border px-4 text-sm hover:bg-secondary">Cancel</button><button type="submit" disabled={saving} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"><Save size={14} /> {saving ? 'Saving…' : 'Save decision'}</button></div>
       </form>}
       {!loading && ordered.length > 0 && <section className="space-y-3" aria-label="Saved decisions"><h2 className="text-sm font-semibold text-foreground">Saved decisions <span className="ml-1 text-xs font-normal text-muted-foreground">({ordered.length})</span></h2>{ordered.map((decision) => <article key={decision.id} className="rounded-xl border border-border bg-card p-4 sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold text-foreground">{decision.title}</h3><span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] capitalize text-muted-foreground">{decision.status}</span></div><p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{decision.question}</p></div><div className="flex shrink-0 gap-2"><button type="button" onClick={() => edit(decision)} disabled={saving} className="min-h-9 rounded-lg border border-border px-3 text-xs font-medium hover:bg-secondary">Edit</button><button type="button" onClick={() => remove(decision)} disabled={saving} aria-label={'Delete ' + decision.title} className="grid min-h-9 w-9 place-items-center rounded-lg border border-border text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 size={14} /></button></div></div>
+        <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold text-foreground">{decision.title}</h3><span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] capitalize text-muted-foreground">{decision.status}</span></div><p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{decision.question}</p></div><div className="flex shrink-0 gap-2"><button type="button" onClick={() => downloadDecisionBrief(decision, project)} aria-label={'Download decision brief for ' + decision.title} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium hover:bg-secondary"><Download size={13} /> Export brief</button><button type="button" onClick={() => edit(decision)} disabled={saving} className="min-h-9 rounded-lg border border-border px-3 text-xs font-medium hover:bg-secondary">Edit</button><button type="button" onClick={() => remove(decision)} disabled={saving} aria-label={'Delete ' + decision.title} className="grid min-h-9 w-9 place-items-center rounded-lg border border-border text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 size={14} /></button></div></div>
         {decision.review_date && <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"><CalendarClock size={13} /> Review by <time dateTime={decision.review_date}>{decision.review_date}</time></p>}
         <div className="mt-4 grid gap-3 sm:grid-cols-3"><div className="rounded-lg bg-secondary/40 p-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Alternatives</p><p className="mt-1 text-sm text-foreground">{decision.alternatives.length ? decision.alternatives.map((item) => item.text).join(' · ') : 'Not recorded'}</p></div><div className="rounded-lg bg-secondary/40 p-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Criteria</p><p className="mt-1 text-sm text-foreground">{decision.criteria.length ? decision.criteria.map((item) => item.text).join(' · ') : 'Not recorded'}</p></div><div className="rounded-lg bg-secondary/40 p-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Evidence balance</p><div className="mt-2 flex flex-wrap gap-1">{EVIDENCE_STANCES.map((stance) => <span key={stance} className={'rounded-full px-2 py-1 text-[10px] font-medium ' + stanceTone(stance)}>{decision.evidence.filter((item) => item.stance === stance).length} {stanceLabel(stance).toLowerCase()}</span>)}</div><div className="mt-3 space-y-1">{decision.evidence.length ? decision.evidence.slice(0, 3).map((item) => <p key={item.id} className="truncate text-sm text-foreground"><span className={'mr-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ' + stanceTone(item.stance)}>{stanceLabel(item.stance)}</span>{item.claim} <span className="text-muted-foreground">— {item.source_label}</span>{item.source_url && <a className="ml-1 inline-flex text-primary hover:underline" href={item.source_url} target="_blank" rel="noreferrer" aria-label={'Open source ' + item.source_label + ' in a new tab'}><ExternalLink size={12} /></a>}</p>) : <p className="text-sm text-muted-foreground">No sources attached</p>}{decision.evidence.length > 3 && <p className="text-xs text-muted-foreground">+{decision.evidence.length - 3} more</p>}</div></div></div>
         {decision.decision && <p className="mt-3 text-sm"><span className="font-medium text-foreground">Recorded choice:</span> <span className="text-muted-foreground">{decision.decision}</span></p>}
