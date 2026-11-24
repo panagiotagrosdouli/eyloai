@@ -124,17 +124,17 @@ try {
   assert.equal(await page.getByRole("heading", { level: 1 }).count(), 1);
   assert.match(
     await page.getByRole("heading", { level: 1 }).innerText(),
-    /Your evidence\.\s*Your decision trail\./,
+    /Your research,\s*all in one place/,
   );
   assert.equal(
     await page.locator('link[rel="canonical"]').getAttribute("href"),
     "https://panagiotagrosdouli.github.io/eyloai/",
   );
   for (const heading of [
-    "Less scattered.",
-    "Your questions.",
-    "Different starting points.",
-    "Built around evidence.",
+    "Find it. Think it through. Move it forward.",
+    "Your research keeps its thread.",
+    "Students. Academics. Researchers.",
+    "Start exploring. Keep moving.",
   ])
     assert.ok(
       (await page.getByRole("heading").filter({ hasText: heading }).count()) >
