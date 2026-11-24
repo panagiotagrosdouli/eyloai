@@ -174,7 +174,6 @@ export default function Landing() {
             { href: "#what-makes-eylo-different", label: "What makes EYLO different" },
             { href: "#who-its-for", label: "Who it’s for" },
             { href: "#eyra", label: "Meet EYRA" },
-            { href: "#who-its-for", label: "Who it’s for" },
           ].map((item) => (
             <a
               key={item.href}
