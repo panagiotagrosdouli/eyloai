@@ -223,13 +223,13 @@ export default function Landing() {
                 RESEARCH · AI · PROJECTS
               </p>
               <h1 className="max-w-[660px] text-[clamp(2.8rem,5.25vw,5.7rem)] font-bold leading-[1.04] tracking-[-.068em]">
-                Move research
+                Your research,
                 <br />
-                forward
+                all in one place
                 <span className="text-[#24AAF3]" aria-hidden="true">.</span>
               </h1>
               <p className="mt-7 max-w-[540px] text-lg leading-[1.7] text-[var(--company-muted)] sm:text-xl">
-                EYLO brings research discovery, an AI partner called EYRA and project planning into one workspace—so you can find evidence, make sense of it and decide what to do next.
+                Find papers, think through questions with EYRA, and keep your sources, notes and project decisions together—so the next step is clear.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/discover" className={primary}>
