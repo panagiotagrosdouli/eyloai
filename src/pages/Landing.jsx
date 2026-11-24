@@ -314,9 +314,9 @@ export default function Landing() {
               <p className="text-xs font-semibold uppercase tracking-[.14em] text-[var(--company-muted)]">
                 Made for curious minds
               </p>
-              <p className="mt-4 text-lg font-semibold leading-8">
+              <h3 className="mt-4 text-lg font-semibold leading-8">
                 Students. Academics. Researchers.
-              </p>
+              </h3>
               <p className="mt-2 text-sm leading-6 text-[var(--company-muted)]">
                 Across disciplines, from the first question to the next clear step.
               </p>
