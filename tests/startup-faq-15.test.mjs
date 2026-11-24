@@ -16,16 +16,19 @@ test('startup launch provides exactly 15 distinct, plain-language questions with
   assert.match(EYLO_ACCOUNT_QUESTION.question, /before creating an account/i);
 });
 
-test('original EYLO design and navigation remain intact while showing public answers', () => {
+test('concise EYLO homepage explains its product and keeps clear navigation', () => {
   const landing = read('src/pages/Landing.jsx');
   assert.match(landing, /LandingPreview/);
-  assert.match(landing, /PublicPlans/);
-  assert.match(landing, /EYLO_STARTUP_QUESTIONS/);
-  assert.match(landing, /questions\.map/);
-  assert.match(landing, /href="#questions"/);
-  assert.match(landing, /brand\/eylo-light\.svg/);
+  assert.match(landing, /Your research,/);
+  assert.match(landing, /Find papers, think through questions with EYRA/);
+  assert.match(landing, /href="#how-it-works"/);
+  assert.match(landing, /href="#why-eylo"/);
+  assert.match(landing, /href="#who-its-for"/);
+  assert.match(landing, /<Link to="\\/start">Start here<\\/Link>/);
+  assert.match(landing, /brand\\/eylo-light\\.svg/);
   assert.match(landing, /aria-label="Company navigation"/);
   assert.match(landing, /aria-label="Mobile navigation"/);
+  assert.doesNotMatch(landing, /PublicPlans|questions\\.map/);
 });
 
 test('EYRA product explanations avoid unsupported claims about startup readiness', () => {
