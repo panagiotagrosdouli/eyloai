@@ -134,7 +134,7 @@ try {
     "Find it. Think it through. Move it forward.",
     "Your research keeps its thread.",
     "Students. Academics. Researchers.",
-    "Why EYLO",
+    "Start exploring. Keep moving.",
   ])
     assert.ok(
       (await page.getByRole("heading").filter({ hasText: heading }).count()) >
