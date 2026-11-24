@@ -126,6 +126,7 @@ export default function Landing() {
             className="hidden items-center gap-7 text-[13px] font-medium text-[var(--company-muted)] xl:flex"
           >
             <Link to="/start">Start here</Link>
+            <a href="#what-makes-eylo-different">Why EYLO</a>
             <a href="#decision-trail">Decision trail</a>
             <a href="#features">The platform</a>
             <Link to="/company">About EYLO</Link>
@@ -169,7 +170,9 @@ export default function Landing() {
           className={`${menuOpen ? "grid" : "hidden"} gap-1 border-t border-[var(--company-border)] bg-[var(--company-surface)] px-5 py-4 text-sm font-medium xl:hidden`}
         >
           {[
-            { href: "#features", label: "The platform" },
+            { href: "#features", label: "What EYLO does" },
+            { href: "#what-makes-eylo-different", label: "What makes EYLO different" },
+            { href: "#who-its-for", label: "Who it’s for" },
             { href: "#eyra", label: "Meet EYRA" },
             { href: "#who-its-for", label: "Who it’s for" },
           ].map((item) => (
