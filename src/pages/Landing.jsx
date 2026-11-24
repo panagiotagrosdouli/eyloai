@@ -170,6 +170,418 @@ export default function Landing() {
           className={`${menuOpen ? "grid" : "hidden"} gap-1 border-t border-[var(--company-border)] bg-[var(--company-surface)] px-5 py-4 text-sm font-medium xl:hidden`}
         >
           {[
+            { href: "#how-it-works", label: "What EYLO does" },
+            { href: "#why-eylo", label: "Why EYLO" },
+            { href: "#who-its-for", label: "Who it’s for" },
+          ].map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              onClick={() => setMenuOpen(false)}
+              className="rounded-lg p-3"
+            >
+              {item.label}
+            </a>
+          ))}
+          <Link
+            to="/start"
+            onClick={() => setMenuOpen(false)}
+            className="rounded-lg p-3"
+          >Start here</Link>
+          <Link
+            to="/company"
+            onClick={() => setMenuOpen(false)}
+            className="rounded-lg p-3"
+          >
+            About EYLO
+          </Link>
+          <Link
+            to="/contact"
+            onClick={() => setMenuOpen(false)}
+            className="rounded-lg p-3"
+          >
+            Contact
+          </Link>
+          <Link
+            to="/login"
+            onClick={() => setMenuOpen(false)}
+            className="rounded-lg p-3"
+          >
+            Log in
+          </Link>
+          <a
+            href="#premium"
+            onClick={() => setMenuOpen(false)}
+            className="rounded-lg p-3"
+          >
+            Plans & Premium
+          </a>
+          <a
+            href="#questions"
+            onClick={() => setMenuOpen(false)}
+            className="rounded-lg p-3"
+          >
+            Questions & answers
+          </a>
+          <Link
+            to="/discover"
+            className="rounded-lg p-3"
+            onClick={() => setMenuOpen(false)}
+          >
+            Explore research
+          </Link>
+        </nav>
+      </header>
+      <main id="main-content" tabIndex={-1}>
+        <section id="about" className="overflow-hidden">
+          <div className="mx-auto grid max-w-[1480px] items-center gap-8 px-5 pb-16 pt-12 sm:px-9 sm:pt-20 lg:min-h-[700px] lg:grid-cols-[.98fr_1.02fr] lg:gap-12 lg:px-16 lg:pb-20 lg:pt-20">
+            <div className="relative z-10">
+              <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--company-border)] bg-[var(--company-soft)] px-3 py-1.5 text-[11px] font-medium text-[var(--company-muted)]">
+                RESEARCH · AI · PROJECTS
+              </p>
+              <h1 className="max-w-[660px] text-[clamp(2.8rem,5.25vw,5.7rem)] font-bold leading-[1.04] tracking-[-.068em]">
+                Move research
+                <br />
+                forward.
+                <span className="text-[#24AAF3]" aria-hidden="true"> ·</span>
+              </h1>
+              <p className="mt-7 max-w-[540px] text-lg leading-[1.7] text-[var(--company-muted)] sm:text-xl">
+                EYLO brings research discovery, an AI partner called EYRA and project planning into one workspace—so you can find evidence, make sense of it and decide what to do next.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link to="/discover" className={primary}>
+                  Explore research <ArrowRight size={17} aria-hidden="true" />
+                </Link>
+                <a
+                  href="#how-it-works"
+                  className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-[var(--company-border)] px-5 text-sm font-semibold transition hover:bg-[var(--company-soft)]"
+                >
+                  How it works <span aria-hidden="true">↓</span>
+                </a>
+              </div>
+              <p className="mt-5 text-xs font-medium text-[var(--company-muted)]">
+                For students · academics · researchers
+              </p>
+            </div>
+            <LandingPreview />
+          </div>
+        </section>
+        <section
+          id="how-it-works"
+          tabIndex={-1}
+          className="scroll-mt-24 bg-[var(--company-soft)] px-5 py-16 sm:px-9 sm:py-20 lg:px-16"
+        >
+          <div id="features" className="mx-auto max-w-[1350px]">
+            <p className={tag}>One connected workspace</p>
+            <div className="mt-4 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+              <h2 className="max-w-2xl text-[clamp(2.1rem,4vw,3.6rem)] font-bold leading-[1.1] tracking-[-.055em]">
+                Find it. Think it through. Move it forward.
+              </h2>
+              <p className="max-w-md text-sm leading-7 text-[var(--company-muted)]">
+                Start with a question. Keep the useful work together as it becomes a project.
+              </p>
+            </div>
+            <div className="mt-9 grid gap-4 md:grid-cols-3">
+              {capabilities.map(({ number, title, subtitle, body, icon: Icon }) => (
+                <article
+                  key={title}
+                  className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-surface)] p-6 sm:p-7"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--company-tint)] text-[var(--company-ink)]">
+                      <Icon size={21} strokeWidth={1.6} aria-hidden="true" />
+                    </span>
+                    <span className="text-xs text-[var(--company-muted)]">{number}</span>
+                  </div>
+                  <p className="mt-6 text-xs font-semibold uppercase tracking-[.12em] text-[var(--company-muted)]">
+                    {title}
+                  </p>
+                  <h3 className="mt-2 text-xl font-semibold tracking-[-.03em]">
+                    {subtitle}
+                  </h3>
+                  <p className="mt-3 text-sm leading-6 text-[var(--company-muted)]">
+                    {body}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section
+          id="why-eylo"
+          tabIndex={-1}
+          className="scroll-mt-24 px-5 py-16 sm:px-9 sm:py-20 lg:px-16"
+        >
+          <div className="mx-auto grid max-w-[1350px] gap-8 md:grid-cols-[1.1fr_.9fr] md:items-center">
+            <div>
+              <p className={tag}>Why EYLO</p>
+              <h2 className="mt-4 max-w-2xl text-[clamp(2rem,3.8vw,3.3rem)] font-bold leading-[1.12] tracking-[-.05em]">
+                Your research keeps its thread.
+              </h2>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--company-muted)]">
+                Sources, ideas, project decisions and next steps stay connected—so the work doesn’t get lost between searching, thinking and doing.
+              </p>
+            </div>
+            <div id="who-its-for" className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-soft)] p-6 sm:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[.14em] text-[var(--company-muted)]">
+                Made for curious minds
+              </p>
+              <p className="mt-4 text-lg font-semibold leading-8">
+                Students. Academics. Researchers.
+              </p>
+              <p className="mt-2 text-sm leading-6 text-[var(--company-muted)]">
+                Across disciplines, from the first question to the next clear step.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section className="px-5 pb-16 sm:px-9 sm:pb-20 lg:px-16">
+          <div className="mx-auto grid max-w-[1350px] gap-6 rounded-[24px] bg-[var(--company-tint)] px-6 py-9 sm:px-10 md:grid-cols-[1fr_auto] md:items-center lg:px-12">
+            <div>
+              <p className={tag}>Your next question starts somewhere</p>
+              <h2 className="mt-3 max-w-2xl text-[clamp(1.8rem,3.4vw,3rem)] font-bold leading-[1.1] tracking-[-.05em]">
+                Start exploring. Keep moving.
+              </h2>
+              <p className="mt-3 max-w-lg text-sm leading-6 text-[var(--company-muted)]">
+                Search public research first. Create a workspace when you’re ready.
+              </p>
+            </div>
+            <Link to="/discover" className={primary}>
+              Explore EYLO <ArrowRight size={17} aria-hidden="true" />
+            </Link>
+          </div>
+        </section>
+      </main>
+      <footer className="border-t border-[var(--company-border)] px-5 pb-8 pt-12 sm:px-9 lg:px-16">
+        <div className="mx-auto max-w-[1350px]">
+          <div className="grid gap-10 pb-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+            <div>
+              <Link to="/" aria-label="EYLO home" className="inline-flex">
+                <img
+                  src={import.meta.env.BASE_URL + "brand/eylo-light.svg"}
+                  alt="EYLO"
+                  width="130"
+                  height="38"
+                  loading="lazy"
+                  className="company-brand h-[38px] w-auto"
+                />
+              </Link>
+              <p className="mt-5 max-w-xs text-sm leading-7 text-[var(--company-muted)]">
+                Connecting evidence, intelligence and the people moving research
+                forward.
+              </p>
+            </div>
+            <FooterGroup title="The platform">
+              <Link to="/start">Start here — simple guide</Link>
+              <Link to="/discover">Discover research</Link>
+              <a href="#eyra">Meet EYRA</a>
+              <Link to="/register">Create a workspace</Link>
+              <Link to="/plans">Plans & Premium</Link>
+              <Link to="/login">Log in</Link>
+            </FooterGroup>
+            <FooterGroup title="The company">
+              {companyLinks.map((item) => (
+                <Link key={item.to} to={item.to}>
+                  {item.label}
+                </Link>
+              ))}
+            </FooterGroup>
+            <FooterGroup title="Let’s connect">
+              <Link to="/contact">Contact EYLO</Link>
+              <a href="#how-it-works">How it works</a>
+              <a href="#why-eylo">Why EYLO is different</a>
+              <a href="#who-its-for">Who it’s for</a>
+            </FooterGroup>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--company-border)] pt-6 text-xs text-[var(--company-muted)]">
+            <p>© {new Date().getFullYear()} EYLO</p>
+            <p>For curious minds. Across disciplines.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+function FooterGroup({ title, children }) {
+  return (
+    <nav
+      aria-label={title}
+      className="flex flex-col items-start gap-3 text-sm text-[var(--company-muted)]"
+    >
+      <h2 className="mb-1 text-xs font-semibold uppercase tracking-[.12em] text-[var(--company-muted)]">
+        {title}
+      </h2>
+      {children}
+    </nav>
+  );
+}
+function ArrowDownIcon() {
+  return <ChevronDown size={16} aria-hidden="true" />;
+}import {
+  ArrowRight,
+  ArrowUpRight,
+  FlaskConical,
+  FolderOpen,
+  GraduationCap,
+  Layers3,
+  Menu,
+  Search,
+  UsersRound,
+  X,
+} from "lucide-react";
+import LandingPreview from "@/components/marketing/LandingPreview";
+import ThemeToggle from "@/components/marketing/ThemeToggle";
+import PublicPlans from "@/components/marketing/PublicPlans";
+import { EYLO_STARTUP_QUESTIONS, EYLO_ACCOUNT_QUESTION } from "@/lib/eylo-startup-questions.mjs";
+import "./landing.css";
+
+const audiences = [
+  {
+    label: "For students",
+    icon: GraduationCap,
+    title: "Start with a stronger foundation.",
+    body: "Explore a topic, build a reading list and turn scattered notes into a clearer plan for your next assignment or project.",
+    outcome: "From a new subject to a focused starting point.",
+  },
+  {
+    label: "For academics",
+    icon: UsersRound,
+    title: "Keep ideas and evidence connected.",
+    body: "Bring literature, teaching preparation and project planning into a more coherent research workflow.",
+    outcome: "From a collection of sources to a useful body of work.",
+  },
+  {
+    label: "For researchers",
+    icon: FlaskConical,
+    title: "Move the question forward.",
+    body: "Find relevant work, explore the people behind it and organize the evidence and tasks around your research question.",
+    outcome: "From discovery to a considered next step.",
+  },
+];
+const capabilities = [
+  {
+    number: "01",
+    title: "Discover",
+    subtitle: "Find the evidence that matters.",
+    body: "Explore source-linked research, researchers and opportunities across disciplines. Follow original records and build a starting point you can investigate.",
+    icon: Search,
+    link: "/discover",
+    cta: "Explore discovery",
+  },
+  {
+    number: "02",
+    title: "Decide",
+    subtitle: "Keep both sides of the evidence.",
+    body: "Tag sources as supporting, challenging or contextual. Record the alternatives, criteria and rationale beside the project decision.",
+    icon: Layers3,
+    anchor: "#decision-trail",
+    cta: "See the decision trail",
+  },
+  {
+    number: "03",
+    title: "Advance",
+    subtitle: "Give your next step a home.",
+    body: "Bring sources, notes, projects and tasks into your own workspace. Keep the decisions and next steps alongside the work that inspired them.",
+    icon: FolderOpen,
+    link: "/register",
+    cta: "Create your workspace",
+  },
+];
+const questions = [...EYLO_STARTUP_QUESTIONS, EYLO_ACCOUNT_QUESTION];
+const companyLinks = [
+  { to: "/company", label: "About EYLO" },
+  { to: "/company/what-we-do", label: "What we do" },
+  { to: "/company/vision", label: "Our vision" },
+  { to: "/company/careers", label: "Careers" },
+];
+const primary =
+  "inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl company-primary px-6 text-sm font-semibold text-white transition hover:bg-[var(--company-soft)]";
+const tag =
+  "text-[11px] font-semibold uppercase tracking-[.18em] text-[var(--company-muted)]";
+
+export default function Landing() {
+  const [menuOpen, setMenuOpen] = useState(false),
+    menuButton = useRef(null);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const escape = (event) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuButton.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, [menuOpen]);
+  return (
+    <div className="eylo-company min-h-screen bg-[var(--company-surface)] text-[var(--company-ink)]">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-[var(--company-surface)] focus:px-4 focus:py-3 focus:shadow-lg"
+      >
+        Skip to content
+      </a>
+      <header className="sticky top-0 z-50 border-b border-[var(--company-border)] bg-[var(--company-surface)] backdrop-blur-xl">
+        <div className="mx-auto flex h-[74px] max-w-[1480px] items-center justify-between gap-3 px-5 sm:px-9 lg:px-16">
+          <Link to="/" aria-label="EYLO home" className="inline-flex shrink-0">
+            <img
+              src={import.meta.env.BASE_URL + "brand/eylo-light.svg"}
+              alt="EYLO"
+              width="148"
+              height="43"
+              fetchPriority="high"
+              className="company-brand h-9 w-auto sm:h-[42px]"
+            />
+          </Link>
+          <nav
+            aria-label="Company navigation"
+            className="hidden items-center gap-7 text-[13px] font-medium text-[var(--company-muted)] xl:flex"
+          >
+            <Link to="/start">Start here</Link>
+            <a href="#what-makes-eylo-different">Why EYLO</a>
+            <a href="#decision-trail">Decision trail</a>
+            <a href="#features">The platform</a>
+            <Link to="/company">About EYLO</Link>
+            <a href="#premium">Plans</a>
+          </nav>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
+            <Link
+              to="/login"
+              className="hidden min-h-10 items-center px-3 text-[13px] font-medium sm:inline-flex"
+            >
+              Log in
+            </Link>
+            <Link
+              to="/discover"
+              className="hidden min-h-10 items-center gap-2 rounded-xl company-primary px-3 text-xs font-semibold text-white transition sm:inline-flex sm:px-5 sm:text-[13px]"
+            >
+              Explore research <ArrowUpRight size={15} aria-hidden="true" />
+            </Link>
+            <button
+              type="button"
+              ref={menuButton}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+              aria-controls="company-mobile-nav"
+              onClick={() => setMenuOpen((value) => !value)}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[var(--company-border)] xl:hidden"
+            >
+              {menuOpen ? (
+                <X size={19} aria-hidden="true" />
+              ) : (
+                <Menu size={19} aria-hidden="true" />
+              )}
+            </button>
+          </div>
+        </div>
+        <nav
+          id="company-mobile-nav"
+          aria-label="Mobile navigation"
+          hidden={!menuOpen}
+          className={`${menuOpen ? "grid" : "hidden"} gap-1 border-t border-[var(--company-border)] bg-[var(--company-surface)] px-5 py-4 text-sm font-medium xl:hidden`}
+        >
+          {[
             { href: "#features", label: "What EYLO does" },
             { href: "#what-makes-eylo-different", label: "What makes EYLO different" },
             { href: "#who-its-for", label: "Who it’s for" },
@@ -235,414 +647,73 @@ export default function Landing() {
       </header>
       <main id="main-content" tabIndex={-1}>
         <section id="about" className="overflow-hidden">
-          <div className="mx-auto grid max-w-[1480px] items-center gap-8 px-5 pb-16 pt-12 sm:px-9 sm:pt-20 lg:min-h-[710px] lg:grid-cols-[.98fr_1.02fr] lg:gap-12 lg:px-16 lg:pb-20 lg:pt-20">
+          <div className="mx-auto grid max-w-[1480px] items-center gap-8 px-5 pb-16 pt-12 sm:px-9 sm:pt-20 lg:min-h-[700px] lg:grid-cols-[.98fr_1.02fr] lg:gap-12 lg:px-16 lg:pb-20 lg:pt-20">
             <div className="relative z-10">
               <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--company-border)] bg-[var(--company-soft)] px-3 py-1.5 text-[11px] font-medium text-[var(--company-muted)]">
-                <span
-                  className="h-1.5 w-1.5 rounded-full bg-[#24AAF3]"
-                  aria-hidden="true"
-                />{" "}
-                DISCOVER  ·  THINK  ·  MOVE FORWARD
+                RESEARCH · AI · PROJECTS
               </p>
               <h1 className="max-w-[660px] text-[clamp(2.8rem,5.25vw,5.7rem)] font-bold leading-[1.04] tracking-[-.068em]">
-                Research,
+                Move research
                 <br />
-                connected to action
-                <span className="text-[#24AAF3]" aria-hidden="true">
-                  .
-                </span>
+                forward.
+                <span className="text-[#24AAF3]" aria-hidden="true"> ·</span>
               </h1>
               <p className="mt-7 max-w-[540px] text-lg leading-[1.7] text-[var(--company-muted)] sm:text-xl">
-                Find source-linked research, think through questions with EYRA and keep notes, decisions and next steps together in one workspace. Built for students, academics and researchers who want to move a project forward—not just collect papers.
+                EYLO brings research discovery, an AI partner called EYRA and project planning into one workspace—so you can find evidence, make sense of it and decide what to do next.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/discover" className={primary}>
                   Explore research <ArrowRight size={17} aria-hidden="true" />
                 </Link>
                 <a
-                  href="#decision-trail"
+                  href="#how-it-works"
                   className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-[var(--company-border)] px-5 text-sm font-semibold transition hover:bg-[var(--company-soft)]"
                 >
-                  See the decision trail <ArrowDownIcon />
+                  How it works <span aria-hidden="true">↓</span>
                 </a>
               </div>
-              <p className="mt-4 text-xs leading-5 text-[var(--company-muted)]">
-                Explore research without an account. Sign in to make it your
-                workspace.
+              <p className="mt-5 text-xs font-medium text-[var(--company-muted)]">
+                For students · academics · researchers
               </p>
-              <div className="mt-9 flex flex-wrap gap-x-5 gap-y-3 border-t border-[var(--company-border)] pt-6 text-xs font-medium text-[var(--company-muted)]">
-                {audiences.map(({ label, icon: Icon }) => (
-                  <span key={label} className="inline-flex items-center gap-2">
-                    <Icon size={17} strokeWidth={1.6} aria-hidden="true" />
-                    {label}
-                  </span>
-                ))}
-              </div>
             </div>
             <LandingPreview />
           </div>
         </section>
         <section
-          aria-label="Research sources"
-          className="border-y border-[var(--company-border)] bg-[var(--company-soft)] px-5 py-7 sm:px-9 lg:px-16"
-        >
-          <div className="mx-auto flex max-w-[1350px] flex-col justify-between gap-5 md:flex-row md:items-center">
-            <p className="max-w-xs text-sm leading-6 text-[var(--company-muted)]">
-              Start with source-linked research.
-              <br />
-              <span className="font-medium text-[var(--company-muted)]">
-                Go back to the original evidence.
-              </span>
-            </p>
-            <ul className="flex flex-wrap gap-x-7 gap-y-3 text-base font-semibold tracking-[-.025em] text-[var(--company-muted)] sm:gap-x-10">
-              {["OpenAlex", "arXiv", "Europe PMC", "Crossref"].map((source) => (
-                <li key={source}>{source}</li>
-              ))}
-            </ul>
-          </div>
-        </section>
-        <section
-          id="features"
-          tabIndex={-1}
-          className="scroll-mt-24 bg-[var(--company-surface)] px-5 py-20 sm:px-9 sm:py-24 lg:px-16"
-        >
-          <div className="mx-auto max-w-[1350px]">
-            <div className="mb-12 grid gap-5 lg:grid-cols-[1.25fr_.75fr] lg:items-end">
-              <div>
-                <p className={tag}>What EYLO does</p>
-                <h2 className="mt-4 max-w-3xl text-[clamp(2.2rem,4.2vw,4rem)] font-bold leading-[1.12] tracking-[-.055em]">
-                  Less scattered.
-                  <br />
-                  More connected.
-                </h2>
-              </div>
-              <p className="max-w-md text-base leading-7 text-[var(--company-muted)]">
-                Research is more than a search. EYLO brings finding, thinking
-                and doing into one connected experience.
-              </p>
-            </div>
-            <div className="grid gap-5 md:grid-cols-3">
-              {capabilities.map(
-                ({
-                  number,
-                  title,
-                  subtitle,
-                  body,
-                  icon: Icon,
-                  link,
-                  anchor,
-                  cta,
-                }) => (
-                  <article
-                    key={title}
-                    className="flex flex-col rounded-2xl border border-[var(--company-border)] bg-[var(--company-soft)] p-6 transition hover:border-[var(--company-border)] lg:p-8"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="grid h-12 w-12 place-items-center rounded-xl border border-[var(--company-border)] bg-[var(--company-surface)] text-[var(--company-muted)]">
-                        <Icon size={23} strokeWidth={1.6} aria-hidden="true" />
-                      </span>
-                      <span className="text-xs font-medium text-[var(--company-muted)]">
-                        {number}
-                      </span>
-                    </div>
-                    <p className="mt-7 text-xs font-semibold uppercase tracking-[.12em] text-[var(--company-muted)]">
-                      {title}
-                    </p>
-                    <h3 className="mt-3 max-w-xs text-[25px] font-bold leading-tight tracking-[-.04em]">
-                      {subtitle}
-                    </h3>
-                    <p className="mb-7 mt-4 flex-1 text-sm leading-7 text-[var(--company-muted)]">
-                      {body}
-                    </p>
-                    {link ? (
-                      <Link
-                        to={link}
-                        className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[var(--company-muted)]"
-                      >
-                        {cta}
-                        <ArrowRight size={15} aria-hidden="true" />
-                      </Link>
-                    ) : (
-                      <a
-                        href={anchor}
-                        className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[var(--company-muted)]"
-                      >
-                        {cta}
-                        <ArrowRight size={15} aria-hidden="true" />
-                      </a>
-                    )}
-                  </article>
-                ),
-              )}
-            </div>
-          </div>
-        </section>
-        <section
-          id="what-makes-eylo-different"
-          tabIndex={-1}
-          className="scroll-mt-24 px-5 py-20 sm:px-9 sm:py-24 lg:px-16"
-        >
-          <div className="mx-auto grid max-w-[1350px] gap-10 lg:grid-cols-[.85fr_1.15fr] lg:items-end">
-            <div>
-              <p className={tag}>What makes EYLO different</p>
-              <h2 className="mt-4 max-w-2xl text-[clamp(2.2rem,4vw,3.8rem)] font-bold leading-[1.12] tracking-[-.055em]">
-                The research stays connected to the work.
-              </h2>
-            </div>
-            <p className="max-w-2xl text-base leading-8 text-[var(--company-muted)]">
-              EYLO links source discovery, AI-assisted thinking with EYRA and
-              project work in one place. Your sources, notes, decisions and
-              follow-up stay with the same project, so you can return to the
-              reasoning behind your next step.
-            </p>
-          </div>
-          <div className="mx-auto mt-10 grid max-w-[1350px] gap-4 sm:grid-cols-3">
-            {[
-              {
-                title: "Discover from sources",
-                body: "Explore publications, researchers and opportunities with links back to original records.",
-              },
-              {
-                title: "Think with EYRA",
-                body: "Work through a research question and plan next steps with an AI partner you guide.",
-              },
-              {
-                title: "Carry work forward",
-                body: "Keep notes, project decisions, tasks and review points together as your research develops.",
-              },
-            ].map(({ title, body }, index) => (
-              <article
-                key={title}
-                className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-soft)] p-6"
-              >
-                <p className="text-xs font-semibold uppercase tracking-[.14em] text-[var(--company-muted)]">
-                  0{index + 1}
-                </p>
-                <h3 className="mt-5 text-lg font-semibold tracking-[-.03em]">
-                  {title}
-                </h3>
-                <p className="mt-2 text-sm leading-7 text-[var(--company-muted)]">
-                  {body}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
-        <section
-          id="decision-trail"
-          tabIndex={-1}
-          className="scroll-mt-24 border-y border-[var(--company-border)] bg-[var(--company-soft)] px-5 py-20 sm:px-9 sm:py-24 lg:px-16"
-        >
-          <div className="mx-auto grid max-w-[1350px] gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
-            <div>
-              <p className={tag}>The decision trail</p>
-              <h2 className="mt-4 max-w-xl text-[clamp(2.2rem,4vw,3.8rem)] font-bold leading-[1.12] tracking-[-.055em]">
-                Keep the reasoning beside the result.
-              </h2>
-              <p className="mt-6 max-w-xl text-base leading-8 text-[var(--company-muted)]">
-                A project decision can hold its question, alternatives, criteria,
-                source links, rationale, outcome and review date together. The
-                researcher decides what each source means; EYLO does not score
-                or independently verify it.
-              </p>
-              <Link
-                to="/register"
-                className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--company-muted)]"
-              >
-                Create a research workspace <ArrowRight size={16} aria-hidden="true" />
-              </Link>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                {
-                  title: "Evidence posture",
-                  body: "Mark each source as supporting, challenging or contextual.",
-                  label: "Supports · Challenges · Context",
-                },
-                {
-                  title: "Decision basis",
-                  body: "Keep the options, criteria and rationale in one project record.",
-                  label: "Options · Criteria · Rationale",
-                },
-                {
-                  title: "Return point",
-                  body: "Set a review date and record the outcome when you return.",
-                  label: "Review date · Outcome",
-                },
-              ].map(({ title, body, label }, index) => (
-                <article
-                  key={title}
-                  className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-surface)] p-5"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-[.14em] text-[var(--company-muted)]">
-                    0{index + 1}
-                  </p>
-                  <h3 className="mt-5 text-lg font-semibold tracking-[-.03em]">
-                    {title}
-                  </h3>
-                  <p className="mt-2 min-h-[72px] text-sm leading-6 text-[var(--company-muted)]">
-                    {body}
-                  </p>
-                  <p className="mt-4 border-t border-[var(--company-border)] pt-3 text-[10px] font-semibold uppercase tracking-wide text-[var(--company-muted)]">
-                    {label}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-        <section
-          id="eyra"
-          tabIndex={-1}
-          className="scroll-mt-24 bg-[var(--company-soft)] px-5 py-20 sm:px-9 sm:py-24 lg:px-16"
-        >
-          <div className="mx-auto grid max-w-[1350px] items-center gap-12 lg:grid-cols-[1fr_1fr] lg:gap-20">
-            <div>
-              <p className={tag}>Meet EYRA</p>
-              <h2 className="mt-4 text-[clamp(2.2rem,4vw,3.8rem)] font-bold leading-[1.12] tracking-[-.055em]">
-                Your questions.
-                <br />A clearer way forward.
-              </h2>
-              <p className="mt-6 max-w-xl text-base leading-8 text-[var(--company-muted)]">
-                EYRA is the AI intelligence layer of EYLO. Work through a
-                research question, connect ideas in your notes and plan the next
-                step with the context you choose to share.
-              </p>
-              <ul className="my-7 space-y-4 text-sm font-medium text-[var(--company-muted)]">
-                {[
-                  "Explore a question and shape a reading plan",
-                  "Work with your saved notes and project context",
-                  "Review sources and confirm the actions you want",
-                ].map((text) => (
-                  <li key={text} className="flex items-start gap-3">
-                    <Check
-                      size={17}
-                      className="mt-0.5 shrink-0 text-[var(--company-muted)]"
-                      aria-hidden="true"
-                    />
-                    {text}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                to="/login?from=%2Fhome"
-                className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--company-muted)]"
-              >
-                Bring EYRA into your workspace{" "}
-                <ArrowRight size={16} aria-hidden="true" />
-              </Link>
-            </div>
-            <div className="overflow-hidden rounded-[24px] border border-[var(--company-border)] bg-[#050712] shadow-[0_24px_60px_-35px_rgba(23,42,64,.6)]">
-              <img
-                src={import.meta.env.BASE_URL + "brand/eyra.png"}
-                alt="EYRA — the intelligence behind EYLO"
-                width="1024"
-                height="683"
-                loading="lazy"
-                decoding="async"
-                className="aspect-[1.5] w-full object-cover"
-              />
-              <div className="border-t border-white/10 px-7 py-6">
-                <p className="text-sm font-medium text-[#D6E2EE]">
-                  A thinking partner, with you in control.
-                </p>
-                <p className="mt-2 text-xs leading-6 text-[#9EACC3]">
-                  Check the evidence. Keep your judgment. Decide what happens
-                  next.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section
           id="how-it-works"
           tabIndex={-1}
-          className="scroll-mt-24 px-5 py-20 sm:px-9 sm:py-24 lg:px-16"
+          className="scroll-mt-24 bg-[var(--company-soft)] px-5 py-16 sm:px-9 sm:py-20 lg:px-16"
         >
-          <div className="mx-auto max-w-[1350px]">
-            <p className={tag}>One question. A connected journey.</p>
-            <h2 className="mt-4 max-w-3xl text-[clamp(2.2rem,4vw,3.8rem)] font-bold leading-[1.12] tracking-[-.055em]">
-              From “where do I start?”
-              <br />
-              to “here’s my next step.”
-            </h2>
-            <ol className="mt-12 grid gap-8 md:grid-cols-3">
-              {[
-                {
-                  title: "Explore the landscape",
-                  body: "Start with a question. Discover related publications, people and opportunities.",
-                  icon: Compass,
-                  path: '/search', action: 'Try public research search',
-                },
-                {
-                  title: "Connect your thinking",
-                  body: "Save useful sources, capture notes and work through the question with EYRA.",
-                  icon: BookOpen,
-                  path: '/library', action: 'Open my Library',
-                },
-                {
-                  title: "Move the work forward",
-                  body: "Organize your project, choose the next tasks and return to your research with context.",
-                  icon: Layers3,
-                  path: '/projects', action: 'Open my projects',
-                },
-              ].map(({ title, body, icon: Icon, path, action }, index) => (
-                <li
+          <div id="features" className="mx-auto max-w-[1350px]">
+            <p className={tag}>One connected workspace</p>
+            <div className="mt-4 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+              <h2 className="max-w-2xl text-[clamp(2.1rem,4vw,3.6rem)] font-bold leading-[1.1] tracking-[-.055em]">
+                Find it. Think it through. Move it forward.
+              </h2>
+              <p className="max-w-md text-sm leading-7 text-[var(--company-muted)]">
+                Start with a question. Keep the useful work together as it becomes a project.
+              </p>
+            </div>
+            <div className="mt-9 grid gap-4 md:grid-cols-3">
+              {capabilities.map(({ number, title, subtitle, body, icon: Icon }) => (
+                <article
                   key={title}
-                  className="border-t-2 border-[var(--company-border)] pt-6"
+                  className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-surface)] p-6 sm:p-7"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold tracking-widest text-[var(--company-muted)]">
-                      STEP 0{index + 1}
+                    <span className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--company-tint)] text-[var(--company-ink)]">
+                      <Icon size={21} strokeWidth={1.6} aria-hidden="true" />
                     </span>
-                    <Icon
-                      size={20}
-                      className="text-[var(--company-muted)]"
-                      aria-hidden="true"
-                    />
+                    <span className="text-xs text-[var(--company-muted)]">{number}</span>
                   </div>
-                  <h3 className="mt-6 text-xl font-semibold tracking-[-.03em]">
+                  <p className="mt-6 text-xs font-semibold uppercase tracking-[.12em] text-[var(--company-muted)]">
                     {title}
-                  </h3>
-                  <p className="mt-3 max-w-sm text-sm leading-7 text-[var(--company-muted)]">
-                    {body}
                   </p>
-                  <Link to={path} className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--company-text)] underline-offset-4 hover:underline">
-                    {action} <ArrowRight size={15} aria-hidden="true" />
-                  </Link>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-        <section
-          id="who-its-for"
-          tabIndex={-1}
-          className="scroll-mt-24 border-y border-[var(--company-border)] bg-[var(--company-soft)] px-5 py-20 sm:px-9 sm:py-24 lg:px-16"
-        >
-          <div className="mx-auto max-w-[1350px]">
-            <p className={tag}>Who EYLO is for</p>
-            <h2 className="mt-4 max-w-3xl text-[clamp(2.2rem,4vw,3.8rem)] font-bold leading-[1.12] tracking-[-.055em]">
-              For students, academics and researchers.
-            </h2>
-            <div className="mt-12 grid gap-9 md:grid-cols-3">
-              {audiences.map(({ label, icon: Icon, title, body, outcome }) => (
-                <article
-                  key={label}
-                  className="flex flex-col border-t border-[var(--company-border)] pt-6"
-                >
-                  <div className="flex items-center gap-2.5 text-sm font-semibold text-[var(--company-muted)]">
-                    <Icon size={21} strokeWidth={1.6} aria-hidden="true" />
-                    {label}
-                  </div>
-                  <h3 className="mt-5 max-w-xs text-[24px] font-semibold leading-tight tracking-[-.035em]">
-                    {title}
+                  <h3 className="mt-2 text-xl font-semibold tracking-[-.03em]">
+                    {subtitle}
                   </h3>
-                  <p className="mb-6 mt-4 flex-1 text-sm leading-7 text-[var(--company-muted)]">
+                  <p className="mt-3 text-sm leading-6 text-[var(--company-muted)]">
                     {body}
-                  </p>
-                  <p className="border-t border-[var(--company-border)] pt-4 text-xs font-medium leading-6 text-[var(--company-muted)]">
-                    {outcome}
                   </p>
                 </article>
               ))}
@@ -650,136 +721,47 @@ export default function Landing() {
           </div>
         </section>
         <section
-          id="principles"
+          id="why-eylo"
           tabIndex={-1}
-          className="scroll-mt-24 px-5 py-20 sm:px-9 sm:py-24 lg:px-16"
+          className="scroll-mt-24 px-5 py-16 sm:px-9 sm:py-20 lg:px-16"
         >
-          <div className="mx-auto grid max-w-[1350px] gap-10 lg:grid-cols-[1fr_1fr]">
+          <div className="mx-auto grid max-w-[1350px] gap-8 md:grid-cols-[1.1fr_.9fr] md:items-center">
             <div>
-              <p className={tag}>Our approach</p>
-              <h2 className="mt-4 max-w-lg text-[clamp(2.2rem,4vw,3.6rem)] font-bold leading-[1.12] tracking-[-.055em]">
-                Built around evidence.
-                <br />
-                Designed around people.
+              <p className={tag}>Why EYLO</p>
+              <h2 className="mt-4 max-w-2xl text-[clamp(2rem,3.8vw,3.3rem)] font-bold leading-[1.12] tracking-[-.05em]">
+                Your research keeps its thread.
               </h2>
-              <Link
-                to="/company/vision"
-                className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--company-muted)]"
-              >
-                Read our vision <ArrowRight size={16} aria-hidden="true" />
-              </Link>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--company-muted)]">
+                Sources, ideas, project decisions and next steps stay connected—so the work doesn’t get lost between searching, thinking and doing.
+              </p>
             </div>
-            <div className="space-y-6">
-              {[
-                {
-                  icon: BookOpen,
-                  title: "A path back to the source",
-                  body: "Original scholarly records stay part of the journey, so you can inspect where information comes from.",
-                },
-                {
-                  icon: ShieldCheck,
-                  title: "You choose the next action",
-                  body: "Your private work belongs in your signed-in workspace. Review AI suggestions and choose what to save or confirm.",
-                },
-                {
-                  icon: UsersRound,
-                  title: "Room for different disciplines",
-                  body: "Good questions come from everywhere. EYLO is built to support curiosity across academic backgrounds.",
-                },
-              ].map(({ icon: Icon, title, body }) => (
-                <div
-                  key={title}
-                  className="flex gap-4 border-b border-[var(--company-border)] pb-6 last:border-b-0"
-                >
-                  <Icon
-                    size={22}
-                    className="mt-1 shrink-0 text-[var(--company-muted)]"
-                    strokeWidth={1.6}
-                    aria-hidden="true"
-                  />
-                  <div>
-                    <h3 className="text-base font-semibold">{title}</h3>
-                    <p className="mt-2 max-w-lg text-sm leading-7 text-[var(--company-muted)]">
-                      {body}
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <div id="who-its-for" className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-soft)] p-6 sm:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[.14em] text-[var(--company-muted)]">
+                Made for curious minds
+              </p>
+              <p className="mt-4 text-lg font-semibold leading-8">
+                Students. Academics. Researchers.
+              </p>
+              <p className="mt-2 text-sm leading-6 text-[var(--company-muted)]">
+                Across disciplines, from the first question to the next clear step.
+              </p>
             </div>
           </div>
         </section>
-        <PublicPlans />
-        <section
-          id="questions"
-          tabIndex={-1}
-          className="scroll-mt-24 bg-[var(--company-soft)] px-5 py-20 sm:px-9 sm:py-24 lg:px-16"
-        >
-          <div className="mx-auto grid max-w-[1350px] gap-10 lg:grid-cols-[.75fr_1.25fr]">
+        <section className="px-5 pb-16 sm:px-9 sm:pb-20 lg:px-16">
+          <div className="mx-auto grid max-w-[1350px] gap-6 rounded-[24px] bg-[var(--company-tint)] px-6 py-9 sm:px-10 md:grid-cols-[1fr_auto] md:items-center lg:px-12">
             <div>
-              <p className={tag}>Clear answers before you begin</p>
-              <h2 className="mt-4 text-[clamp(2.2rem,4vw,3.4rem)] font-bold leading-[1.12] tracking-[-.055em]">
-                Curious?
-                <br />
-                Start here.
+              <p className={tag}>Your next question starts somewhere</p>
+              <h2 className="mt-3 max-w-2xl text-[clamp(1.8rem,3.4vw,3rem)] font-bold leading-[1.1] tracking-[-.05em]">
+                Start exploring. Keep moving.
               </h2>
-              <p className="mt-5 text-sm leading-7 text-[var(--company-muted)]">
-                Have a different question?
-                <br />
-                <Link
-                  to="/contact"
-                  className="font-semibold text-[var(--company-muted)] underline underline-offset-4"
-                >
-                  Talk to us about EYLO.
-                </Link>
+              <p className="mt-3 max-w-lg text-sm leading-6 text-[var(--company-muted)]">
+                Search public research first. Create a workspace when you’re ready.
               </p>
             </div>
-            <div>
-              {questions.map(({ question, answer }) => (
-                <details
-                  key={question}
-                  className="group border-b border-[var(--company-border)] first:border-t"
-                >
-                  <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-5 text-sm font-semibold sm:text-base">
-                    {question}
-                    <ChevronDown
-                      size={18}
-                      className="shrink-0 text-[var(--company-muted)] transition group-open:rotate-180"
-                      aria-hidden="true"
-                    />
-                  </summary>
-                  <p className="max-w-2xl pb-6 pr-8 text-sm leading-7 text-[var(--company-muted)]">
-                    {answer}
-                  </p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
-        <section className="px-5 py-16 sm:px-9 sm:py-20 lg:px-16">
-          <div className="mx-auto grid max-w-[1350px] gap-8 rounded-[24px] border border-[var(--company-border)] bg-[var(--company-tint)] px-6 py-12 sm:px-10 md:grid-cols-[1fr_auto] md:items-center lg:px-14">
-            <div>
-              <p className={tag}>A place for your next idea</p>
-              <h2 className="mt-4 max-w-2xl text-[clamp(2rem,3.8vw,3.6rem)] font-bold leading-[1.12] tracking-[-.055em]">
-                Start exploring.
-                <br />
-                See where it takes you.
-              </h2>
-              <p className="mt-5 max-w-lg text-sm leading-7 text-[var(--company-muted)]">
-                Start with discovery. Build your workspace when you’re ready.
-              </p>
-            </div>
-            <div className="flex flex-col items-start gap-4">
-              <Link to="/discover" className={primary}>
-                Explore EYLO <ArrowRight size={17} aria-hidden="true" />
-              </Link>
-              <Link
-                to="/contact"
-                className="inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-[var(--company-muted)]"
-              >
-                Research group or collaborator? Let’s talk{" "}
-                <ArrowUpRight size={15} aria-hidden="true" />
-              </Link>
-            </div>
+            <Link to="/discover" className={primary}>
+              Explore EYLO <ArrowRight size={17} aria-hidden="true" />
+            </Link>
           </div>
         </section>
       </main>
