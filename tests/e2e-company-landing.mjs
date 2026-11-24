@@ -124,7 +124,7 @@ try {
   assert.equal(await page.getByRole("heading", { level: 1 }).count(), 1);
   assert.match(
     await page.getByRole("heading", { level: 1 }).innerText(),
-    /Your evidence\.\s*Your decision trail\./,
+    /Research,\\s*connected to action/,
   );
   assert.equal(
     await page.locator('link[rel="canonical"]').getAttribute("href"),
@@ -133,7 +133,7 @@ try {
   for (const heading of [
     "Less scattered.",
     "Your questions.",
-    "Different starting points.",
+    "For students, academics and researchers.",
     "Built around evidence.",
   ])
     assert.ok(
