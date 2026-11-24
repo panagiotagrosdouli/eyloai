@@ -36,7 +36,7 @@ const discoveries = [
 ];
 
 export default function LandingPreview() {
-  const [active, setActive] = useState("discover");
+  const [active, setActive] = useState("workspace");
   const buttons = useRef([]);
   function navigateTabs(event, index) {
     let next;
@@ -185,7 +185,7 @@ export default function LandingPreview() {
                       Keep the thread.
                     </h2>
                     <p className="mt-3 text-xs leading-5 text-[var(--company-muted)]">
-                      Give your sources, notes and next steps a place to belong.
+                      Keep the sources, the choice and the next review together in your project.
                     </p>
                     <div className="mt-5 rounded-xl border border-[var(--company-border)] bg-[var(--company-soft)] p-4">
                       <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--company-muted)]">
@@ -198,15 +198,15 @@ export default function LandingPreview() {
                         {[
                           {
                             icon: BookOpen,
-                            label: "A library of saved sources",
+                            label: "Sources saved to the project",
                           },
                           {
                             icon: FileText,
-                            label: "Notes that connect your ideas",
+                            label: "Notes and rationale kept together",
                           },
                           {
                             icon: Check,
-                            label: "A clear plan for what comes next",
+                            label: "A review date and follow-up",
                           },
                         ].map(({ icon: Icon, label }) => (
                           <div
@@ -217,6 +217,36 @@ export default function LandingPreview() {
                             {label}
                           </div>
                         ))}
+                      </div>
+                      <div className="mt-4 rounded-xl border border-[var(--company-border)] bg-[var(--company-surface)] p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--company-muted)]">
+                            Example decision
+                          </span>
+                          <span className="rounded-full bg-[var(--company-tint)] px-2 py-1 text-[9px] font-semibold text-[var(--company-muted)]">
+                            Planning
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs font-semibold">
+                          Which pilot should we run first?
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {[
+                            ["Supports", "2"],
+                            ["Challenges", "1"],
+                            ["Context", "1"],
+                          ].map(([label, count]) => (
+                            <span
+                              key={label}
+                              className="rounded-full border border-[var(--company-border)] px-2 py-1 text-[9px] text-[var(--company-muted)]"
+                            >
+                              {label} {count}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="mt-3 text-[9px] leading-4 text-[var(--company-muted)]">
+                          Illustrative only. Sources are user-recorded, not AI-verified.
+                        </p>
                       </div>
                     </div>
                   </>
@@ -255,8 +285,8 @@ export default function LandingPreview() {
               </div>
             ))}
             <div className="mt-3 flex items-center gap-2 border-t border-[var(--company-border)] pt-3 text-[10px] text-[var(--company-muted)]">
-              <Layers3 size={13} aria-hidden="true" /> Discovery, thinking and
-              progress. Connected.
+              <Layers3 size={13} aria-hidden="true" /> Evidence, decisions and review.
+              Connected.
             </div>
           </div>
         </div>

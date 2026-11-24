@@ -14,7 +14,6 @@ import {
   Menu,
   Search,
   ShieldCheck,
-  Sparkles,
   UsersRound,
   X,
 } from "lucide-react";
@@ -59,12 +58,12 @@ const capabilities = [
   },
   {
     number: "02",
-    title: "Understand",
-    subtitle: "Think with EYRA.",
-    body: "Ask questions, work through ideas and use your saved research context with EYRA, the AI assistant within EYLO. Review its responses against the sources.",
-    icon: Sparkles,
-    anchor: "#eyra",
-    cta: "Meet EYRA",
+    title: "Decide",
+    subtitle: "Keep both sides of the evidence.",
+    body: "Tag sources as supporting, challenging or contextual. Record the alternatives, criteria and rationale beside the project decision.",
+    icon: Layers3,
+    anchor: "#decision-trail",
+    cta: "See the decision trail",
   },
   {
     number: "03",
@@ -127,13 +126,10 @@ export default function Landing() {
             className="hidden items-center gap-7 text-[13px] font-medium text-[var(--company-muted)] xl:flex"
           >
             <Link to="/start">Start here</Link>
+            <a href="#decision-trail">Decision trail</a>
             <a href="#features">The platform</a>
-            <a href="#eyra">Meet EYRA</a>
-            <a href="#who-its-for">Who it’s for</a>
             <Link to="/company">About EYLO</Link>
-            <Link to="/contact">Contact</Link>
             <a href="#premium">Plans</a>
-            <a href="#questions">Questions answered</a>
           </nav>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
@@ -244,30 +240,28 @@ export default function Landing() {
                   className="h-1.5 w-1.5 rounded-full bg-[#24AAF3]"
                   aria-hidden="true"
                 />{" "}
-                QUESTION  ·  SOURCES  ·  NEXT STEP
+                PAPERS  ·  DECISIONS  ·  REVIEW
               </p>
               <h1 className="max-w-[660px] text-[clamp(2.8rem,5.25vw,5.7rem)] font-bold leading-[1.04] tracking-[-.068em]">
-                Find the evidence.
+                Your evidence.
                 <br />
-                Keep the context
+                Your decision trail
                 <span className="text-[#24AAF3]" aria-hidden="true">
                   .
                 </span>
               </h1>
               <p className="mt-7 max-w-[540px] text-lg leading-[1.7] text-[var(--company-muted)] sm:text-xl">
-                Start with a research question, follow source-linked records,
-                and keep the useful work together—papers, notes, and next steps.
-                EYRA can assist when the AI service is available.
+                EYLO keeps a project decision beside its evidence: record what supports or challenges a choice, the alternatives and criteria you used, and when to revisit it.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/discover" className={primary}>
                   Explore research <ArrowRight size={17} aria-hidden="true" />
                 </Link>
                 <a
-                  href="#how-it-works"
+                  href="#decision-trail"
                   className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-[var(--company-border)] px-5 text-sm font-semibold transition hover:bg-[var(--company-soft)]"
                 >
-                  See how it works <ArrowDownIcon />
+                  See the decision trail <ArrowDownIcon />
                 </a>
               </div>
               <p className="mt-4 text-xs leading-5 text-[var(--company-muted)]">
@@ -378,6 +372,69 @@ export default function Landing() {
                   </article>
                 ),
               )}
+            </div>
+          </div>
+        </section>
+        <section
+          id="decision-trail"
+          tabIndex={-1}
+          className="scroll-mt-24 border-y border-[var(--company-border)] bg-[var(--company-soft)] px-5 py-20 sm:px-9 sm:py-24 lg:px-16"
+        >
+          <div className="mx-auto grid max-w-[1350px] gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
+            <div>
+              <p className={tag}>The decision trail</p>
+              <h2 className="mt-4 max-w-xl text-[clamp(2.2rem,4vw,3.8rem)] font-bold leading-[1.12] tracking-[-.055em]">
+                Keep the reasoning beside the result.
+              </h2>
+              <p className="mt-6 max-w-xl text-base leading-8 text-[var(--company-muted)]">
+                A project decision can hold its question, alternatives, criteria,
+                source links, rationale, outcome and review date together. The
+                researcher decides what each source means; EYLO does not score
+                or independently verify it.
+              </p>
+              <Link
+                to="/register"
+                className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--company-muted)]"
+              >
+                Create a research workspace <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                {
+                  title: "Evidence posture",
+                  body: "Mark each source as supporting, challenging or contextual.",
+                  label: "Supports · Challenges · Context",
+                },
+                {
+                  title: "Decision basis",
+                  body: "Keep the options, criteria and rationale in one project record.",
+                  label: "Options · Criteria · Rationale",
+                },
+                {
+                  title: "Return point",
+                  body: "Set a review date and record the outcome when you return.",
+                  label: "Review date · Outcome",
+                },
+              ].map(({ title, body, label }, index) => (
+                <article
+                  key={title}
+                  className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-surface)] p-5"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-[.14em] text-[var(--company-muted)]">
+                    0{index + 1}
+                  </p>
+                  <h3 className="mt-5 text-lg font-semibold tracking-[-.03em]">
+                    {title}
+                  </h3>
+                  <p className="mt-2 min-h-[72px] text-sm leading-6 text-[var(--company-muted)]">
+                    {body}
+                  </p>
+                  <p className="mt-4 border-t border-[var(--company-border)] pt-3 text-[10px] font-semibold uppercase tracking-wide text-[var(--company-muted)]">
+                    {label}
+                  </p>
+                </article>
+              ))}
             </div>
           </div>
         </section>

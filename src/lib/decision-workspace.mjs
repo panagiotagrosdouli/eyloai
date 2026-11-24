@@ -1,4 +1,5 @@
 export const DECISION_STATUSES = ['planning', 'decided', 'monitoring', 'closed'];
+export const EVIDENCE_STANCES = ['supports', 'challenges', 'context'];
 
 const LIMITS = {
   title: 160,
@@ -71,6 +72,10 @@ export function validateDecision(value) {
     errors.push('Rationale must be ' + LIMITS.rationale + ' characters or fewer.');
   }
   for (const item of Array.isArray(decision.evidence) ? decision.evidence : []) {
+    if (item?.stance !== undefined && !EVIDENCE_STANCES.includes(item.stance)) {
+      errors.push('Choose whether each evidence item supports, challenges or contextualizes the decision.');
+      break;
+    }
     if (!cleanText(item?.claim, 1000) || !cleanText(item?.source_label, 200)) {
       errors.push('Each evidence item needs a claim and source label.');
       break;
@@ -114,6 +119,7 @@ export function normalizeDecision(value) {
       .slice(0, LIMITS.evidence)
       .map((item) => ({
         id: cleanText(item?.id, 80),
+        stance: EVIDENCE_STANCES.includes(item?.stance) ? item.stance : 'context',
         claim: cleanText(item?.claim, 1000),
         source_label: cleanText(item?.source_label, 200),
         source_url: cleanText(item?.source_url, 1000),
