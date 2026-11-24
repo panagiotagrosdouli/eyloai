@@ -117,6 +117,7 @@ export default function Landing() {
             aria-label="Company navigation"
             className="hidden items-center gap-7 text-[13px] font-medium text-[var(--company-muted)] xl:flex"
           >
+            <Link to="/start">Start here</Link>
             <a href="#how-it-works">How it works</a>
             <a href="#why-eylo">Why EYLO</a>
             <a href="#who-its-for">Who it’s for</a>
