@@ -174,14 +174,10 @@ try {
     .waitFor({ state: "visible" });
   await page.keyboard.press("Home");
   assert.equal(await discover.getAttribute("aria-selected"), "true");
-  const question = page
-    .locator("summary")
-    .filter({ hasText: "Can I explore before creating an account?" });
-  await question.focus();
-  await page.keyboard.press("Enter");
-  assert.equal(await question.evaluate((el) => el.parentElement.open), true);
-  await page.keyboard.press("Enter");
-  assert.equal(await question.evaluate((el) => el.parentElement.open), false);
+  assert.equal(
+    await page.getByRole("heading", { name: "Your research keeps its thread." }).count(),
+    1,
+  );
   assert.equal(authRequests, 0, "public company landing never calls Auth");
   await screenshot(page, "company-landing-desktop");
   // A first-time visitor can choose an appearance without signing in.
