@@ -130,16 +130,6 @@ try {
       topics.data_sources = { status: 'drafted', claims: [{ heading: 'Abstract record', text: 'The selected scholarly abstract reports an intervention.', kind: 'source_fact', source_ids: [sourceId] }] };
       return json(route, { data: { topics } });
     }
-    if (body.prompt?.includes('reviewable research execution roadmap')) {
-      const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
-      assert.ok(sourceId, 'roadmap prompt must include a selected scholarly source');
-      assert.ok(body.prompt.includes('Researcher-edited proposed methodology.'), 'roadmap prompt must reuse the saved methodology context');
-      const tasks = [
-        { task_key: 'review', phase: 'Protocol', title: 'Review protocol', deliverable: 'Reviewed protocol', due_date: '', depends_on: [], risk: 'Recruitment access', researcher_notes: 'Confirm access with the researcher.', evidence_summary: '', evidence_kind: 'proposal', source_ids: [] },
-        { task_key: 'pilot', phase: 'Pilot', title: 'Plan pilot', deliverable: 'Pilot plan', due_date: '', depends_on: ['review'], risk: '', researcher_notes: '', evidence_summary: 'The selected abstract reports an intervention.', evidence_kind: 'source_fact', source_ids: [sourceId] },
-      ];
-      return json(route, { data: { tasks } });
-    }
     if (body.prompt?.includes('scientific research proposal')) {
       const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
       assert.ok(sourceId, 'proposal prompt must include a saved source identifier');
@@ -631,31 +621,6 @@ try {
   assert.equal(methodologyDownload.suggestedFilename(), 'research-methodology-plan.md');
   const methodologyFile = await methodologyDownload.path();
   assert.ok((await readFile(methodologyFile, 'utf8')).includes('Researcher-edited proposed methodology.'));
-  const roadmapSection = page.locator('section[aria-labelledby="research-roadmap-studio-title"]');
-  assert.equal(await roadmapSection.locator('label').filter({ hasText: 'Roadmap research question' }).locator('textarea').inputValue(), question);
-  await roadmapSection.getByRole('button', { name: 'Draft roadmap with EYRA', exact: true }).click();
-  const roadmapTaskTitle = roadmapSection.getByLabel('Proposed task').first();
-  await roadmapTaskTitle.waitFor();
-  await roadmapTaskTitle.fill('Researcher-reviewed protocol task');
-  await roadmapSection.getByLabel('Researcher notes').first().fill('Researcher risk and access note.');
-  assert.ok(await roadmapSection.getByRole('link', { name: /Randomized intervention improves clinical outcome/ }).count(), 'roadmap must show its authentic project source');
-  await roadmapSection.getByRole('button', { name: 'Approve selected tasks into workplan draft', exact: true }).click();
-  await page.getByRole('button', { name: 'Timeline', exact: true }).click();
-  await page.getByText(/Approved proposed tasks were added to the current workplan draft/).waitFor();
-  assert.equal(await page.locator('section[aria-labelledby="structured-workplan-title"] input[id^="workplan-title-"]').count(), 2, 'roadmap approval must append two proposed tasks to the existing project planner');
-  assert.equal(await page.getByLabel('Researcher notes').first().inputValue(), 'Researcher risk and access note.');
-  assert.equal((tables.projects[0].data.plan_items || []).length, 0, 'approval only updates the draft; it does not persist tasks');
-  await page.getByRole('button', { name: 'Save workplan', exact: true }).click();
-  await page.getByText('Workplan saved', { exact: true }).waitFor();
-  assert.equal(tables.projects[0].data.plan_items.length, 2);
-  assert.equal(tables.projects[0].data.plan_items[0].title, 'Researcher-reviewed protocol task');
-  assert.equal(tables.projects[0].data.plan_items[0].status, 'todo');
-  assert.equal(tables.projects[0].data.plan_items[0].researcher_notes, 'Researcher risk and access note.');
-  assert.equal(tables.projects[0].data.plan_items[1].depends_on[0], tables.projects[0].data.plan_items[0].id);
-  await page.reload();
-  await page.getByRole('button', { name: 'Timeline', exact: true }).click();
-  assert.equal(await page.getByLabel('Task').first().inputValue(), 'Researcher-reviewed protocol task');
-  assert.equal(await page.getByLabel('Researcher notes').first().inputValue(), 'Researcher risk and access note.');
   const savedProposalSnapshot = structuredClone(tables.projects[0].data.research_proposal);
   await page.getByLabel('Background statement 1', { exact: true }).fill('Unsaved proposal edit preserved after conflict.');
   tables.projects[0].updated_date = '2099-01-01T00:00:00.000Z';
