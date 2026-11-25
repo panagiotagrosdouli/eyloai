@@ -1,12 +1,25 @@
 # EYLO total execution tracker
 
-**Updated:** 22 November 2026 (Europe/Athens)
+**Updated:** 25 November 2026 (Europe/Athens)
 
-**Repository baseline:** `c7b331454d54ca72486a799994c13ca7cbec4aeb`
+**Repository baseline:** `10a660585d74e9140c4f8345af21d6d88ff02439` (current `main`)
 
-**Working branch:** `codex/discovery-provider-error-hardening-20261122`
+**Working branch:** follow-up to PR [#604](https://github.com/panagiotagrosdouli/eyloai/pull/604), `codex/internal-eyra-20261124`
 
 This file is the current execution index. It does not promote a feature to staging or production verified. The canonical feature-by-feature inventory is [PRODUCT_IMPLEMENTATION_TRACKER.md](PRODUCT_IMPLEMENTATION_TRACKER.md): it contains 77 individually numbered existing product modules, their implementation descriptions, tests and remaining acceptance. All 77 are currently marked **PARTIAL**. The route-level inventory and audit is [FULL_SITE_FUNCTIONAL_AUDIT.md](FULL_SITE_FUNCTIONAL_AUDIT.md). Preserve those detailed inventories rather than maintaining a second, divergent copy here.
+
+## 25 November execution update
+
+| Checkpoint | Result | Evidence and limit |
+|---|---|---|
+| Current production source | READY deployment metadata | Vercel lists production deployment `dpl_4BUS52NAYLoWR5gpm77N9yX8JydX` for main SHA `10a660585d74e9140c4f8345af21d6d88ff02439`. This verifies the recorded deployment state and source identity, not private workflows. |
+| GitHub Actions on main | PASS | The current Product quality run and GitHub Pages deploy run for `10a660585d74e9140c4f8345af21d6d88ff02439` both completed successfully. |
+| EYRA action outcome tests | PASS locally | Added direct regression coverage for UUID write receipts, unconfirmed outcomes, and upstream error redaction to the open #604 branch. Four focused tests and the complete `npm run check` passed locally. The PR's hosted Product quality run still needs a successful exact-head rerun. |
+| Supabase migration preview | BLOCKED | The connected `eyloai` project is active and healthy. Its only listed development branch, `main`, currently reports `MIGRATIONS_FAILED`; no migration was applied or retried. |
+| Supabase security advisor | ACTION REQUIRED | Leaked-password protection is disabled. A Supabase administrator must enable it and recheck Auth. `public.discovery_rate_limits` has RLS enabled with no policies; this is an informational finding and denies row access through ordinary user roles. |
+| Release readiness | NO-GO | `npm run release:readiness` correctly rejects the available ledger because current-commit CI and the required hosted staging, two-account, research-quality, privacy, UX, operations and owner-review evidence are absent or stale. |
+
+The hosted Supabase findings are read-only observations. Do not treat the existing migration preview as an authorized staging database, and do not apply migrations, alter Auth settings, or use live accounts to fill the missing gates.
 
 ## Current release decision
 
