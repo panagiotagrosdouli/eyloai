@@ -23,6 +23,7 @@ import EvidenceMatrixStudio from '@/components/projects/EvidenceMatrixStudio';
 import LiteratureReviewBuilder from '@/components/projects/LiteratureReviewBuilder';
 import ResearchProposalBuilder from '@/components/projects/ResearchProposalBuilder';
 import ResearchMethodologyStudio from '@/components/projects/ResearchMethodologyStudio';
+import ResearchRoadmapStudio from '@/components/projects/ResearchRoadmapStudio';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
@@ -30,6 +31,7 @@ import { validateProjectEyraReport } from '@/lib/project-eyra-provenance.mjs';
 import { parseProjectTasks, toggleProjectTask } from '@/lib/project-tasks';
 import { buildProjectPlanDraft, acceptProjectPlanDraft } from '@/lib/project-plan-draft.mjs';
 import { canStartWorkplanTask, getWorkplanProgress, normalizeWorkplan, validateWorkplan } from '@/lib/project-workplan.mjs';
+import { appendApprovedRoadmapTasks, roadmapSaveReceipt } from '@/lib/research-roadmap-studio.mjs';
 
 const TABS = [
   { key: 'overview', label: 'Overview', icon: Target },
@@ -69,6 +71,7 @@ export default function ProjectDetail() {
   const loadGenerationRef = useRef(0);
   const [plannerDraft, setPlannerDraft] = useState('');
   const [plannerNotice, setPlannerNotice] = useState('');
+  const [roadmapNotice, setRoadmapNotice] = useState('');
   const [workplanItems, setWorkplanItems] = useState([]);
   const [workplanTitle, setWorkplanTitle] = useState('');
   const [workplanDeliverable, setWorkplanDeliverable] = useState('');
@@ -97,6 +100,7 @@ export default function ProjectDetail() {
     setLoadError('');
     setPlannerDraft('');
     setPlannerNotice('');
+    setRoadmapNotice('');
     setWorkplanItems([]);
     setWorkplanTitle('');
     setWorkplanDeliverable('');
@@ -257,6 +261,7 @@ export default function ProjectDetail() {
     setWorkplanError('');
     try {
       const saved = await base44.entities.Project.updateIfUnchanged(projectId, { plan_items: validation.items }, project.updated_date);
+      if (!roadmapSaveReceipt(saved, projectId, validation.items)) throw new Error('unverified');
       if (loadGenerationRef.current !== generation) return;
       setProject(previous => ({ ...previous, ...saved }));
       setWorkplanItems(normalizeWorkplan(saved.plan_items));
@@ -265,7 +270,7 @@ export default function ProjectDetail() {
       if (loadGenerationRef.current !== generation) return;
       setWorkplanError(error?.code === 'ENTITY_CONFLICT'
         ? 'This project changed in another session. Your workplan edits are still here; reload the project before saving again.'
-        : error?.message || 'Workplan could not be saved. Your edits are still here.');
+        : 'Workplan could not be verified as saved. Your edits are still here.');
     } finally {
       if (loadGenerationRef.current === generation) setSavingWorkplan(false);
     }
@@ -685,6 +690,24 @@ Rules:
             savedPapers={savedPapers}
             onProjectSaved={saved => setProject(previous => ({ ...previous, ...saved }))}
           />
+          <ResearchRoadmapStudio
+            key={`${id}-research-roadmap`}
+            project={project}
+            savedPapers={savedPapers}
+            onApproveTasks={(draft, selectedKeys) => {
+              const result = appendApprovedRoadmapTasks(workplanItems, { tasks: draft }, selectedKeys);
+              if (!result.valid) {
+                setWorkplanError(result.message);
+                setActiveTab('timeline');
+                return false;
+              }
+              setWorkplanItems(result.items);
+              setWorkplanError('');
+              setRoadmapNotice('Approved proposed tasks were added to the current workplan draft. Review and use Save workplan to persist them.');
+              setActiveTab('timeline');
+              return true;
+            }}
+          />
           {savedPapers.length ? savedPapers.map(paper => (
             <article key={paper.id} className="rounded-xl border border-border bg-card p-4 sm:p-5">
               <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">{paper.source && <span>{paper.source}</span>}{paper.year && <span>{paper.year}</span>}</div>
@@ -792,6 +815,7 @@ Rules:
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 id="structured-workplan-title" className="text-base font-semibold">Project workplan</h2>
+                {roadmapNotice && <p role="status" className="mt-2 rounded-lg bg-secondary px-3 py-2 text-xs">{roadmapNotice}</p>}
                 <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
                   Track researcher-defined tasks, deliverables, dates and prerequisites. Dates and task content come from you; EYLO does not estimate duration or scientific completion.
                 </p>
@@ -876,6 +900,30 @@ Rules:
                         {workplanItems.filter(candidate => candidate.id !== item.id).map(candidate => <option key={candidate.id} value={candidate.id}>{candidate.title}</option>)}
                       </select>
                     </div>
+                    <div>
+                      <label htmlFor={`workplan-phase-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Research phase</label>
+                      <input id={`workplan-phase-${item.id}`} disabled={savingWorkplan} value={item.phase || ''} maxLength={120} onChange={event => updateWorkplanItem(item.id, { phase: event.target.value })}
+                        className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm" />
+                    </div>
+                    <div>
+                      <label htmlFor={`workplan-risk-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Risk</label>
+                      <textarea id={`workplan-risk-${item.id}`} disabled={savingWorkplan} value={item.risk || ''} maxLength={1500} rows={2} onChange={event => updateWorkplanItem(item.id, { risk: event.target.value })}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label htmlFor={`workplan-notes-${item.id}`} className="mb-1 block text-[11px] font-medium text-muted-foreground">Researcher notes</label>
+                      <textarea id={`workplan-notes-${item.id}`} disabled={savingWorkplan} value={item.researcher_notes || ''} maxLength={2000} rows={2} onChange={event => updateWorkplanItem(item.id, { researcher_notes: event.target.value })}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+                    </div>
+                    {item.evidence_summary && <div className="sm:col-span-2 rounded-lg bg-secondary/40 p-3">
+                      <p className="text-[11px] font-semibold text-muted-foreground">Evidence basis · {item.evidence_kind === 'source_fact' ? 'Source fact' : item.evidence_kind === 'interpretation' ? 'Interpretation' : 'Proposed activity'}</p>
+                      <p className="mt-1 text-sm leading-6">{item.evidence_summary}</p>
+                      <ul className="mt-2 space-y-1">{(item.source_ids || []).map(sourceId => {
+                        const paper = savedPapers.find(record => String(record.id) === String(sourceId));
+                        const href = (() => { try { const url = new URL(paper?.url || ''); return url.protocol === 'https:' && !url.username && !url.password ? url.href : ''; } catch { return ''; } })();
+                        return <li key={sourceId} className="text-xs">{paper ? <a className="text-primary hover:underline" href={href || undefined} target={href ? '_blank' : undefined} rel={href ? 'noopener noreferrer' : undefined}>{paper.title || 'Open source record'}</a> : <span className="text-destructive">A source reference is no longer linked to this project.</span>}</li>;
+                      })}</ul>
+                    </div>}
                   </div>
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                     <span className="text-[11px] text-muted-foreground">{ready ? 'Prerequisites complete' : 'Waiting for prerequisite task'}</span>

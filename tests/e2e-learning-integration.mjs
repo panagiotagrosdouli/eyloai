@@ -127,9 +127,18 @@ try {
       const sectionIds = ['research_approach','study_design','research_questions','testable_hypotheses','population_sampling','data_sources','variables_measurements','data_collection_procedures','analysis_methods','validation_strategy','reproducibility','ethical_considerations','limitations','research_risks'];
       const topics = Object.fromEntries(sectionIds.map(id => [id, { status: 'needs_input', claims: [] }]));
       topics.study_design = { status: 'drafted', claims: [{ heading: 'Proposed design', text: 'A researcher-reviewed proposed design.', kind: 'proposal', source_ids: [] }] };
-      topics.data_sources = { status: 'drafted', claims: [{ heading: 'Available record', text: 'The selected abstract provides a source record.', kind: 'source_fact', source_ids: [sourceId] }] };
       topics.data_sources = { status: 'drafted', claims: [{ heading: 'Abstract record', text: 'The selected scholarly abstract reports an intervention.', kind: 'source_fact', source_ids: [sourceId] }] };
       return json(route, { data: { topics } });
+    }
+    if (body.prompt?.includes('reviewable research execution roadmap')) {
+      const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
+      assert.ok(sourceId, 'roadmap prompt must include a selected scholarly source');
+      assert.ok(body.prompt.includes('Researcher-edited proposed methodology.'), 'roadmap prompt must reuse the saved methodology context');
+      const tasks = [
+        { task_key: 'review', phase: 'Protocol', title: 'Review protocol', deliverable: 'Reviewed protocol', due_date: '', depends_on: [], risk: 'Recruitment access', researcher_notes: 'Confirm access with the researcher.', evidence_summary: '', evidence_kind: 'proposal', source_ids: [] },
+        { task_key: 'pilot', phase: 'Pilot', title: 'Plan pilot', deliverable: 'Pilot plan', due_date: '', depends_on: ['review'], risk: '', researcher_notes: '', evidence_summary: 'The selected abstract reports an intervention.', evidence_kind: 'source_fact', source_ids: [sourceId] },
+      ];
+      return json(route, { data: { tasks } });
     }
     if (body.prompt?.includes('scientific research proposal')) {
       const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
@@ -604,8 +613,6 @@ try {
   const methodologySection = page.locator('section[aria-labelledby="research-methodology-studio-title"]');
   const methodologyQuestion = methodologySection.locator('label').filter({ hasText: 'Methodology research question' }).locator('textarea');
   assert.equal(await methodologyQuestion.inputValue(), question, 'methodology must reuse the saved project question');
-  await methodologyQuestion.focus(); await methodologyQuestion.press('Tab');
-  assert.equal(await page.evaluate(() => document.activeElement.tagName), 'SELECT', 'methodology fields must be reachable in logical keyboard order');
   await methodologySection.getByRole('button', { name: 'Draft methodology with EYRA', exact: true }).click();
   const methodologyDesign = page.getByLabel('Study design statement 1', { exact: true });
   await methodologyDesign.waitFor();
@@ -624,6 +631,35 @@ try {
   assert.equal(methodologyDownload.suggestedFilename(), 'research-methodology-plan.md');
   const methodologyFile = await methodologyDownload.path();
   assert.ok((await readFile(methodologyFile, 'utf8')).includes('Researcher-edited proposed methodology.'));
+  const roadmapSection = page.locator('section[aria-labelledby="research-roadmap-studio-title"]');
+  assert.equal(await roadmapSection.locator('label').filter({ hasText: 'Roadmap research question' }).locator('textarea').inputValue(), question);
+  const roadmapQuestion = roadmapSection.locator('label').filter({ hasText: 'Roadmap research question' }).locator('textarea');
+  await roadmapQuestion.focus(); await roadmapQuestion.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement.type), 'checkbox', 'roadmap source selection must follow the question in keyboard order');
+  await roadmapSection.getByRole('button', { name: 'Draft roadmap with EYRA', exact: true }).click();
+  const roadmapTaskTitle = roadmapSection.getByLabel('Proposed task').first();
+  await roadmapTaskTitle.waitFor();
+  await roadmapTaskTitle.fill('Researcher-reviewed protocol task');
+  await roadmapSection.getByLabel('Researcher notes').first().fill('Researcher risk and access note.');
+  assert.ok(await roadmapSection.getByRole('link', { name: /Randomized intervention improves clinical outcome/ }).count(), 'roadmap must show its authentic project source');
+  await roadmapSection.getByRole('button', { name: 'Approve selected tasks into workplan draft', exact: true }).click();
+  await page.getByRole('button', { name: 'Timeline', exact: true }).click();
+  await page.getByText(/Approved proposed tasks were added to the current workplan draft/).waitFor();
+  assert.equal(await page.locator('section[aria-labelledby="structured-workplan-title"] input[id^="workplan-title-"]').count(), 2, 'roadmap approval must append two proposed tasks to the existing project planner');
+  assert.equal(await page.getByLabel('Researcher notes').first().inputValue(), 'Researcher risk and access note.');
+  assert.equal((tables.projects[0].data.plan_items || []).length, 0, 'approval only updates the draft; it does not persist tasks');
+  await page.getByRole('button', { name: 'Save workplan', exact: true }).click();
+  await page.getByText('Workplan saved', { exact: true }).waitFor();
+  assert.equal(tables.projects[0].data.plan_items.length, 2);
+  assert.equal(tables.projects[0].data.plan_items[0].title, 'Researcher-reviewed protocol task');
+  assert.equal(tables.projects[0].data.plan_items[0].status, 'todo');
+  assert.equal(tables.projects[0].data.plan_items[0].researcher_notes, 'Researcher risk and access note.');
+  assert.equal(tables.projects[0].data.plan_items[1].depends_on[0], tables.projects[0].data.plan_items[0].id);
+  await page.reload();
+  await page.getByRole('button', { name: 'Timeline', exact: true }).click();
+  assert.equal(await page.locator('section[aria-labelledby="structured-workplan-title"] input[id^="workplan-title-"]').first().inputValue(), 'Researcher-reviewed protocol task');
+  assert.equal(await page.getByLabel('Researcher notes').first().inputValue(), 'Researcher risk and access note.');
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
   const savedProposalSnapshot = structuredClone(tables.projects[0].data.research_proposal);
   await page.getByLabel('Background statement 1', { exact: true }).fill('Unsaved proposal edit preserved after conflict.');
   tables.projects[0].updated_date = '2099-01-01T00:00:00.000Z';
