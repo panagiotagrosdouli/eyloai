@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   METHODOLOGY_SECTIONS, RESEARCH_METHODOLOGY_SCHEMA, buildMethodologyPrompt,
-  validateMethodologyDraft, methodologySaveReceipt, methodologyErrorMessage, methodologyMarkdown,
+  validateMethodologyDraft, methodologySaveReceipt, methodologyErrorMessage, methodologyMarkdown, hasMethodologyDraft,
 } from '../src/lib/research-methodology-studio.mjs';
 
 const paper = { id: 'paper-1', project_id: 'project-1', title: 'A study', authors: 'A. Author', year: '2024', doi: '10.1234/example', url: 'https://doi.org/10.1234/example', summary: 'Abstract only.' };
@@ -57,6 +57,14 @@ test('methodology save receipt requires matching project UUID and exact artifact
   assert.equal(methodologySaveReceipt({ id: 'project-1', research_methodology: artifact }, 'project-1', artifact), true);
   assert.equal(methodologySaveReceipt({ id: 'project-2', research_methodology: artifact }, 'project-1', artifact), false);
   assert.equal(methodologySaveReceipt({ id: 'project-1', research_methodology: {} }, 'project-1', artifact), false);
+});
+
+test('manual researcher content enables a methodology save before EYRA generation', () => {
+  const topics = Object.fromEntries(METHODOLOGY_SECTIONS.map(section => [section.id, { status: 'needs_input', claims: [] }]));
+  assert.equal(hasMethodologyDraft({ topics }), false);
+  const manual = { ...topics, study_design: { status: 'drafted', claims: [{ text: 'Researcher proposed design.' }] } };
+  assert.equal(hasMethodologyDraft({ topics: manual }), true);
+  assert.equal(hasMethodologyDraft({ topics, topicNotes: { study_design: 'Researcher note' } }), true);
 });
 
 test('safe errors cover cancel, rate limit, timeout and malformed output', () => {
