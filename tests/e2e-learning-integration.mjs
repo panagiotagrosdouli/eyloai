@@ -536,6 +536,7 @@ try {
   await page.getByText('Literature review saved to this private research project.').waitFor();
   assert.equal(tables.projects[0].data.literature_review.edited_sections[0].claims[0].text, 'Researcher-edited synthesis.');
   assert.deepEqual(tables.projects[0].data.literature_review.selected_paper_ids, [tables.saved_papers[0].id]);
+  assert.equal(tables.projects[0].data.literature_review.ai_draft.research_question, question);
   await page.reload();
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
   assert.equal(await page.getByLabel('Literature review research question', { exact: true }).inputValue(), question);
