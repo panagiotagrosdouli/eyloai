@@ -20,6 +20,7 @@ import StartupBuilder from '@/components/projects/StartupBuilder';
 import EyraProjectTwin from '@/components/eyra/EyraProjectTwin';
 import PaperSummary from '@/components/eyra/PaperSummary';
 import EvidenceMatrixStudio from '@/components/projects/EvidenceMatrixStudio';
+import LiteratureReviewBuilder from '@/components/projects/LiteratureReviewBuilder';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
@@ -664,6 +665,12 @@ Rules:
             onProjectSaved={saved => setProject(previous => ({ ...previous, ...saved }))}
             onPapersChanged={setSavedPapers}
           />
+          <LiteratureReviewBuilder
+            key={`${id}-literature-review`}
+            project={project}
+            savedPapers={savedPapers}
+            onProjectSaved={saved => setProject(previous => ({ ...previous, ...saved }))}
+          />
           {savedPapers.length ? savedPapers.map(paper => (
             <article key={paper.id} className="rounded-xl border border-border bg-card p-4 sm:p-5">
               <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">{paper.source && <span>{paper.source}</span>}{paper.year && <span>{paper.year}</span>}</div>
@@ -982,3 +989,4 @@ Rules:
     </div>
   );
 }
+
