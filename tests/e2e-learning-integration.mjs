@@ -373,6 +373,10 @@ try {
   }, { times: 1 });
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
   await historyStarted;
+  const cancelledHistoryRequest = page.waitForEvent('requestfailed', {
+    predicate: request => request.url().includes('/rest/v1/eyra_messages'),
+    timeout: 10_000,
+  });
   // Explicitly require the confirmation dialog: a guarded/no-op Clear click
   // must fail this test at the actual cause, not 20 seconds later at the DOM.
   // A native confirmation dialog is already covered in the earlier clear.
@@ -392,17 +396,13 @@ try {
     return count;
   });
   assert.equal(clearConfirmCalls, 1, 'Clear during a pending restore must reach the confirmation handler exactly once');
-  const clearDiagnostics = await page.evaluate(() => ({
-    transcript: document.querySelector('[aria-label="EYRA conversation"]')?.innerText.slice(0, 600),
-    localKeys: Object.keys(sessionStorage).filter(key => key.includes('eyra')),
-    clearButtons: [...document.querySelectorAll('[aria-label="Clear EYRA conversation"]')].length,
-  }));
-  console.log('EYRA pending-restore clear diagnostics (synthetic fixture only):', JSON.stringify(clearDiagnostics));
-  // Verify the actual React clear committed before the delayed network
-  // response is released. A real stale history restore must not resurrect it.
+  // Verify the actual React clear committed while the saved-history request is
+  // still held. Clear now aborts that request, so no HTTP response is expected.
   await eyraTranscript.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
-  const historyResponse = page.waitForResponse(response => response.url().includes('/rest/v1/eyra_messages'));
-  releaseHistory(); await (await historyResponse).finished();
+  releaseHistory();
+  const failedHistoryRequest = await cancelledHistoryRequest;
+  assert.match(failedHistoryRequest.failure()?.errorText || '', /abort|cancel/i,
+    'clearing during restore must cancel the in-flight history request');
   await page.waitForTimeout(250);
   assert.equal(await eyraTranscript.getByText(answer, { exact: true }).count(), 0, 'late history cannot restore a chat after clear');
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
