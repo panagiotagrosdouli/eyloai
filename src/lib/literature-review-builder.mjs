@@ -29,7 +29,7 @@ export const LITERATURE_REVIEW_SCHEMA = {
             items: {
               type: 'object',
               additionalProperties: false,
-              required: ['text', 'source_ids'],
+              required: ['heading', 'text', 'source_ids'],
               properties: {
                 heading: { type: 'string' },
                 text: { type: 'string' },
