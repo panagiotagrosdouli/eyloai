@@ -19,7 +19,7 @@ const papers = [
 function validDraft(sourceId = 'paper-a') {
   return { sections: LITERATURE_REVIEW_SECTIONS.map((section, index) => ({
     section_id: section.id,
-    claims: index === 0 ? [{ text: 'Supported background.', source_ids: [sourceId] }] : [],
+    claims: index === 0 ? [{ heading: '', text: 'Supported background.', source_ids: [sourceId] }] : [],
   })) };
 }
 
@@ -33,6 +33,9 @@ test('review validation requires every section and only selected real source ide
   assert.deepEqual(checked[0].claims[0].source_ids, ['paper-a']);
   assert.throws(() => validateLiteratureReviewDraft(validDraft('invented-id'), [papers[0]]), /not selected/);
   assert.throws(() => validateLiteratureReviewDraft({ sections: validDraft().sections.slice(1) }, [papers[0]]), /every required/);
+  const extraProperty = validDraft();
+  extraProperty.sections[0].claims[0].fabricated_doi = '10.9999/not-real';
+  assert.throws(() => validateLiteratureReviewDraft(extraProperty, [papers[0]]), /text and linked sources/);
 });
 
 test('every factual claim must carry source provenance', () => {
