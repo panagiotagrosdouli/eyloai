@@ -129,3 +129,13 @@ test('Markdown export retains real selected citations, labels proposed methods a
   assert.doesNotMatch(markdown, /Other project source/);
   assert.doesNotMatch(markdown, /javascript:/i);
 });
+
+test('marking a section or methodology topic not applicable suppresses its preserved text in export', () => {
+  const checked = validateResearchProposalDraft(validProposal(), [papers[0]]);
+  const sections = checked.sections.map(section => section.section_id === 'background'
+    ? { ...section, status: 'not_applicable', claims: [{ heading: 'Preserved', text: 'Hidden until status changes', kind: 'proposal', source_ids: [] }] }
+    : section);
+  const methodologyPlan = { ...checked.methodology_plan, approach: { status: 'not_applicable', claims: [{ heading: '', text: 'Hidden proposed approach', kind: 'proposal', source_ids: [] }] } };
+  const markdown = exportResearchProposalMarkdown({ question: 'Question', researchType: 'other', sections, methodologyPlan, bibliography: [] });
+  assert.doesNotMatch(markdown, /Hidden until status changes|Hidden proposed approach/);
+});

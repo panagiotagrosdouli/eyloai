@@ -309,13 +309,13 @@ export function exportResearchProposalMarkdown({ question, researchType, section
         const field = methodologyPlan?.[topic.id] || { status: 'needs_input', claims: [] };
         lines.push(`### ${topic.label}`, '');
         if (field.status !== 'drafted') lines.push(`_${field.status === 'not_applicable' ? 'Not applicable for this proposal type.' : 'Requires researcher input.'}_`, '');
-        lines.push(...claimsMarkdown(field.claims, sourceMap, bibliographyEntries), '');
+        if (field.status !== 'not_applicable') lines.push(...claimsMarkdown(field.claims, sourceMap, bibliographyEntries), '');
       }
     }
     const section = byId.get(definition.id);
     if (section?.status === 'not_applicable') lines.push('_Marked not applicable for this research type._', '');
     else if (section?.status === 'needs_input') lines.push('_Requires researcher input._', '');
-    lines.push(...claimsMarkdown(section?.claims, sourceMap, bibliographyEntries));
+    if (section?.status !== 'not_applicable') lines.push(...claimsMarkdown(section?.claims, sourceMap, bibliographyEntries));
     if (sectionNotes[definition.id]?.trim()) lines.push(`\n**Researcher-authored addition:** ${sectionNotes[definition.id].trim()}`);
     lines.push('');
   }
