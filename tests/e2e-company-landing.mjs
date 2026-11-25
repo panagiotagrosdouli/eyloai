@@ -406,7 +406,7 @@ try {
   );
   await page.goto(base);
   await page
-    .getByRole("link", { name: "Create your workspace", exact: true })
+    .getByRole("link", { name: "Create a workspace", exact: true })
     .click();
   await page
     .getByRole("heading", {
