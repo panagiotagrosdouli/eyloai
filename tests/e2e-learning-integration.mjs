@@ -133,7 +133,7 @@ try {
     return route.fulfill({ status: 503, headers, body: '{}' });
   });
   await page.route('https://api.openalex.org/works?**', route => json(route, { results: [{
-      id: 'https://openalex.org/W1234567890', doi: 'https://doi.org/10.5555/eylo-matrix-fixture',
+      id: 'https://doi.org/10.5555/eylo-matrix-fixture', doi: 'https://doi.org/10.5555/eylo-matrix-fixture',
       title: 'Randomized intervention improves clinical outcome in a controlled trial',
       authorships: [{ author: { display_name: 'Fixture Researcher', id: 'https://openalex.org/A1234567890' }, institutions: [] }],
       publication_year: 2024, abstract_inverted_index: { 'The': [0], 'randomized': [1], 'trial': [2], 'enrolled': [3], 'adults': [4], 'and': [5], 'reported': [6], 'improvement.': [7] },
@@ -542,14 +542,14 @@ try {
   assert.equal(await page.getByLabel('Literature review research question', { exact: true }).inputValue(), question);
   assert.equal(await page.getByLabel('Scientific background claim 1', { exact: true }).inputValue(), 'Researcher-edited synthesis.');
   assert.equal(tables.projects[0].data.literature_review.search_scope, 'Fixture scholarly search; selected abstract only');
-  assert.ok(await page.locator('a[href="https://openalex.org/W1234567890"]').count() > 0, 'review citations must link to the saved scholarly record');
+  assert.ok(await page.locator('a[href="https://doi.org/10.5555/eylo-matrix-fixture"]').count() > 0, 'review citations must link to the saved scholarly record');
   const literatureReviewDownloadEvent = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export Markdown', exact: true }).click();
   const downloadedReview = await literatureReviewDownloadEvent;
   assert.equal(downloadedReview.suggestedFilename(), 'literature-review-draft.md');
   const reviewMarkdown = await readFile(await downloadedReview.path(), 'utf8');
   assert.match(reviewMarkdown, /Researcher-edited synthesis/);
-  assert.match(reviewMarkdown, /https:\/\/openalex\.org\/W1234567890/);
+  assert.match(reviewMarkdown, /https:\/\/doi\.org\/10\.5555\/eylo-matrix-fixture/);
   assert.match(reviewMarkdown, /10\.5555\/eylo-matrix-fixture/);
   const evidenceCsv = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export CSV', exact: true }).click();
