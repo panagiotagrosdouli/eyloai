@@ -65,17 +65,20 @@ export function validateLiteratureReviewDraft(result, papers) {
   const seen = new Set();
   const sections = [];
   for (const section of result.sections) {
-    if (!section || !sectionIds.has(section.section_id) || seen.has(section.section_id) || !Array.isArray(section.claims)) {
+    if (!section || Object.keys(section).some(key => !['section_id', 'claims'].includes(key))
+      || !sectionIds.has(section.section_id) || seen.has(section.section_id) || !Array.isArray(section.claims)) {
       throw new Error('EYRA returned an invalid or repeated literature review section.');
     }
     seen.add(section.section_id);
     const claims = section.claims.map(claim => {
-      if (!claim || typeof claim.text !== 'string' || !claim.text.trim() || !Array.isArray(claim.source_ids) || claim.source_ids.length === 0) {
+      if (!claim || Object.keys(claim).some(key => !['heading', 'text', 'source_ids'].includes(key))
+        || typeof claim.heading !== 'string' || typeof claim.text !== 'string' || !claim.text.trim()
+        || !Array.isArray(claim.source_ids) || claim.source_ids.length === 0) {
         throw new Error('Each literature review claim must include text and linked sources.');
       }
       const sourceIds = [...new Set(claim.source_ids.map(String))];
       if (sourceIds.some(id => !allowedIds.has(id))) throw new Error('EYRA cited a publication that is not selected in this project.');
-      return { heading: String(claim.heading || '').trim(), text: claim.text.trim(), source_ids: sourceIds };
+      return { heading: claim.heading.trim(), text: claim.text.trim(), source_ids: sourceIds };
     });
     sections.push({ section_id: section.section_id, claims });
   }
