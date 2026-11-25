@@ -493,7 +493,7 @@ try {
 
   await page.reload();
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
-  const question = 'Does a randomized intervention improve clinical outcome?';
+  const question = 'Do randomized interventions improve clinical outcomes?';
   await page.getByLabel('Research question', { exact: true }).fill(question);
   await page.getByRole('button', { name: 'Search scholarly sources', exact: true }).click();
   await page.getByRole('heading', { name: 'Randomized intervention improves clinical outcome in a controlled trial' }).waitFor();
