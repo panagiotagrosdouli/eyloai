@@ -114,7 +114,7 @@ export default function LiteratureReviewBuilder({ project, savedPapers, onProjec
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <label className="block text-sm font-medium">Research question
+        <label className="block text-sm font-medium">Literature review research question
           <textarea value={question} onChange={event => setQuestion(event.target.value)} maxLength={1200} rows={3} className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm leading-6" placeholder="What does the evidence show about…" />
         </label>
         <label className="block text-sm font-medium">Search scope <span className="font-normal text-muted-foreground">(researcher defined)</span>
