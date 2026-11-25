@@ -547,7 +547,7 @@ try {
   await page.getByRole('button', { name: 'Generate literature review', exact: true }).click();
   await page.getByText(/Your edited review remains intact/).waitFor();
   assert.equal(await backgroundClaim.inputValue(), 'Researcher-edited synthesis.', 'regeneration must preserve researcher edits');
-  await page.getByRole('button', { name: 'Save to project', exact: true }).click();
+  await page.locator('section[aria-labelledby="literature-review-builder-title"]').getByRole('button', { name: 'Save to project', exact: true }).click();
   await page.getByText('Literature review saved to this private research project.').waitFor();
   assert.equal(tables.projects[0].data.literature_review.edited_sections[0].claims[0].text, 'Researcher-edited synthesis.');
   assert.deepEqual(tables.projects[0].data.literature_review.selected_paper_ids, [tables.saved_papers[0].id]);
@@ -559,7 +559,7 @@ try {
   assert.equal(tables.projects[0].data.literature_review.search_scope, 'Fixture scholarly search; selected abstract only');
   assert.ok(await page.locator('a[href="https://doi.org/10.5555/eylo-matrix-fixture"]').count() > 0, 'review citations must link to the saved scholarly record');
   const literatureReviewDownloadEvent = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Export Markdown', exact: true }).click();
+  await page.locator('section[aria-labelledby="literature-review-builder-title"]').getByRole('button', { name: 'Export Markdown', exact: true }).click();
   const downloadedReview = await literatureReviewDownloadEvent;
   assert.equal(downloadedReview.suggestedFilename(), 'literature-review-draft.md');
   const reviewMarkdown = await readFile(await downloadedReview.path(), 'utf8');
@@ -581,7 +581,7 @@ try {
   assert.equal(await page.getByRole('heading', { name: 'Research Title', exact: true }).count(), 1);
   assert.equal(await page.getByRole('heading', { name: 'Bibliography', exact: true }).count(), 1);
   assert.ok(await page.locator('a[href="https://doi.org/10.5555/eylo-matrix-fixture"]').count() > 0, 'proposal sources must link to the saved scholarly record');
-  await page.getByRole('button', { name: 'Save to project', exact: true }).nth(1).click();
+  await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByRole('button', { name: 'Save to project', exact: true }).click();
   await page.getByText('Proposal saved to this private research project.', { exact: true }).waitFor();
   assert.equal(tables.projects[0].data.research_proposal.edited_sections.length, 18);
   assert.equal(tables.projects[0].data.research_proposal.edited_sections.find(section => section.section_id === 'background').claims[0].text, 'Researcher-edited proposal evidence note.');
@@ -593,13 +593,13 @@ try {
   const savedProposalSnapshot = structuredClone(tables.projects[0].data.research_proposal);
   await page.getByLabel('Background statement 1', { exact: true }).fill('Unsaved proposal edit preserved after conflict.');
   tables.projects[0].updated_date = '2099-01-01T00:00:00.000Z';
-  await page.getByRole('button', { name: 'Save to project', exact: true }).nth(1).click();
+  await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByRole('button', { name: 'Save to project', exact: true }).click();
   await page.getByRole('alert').filter({ hasText: 'This project changed in another session. Your proposal edits remain here' }).waitFor();
   assert.equal(await page.getByLabel('Background statement 1', { exact: true }).inputValue(), 'Unsaved proposal edit preserved after conflict.');
   assert.deepEqual(tables.projects[0].data.research_proposal, savedProposalSnapshot, 'a stale proposal save must preserve the winning private project artifact');
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'proposal editor must fit the 390px mobile browser viewport');
   const proposalDownloadEvent = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Export Markdown' }).last().click();
+  await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByRole('button', { name: 'Export Markdown', exact: true }).click();
   const proposalDownload = await proposalDownloadEvent;
   assert.equal(proposalDownload.suggestedFilename(), 'research-proposal-draft.md');
   const proposalMarkdown = await readFile(await proposalDownload.path(), 'utf8');
@@ -610,7 +610,7 @@ try {
 
   const savedReviewSnapshot = structuredClone(tables.projects[0].data.literature_review);
   tables.projects[0].updated_date = '2099-01-01T00:00:00.000Z';
-  await page.getByRole('button', { name: 'Save to project', exact: true }).click();
+  await page.locator('section[aria-labelledby="literature-review-builder-title"]').getByRole('button', { name: 'Save to project', exact: true }).click();
   await page.getByRole('alert').filter({ hasText: 'This project changed in another session.' }).waitFor();
   assert.equal(await reviewQuestion.inputValue(), question, 'version conflicts must preserve the local research question');
   assert.equal(await page.getByLabel('Scientific background claim 1', { exact: true }).inputValue(), 'Researcher-edited synthesis.');
