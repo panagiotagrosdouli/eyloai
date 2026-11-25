@@ -184,3 +184,12 @@ function safeSourceUrl(paper) {
   const doi = String(paper.doi || '').replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '');
   return /^10\.\d{4,9}\/[-._;()/:A-Z0-9]+$/i.test(doi) ? `https://doi.org/${doi}` : '';
 }
+
+export function hasMethodologyDraft({ aiDraft, savedTopics, topics, topicNotes }) {
+  if (aiDraft || savedTopics) return true;
+  if (Object.values(topicNotes || {}).some(value => String(value || '').trim())) return true;
+  return METHODOLOGY_SECTIONS.some(section => {
+    const topic = topics?.[section.id];
+    return Boolean(topic && (topic.status !== 'needs_input' || (Array.isArray(topic.claims) && topic.claims.length)));
+  });
+}
