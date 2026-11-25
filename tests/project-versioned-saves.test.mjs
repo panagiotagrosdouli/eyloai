@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const project = readFileSync(new URL('../src/pages/ProjectDetail.jsx', import.meta.url), 'utf8');
+const matrixStudio = readFileSync(new URL('../src/components/projects/EvidenceMatrixStudio.jsx', import.meta.url), 'utf8');
 
 test('core human-authored project fields use versioned saves', () => {
   assert.match(project, /Project\.updateIfUnchanged\(id, localDraft, base\.updated_date\)/);
   assert.match(project, /Project\.updateIfUnchanged\(id, \{ tasks \}, project\.updated_date\)/);
-  assert.match(project, /Project\.updateIfUnchanged\(id, \{ evidence_matrix \}, project\.updated_date\)/);
+  assert.match(matrixStudio, /Project\.updateIfUnchanged\(project\.id, \{ evidence_matrix \}, project\.updated_date\)/);
+  assert.match(matrixStudio, /saved\?\.evidence_matrix\?\.research_question/);
 });
 
 test('EYRA report cannot overwrite a project edited during an external model call', () => {
@@ -21,6 +23,6 @@ test('EYRA report cannot overwrite a project edited during an external model cal
 test('project failures remain visible and do not silently retry over a conflict', () => {
   assert.match(project, /Could not save project/);
   assert.match(project, /Could not update task/);
-  assert.match(project, /Could not save evidence matrix/);
+  assert.match(matrixStudio, /Your edits remain here; reload the project before saving/);
   assert.doesNotMatch(project, /Project\.update\(id,/);
 });
