@@ -486,7 +486,7 @@ export default async function handler(request, response) {
       // Preserve every earlier tool exchange; dropping previous rounds causes
       // the model to lose verified results and can trigger repeated actions.
       toolTranscript.push(...(result.output || []), ...outputs);
-      const followup = await fetch('https://api.openai.com/v1/responses', {
+      const followupRequest = {
         method: 'POST',
         headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
         body: JSON.stringify({
@@ -501,16 +501,42 @@ export default async function handler(request, response) {
           max_output_tokens: MAX_OUTPUT_TOKENS,
         }),
         signal: AbortSignal.timeout(60_000),
-      });
+      };
+      let followup = await fetch('https://api.openai.com/v1/responses', followupRequest);
+      let followupLimitDetails = null;
+      if (followup.status === 429) {
+        followupLimitDetails = await inspectOpenAiLimit(followup);
+        // The workspace action above may already have committed. Retry only
+        // the read-only model follow-up, once, and only for an explicitly
+        // short transient delay. Never replay the tool action on a 429.
+        if (!followupLimitDetails.quotaExhausted
+          && followupLimitDetails.retryAfter !== null
+          && followupLimitDetails.retryAfter <= 2) {
+          await new Promise(resolve => setTimeout(resolve, followupLimitDetails.retryAfter * 1000));
+          followup = await fetch('https://api.openai.com/v1/responses', {
+            ...followupRequest,
+            signal: AbortSignal.timeout(60_000),
+          });
+          followupLimitDetails = followup.status === 429 ? await inspectOpenAiLimit(followup) : null;
+        }
+      }
       if (!followup.ok) {
-        const details = followup.status === 429 ? await inspectOpenAiLimit(followup) : null;
         console.error('OpenAI tool follow-up failed', { status: followup.status, requestId: followup.headers?.get?.('x-request-id') || '' });
-        if (details?.retryAfter) response.setHeader('Retry-After', String(details.retryAfter));
-        return response.status(502).json({
-          error: details?.quotaExhausted
+        if (followupLimitDetails?.retryAfter !== null && followupLimitDetails?.retryAfter !== undefined) {
+          response.setHeader('Retry-After', String(followupLimitDetails.retryAfter));
+        }
+        const quotaExhausted = followup.status === 429 && followupLimitDetails?.quotaExhausted;
+        const rateLimited = followup.status === 429 && !quotaExhausted;
+        return response.status(rateLimited || quotaExhausted ? 503 : 502).json({
+          error: quotaExhausted
             ? 'A workspace action ran, but EYRA API quota is exhausted. Review the completed actions before retrying.'
-            : 'A workspace action ran, but EYRA could not prepare its final response. Review completed actions before retrying.',
-          code: details?.quotaExhausted ? 'TOOL_FOLLOWUP_QUOTA_EXHAUSTED' : 'TOOL_FOLLOWUP_FAILED',
+            : rateLimited
+              ? 'A workspace action ran, but EYRA is still rate limited. Review the completed actions before retrying.'
+              : 'A workspace action ran, but EYRA could not prepare its final response. Review completed actions before retrying.',
+          code: quotaExhausted ? 'TOOL_FOLLOWUP_QUOTA_EXHAUSTED'
+            : rateLimited ? 'TOOL_FOLLOWUP_RATE_LIMITED' : 'TOOL_FOLLOWUP_FAILED',
+          ...(rateLimited && followupLimitDetails?.retryAfter !== null && followupLimitDetails?.retryAfter !== undefined
+            ? { retry_after_seconds: followupLimitDetails.retryAfter } : {}),
           actions: actionResults,
         });
       }
