@@ -22,7 +22,6 @@ import PaperSummary from '@/components/eyra/PaperSummary';
 import EvidenceMatrixStudio from '@/components/projects/EvidenceMatrixStudio';
 import LiteratureReviewBuilder from '@/components/projects/LiteratureReviewBuilder';
 import ResearchProposalBuilder from '@/components/projects/ResearchProposalBuilder';
-import ResearchMethodologyStudio from '@/components/projects/ResearchMethodologyStudio';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
@@ -675,12 +674,6 @@ Rules:
           />
           <ResearchProposalBuilder
             key={`${id}-research-proposal`}
-            project={project}
-            savedPapers={savedPapers}
-            onProjectSaved={saved => setProject(previous => ({ ...previous, ...saved }))}
-          />
-          <ResearchMethodologyStudio
-            key={`${id}-research-methodology`}
             project={project}
             savedPapers={savedPapers}
             onProjectSaved={saved => setProject(previous => ({ ...previous, ...saved }))}
