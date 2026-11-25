@@ -120,6 +120,20 @@ try {
       const [source] = JSON.parse(sourceJson);
       return json(route, { data: { rows: [{ paper_id: source.id, study_design: 'Controlled trial', dataset: 'Adults described in the abstract', findings: 'The abstract reports an improvement.', limitations: 'Not reported in the available record.' }] } });
     }
+    if (body.prompt?.includes('scientific research proposal')) {
+      const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
+      assert.ok(sourceId, 'proposal prompt must include a saved source identifier');
+      assert.ok(body.prompt.includes('Researcher-edited synthesis.'), 'explicitly selected Literature Review context must be available');
+      assert.ok(body.prompt.includes('Researcher-checked finding'), 'selected Evidence Matrix context must be available');
+      const sectionIds = ['research_title','abstract','background','problem_statement','scientific_rationale','research_objectives','research_questions','hypotheses','literature_context','research_methodology','study_design','data_collection','data_analysis_plan','ethical_considerations','expected_contributions','research_limitations','research_timeline','bibliography'];
+      const sections = sectionIds.map((section_id, index) => ({
+        section_id, status: section_id === 'bibliography' ? 'drafted' : 'needs_input',
+        claims: section_id === 'background' ? [{ heading: 'Available abstract evidence', text: 'The selected abstract reports a controlled intervention.', kind: 'source_fact', source_ids: [sourceId] }]
+          : section_id === 'research_title' ? [{ heading: 'Working title', text: 'A proposed study of the selected question.', kind: 'proposal', source_ids: [] }] : [],
+      }));
+      const methodology_plan = Object.fromEntries(['approach','population_sampling','variables_constructs','validation','reproducibility'].map(id => [id, { status: 'needs_input', claims: [] }]));
+      return json(route, { data: { sections, methodology_plan } });
+    }
     if (body.prompt?.includes('preliminary narrative literature review')) {
       const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
       assert.ok(sourceId, 'literature review prompt must include a saved source identifier');
@@ -552,6 +566,39 @@ try {
   assert.match(reviewMarkdown, /Researcher-edited synthesis/);
   assert.match(reviewMarkdown, /https:\/\/doi\.org\/10\.5555\/eylo-matrix-fixture/);
   assert.match(reviewMarkdown, /10\.5555\/eylo-matrix-fixture/);
+  // Proposal Studio reuses the selected source and the explicitly selected, saved upstream artifacts.
+  await page.getByLabel('Researcher-authored matrix notes', { exact: true }).check();
+  const proposalQuestion = page.getByLabel('Proposal research question', { exact: true });
+  assert.equal(await proposalQuestion.inputValue(), question);
+  await page.getByRole('button', { name: 'Generate proposal', exact: true }).click();
+  const proposalBackground = page.getByLabel('Background statement 1', { exact: true });
+  await proposalBackground.waitFor();
+  await proposalBackground.fill('Researcher-edited proposal evidence note.');
+  await page.getByRole('button', { name: 'Generate proposal', exact: true }).click();
+  await page.getByText(/Your edits remain intact/).waitFor();
+  assert.equal(await proposalBackground.inputValue(), 'Researcher-edited proposal evidence note.', 'regeneration must preserve researcher edits');
+  assert.equal(await page.getByRole('heading', { name: 'Research Title', exact: true }).count(), 1);
+  assert.equal(await page.getByRole('heading', { name: 'Bibliography', exact: true }).count(), 1);
+  assert.ok(await page.locator('a[href="https://doi.org/10.5555/eylo-matrix-fixture"]').count() > 0, 'proposal sources must link to the saved scholarly record');
+  await page.getByRole('button', { name: 'Save to project', exact: true }).nth(1).click();
+  await page.getByText('Proposal saved to this private research project.', { exact: true }).waitFor();
+  assert.equal(tables.projects[0].data.research_proposal.edited_sections.length, 18);
+  assert.equal(tables.projects[0].data.research_proposal.edited_sections.find(section => section.section_id === 'background').claims[0].text, 'Researcher-edited proposal evidence note.');
+  assert.deepEqual(tables.projects[0].data.research_proposal.selected_paper_ids, [tables.saved_papers[0].id]);
+  await page.reload();
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  assert.equal(await page.getByLabel('Proposal research question', { exact: true }).inputValue(), question);
+  assert.equal(await page.getByLabel('Background statement 1', { exact: true }).inputValue(), 'Researcher-edited proposal evidence note.');
+  const proposalDownloadEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export Markdown' }).last().click();
+  const proposalDownload = await proposalDownloadEvent;
+  assert.equal(proposalDownload.suggestedFilename(), 'research-proposal-draft.md');
+  const proposalMarkdown = await readFile(await proposalDownload.path(), 'utf8');
+  assert.match(proposalMarkdown, /Researcher-edited proposal evidence note/);
+  assert.match(proposalMarkdown, /10\.5555\/eylo-matrix-fixture/);
+  assert.match(proposalMarkdown, /https:\/\/doi\.org\/10\.5555\/eylo-matrix-fixture/);
+  console.log('PASS fixture: selected scholarly source + Evidence Matrix + Literature Review → structured proposal generation, edit-preserving regeneration, private project save/reload and DOI-linked Markdown export.');
+
   const savedReviewSnapshot = structuredClone(tables.projects[0].data.literature_review);
   tables.projects[0].updated_date = '2099-01-01T00:00:00.000Z';
   await page.getByRole('button', { name: 'Save to project', exact: true }).click();
