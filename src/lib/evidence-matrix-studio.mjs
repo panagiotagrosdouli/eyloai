@@ -61,6 +61,24 @@ export function validateEvidenceMatrixDraft(result, papers) {
   return rows;
 }
 
+function sameStructuredValue(left, right) {
+  if (Object.is(left, right)) return true;
+  if (Array.isArray(left) || Array.isArray(right)) {
+    return Array.isArray(left) && Array.isArray(right) && left.length === right.length
+      && left.every((value, index) => sameStructuredValue(value, right[index]));
+  }
+  if (!left || !right || typeof left !== 'object' || typeof right !== 'object') return false;
+  const leftKeys = Object.keys(left).sort();
+  const rightKeys = Object.keys(right).sort();
+  return leftKeys.length === rightKeys.length && leftKeys.every((key, index) => key === rightKeys[index]
+    && sameStructuredValue(left[key], right[key]));
+}
+
+export function hasEvidenceMatrixSaveReceipt(savedProject, expectedProjectId, expectedMatrix) {
+  return savedProject?.id === expectedProjectId
+    && sameStructuredValue(savedProject?.evidence_matrix, expectedMatrix);
+}
+
 function csvCell(value) {
   let text = value == null || value === '' ? 'Not recorded' : String(value);
   if (/^[\t ]*[=+@-]/.test(text)) text = `'${text}`;

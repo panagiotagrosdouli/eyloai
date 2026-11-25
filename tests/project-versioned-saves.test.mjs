@@ -9,7 +9,7 @@ test('core human-authored project fields use versioned saves', () => {
   assert.match(project, /Project\.updateIfUnchanged\(id, localDraft, base\.updated_date\)/);
   assert.match(project, /Project\.updateIfUnchanged\(id, \{ tasks \}, project\.updated_date\)/);
   assert.match(matrixStudio, /Project\.updateIfUnchanged\(project\.id, \{ evidence_matrix \}, project\.updated_date\)/);
-  assert.match(matrixStudio, /saved\?\.evidence_matrix\?\.research_question/);
+  assert.match(matrixStudio, /hasEvidenceMatrixSaveReceipt\(saved, project\.id, evidence_matrix\)/);
 });
 
 test('EYRA report cannot overwrite a project edited during an external model call', () => {

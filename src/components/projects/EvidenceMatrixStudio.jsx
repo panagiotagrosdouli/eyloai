@@ -10,6 +10,7 @@ import {
   EVIDENCE_MATRIX_FIELDS,
   EVIDENCE_MATRIX_SCHEMA,
   exportEvidenceMatrixStudioCsv,
+  hasEvidenceMatrixSaveReceipt,
   validateEvidenceMatrixDraft,
 } from '@/lib/evidence-matrix-studio.mjs';
 
@@ -111,7 +112,7 @@ export default function EvidenceMatrixStudio({ project, savedPapers, onProjectSa
     };
     try {
       const saved = await base44.entities.Project.updateIfUnchanged(project.id, { evidence_matrix }, project.updated_date);
-      if (saved?.id !== project.id || saved?.evidence_matrix?.research_question !== evidence_matrix.research_question) {
+      if (!hasEvidenceMatrixSaveReceipt(saved, project.id, evidence_matrix)) {
         throw new Error('The saved project could not be verified. Reload before relying on this save.');
       }
       onProjectSaved(saved);
