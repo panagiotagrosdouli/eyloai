@@ -569,7 +569,7 @@ try {
   // Proposal Studio reuses the selected source and the explicitly selected, saved upstream artifacts.
   await page.getByLabel('Researcher-authored matrix notes', { exact: true }).check();
   await page.getByLabel('Literature Review', { exact: true }).check();
-  const proposalQuestion = page.getByLabel('Proposal research question', { exact: true });
+  const proposalQuestion = page.locator('label').filter({ hasText: 'Proposal research question' }).locator('textarea');
   assert.equal(await proposalQuestion.inputValue(), question);
   await page.getByRole('button', { name: 'Generate proposal', exact: true }).click();
   const proposalBackground = page.getByLabel('Background statement 1', { exact: true });
@@ -588,7 +588,7 @@ try {
   assert.deepEqual(tables.projects[0].data.research_proposal.selected_paper_ids, [tables.saved_papers[0].id]);
   await page.reload();
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
-  assert.equal(await page.getByLabel('Proposal research question', { exact: true }).inputValue(), question);
+  assert.equal(await page.locator('label').filter({ hasText: 'Proposal research question' }).locator('textarea').inputValue(), question);
   assert.equal(await page.getByLabel('Background statement 1', { exact: true }).inputValue(), 'Researcher-edited proposal evidence note.');
   const savedProposalSnapshot = structuredClone(tables.projects[0].data.research_proposal);
   await page.getByLabel('Background statement 1', { exact: true }).fill('Unsaved proposal edit preserved after conflict.');
