@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { WORKSPACE_EXPORT_TABLES } from '../src/lib/workspace-export.mjs';
 
@@ -541,9 +541,15 @@ try {
   assert.equal(await page.getByLabel('Literature review research question', { exact: true }).inputValue(), question);
   assert.equal(await page.getByLabel('Scientific background claim 1', { exact: true }).inputValue(), 'Researcher-edited synthesis.');
   assert.equal(tables.projects[0].data.literature_review.search_scope, 'Fixture scholarly search; selected abstract only');
+  assert.ok(await page.locator('a[href="https://openalex.org/W1234567890"]').count() > 0, 'review citations must link to the saved scholarly record');
   const reviewDownload = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export Markdown', exact: true }).click();
-  assert.equal((await reviewDownload).suggestedFilename(), 'literature-review-draft.md');
+  const downloadedReview = await reviewDownload;
+  assert.equal(downloadedReview.suggestedFilename(), 'literature-review-draft.md');
+  const reviewMarkdown = await readFile(await downloadedReview.path(), 'utf8');
+  assert.match(reviewMarkdown, /Researcher-edited synthesis/);
+  assert.match(reviewMarkdown, /https:\/\/openalex\.org\/W1234567890/);
+  assert.match(reviewMarkdown, /10\.5555\/eylo-matrix-fixture/);
   const evidenceCsv = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export CSV', exact: true }).click();
   assert.match((await evidenceCsv).suggestedFilename(), /^evidence-matrix-/);
