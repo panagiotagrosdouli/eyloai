@@ -552,12 +552,19 @@ try {
   assert.match(reviewMarkdown, /Researcher-edited synthesis/);
   assert.match(reviewMarkdown, /https:\/\/doi\.org\/10\.5555\/eylo-matrix-fixture/);
   assert.match(reviewMarkdown, /10\.5555\/eylo-matrix-fixture/);
+  const savedReviewSnapshot = structuredClone(tables.projects[0].data.literature_review);
+  tables.projects[0].updated_date = '2099-01-01T00:00:00.000Z';
+  await page.getByRole('button', { name: 'Save to project', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'This project changed in another session.' }).waitFor();
+  assert.equal(await reviewQuestion.inputValue(), question, 'version conflicts must preserve the local research question');
+  assert.equal(await page.getByLabel('Scientific background claim 1', { exact: true }).inputValue(), 'Researcher-edited synthesis.');
+  assert.deepEqual(tables.projects[0].data.literature_review, savedReviewSnapshot, 'a stale save must not overwrite the winning artifact');
   const evidenceCsv = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export CSV', exact: true }).click();
   assert.match((await evidenceCsv).suggestedFilename(), /^evidence-matrix-/);
   Object.assign(tables.projects[0], projectBeforeMatrixFixture);
   tables.saved_papers.splice(0, tables.saved_papers.length, ...papersBeforeMatrixFixture);
-  console.log('PASS fixture: scholarly search → private project source link → EYRA validation → editable matrix persistence/reopen → CSV export.');
+  console.log('PASS fixture: scholarly search → Evidence Matrix → source-grounded Literature Review edit/regenerate/save/reload → version-conflict preservation → citation-linked Markdown and matrix CSV export.');
 
   tables.saved_papers.push({ id: '90000000-0000-4000-8000-000000000001', user_id: user.id, data: { title: 'Synthetic review protocol fixture paper', authors: 'Fixture Author', year: 2025, url: 'https://example.org/fixture-paper' } });
   tables.projects.push({ id: '10000000-0000-0000-0000-000000000002', user_id: user.id, data: { title: 'Second protocol project' }, updated_date: now() });
