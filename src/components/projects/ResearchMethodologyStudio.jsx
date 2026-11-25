@@ -6,7 +6,7 @@ import {
 } from '@/lib/research-proposal-studio.mjs';
 import {
   METHODOLOGY_DISCIPLINES, METHODOLOGY_SECTIONS, METHOD_IMPLEMENTATION_STATES,
-  METHOD_STATUSES, methodologyErrorMessage, methodologyMarkdown, methodologySaveReceipt,
+  METHOD_STATUSES, hasMethodologyDraft, methodologyErrorMessage, methodologyMarkdown, methodologySaveReceipt,
   RESEARCH_METHODOLOGY_SCHEMA, validateMethodologyDraft, buildMethodologyPrompt,
 } from '@/lib/research-methodology-studio.mjs';
 
@@ -52,7 +52,7 @@ export default function ResearchMethodologyStudio({ project, savedPapers, onProj
   const controllerRef = useRef(null);
   const selectedPapers = linkedPapers.filter(paper => selectedIds.includes(String(paper.id)));
   const sourceMap = useMemo(() => new Map(linkedPapers.map(paper => [String(paper.id), paper])), [linkedPapers]);
-  const hasDraft = Boolean(aiDraft || stored.edited_topics || Object.values(topicNotes).some(value => String(value || '').trim()));
+  const hasDraft = hasMethodologyDraft({ aiDraft, savedTopics: stored.edited_topics, topics, topicNotes });
 
   useEffect(() => () => controllerRef.current?.abort(), []);
   useEffect(() => {
