@@ -120,6 +120,15 @@ try {
       const [source] = JSON.parse(sourceJson);
       return json(route, { data: { rows: [{ paper_id: source.id, study_design: 'Controlled trial', dataset: 'Adults described in the abstract', findings: 'The abstract reports an improvement.', limitations: 'Not reported in the available record.' }] } });
     }
+    if (body.prompt?.includes('preliminary narrative literature review')) {
+      const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
+      assert.ok(sourceId, 'literature review prompt must include a saved source identifier');
+      const sectionIds = ['background', 'themes', 'study_comparisons', 'synthesis', 'contradictions', 'limitations', 'research_gaps', 'conclusions'];
+      return json(route, { data: { sections: sectionIds.map((section_id, index) => ({
+        section_id,
+        claims: index === 0 ? [{ text: 'The selected abstract reports a controlled intervention.', source_ids: [sourceId] }] : [],
+      })) } });
+    }
     if (body.stream === true) aiCalls++;
     return route.fulfill({ status: 503, headers, body: '{}' });
   });
@@ -514,6 +523,27 @@ try {
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
   assert.equal(await page.getByLabel('Research question', { exact: true }).inputValue(), question);
   assert.equal(await page.getByLabel('Key findings EYRA draft for Randomized intervention improves clinical outcome in a controlled trial').inputValue(), 'Researcher-checked finding');
+  const reviewQuestion = page.getByLabel('Literature review research question', { exact: true });
+  assert.equal(await reviewQuestion.inputValue(), question);
+  await page.getByLabel('Search scope (researcher defined)').fill('Fixture scholarly search; selected abstract only');
+  await page.getByRole('button', { name: 'Generate literature review', exact: true }).click();
+  const backgroundClaim = page.getByLabel('Scientific background claim 1', { exact: true });
+  await backgroundClaim.fill('Researcher-edited synthesis.');
+  await page.getByRole('button', { name: 'Generate literature review', exact: true }).click();
+  await page.getByText(/Your edited review remains intact/).waitFor();
+  assert.equal(await backgroundClaim.inputValue(), 'Researcher-edited synthesis.', 'regeneration must preserve researcher edits');
+  await page.getByRole('button', { name: 'Save to project', exact: true }).click();
+  await page.getByText('Literature review saved to this private research project.').waitFor();
+  assert.equal(tables.projects[0].data.literature_review.edited_sections[0].claims[0].text, 'Researcher-edited synthesis.');
+  assert.deepEqual(tables.projects[0].data.literature_review.selected_paper_ids, [tables.saved_papers[0].id]);
+  await page.reload();
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  assert.equal(await page.getByLabel('Literature review research question', { exact: true }).inputValue(), question);
+  assert.equal(await page.getByLabel('Scientific background claim 1', { exact: true }).inputValue(), 'Researcher-edited synthesis.');
+  assert.equal(tables.projects[0].data.literature_review.search_scope, 'Fixture scholarly search; selected abstract only');
+  const reviewDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export Markdown', exact: true }).click();
+  assert.equal((await reviewDownload).suggestedFilename(), 'literature-review-draft.md');
   const evidenceCsv = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export CSV', exact: true }).click();
   assert.match((await evidenceCsv).suggestedFilename(), /^evidence-matrix-/);
