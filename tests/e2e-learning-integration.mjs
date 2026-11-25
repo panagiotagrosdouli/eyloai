@@ -126,7 +126,7 @@ try {
       const sectionIds = ['background', 'themes', 'study_comparisons', 'synthesis', 'contradictions', 'limitations', 'research_gaps', 'conclusions'];
       return json(route, { data: { sections: sectionIds.map((section_id, index) => ({
         section_id,
-        claims: index === 0 ? [{ text: 'The selected abstract reports a controlled intervention.', source_ids: [sourceId] }] : [],
+        claims: index === 0 ? [{ heading: 'Available abstract evidence', text: 'The selected abstract reports a controlled intervention.', source_ids: [sourceId] }] : [],
       })) } });
     }
     if (body.stream === true) aiCalls++;
