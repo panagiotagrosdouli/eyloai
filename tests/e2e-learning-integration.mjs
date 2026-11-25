@@ -120,6 +120,16 @@ try {
       const [source] = JSON.parse(sourceJson);
       return json(route, { data: { rows: [{ paper_id: source.id, study_design: 'Controlled trial', dataset: 'Adults described in the abstract', findings: 'The abstract reports an improvement.', limitations: 'Not reported in the available record.' }] } });
     }
+    if (body.prompt?.includes('researcher-reviewed methodology plan')) {
+      const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
+      assert.ok(sourceId, 'methodology prompt must include a saved selected source identifier');
+      assert.ok(body.prompt.includes('Researcher-edited proposal evidence note.'), 'selected proposal context must be authorized for methodology drafting');
+      const sectionIds = ['research_approach','study_design','research_questions','testable_hypotheses','population_sampling','data_sources','variables_measurements','data_collection_procedures','analysis_methods','validation_strategy','reproducibility','ethical_considerations','limitations','research_risks'];
+      const topics = Object.fromEntries(sectionIds.map(id => [id, { status: 'needs_input', claims: [] }]));
+      topics.study_design = { status: 'drafted', claims: [{ heading: 'Proposed design', text: 'A researcher-reviewed proposed design.', kind: 'proposal', source_ids: [] }] };
+      topics.data_sources = { status: 'drafted', claims: [{ heading: 'Abstract record', text: 'The selected scholarly abstract reports an intervention.', kind: 'source_fact', source_ids: [sourceId] }] };
+      return json(route, { data: { topics } });
+    }
     if (body.prompt?.includes('scientific research proposal')) {
       const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
       assert.ok(sourceId, 'proposal prompt must include a saved source identifier');
@@ -590,6 +600,27 @@ try {
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
   assert.equal(await page.locator('label').filter({ hasText: 'Proposal research question' }).locator('textarea').inputValue(), question);
   assert.equal(await page.getByLabel('Background statement 1', { exact: true }).inputValue(), 'Researcher-edited proposal evidence note.');
+  const methodologySection = page.locator('section[aria-labelledby="research-methodology-studio-title"]');
+  const methodologyQuestion = methodologySection.locator('label').filter({ hasText: 'Methodology research question' }).locator('textarea');
+  assert.equal(await methodologyQuestion.inputValue(), question, 'methodology must reuse the saved project question');
+  await methodologySection.getByRole('button', { name: 'Draft methodology with EYRA', exact: true }).click();
+  const methodologyDesign = page.getByLabel('Study design statement 1', { exact: true });
+  await methodologyDesign.waitFor();
+  await methodologyDesign.fill('Researcher-edited proposed methodology.');
+  assert.ok(await methodologySection.getByRole('link', { name: /Randomized intervention improves clinical outcome in a controlled trial/ }).count(), 'methodology must link its selected scholarly record');
+  await methodologySection.getByRole('button', { name: 'Save methodology', exact: true }).click();
+  await page.getByText('Methodology plan saved to this private research project.', { exact: true }).waitFor();
+  assert.equal(tables.projects[0].data.research_methodology.edited_topics.study_design.claims[0].text, 'Researcher-edited proposed methodology.');
+  await page.reload();
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  assert.equal(await page.getByLabel('Study design statement 1', { exact: true }).inputValue(), 'Researcher-edited proposed methodology.');
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'methodology editor must fit the mobile browser viewport');
+  const methodologyDownloadEvent = page.waitForEvent('download');
+  await page.locator('section[aria-labelledby="research-methodology-studio-title"]').getByRole('button', { name: 'Export Markdown', exact: true }).click();
+  const methodologyDownload = await methodologyDownloadEvent;
+  assert.equal(methodologyDownload.suggestedFilename(), 'research-methodology-plan.md');
+  const methodologyFile = await methodologyDownload.path();
+  assert.ok((await readFile(methodologyFile, 'utf8')).includes('Researcher-edited proposed methodology.'));
   const savedProposalSnapshot = structuredClone(tables.projects[0].data.research_proposal);
   await page.getByLabel('Background statement 1', { exact: true }).fill('Unsaved proposal edit preserved after conflict.');
   tables.projects[0].updated_date = '2099-01-01T00:00:00.000Z';
