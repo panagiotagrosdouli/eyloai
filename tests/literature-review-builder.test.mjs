@@ -8,7 +8,7 @@ import {
   hasLiteratureReviewSaveReceipt,
   projectLinkedPapers,
   validateLiteratureReviewDraft,
-} from './literature-review-builder.mjs';
+} from '../src/lib/literature-review-builder.mjs';
 
 const papers = [
   { id: 'paper-a', project_id: 'project-1', title: 'Study A', authors: 'A. Author', year: 2024, source: 'Journal', summary: 'Abstract A', doi: '10.1234/test-a', url: 'https://example.org/a' },
