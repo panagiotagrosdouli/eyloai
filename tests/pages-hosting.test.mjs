@@ -14,6 +14,14 @@ test('GitHub Pages builds from Vite output and verifies deployed release', () =>
   assert.match(workflow, /release\.git_commit !== process\.env\.GITHUB_SHA/);
 });
 
+test('Pages deploy credentials are limited to the deployment job', () => {
+  const workflow = read('.github/workflows/deploy-pages.yml');
+  const workflowPermissions = workflow.match(/^permissions:\n((?:  [\w-]+: \w+\n)+)/m)?.[1];
+  assert.equal(workflowPermissions, '  contents: read\n');
+  assert.match(workflow, /      - uses: actions\/checkout@v4\n        with:\n          persist-credentials: false/);
+  assert.match(workflow, /  deploy:\n    needs: build\n    runs-on: ubuntu-latest\n    permissions:\n      pages: write\n      id-token: write/);
+});
+
 test('Client router and brand assets respect /eyloai/ project hosting', () => {
   assert.match(read('vite.config.js'), /base: process\.env\.EYLO_GITHUB_PAGES/);
   assert.match(read('src/App.jsx'), /Router basename=/);
