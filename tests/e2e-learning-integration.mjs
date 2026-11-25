@@ -127,6 +127,7 @@ try {
       const sectionIds = ['research_approach','study_design','research_questions','testable_hypotheses','population_sampling','data_sources','variables_measurements','data_collection_procedures','analysis_methods','validation_strategy','reproducibility','ethical_considerations','limitations','research_risks'];
       const topics = Object.fromEntries(sectionIds.map(id => [id, { status: 'needs_input', claims: [] }]));
       topics.study_design = { status: 'drafted', claims: [{ heading: 'Proposed design', text: 'A researcher-reviewed proposed design.', kind: 'proposal', source_ids: [] }] };
+      topics.data_sources = { status: 'drafted', claims: [{ heading: 'Available record', text: 'The selected abstract provides a source record.', kind: 'source_fact', source_ids: [sourceId] }] };
       topics.data_sources = { status: 'drafted', claims: [{ heading: 'Abstract record', text: 'The selected scholarly abstract reports an intervention.', kind: 'source_fact', source_ids: [sourceId] }] };
       return json(route, { data: { topics } });
     }
@@ -603,6 +604,8 @@ try {
   const methodologySection = page.locator('section[aria-labelledby="research-methodology-studio-title"]');
   const methodologyQuestion = methodologySection.locator('label').filter({ hasText: 'Methodology research question' }).locator('textarea');
   assert.equal(await methodologyQuestion.inputValue(), question, 'methodology must reuse the saved project question');
+  await methodologyQuestion.focus(); await methodologyQuestion.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement.tagName), 'SELECT', 'methodology fields must be reachable in logical keyboard order');
   await methodologySection.getByRole('button', { name: 'Draft methodology with EYRA', exact: true }).click();
   const methodologyDesign = page.getByLabel('Study design statement 1', { exact: true });
   await methodologyDesign.waitFor();
