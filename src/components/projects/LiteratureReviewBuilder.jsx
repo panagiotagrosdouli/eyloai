@@ -31,6 +31,7 @@ export default function LiteratureReviewBuilder({ project, savedPapers, onProjec
     ? stored.selected_paper_ids.map(String).filter(id => linkedPapers.some(paper => String(paper.id) === id))
     : (project.evidence_matrix?.selected_paper_ids || []).map(String).filter(id => linkedPapers.some(paper => String(paper.id) === id)));
   const [aiDraft, setAiDraft] = useState(Array.isArray(stored.ai_draft?.sections) ? stored.ai_draft.sections : []);
+  const [aiDraftMeta, setAiDraftMeta] = useState(stored.ai_draft && typeof stored.ai_draft === 'object' ? stored.ai_draft : null);
   const [sections, setSections] = useState(Array.isArray(stored.edited_sections) ? stored.edited_sections : (Array.isArray(stored.ai_draft?.sections) ? stored.ai_draft.sections : []));
   const [researcherEdited, setResearcherEdited] = useState(Boolean(stored.researcher_edited));
   const [generating, setGenerating] = useState(false);
@@ -55,7 +56,15 @@ export default function LiteratureReviewBuilder({ project, savedPapers, onProjec
         prompt: buildLiteratureReviewPrompt({ question, searchScope, papers: selectedPapers }),
       });
       const validated = validateLiteratureReviewDraft(result, selectedPapers);
+      const metadata = {
+        research_question: question.trim(),
+        search_scope: searchScope.trim(),
+        selected_paper_ids: selectedPapers.map(paper => String(paper.id)),
+        model: 'EYRA',
+        created_at: new Date().toISOString(),
+      };
       setAiDraft(validated);
+      setAiDraftMeta(metadata);
       if (!researcherEdited || !sections.length) setSections(validated);
       setMessage(researcherEdited
         ? 'A new EYRA draft is ready. Your edited review remains intact; use “Apply latest draft” only if you want to replace it.'
@@ -72,7 +81,7 @@ export default function LiteratureReviewBuilder({ project, savedPapers, onProjec
       research_question: question.trim().slice(0, 1200),
       search_scope: searchScope.trim().slice(0, 2400),
       selected_paper_ids: selectedPapers.map(paper => String(paper.id)),
-      ai_draft: aiDraft.length ? { sections: aiDraft, model: 'EYRA', created_at: new Date().toISOString() } : null,
+      ai_draft: aiDraft.length ? { ...aiDraftMeta, sections: aiDraft } : null,
       edited_sections: sections,
       researcher_edited: researcherEdited,
       updated_at: new Date().toISOString(),
@@ -140,7 +149,7 @@ export default function LiteratureReviewBuilder({ project, savedPapers, onProjec
         </button>
         <button type="button" onClick={save} disabled={saving} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-60">{saving ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Save size={16} aria-hidden="true" />}{saving ? 'Saving…' : 'Save to project'}</button>
         <button type="button" onClick={exportReview} disabled={!sections.length} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-60"><Download size={16} aria-hidden="true" />Export Markdown</button>
-        {researcherEdited && aiDraft.length > 0 && <button type="button" onClick={() => { setSections(aiDraft); setResearcherEdited(false); setMessage('Latest EYRA draft applied.'); }} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold">Apply latest draft</button>}
+        {researcherEdited && aiDraft.length > 0 && <button type="button" onClick={() => { setSections(aiDraft); setResearcherEdited(false); setQuestion(aiDraftMeta?.research_question || question); setSearchScope(aiDraftMeta?.search_scope || ''); setSelectedIds(aiDraftMeta?.selected_paper_ids || selectedIds); setMessage('Latest EYRA draft and its research context applied.'); }} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold">Apply latest draft</button>}
       </div>
       <p className="text-xs leading-5 text-muted-foreground">This is a narrative draft, not a systematic review or independent peer review. Confirm claims against the original publications. Abstract-only sources cannot support details beyond their available metadata and abstracts.</p>
       {message && <p role="status" className="rounded-lg bg-secondary px-3 py-2 text-sm">{message}</p>}
