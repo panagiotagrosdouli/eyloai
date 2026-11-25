@@ -1,12 +1,34 @@
 # EYLO total execution tracker
 
-**Updated:** 22 November 2026 (Europe/Athens)
+**Updated:** 25 November 2026 (Europe/Athens)
 
-**Repository baseline:** `c7b331454d54ca72486a799994c13ca7cbec4aeb`
+**Repository baseline:** `b5cbc7522a9bc1884138b6aa94e6ff26d549c1b7` (main after merged PR #607)
 
-**Working branch:** `codex/discovery-provider-error-hardening-20261122`
+**Working branch:** `codex/evidence-matrix-studio-20261125`
 
 This file is the current execution index. It does not promote a feature to staging or production verified. The canonical feature-by-feature inventory is [PRODUCT_IMPLEMENTATION_TRACKER.md](PRODUCT_IMPLEMENTATION_TRACKER.md): it contains 77 individually numbered existing product modules, their implementation descriptions, tests and remaining acceptance. All 77 are currently marked **PARTIAL**. The route-level inventory and audit is [FULL_SITE_FUNCTIONAL_AUDIT.md](FULL_SITE_FUNCTIONAL_AUDIT.md). Preserve those detailed inventories rather than maintaining a second, divergent copy here.
+
+## 25 November research output execution
+
+| Checkpoint | Result | Evidence and limit |
+|---|---|---|
+| PR #604 review | REVIEWED; SYNCHRONIZED; still draft | Verified stale-history cancellation, transcript reset guards, UUID write receipts, safe tool errors, regression coverage, and the responsive EYRA entry point. Synchronized after PR #607 with current main `b5cbc7522a9bc1884138b6aa94e6ff26d549c1b7`; merge commit `76c10b18e37c246e4f1d4b3e32edb00de4cd2630`. Exact pre-sync head `7be312a40813c0b8ae6395cf69d328dc90638159` had successful Build, EYLO Quality Gate, and Product quality workflows; new synchronized-head results must be checked separately. No merge or deployment performed. |
+| Evidence Matrix Studio | IMPLEMENTED LOCALLY | Project Evidence now supports an entered research question, real scholarly-index retrieval, adding source records to the private project Library, selecting only project-linked records, EYRA structured analysis of those records, editable AI draft fields kept separate from researcher notes, verified source links, CSV export, and explicit project save/reopen. Matrix JSON is written using the existing owner-scoped, version-checked Project API; this does not establish hosted RLS acceptance. |
+| Scientific integrity and accessibility tests | PASS LOCALLY | New tests cover selected-source prompt scope, rejection of fabricated/duplicate/missing source IDs and malformed rows, citation/link provenance in CSV, and spreadsheet formula escaping. Source-level accessibility tests cover labels, status/error announcements, safe links, responsive classes, and native keyboard-operable controls. |
+| `npm run check` | PASS LOCALLY | Imports, both TypeScript projects, ESLint, all Node tests, production build, and bundle budget passed for the local working tree. It is not hosted CI evidence. |
+| Browser E2E | BLOCKED BY EXECUTION ENVIRONMENT | The learning-browser E2E now includes search → project link → EYRA analysis → editable matrix save/reopen → CSV export at a 390px viewport. It could not launch because Playwright's Chromium executable is missing. The fixture test is not a hosted-browser or two-user RLS result. |
+| `npm run release:readiness` | NO-GO | Readiness checks remain blocked on exact-commit CI evidence and the hosted staging/privacy/UX/operations/owner-review evidence. This workflow is not release authorization. |
+
+### Required release blockers
+
+- Isolated Supabase staging and migration-history reconciliation.
+- Auth, persistence, and two-user RLS verification on staging; local fixtures do not prove hosted authorization.
+- Storage security and cross-user access verification.
+- Authenticated real-provider EYRA acceptance and scientific review of generated analyses.
+- Stripe test-mode billing lifecycle verification.
+- Owner approval after reviewing exact-commit hosted evidence.
+
+Production remains **NO-GO**. No live data, billing state, database, staging migration, or production deployment was changed in this execution.
 
 ## Current release decision
 

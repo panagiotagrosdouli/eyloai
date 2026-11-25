@@ -113,7 +113,27 @@ try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   page.setDefaultTimeout(20_000);
   await page.route('**/api/capabilities', route => json(route, { ai: false, billing: false, contact: false, scheduled_monitoring: false, institution_analytics: false }));
-  await page.route('**/api/eyra', route => { aiCalls++; return route.fulfill({ status: 503, headers, body: '{}' }); });
+  await page.route('**/api/eyra', async route => {
+    const body = route.request().postDataJSON();
+    if (body.prompt?.includes('Create a preliminary evidence matrix')) {
+      const sourceJson = body.prompt.split('RECORDS:\n').at(-1);
+      const [source] = JSON.parse(sourceJson);
+      return json(route, { data: { rows: [{ paper_id: source.id, study_design: 'Controlled trial', dataset: 'Adults described in the abstract', findings: 'The abstract reports an improvement.', limitations: 'Not reported in the available record.' }] } });
+    }
+    if (body.stream === true) aiCalls++;
+    return route.fulfill({ status: 503, headers, body: '{}' });
+  });
+  await page.route('https://api.openalex.org/works?**', route => json(route, { results: [{
+      id: 'https://openalex.org/W1234567890', doi: 'https://doi.org/10.5555/eylo-matrix-fixture',
+      title: 'Randomized intervention improves clinical outcome in a controlled trial',
+      authorships: [{ author: { display_name: 'Fixture Researcher', id: 'https://openalex.org/A1234567890' }, institutions: [] }],
+      publication_year: 2024, abstract_inverted_index: { 'The': [0], 'randomized': [1], 'trial': [2], 'enrolled': [3], 'adults': [4], 'and': [5], 'reported': [6], 'improvement.': [7] },
+      primary_location: { source: { display_name: 'Fixture Journal' } },
+      cited_by_count: 4, open_access: { is_oa: true }, type: 'article', relevance_score: 0.95,
+    }] }));
+  for (const providerUrl of ['https://export.arxiv.org/**', 'https://www.ebi.ac.uk/**', 'https://api.crossref.org/**', 'https://api.semanticscholar.org/**']) {
+    await page.route(providerUrl, route => route.fulfill({ status: 503, headers, contentType: 'application/json', body: JSON.stringify({ error: 'Fixture provider unavailable' }) }));
+  }
   await page.route(`${supabaseUrl}/**`, async route => {
     const request = route.request();
     if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
@@ -308,8 +328,9 @@ try {
   const answer = 'Use your saved task to plan the next step.';
   const eyraTranscript = page.locator('[aria-label="EYRA conversation"]');
   await page.route('**/api/eyra', async route => {
-    aiCalls++;
     const payload = route.request().postDataJSON();
+    if (payload.stream !== true) return route.fallback();
+    aiCalls++;
     assert.equal(payload.stream, true);
     assert.equal(payload.enable_project_tools, undefined, 'workspace writes are disabled until the user opts in');
     assert.match(payload.prompt, /Review canonical task/);
@@ -470,6 +491,35 @@ try {
   assert.equal(await page.getByLabel('Materials assessed (required)').inputValue(), 'My unsaved revision');
   assert.equal(tables.projects[0].data.reproducibility_review.manuscript_reference, 'Other session revision');
   console.log('PASS fixture: reproducibility checklist save/reload and stale-write rejection preserve both the winning record and unsaved draft.');
+
+  const projectBeforeMatrixFixture = structuredClone(tables.projects[0]);
+  const papersBeforeMatrixFixture = structuredClone(tables.saved_papers);
+  await page.reload();
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  const question = 'Do randomized interventions improve clinical outcomes?';
+  await page.getByLabel('Research question', { exact: true }).fill(question);
+  await page.getByRole('button', { name: 'Search scholarly sources', exact: true }).click();
+  await page.getByRole('heading', { name: 'Randomized intervention improves clinical outcome in a controlled trial' }).waitFor();
+  await page.getByRole('button', { name: 'Add to project', exact: true }).click();
+  await page.getByText(/Added .* to this private project/).waitFor();
+  assert.equal(tables.saved_papers.some(paper => paper.user_id === user.id && paper.data.project_id === tables.projects[0].id), true);
+  await page.getByRole('button', { name: 'Analyze selected (1)', exact: true }).click();
+  await page.getByText(/EYRA drafted 1 rows from the selected publication records/).waitFor();
+  await page.getByLabel('Key findings EYRA draft for Randomized intervention improves clinical outcome in a controlled trial').fill('Researcher-checked finding');
+  await page.getByRole('button', { name: 'Save matrix', exact: true }).click();
+  await page.getByText('Evidence Matrix saved to this private research project.').waitFor();
+  assert.equal(tables.projects[0].data.evidence_matrix.research_question, question);
+  assert.equal(tables.projects[0].data.evidence_matrix.ai_draft.rows[0].findings, 'Researcher-checked finding');
+  await page.reload();
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  assert.equal(await page.getByLabel('Research question', { exact: true }).inputValue(), question);
+  assert.equal(await page.getByLabel('Key findings EYRA draft for Randomized intervention improves clinical outcome in a controlled trial').inputValue(), 'Researcher-checked finding');
+  const evidenceCsv = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export CSV', exact: true }).click();
+  assert.match((await evidenceCsv).suggestedFilename(), /^evidence-matrix-/);
+  Object.assign(tables.projects[0], projectBeforeMatrixFixture);
+  tables.saved_papers.splice(0, tables.saved_papers.length, ...papersBeforeMatrixFixture);
+  console.log('PASS fixture: scholarly search → private project source link → EYRA validation → editable matrix persistence/reopen → CSV export.');
 
   tables.saved_papers.push({ id: '90000000-0000-4000-8000-000000000001', user_id: user.id, data: { title: 'Synthetic review protocol fixture paper', authors: 'Fixture Author', year: 2025, url: 'https://example.org/fixture-paper' } });
   tables.projects.push({ id: '10000000-0000-0000-0000-000000000002', user_id: user.id, data: { title: 'Second protocol project' }, updated_date: now() });
