@@ -72,6 +72,152 @@ test('explicit project request uses the authenticated RLS route and reports the 
   }
 });
 
+test('a short follow-up rate limit retries only the final analysis and never replays the saved action', async () => {
+  const previousFetch = globalThis.fetch;
+  let openAiCount = 0;
+  let projectWrites = 0;
+  let firstFollowupBody;
+  let retryFollowupBody;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address === 'https://api.openai.com/v1/responses') {
+      openAiCount += 1;
+      if (openAiCount === 1) {
+        return new Response(JSON.stringify({
+          id: 'resp_tool_call', status: 'completed', output: [{
+            type: 'function_call', call_id: 'call_create_once', name: 'project.create',
+            arguments: JSON.stringify({ title: 'Safe retry study', description: 'A study', goal: 'Test recovery', milestones: '', tasks: '' }),
+          }],
+        }), { status: 200 });
+      }
+      const body = JSON.parse(options.body);
+      if (openAiCount === 2) {
+        firstFollowupBody = body;
+        return new Response(JSON.stringify({ error: { code: 'rate_limit_exceeded', message: 'Private provider details' } }), {
+          status: 429, headers: { 'retry-after': '0' },
+        });
+      }
+      retryFollowupBody = body;
+      return new Response(JSON.stringify({
+        id: 'resp_final_after_retry', status: 'completed',
+        output: [{ content: [{ type: 'output_text', text: 'The project is saved and the final analysis is complete.' }] }],
+      }), { status: 200 });
+    }
+    if (address.includes('/rest/v1/projects?select=id,data,created_date,updated_date')) {
+      projectWrites += 1;
+      const payload = JSON.parse(options.body);
+      return new Response(JSON.stringify([{ id: 'project-once', data: payload.data, created_date: '2026-11-25T00:00:00Z' }]), { status: 201 });
+    }
+    throw new Error(`Unexpected request ${address}`);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' }, body: {
+      prompt: 'Create a project about safe model recovery.',
+      tool_intent: 'Create a project about safe model recovery.', enable_project_tools: true, write_confirmed: true,
+    } }, response);
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.payload.text, 'The project is saved and the final analysis is complete.');
+    assert.equal(openAiCount, 3);
+    assert.equal(projectWrites, 1);
+    assert.deepEqual(retryFollowupBody, firstFollowupBody);
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
+
+test('a persistent follow-up rate limit returns retry guidance while preserving completed actions', async () => {
+  const previousFetch = globalThis.fetch;
+  let openAiCount = 0;
+  let projectWrites = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address === 'https://api.openai.com/v1/responses') {
+      openAiCount += 1;
+      if (openAiCount === 1) return new Response(JSON.stringify({
+        id: 'resp_tool_call', status: 'completed', output: [{
+          type: 'function_call', call_id: 'call_create_once', name: 'project.create',
+          arguments: JSON.stringify({ title: 'Rate limited study', description: 'A study', goal: 'Test recovery', milestones: '', tasks: '' }),
+        }],
+      }), { status: 200 });
+      return new Response(JSON.stringify({ error: { code: 'rate_limit_exceeded', message: 'Private provider details' } }), {
+        status: 429, headers: { 'retry-after': openAiCount === 2 ? '0' : '17' },
+      });
+    }
+    if (address.includes('/rest/v1/projects?select=id,data,created_date,updated_date')) {
+      projectWrites += 1;
+      const payload = JSON.parse(options.body);
+      return new Response(JSON.stringify([{ id: 'project-once', data: payload.data, created_date: '2026-11-25T00:00:00Z' }]), { status: 201 });
+    }
+    throw new Error(`Unexpected request ${address}`);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' }, body: {
+      prompt: 'Create a project about safe model recovery.',
+      tool_intent: 'Create a project about safe model recovery.', enable_project_tools: true, write_confirmed: true,
+    } }, response);
+    assert.equal(response.statusCode, 503);
+    assert.equal(response.payload.code, 'TOOL_FOLLOWUP_RATE_LIMITED');
+    assert.equal(response.payload.retry_after_seconds, 17);
+    assert.equal(response.headers['retry-after'], '17');
+    assert.equal(response.payload.actions[0].status, 'succeeded');
+    assert.equal(openAiCount, 3);
+    assert.equal(projectWrites, 1);
+    assert.doesNotMatch(JSON.stringify(response.payload), /Private provider details/);
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
+
+test('follow-up quota exhaustion is not retried and reports the completed action for review', async () => {
+  const previousFetch = globalThis.fetch;
+  let openAiCount = 0;
+  let projectWrites = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    const address = String(url);
+    if (address.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'user-a' }), { status: 200 });
+    if (address.endsWith('/rest/v1/rpc/reserve_eyra_usage')) return new Response(JSON.stringify([{ allowed: true, used: 1 }]), { status: 200 });
+    if (address === 'https://api.openai.com/v1/responses') {
+      openAiCount += 1;
+      if (openAiCount === 1) return new Response(JSON.stringify({
+        id: 'resp_tool_call', status: 'completed', output: [{
+          type: 'function_call', call_id: 'call_create_once', name: 'project.create',
+          arguments: JSON.stringify({ title: 'Quota review study', description: 'A study', goal: 'Test quota handling', milestones: '', tasks: '' }),
+        }],
+      }), { status: 200 });
+      return new Response(JSON.stringify({ error: { code: 'insufficient_quota', message: 'Private billing details' } }), {
+        status: 429, headers: { 'retry-after': '1' },
+      });
+    }
+    if (address.includes('/rest/v1/projects?select=id,data,created_date,updated_date')) {
+      projectWrites += 1;
+      const payload = JSON.parse(options.body);
+      return new Response(JSON.stringify([{ id: 'project-once', data: payload.data, created_date: '2026-11-25T00:00:00Z' }]), { status: 201 });
+    }
+    throw new Error(`Unexpected request ${address}`);
+  };
+  try {
+    const response = responseMock();
+    await handler({ method: 'POST', headers: { authorization: 'Bearer user-access-token' }, body: {
+      prompt: 'Create a project about quota recovery.',
+      tool_intent: 'Create a project about quota recovery.', enable_project_tools: true, write_confirmed: true,
+    } }, response);
+    assert.equal(response.statusCode, 503);
+    assert.equal(response.payload.code, 'TOOL_FOLLOWUP_QUOTA_EXHAUSTED');
+    assert.equal(response.payload.actions[0].status, 'succeeded');
+    assert.equal(openAiCount, 2);
+    assert.equal(projectWrites, 1);
+    assert.doesNotMatch(JSON.stringify(response.payload), /Private billing details/);
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
+
 test('project tool mode refuses a create tool call without explicit user intent', async () => {
   const previousFetch = globalThis.fetch;
   let projectWrites = 0;
