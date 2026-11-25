@@ -324,6 +324,24 @@ export default function Landing() {
             </div>
           </div>
         </section>
+        <section
+          id="getting-started"
+          className="bg-[var(--company-soft)] px-5 py-12 sm:px-9 lg:px-16"
+        >
+          <div className="mx-auto max-w-[900px]">
+            <details className="rounded-2xl border border-[var(--company-border)] bg-[var(--company-surface)] p-5 sm:p-6">
+              <summary className="min-h-11 cursor-pointer text-base font-semibold">
+                Can I explore before creating an account?
+              </summary>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--company-muted)]">
+                Yes. You can search public research before creating an account.
+                Saving sources, organizing them in a project, and using EYRA
+                require an account. EYRA availability depends on the current
+                service configuration.
+              </p>
+            </details>
+          </div>
+        </section>
         <section className="px-5 pb-16 sm:px-9 sm:pb-20 lg:px-16">
           <div className="mx-auto grid max-w-[1350px] gap-6 rounded-[24px] bg-[var(--company-tint)] px-6 py-9 sm:px-10 md:grid-cols-[1fr_auto] md:items-center lg:px-12">
             <div>
