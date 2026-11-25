@@ -114,13 +114,13 @@ try {
   page.setDefaultTimeout(20_000);
   await page.route('**/api/capabilities', route => json(route, { ai: false, billing: false, contact: false, scheduled_monitoring: false, institution_analytics: false }));
   await page.route('**/api/eyra', async route => {
-    aiCalls++;
     const body = route.request().postDataJSON();
     if (body.prompt?.includes('Create a preliminary evidence matrix')) {
       const sourceJson = body.prompt.split('RECORDS:\n').at(-1);
       const [source] = JSON.parse(sourceJson);
       return json(route, { data: { rows: [{ paper_id: source.id, study_design: 'Controlled trial', dataset: 'Adults described in the abstract', findings: 'The abstract reports an improvement.', limitations: 'Not reported in the available record.' }] } });
     }
+    if (body.stream === true) aiCalls++;
     return route.fulfill({ status: 503, headers, body: '{}' });
   });
   await page.route('https://api.openalex.org/works?**', route => json(route, { results: [{
@@ -492,6 +492,8 @@ try {
   assert.equal(tables.projects[0].data.reproducibility_review.manuscript_reference, 'Other session revision');
   console.log('PASS fixture: reproducibility checklist save/reload and stale-write rejection preserve both the winning record and unsaved draft.');
 
+  const projectBeforeMatrixFixture = structuredClone(tables.projects[0]);
+  const papersBeforeMatrixFixture = structuredClone(tables.saved_papers);
   await page.reload();
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
   const question = 'Do randomized interventions improve clinical outcomes?';
@@ -515,6 +517,8 @@ try {
   const evidenceCsv = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export CSV', exact: true }).click();
   assert.match((await evidenceCsv).suggestedFilename(), /^evidence-matrix-/);
+  Object.assign(tables.projects[0], projectBeforeMatrixFixture);
+  tables.saved_papers.splice(0, tables.saved_papers.length, ...papersBeforeMatrixFixture);
   console.log('PASS fixture: scholarly search → private project source link → EYRA validation → editable matrix persistence/reopen → CSV export.');
 
   tables.saved_papers.push({ id: '90000000-0000-4000-8000-000000000001', user_id: user.id, data: { title: 'Synthetic review protocol fixture paper', authors: 'Fixture Author', year: 2025, url: 'https://example.org/fixture-paper' } });
