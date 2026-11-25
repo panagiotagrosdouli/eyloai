@@ -40,8 +40,7 @@ export default function LiteratureReviewBuilder({ project, savedPapers, onProjec
   const [error, setError] = useState('');
   const selectedPapers = useMemo(() => linkedPapers.filter(paper => selectedIds.includes(String(paper.id))), [linkedPapers, selectedIds]);
   const citedIds = sections.flatMap(section => (section.claims || []).flatMap(claim => claim.source_ids || []));
-  const citedKey = citedIds.join('|');
-  const bibliography = useMemo(() => bibliographyForSelectedPapers(linkedPapers, [...selectedIds, ...citedIds]), [linkedPapers, selectedIds, citedKey]);
+  const bibliography = bibliographyForSelectedPapers(linkedPapers, [...selectedIds, ...citedIds]);
 
   const togglePaper = id => setSelectedIds(previous => previous.includes(String(id))
     ? previous.filter(item => item !== String(id)) : [...previous, String(id)]);
@@ -172,7 +171,7 @@ export default function LiteratureReviewBuilder({ project, savedPapers, onProjec
       </div>}
 
       {!!bibliography.length && <details className="rounded-xl border border-border p-4">
-        <summary className="cursor-pointer text-sm font-semibold">Verified bibliography ({bibliography.length})</summary>
+        <summary className="cursor-pointer text-sm font-semibold">Bibliography from saved records ({bibliography.length})</summary>
         <ol className="mt-3 list-decimal space-y-3 pl-5 text-sm leading-6">{bibliography.map(source => <li key={source.id}><span>{source.authors} ({source.year}). {source.title}. {source.source}.</span>{source.doi && <span> DOI: {source.doi}.</span>}{isSafeLiteratureSourceUrl(source.url) && <> <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-2 hover:underline">Open source record</a></>}</li>)}</ol>
       </details>}
     </section>
