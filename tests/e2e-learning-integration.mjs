@@ -523,7 +523,8 @@ try {
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
   assert.equal(await page.getByLabel('Research question', { exact: true }).inputValue(), question);
   assert.equal(await page.getByLabel('Key findings EYRA draft for Randomized intervention improves clinical outcome in a controlled trial').inputValue(), 'Researcher-checked finding');
-  const reviewQuestion = page.getByLabel('Literature review research question', { exact: true });
+  await page.getByRole('heading', { name: 'Build a source-grounded review', exact: true }).waitFor();
+  const reviewQuestion = page.locator('label').filter({ hasText: 'Literature review research question' }).locator('textarea');
   assert.equal(await reviewQuestion.inputValue(), question);
   await page.getByLabel('Search scope (researcher defined)').fill('Fixture scholarly search; selected abstract only');
   await page.getByRole('button', { name: 'Generate literature review', exact: true }).click();
@@ -539,7 +540,7 @@ try {
   assert.equal(tables.projects[0].data.literature_review.ai_draft.research_question, question);
   await page.reload();
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
-  assert.equal(await page.getByLabel('Literature review research question', { exact: true }).inputValue(), question);
+  assert.equal(await page.locator('label').filter({ hasText: 'Literature review research question' }).locator('textarea').inputValue(), question);
   assert.equal(await page.getByLabel('Scientific background claim 1', { exact: true }).inputValue(), 'Researcher-edited synthesis.');
   assert.equal(tables.projects[0].data.literature_review.search_scope, 'Fixture scholarly search; selected abstract only');
   assert.ok(await page.locator('a[href="https://doi.org/10.5555/eylo-matrix-fixture"]').count() > 0, 'review citations must link to the saved scholarly record');
