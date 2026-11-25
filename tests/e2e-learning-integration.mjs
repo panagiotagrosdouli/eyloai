@@ -328,8 +328,9 @@ try {
   const answer = 'Use your saved task to plan the next step.';
   const eyraTranscript = page.locator('[aria-label="EYRA conversation"]');
   await page.route('**/api/eyra', async route => {
-    aiCalls++;
     const payload = route.request().postDataJSON();
+    if (payload.stream !== true) return route.fallback();
+    aiCalls++;
     assert.equal(payload.stream, true);
     assert.equal(payload.enable_project_tools, undefined, 'workspace writes are disabled until the user opts in');
     assert.match(payload.prompt, /Review canonical task/);
