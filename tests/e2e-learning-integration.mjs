@@ -542,9 +542,9 @@ try {
   assert.equal(await page.getByLabel('Scientific background claim 1', { exact: true }).inputValue(), 'Researcher-edited synthesis.');
   assert.equal(tables.projects[0].data.literature_review.search_scope, 'Fixture scholarly search; selected abstract only');
   assert.ok(await page.locator('a[href="https://openalex.org/W1234567890"]').count() > 0, 'review citations must link to the saved scholarly record');
-  const reviewDownload = page.waitForEvent('download');
+  const literatureReviewDownloadEvent = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export Markdown', exact: true }).click();
-  const downloadedReview = await reviewDownload;
+  const downloadedReview = await literatureReviewDownloadEvent;
   assert.equal(downloadedReview.suggestedFilename(), 'literature-review-draft.md');
   const reviewMarkdown = await readFile(await downloadedReview.path(), 'utf8');
   assert.match(reviewMarkdown, /Researcher-edited synthesis/);
