@@ -568,6 +568,7 @@ try {
   assert.match(reviewMarkdown, /10\.5555\/eylo-matrix-fixture/);
   // Proposal Studio reuses the selected source and the explicitly selected, saved upstream artifacts.
   await page.getByLabel('Researcher-authored matrix notes', { exact: true }).check();
+  await page.getByLabel('Literature Review', { exact: true }).check();
   const proposalQuestion = page.getByLabel('Proposal research question', { exact: true });
   assert.equal(await proposalQuestion.inputValue(), question);
   await page.getByRole('button', { name: 'Generate proposal', exact: true }).click();

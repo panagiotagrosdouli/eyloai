@@ -245,9 +245,14 @@ export function bibliographyForProposal(papers, sourceIds) {
     authors: String(paper.authors || 'Authors unavailable'),
     year: String(paper.year || 'Year unavailable'),
     source: String(paper.source || 'Source unavailable'),
-    doi: String(paper.doi || ''),
+    doi: validDoi(paper.doi),
     url: String(paper.url || ''),
   }));
+}
+
+function validDoi(value) {
+  const doi = String(value || '').trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '');
+  return /^10\.\d{4,9}\/[-._;()/:A-Z0-9]+$/i.test(doi) ? doi : '';
 }
 
 export function defaultBibliographyEntry(source) {

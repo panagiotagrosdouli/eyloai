@@ -54,6 +54,14 @@ test('unknown, unselected and cross-project source identifiers fail closed', () 
   assert.deepEqual(bibliographyForProposal(projectLinkedProposalPapers(papers, 'project-1'), ['paper-a', 'private-paper']).map(source => source.id), ['paper-a']);
 });
 
+test('bibliography keeps only well-formed DOI values from saved source metadata', () => {
+  const records = [
+    { ...papers[0], doi: 'https://doi.org/10.1234/test-a' },
+    { ...papers[1], doi: 'javascript:alert(1)' },
+  ];
+  assert.deepEqual(bibliographyForProposal(records, ['paper-a', 'paper-b']).map(source => source.doi), ['10.1234/test-a', '']);
+});
+
 test('source facts and interpretations cannot omit citations and bibliography cannot be AI-authored', () => {
   const uncited = validProposal();
   uncited.sections.find(section => section.section_id === 'background').claims[0].source_ids = [];
