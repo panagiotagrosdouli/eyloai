@@ -326,7 +326,7 @@ try {
     await page.getByRole("button", { name: "Open menu", exact: true }).click();
     await page
       .getByRole("navigation", { name: "Mobile navigation", exact: true })
-      .getByRole("link", { name: "Meet EYRA", exact: true })
+      .getByRole("link", { name: "What EYLO does", exact: true })
       .click();
     assert.equal(
       await page
@@ -334,7 +334,7 @@ try {
         .getAttribute("aria-expanded"),
       "false",
     );
-    assert.equal(new URL(page.url()).hash, "#eyra");
+    assert.equal(new URL(page.url()).hash, "#how-it-works");
     for (const tab of ["Workspace", "EYRA", "Discover"]) {
       await page.getByRole("tab", { name: tab, exact: true }).click();
       assert.ok(
@@ -406,7 +406,7 @@ try {
   );
   await page.goto(base);
   await page
-    .getByRole("link", { name: "Create your workspace", exact: true })
+    .getByRole("link", { name: "Create a workspace", exact: true })
     .click();
   await page
     .getByRole("heading", {

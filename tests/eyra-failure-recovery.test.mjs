@@ -23,6 +23,10 @@ test('incomplete streaming, suspicious citations and failed tool follow-ups have
   assert.match(describeEyraFailure({ code: 'EYRA_UNSUPPORTED_CITATION' }), /answer was withheld/);
   assert.match(describeEyraFailure({ code: 'TOOL_FOLLOWUP_FAILED' }), /Inspect.*saved record/);
   assert.match(describeEyraFailure({ code: 'TOOL_FOLLOWUP_QUOTA_EXHAUSTED' }), /Inspect.*saved record/);
+  const followupLimited = describeEyraFailure({ code: 'TOOL_FOLLOWUP_RATE_LIMITED', retryAfterSeconds: 17 });
+  assert.match(followupLimited, /Inspect its record and run history/);
+  assert.match(followupLimited, /17 seconds/);
+  assert.match(followupLimited, /before repeating any write/);
   assert.match(describeEyraFailure({ status: 401 }), /Sign in again/);
   assert.match(describeEyraFailure({ code: 'PROMPT_TOO_LONG' }), /smaller parts/);
   assert.match(describeEyraFailure({ status: 413 }), /smaller parts/);

@@ -33,6 +33,12 @@ export function describeEyraFailure(error) {
   if (code === 'EYRA_INCOMPLETE' || code === 'EYRA_STREAM_INCOMPLETE') {
     return 'EYRA stopped before it confirmed a complete response. Partial text was not treated as a finished scientific answer.';
   }
+  if (code === 'TOOL_FOLLOWUP_RATE_LIMITED') {
+    const seconds = Number(error?.retryAfterSeconds);
+    const wait = Number.isFinite(seconds) && seconds > 0 && seconds <= 120
+      ? ' Wait about ' + Math.ceil(seconds) + ' seconds before asking EYRA to continue.' : ' Wait before asking EYRA to continue.';
+    return 'A workspace action may already be saved. Inspect its record and run history before repeating any write.' + wait;
+  }
   if (code === 'TOOL_FOLLOWUP_QUOTA_EXHAUSTED' || code === 'TOOL_FOLLOWUP_FAILED'
     || code === 'TOOL_BUDGET_EXCEEDED' || code === 'INVALID_TOOL_SEQUENCE') {
     return 'An authorized workspace tool may have completed before the final analysis failed. Inspect its saved record and run history before requesting another write.';
