@@ -564,8 +564,18 @@ try {
   assert.ok(mobileNavigation.scrollWidth > mobileNavigation.clientWidth, 'mobile workflow stages should scroll within the navigation instead of widening the page');
   assert.equal(mobileNavigation.overflowX, 'auto');
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'mobile workflow navigation must not cause page overflow');
-  await researchWorkflow.getByRole('link', { name: /Research Proposal:/ }).click();
-  assert.equal(new URL(page.url()).hash, '#research-proposal-builder-title', 'workflow navigation must jump to the selected stage');
+  const workflowTargets = [
+    '#evidence-matrix-studio-title',
+    '#literature-review-builder-title',
+    '#research-proposal-builder-title',
+    '#research-methodology-studio-title',
+    '#research-roadmap-studio-title',
+  ];
+  for (let index = 0; index < workflowTargets.length; index += 1) {
+    await workflowLinks.nth(index).click();
+    assert.equal(new URL(page.url()).hash, workflowTargets[index], 'every stage link must jump to its matching research workspace');
+  }
+  assert.ok(await workflowScroller.evaluate(element => element.scrollLeft > 0), 'mobile navigation must scroll later stages into view');
   await page.setViewportSize({ width: 1280, height: 900 });
   const question = 'Do randomized interventions improve clinical outcomes?';
   await page.getByLabel('Research question', { exact: true }).fill(question);
