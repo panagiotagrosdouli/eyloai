@@ -118,25 +118,44 @@ export function getProposalWorkflowProgress(run) {
 export function reviewProposalDraft({ sections = [], methodologyPlan = {}, papers = [], requirements = null }) {
   const findings = [];
   const sectionsById = new Map(sections.map(section => [section.section_id, section]));
-  const allowedSourceIds = new Set(papers.map(paper => String(paper.id)));
+  const sourceById = new Map(papers.filter(paper => paper?.id).map(paper => [String(paper.id), paper]));
+  const claims = sections.flatMap(section => (section.claims || []).map(claim => ({ ...claim, section_id: section.section_id })));
+  const add = (pass, label, status, details, actions) => findings.push({ pass, label, status, details, actions });
   const missingSections = ['research_title', 'abstract', 'background', 'research_gap', 'research_objectives', 'research_questions', 'research_methodology', 'sampling_and_data_sources', 'data_management_reproducibility', 'risk_management', 'research_timeline', 'bibliography']
     .filter(id => !sectionsById.has(id) || sectionsById.get(id)?.status === 'needs_input');
-  findings.push({ pass: 'A', label: 'Structural completeness', status: missingSections.length ? 'needs_review' : 'passed', details: missingSections.length ? `Sections requiring researcher input: ${missingSections.join(', ')}.` : 'Core proposal sections are present.' });
+  add('A', 'Required-section completeness', missingSections.length ? 'needs_review' : 'passed', missingSections.length ? `Sections requiring researcher input: ${missingSections.join(', ')}.` : 'Core proposal sections are present.', missingSections.length ? ['Complete, remove or mark each listed section not applicable with a rationale.'] : ['Confirm that this structure matches the intended study or call.']);
 
-  const unknownCitations = sections.flatMap(section => section.claims || []).flatMap(claim => claim.source_ids || []).filter(id => !allowedSourceIds.has(String(id)));
-  findings.push({ pass: 'B', label: 'Citation integrity', status: unknownCitations.length ? 'failed' : 'passed', details: unknownCitations.length ? 'One or more citations do not resolve to the selected project records.' : 'Citations resolve to selected project records; this does not verify bibliographic or semantic accuracy.' });
-  findings.push({ pass: 'C', label: 'Evidence support', status: 'human_review_required', details: 'AI citation matching does not establish that the source supports each claim. Verify claims against the original publications.' });
+  const objectiveText = (sectionsById.get('research_objectives')?.claims || []).map(claim => claim.text || '').join(' ');
+  const questionText = (sectionsById.get('research_questions')?.claims || []).map(claim => claim.text || '').join(' ');
+  const stopWords = new Set(['about','after','also','among','and','are','does','for','from','how','into','is','its','more','not','of','on','or','our','the','their','this','through','to','using','what','when','which','with']);
+  const terms = value => new Set(String(value).toLowerCase().match(/[a-z][a-z0-9-]{2,}/g)?.filter(word => !stopWords.has(word)) || []);
+  const objectiveOverlap = [...terms(objectiveText)].filter(word => terms(questionText).has(word));
+  add('B', 'Research question and objective alignment', objectiveText && questionText ? 'needs_review' : 'needs_review', !objectiveText || !questionText ? 'A research question or objective needs researcher input.' : `A lexical screen found ${objectiveOverlap.length} shared substantive term${objectiveOverlap.length === 1 ? '' : 's'}; this cannot establish conceptual alignment.`, ['Map every objective to one or more research questions and planned outcomes; revise mismatches.']);
 
-  const questionClaims = sectionsById.get('research_questions')?.claims || [];
-  const designClaims = [...(sectionsById.get('research_methodology')?.claims || []), ...(sectionsById.get('study_design')?.claims || [])];
   const methodGaps = Object.entries(methodologyPlan).filter(([, field]) => field?.status === 'needs_input').map(([id]) => id);
-  const coherenceStatus = questionClaims.length && designClaims.length && !methodGaps.length ? 'needs_review' : 'needs_review';
-  findings.push({ pass: 'D', label: 'Methodological coherence', status: coherenceStatus, details: 'Check that each research question, objective, design, sampling plan and analysis method align. This relationship requires researcher review.' });
+  add('C', 'Methodological coherence', methodGaps.length ? 'needs_review' : 'human_review_required', methodGaps.length ? `Methodology topics requiring input: ${methodGaps.join(', ')}.` : 'Automated checks cannot validate whether design, sampling, measures and analysis answer the stated questions.', ['Trace each question and objective through design, sampling, measures, analysis and planned interpretation.']);
 
-  const timeline = sectionsById.get('research_timeline')?.claims || [];
-  const dateTokens = timeline.flatMap(claim => claim.text.match(/\b(?:20\d{2}|\d{1,2}\s+months?|Q[1-4])\b/gi) || []);
-  findings.push({ pass: 'E', label: 'Internal consistency', status: dateTokens.length ? 'needs_review' : 'passed', details: dateTokens.length ? 'Review proposed dates and durations for consistency with institutional and funder requirements.' : 'No conflicting date patterns were detected by the automated check.' });
-  findings.push({ pass: 'F', label: 'Language and presentation', status: 'human_review_required', details: 'Review clarity, academic style, discipline terminology and factual meaning before use.' });
-  findings.push({ pass: 'G', label: 'Grant compliance', status: requirements ? 'needs_review' : 'not_applicable', details: requirements ? 'Compare every call requirement with the draft and confirm extracted requirements against the official call.' : 'No official funding call was supplied.' });
+  const unresolvedCitations = claims.flatMap(claim => (claim.source_ids || []).filter(id => !sourceById.has(String(id))));
+  const weakIdentityRecords = [...sourceById.values()].filter(paper => !String(paper.source_id || paper.doi || paper.url || '').trim());
+  add('D', 'Citation identity', unresolvedCitations.length || weakIdentityRecords.length ? 'failed' : 'passed', unresolvedCitations.length ? `${unresolvedCitations.length} citation reference(s) do not resolve to the selected project records.` : weakIdentityRecords.length ? `${weakIdentityRecords.length} selected record(s) lack a stable source identifier, DOI or URL.` : 'Cited source IDs resolve to selected project records with an available identity field.', ['Resolve missing records and verify author, title, year, DOI and publication identity against the publisher or registry.']);
+
+  const evidenceClaims = claims.filter(claim => ['source_fact', 'finding', 'conclusion'].includes(String(claim.kind || '').toLowerCase()));
+  const unsupportedEvidenceLabels = evidenceClaims.filter(claim => !(claim.source_ids || []).length);
+  add('E', 'Evidence and source-level verification', 'human_review_required', `${evidenceClaims.length} source-sensitive claim(s) were classified; ${unsupportedEvidenceLabels.length} have no linked source ID. A linked citation does not show that a source supports the claim.`, ['Open each original source and verify the exact claim, context, population, result and limitation; link evidence or rewrite unsupported statements.']);
+
+  const dateTokens = (sectionsById.get('research_timeline')?.claims || []).flatMap(claim => String(claim.text || '').match(/\b(?:20\d{2}|\d{1,2}\s+months?|Q[1-4])\b/gi) || []);
+  const negationPattern = /\b(no|not|never|without|increase|decrease|improve|worsen|effective|ineffective|significant|non-significant)\b/i;
+  const potentialContradiction = claims.some((left, index) => claims.slice(index + 1).some(right => {
+    const shared = [...terms(left.text)].filter(word => terms(right.text).has(word));
+    return shared.length >= 3 && negationPattern.test(left.text || '') && negationPattern.test(right.text || '') && /\b(no|not|never|without|decrease|worsen|ineffective|non-significant)\b/i.test(left.text || '') !== /\b(no|not|never|without|decrease|worsen|ineffective|non-significant)\b/i.test(right.text || '');
+  }));
+  add('F', 'Internal contradictions', potentialContradiction || dateTokens.length ? 'needs_review' : 'human_review_required', potentialContradiction ? 'A lexical screen found claims with overlapping terms and opposing polarity markers.' : dateTokens.length ? 'Timeline dates or durations require consistency review against the full plan and call.' : 'No simple contradiction rule fired; this is not evidence that the proposal is internally consistent.', ['Compare claims, quantities, dates, populations, outcomes and assumptions across all sections.']);
+
+  const ethicsMissing = !sectionsById.has('ethical_considerations') || sectionsById.get('ethical_considerations')?.status === 'needs_input';
+  const reproducibilityMissing = !sectionsById.has('data_management_reproducibility') || sectionsById.get('data_management_reproducibility')?.status === 'needs_input';
+  add('G', 'Ethics and reproducibility', ethicsMissing || reproducibilityMissing ? 'needs_review' : 'human_review_required', `Ethics section ${ethicsMissing ? 'needs input' : 'is present'}; data-management and reproducibility section ${reproducibilityMissing ? 'needs input' : 'is present'}. Presence does not establish adequacy or approval.`, ['Review consent, risk, inclusion, privacy, data access, preregistration, materials, analysis code and retention requirements as applicable.']);
+  add('H', 'Unsubstantiated conclusions', 'human_review_required', 'Automated classification cannot establish whether conclusions exceed the evidence, design or available source text.', ['Check every conclusion against the cited results, uncertainty, study design and stated limitations.']);
+  add('I', 'Language and presentation', 'human_review_required', 'Review clarity, academic style, discipline terminology, factual meaning and accessibility before use.', ['Edit for the target audience and verify that uncertainty and limitations remain visible.']);
+  add('J', 'Funding-call requirements', requirements ? 'needs_review' : 'not_applicable', requirements ? 'Compare each documented call requirement and its provenance with the draft; ambiguous requirements need researcher confirmation.' : 'No official funding call was supplied.', ['Use the official call text and confirm eligibility, format, limits, dates and required annexes directly.']);
   return findings;
 }

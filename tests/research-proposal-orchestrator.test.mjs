@@ -86,9 +86,30 @@ test('quality review checks core structure and citation traceability while prese
     methodologyPlan: { sampling: { status: 'needs_input' } },
     papers: [{ id: 'selected' }],
   });
-  assert.equal(findings.length, 7);
+  assert.equal(findings.length, 10);
   assert.equal(findings.find(item => item.pass === 'A').status, 'needs_review');
-  assert.equal(findings.find(item => item.pass === 'B').status, 'failed');
-  assert.equal(findings.find(item => item.pass === 'C').status, 'human_review_required');
-  assert.equal(findings.find(item => item.pass === 'G').status, 'not_applicable');
+  assert.equal(findings.find(item => item.pass === 'D').status, 'failed');
+  assert.equal(findings.find(item => item.pass === 'E').status, 'human_review_required');
+  assert.equal(findings.find(item => item.pass === 'J').status, 'not_applicable');
+  assert.ok(findings.every(item => Array.isArray(item.actions) && item.actions.length > 0), 'each finding must offer a next step');
+});
+
+test('quality review gives actionable requirement and ethics findings while separating automatic checks from scientific verification', () => {
+  const findings = reviewProposalDraft({
+    sections: [
+      { section_id: 'research_objectives', status: 'drafted', claims: [{ text: 'Evaluate public health outcomes.' }] },
+      { section_id: 'research_questions', status: 'drafted', claims: [{ text: 'How does urban heat affect health?' }] },
+      { section_id: 'ethical_considerations', status: 'needs_input', claims: [] },
+      { section_id: 'data_management_reproducibility', status: 'drafted', claims: [] },
+    ],
+    methodologyPlan: { sampling: { status: 'needs_input' } },
+    papers: [],
+    requirements: [{ requirement_id: 'r1', source_page: 2, text: 'Page limit 10' }],
+  });
+  assert.equal(findings.find(item => item.pass === 'B').status, 'needs_review');
+  assert.match(findings.find(item => item.pass === 'B').details, /lexical screen/);
+  assert.equal(findings.find(item => item.pass === 'C').status, 'needs_review');
+  assert.equal(findings.find(item => item.pass === 'G').status, 'needs_review');
+  assert.equal(findings.find(item => item.pass === 'J').status, 'needs_review');
+  assert.equal(findings.find(item => item.pass === 'E').status, 'human_review_required');
 });

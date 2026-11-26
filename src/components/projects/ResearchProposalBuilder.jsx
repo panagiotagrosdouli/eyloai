@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Download, ExternalLink, Loader2, Save, Sparkles } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { getUsableSession } from '@/lib/supabaseClient';
 import { searchAllPapersWithStatus } from '@/lib/eyra-api';
 import { saveDiscoveredGapPaper } from '@/lib/research-gap-literature-save.mjs';
+import { persistProposalWorkflowCheckpoint } from '@/lib/research-proposal-checkpoint.mjs';
 import { safeResearchSourceUrl } from '@/lib/research-source-url.mjs';
 import { cancelProposalWorkflow, createProposalWorkflow, advanceProposalWorkflow, deduplicateProposalSearchResults, failProposalWorkflow, getProposalWorkflowProgress, markProposalResearcherReviewed, planProposalQueries, PROPOSAL_WORKFLOW_BUDGET, PROPOSAL_WORKFLOW_STAGES, reviewProposalDraft, retryProposalWorkflowStage } from '@/lib/research-proposal-orchestrator.mjs';
 import {
@@ -64,6 +66,7 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
   const [qualityFindings, setQualityFindings] = useState(stored.quality_findings || []);
   const [workflowBusy, setWorkflowBusy] = useState(false);
   const controllerRef = useRef(null);
+  const projectRef = useRef(project);
   const linkedById = useMemo(() => new Map(linkedPapers.map(paper => [String(paper.id), paper])), [linkedPapers]);
   const selectedPapers = linkedPapers.filter(paper => selectedIds.includes(String(paper.id)));
   const hasDraft = Boolean(aiDraft || stored.edited_sections || Object.values(sectionNotes).some(value => String(value || '').trim()));
@@ -71,6 +74,7 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
   const bibliography = useMemo(() => bibliographyForProposal(linkedPapers, [...selectedIds, ...citedIds]), [linkedPapers, selectedIds.join('|'), citedIds.join('|')]);
 
   useEffect(() => () => controllerRef.current?.abort(), []);
+  useEffect(() => { projectRef.current = project; }, [project]);
   useEffect(() => {
     if (!dirty) return undefined;
     const warn = event => { event.preventDefault(); event.returnValue = ''; };
@@ -91,38 +95,50 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
     setError(''); setMessage(''); setWorkflowBusy(true);
     const controller = new AbortController(); controllerRef.current = controller;
     let activeRun = workflowRun;
-    const checkpoint = nextRun => {
+    let workflowOwnerId = null;
+    const checkpoint = async nextRun => {
       activeRun = nextRun;
       setWorkflowRun(nextRun);
       try { window.localStorage.setItem(`eylo:proposal-workflow:${project.id}`, JSON.stringify(nextRun)); } catch { /* Draft generation remains available when local storage is disabled. */ }
+      if (!workflowOwnerId) throw new Error('The signed-in account could not be verified. Reload the project before generating.');
+      const saved = await persistProposalWorkflowCheckpoint({
+        entities: base44.entities,
+        project: projectRef.current,
+        run: nextRun,
+        ownerId: workflowOwnerId,
+        getSession: expectedUserId => getUsableSession({ required: true, validate: true, expectedUserId, signal: controller.signal }),
+      });
+      projectRef.current = saved;
+      onProjectSaved?.(saved);
     };
     const timeout = () => {
       const timer = window.setTimeout(() => controller.abort(), PROPOSAL_WORKFLOW_BUDGET.timeoutMs);
       return () => window.clearTimeout(timer);
     };
     try {
+      workflowOwnerId = (await getUsableSession({ required: true, validate: true, signal: controller.signal })).user.id;
       let run = activeRun;
       if (!resume || !run) {
         run = createProposalWorkflow({ projectId: project.id, question, discipline, purpose, language });
         run.stage_attempts = { INTAKE: 1 };
-        checkpoint(run);
+        await checkpoint(run);
       } else if (run.status === 'failed') {
         run = retryProposalWorkflowStage(run);
-        checkpoint(run);
+        await checkpoint(run);
       } else if (run.status === 'cancelled') {
         run = { ...run, status: 'running', error_code: '', updated_at: new Date().toISOString() };
-        checkpoint(run);
+        await checkpoint(run);
       } else if (run.status !== 'running') {
         run = createProposalWorkflow({ projectId: project.id, question, discipline, purpose, language });
         run.stage_attempts = { INTAKE: 1 };
-        checkpoint(run);
+        await checkpoint(run);
       }
       setQuestion(run.input.question); setDiscipline(run.input.discipline); setPurpose(run.input.purpose); setLanguage(run.input.language);
 
-      if (run.stage === 'INTAKE') { run = advanceProposalWorkflow(run, 'REQUIREMENTS'); checkpoint(run); }
+      if (run.stage === 'INTAKE') { run = advanceProposalWorkflow(run, 'REQUIREMENTS'); await checkpoint(run); }
       if (run.stage === 'REQUIREMENTS') {
         const queries = planProposalQueries(run.input);
-        run = advanceProposalWorkflow(run, 'SOURCE_DISCOVERY', { source_queries: queries }); checkpoint(run);
+        run = advanceProposalWorkflow(run, 'SOURCE_DISCOVERY', { source_queries: queries }); await checkpoint(run);
       }
       let sourcePapers = linkedPapers.filter(paper => (run.selected_source_ids || []).includes(String(paper.id)));
       if (run.stage === 'SOURCE_DISCOVERY' && selectedPapers.length) {
@@ -133,12 +149,13 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
           discovered_count: 0,
           linked_count: 0,
           source_reuse: 'selected_project_records',
-        }); checkpoint(run);
+        }); await checkpoint(run);
       }
       if (run.stage === 'SOURCE_DISCOVERY') {
         const found = [];
         const statuses = [];
         for (const query of run.source_queries.slice(0, PROPOSAL_WORKFLOW_BUDGET.searchStrategies)) {
+          await getUsableSession({ required: true, validate: true, expectedUserId: workflowOwnerId, signal: controller.signal });
           const clear = timeout();
           try {
             const result = await searchAllPapersWithStatus(query, { limit: PROPOSAL_WORKFLOW_BUDGET.recordsPerStrategy, signal: controller.signal });
@@ -148,12 +165,14 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
             if (controller.signal.aborted) throw failure;
             statuses.push({ query, query_status: 'unavailable', error_code: String(failure?.code || 'SEARCH_FAILED'), available_source_count: 0, unavailable_source_count: 0, source_status: [] });
           } finally { clear(); }
+          await getUsableSession({ required: true, validate: true, expectedUserId: workflowOwnerId, signal: controller.signal });
         }
         const discovered = deduplicateProposalSearchResults(found);
         const candidates = discovered.slice(0, Math.max(0, PROPOSAL_WORKFLOW_BUDGET.maximumSelectedRecords - selectedPapers.length));
         const saved = [];
         for (const paper of candidates) {
           if (controller.signal.aborted) throw Object.assign(new Error('Workflow cancelled.'), { name: 'AbortError' });
+          await getUsableSession({ required: true, validate: true, expectedUserId: workflowOwnerId, signal: controller.signal });
           try {
             const record = await saveDiscoveredGapPaper({ entities: base44.entities, paper, project });
             if (record?.id && record.project_id === project.id) saved.push(record);
@@ -175,38 +194,39 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
           selected_source_ids: sourcePapers.map(paper => String(paper.id)),
           discovered_count: discovered.length,
           linked_count: saved.length,
-        }); checkpoint(run);
+        }); await checkpoint(run);
       }
-      if (run.stage === 'EVIDENCE_ANALYSIS') { run = advanceProposalWorkflow(run, 'PROPOSAL_PLANNING'); checkpoint(run); }
-      if (run.stage === 'PROPOSAL_PLANNING') { run = advanceProposalWorkflow(run, 'SECTION_GENERATION'); checkpoint(run); }
+      if (run.stage === 'EVIDENCE_ANALYSIS') { run = advanceProposalWorkflow(run, 'PROPOSAL_PLANNING'); await checkpoint(run); }
+      if (run.stage === 'PROPOSAL_PLANNING') { run = advanceProposalWorkflow(run, 'SECTION_GENERATION'); await checkpoint(run); }
       let generatedDraft = aiDraft || stored.ai_draft;
       if (run.stage === 'SECTION_GENERATION') {
         if (run.generation_calls >= PROPOSAL_WORKFLOW_BUDGET.generationCalls) throw Object.assign(new Error('The proposal generation retry budget has been used.'), { code: 'GENERATION_BUDGET_EXHAUSTED' });
         const clear = timeout();
-        run = { ...run, generation_calls: run.generation_calls + 1, updated_at: new Date().toISOString() }; checkpoint(run);
+        run = { ...run, generation_calls: run.generation_calls + 1, updated_at: new Date().toISOString() }; await checkpoint(run);
         try {
           const response = await base44.integrations.Core.InvokeLLM({
             response_json_schema: RESEARCH_PROPOSAL_SCHEMA,
             prompt: buildResearchProposalPrompt({ question: run.input.question, researchType, papers: sourcePapers, project, evidenceMatrix: project.evidence_matrix, literatureReview: project.literature_review, contextSelection, discipline: run.input.discipline, purpose: run.input.purpose, language: run.input.language }),
             signal: controller.signal,
           });
+          await getUsableSession({ required: true, validate: true, expectedUserId: workflowOwnerId, signal: controller.signal });
           const validated = validateResearchProposalDraft(response, sourcePapers);
           generatedDraft = validated;
           try { window.localStorage.setItem(`eylo:proposal-draft:${project.id}`, JSON.stringify(validated)); } catch { /* A successful in-memory draft remains usable without a local checkpoint. */ }
           setAiDraft(validated);
           if (!researcherEdited || !aiDraft) { setSections(validated.sections); setMethodology(validated.methodology_plan); setResearcherEdited(false); }
-          run = advanceProposalWorkflow(run, 'QUALITY_REVIEW'); checkpoint(run);
+          run = advanceProposalWorkflow(run, 'QUALITY_REVIEW'); await checkpoint(run);
         } finally { clear(); }
       }
       if (run.stage === 'QUALITY_REVIEW') {
         const findings = reviewProposalDraft({ sections: generatedDraft?.sections || sections, methodologyPlan: generatedDraft?.methodology_plan || methodology, papers: sourcePapers });
         setQualityFindings(findings);
-        run = advanceProposalWorkflow(run, 'REVISION', { quality_summary: findings.map(item => ({ pass: item.pass, status: item.status })) }); checkpoint(run);
+        run = advanceProposalWorkflow(run, 'REVISION', { quality_summary: findings.map(item => ({ pass: item.pass, status: item.status })) }); await checkpoint(run);
       }
-      if (run.stage === 'REVISION') { run = advanceProposalWorkflow(run, 'RESEARCHER_REVIEW', { revision_summary: 'No automated rewrite was applied. Researcher edits and accept/reject decisions remain in control.' }); checkpoint(run); }
+      if (run.stage === 'REVISION') { run = advanceProposalWorkflow(run, 'RESEARCHER_REVIEW', { revision_summary: 'No automated rewrite was applied. Researcher edits and accept/reject decisions remain in control.' }); await checkpoint(run); }
       if (run.stage === 'RESEARCHER_REVIEW' && run.status === 'running') {
         run = { ...run, status: 'awaiting_researcher', updated_at: new Date().toISOString() };
-        checkpoint(run);
+        await checkpoint(run);
       }
       setDirty(true);
       setMessage('The proposal draft is ready for your review. Check the linked sources and quality findings, then enable exports when satisfied.');
@@ -214,7 +234,7 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
       const failedRun = controller.signal.aborted && failure?.name === 'AbortError'
         ? cancelProposalWorkflow(activeRun)
         : failProposalWorkflow(activeRun, failure?.code || 'WORKFLOW_FAILED');
-      checkpoint(failedRun);
+      try { await checkpoint(failedRun); } catch { /* Keep the local failure state; never replace the last verified project checkpoint. */ }
       if (failure?.name === 'AbortError' || controller.signal.aborted) setMessage('Workflow cancelled. Retrieved records remain linked to this project; resume when ready.');
       else setError(failure?.code === 'NO_SOURCES' ? 'No usable scholarly sources were found. Refine the topic and retry.' : proposalErrorMessage(failure, false));
     } finally {
@@ -245,14 +265,25 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
     } finally { setSaving(false); }
   };
 
-  const finishResearcherReview = () => {
+  const finishResearcherReview = async () => {
     try {
       const reviewed = markProposalResearcherReviewed(workflowRun);
       setWorkflowRun(reviewed);
       setDirty(true);
       setMessage('Researcher review recorded for this draft. This is not institutional approval or submission. Save the proposal to the project to keep this status.');
       try { window.localStorage.setItem(`eylo:proposal-workflow:${project.id}`, JSON.stringify(reviewed)); } catch { /* The review state remains in this session. */ }
-    } catch (failure) { setError(proposalErrorMessage(failure, false)); }
+      const ownerId = (await getUsableSession({ required: true, validate: true })).user.id;
+      const saved = await persistProposalWorkflowCheckpoint({
+        entities: base44.entities,
+        project: projectRef.current,
+        run: reviewed,
+        ownerId,
+        getSession: expectedUserId => getUsableSession({ required: true, validate: true, expectedUserId }),
+      });
+      projectRef.current = saved;
+      onProjectSaved?.(saved);
+      setMessage('Researcher review status was saved to this private project. It is not institutional approval or submission.');
+    } catch (failure) { setError(failure?.code === 'ENTITY_CONFLICT' ? 'The project changed in another session. Reload before recording review approval.' : proposalErrorMessage(failure, false)); }
   };
 
   const updateClaim = (sectionId, index, value, methodTopic = null) => {
@@ -328,7 +359,7 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
       {workflowRun.source_status?.length > 0 && <ul className="space-y-1 text-xs text-muted-foreground">{workflowRun.source_status.flatMap(search => (search.source_status || []).map(source => <li key={`${search.query}-${source.id}`}>{source.label}: {source.status} · {source.count} records</li>))}</ul>}
       {workflowRun.status === 'cancelled' && <p className="text-xs text-muted-foreground">Cancelled. Resume restarts the interrupted stage within the same search and generation limits.</p>}
     </section>}
-    {qualityFindings.length > 0 && <section className="space-y-2 rounded-xl border border-border p-4" aria-label="Proposal quality review"><h4 className="font-semibold">Quality review</h4><p className="text-xs leading-5 text-muted-foreground">Automated checks report structural and traceability issues. They do not establish that a publication supports a claim or that the proposal is scientifically valid.</p><ul className="space-y-2">{qualityFindings.map(finding => <li key={finding.pass} className="rounded-lg bg-secondary/30 p-3 text-sm"><span className="font-semibold">Pass {finding.pass} · {finding.label}</span><span className="ml-2 text-xs text-muted-foreground">{finding.status.replaceAll('_', ' ')}</span><p className="mt-1 text-xs leading-5 text-muted-foreground">{finding.details}</p></li>)}</ul></section>}
+    {qualityFindings.length > 0 && <section className="space-y-2 rounded-xl border border-border p-4" aria-label="Proposal quality review"><h4 className="font-semibold">Quality review</h4><p className="text-xs leading-5 text-muted-foreground">Automated findings surface completeness, traceability and possible consistency issues. Human scientific verification is separate: citation matching does not show that a source supports a claim or that the proposal is scientifically valid.</p><ul className="space-y-2">{qualityFindings.map(finding => <li key={finding.pass} className="rounded-lg bg-secondary/30 p-3 text-sm"><span className="font-semibold">Pass {finding.pass} · {finding.label}</span><span className="ml-2 text-xs text-muted-foreground">{finding.status.replaceAll('_', ' ')}</span><p className="mt-1 text-xs leading-5 text-muted-foreground">{finding.details}</p>{finding.actions?.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-5 text-xs leading-5 text-muted-foreground">{finding.actions.map(action => <li key={action}>{action}</li>)}</ul>}</li>)}</ul></section>}
     <p className="text-xs leading-5 text-muted-foreground">Editable scientific draft requiring researcher evaluation; not peer reviewed. Citation validation checks selected source IDs, not whether each claim is semantically supported. Where full text is unavailable, EYRA can use only metadata and available abstracts.</p>
     {message && <p role="status" className="rounded-lg bg-secondary px-3 py-2 text-sm">{message}</p>}{error && <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">{error}</p>}
     {!hasDraft && <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Enter the topic, discipline, proposal purpose and language, then generate the editable 23-section proposal. EYRA will not search or generate until you choose Generate Complete Proposal.</div>}

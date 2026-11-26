@@ -28,6 +28,9 @@ let failNextTimerTransition = true;
 let interruptSnapshotSave = true;
 let snapshotWrites = 0;
 let roadmapMode = 'normal';
+let proposalResponseMode = 'normal';
+let proposalRequestStartedResolve;
+let proposalHoldResolve;
 const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS' };
 function containsJson(value, expected) {
   if (Array.isArray(expected)) return Array.isArray(value) && expected.every(item => value.some(candidate => containsJson(candidate, item)));
@@ -147,6 +150,12 @@ try {
       return json(route, { data: { tasks } });
     }
     if (body.prompt?.includes('scientific research proposal')) {
+      if (proposalResponseMode === 'hold') {
+        proposalRequestStartedResolve?.();
+        await new Promise(resolve => { proposalHoldResolve = resolve; });
+        try { await route.abort('failed'); } catch { /* The browser may already have closed this request during reload. */ }
+        return;
+      }
       const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
       assert.ok(sourceId, 'proposal prompt must include a saved source identifier');
       assert.ok(body.prompt.includes('Researcher-edited synthesis.'), 'explicitly selected Literature Review context must be available');
@@ -632,16 +641,31 @@ try {
   const proposalQuestion = page.locator('label').filter({ hasText: 'Research topic or question' }).locator('textarea');
   assert.equal(await proposalQuestion.inputValue(), question);
   await page.getByLabel('Scientific discipline', { exact: true }).fill('Public health');
+  proposalResponseMode = 'hold';
+  const proposalRequestStarted = new Promise(resolve => { proposalRequestStartedResolve = resolve; });
   await page.getByRole('button', { name: 'Generate Complete Proposal', exact: true }).click();
+  await proposalRequestStarted;
+  assert.equal(tables.projects[0].data.research_proposal.workflow_run.stage, 'SECTION_GENERATION', 'the active stage must be persisted before the provider request');
+  await page.reload();
+  proposalHoldResolve?.();
+  for (let attempt = 0; attempt < 100 && tables.projects[0].data.research_proposal.workflow_run.status !== 'cancelled'; attempt += 1) await new Promise(resolve => setTimeout(resolve, 50));
+  assert.equal(tables.projects[0].data.research_proposal.workflow_run.status, 'cancelled', 'the interrupted browser request must persist a resumable cancellation checkpoint');
+  await page.reload();
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  assert.equal(await page.getByRole('button', { name: 'Resume workflow', exact: true }).count(), 1, 'reload must restore the project checkpoint and resume action');
+  proposalResponseMode = 'normal';
+  await page.getByRole('button', { name: 'Resume workflow', exact: true }).click();
   const proposalBackground = page.getByLabel('Background statement 1', { exact: true });
   await proposalBackground.waitFor();
   await proposalBackground.fill('Researcher-edited proposal evidence note.');
   await page.getByRole('button', { name: 'Generate Complete Proposal', exact: true }).click();
   await page.getByText(/proposal draft is ready for your review/i).waitFor();
+  assert.equal(tables.saved_papers.length, 1, 'resuming after reload must not write duplicate scholarly records');
   assert.equal(await proposalBackground.inputValue(), 'Researcher-edited proposal evidence note.', 'regeneration must preserve researcher edits');
   assert.equal(await page.getByRole('heading', { name: 'Research Title', exact: true }).count(), 1);
   assert.equal(await page.getByRole('heading', { name: 'Bibliography', exact: true }).count(), 1);
   assert.ok(await page.locator('a[href="https://doi.org/10.5555/eylo-matrix-fixture"]').count() > 0, 'proposal sources must link to the saved scholarly record');
+  assert.equal(await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByRole('button', { name: 'Export Markdown', exact: true }).isDisabled(), true, 'export remains blocked until researcher review is complete');
   await page.getByRole('button', { name: 'Mark review complete and enable export', exact: true }).click();
   await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByRole('button', { name: 'Save to project', exact: true }).click();
   await page.getByText('Proposal saved to this private research project.', { exact: true }).waitFor();
@@ -652,6 +676,7 @@ try {
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
   assert.equal(await page.locator('label').filter({ hasText: 'Research topic or question' }).locator('textarea').inputValue(), question);
   assert.equal(await page.getByLabel('Background statement 1', { exact: true }).inputValue(), 'Researcher-edited proposal evidence note.');
+  assert.equal(await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByRole('button', { name: 'Export Markdown', exact: true }).isEnabled(), true, 'saved researcher review approval must restore the export state after reload');
   const methodologySection = page.locator('section[aria-labelledby="research-methodology-studio-title"]');
   const methodologyQuestion = methodologySection.locator('label').filter({ hasText: 'Methodology research question' }).locator('textarea');
   assert.equal(await methodologyQuestion.inputValue(), question, 'methodology must reuse the saved project question');
