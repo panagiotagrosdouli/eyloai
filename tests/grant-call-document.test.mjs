@@ -1,8 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { jsPDF } from 'jspdf';
 import { extractGrantCallDocument } from '../src/lib/grant-call-document.mjs';
 
 const fileLike = ({ name, type, bytes }) => ({ name, type, size: bytes.byteLength, arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) });
+
+test('PDF text extraction reads an actual generated PDF and retains page provenance', async () => {
+  const pdf = new jsPDF();
+  pdf.text('Eligibility: Applicants must meet the official call criteria.', 12, 18);
+  const bytes = new Uint8Array(pdf.output('arraybuffer'));
+  const document = await extractGrantCallDocument(fileLike({ name: 'official-call.pdf', type: 'application/pdf', bytes }));
+  assert.equal(document.extraction_method, 'pdfjs-local-text');
+  assert.equal(document.lines[0].page, 1);
+  assert.match(document.lines[0].text, /Applicants must meet the official call criteria/);
+  assert.equal(document.lines[0].source_document_id, document.id);
+});
 
 test('local text document extraction enforces type and character limits while retaining exact lines', async () => {
   const text = new TextEncoder().encode('Official call\nApplicants must meet eligibility rules.');
