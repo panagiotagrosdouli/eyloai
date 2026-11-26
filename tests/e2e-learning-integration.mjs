@@ -898,6 +898,10 @@ try {
     const result = await supabase.auth.signInWithPassword({ email, password: 'Fixture-password-123' });
     if (result.error) throw result.error;
   }, user.email);
+  // Account switching may leave the app on the signed-in user's landing route.
+  // Reopen the exact authorized project before checking its resumable checkpoint.
+  await page.goto(`${origin}/projects/${tables.projects[0].id}`);
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
   grantDraftResponseMode = 'normal';
   await page.getByLabel('Official call title').waitFor();
   await page.locator('section[aria-labelledby="grant-proposal-builder-title"]').getByRole('button', { name: 'Resume saved run', exact: true }).click();
