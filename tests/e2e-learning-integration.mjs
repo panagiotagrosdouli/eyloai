@@ -755,7 +755,11 @@ try {
     new Paragraph('Applicants must describe the proposed methods.'),
   ] }] }));
   await grantSection.locator('input[type="file"]').setInputFiles({ name: 'call-fixture.pdf', mimeType: 'application/pdf', buffer: Buffer.from(callPdf.output('arraybuffer')) });
-  await grantSection.getByText('call-fixture.pdf', { exact: true }).waitFor();
+  const pdfProcessingOutcome = await Promise.race([
+    grantSection.getByText('call-fixture.pdf', { exact: true }).waitFor().then(() => ({ kind: 'document' })),
+    grantSection.getByRole('alert').waitFor().then(async () => ({ kind: 'error', text: await grantSection.getByRole('alert').innerText() })),
+  ]);
+  assert.equal(pdfProcessingOutcome.kind, 'document', `PDF call document did not process: ${pdfProcessingOutcome.text || 'no document row'}`);
   await grantSection.locator('input[type="file"]').setInputFiles({ name: 'instructions-fixture.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer: callDocx });
   await grantSection.getByText('instructions-fixture.docx', { exact: true }).waitFor();
   const documentedRequirements = grantSection.locator('section[aria-label="Documented call requirements"]');
