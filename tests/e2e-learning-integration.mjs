@@ -519,6 +519,10 @@ try {
   }, { times: 1 });
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
   await historyStarted;
+  const cancelledHistoryRequest = page.waitForEvent('requestfailed', {
+    predicate: request => request.url().includes('/rest/v1/eyra_messages'),
+    timeout: 10_000,
+  });
   // Explicitly require the confirmation dialog: a guarded/no-op Clear click
   // must fail this test at the actual cause, not 20 seconds later at the DOM.
   // A native confirmation dialog is already covered in the earlier clear.
@@ -538,17 +542,13 @@ try {
     return count;
   });
   assert.equal(clearConfirmCalls, 1, 'Clear during a pending restore must reach the confirmation handler exactly once');
-  const clearDiagnostics = await page.evaluate(() => ({
-    transcript: document.querySelector('[aria-label="EYRA conversation"]')?.innerText.slice(0, 600),
-    localKeys: Object.keys(sessionStorage).filter(key => key.includes('eyra')),
-    clearButtons: [...document.querySelectorAll('[aria-label="Clear EYRA conversation"]')].length,
-  }));
-  console.log('EYRA pending-restore clear diagnostics (synthetic fixture only):', JSON.stringify(clearDiagnostics));
-  // Verify the actual React clear committed before the delayed network
-  // response is released. A real stale history restore must not resurrect it.
+  // Verify the actual React clear committed while the saved-history request is
+  // still held. Clear now aborts that request, so no HTTP response is expected.
   await eyraTranscript.getByText(answer, { exact: true }).waitFor({ state: 'detached' });
-  const historyResponse = page.waitForResponse(response => response.url().includes('/rest/v1/eyra_messages'));
-  releaseHistory(); await (await historyResponse).finished();
+  releaseHistory();
+  const failedHistoryRequest = await cancelledHistoryRequest;
+  assert.match(failedHistoryRequest.failure()?.errorText || '', /abort|cancel/i,
+    'clearing during restore must cancel the in-flight history request');
   await page.waitForTimeout(250);
   assert.equal(await eyraTranscript.getByText(answer, { exact: true }).count(), 0, 'late history cannot restore a chat after clear');
   await page.getByLabel('Saved EYRA conversation').selectOption(tables.eyra_conversations[0].id);
@@ -755,7 +755,10 @@ try {
     new Paragraph('Applicants must describe the proposed methods.'),
   ] }] }));
   await grantSection.locator('input[type="file"]').setInputFiles({ name: 'call-fixture.pdf', mimeType: 'application/pdf', buffer: Buffer.from(callPdf.output('arraybuffer')) });
-  await grantSection.getByText('call-fixture.pdf', { exact: true }).waitFor();
+  await grantSection.getByText('call-fixture.pdf', { exact: true }).waitFor().catch(async cause => {
+    const errors = await grantSection.getByRole('alert').allTextContents();
+    throw new Error(`Grant PDF fixture extraction failed: ${errors.join(' | ') || 'no visible error'}`, { cause });
+  });
   await grantSection.locator('input[type="file"]').setInputFiles({ name: 'instructions-fixture.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer: callDocx });
   await grantSection.getByText('instructions-fixture.docx', { exact: true }).waitFor();
   const documentedRequirements = grantSection.locator('section[aria-label="Documented call requirements"]');
@@ -1573,3 +1576,4 @@ try {
   if (browser) await browser.close();
   server.kill('SIGTERM');
 }
+

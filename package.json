@@ -19,6 +19,7 @@
     "test:e2e:library": "node tests/e2e-library-context.mjs",
     "test:e2e:eyra-stream": "node tests/e2e-eyra-terminal-stream.mjs",
     "test:e2e:learning": "node tests/e2e-learning-integration.mjs",
+    "test:staging:storage": "node scripts/verify-eylo-file-storage-staging.mjs",
     "check": "npm run check:imports && npm run typecheck && npm run lint && npm run test && npm run build",
     "preview": "vite preview",
     "normalize:base44": "node scripts/normalize-base44-paths.mjs",

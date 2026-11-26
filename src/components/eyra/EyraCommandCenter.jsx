@@ -29,6 +29,7 @@ import { listEyraConversations, saveEyraConversation, loadEyraConversation, rena
 
 import { snapshotPayload, snapshotIdentity, conversationExport } from '@/lib/eyra-snapshot.mjs';
 import { requestedEyraWrites } from '@/lib/eyra-write-intent.mjs';
+import { formatUnverifiedEyraToolAction, hasEyraWriteReceipt, formatEyraToolFailure } from '@/lib/eyra-tool-outcome.mjs';
 import { buildEyraConversationContext } from '@/lib/eyra-conversation-context.mjs';
 import { listEyraAgentRuns, loadEyraAgentRun, cancelEyraAgentRun, reviewStaleEyraAgentRun, deleteEyraAgentRun } from '@/lib/eyra-run-history';
 
@@ -75,6 +76,8 @@ function loadConversation(userId) {
 function formatEyraToolActions(actions) {
   if (!Array.isArray(actions) || !actions.length) return '';
   return actions.map(action => {
+    if (!action || typeof action !== 'object') return formatUnverifiedEyraToolAction(action);
+    if (['project.create', 'library.save_paper'].includes(action.tool) && !hasEyraWriteReceipt(action)) return formatUnverifiedEyraToolAction(action);
     if (action.status === 'succeeded' && action.tool === 'project.create') {
       const p = action.result || {};
       return `- Created and verified project **${p.title || 'Untitled'}** (ID: \`${p.id || 'unavailable'}\`).`;
@@ -125,19 +128,16 @@ function formatEyraToolActions(actions) {
     if (action.status === 'succeeded' && action.tool === 'research.lookup_doi') {
       return `- Crossref DOI metadata verified for **${action.result?.title || 'publication'}** (${action.result?.doi || 'DOI unavailable'}); this is not a full-text review.`;
     }
-    if (action.status === 'needs_review') {
-      return `- **Outcome uncertain — manual review required:** ${action.tool || 'Workspace action'}. ${action.error || 'Check the actual workspace record before retrying.'}`;
-    }
-    if (action.status === 'failed') {
-      return `- ${action.tool || 'Workspace action'} failed: ${action.error || 'Check the workspace before retrying.'}`;
-    }
-    return `- ${action.tool || 'Workspace action'} completed.`;
+    if (action.status === 'needs_review') return formatEyraToolFailure(action);
+    if (action.status === 'failed') return formatEyraToolFailure(action);
+    return formatUnverifiedEyraToolAction(action);
   }).join('\n');
 }
 
 export default function EyraCommandCenter({ open, onClose, resourceContext = null }) {
   const { user } = useAuth();
   const [messages, setMessages] = useState(() => loadConversation(user?.id));
+  const [transcriptRevision, setTranscriptRevision] = useState(0);
   const [conversationOwner, setConversationOwner] = useState(user?.id);
   const [allowWorkspaceActions, setAllowWorkspaceActions] = useState(false);
   const [pendingWriteReview, setPendingWriteReview] = useState(null);
@@ -156,6 +156,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
   const [agentRunsBusy, setAgentRunsBusy] = useState(false);
   const [agentRunsError, setAgentRunsError] = useState('');
   const historyEpochRef = useRef(0);
+  const historyRestoreRef = useRef(null);
   const snapshotRequestRef = useRef(null);
   const historyWriteLockRef = useRef(false);
   const ownerRef = useRef(user?.id);
@@ -191,6 +192,7 @@ export default function EyraCommandCenter({ open, onClose, resourceContext = nul
     setWorkspaceContext(''); setContextStatus('idle'); setLiveDraft(''); setLoading(false);
     setRemoteConversation(null); setSavedConversations([]); setAllowWorkspaceActions(false);
     setPendingWriteReview(null); setWritePreview(null);
+    historyRestoreRef.current?.abort(); historyRestoreRef.current = null;
     historyEpochRef.current += 1; snapshotRequestRef.current = null; historyWriteLockRef.current = false; setHistoryBusy(false);
     setSavingConversation(false); setSavedMessageIds(new Set()); setUserName(''); setActionError('');
     setCloudHistoryState({ ownerId: user?.id ?? null, status: 'checking' });
@@ -711,23 +713,22 @@ The saved record was returned by the server. Check the workspace for the final r
   const restoreConversation = async id => {
     const owner = user?.id;
     if (!id || !cloudHistoryReady || loading || historyWriteLockRef.current) return;
+    historyRestoreRef.current?.abort();
+    const controller = new AbortController();
+    historyRestoreRef.current = controller;
     const epoch = ++historyEpochRef.current; setHistoryBusy(true);
     try {
-      const saved = await loadEyraConversation(id);
-      if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
-      // Commit a completed history restore synchronously. Otherwise React can
-      // defer the update until *after* a subsequent user Clear, resurrecting
-      // the old transcript even when the response passed the epoch guard.
-      // The owner/epoch check above rejects responses arriving after Clear.
-      flushSync(() => {
-        if (ownerRef.current === owner && historyEpochRef.current === epoch) {
-          setMessages(saved.messages);
-        }
-      });
-      if (ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
-      setRemoteConversation(saved); setRenameTitle(null); setActionError('');
-    } catch (error) { if (ownerRef.current === owner && historyEpochRef.current === epoch) setActionError(error?.message || 'Conversation could not be opened.'); }
-    finally { if (ownerRef.current === owner && historyEpochRef.current === epoch) setHistoryBusy(false); }
+      const saved = await loadEyraConversation(id, controller.signal);
+      if (controller.signal.aborted || ownerRef.current !== owner || historyEpochRef.current !== epoch) return;
+      setMessages(saved.messages); setRemoteConversation(saved); setRenameTitle(null); setActionError('');
+    } catch (error) {
+      if (!controller.signal.aborted && ownerRef.current === owner && historyEpochRef.current === epoch) {
+        setActionError(error?.message || 'Conversation could not be opened.');
+      }
+    } finally {
+      if (historyRestoreRef.current === controller) historyRestoreRef.current = null;
+      if (ownerRef.current === owner && historyEpochRef.current === epoch) setHistoryBusy(false);
+    }
   };
 
   const saveRenamedConversation = async () => {
@@ -821,6 +822,7 @@ The saved record was returned by the server. Check the workspace for the final r
     if (!window.confirm('Clear the conversation in this tab? Conversations you explicitly saved remain available.')) return;
     // Invalidate any in-flight cloud restore before committing the clear.
     historyEpochRef.current += 1;
+    historyRestoreRef.current?.abort(); historyRestoreRef.current = null;
     activeRequestRef.current?.abort(); activeRequestRef.current = null;
     // Clear is an explicit destructive *local* user action. Commit the empty
     // transcript synchronously so an in-flight history load cannot leave the
@@ -829,6 +831,7 @@ The saved record was returned by the server. Check the workspace for the final r
       setHistoryBusy(false);
       setLoading(false); setLiveDraft(''); setRemoteConversation(null); setRenameTitle(null);
       setMessages([{ ...createWelcomeMessage(userName), mode: activeMode }]);
+      setTranscriptRevision(version => version + 1);
       setInput('');
     });
     window.speechSynthesis?.cancel();
@@ -894,7 +897,7 @@ The saved record was returned by the server. Check the workspace for the final r
 
           {/* Messages */}
           <div ref={conversationScrollRef} className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain bg-background px-4 py-5 sm:px-8 sm:py-7" aria-label="EYRA conversation">
-            <div className={`mx-auto flex min-h-full w-full max-w-3xl flex-col gap-5 ${messages.length === 1 ? 'justify-center' : ''}`}>
+            <div key={transcriptRevision} className={`mx-auto flex min-h-full w-full max-w-3xl flex-col gap-5 ${messages.length === 1 ? 'justify-center' : ''}`}>
               {messages.map((msg, index) => msg.welcome ? (messages.length === 1 ? (
                 <section key={`${msg.timestamp}-${index}`} aria-label="Start a conversation with EYRA" className="relative mx-auto w-full max-w-[740px] px-1 py-3 sm:px-5 sm:py-5">
                   <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-xl font-bold text-primary" aria-hidden="true">✦</div>
