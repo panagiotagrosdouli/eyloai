@@ -122,6 +122,25 @@ try {
   await page.route('**/api/capabilities', route => json(route, { ai: false, billing: false, contact: false, scheduled_monitoring: false, institution_analytics: false }));
   await page.route('**/api/eyra', async route => {
     const body = route.request().postDataJSON();
+    if (body.prompt?.includes('Extract funding-call requirements from the supplied official document text')) {
+      const text = 'Programme: Urban Research Call\nFunding body: Example Research Agency\nCall identifier: URC-2027-A\nEligibility: Public universities may apply.\nDeadline: 1 December 2027.\nScientific scope: Urban heat adaptation.\nEvaluation criteria: Excellence and impact.\nRequired sections: Excellence; Impact; Implementation.\nPage limits: 10 pages.\nFormatting: 11 point font.\nBudget constraints: Personnel and travel costs are eligible.\nRequired attachments: Applicant CVs.';
+      const item = (value, evidence_quote) => ({ value, classification: 'direct', evidence_quote, section_or_page: '' });
+      const list = (value, evidence_quote) => [item(value, evidence_quote)];
+      return json(route, { data: {
+        programme: item('Urban Research Call', 'Programme: Urban Research Call'),
+        funding_body: item('Example Research Agency', 'Funding body: Example Research Agency'),
+        call_identifier: item('URC-2027-A', 'Call identifier: URC-2027-A'),
+        eligibility: list('Public universities may apply.', 'Eligibility: Public universities may apply.'),
+        deadline: item('1 December 2027', 'Deadline: 1 December 2027.'),
+        scientific_scope: item('Urban heat adaptation', 'Scientific scope: Urban heat adaptation.'),
+        evaluation_criteria: list('Excellence and impact.', 'Evaluation criteria: Excellence and impact.'),
+        required_sections: list('Excellence; Impact; Implementation.', 'Required sections: Excellence; Impact; Implementation.'),
+        page_limits: list('10 pages.', 'Page limits: 10 pages.'),
+        formatting: list('11 point font.', 'Formatting: 11 point font.'),
+        budget_constraints: list('Personnel and travel costs are eligible.', 'Budget constraints: Personnel and travel costs are eligible.'),
+        required_attachments: list('Applicant CVs.', 'Required attachments: Applicant CVs.'),
+      } });
+    }
     if (body.prompt?.includes('planning a research proposal from a researcher')) {
       autonomousPlanCalls += 1;
       assert.match(body.prompt, /Write all string values in English/);
@@ -197,7 +216,15 @@ try {
           : section_id === 'research_title' ? [{ heading: 'Working title', text: 'A proposed study of the selected question.', kind: 'proposal', source_ids: [] }] : [],
       }));
       const methodology_plan = Object.fromEntries(['approach','population_sampling','variables_constructs','validation','reproducibility'].map(id => [id, { status: 'needs_input', claims: [] }]));
-      return json(route, { data: { sections, methodology_plan, milestones: [{ task_key: 'review-protocol', phase: 'Preparation', title: 'Review the study protocol', deliverable: 'Researcher-reviewed study protocol', due_date: '', depends_on: [], risk: 'Study feasibility and approvals require local researcher assessment.', researcher_notes: '', evidence_summary: '', evidence_kind: 'proposal', source_ids: [] }] } });
+      const draft = { sections, methodology_plan, milestones: [{ task_key: 'review-protocol', phase: 'Preparation', title: 'Review the study protocol', deliverable: 'Researcher-reviewed study protocol', due_date: '', depends_on: [], risk: 'Study feasibility and approvals require local researcher assessment.', researcher_notes: '', evidence_summary: '', evidence_kind: 'proposal', source_ids: [] }] };
+      if (body.prompt.includes('GRANT PROPOSAL MODE')) {
+        assert.match(body.prompt, /DIRECTLY EXTRACTED REQUIREMENTS/);
+        assert.match(body.prompt, /APPLICANT INFORMATION PROVIDED BY RESEARCHER/);
+        draft.work_packages = [{ title: 'Protocol design', objective: 'Develop the research protocol.', activities: ['Define measures with the research team.'], deliverables: ['Draft protocol.'], milestone_keys: ['review-protocol'] }];
+        draft.budget_notes = ['Cost categories require researcher confirmation.'];
+        draft.requirement_coverage = ['programme','funding_body','call_identifier','eligibility','deadline','scientific_scope','evaluation_criteria','required_sections','page_limits','formatting','budget_constraints','required_attachments'].map(requirement_id => ({ requirement_id, status: 'unverified', note: 'Researcher verification required.' }));
+      }
+      return json(route, { data: draft });
     }
     if (body.prompt?.includes('preliminary narrative literature review')) {
       const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
@@ -784,6 +811,54 @@ try {
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'proposal editor must fit the 390px mobile browser viewport');
   assert.equal(await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByRole('button', { name: 'Export Markdown', exact: true }).isDisabled(), true, 'a later edit invalidates the prior approval and disables export');
   console.log('PASS fixture: selected scholarly source + Evidence Matrix + Literature Review → structured proposal generation, edit-preserving regeneration, private project save/reload and DOI-linked Markdown export.');
+
+  // Grant call intake must quote the supplied notice, require review, and reuse the same autonomous engine.
+  await page.reload();
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  const grantCallText = 'Programme: Urban Research Call\nFunding body: Example Research Agency\nCall identifier: URC-2027-A\nEligibility: Public universities may apply.\nDeadline: 1 December 2027.\nScientific scope: Urban heat adaptation.\nEvaluation criteria: Excellence and impact.\nRequired sections: Excellence; Impact; Implementation.\nPage limit: 10 pages.\nFormatting: 11 point font.\nBudget constraints: Personnel and travel costs are eligible.\nRequired attachments: Applicant CVs.';
+  const grantStudio = page.locator('section[aria-labelledby="research-proposal-builder-title"]');
+  await grantStudio.getByLabel('Proposal type').selectOption('grant_proposal');
+  await grantStudio.getByLabel('Official call text').fill(grantCallText);
+  await grantStudio.getByLabel('Applicant and institutional information supplied by you').fill('Public university; applicant team roles and facilities need researcher confirmation.');
+  await grantStudio.getByRole('button', { name: 'Extract call requirements', exact: true }).click();
+  await grantStudio.getByText('Inspect provenance and confirm critical requirements', { exact: true }).waitFor();
+  const requirementChecks = grantStudio.locator('label').filter({ hasText: 'I reviewed this requirement or its missing status.' });
+  assert.equal(await requirementChecks.count(), 10, 'every critical requirement, including absent facts, needs an explicit researcher review');
+  for (let i = 0; i < 10; i++) await requirementChecks.nth(i).getByRole('checkbox').check();
+  await grantStudio.getByRole('button', { name: 'Save critical requirement review', exact: true }).click();
+  await grantStudio.getByText(/Critical call requirements saved as researcher-reviewed/).waitFor();
+  autonomousProposalMode = 'normal';
+  await grantStudio.getByRole('button', { name: 'Generate Complete Proposal', exact: true }).click();
+  await grantStudio.getByRole('heading', { name: 'Call coverage and proposed work packages', exact: true }).waitFor();
+  assert.equal(tables.projects[0].data.research_proposal.output_kind, 'grant_proposal');
+  assert.equal(tables.projects[0].data.research_proposal.grant_context.confirmed, true);
+  assert.equal(tables.projects[0].data.research_proposal.ai_draft.work_packages.length, 1);
+  assert.equal(tables.projects[0].data.research_proposal.requirement_coverage, undefined, 'coverage remains within the saved draft version');
+  assert.equal(tables.projects[0].data.research_proposal.ai_draft.requirement_coverage.length, 12);
+  assert.equal(tables.projects[0].data.plan_items.length, 2, 'grant milestones and work packages do not write to the real workplan');
+  const grantTitle = grantStudio.getByLabel('Title', { exact: true });
+  await grantTitle.fill('Researcher-edited work package title');
+  await grantStudio.getByRole('button', { name: 'Save to project', exact: true }).click();
+  await grantStudio.getByText('Proposal saved to this private research project.', { exact: true }).waitFor();
+  assert.equal(tables.projects[0].data.research_proposal.edited_work_packages[0].title, 'Researcher-edited work package title');
+  const grantReview = grantStudio.getByRole('button', { name: 'Save review approval for export', exact: true });
+  await grantStudio.getByLabel(/I reviewed the sources, claims, uncertainties/).check();
+  await grantReview.click();
+  await grantStudio.getByText(/Your review approval is saved/).waitFor();
+  const grantDownloadEvent = page.waitForEvent('download');
+  await grantStudio.getByRole('button', { name: 'Export Markdown', exact: true }).click();
+  const grantDownload = await grantDownloadEvent;
+  const grantMarkdown = await readFile(await grantDownload.path(), 'utf8');
+  assert.match(grantMarkdown, /Eligibility: Public universities may apply/);
+  assert.match(grantMarkdown, /Researcher-edited work package title/);
+  assert.match(grantMarkdown, /Requirement coverage/);
+  await page.reload();
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  assert.equal(await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByLabel('Proposal type').inputValue(), 'grant_proposal');
+  assert.equal(await page.getByLabel('Title', { exact: true }).inputValue(), 'Researcher-edited work package title');
+  assert.equal(await page.getByRole('button', { name: 'Export Markdown', exact: true }).isDisabled(), false, 'a saved exact-revision researcher approval survives reload');
+  assert.equal(tables.projects[0].data.research_proposal.autonomous_run.output_kind, 'grant_proposal');
+  console.log('PASS fixture: grant call quotes + critical confirmation → same autonomous scholarly proposal engine → editable work package → owner-scoped save/reload and approval-gated export; no workplan write.');
 
   const savedReviewSnapshot = structuredClone(tables.projects[0].data.literature_review);
   tables.projects[0].updated_date = '2099-01-01T00:00:00.000Z';
