@@ -17,6 +17,7 @@ if (!config.ok) {
   const clientB = makeClient();
   const filesA = createEyloFilesService(clientA);
   const filesB = createEyloFilesService(clientB);
+  let marker = null;
   let fileId = null;
   let ownerId = null;
   const storagePaths = new Set();
@@ -31,7 +32,7 @@ if (!config.ok) {
     if (loginA.data.user.id === loginB.data.user.id) throw new Error('Two distinct staging account identities are required.');
     ownerId = loginA.data.user.id;
 
-    const marker = `eylo-staging-storage-${randomUUID()}`;
+    marker = `eylo-staging-storage-${randomUUID()}`;
     const initialText = `${marker}:version-one`;
     const nextText = `${marker}:version-two`;
     const initialFile = new File([initialText], `${marker}.txt`, { type: 'text/plain' });
@@ -73,9 +74,13 @@ if (!config.ok) {
     const versioned = await filesA.addVersion(fileId, nextFile);
     if (versioned.versions?.[0]?.version_number !== 2 || versioned.user_id !== loginA.data.user.id) throw new Error('Owner version creation did not return the expected verified receipt.');
     storagePaths.add(versioned.versions[0].storage_path);
+    const reloaded = await filesA.get(fileId);
+    if (reloaded.user_id !== ownerId || reloaded.versions?.length !== 2 || reloaded.versions[0]?.version_number !== 2) {
+      throw new Error('Owner reload did not return both persisted versions in the expected order.');
+    }
     const [oldBytes, newBytes] = await Promise.all([
-      filesA.download(saved.versions[0]).then(blob => blob.text()),
-      filesA.download(versioned.versions[0]).then(blob => blob.text()),
+      filesA.download(reloaded.versions[1]).then(blob => blob.text()),
+      filesA.download(reloaded.versions[0]).then(blob => blob.text()),
     ]);
     if (oldBytes !== initialText || newBytes !== nextText) throw new Error('Versioned file bytes did not match their saved metadata.');
     if ((await filesB.list({ query: marker })).some(item => item.id === fileId)) throw new Error('Cross-account file became visible after version creation.');
@@ -86,7 +91,7 @@ if (!config.ok) {
   } finally {
     if (fileId) {
       try {
-        const ownerFiles = await filesA.list({ query: 'eylo-staging-storage-' });
+        const ownerFiles = await filesA.list({ query: marker });
         if (ownerFiles.some(item => item.id === fileId)) await filesA.remove(fileId);
         const remaining = await clientA.from('eylo_files').select('id').eq('id', fileId).eq('user_id', ownerId);
         if (remaining.error || remaining.data?.length) throw new Error('Owner file cleanup could not be verified.');
