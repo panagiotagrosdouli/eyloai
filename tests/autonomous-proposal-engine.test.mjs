@@ -148,6 +148,62 @@ test('a transient draft failure resumes from the durable draft checkpoint withou
   assert.equal(resumed.draftCalls, 1);
 });
 
+test('proposal-specific HTTP 429 saves the draft checkpoint and resumes without repeating source linking', async () => {
+  const first = adapters({ selectedKey: 'discovery:W123', generatedSourceId: 'saved-record-1' });
+  let durableRun;
+  const firstInvoke = first.invoke;
+  first.invoke = async input => {
+    if (input.prompt.includes('scientific research proposal')) throw Object.assign(new Error('provider throttled'), { status: 429 });
+    return firstInvoke(input);
+  };
+  await assert.rejects(runAutonomousProposal({
+    idea: 'Study urban tree shade and pedestrian heat exposure', discipline: 'environmental', language: 'en', project,
+    savedPapers: [], ...first,
+    checkpoint: async run => { durableRun = structuredClone(run); return { id: project.id, research_proposal: { autonomous_run: structuredClone(run) } }; },
+  }), error => error.message === 'provider_rate_limited' && error.run.stage === 'draft' && error.run.status === 'failed');
+  assert.equal(first.saves, 1, 'the selected discovery is linked once before the provider reports its limit');
+  assert.equal(durableRun.error_code, 'provider_rate_limited');
+  const resumed = adapters({ generatedSourceId: 'saved-record-1' });
+  let searchCalls = 0;
+  let resumeSaveCalls = 0;
+  resumed.search = async () => { searchCalls += 1; return { papers: [discovered] }; };
+  resumed.savePaper = async paper => { resumeSaveCalls += 1; return { ...paper, id: 'saved-record-1', project_id: project.id }; };
+  const result = await runAutonomousProposal({
+    idea: 'Study urban tree shade and pedestrian heat exposure', discipline: 'environmental', language: 'en', project,
+    savedPapers: [{ ...discovered, id: 'saved-record-1', project_id: project.id }], resumeRun: durableRun, ...resumed,
+    checkpoint: async run => ({ id: project.id, research_proposal: { autonomous_run: structuredClone(run) } }),
+  });
+  assert.equal(result.run.status, 'complete');
+  assert.equal(searchCalls, 0, 'resume from draft does not repeat scholarly discovery');
+  assert.equal(resumeSaveCalls, 0, 'resume uses the already receipt-verified linked record');
+});
+
+test('cancelling an active proposal provider request saves a paused durable checkpoint', async () => {
+  const controller = new AbortController();
+  const deps = adapters();
+  let startedResolve;
+  const started = new Promise(resolve => { startedResolve = resolve; });
+  let savedRun;
+  const invoke = deps.invoke;
+  deps.invoke = async input => {
+    if (input.prompt.includes('scientific research proposal')) {
+      startedResolve();
+      return new Promise((resolve, reject) => input.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })), { once: true }));
+    }
+    return invoke(input);
+  };
+  const runPromise = runAutonomousProposal({
+    idea: 'Study urban tree shade and pedestrian heat exposure', discipline: 'environmental', language: 'en', project,
+    savedPapers: [source], ...deps, signal: controller.signal,
+    checkpoint: async run => { savedRun = structuredClone(run); return { id: project.id, research_proposal: { autonomous_run: structuredClone(run) } }; },
+  });
+  await started;
+  controller.abort();
+  await assert.rejects(runPromise, error => error.message === 'cancelled' && error.run.status === 'paused' && error.run.stage === 'draft');
+  assert.equal(savedRun.status, 'paused');
+  assert.equal(savedRun.error_code, 'cancelled');
+});
+
 test('invalid citation gets one bounded correction attempt; fabricated citation is never accepted', async () => {
   const deps = adapters({ badCitationOnce: true });
   const result = await runAutonomousProposal({

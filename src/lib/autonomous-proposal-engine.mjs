@@ -264,9 +264,9 @@ async function invokeValidated({ invoke, prompt, schema, validate, signal, onRet
   throw new Error(errorCode);
 }
 
-function newRun({ idea, discipline, researchType, language, now, randomId }) {
+function newRun({ idea, discipline, researchType, language, proposalKind, now, randomId }) {
   return {
-    version: 1, run_id: randomId(), status: 'running', stage: 'plan', idea: trimText(idea, 1200), discipline, research_type: researchType, language,
+    version: 1, run_id: randomId(), status: 'running', stage: 'plan', idea: trimText(idea, 1200), discipline, research_type: researchType, language, proposal_kind: proposalKind,
     created_at: now(), updated_at: now(), planning: null, candidates: [], selected_source_keys: [], source_assessments: [],
     saved_sources: {}, source_verifications: [], proposal_draft: null, milestones: [], error_code: '',
   };
@@ -299,9 +299,9 @@ export function autonomousProposalErrorMessage(code) {
   return messages[code] || messages.provider_failed;
 }
 
-export function hasAutonomousProposalCheckpointReceipt(saved, projectId, run) {
-  return Boolean(saved && String(saved.id) === String(projectId) && saved.research_proposal?.autonomous_run
-    && stableProposalStringify(saved.research_proposal.autonomous_run) === stableProposalStringify(run));
+export function hasAutonomousProposalCheckpointReceipt(saved, projectId, run, artifactKey = 'research_proposal', runKey = 'autonomous_run') {
+  return Boolean(saved && String(saved.id) === String(projectId) && saved[artifactKey]?.[runKey]
+    && stableProposalStringify(saved[artifactKey][runKey]) === stableProposalStringify(run));
 }
 
 export function autonomousProposalProgress(run) {
@@ -322,6 +322,8 @@ export function autonomousProposalProgress(run) {
 export async function runAutonomousProposal({
   idea, discipline, researchType = 'other', language = 'en', project, savedPapers = [], contextSelection = {}, resumeRun = null,
   invoke, search, savePaper, verifySource, checkpoint, onProgress, signal,
+  proposalKind = 'academic', checkpointArtifactKey = 'research_proposal', checkpointRunKey = 'autonomous_run',
+  draftSchema = COMPLETE_PROPOSAL_SCHEMA, draftPrompt = null, validateDraft = null,
   now = () => new Date().toISOString(), randomId = () => globalThis.crypto?.randomUUID?.() || `proposal-${Date.now()}`,
 }) {
   if (typeof invoke !== 'function' || typeof search !== 'function' || typeof savePaper !== 'function' || typeof checkpoint !== 'function') {
@@ -336,17 +338,19 @@ export async function runAutonomousProposal({
   if (!PROPOSAL_LANGUAGES.some(item => item.id === language)) throw new Error('proposal_language_required');
   if (resumeRun && (resumeRun.version !== 1 || resumeRun.status === 'complete'
     || trimText(resumeRun.idea, 1200) !== trimText(idea, 1200) || resumeRun.discipline !== discipline
-    || (resumeRun.research_type || 'other') !== researchType || resumeRun.language !== language)) {
+    || (resumeRun.research_type || 'other') !== researchType || resumeRun.language !== language
+    || (resumeRun.proposal_kind || 'academic') !== proposalKind)) {
     throw new Error('proposal_resume_mismatch');
   }
-  let run = resumeRun ? structuredClone(resumeRun) : newRun({ idea, discipline, researchType, language, now, randomId });
+  let run = resumeRun ? structuredClone(resumeRun) : newRun({ idea, discipline, researchType, language, proposalKind, now, randomId });
   run.research_type = researchType;
+  run.proposal_kind = proposalKind;
   run.status = 'running'; run.error_code = '';
   const emit = async stage => {
     run.stage = stage; run.updated_at = now();
     onProgress?.(structuredClone(run));
     const saved = await checkpoint(structuredClone(run));
-    if (!hasAutonomousProposalCheckpointReceipt(saved, project.id, run)) throw Object.assign(new Error('checkpoint_failed'), { code: 'CHECKPOINT_UNVERIFIED' });
+    if (!hasAutonomousProposalCheckpointReceipt(saved, project.id, run, checkpointArtifactKey, checkpointRunKey)) throw Object.assign(new Error('checkpoint_failed'), { code: 'CHECKPOINT_UNVERIFIED' });
   };
   const promptRetry = () => onProgress?.({ ...structuredClone(run), retrying: true });
   try {
@@ -415,7 +419,7 @@ export async function runAutonomousProposal({
           run.updated_at = now();
           onProgress?.(structuredClone(run));
           const savedCheckpoint = await checkpoint(structuredClone(run));
-          if (!hasAutonomousProposalCheckpointReceipt(savedCheckpoint, project.id, run)) throw Object.assign(new Error('checkpoint_failed'), { code: 'CHECKPOINT_UNVERIFIED' });
+          if (!hasAutonomousProposalCheckpointReceipt(savedCheckpoint, project.id, run, checkpointArtifactKey, checkpointRunKey)) throw Object.assign(new Error('checkpoint_failed'), { code: 'CHECKPOINT_UNVERIFIED' });
         }
       }
       const savedIds = Object.values(run.saved_sources);
@@ -451,15 +455,22 @@ export async function runAutonomousProposal({
       const records = recordsForRun(run, savedPapers, project.id);
       if (records.length !== run.selected_source_keys.length) throw new Error('no_sources_saved');
       const generated = await invokeValidated({
-        invoke, signal, schema: COMPLETE_PROPOSAL_SCHEMA,
-        validate: response => proposalOutput(response, records),
-        prompt: buildCompleteProposalPrompt({
-          idea, plan: run.planning, discipline, researchType: run.research_type, language, selectedPapers: records,
-          project, contextSelection, retrievalStatus: run.retrieval_status || [],
-        }), onRetry: promptRetry, errorCode: 'draft_invalid',
+        invoke, signal, schema: draftSchema,
+        validate: response => validateDraft ? validateDraft(response, { run: structuredClone(run), records, project, contextSelection }) : proposalOutput(response, records),
+        prompt: typeof draftPrompt === 'function'
+          ? draftPrompt({ idea, plan: run.planning, discipline, researchType: run.research_type, language, selectedPapers: records, project, contextSelection, retrievalStatus: run.retrieval_status || [] })
+          : buildCompleteProposalPrompt({
+            idea, plan: run.planning, discipline, researchType: run.research_type, language, selectedPapers: records,
+            project, contextSelection, retrievalStatus: run.retrieval_status || [],
+          }), onRetry: promptRetry, errorCode: 'draft_invalid',
       });
-      run.proposal_draft = { sections: generated.sections, methodology_plan: generated.methodology_plan };
-      run.milestones = generated.milestones;
+      if (proposalKind === 'grant') {
+        run.proposal_draft = generated;
+        run.milestones = [];
+      } else {
+        run.proposal_draft = { sections: generated.sections, methodology_plan: generated.methodology_plan };
+        run.milestones = generated.milestones;
+      }
       run.selected_paper_ids = records.map(paper => String(paper.id));
       run.bibliography = bibliographyForProposal(records, run.selected_paper_ids);
       run.generation_context = {
@@ -471,7 +482,7 @@ export async function runAutonomousProposal({
       run.stage = 'complete'; run.status = 'complete'; run.updated_at = now(); run.error_code = '';
       onProgress?.(structuredClone(run));
       const saved = await checkpoint(structuredClone(run));
-      if (!hasAutonomousProposalCheckpointReceipt(saved, project.id, run)) throw Object.assign(new Error('checkpoint_failed'), { code: 'CHECKPOINT_UNVERIFIED' });
+      if (!hasAutonomousProposalCheckpointReceipt(saved, project.id, run, checkpointArtifactKey, checkpointRunKey)) throw Object.assign(new Error('checkpoint_failed'), { code: 'CHECKPOINT_UNVERIFIED' });
       return { run: structuredClone(run), project: saved };
     }
     if (run.stage === 'complete') return { run: structuredClone(run), project: null };
@@ -483,7 +494,7 @@ export async function runAutonomousProposal({
     onProgress?.(structuredClone(run));
     try {
       const saved = await checkpoint(structuredClone(run));
-      if (!hasAutonomousProposalCheckpointReceipt(saved, project.id, run)) run.error_code = 'checkpoint_failed';
+      if (!hasAutonomousProposalCheckpointReceipt(saved, project.id, run, checkpointArtifactKey, checkpointRunKey)) run.error_code = 'checkpoint_failed';
     } catch { run.error_code = error?.code === 'ENTITY_CONFLICT' ? 'project_conflict' : 'checkpoint_failed'; }
     throw Object.assign(new Error(run.error_code), { run: structuredClone(run), cause: error });
   }
