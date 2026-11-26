@@ -23,6 +23,9 @@ test('Storage acceptance requires an exact isolated staging target and explicit 
     { EYLO_STORAGE_PUBLISHABLE_KEY: 'sb_secret_fixture' },
     { EYLO_STORAGE_TEST_B_EMAIL: 'STORAGE-A@example.invalid' },
     { VERCEL_ENV: 'production' },
+    { VERCEL_ENV: '' },
+    { VITE_SUPABASE_USE_PROXY: '' },
+    { VITE_SUPABASE_USE_PROXY: 'true' },
   ];
   for (const change of cases) assert.equal(validateEyloStorageStagingConfig({ ...valid, ...change }).ok, false);
 });

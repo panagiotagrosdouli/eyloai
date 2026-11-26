@@ -17,6 +17,8 @@ export function validateEyloStorageStagingConfig(env) {
   const errors = [...staging.errors];
   if (!key || key !== env.VITE_SUPABASE_ANON_KEY) errors.push('The Storage publishable key must exactly match the configured public staging key.');
   if (env.EYLO_STORAGE_ALLOW_EPHEMERAL_WRITES !== 'YES') errors.push('Explicit authorization for disposable staging file writes is required.');
+  if (env.VITE_SUPABASE_USE_PROXY !== 'false') errors.push('VITE_SUPABASE_USE_PROXY must explicitly be false for direct staging isolation checks.');
+  if (env.VERCEL_ENV !== 'preview') errors.push('Storage hosted acceptance requires an explicitly identified Vercel Preview environment.');
   if (!a.email || !a.password || !b.email || !b.password) errors.push('Two disposable staging account credentials are required.');
   if (a.email && b.email && a.email.toLowerCase() === b.email.toLowerCase()) errors.push('Storage isolation requires two distinct staging accounts.');
   return { ok: errors.length === 0, errors, url: errors.length === 0 ? url : null, projectRef: errors.length === 0 ? staging.projectRef : null };
