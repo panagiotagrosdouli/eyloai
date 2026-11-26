@@ -27,6 +27,7 @@ let aiCalls = 0;
 let failNextTimerTransition = true;
 let interruptSnapshotSave = true;
 let snapshotWrites = 0;
+let roadmapMode = 'normal';
 const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS' };
 function containsJson(value, expected) {
   if (Array.isArray(expected)) return Array.isArray(value) && expected.every(item => value.some(candidate => containsJson(candidate, item)));
@@ -119,6 +120,45 @@ try {
       const sourceJson = body.prompt.split('RECORDS:\n').at(-1);
       const [source] = JSON.parse(sourceJson);
       return json(route, { data: { rows: [{ paper_id: source.id, study_design: 'Controlled trial', dataset: 'Adults described in the abstract', findings: 'The abstract reports an improvement.', limitations: 'Not reported in the available record.' }] } });
+    }
+    if (body.prompt?.includes('researcher-reviewed methodology plan')) {
+      const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
+      assert.ok(sourceId, 'methodology prompt must include a saved selected source identifier');
+      assert.ok(body.prompt.includes('Researcher-edited proposal evidence note.'), 'selected proposal context must be authorized for methodology drafting');
+      const sectionIds = ['research_approach','study_design','research_questions','testable_hypotheses','population_sampling','data_sources','variables_measurements','data_collection_procedures','analysis_methods','validation_strategy','reproducibility','ethical_considerations','limitations','research_risks'];
+      const topics = Object.fromEntries(sectionIds.map(id => [id, { status: 'needs_input', claims: [] }]));
+      topics.study_design = { status: 'drafted', claims: [{ heading: 'Proposed design', text: 'A researcher-reviewed proposed design.', kind: 'proposal', source_ids: [] }] };
+      topics.data_sources = { status: 'drafted', claims: [{ heading: 'Abstract record', text: 'The selected scholarly abstract reports an intervention.', kind: 'source_fact', source_ids: [sourceId] }] };
+      return json(route, { data: { topics } });
+    }
+    if (body.prompt?.includes('reviewable research execution roadmap')) {
+      if (roadmapMode === 'error') return route.fulfill({ status: 503, headers, contentType: 'application/json', body: JSON.stringify({ error: 'fixture provider credential leaked' }) });
+      if (roadmapMode === 'cancel') {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        try { return await json(route, { data: { tasks: [] } }); } catch { return; }
+      }
+      const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
+      assert.ok(sourceId, 'roadmap prompt must include a selected scholarly source');
+      assert.ok(body.prompt.includes('Researcher-edited proposed methodology.'), 'roadmap prompt must reuse the saved methodology context');
+      const tasks = [
+        { task_key: 'review', phase: 'Protocol', title: 'Review protocol', deliverable: 'Reviewed protocol', due_date: '', depends_on: [], risk: 'Recruitment access', researcher_notes: 'Confirm access with the researcher.', evidence_summary: '', evidence_kind: 'proposal', source_ids: [] },
+        { task_key: 'pilot', phase: 'Pilot', title: 'Plan pilot', deliverable: 'Pilot plan', due_date: '', depends_on: ['review'], risk: '', researcher_notes: '', evidence_summary: 'The selected abstract reports an intervention.', evidence_kind: 'source_fact', source_ids: [sourceId] },
+      ];
+      return json(route, { data: { tasks } });
+    }
+    if (body.prompt?.includes('scientific research proposal')) {
+      const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
+      assert.ok(sourceId, 'proposal prompt must include a saved source identifier');
+      assert.ok(body.prompt.includes('Researcher-edited synthesis.'), 'explicitly selected Literature Review context must be available');
+      assert.ok(body.prompt.includes('Researcher-checked finding'), 'selected Evidence Matrix context must be available');
+      const sectionIds = ['research_title','abstract','background','problem_statement','scientific_rationale','research_objectives','research_questions','hypotheses','literature_context','research_methodology','study_design','data_collection','data_analysis_plan','ethical_considerations','expected_contributions','research_limitations','research_timeline','bibliography'];
+      const sections = sectionIds.map((section_id, index) => ({
+        section_id, status: section_id === 'bibliography' ? 'drafted' : 'needs_input',
+        claims: section_id === 'background' ? [{ heading: 'Available abstract evidence', text: 'The selected abstract reports a controlled intervention.', kind: 'source_fact', source_ids: [sourceId] }]
+          : section_id === 'research_title' ? [{ heading: 'Working title', text: 'A proposed study of the selected question.', kind: 'proposal', source_ids: [] }] : [],
+      }));
+      const methodology_plan = Object.fromEntries(['approach','population_sampling','variables_constructs','validation','reproducibility'].map(id => [id, { status: 'needs_input', claims: [] }]));
+      return json(route, { data: { sections, methodology_plan } });
     }
     if (body.prompt?.includes('preliminary narrative literature review')) {
       const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
@@ -533,7 +573,7 @@ try {
   await page.getByRole('button', { name: 'Generate literature review', exact: true }).click();
   await page.getByText(/Your edited review remains intact/).waitFor();
   assert.equal(await backgroundClaim.inputValue(), 'Researcher-edited synthesis.', 'regeneration must preserve researcher edits');
-  await page.getByRole('button', { name: 'Save to project', exact: true }).click();
+  await page.locator('section[aria-labelledby="literature-review-builder-title"]').getByRole('button', { name: 'Save to project', exact: true }).click();
   await page.getByText('Literature review saved to this private research project.').waitFor();
   assert.equal(tables.projects[0].data.literature_review.edited_sections[0].claims[0].text, 'Researcher-edited synthesis.');
   assert.deepEqual(tables.projects[0].data.literature_review.selected_paper_ids, [tables.saved_papers[0].id]);
@@ -545,16 +585,126 @@ try {
   assert.equal(tables.projects[0].data.literature_review.search_scope, 'Fixture scholarly search; selected abstract only');
   assert.ok(await page.locator('a[href="https://doi.org/10.5555/eylo-matrix-fixture"]').count() > 0, 'review citations must link to the saved scholarly record');
   const literatureReviewDownloadEvent = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Export Markdown', exact: true }).click();
+  await page.locator('section[aria-labelledby="literature-review-builder-title"]').getByRole('button', { name: 'Export Markdown', exact: true }).click();
   const downloadedReview = await literatureReviewDownloadEvent;
   assert.equal(downloadedReview.suggestedFilename(), 'literature-review-draft.md');
   const reviewMarkdown = await readFile(await downloadedReview.path(), 'utf8');
   assert.match(reviewMarkdown, /Researcher-edited synthesis/);
   assert.match(reviewMarkdown, /https:\/\/doi\.org\/10\.5555\/eylo-matrix-fixture/);
   assert.match(reviewMarkdown, /10\.5555\/eylo-matrix-fixture/);
+  // Proposal Studio reuses the selected source and the explicitly selected, saved upstream artifacts.
+  await page.getByLabel('Researcher-authored matrix notes', { exact: true }).check();
+  await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByLabel('Literature Review', { exact: true }).check();
+  const proposalQuestion = page.locator('label').filter({ hasText: 'Proposal research question' }).locator('textarea');
+  assert.equal(await proposalQuestion.inputValue(), question);
+  await page.getByRole('button', { name: 'Generate proposal', exact: true }).click();
+  const proposalBackground = page.getByLabel('Background statement 1', { exact: true });
+  await proposalBackground.waitFor();
+  await proposalBackground.fill('Researcher-edited proposal evidence note.');
+  await page.getByRole('button', { name: 'Generate proposal', exact: true }).click();
+  await page.getByText(/Your edits remain intact/).waitFor();
+  assert.equal(await proposalBackground.inputValue(), 'Researcher-edited proposal evidence note.', 'regeneration must preserve researcher edits');
+  assert.equal(await page.getByRole('heading', { name: 'Research Title', exact: true }).count(), 1);
+  assert.equal(await page.getByRole('heading', { name: 'Bibliography', exact: true }).count(), 1);
+  assert.ok(await page.locator('a[href="https://doi.org/10.5555/eylo-matrix-fixture"]').count() > 0, 'proposal sources must link to the saved scholarly record');
+  await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByRole('button', { name: 'Save to project', exact: true }).click();
+  await page.getByText('Proposal saved to this private research project.', { exact: true }).waitFor();
+  assert.equal(tables.projects[0].data.research_proposal.edited_sections.length, 18);
+  assert.equal(tables.projects[0].data.research_proposal.edited_sections.find(section => section.section_id === 'background').claims[0].text, 'Researcher-edited proposal evidence note.');
+  assert.deepEqual(tables.projects[0].data.research_proposal.selected_paper_ids, [tables.saved_papers[0].id]);
+  await page.reload();
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  assert.equal(await page.locator('label').filter({ hasText: 'Proposal research question' }).locator('textarea').inputValue(), question);
+  assert.equal(await page.getByLabel('Background statement 1', { exact: true }).inputValue(), 'Researcher-edited proposal evidence note.');
+  const methodologySection = page.locator('section[aria-labelledby="research-methodology-studio-title"]');
+  const methodologyQuestion = methodologySection.locator('label').filter({ hasText: 'Methodology research question' }).locator('textarea');
+  assert.equal(await methodologyQuestion.inputValue(), question, 'methodology must reuse the saved project question');
+  await methodologySection.getByRole('button', { name: 'Draft methodology with EYRA', exact: true }).click();
+  const methodologyDesign = page.getByLabel('Study design statement 1', { exact: true });
+  await methodologyDesign.waitFor();
+  await methodologyDesign.fill('Researcher-edited proposed methodology.');
+  assert.ok(await methodologySection.getByRole('link', { name: /Randomized intervention improves clinical outcome in a controlled trial/ }).count(), 'methodology must link its selected scholarly record');
+  await methodologySection.getByRole('button', { name: 'Save methodology', exact: true }).click();
+  await page.getByText('Methodology plan saved to this private research project.', { exact: true }).waitFor();
+  assert.equal(tables.projects[0].data.research_methodology.edited_topics.study_design.claims[0].text, 'Researcher-edited proposed methodology.');
+  await page.reload();
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  assert.equal(await page.getByLabel('Study design statement 1', { exact: true }).inputValue(), 'Researcher-edited proposed methodology.');
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'methodology editor must fit the mobile browser viewport');
+  const methodologyDownloadEvent = page.waitForEvent('download');
+  await page.locator('section[aria-labelledby="research-methodology-studio-title"]').getByRole('button', { name: 'Export Markdown', exact: true }).click();
+  const methodologyDownload = await methodologyDownloadEvent;
+  assert.equal(methodologyDownload.suggestedFilename(), 'research-methodology-plan.md');
+  const methodologyFile = await methodologyDownload.path();
+  assert.ok((await readFile(methodologyFile, 'utf8')).includes('Researcher-edited proposed methodology.'));
+  const roadmapSection = page.locator('section[aria-labelledby="research-roadmap-studio-title"]');
+  assert.equal(await roadmapSection.locator('label').filter({ hasText: 'Roadmap research question' }).locator('textarea').inputValue(), question);
+  const roadmapQuestion = roadmapSection.locator('label').filter({ hasText: 'Roadmap research question' }).locator('textarea');
+  await roadmapQuestion.focus(); await roadmapQuestion.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement.type), 'checkbox', 'roadmap source selection must follow the question in keyboard order');
+  roadmapMode = 'error';
+  await roadmapSection.getByRole('button', { name: 'Draft roadmap with EYRA', exact: true }).click();
+  await roadmapSection.getByRole('alert').filter({ hasText: 'EYRA could not produce a valid research roadmap' }).waitFor();
+  assert.doesNotMatch(await roadmapSection.getByRole('alert').innerText(), /credential leaked/);
+  assert.equal((tables.projects[0].data.plan_items || []).length, 0, 'provider failure must not modify the workplan');
+  roadmapMode = 'cancel';
+  await roadmapSection.getByRole('button', { name: 'Draft roadmap with EYRA', exact: true }).click();
+  await roadmapSection.getByRole('button', { name: 'Cancel drafting', exact: true }).click();
+  await roadmapSection.getByRole('alert').filter({ hasText: 'Roadmap drafting was cancelled' }).waitFor();
+  assert.equal((tables.projects[0].data.plan_items || []).length, 0, 'cancellation must not modify the workplan');
+  roadmapMode = 'normal';
+  await roadmapSection.getByRole('button', { name: 'Draft roadmap with EYRA', exact: true }).click();
+  const roadmapTaskTitle = roadmapSection.getByLabel('Proposed task').first();
+  await roadmapTaskTitle.waitFor();
+  await roadmapTaskTitle.fill('Researcher-reviewed protocol task');
+  await roadmapSection.getByLabel('Researcher notes').first().fill('Researcher risk and access note.');
+  assert.ok(await roadmapSection.getByRole('link', { name: /Randomized intervention improves clinical outcome/ }).count(), 'roadmap must show its authentic project source');
+  await roadmapSection.getByRole('button', { name: 'Approve selected tasks into workplan draft', exact: true }).click();
+  await page.getByRole('button', { name: 'Timeline', exact: true }).click();
+  await page.getByText(/Approved proposed tasks were added to the current workplan draft/).waitFor();
+  assert.equal(await page.locator('section[aria-labelledby="structured-workplan-title"] input[id^="workplan-title-"]').count(), 2, 'roadmap approval must append two proposed tasks to the existing project planner');
+  assert.equal(await page.getByLabel('Researcher notes').first().inputValue(), 'Researcher risk and access note.');
+  assert.equal((tables.projects[0].data.plan_items || []).length, 0, 'approval only updates the draft; it does not persist tasks');
+  await page.getByRole('button', { name: 'Save workplan', exact: true }).click();
+  await page.getByText('Workplan saved', { exact: true }).waitFor();
+  assert.equal(tables.projects[0].data.plan_items.length, 2);
+  assert.equal(tables.projects[0].data.plan_items[0].title, 'Researcher-reviewed protocol task');
+  assert.equal(tables.projects[0].data.plan_items[0].status, 'todo');
+  assert.equal(tables.projects[0].data.plan_items[0].researcher_notes, 'Researcher risk and access note.');
+  assert.equal(tables.projects[0].data.plan_items[1].depends_on[0], tables.projects[0].data.plan_items[0].id);
+  await page.reload();
+  await page.getByRole('button', { name: 'Timeline', exact: true }).click();
+  assert.equal(await page.locator('section[aria-labelledby="structured-workplan-title"] input[id^="workplan-title-"]').first().inputValue(), 'Researcher-reviewed protocol task');
+  assert.equal(await page.getByLabel('Researcher notes').first().inputValue(), 'Researcher risk and access note.');
+  tables.projects[0].updated_date = '2099-01-01T00:00:00.000Z';
+  const workplanTitle = page.locator('section[aria-labelledby="structured-workplan-title"] input[id^="workplan-title-"]').first();
+  await workplanTitle.fill('Unsaved roadmap edit retained after conflict');
+  await page.getByRole('button', { name: 'Save workplan', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'This project changed in another session. Your workplan edits are still here' }).waitFor();
+  assert.equal(await workplanTitle.inputValue(), 'Unsaved roadmap edit retained after conflict');
+  assert.equal(tables.projects[0].data.plan_items[0].title, 'Researcher-reviewed protocol task', 'a stale workplan save must preserve the winning task list');
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  const savedProposalSnapshot = structuredClone(tables.projects[0].data.research_proposal);
+  await page.getByLabel('Background statement 1', { exact: true }).fill('Unsaved proposal edit preserved after conflict.');
+  tables.projects[0].updated_date = '2099-01-01T00:00:00.000Z';
+  await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByRole('button', { name: 'Save to project', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'This project changed in another session. Your proposal edits remain here' }).waitFor();
+  assert.equal(await page.getByLabel('Background statement 1', { exact: true }).inputValue(), 'Unsaved proposal edit preserved after conflict.');
+  assert.deepEqual(tables.projects[0].data.research_proposal, savedProposalSnapshot, 'a stale proposal save must preserve the winning private project artifact');
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'proposal editor must fit the 390px mobile browser viewport');
+  const proposalDownloadEvent = page.waitForEvent('download');
+  await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByRole('button', { name: 'Export Markdown', exact: true }).click();
+  const proposalDownload = await proposalDownloadEvent;
+  assert.equal(proposalDownload.suggestedFilename(), 'research-proposal-draft.md');
+  const proposalMarkdown = await readFile(await proposalDownload.path(), 'utf8');
+  assert.match(proposalMarkdown, /Unsaved proposal edit preserved after conflict/);
+  assert.match(proposalMarkdown, /10\.5555\/eylo-matrix-fixture/);
+  assert.match(proposalMarkdown, /https:\/\/doi\.org\/10\.5555\/eylo-matrix-fixture/);
+  console.log('PASS fixture: selected scholarly source + Evidence Matrix + Literature Review → structured proposal generation, edit-preserving regeneration, private project save/reload and DOI-linked Markdown export.');
+
   const savedReviewSnapshot = structuredClone(tables.projects[0].data.literature_review);
   tables.projects[0].updated_date = '2099-01-01T00:00:00.000Z';
-  await page.getByRole('button', { name: 'Save to project', exact: true }).click();
+  await page.locator('section[aria-labelledby="literature-review-builder-title"]').getByRole('button', { name: 'Save to project', exact: true }).click();
   await page.getByRole('alert').filter({ hasText: 'This project changed in another session.' }).waitFor();
   assert.equal(await reviewQuestion.inputValue(), question, 'version conflicts must preserve the local research question');
   assert.equal(await page.getByLabel('Scientific background claim 1', { exact: true }).inputValue(), 'Researcher-edited synthesis.');

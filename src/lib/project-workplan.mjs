@@ -17,10 +17,16 @@ export function normalizeWorkplan(items) {
     return [{
       id,
       title,
+      phase: cleanText(item.phase, 120),
       deliverable: cleanText(item.deliverable),
       due_date: isDate(item.due_date) ? item.due_date : '',
       status: STATUSES.has(item.status) ? item.status : 'todo',
       depends_on: Array.isArray(item.depends_on) ? [...new Set(item.depends_on.map(value => cleanText(value, 80)).filter(Boolean))].slice(0, MAX_ITEMS) : [],
+      risk: cleanText(item.risk, 1500),
+      researcher_notes: cleanText(item.researcher_notes, 2000),
+      evidence_summary: cleanText(item.evidence_summary, 3000),
+      evidence_kind: ['source_fact','interpretation','proposal','open_question','none'].includes(item.evidence_kind) ? item.evidence_kind : 'none',
+      source_ids: Array.isArray(item.source_ids) ? [...new Set(item.source_ids.map(value => cleanText(value, 120)).filter(Boolean))].slice(0, MAX_ITEMS) : [],
     }];
   }).map(item => ({ ...item, depends_on: item.depends_on.filter(dependency => seen.has(dependency)) }));
 }
@@ -70,3 +76,4 @@ export function canStartWorkplanTask(task, items) {
   const byId = new Map(normalizeWorkplan(items).map(item => [item.id, item]));
   return (task?.depends_on || []).every(id => byId.get(id)?.status === 'done');
 }
+

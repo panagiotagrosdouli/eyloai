@@ -14,9 +14,9 @@ test('workplan normalization preserves valid user fields and discards malformed 
     null,
     { id: 'bad', title: 'Bad date', due_date: '2026-02-30', status: 'future' },
   ]), [
-    { id: 'protocol', title: 'Approve protocol', deliverable: '', due_date: '2026-12-01', status: 'done', depends_on: [] },
-    { id: 'collect', title: 'Collect data', deliverable: 'De-identified dataset', due_date: '', status: 'in_progress', depends_on: ['protocol'] },
-    { id: 'bad', title: 'Bad date', deliverable: '', due_date: '', status: 'todo', depends_on: [] },
+    { id: 'protocol', title: 'Approve protocol', phase: '', deliverable: '', due_date: '2026-12-01', status: 'done', depends_on: [], risk: '', researcher_notes: '', evidence_summary: '', evidence_kind: 'none', source_ids: [] },
+    { id: 'collect', title: 'Collect data', phase: '', deliverable: 'De-identified dataset', due_date: '', status: 'in_progress', depends_on: ['protocol'], risk: '', researcher_notes: '', evidence_summary: '', evidence_kind: 'none', source_ids: [] },
+    { id: 'bad', title: 'Bad date', phase: '', deliverable: '', due_date: '', status: 'todo', depends_on: [], risk: '', researcher_notes: '', evidence_summary: '', evidence_kind: 'none', source_ids: [] },
   ]);
 });
 
