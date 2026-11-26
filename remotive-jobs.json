@@ -1,9 +1,23 @@
 {
   "source": "Remotive",
   "source_url": "https://remotive.com/remote-jobs/api",
-  "retrieved_at": "2026-11-25T15:35:24.142Z",
+  "retrieved_at": "2026-11-26T15:12:25.897Z",
   "provider_delay_hours": 24,
   "items": [
+    {
+      "id": "remotive-2091179",
+      "title": "WordPress Theme & Plugin Developer",
+      "organization": "Steward Web Development",
+      "country": "Americas, LATAM, Canada, USA timezones",
+      "description": "About the Role We're seeking a talented Fullstack WordPress Developer with strong expertise in custom theme and plugin development. You'll work on WordPress projects, including theme and plugin development, and potentially some Joomla projects (with appropriate support, depending on your familiarity). This is a contract role for full-time work over a 5 month contract. However, you'll work as if you were a full-time employee, participating in team meetings, communicating via Slack, and coordinating with other people on our team. Key Responsibilities Build custom WordPress themes that closely match designs with meticulous attention to detail Develop custom WordPress plugins with clean, well-structured code Take ownership of WordPress projects from concept to completion Refactor and update existing themes and templates Address other occasional full-stack developer tasks as needed for non-WordPress systems and situations (e.g. newsletter development) Provide limited support for clients who have issues or problems (secondary responsibility) Work Hours & Meetings You must be available to participate in meetings between 8:00 AM – 12:00 PM Los Angeles time (UTC-8) Your work hours will be n",
+      "salary": "$57K - $67K",
+      "category": "Software Development",
+      "job_type": "contract",
+      "published_at": "2026-11-24T10:31:32",
+      "deadline": "",
+      "source": "Remotive",
+      "source_url": "https://remotive.com/remote-jobs/software-development/wordpress-theme-plugin-developer-2091179"
+    },
     {
       "id": "remotive-2091177",
       "title": "Content Reviewer - United States",
