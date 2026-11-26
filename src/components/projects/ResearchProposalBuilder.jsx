@@ -143,7 +143,7 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
   return <section className="space-y-5 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="research-proposal-builder-title">
     <header>
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Scientific Output Studio · Research Proposal</p>
-      <h3 id="research-proposal-builder-title" className="mt-1 text-xl font-semibold">Build a research proposal</h3>
+      <h3 id="research-proposal-builder-title" tabIndex={-1} className="mt-1 scroll-mt-4 text-xl font-semibold">Build a research proposal</h3>
       <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Create an editable scientific draft from selected project sources. EYRA receives available metadata and abstracts, plus only the project outputs you choose. Full text is not assumed.</p>
     </header>
     <div className="grid gap-4 lg:grid-cols-2">

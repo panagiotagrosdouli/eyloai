@@ -140,7 +140,7 @@ export default function ResearchMethodologyStudio({ project, savedPapers, onProj
   return <section className="space-y-5 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="research-methodology-studio-title">
     <header>
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Scientific Output Studio · Methodology</p>
-      <h3 id="research-methodology-studio-title" className="mt-1 text-xl font-semibold">Design a research methodology</h3>
+      <h3 id="research-methodology-studio-title" tabIndex={-1} className="mt-1 scroll-mt-4 text-xl font-semibold">Design a research methodology</h3>
       <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Build a discipline-aware, editable methods plan from the question and project materials you choose. EYRA receives available metadata and abstracts only. Generated methods stay proposals until a researcher reports implementation or validation.</p>
     </header>
     <div className="grid gap-4 lg:grid-cols-2">

@@ -88,7 +88,7 @@ export default function ResearchRoadmapStudio({ project, savedPapers, onApproveT
   return <section className="space-y-5 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="research-roadmap-studio-title">
     <header>
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Scientific Output Studio · Execution</p>
-      <h3 id="research-roadmap-studio-title" className="mt-1 text-xl font-semibold">Plan the research work</h3>
+      <h3 id="research-roadmap-studio-title" tabIndex={-1} className="mt-1 scroll-mt-4 text-xl font-semibold">Plan the research work</h3>
       <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Turn the research question, proposal, and methodology you choose into proposed phases and tasks. EYRA does not claim completion, assign estimated dates, or save tasks. Approval adds selected tasks to the existing workplan draft; Save workplan remains a separate action.</p>
     </header>
     <label className="block text-sm font-medium">Roadmap research question<textarea value={question} onChange={event => setQuestion(event.target.value)} maxLength={1200} rows={3} className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm leading-6" placeholder="What work is needed to investigate this question?" /></label>
