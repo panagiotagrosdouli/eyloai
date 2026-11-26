@@ -23,6 +23,16 @@ test('local text document extraction enforces type and character limits while re
   assert.equal(document.extraction_status, 'text_extracted');
   assert.equal(document.lines[1].text, 'Applicants must meet eligibility rules.');
   assert.equal(document.lines[1].source_document_id, document.id);
+
+  assert.equal(document.lines[1].source_document_name, 'call.txt');
+  const markdownBytes = new TextEncoder().encode('# Official call\nApplicants must submit a research plan.');
+  const markdown = await extractGrantCallDocument(fileLike({ name: 'call.md', type: 'text/markdown', bytes: markdownBytes }));
+  assert.equal(markdown.media_type, 'text/markdown');
+  assert.equal(markdown.lines[0].text, '# Official call');
+  assert.equal(markdown.lines[1].text, 'Applicants must submit a research plan.');
+  assert.equal(markdown.lines[1].source_document_id, markdown.id);
+  assert.equal(markdown.lines[1].source_document_name, 'call.md');
+  assert.equal(markdown.lines[1].paragraph, 2);
   await assert.rejects(extractGrantCallDocument(fileLike({ name: 'call.pdf', type: 'application/pdf', bytes: text })), { code: 'grant_pdf_invalid' });
   await assert.rejects(extractGrantCallDocument(fileLike({ name: 'call.txt', type: 'application/pdf', bytes: text })), { code: 'grant_document_type' });
   await assert.rejects(extractGrantCallDocument(fileLike({ name: 'call.txt', type: 'text/plain', bytes: text }), { limits: { bytesPerDocument: 10 } }), { code: 'grant_document_size' });
