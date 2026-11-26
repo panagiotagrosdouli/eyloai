@@ -823,7 +823,7 @@ try {
   await grantStudio.getByLabel('Official call text').fill(grantCallText);
   await grantStudio.getByLabel('Applicant and institutional information supplied by you').fill('Public university; applicant team roles and facilities need researcher confirmation.');
   await grantStudio.getByRole('button', { name: 'Extract call requirements', exact: true }).click();
-  await grantStudio.getByText('Inspect provenance and confirm critical requirements', { exact: true }).waitFor();
+  await grantStudio.getByText(/Inspect provenance and confirm critical requirements/).waitFor();
   const requirementChecks = grantStudio.locator('label').filter({ hasText: 'I reviewed this requirement or its missing status.' });
   assert.equal(await requirementChecks.count(), 10, 'every critical requirement, including absent facts, needs an explicit researcher review');
   for (let i = 0; i < 10; i++) await requirementChecks.nth(i).getByRole('checkbox').check();
