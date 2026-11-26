@@ -755,6 +755,11 @@ try {
     new Paragraph('Applicants must describe the proposed methods.'),
   ] }] }));
   await grantSection.locator('input[type="file"]').setInputFiles({ name: 'call-fixture.pdf', mimeType: 'application/pdf', buffer: Buffer.from(callPdf.output('arraybuffer')) });
+  const pdfUploadOutcome = await Promise.race([
+    grantSection.getByText('call-fixture.pdf', { exact: true }).waitFor({ timeout: 20_000 }).then(() => 'processed'),
+    grantSection.getByRole('alert').waitFor({ timeout: 20_000 }).then(() => 'error'),
+  ]);
+  if (pdfUploadOutcome === 'error') throw new Error(`PDF upload failed in browser: ${await grantSection.getByRole('alert').innerText()}`);
   await grantSection.getByText('call-fixture.pdf', { exact: true }).waitFor();
   await grantSection.locator('input[type="file"]').setInputFiles({ name: 'instructions-fixture.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer: callDocx });
   await grantSection.getByText('instructions-fixture.docx', { exact: true }).waitFor();
