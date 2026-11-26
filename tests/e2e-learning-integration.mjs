@@ -843,6 +843,24 @@ try {
   await reloadedGrant.getByRole('button', { name: 'Resume saved run', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('section[aria-labelledby="grant-proposal-builder-title"]')?.innerText.includes('Grant draft is ready for researcher review'));
 
+  const sourcesBeforeReloadResume = tables.saved_papers.length;
+  grantDraftResponseMode = 'hold';
+  const reloadGrantRequest = new Promise(resolve => { grantDraftRequestStartedResolve = resolve; });
+  await reloadedGrant.getByRole('button', { name: 'Generate Complete Grant Proposal', exact: true }).click();
+  await reloadGrantRequest;
+  assert.equal(tables.projects[0].data.grant_proposal.autonomous_run.status, 'running', 'active grant generation must have a durable checkpoint before the provider request');
+  grantDraftResponseMode = 'normal';
+  await page.reload();
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  const resumedAfterReload = page.locator('section[aria-labelledby="grant-proposal-builder-title"]');
+  await resumedAfterReload.getByRole('button', { name: 'Resume saved run', exact: true }).waitFor();
+  assert.equal(await resumedAfterReload.getByLabel('Official call title').inputValue(), 'Fixture Research Funding Call', 'reload must restore the official call inputs');
+  assert.equal(tables.saved_papers.length, sourcesBeforeReloadResume, 'reload must not create another source link before resume');
+  await resumedAfterReload.getByRole('button', { name: 'Resume saved run', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('section[aria-labelledby="grant-proposal-builder-title"]')?.innerText.includes('Grant draft is ready for researcher review'));
+  assert.equal(tables.saved_papers.length, sourcesBeforeReloadResume, 'resume after active-request reload must not duplicate source linking');
+  assert.equal(tables.projects[0].data.grant_proposal.autonomous_run.status, 'complete');
+
   const grantSwitchUser = { ...user, id: '00000000-0000-0000-0000-000000000003', email: 'third-fixture@example.org' };
   grantDraftResponseMode = 'hold';
   const switchingGrantRequest = new Promise(resolve => { grantDraftRequestStartedResolve = resolve; });
