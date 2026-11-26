@@ -63,6 +63,12 @@ export async function extractGrantCallDocument(file, options = {}) {
     if (file.type && file.type !== PDF_MIME) fail('grant_document_type', 'The PDF extension and media type do not match.');
     if (new TextDecoder().decode(bytes.subarray(0, 5)) !== '%PDF-') fail('grant_pdf_invalid', 'The selected file is not a readable PDF document.');
     const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    // PDF.js cannot reliably locate its worker in Vite's bundled browser output.
+    // Resolve the matching, locally bundled worker URL before parsing a call PDF.
+    if (typeof window !== 'undefined') {
+      const worker = await import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url');
+      pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+    }
     const task = pdfjs.getDocument(/** @type {any} */ ({ data: bytes, isEvalSupported: false, useSystemFonts: false, stopAtErrors: true }));
     const pdf = /** @type {any} */ (await task.promise);
     if (pdf.numPages > limits.pdfPages) { await pdf.destroy(); fail('grant_pdf_pages', 'The PDF exceeds the 120 page local processing limit.'); }
