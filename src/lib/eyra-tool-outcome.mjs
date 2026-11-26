@@ -12,9 +12,12 @@ export function formatUnverifiedEyraToolAction(action) {
 
 export function hasEyraWriteReceipt(action) {
   if (action?.status !== 'succeeded' || !['project.create', 'library.save_paper'].includes(action.tool)) return false;
+  // Writes are confirmed by the owner-scoped executor only after it reads the
+  // persisted row back. UUID shape alone is not a write receipt.
+  if (action.result?.verified !== true) return false;
   const id = action.result?.id;
-  // The owner-scoped server must return an actual saved record identifier.
-  return typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  return typeof id === 'string'
+    && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 }
 
 export function formatEyraToolFailure(action) {
