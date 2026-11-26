@@ -15,6 +15,7 @@ export function validateEyloStorageStagingConfig(env) {
     VITE_SUPABASE_USE_PROXY: env.VITE_SUPABASE_USE_PROXY,
   });
   const errors = [...staging.errors];
+  if (env.VITE_SUPABASE_URL !== url) errors.push('VITE_SUPABASE_URL must exactly match the authorized Storage staging URL.');
   if (!key || key !== env.VITE_SUPABASE_ANON_KEY) errors.push('The Storage publishable key must exactly match the configured public staging key.');
   if (env.EYLO_STORAGE_ALLOW_EPHEMERAL_WRITES !== 'YES') errors.push('Explicit authorization for disposable staging file writes is required.');
   if (env.VITE_SUPABASE_USE_PROXY !== 'false') errors.push('VITE_SUPABASE_USE_PROXY must explicitly be false for direct staging isolation checks.');

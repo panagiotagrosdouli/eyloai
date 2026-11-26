@@ -19,6 +19,7 @@ test('Storage acceptance requires an exact isolated staging target and explicit 
     { EYLO_STAGING_SUPABASE_REF: 'kbzjngpzxpniaumlupaa' },
     { EYLO_STAGING_CONFIRMED_REF: 'zyxwvutsrqponmlkjihg' },
     { EYLO_STORAGE_SUPABASE_URL: 'https://other.supabase.co' },
+    { VITE_SUPABASE_URL: 'https://other.supabase.co' },
     { EYLO_STORAGE_ALLOW_EPHEMERAL_WRITES: 'NO' },
     { EYLO_STORAGE_PUBLISHABLE_KEY: 'sb_secret_fixture' },
     { EYLO_STORAGE_TEST_B_EMAIL: 'STORAGE-A@example.invalid' },
