@@ -754,6 +754,8 @@ try {
     new Paragraph({ text: 'Research methods', heading: HeadingLevel.HEADING_1 }),
     new Paragraph('Applicants must describe the proposed methods.'),
   ] }] }));
+  const callTxt = 'Institutional information: Applicant organization must confirm local eligibility.';
+  const callMarkdown = '# Required attachments\nApplicants must supply institutional letters.';
   await grantSection.locator('input[type="file"]').setInputFiles({ name: 'call-fixture.pdf', mimeType: 'application/pdf', buffer: Buffer.from(callPdf.output('arraybuffer')) });
   const pdfUploadOutcome = await Promise.race([
     grantSection.getByText('call-fixture.pdf', { exact: true }).waitFor({ timeout: 20_000 }).then(() => 'processed'),
@@ -763,6 +765,10 @@ try {
   await grantSection.getByText('call-fixture.pdf', { exact: true }).waitFor();
   await grantSection.locator('input[type="file"]').setInputFiles({ name: 'instructions-fixture.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer: callDocx });
   await grantSection.getByText('instructions-fixture.docx', { exact: true }).waitFor();
+  await grantSection.locator('input[type="file"]').setInputFiles({ name: 'applicant-fixture.txt', mimeType: 'text/plain', buffer: Buffer.from(callTxt) });
+  await grantSection.getByText('applicant-fixture.txt', { exact: true }).waitFor();
+  await grantSection.locator('input[type="file"]').setInputFiles({ name: 'annex-fixture.md', mimeType: 'text/markdown', buffer: Buffer.from(callMarkdown) });
+  await grantSection.getByText('annex-fixture.md', { exact: true }).waitFor();
   const documentedRequirements = grantSection.locator('section[aria-label="Documented call requirements"]');
   await documentedRequirements.getByText(/call-fixture\.pdf · page 1/).waitFor();
   await documentedRequirements.getByText(/instructions-fixture\.docx · section Required attachments/).waitFor();
@@ -780,7 +786,12 @@ try {
   assert.ok(await grantSection.getByRole('link', { name: 'Inspect source' }).count() > 0, 'grant scholarly records must expose source inspection links');
   assert.equal(tables.projects[0].data.grant_proposal.autonomous_run.status, 'complete');
   assert.equal(tables.projects[0].data.grant_proposal.call_requirements.length, 9, 'grant checkpoint must preserve each eligible extracted requirement and provenance');
-  assert.equal(tables.projects[0].data.grant_proposal.source_documents.length, 2, 'uploaded official documents must be saved with the private project artifact');
+  assert.equal(tables.projects[0].data.grant_proposal.source_documents.length, 4, 'uploaded official documents must be saved with the private project artifact');
+  for (const [name, expected] of [['call-fixture.pdf', /Applicants must meet the listed eligibility criteria/], ['instructions-fixture.docx', /Applicants must include a signed letter/], ['applicant-fixture.txt', /Applicant organization must confirm local eligibility/], ['annex-fixture.md', /Applicants must supply institutional letters/]]) {
+    const sourceDocument = tables.projects[0].data.grant_proposal.source_documents.find(document => document.name === name);
+    assert.ok(sourceDocument?.lines?.some(line => expected.test(line.text)), `${name} content must be extracted and saved`);
+    assert.ok(sourceDocument.lines.every(line => line.source_document_id === sourceDocument.id && line.source_document_name === name), `${name} extracted lines must retain document provenance`);
+  }
   assert.equal(tables.projects[0].data.grant_proposal.call_requirements.find(item => item.source_document_name === 'call-fixture.pdf')?.page, 1, 'PDF requirement must retain its page provenance');
   assert.equal(tables.projects[0].data.grant_proposal.call_requirements.find(item => item.source_document_name === 'instructions-fixture.docx')?.section, 'Required attachments', 'DOCX requirement must retain its heading provenance');
   assert.match(tables.projects[0].data.grant_proposal.draft.work_packages[0].status, /provisional/);
@@ -891,7 +902,7 @@ try {
   await page.getByLabel('Official call title').waitFor();
   await page.locator('section[aria-labelledby="grant-proposal-builder-title"]').getByRole('button', { name: 'Resume saved run', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('section[aria-labelledby="grant-proposal-builder-title"]')?.innerText.includes('Grant draft is ready for researcher review'));
-  console.log('PASS fixture: local PDF/DOCX extraction, page/section provenance, untrusted-text filtering, exact-revision reapproval, 429 retry without duplicate writes, active-request cancellation, account-switch write isolation and actual Markdown/DOCX files.');
+  console.log('PASS fixture: local PDF/DOCX/TXT/Markdown extraction with provenance, untrusted-text filtering, exact-revision reapproval, 429 retry without duplicate writes, active-request cancellation, account-switch write isolation and actual Markdown/DOCX files.');
   const methodologySection = page.locator('section[aria-labelledby="research-methodology-studio-title"]');
   const methodologyQuestion = methodologySection.locator('label').filter({ hasText: 'Methodology research question' }).locator('textarea');
   assert.equal(await methodologyQuestion.inputValue(), question, 'methodology must reuse the saved project question');
