@@ -785,7 +785,7 @@ try {
   await grantSection.getByText('Provisional risk register', { exact: true }).waitFor();
   assert.ok(await grantSection.getByRole('link', { name: 'Inspect source' }).count() > 0, 'grant scholarly records must expose source inspection links');
   assert.equal(tables.projects[0].data.grant_proposal.autonomous_run.status, 'complete');
-  assert.equal(tables.projects[0].data.grant_proposal.call_requirements.length, 9, 'grant checkpoint must preserve each eligible extracted requirement and provenance');
+  assert.equal(tables.projects[0].data.grant_proposal.call_requirements.length, 12, 'grant checkpoint must preserve each eligible extracted requirement and provenance');
   assert.equal(tables.projects[0].data.grant_proposal.source_documents.length, 4, 'uploaded official documents must be saved with the private project artifact');
   for (const [name, expected] of [['call-fixture.pdf', /Applicants must meet the listed eligibility criteria/], ['instructions-fixture.docx', /Applicants must include a signed letter/], ['applicant-fixture.txt', /Applicant organization must confirm local eligibility/], ['annex-fixture.md', /Applicants must supply institutional letters/]]) {
     const sourceDocument = tables.projects[0].data.grant_proposal.source_documents.find(document => document.name === name);
