@@ -95,23 +95,28 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
   }, [dirty]);
 
   const toggle = id => {
-    markResearcherEdit();
+    markDraftRevision();
     setSelectedIds(current => current.includes(String(id)) ? current.filter(item => item !== String(id)) : [...current, String(id)]);
     setDirty(true);
   };
   const toggleContext = key => {
-    markResearcherEdit();
+    markDraftRevision();
     setContextSelection(current => ({ ...current, [key]: !current[key] }));
     setDirty(true);
   };
 
-  const markResearcherEdit = () => {
+  const markDraftRevision = () => {
     localEditRevisionRef.current += 1;
     setDraftRevision(value => value + 1);
     setResearcherReview(null);
     setReviewConfirmed(false);
+    setDirty(true);
+  };
+
+  const markResearcherEdit = () => {
+    markDraftRevision();
     researcherEditedRef.current = true;
-    setResearcherEdited(true); setDirty(true);
+    setResearcherEdited(true);
   };
 
   const generateCompleteProposal = async (resume = false) => {
@@ -301,10 +306,10 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
       <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Start from a research idea. EYRA searches scholarly indexes, selects project-linked records and drafts a complete proposal for your review. It can use bibliographic metadata and available abstracts; full text is not assumed.</p>
     </header>
     <div className="grid gap-4 lg:grid-cols-2">
-      <label className="block text-sm font-medium">Research idea<textarea value={question} onChange={event => { markResearcherEdit(); setQuestion(event.target.value); }} maxLength={1200} rows={3} className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm leading-6" placeholder="What scientific problem would you like to investigate?" /></label>
-      <label className="block text-sm font-medium">Discipline<select value={discipline} onChange={event => { markResearcherEdit(); setDiscipline(event.target.value); }} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm">{PROPOSAL_DISCIPLINES.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
-      <label className="block text-sm font-medium">Proposal language<select value={language} onChange={event => { markResearcherEdit(); setLanguage(event.target.value); }} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm">{PROPOSAL_LANGUAGES.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select><span className="mt-2 block text-xs font-normal text-muted-foreground">Proposal sections can be marked not applicable or left for researcher input.</span></label>
-      <label className="block text-sm font-medium">Study approach<select value={researchType} onChange={event => { markResearcherEdit(); setResearchType(event.target.value); }} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm">{RESEARCH_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}</select></label>
+      <label className="block text-sm font-medium">Research idea<textarea value={question} onChange={event => { markDraftRevision(); setQuestion(event.target.value); }} maxLength={1200} rows={3} className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm leading-6" placeholder="What scientific problem would you like to investigate?" /></label>
+      <label className="block text-sm font-medium">Discipline<select value={discipline} onChange={event => { markDraftRevision(); setDiscipline(event.target.value); }} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm">{PROPOSAL_DISCIPLINES.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+      <label className="block text-sm font-medium">Proposal language<select value={language} onChange={event => { markDraftRevision(); setLanguage(event.target.value); }} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm">{PROPOSAL_LANGUAGES.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select><span className="mt-2 block text-xs font-normal text-muted-foreground">Proposal sections can be marked not applicable or left for researcher input.</span></label>
+      <label className="block text-sm font-medium">Study approach<select value={researchType} onChange={event => { markDraftRevision(); setResearchType(event.target.value); }} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm">{RESEARCH_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}</select></label>
     </div>
     <fieldset className="rounded-xl border border-border p-3 sm:p-4"><legend className="px-1 text-sm font-semibold">Project publications ({selectedPapers.length} selected)</legend>
       {!linkedPapers.length ? <p className="p-2 text-sm text-muted-foreground">No saved project sources yet. The complete proposal workflow will search scholarly indexes for candidate records.</p> : <><p className="mb-2 text-xs text-muted-foreground">Optionally include these records in discovery and selection.</p><div className="max-h-64 space-y-1 overflow-y-auto">{linkedPapers.map(paper => <label key={paper.id} className="flex cursor-pointer gap-3 rounded-lg p-2 hover:bg-secondary/60"><input type="checkbox" className="mt-1 size-4 accent-primary" checked={selectedIds.includes(String(paper.id))} onChange={() => toggle(paper.id)} /><span className="min-w-0 text-sm"><span className="block font-medium leading-5">{paper.title || 'Title unavailable'}</span><span className="mt-1 block text-xs text-muted-foreground">{paper.authors || 'Authors unavailable'} · {paper.year || 'Year unavailable'} · {paper.summary ? 'abstract available' : 'metadata only'}</span></span></label>)}</div></>}
