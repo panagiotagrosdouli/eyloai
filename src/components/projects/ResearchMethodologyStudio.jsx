@@ -142,13 +142,6 @@ export default function ResearchMethodologyStudio({ project, savedPapers, onProj
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Scientific Output Studio · Methodology</p>
       <h3 id="research-methodology-studio-title" className="mt-1 text-xl font-semibold">Design a research methodology</h3>
       <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Build a discipline-aware, editable methods plan from the question and project materials you choose. EYRA receives available metadata and abstracts only. Generated methods stay proposals until a researcher reports implementation or validation.</p>
-      <nav aria-label="Research workflow" className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
-        <a href="#evidence-matrix-studio-title" className="min-h-8 text-primary hover:underline">Evidence Matrix</a>
-        <a href="#literature-review-builder-title" className="min-h-8 text-primary hover:underline">Literature Review</a>
-        <a href="#research-proposal-builder-title" className="min-h-8 text-primary hover:underline">Research Proposal</a>
-        <span aria-current="step" className="font-semibold">Methodology</span>
-        <a href="#research-roadmap-studio-title" className="min-h-8 text-primary hover:underline">Research Roadmap</a>
-      </nav>
     </header>
     <div className="grid gap-4 lg:grid-cols-2">
       <label className="block text-sm font-medium">Methodology research question<textarea value={question} onChange={event => { setQuestion(event.target.value); setDirty(true); }} maxLength={1200} rows={3} className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm leading-6" placeholder="What question should guide the study design?" /></label>

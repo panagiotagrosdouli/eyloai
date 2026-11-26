@@ -545,6 +545,11 @@ try {
   const papersBeforeMatrixFixture = structuredClone(tables.saved_papers);
   await page.reload();
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  const researchWorkflow = page.getByRole('navigation', { name: 'Research workflow stages', exact: true });
+  assert.equal(await researchWorkflow.getByRole('link').count(), 5, 'the Evidence tab must provide one navigation entry for every research stage');
+  assert.equal(await researchWorkflow.getByRole('progressbar', { name: 'Saved research workflow stages', exact: true }).count(), 1);
+  await researchWorkflow.getByRole('link', { name: /Research Proposal:/ }).click();
+  assert.equal(new URL(page.url()).hash, '#research-proposal-builder-title', 'workflow navigation must jump to the selected stage');
   const question = 'Do randomized interventions improve clinical outcomes?';
   await page.getByLabel('Research question', { exact: true }).fill(question);
   await page.getByRole('button', { name: 'Search scholarly sources', exact: true }).click();
@@ -557,6 +562,7 @@ try {
   await page.getByLabel('Key findings EYRA draft for Randomized intervention improves clinical outcome in a controlled trial').fill('Researcher-checked finding');
   await page.getByRole('button', { name: 'Save matrix', exact: true }).click();
   await page.getByText('Evidence Matrix saved to this private research project.').waitFor();
+  await researchWorkflow.getByRole('link', { name: 'Evidence Matrix: Saved', exact: true }).waitFor();
   assert.equal(tables.projects[0].data.evidence_matrix.research_question, question);
   assert.equal(tables.projects[0].data.evidence_matrix.ai_draft.rows[0].findings, 'Researcher-checked finding');
   await page.reload();

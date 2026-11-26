@@ -90,13 +90,6 @@ export default function ResearchRoadmapStudio({ project, savedPapers, onApproveT
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Scientific Output Studio · Execution</p>
       <h3 id="research-roadmap-studio-title" className="mt-1 text-xl font-semibold">Plan the research work</h3>
       <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Turn the research question, proposal, and methodology you choose into proposed phases and tasks. EYRA does not claim completion, assign estimated dates, or save tasks. Approval adds selected tasks to the existing workplan draft; Save workplan remains a separate action.</p>
-      <nav aria-label="Research workflow" className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
-        <a href="#evidence-matrix-studio-title" className="min-h-8 text-primary hover:underline">Evidence Matrix</a>
-        <a href="#literature-review-builder-title" className="min-h-8 text-primary hover:underline">Literature Review</a>
-        <a href="#research-proposal-builder-title" className="min-h-8 text-primary hover:underline">Research Proposal</a>
-        <a href="#research-methodology-studio-title" className="min-h-8 text-primary hover:underline">Methodology</a>
-        <span aria-current="step" className="font-semibold">Roadmap</span>
-      </nav>
     </header>
     <label className="block text-sm font-medium">Roadmap research question<textarea value={question} onChange={event => setQuestion(event.target.value)} maxLength={1200} rows={3} className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm leading-6" placeholder="What work is needed to investigate this question?" /></label>
     <fieldset className="rounded-xl border border-border p-3 sm:p-4"><legend className="px-1 text-sm font-semibold">Scholarly records ({selectedPapers.length} selected)</legend>

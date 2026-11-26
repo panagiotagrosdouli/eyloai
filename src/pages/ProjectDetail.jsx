@@ -24,6 +24,7 @@ import LiteratureReviewBuilder from '@/components/projects/LiteratureReviewBuild
 import ResearchProposalBuilder from '@/components/projects/ResearchProposalBuilder';
 import ResearchMethodologyStudio from '@/components/projects/ResearchMethodologyStudio';
 import ResearchRoadmapStudio from '@/components/projects/ResearchRoadmapStudio';
+import ResearchWorkflowNavigation from '@/components/projects/ResearchWorkflowNavigation';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
@@ -650,6 +651,7 @@ Rules:
       {activeTab === 'evidence' && (
         <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4" aria-labelledby="project-evidence-title">
           <div><h2 id="project-evidence-title" className="text-xl font-semibold">Evidence</h2><p className="mt-1 text-sm text-muted-foreground">Saved papers linked to this project.</p><Link to={"/literature-review?project_id=" + encodeURIComponent(id)} className="mt-3 inline-flex min-h-10 items-center rounded-lg border border-border px-3 text-sm font-medium text-primary hover:bg-secondary">Open literature review protocol</Link></div>
+          <ResearchWorkflowNavigation project={project} />
           {Array.isArray(project.gap_candidates) && project.gap_candidates.length > 0 && (
             <section className="rounded-xl border border-border bg-card p-4 sm:p-5" aria-labelledby="project-gap-candidates-title">
               <h3 id="project-gap-candidates-title" className="text-lg font-semibold">Saved candidate research questions</h3>
