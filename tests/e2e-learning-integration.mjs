@@ -886,6 +886,7 @@ try {
     if (result.error) throw result.error;
   }, user.email);
   grantDraftResponseMode = 'normal';
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
   await page.getByLabel('Official call title').waitFor();
   await page.locator('section[aria-labelledby="grant-proposal-builder-title"]').getByRole('button', { name: 'Resume saved run', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('section[aria-labelledby="grant-proposal-builder-title"]')?.innerText.includes('Grant draft is ready for researcher review'));
