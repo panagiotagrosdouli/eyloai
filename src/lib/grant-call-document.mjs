@@ -65,7 +65,7 @@ export async function extractGrantCallDocument(file, options = {}) {
     const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
     const task = pdfjs.getDocument(/** @type {any} */ ({ data: bytes, isEvalSupported: false, useSystemFonts: false, stopAtErrors: true }));
     const pdf = /** @type {any} */ (await task.promise);
-    if (pdf.numPages > limits.pdfPages) { await pdf.destroy(); fail('grant_pdf_pages', 'The PDF exceeds the 120 page local processing limit.'); }
+    if (pdf.numPages > limits.pdfPages) { await task.destroy(); fail('grant_pdf_pages', 'The PDF exceeds the 120 page local processing limit.'); }
     try {
       let characterCount = 0;
       for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
@@ -88,7 +88,7 @@ export async function extractGrantCallDocument(file, options = {}) {
           pages.push({ page: pageNumber, line: line + 1, section: '', text });
         }
       }
-    } finally { await pdf.destroy(); }
+    } finally { await task.destroy(); }
     if (!pages.some(page => page.text.length >= 20)) fail('grant_pdf_no_text', 'No usable text was found. This may be a scanned PDF; use the official text version or enter verified excerpts manually. No OCR service was contacted.');
   } else if (extension === 'docx') {
     if (file.type && file.type !== DOCX_MIME && file.type !== 'application/zip') fail('grant_document_type', 'The DOCX extension and media type do not match.');
