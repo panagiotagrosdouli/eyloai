@@ -1,5 +1,6 @@
 import { buildAuthorizedResearchContext, stableProposalStringify } from './research-proposal-studio.mjs';
 import { normalizeWorkplan, validateWorkplan } from './project-workplan.mjs';
+import { safeResearchSourceUrl } from './research-source-url.mjs';
 
 export const ROADMAP_TASK_SCHEMA = {
   type: 'object', additionalProperties: false, required: ['tasks'],
@@ -145,18 +146,12 @@ export function roadmapMarkdown({ question, tasks, papers }) {
     for (const id of task.source_ids || []) {
       const paper = sourceMap.get(String(id));
       if (!paper) continue;
-      const url = safeSourceUrl(paper);
+      const url = safeResearchSourceUrl(paper);
       lines.push(`- Source: ${paper.authors || 'Authors unavailable'} (${paper.year || 'Year unavailable'}). ${paper.title || 'Title unavailable'}.${url ? ` [Open source](<${url}>)` : ''}`);
     }
     lines.push('');
   }
   return lines.join('\n');
-}
-
-function safeSourceUrl(paper) {
-  try { const url = new URL(paper.url); if (url.protocol === 'https:' && !url.username && !url.password) return url.href; } catch { /* use verified DOI metadata */ }
-  const doi = String(paper.doi || '').replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '');
-  return /^10\.\d{4,9}\/[-._;()/:A-Z0-9]+$/i.test(doi) ? `https://doi.org/${doi}` : '';
 }
 
 export function roadmapErrorMessage(error, cancelled = false) {

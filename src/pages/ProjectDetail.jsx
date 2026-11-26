@@ -32,6 +32,7 @@ import { parseProjectTasks, toggleProjectTask } from '@/lib/project-tasks';
 import { buildProjectPlanDraft, acceptProjectPlanDraft } from '@/lib/project-plan-draft.mjs';
 import { canStartWorkplanTask, getWorkplanProgress, normalizeWorkplan, validateWorkplan } from '@/lib/project-workplan.mjs';
 import { appendApprovedRoadmapTasks, roadmapSaveReceipt } from '@/lib/research-roadmap-studio.mjs';
+import { safeResearchSourceUrl } from '@/lib/research-source-url.mjs';
 
 const TABS = [
   { key: 'overview', label: 'Overview', icon: Target },
@@ -920,7 +921,7 @@ Rules:
                       <p className="mt-1 text-sm leading-6">{item.evidence_summary}</p>
                       <ul className="mt-2 space-y-1">{(item.source_ids || []).map(sourceId => {
                         const paper = savedPapers.find(record => String(record.id) === String(sourceId));
-                        const href = (() => { try { const url = new URL(paper?.url || ''); return url.protocol === 'https:' && !url.username && !url.password ? url.href : ''; } catch { return ''; } })();
+                        const href = safeResearchSourceUrl(paper);
                         return <li key={sourceId} className="text-xs">{paper ? <a className="text-primary hover:underline" href={href || undefined} target={href ? '_blank' : undefined} rel={href ? 'noopener noreferrer' : undefined}>{paper.title || 'Open source record'}</a> : <span className="text-destructive">A source reference is no longer linked to this project.</span>}</li>;
                       })}</ul>
                     </div>}

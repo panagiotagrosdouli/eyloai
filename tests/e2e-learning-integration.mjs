@@ -27,6 +27,7 @@ let aiCalls = 0;
 let failNextTimerTransition = true;
 let interruptSnapshotSave = true;
 let snapshotWrites = 0;
+let roadmapMode = 'normal';
 const headers = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS' };
 function containsJson(value, expected) {
   if (Array.isArray(expected)) return Array.isArray(value) && expected.every(item => value.some(candidate => containsJson(candidate, item)));
@@ -131,6 +132,11 @@ try {
       return json(route, { data: { topics } });
     }
     if (body.prompt?.includes('reviewable research execution roadmap')) {
+      if (roadmapMode === 'error') return route.fulfill({ status: 503, headers, contentType: 'application/json', body: JSON.stringify({ error: 'fixture provider credential leaked' }) });
+      if (roadmapMode === 'cancel') {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        try { return await json(route, { data: { tasks: [] } }); } catch { return; }
+      }
       const [sourceId] = [...body.prompt.matchAll(/"source_id":"([^"]+)"/g)].map(match => match[1]);
       assert.ok(sourceId, 'roadmap prompt must include a selected scholarly source');
       assert.ok(body.prompt.includes('Researcher-edited proposed methodology.'), 'roadmap prompt must reuse the saved methodology context');
@@ -636,6 +642,17 @@ try {
   const roadmapQuestion = roadmapSection.locator('label').filter({ hasText: 'Roadmap research question' }).locator('textarea');
   await roadmapQuestion.focus(); await roadmapQuestion.press('Tab');
   assert.equal(await page.evaluate(() => document.activeElement.type), 'checkbox', 'roadmap source selection must follow the question in keyboard order');
+  roadmapMode = 'error';
+  await roadmapSection.getByRole('button', { name: 'Draft roadmap with EYRA', exact: true }).click();
+  await roadmapSection.getByRole('alert').filter({ hasText: 'EYRA could not produce a valid research roadmap' }).waitFor();
+  assert.doesNotMatch(await roadmapSection.getByRole('alert').innerText(), /credential leaked/);
+  assert.equal((tables.projects[0].data.plan_items || []).length, 0, 'provider failure must not modify the workplan');
+  roadmapMode = 'cancel';
+  await roadmapSection.getByRole('button', { name: 'Draft roadmap with EYRA', exact: true }).click();
+  await roadmapSection.getByRole('button', { name: 'Cancel drafting', exact: true }).click();
+  await roadmapSection.getByRole('alert').filter({ hasText: 'Roadmap drafting was cancelled' }).waitFor();
+  assert.equal((tables.projects[0].data.plan_items || []).length, 0, 'cancellation must not modify the workplan');
+  roadmapMode = 'normal';
   await roadmapSection.getByRole('button', { name: 'Draft roadmap with EYRA', exact: true }).click();
   const roadmapTaskTitle = roadmapSection.getByLabel('Proposed task').first();
   await roadmapTaskTitle.waitFor();
@@ -659,6 +676,13 @@ try {
   await page.getByRole('button', { name: 'Timeline', exact: true }).click();
   assert.equal(await page.locator('section[aria-labelledby="structured-workplan-title"] input[id^="workplan-title-"]').first().inputValue(), 'Researcher-reviewed protocol task');
   assert.equal(await page.getByLabel('Researcher notes').first().inputValue(), 'Researcher risk and access note.');
+  tables.projects[0].updated_date = '2099-01-01T00:00:00.000Z';
+  const workplanTitle = page.locator('section[aria-labelledby="structured-workplan-title"] input[id^="workplan-title-"]').first();
+  await workplanTitle.fill('Unsaved roadmap edit retained after conflict');
+  await page.getByRole('button', { name: 'Save workplan', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'This project changed in another session. Your workplan edits are still here' }).waitFor();
+  assert.equal(await workplanTitle.inputValue(), 'Unsaved roadmap edit retained after conflict');
+  assert.equal(tables.projects[0].data.plan_items[0].title, 'Researcher-reviewed protocol task', 'a stale workplan save must preserve the winning task list');
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
   const savedProposalSnapshot = structuredClone(tables.projects[0].data.research_proposal);
   await page.getByLabel('Background statement 1', { exact: true }).fill('Unsaved proposal edit preserved after conflict.');

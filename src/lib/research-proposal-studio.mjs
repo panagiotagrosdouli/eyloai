@@ -1,3 +1,5 @@
+import { safeResearchSourceUrl } from './research-source-url.mjs';
+
 export const PROPOSAL_SECTIONS = [
   { id: 'research_title', label: 'Research Title' },
   { id: 'abstract', label: 'Abstract' },
@@ -324,18 +326,10 @@ export function defaultBibliographyEntry(source) {
   return `${source.authors} (${source.year}). ${source.title}. ${source.source}.`;
 }
 
-function safeExternalSourceUrl(source) {
-  try {
-    const url = new URL(source.url);
-    if (url.protocol === 'https:' && !url.username && !url.password) return url.href;
-  } catch { /* use DOI only when its shape is valid */ }
-  return /^10\.\d{4,9}\/[-._;()/:A-Z0-9]+$/i.test(source.doi || '') ? `https://doi.org/${source.doi}` : '';
-}
-
 function citationLinks(ids, sourceMap, entries) {
   return ids.map(id => sourceMap.get(String(id))).filter(Boolean).map(source => {
     const label = entries[source.id] || defaultBibliographyEntry(source);
-    const url = safeExternalSourceUrl(source);
+    const url = safeResearchSourceUrl(source);
     return url ? `[${label.replaceAll('[', '\\[').replaceAll(']', '\\]')}](<${url}>)` : label;
   });
 }
@@ -363,7 +357,7 @@ export function exportResearchProposalMarkdown({ question, researchType, section
     if (definition.id === 'bibliography') {
       for (const source of bibliography) {
         const entry = bibliographyEntries[source.id] || defaultBibliographyEntry(source);
-        const url = safeExternalSourceUrl(source);
+        const url = safeResearchSourceUrl(source);
         lines.push(`- ${url ? `[${entry}](<${url}>)` : entry}${source.doi ? ` DOI: ${source.doi}.` : ''}`);
       }
       if (!bibliography.length) lines.push('_No selected scholarly records._');
