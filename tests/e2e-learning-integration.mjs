@@ -730,6 +730,7 @@ try {
   ].join('\n'));
   await grantSection.getByLabel('Project idea').fill('Study community heat adaptation using longitudinal observations.');
   await grantSection.getByLabel('Proposal headings copied from this call').fill('Project summary\nResearch methods');
+  await grantSection.getByLabel(/Randomized intervention improves clinical outcome/).check();
   const requirementConfirmations = grantSection.locator('section[aria-label="Documented call requirements"]');
   for (const checkbox of await requirementConfirmations.locator('input[type="checkbox"]').all()) await checkbox.check();
   await grantSection.getByRole('button', { name: 'Generate Complete Grant Proposal', exact: true }).click();
