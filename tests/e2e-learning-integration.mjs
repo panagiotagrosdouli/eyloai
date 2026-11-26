@@ -730,7 +730,8 @@ try {
   ].join('\n'));
   await grantSection.getByLabel('Project idea').fill('Study community heat adaptation using longitudinal observations.');
   await grantSection.getByLabel('Proposal headings copied from this call').fill('Project summary\nResearch methods');
-  for (const checkbox of await grantSection.getByLabel(/Applicants must|Submission deadline|Maximum funding|official proposal template|eligible consortium partner/).all()) await checkbox.check();
+  const requirementConfirmations = grantSection.locator('section[aria-label="Documented call requirements"]');
+  for (const checkbox of await requirementConfirmations.locator('input[type="checkbox"]').all()) await checkbox.check();
   await grantSection.getByRole('button', { name: 'Generate Complete Grant Proposal', exact: true }).click();
   await grantSection.getByLabel('Grant section Project summary').waitFor();
   await grantSection.getByText('Bibliography', { exact: true }).waitFor();
