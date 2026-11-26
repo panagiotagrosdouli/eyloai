@@ -1,17 +1,22 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Download, ExternalLink, Loader2, Save, Sparkles } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { getUsableSession } from '@/lib/supabaseClient';
 import { searchAllPapersWithStatus } from '@/lib/eyra-api';
-import { saveDiscoveredGapPaper } from '@/lib/research-gap-literature-save.mjs';
-import { persistProposalWorkflowCheckpoint } from '@/lib/research-proposal-checkpoint.mjs';
 import { safeResearchSourceUrl } from '@/lib/research-source-url.mjs';
-import { cancelProposalWorkflow, createProposalWorkflow, advanceProposalWorkflow, deduplicateProposalSearchResults, failProposalWorkflow, getProposalWorkflowProgress, markProposalResearcherReviewed, planProposalQueries, PROPOSAL_WORKFLOW_BUDGET, PROPOSAL_WORKFLOW_STAGES, reviewProposalDraft, retryProposalWorkflowStage } from '@/lib/research-proposal-orchestrator.mjs';
+import { saveDiscoveredGapPaper } from '@/lib/research-gap-literature-save.mjs';
+import { verifyCitation } from '@/lib/citation-verification.mjs';
+import { reviewProposalDraft } from '@/lib/proposal-quality-review.mjs';
+import { persistAutonomousProposalCheckpoint } from '@/lib/autonomous-proposal-checkpoint.mjs';
 import {
-  bibliographyForProposal, buildResearchProposalPrompt, defaultBibliographyEntry,
+  autonomousProposalErrorMessage, autonomousProposalProgress, PROPOSAL_DISCIPLINES, PROPOSAL_LANGUAGES,
+  runAutonomousProposal,
+} from '@/lib/autonomous-proposal-engine.mjs';
+import {
+  bibliographyForProposal, defaultBibliographyEntry,
   exportResearchProposalMarkdown, hasProposalSaveReceipt, METHODOLOGY_TOPICS,
-  PROPOSAL_SECTIONS, PROPOSAL_STATUSES, projectLinkedProposalPapers,
-  proposalErrorMessage, RESEARCH_TYPES, RESEARCH_PROPOSAL_SCHEMA, validateResearchProposalDraft,
+  PROPOSAL_SECTIONS, PROPOSAL_STATUSES, projectLinkedProposalPapers, RESEARCH_TYPES,
 } from '@/lib/research-proposal-studio.mjs';
 
 function blankProposal() {
@@ -21,23 +26,18 @@ function blankProposal() {
   };
 }
 
-function readLocalProposalCheckpoint(projectId) {
-  try {
-    const value = JSON.parse(window.localStorage.getItem(`eylo:proposal-draft:${projectId}`) || 'null');
-    return value?.sections && value?.methodology_plan ? value : null;
-  } catch { return null; }
-}
-
 export default function ResearchProposalBuilder({ project, savedPapers, onProjectSaved, onPapersChanged }) {
+  const { user } = useAuth();
+  const userRef = useRef(user);
+  userRef.current = user;
   const linkedPapers = useMemo(() => projectLinkedProposalPapers(savedPapers, project.id), [savedPapers, project.id]);
   const stored = project.research_proposal && typeof project.research_proposal === 'object' ? project.research_proposal : {};
-  const localDraft = readLocalProposalCheckpoint(project.id);
-  const initialIds = stored.selected_paper_ids || project.literature_review?.selected_paper_ids || project.evidence_matrix?.selected_paper_ids || [];
-  const [question, setQuestion] = useState(stored.research_question || project.evidence_matrix?.research_question || project.literature_review?.research_question || '');
-  const [discipline, setDiscipline] = useState(stored.discipline || '');
-  const [purpose, setPurpose] = useState(stored.purpose || 'academic');
-  const [language, setLanguage] = useState(stored.language || 'English');
+  const resumableRun = stored.autonomous_run && ['failed', 'paused', 'running'].includes(stored.autonomous_run.status) ? stored.autonomous_run : null;
+  const initialIds = stored.selected_paper_ids || (resumableRun ? stored.autonomous_run?.selected_paper_ids : null) || project.literature_review?.selected_paper_ids || project.evidence_matrix?.selected_paper_ids || [];
+  const [question, setQuestion] = useState(resumableRun?.idea || stored.research_question || stored.autonomous_run?.planning?.research_question || project.evidence_matrix?.research_question || project.literature_review?.research_question || '');
   const [researchType, setResearchType] = useState(stored.research_type || 'other');
+  const [discipline, setDiscipline] = useState(stored.discipline || 'interdisciplinary');
+  const [language, setLanguage] = useState(stored.language || 'en');
   const [selectedIds, setSelectedIds] = useState(() => initialIds.map(String).filter(id => linkedPapers.some(paper => String(paper.id) === id)));
   const [contextSelection, setContextSelection] = useState({
     project_objectives: stored.context_selection?.project_objectives ?? true,
@@ -45,35 +45,47 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
     literature_review: stored.context_selection?.literature_review ?? Boolean(project.literature_review),
     researcher_notes: stored.context_selection?.researcher_notes ?? false,
   });
-  const [aiDraft, setAiDraft] = useState(stored.ai_draft || localDraft || null);
-  const [sections, setSections] = useState(stored.edited_sections || stored.ai_draft?.sections || localDraft?.sections || blankProposal().sections);
-  const [methodology, setMethodology] = useState(stored.edited_methodology || stored.ai_draft?.methodology_plan || localDraft?.methodology_plan || blankProposal().methodology_plan);
+  const [aiDraft, setAiDraft] = useState(stored.ai_draft || null);
+  const [sections, setSections] = useState(stored.edited_sections || stored.ai_draft?.sections || blankProposal().sections);
+  const [methodology, setMethodology] = useState(stored.edited_methodology || stored.ai_draft?.methodology_plan || blankProposal().methodology_plan);
   const [sectionNotes, setSectionNotes] = useState(stored.section_notes || {});
   const [bibliographyEntries, setBibliographyEntries] = useState(stored.bibliography_entries || {});
   const [researcherEdited, setResearcherEdited] = useState(Boolean(stored.researcher_edited));
+  const [generationRun, setGenerationRun] = useState(() => stored.autonomous_run?.status === 'running'
+    ? { ...stored.autonomous_run, status: 'paused', error_code: 'page_reloaded' }
+    : stored.autonomous_run || null);
+  const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [dirty, setDirty] = useState(false);
-  const [workflowRun, setWorkflowRun] = useState(() => {
-    const saved = stored.workflow_run;
-    if (saved?.schema_version === 1) return saved;
-    try {
-      const local = JSON.parse(window.localStorage.getItem(`eylo:proposal-workflow:${project.id}`) || 'null');
-      return local?.schema_version === 1 && local?.input?.question ? local : null;
-    } catch { return null; }
-  });
-  const [qualityFindings, setQualityFindings] = useState(stored.quality_findings || []);
-  const [workflowBusy, setWorkflowBusy] = useState(false);
+  const [draftRevision, setDraftRevision] = useState(Number(stored.draft_revision) || 0);
+  const [researcherReview, setResearcherReview] = useState(stored.researcher_review || null);
+  const [reviewConfirmed, setReviewConfirmed] = useState(false);
   const controllerRef = useRef(null);
   const projectRef = useRef(project);
+  const accountIdRef = useRef(user?.id ? String(user.id) : '');
+  const localEditRevisionRef = useRef(0);
+  const researcherEditedRef = useRef(Boolean(stored.researcher_edited));
   const linkedById = useMemo(() => new Map(linkedPapers.map(paper => [String(paper.id), paper])), [linkedPapers]);
   const selectedPapers = linkedPapers.filter(paper => selectedIds.includes(String(paper.id)));
+  const qualityFindings = useMemo(() => reviewProposalDraft({ sections, methodologyPlan: methodology, papers: linkedPapers }), [sections, methodology, linkedPapers]);
+  const exportApproved = Boolean(!dirty && researcherReview?.approved === true && researcherReview.draft_revision === draftRevision);
   const hasDraft = Boolean(aiDraft || stored.edited_sections || Object.values(sectionNotes).some(value => String(value || '').trim()));
   const citedIds = [...sections, ...Object.values(methodology)].flatMap(section => (section?.claims || []).flatMap(claim => claim.source_ids || []));
   const bibliography = useMemo(() => bibliographyForProposal(linkedPapers, [...selectedIds, ...citedIds]), [linkedPapers, selectedIds.join('|'), citedIds.join('|')]);
 
   useEffect(() => () => controllerRef.current?.abort(), []);
+  useEffect(() => {
+    const nextAccountId = user?.id ? String(user.id) : '';
+    if (accountIdRef.current && accountIdRef.current !== nextAccountId) {
+      controllerRef.current?.abort();
+      setGenerationRun(null);
+      setResearcherReview(null);
+      setMessage('Your account changed. Reload this project before continuing proposal work.');
+    }
+    accountIdRef.current = nextAccountId;
+  }, [user?.id]);
   useEffect(() => { projectRef.current = project; }, [project]);
   useEffect(() => {
     if (!dirty) return undefined;
@@ -83,181 +95,135 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
   }, [dirty]);
 
   const toggle = id => {
+    markResearcherEdit();
     setSelectedIds(current => current.includes(String(id)) ? current.filter(item => item !== String(id)) : [...current, String(id)]);
     setDirty(true);
   };
   const toggleContext = key => {
+    markResearcherEdit();
     setContextSelection(current => ({ ...current, [key]: !current[key] }));
     setDirty(true);
   };
 
-  const runCompleteProposal = async ({ resume = false } = {}) => {
-    setError(''); setMessage(''); setWorkflowBusy(true);
-    const controller = new AbortController(); controllerRef.current = controller;
-    let activeRun = workflowRun;
-    let workflowOwnerId = null;
-    const checkpoint = async nextRun => {
-      activeRun = nextRun;
-      setWorkflowRun(nextRun);
-      try { window.localStorage.setItem(`eylo:proposal-workflow:${project.id}`, JSON.stringify(nextRun)); } catch { /* Draft generation remains available when local storage is disabled. */ }
-      if (!workflowOwnerId) throw new Error('The signed-in account could not be verified. Reload the project before generating.');
-      const saved = await persistProposalWorkflowCheckpoint({
-        entities: base44.entities,
-        project: projectRef.current,
-        run: nextRun,
-        ownerId: workflowOwnerId,
-        getSession: expectedUserId => getUsableSession({ required: true, validate: true, expectedUserId, signal: controller.signal }),
-      });
-      projectRef.current = saved;
-      onProjectSaved?.(saved);
-    };
-    const timeout = () => {
-      const timer = window.setTimeout(() => controller.abort(), PROPOSAL_WORKFLOW_BUDGET.timeoutMs);
-      return () => window.clearTimeout(timer);
-    };
-    try {
-      workflowOwnerId = (await getUsableSession({ required: true, validate: true, signal: controller.signal })).user.id;
-      let run = activeRun;
-      if (!resume || !run) {
-        run = createProposalWorkflow({ projectId: project.id, question, discipline, purpose, language });
-        run.stage_attempts = { INTAKE: 1 };
-        await checkpoint(run);
-      } else if (run.status === 'failed') {
-        run = retryProposalWorkflowStage(run);
-        await checkpoint(run);
-      } else if (run.status === 'cancelled') {
-        run = { ...run, status: 'running', error_code: '', updated_at: new Date().toISOString() };
-        await checkpoint(run);
-      } else if (run.status !== 'running') {
-        run = createProposalWorkflow({ projectId: project.id, question, discipline, purpose, language });
-        run.stage_attempts = { INTAKE: 1 };
-        await checkpoint(run);
-      }
-      setQuestion(run.input.question); setDiscipline(run.input.discipline); setPurpose(run.input.purpose); setLanguage(run.input.language);
+  const markResearcherEdit = () => {
+    localEditRevisionRef.current += 1;
+    setDraftRevision(value => value + 1);
+    setResearcherReview(null);
+    setReviewConfirmed(false);
+    researcherEditedRef.current = true;
+    setResearcherEdited(true); setDirty(true);
+  };
 
-      if (run.stage === 'INTAKE') { run = advanceProposalWorkflow(run, 'REQUIREMENTS'); await checkpoint(run); }
-      if (run.stage === 'REQUIREMENTS') {
-        const queries = planProposalQueries(run.input);
-        run = advanceProposalWorkflow(run, 'SOURCE_DISCOVERY', { source_queries: queries }); await checkpoint(run);
+  const generateCompleteProposal = async (resume = false) => {
+    setError(''); setMessage('');
+    const idea = question.trim();
+    if (idea.length < 8) { setError('Describe the research idea in at least 8 characters.'); return; }
+    if (!discipline || !language) { setError('Choose a discipline and output language before generation.'); return; }
+    const controller = new AbortController(); controllerRef.current = controller; setGenerating(true);
+    let accountAtStart = '';
+    const assertSameAccount = async () => {
+      const session = await getUsableSession({ required: true, validate: true, expectedUserId: accountAtStart || undefined, signal: controller.signal });
+      const sessionUserId = String(session?.user?.id || '');
+      if (!accountAtStart) accountAtStart = sessionUserId;
+      if (!sessionUserId || sessionUserId !== accountAtStart || String(userRef.current?.id || '') !== accountAtStart) {
+        throw Object.assign(new Error('account_switched'), { code: 'ACCOUNT_CHANGED' });
       }
-      let sourcePapers = linkedPapers.filter(paper => (run.selected_source_ids || []).includes(String(paper.id)));
-      if (run.stage === 'SOURCE_DISCOVERY' && selectedPapers.length) {
-        sourcePapers = selectedPapers.slice(0, PROPOSAL_WORKFLOW_BUDGET.maximumSelectedRecords);
-        setSelectedIds(sourcePapers.map(paper => String(paper.id)));
-        run = advanceProposalWorkflow(run, 'EVIDENCE_ANALYSIS', {
-          selected_source_ids: sourcePapers.map(paper => String(paper.id)),
-          discovered_count: 0,
-          linked_count: 0,
-          source_reuse: 'selected_project_records',
-        }); await checkpoint(run);
-      }
-      if (run.stage === 'SOURCE_DISCOVERY') {
-        const found = [];
-        const statuses = [];
-        for (const query of run.source_queries.slice(0, PROPOSAL_WORKFLOW_BUDGET.searchStrategies)) {
-          await getUsableSession({ required: true, validate: true, expectedUserId: workflowOwnerId, signal: controller.signal });
-          const clear = timeout();
-          try {
-            const result = await searchAllPapersWithStatus(query, { limit: PROPOSAL_WORKFLOW_BUDGET.recordsPerStrategy, signal: controller.signal });
-            found.push(result);
-            statuses.push({ query, query_status: 'available', available_source_count: result.available_source_count, unavailable_source_count: result.unavailable_source_count, source_status: result.source_status });
-          } catch (failure) {
-            if (controller.signal.aborted) throw failure;
-            statuses.push({ query, query_status: 'unavailable', error_code: String(failure?.code || 'SEARCH_FAILED'), available_source_count: 0, unavailable_source_count: 0, source_status: [] });
-          } finally { clear(); }
-          await getUsableSession({ required: true, validate: true, expectedUserId: workflowOwnerId, signal: controller.signal });
-        }
-        const discovered = deduplicateProposalSearchResults(found);
-        const candidates = discovered.slice(0, Math.max(0, PROPOSAL_WORKFLOW_BUDGET.maximumSelectedRecords - selectedPapers.length));
-        const saved = [];
-        for (const paper of candidates) {
-          if (controller.signal.aborted) throw Object.assign(new Error('Workflow cancelled.'), { name: 'AbortError' });
-          await getUsableSession({ required: true, validate: true, expectedUserId: workflowOwnerId, signal: controller.signal });
-          try {
-            const record = await saveDiscoveredGapPaper({ entities: base44.entities, paper, project });
-            if (record?.id && record.project_id === project.id) saved.push(record);
-          } catch (failure) {
-            if (failure?.code !== 'PAPER_PROJECT_CONFLICT') throw failure;
-          }
-        }
-        if (saved.length) onPapersChanged?.(previous => {
-          const byId = new Map(previous.map(paper => [String(paper.id), paper]));
-          for (const paper of saved) byId.set(String(paper.id), paper);
-          return [...byId.values()];
-        });
-        sourcePapers = [...new Map([...selectedPapers, ...saved].map(paper => [String(paper.id), paper])).values()]
-          .slice(0, PROPOSAL_WORKFLOW_BUDGET.maximumSelectedRecords);
-        if (!sourcePapers.length) throw Object.assign(new Error('No eligible scholarly records were retrieved for this topic.'), { code: 'NO_SOURCES' });
-        setSelectedIds(sourcePapers.map(paper => String(paper.id)));
-        run = advanceProposalWorkflow(run, 'EVIDENCE_ANALYSIS', {
-          source_status: statuses,
-          selected_source_ids: sourcePapers.map(paper => String(paper.id)),
-          discovered_count: discovered.length,
-          linked_count: saved.length,
-        }); await checkpoint(run);
-      }
-      if (run.stage === 'EVIDENCE_ANALYSIS') { run = advanceProposalWorkflow(run, 'PROPOSAL_PLANNING'); await checkpoint(run); }
-      if (run.stage === 'PROPOSAL_PLANNING') { run = advanceProposalWorkflow(run, 'SECTION_GENERATION'); await checkpoint(run); }
-      let generatedDraft = aiDraft || stored.ai_draft;
-      if (run.stage === 'SECTION_GENERATION') {
-        if (run.generation_calls >= PROPOSAL_WORKFLOW_BUDGET.generationCalls) throw Object.assign(new Error('The proposal generation retry budget has been used.'), { code: 'GENERATION_BUDGET_EXHAUSTED' });
-        const clear = timeout();
-        run = { ...run, generation_calls: run.generation_calls + 1, updated_at: new Date().toISOString() }; await checkpoint(run);
-        try {
-          const response = await base44.integrations.Core.InvokeLLM({
-            response_json_schema: RESEARCH_PROPOSAL_SCHEMA,
-            prompt: buildResearchProposalPrompt({ question: run.input.question, researchType, papers: sourcePapers, project, evidenceMatrix: project.evidence_matrix, literatureReview: project.literature_review, contextSelection, discipline: run.input.discipline, purpose: run.input.purpose, language: run.input.language }),
-            signal: controller.signal,
+    };
+    const revisionAtStart = localEditRevisionRef.current;
+    try {
+      await assertSameAccount();
+      await runAutonomousProposal({
+        idea, discipline, researchType, language, project: projectRef.current, savedPapers,
+        contextSelection, resumeRun: resume ? generationRun : null,
+        invoke: request => base44.integrations.Core.InvokeLLM(request),
+        search: ({ query, limit, signal }) => searchAllPapersWithStatus(query, { limit, signal }),
+        verifySource: (record, signal) => verifyCitation(record, (url, options) => fetch(url, { ...options, signal })),
+        savePaper: async (paper, targetProject) => {
+          await assertSameAccount();
+          const saved = await saveDiscoveredGapPaper({ entities: base44.entities, paper, project: targetProject });
+          if (!saved?.id || String(saved.project_id) !== String(targetProject.id)) throw new Error('no_sources_saved');
+          onPapersChanged?.(previous => previous.some(item => String(item.id) === String(saved.id))
+            ? previous.map(item => String(item.id) === String(saved.id) ? saved : item)
+            : [saved, ...previous]);
+          return saved;
+        },
+        checkpoint: async run => {
+          const currentProject = projectRef.current;
+          const saved = await persistAutonomousProposalCheckpoint({
+            entities: base44.entities, project: currentProject, run, ownerId: accountAtStart,
+            getSession: expectedUserId => getUsableSession({ required: true, validate: true, expectedUserId, signal: controller.signal }),
+            createArtifact: previous => ({
+              ...previous,
+              autonomous_run: run,
+              updated_at: new Date().toISOString(),
+              draft_revision: run.status === 'complete' ? Math.max(Number(previous.draft_revision) || 0, draftRevision) + 1 : (previous.draft_revision ?? draftRevision),
+              researcher_review: run.status === 'complete' ? null : previous.researcher_review,
+              ...(run.status === 'complete' ? {
+                research_question: run.planning.research_question,
+                research_type: run.research_type,
+                discipline: run.discipline,
+                language: run.language,
+                ...(localEditRevisionRef.current === revisionAtStart ? { selected_paper_ids: run.selected_paper_ids } : {}),
+                ai_draft: run.proposal_draft,
+                quality_findings: reviewProposalDraft({
+                  sections: run.proposal_draft.sections,
+                  methodologyPlan: run.proposal_draft.methodology_plan,
+                  papers: run.selected_source_keys.map(key => {
+                    const candidate = run.candidates.find(item => item.key === key);
+                    return candidate ? { ...candidate.record, id: run.saved_sources?.[key] || candidate.record.id, project_id: currentProject.id } : null;
+                  }).filter(Boolean),
+                }),
+              } : {}),
+            }),
           });
-          await getUsableSession({ required: true, validate: true, expectedUserId: workflowOwnerId, signal: controller.signal });
-          const validated = validateResearchProposalDraft(response, sourcePapers);
-          generatedDraft = validated;
-          try { window.localStorage.setItem(`eylo:proposal-draft:${project.id}`, JSON.stringify(validated)); } catch { /* A successful in-memory draft remains usable without a local checkpoint. */ }
-          setAiDraft(validated);
-          if (!researcherEdited || !aiDraft) { setSections(validated.sections); setMethodology(validated.methodology_plan); setResearcherEdited(false); }
-          run = advanceProposalWorkflow(run, 'QUALITY_REVIEW'); await checkpoint(run);
-        } finally { clear(); }
-      }
-      if (run.stage === 'QUALITY_REVIEW') {
-        const findings = reviewProposalDraft({ sections: generatedDraft?.sections || sections, methodologyPlan: generatedDraft?.methodology_plan || methodology, papers: sourcePapers });
-        setQualityFindings(findings);
-        run = advanceProposalWorkflow(run, 'REVISION', { quality_summary: findings.map(item => ({ pass: item.pass, status: item.status })) }); await checkpoint(run);
-      }
-      if (run.stage === 'REVISION') { run = advanceProposalWorkflow(run, 'RESEARCHER_REVIEW', { revision_summary: 'No automated rewrite was applied. Researcher edits and accept/reject decisions remain in control.' }); await checkpoint(run); }
-      if (run.stage === 'RESEARCHER_REVIEW' && run.status === 'running') {
-        run = { ...run, status: 'awaiting_researcher', updated_at: new Date().toISOString() };
-        await checkpoint(run);
-      }
-      setDirty(true);
-      setMessage('The proposal draft is ready for your review. Check the linked sources and quality findings, then enable exports when satisfied.');
+          const artifact = saved.research_proposal;
+          if (!hasProposalSaveReceipt(saved, currentProject.id, artifact)) throw Object.assign(new Error('unverified'), { code: 'CHECKPOINT_UNVERIFIED' });
+          projectRef.current = saved; onProjectSaved(saved); setGenerationRun(run);
+          if (run.status === 'complete') {
+            setAiDraft(run.proposal_draft); setGenerationRun(run);
+            setDraftRevision(Number(saved.research_proposal.draft_revision) || draftRevision + 1);
+            setResearcherReview(null); setReviewConfirmed(false);
+            const preserveEdits = researcherEditedRef.current || localEditRevisionRef.current !== revisionAtStart;
+            if (!preserveEdits) {
+              setQuestion(run.planning.research_question); setSelectedIds(run.selected_paper_ids);
+              setSections(run.proposal_draft.sections); setMethodology(run.proposal_draft.methodology_plan);
+              researcherEditedRef.current = false; setResearcherEdited(false);
+              setMessage('Complete proposal saved as an editable draft. Review the evidence, uncertainties and proposed milestones before use.');
+            } else {
+              setMessage('Complete proposal saved. Your edits remain intact; choose “Apply latest draft” only if you want to replace them.');
+            }
+            setDirty(preserveEdits);
+          }
+          return saved;
+        },
+        onProgress: run => setGenerationRun(run),
+        signal: controller.signal,
+      });
     } catch (failure) {
-      const failedRun = controller.signal.aborted && failure?.name === 'AbortError'
-        ? cancelProposalWorkflow(activeRun)
-        : failProposalWorkflow(activeRun, failure?.code || 'WORKFLOW_FAILED');
-      try { await checkpoint(failedRun); } catch { /* Keep the local failure state; never replace the last verified project checkpoint. */ }
-      if (failure?.name === 'AbortError' || controller.signal.aborted) setMessage('Workflow cancelled. Retrieved records remain linked to this project; resume when ready.');
-      else setError(failure?.code === 'NO_SOURCES' ? 'No usable scholarly sources were found. Refine the topic and retry.' : proposalErrorMessage(failure, false));
-    } finally {
-      if (controllerRef.current === controller) controllerRef.current = null;
-      setWorkflowBusy(false);
-    }
+      if (failure.run) setGenerationRun(failure.run);
+      setError(autonomousProposalErrorMessage(failure.message));
+    } finally { if (controllerRef.current === controller) controllerRef.current = null; setGenerating(false); }
   };
 
   const save = async () => {
     if (saving || !hasDraft) return;
     setSaving(true); setError(''); setMessage('');
     const proposal = {
-      research_question: question.trim().slice(0, 1200), research_type: researchType, discipline, purpose, language,
+      ...(projectRef.current.research_proposal || {}),
+      research_question: question.trim().slice(0, 1200), research_type: researchType, discipline, language,
       selected_paper_ids: selectedIds.filter(id => linkedById.has(id)), context_selection: contextSelection,
       ai_draft: aiDraft, edited_sections: sections, edited_methodology: methodology,
-      section_notes: sectionNotes, bibliography_entries: bibliographyEntries,
-      researcher_edited: researcherEdited, workflow_run: workflowRun, quality_findings: qualityFindings, updated_at: new Date().toISOString(),
+      section_notes: sectionNotes, bibliography_entries: bibliographyEntries, autonomous_run: generationRun,
+      researcher_edited: researcherEdited, updated_at: new Date().toISOString(),
+      quality_findings: qualityFindings,
+      draft_revision: draftRevision,
+      researcher_review: researcherReview?.draft_revision === draftRevision ? researcherReview : null,
     };
     try {
-      const saved = await base44.entities.Project.updateIfUnchanged(project.id, { research_proposal: proposal }, project.updated_date);
+      const currentProject = projectRef.current;
+      const saved = await base44.entities.Project.updateIfUnchanged(currentProject.id, { research_proposal: proposal }, currentProject.updated_date);
       if (!hasProposalSaveReceipt(saved, project.id, proposal)) throw new Error('unverified');
-      onProjectSaved(saved); setDirty(false); setMessage('Proposal saved to this private research project.');
-      try { window.localStorage.removeItem(`eylo:proposal-draft:${project.id}`); } catch { /* Saved server version remains authoritative. */ }
+      projectRef.current = saved; onProjectSaved(saved); setDirty(false); setMessage('Proposal saved to this private research project.');
     } catch (failure) {
       setError(failure?.code === 'ENTITY_CONFLICT'
         ? 'This project changed in another session. Your proposal edits remain here; reload the project before saving.'
@@ -265,46 +231,56 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
     } finally { setSaving(false); }
   };
 
-  const finishResearcherReview = async () => {
-    try {
-      const reviewed = markProposalResearcherReviewed(workflowRun);
-      setWorkflowRun(reviewed);
-      setDirty(true);
-      setMessage('Researcher review recorded for this draft. This is not institutional approval or submission. Save the proposal to the project to keep this status.');
-      try { window.localStorage.setItem(`eylo:proposal-workflow:${project.id}`, JSON.stringify(reviewed)); } catch { /* The review state remains in this session. */ }
-      const ownerId = (await getUsableSession({ required: true, validate: true })).user.id;
-      const saved = await persistProposalWorkflowCheckpoint({
-        entities: base44.entities,
-        project: projectRef.current,
-        run: reviewed,
-        ownerId,
-        getSession: expectedUserId => getUsableSession({ required: true, validate: true, expectedUserId }),
-      });
-      projectRef.current = saved;
-      onProjectSaved?.(saved);
-      setMessage('Researcher review status was saved to this private project. It is not institutional approval or submission.');
-    } catch (failure) { setError(failure?.code === 'ENTITY_CONFLICT' ? 'The project changed in another session. Reload before recording review approval.' : proposalErrorMessage(failure, false)); }
-  };
-
   const updateClaim = (sectionId, index, value, methodTopic = null) => {
-    setResearcherEdited(true); setDirty(true);
+    markResearcherEdit();
     if (methodTopic) setMethodology(current => ({ ...current, [methodTopic]: { ...current[methodTopic], claims: current[methodTopic].claims.map((claim, item) => item === index ? { ...claim, text: value, origin: 'researcher' } : claim) } }));
     else setSections(current => current.map(section => section.section_id !== sectionId ? section : ({ ...section, claims: section.claims.map((claim, item) => item === index ? { ...claim, text: value, origin: 'researcher' } : claim) })));
   };
 
   const updateStatus = (sectionId, status, methodTopic = null) => {
-    setDirty(true); setResearcherEdited(true);
+    markResearcherEdit();
     if (methodTopic) setMethodology(current => ({ ...current, [methodTopic]: { ...current[methodTopic], status } }));
     else setSections(current => current.map(section => section.section_id === sectionId ? { ...section, status } : section));
   };
 
   const applyLatest = () => {
+    markResearcherEdit(); researcherEditedRef.current = false;
     setSections(aiDraft.sections); setMethodology(aiDraft.methodology_plan); setResearcherEdited(false); setDirty(true);
     setMessage('Latest EYRA draft applied. Review the replaced sections before saving.');
   };
 
+  const approveForExport = async () => {
+    if (!reviewConfirmed || saving || !hasDraft) return;
+    setSaving(true); setError(''); setMessage('');
+    const currentProject = projectRef.current;
+    const proposal = {
+      ...(currentProject.research_proposal || {}),
+      research_question: question.trim().slice(0, 1200), research_type: researchType, discipline, language,
+      selected_paper_ids: selectedIds.filter(id => linkedById.has(id)), context_selection: contextSelection,
+      ai_draft: aiDraft, edited_sections: sections, edited_methodology: methodology,
+      section_notes: sectionNotes, bibliography_entries: bibliographyEntries, autonomous_run: generationRun,
+      researcher_edited: researcherEdited, draft_revision: draftRevision,
+      quality_findings: qualityFindings,
+      researcher_review: { approved: true, draft_revision: draftRevision, reviewed_at: new Date().toISOString(), scope: 'export' },
+      updated_at: new Date().toISOString(),
+    };
+    try {
+      const saved = await base44.entities.Project.updateIfUnchanged(currentProject.id, { research_proposal: proposal }, currentProject.updated_date);
+      if (!hasProposalSaveReceipt(saved, currentProject.id, proposal)) throw new Error('unverified');
+      projectRef.current = saved; onProjectSaved(saved); setResearcherReview(proposal.researcher_review); setDirty(false);
+      setMessage('Your review approval is saved for this proposal revision. It does not represent peer review or scientific validation.');
+    } catch (failure) {
+      setError(failure?.code === 'ENTITY_CONFLICT' ? 'This project changed in another session. Reload and review the latest version before approving export.' : 'Your review approval could not be verified as saved. Export remains disabled.');
+    } finally { setSaving(false); }
+  };
+
   const exportMarkdown = () => {
-    const markdown = exportResearchProposalMarkdown({ question, researchType, sections, methodologyPlan: methodology, bibliography, bibliographyEntries, sectionNotes });
+    if (!exportApproved) return;
+    const markdown = exportResearchProposalMarkdown({
+      question, researchType, discipline: PROPOSAL_DISCIPLINES.find(item => item.id === discipline)?.label || 'Interdisciplinary',
+      language, sections, methodologyPlan: methodology, bibliography, bibliographyEntries, sectionNotes,
+      milestones: generationRun?.milestones || [],
+    });
     const url = URL.createObjectURL(new Blob([markdown], { type: 'text/markdown;charset=utf-8' }));
     const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'research-proposal-draft.md';
     document.body.append(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(url);
@@ -321,54 +297,55 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
   return <section className="space-y-5 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="research-proposal-builder-title">
     <header>
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Scientific Output Studio · Research Proposal</p>
-      <h3 id="research-proposal-builder-title" tabIndex={-1} className="mt-1 scroll-mt-4 text-xl font-semibold">Build a research proposal</h3>
-      <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Create an editable scientific draft from selected project sources. EYRA receives available metadata and abstracts, plus only the project outputs you choose. Full text is not assumed.</p>
+      <h3 id="research-proposal-builder-title" className="mt-1 text-xl font-semibold">Build a research proposal</h3>
+      <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Start from a research idea. EYRA searches scholarly indexes, selects project-linked records and drafts a complete proposal for your review. It can use bibliographic metadata and available abstracts; full text is not assumed.</p>
     </header>
     <div className="grid gap-4 lg:grid-cols-2">
-      <label className="block text-sm font-medium">Research topic or question<textarea value={question} onChange={event => { setQuestion(event.target.value); setDirty(true); }} maxLength={1200} rows={3} className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm leading-6" placeholder="What would you like to investigate?" /></label>
-      <div className="grid gap-3 sm:grid-cols-2">
-      <label className="block text-sm font-medium">Scientific discipline<input required value={discipline} onChange={event => { setDiscipline(event.target.value); setDirty(true); }} maxLength={120} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm" placeholder="e.g. environmental science" /></label>
-        <label className="block text-sm font-medium">Proposal purpose<select value={purpose} onChange={event => { setPurpose(event.target.value); setDirty(true); }} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"><option value="academic">Academic research</option><option value="undergraduate">Undergraduate</option><option value="masters">Master’s</option><option value="doctoral">Doctoral</option><option value="institutional">Institutional research</option></select></label>
-        <label className="block text-sm font-medium">Preferred language<input value={language} onChange={event => { setLanguage(event.target.value); setDirty(true); }} maxLength={40} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm" placeholder="English" /></label>
-        <label className="block text-sm font-medium">Research design<select value={researchType} onChange={event => { setResearchType(event.target.value); setDirty(true); }} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm">{RESEARCH_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}</select></label>
-      </div>
+      <label className="block text-sm font-medium">Research idea<textarea value={question} onChange={event => { markResearcherEdit(); setQuestion(event.target.value); }} maxLength={1200} rows={3} className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm leading-6" placeholder="What scientific problem would you like to investigate?" /></label>
+      <label className="block text-sm font-medium">Discipline<select value={discipline} onChange={event => { markResearcherEdit(); setDiscipline(event.target.value); }} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm">{PROPOSAL_DISCIPLINES.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+      <label className="block text-sm font-medium">Proposal language<select value={language} onChange={event => { markResearcherEdit(); setLanguage(event.target.value); }} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm">{PROPOSAL_LANGUAGES.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select><span className="mt-2 block text-xs font-normal text-muted-foreground">Proposal sections can be marked not applicable or left for researcher input.</span></label>
+      <label className="block text-sm font-medium">Study approach<select value={researchType} onChange={event => { markResearcherEdit(); setResearchType(event.target.value); }} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm">{RESEARCH_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}</select></label>
     </div>
     <fieldset className="rounded-xl border border-border p-3 sm:p-4"><legend className="px-1 text-sm font-semibold">Project publications ({selectedPapers.length} selected)</legend>
-      {!linkedPapers.length ? <p className="p-2 text-sm text-muted-foreground">Link scholarly records to this project in the Evidence Matrix before generating a proposal.</p> : <div className="max-h-64 space-y-1 overflow-y-auto">{linkedPapers.map(paper => <label key={paper.id} className="flex cursor-pointer gap-3 rounded-lg p-2 hover:bg-secondary/60"><input type="checkbox" className="mt-1 size-4 accent-primary" checked={selectedIds.includes(String(paper.id))} onChange={() => toggle(paper.id)} /><span className="min-w-0 text-sm"><span className="block font-medium leading-5">{paper.title || 'Title unavailable'}</span><span className="mt-1 block text-xs text-muted-foreground">{paper.authors || 'Authors unavailable'} · {paper.year || 'Year unavailable'} · {paper.summary ? 'abstract available' : 'metadata only'}</span></span></label>)}</div>}
+      {!linkedPapers.length ? <p className="p-2 text-sm text-muted-foreground">No saved project sources yet. The complete proposal workflow will search scholarly indexes for candidate records.</p> : <><p className="mb-2 text-xs text-muted-foreground">Optionally include these records in discovery and selection.</p><div className="max-h-64 space-y-1 overflow-y-auto">{linkedPapers.map(paper => <label key={paper.id} className="flex cursor-pointer gap-3 rounded-lg p-2 hover:bg-secondary/60"><input type="checkbox" className="mt-1 size-4 accent-primary" checked={selectedIds.includes(String(paper.id))} onChange={() => toggle(paper.id)} /><span className="min-w-0 text-sm"><span className="block font-medium leading-5">{paper.title || 'Title unavailable'}</span><span className="mt-1 block text-xs text-muted-foreground">{paper.authors || 'Authors unavailable'} · {paper.year || 'Year unavailable'} · {paper.summary ? 'abstract available' : 'metadata only'}</span></span></label>)}</div></>}
     </fieldset>
     <fieldset className="rounded-xl border border-border p-3 sm:p-4"><legend className="px-1 text-sm font-semibold">Project context EYRA may use</legend><div className="grid gap-2 sm:grid-cols-2">
       {[['project_objectives','Project objectives and plan'],['evidence_matrix','Evidence Matrix'],['literature_review','Literature Review'],['researcher_notes','Researcher-authored matrix notes']].map(([key,label]) => <label key={key} className="flex min-h-10 items-start gap-2 text-sm"><input className="mt-1 size-4 accent-primary" type="checkbox" checked={Boolean(contextSelection[key])} onChange={() => toggleContext(key)} />{label}</label>)}
     </div><p className="mt-2 text-xs text-muted-foreground">Only selected papers and selected project outputs are sent to EYRA. Source facts and interpretations require citations; proposed methods and contributions are not validated outcomes.</p></fieldset>
-    <p className="rounded-lg bg-secondary/40 px-3 py-2 text-xs leading-5 text-muted-foreground">Generate reuses selected project evidence when available; otherwise it searches scholarly indexes, links eligible records to this private project, and makes one EYRA draft call. Search is limited to {PROPOSAL_WORKFLOW_BUDGET.searchStrategies} strategies and {PROPOSAL_WORKFLOW_BUDGET.maximumSelectedRecords} records. Explicit stage retries are bounded. Review and save the draft yourself; no grant submission or external action occurs.</p>
     <div className="flex flex-wrap gap-2">
-      <button type="button" onClick={() => runCompleteProposal()} disabled={workflowBusy || question.trim().length < 8 || !discipline.trim() || !language.trim() || !purpose.trim()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60">{workflowBusy ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />}{workflowBusy ? 'Generating complete proposal…' : 'Generate Complete Proposal'}</button>
-      {workflowBusy && <button type="button" onClick={() => controllerRef.current?.abort()} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold">Cancel workflow</button>}
-      {!workflowBusy && ['running', 'cancelled'].includes(workflowRun?.status) && <button type="button" onClick={() => runCompleteProposal({ resume: true })} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold">Resume workflow</button>}
-      {!workflowBusy && workflowRun?.status === 'failed' && <button type="button" onClick={() => runCompleteProposal({ resume: true })} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold">Retry current stage</button>}
-      {workflowRun?.status === 'awaiting_researcher' && <button type="button" onClick={finishResearcherReview} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold">Mark review complete and enable export</button>}
+      <button type="button" onClick={() => generateCompleteProposal(false)} disabled={generating || question.trim().length < 8} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60">{generating ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />}{generating ? 'Generating complete proposal…' : 'Generate Complete Proposal'}</button>
+      {generating && <button type="button" onClick={() => controllerRef.current?.abort()} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold">Cancel generation</button>}
+      {generationRun && ['failed', 'paused'].includes(generationRun.status) && <button type="button" onClick={() => generateCompleteProposal(true)} disabled={generating || question.trim() !== generationRun.idea || discipline !== generationRun.discipline || researchType !== (generationRun.research_type || 'other') || language !== generationRun.language} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-50">Resume saved run</button>}
       <button type="button" onClick={save} disabled={saving || !hasDraft} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-60">{saving ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Save size={16} aria-hidden="true" />}{saving ? 'Saving…' : 'Save to project'}</button>
-      <button type="button" onClick={exportMarkdown} disabled={!hasDraft || (workflowRun?.stage === 'RESEARCHER_REVIEW' && workflowRun.status !== 'complete')} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-60"><Download size={16} aria-hidden="true" />Export Markdown</button>
+      <button type="button" onClick={exportMarkdown} disabled={!hasDraft || !exportApproved} title={exportApproved ? 'Export researcher-approved revision' : 'Save and approve this exact revision before export'} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-60"><Download size={16} aria-hidden="true" />Export Markdown</button>
       {researcherEdited && aiDraft && <button type="button" onClick={applyLatest} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold">Apply latest draft</button>}
       <span role="status" className="self-center text-xs text-muted-foreground">{saving ? 'Saving…' : dirty ? 'Unsaved changes' : stored.updated_at ? 'Saved project version' : 'Not saved yet'}</span>
     </div>
-    {workflowRun && <section className="space-y-2 rounded-xl border border-border p-4" aria-label="Proposal workflow progress" aria-live="polite">
-      <div className="flex items-center justify-between gap-3"><h4 className="font-semibold">Workflow progress · {workflowRun.stage?.replaceAll('_', ' ')}</h4><span className="text-sm tabular-nums">{getProposalWorkflowProgress(workflowRun)}%</span></div>
-      <div className="h-2 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={getProposalWorkflowProgress(workflowRun)}><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${getProposalWorkflowProgress(workflowRun)}%` }} /></div>
-      <ol className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">{PROPOSAL_WORKFLOW_STAGES.map(stage => { const done = workflowRun.completed_stages?.includes(stage) || (workflowRun.status === 'complete' && stage === 'EXPORT_READY'); const active = workflowRun.stage === stage && workflowRun.status !== 'complete'; return <li key={stage} className={`rounded-md px-2 py-1 text-xs ${active ? 'bg-primary/10 font-semibold text-primary' : done ? 'text-foreground' : 'text-muted-foreground'}`}>{done ? '✓ ' : active ? '• ' : '○ '}{stage.replaceAll('_', ' ')}</li>; })}</ol>
-      {workflowRun.source_queries?.length > 0 && <p className="text-xs text-muted-foreground">{workflowRun.discovered_count ?? 0} deduplicated records found · {workflowRun.linked_count ?? 0} linked to this project. Failed or unavailable indexes are listed only when they return search status.</p>}
-      {workflowRun.source_status?.length > 0 && <ul className="space-y-1 text-xs text-muted-foreground">{workflowRun.source_status.flatMap(search => (search.source_status || []).map(source => <li key={`${search.query}-${source.id}`}>{source.label}: {source.status} · {source.count} records</li>))}</ul>}
-      {workflowRun.status === 'cancelled' && <p className="text-xs text-muted-foreground">Cancelled. Resume restarts the interrupted stage within the same search and generation limits.</p>}
-    </section>}
-    {qualityFindings.length > 0 && <section className="space-y-2 rounded-xl border border-border p-4" aria-label="Proposal quality review"><h4 className="font-semibold">Quality review</h4><p className="text-xs leading-5 text-muted-foreground">Automated findings surface completeness, traceability and possible consistency issues. Human scientific verification is separate: citation matching does not show that a source supports a claim or that the proposal is scientifically valid.</p><ul className="space-y-2">{qualityFindings.map(finding => <li key={finding.pass} className="rounded-lg bg-secondary/30 p-3 text-sm"><span className="font-semibold">Pass {finding.pass} · {finding.label}</span><span className="ml-2 text-xs text-muted-foreground">{finding.status.replaceAll('_', ' ')}</span><p className="mt-1 text-xs leading-5 text-muted-foreground">{finding.details}</p>{finding.actions?.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-5 text-xs leading-5 text-muted-foreground">{finding.actions.map(action => <li key={action}>{action}</li>)}</ul>}</li>)}</ul></section>}
+    {generationRun && <div className="rounded-xl border border-border bg-secondary/20 p-3" aria-label="Complete proposal generation progress">
+      <div className="flex items-center justify-between gap-3"><p className="text-sm font-medium" role="status" aria-live="polite">{generationRun.status === 'complete' ? 'Saved draft ready for researcher review' : generationRun.status === 'running' ? autonomousProposalProgress(generationRun).label : generationRun.status === 'paused' ? 'Generation paused at a saved checkpoint' : `Generation stopped at: ${autonomousProposalProgress(generationRun).label}`}</p><span className="text-xs text-muted-foreground">{generationRun.status === 'complete' ? 'Draft · not scientifically validated' : `${autonomousProposalProgress(generationRun).percent}%`}</span></div>
+      {generationRun.status !== 'complete' && <progress className="mt-2 h-2 w-full accent-primary" max="100" value={autonomousProposalProgress(generationRun).percent} aria-label="Proposal generation progress" />}
+      {generationRun.error_code && <p className="mt-2 text-xs text-muted-foreground">Last checkpoint: {generationRun.stage.replaceAll('_', ' ')}. {generationRun.saved_sources ? `${Object.keys(generationRun.saved_sources).length} source record(s) verified in this project.` : ''}</p>}
+    </div>}
     <p className="text-xs leading-5 text-muted-foreground">Editable scientific draft requiring researcher evaluation; not peer reviewed. Citation validation checks selected source IDs, not whether each claim is semantically supported. Where full text is unavailable, EYRA can use only metadata and available abstracts.</p>
     {message && <p role="status" className="rounded-lg bg-secondary px-3 py-2 text-sm">{message}</p>}{error && <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">{error}</p>}
-    {!hasDraft && <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Enter the topic, discipline, proposal purpose and language, then generate the editable 23-section proposal. EYRA will not search or generate until you choose Generate Complete Proposal.</div>}
+    {hasDraft && <section className="rounded-xl border border-border p-4" aria-label="Research quality review"><h4 className="font-semibold">Research quality checks</h4><p className="mt-1 text-xs text-muted-foreground">Automated checks assess structure and source identifiers only. They are not peer review or scientific validation.</p><ul className="mt-3 space-y-2">{qualityFindings.map(finding => <li key={finding.pass} className="text-sm"><span className="font-medium">{finding.label}: {finding.status.replaceAll('_', ' ')}</span><span className="block text-xs text-muted-foreground">{finding.details}</span></li>)}</ul><label className="mt-4 flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1 size-4 accent-primary" checked={reviewConfirmed} onChange={event => setReviewConfirmed(event.target.checked)} /><span>I reviewed the sources, claims, uncertainties, methods and proposed milestones for this revision. I understand this is not independent scientific validation.</span></label><button type="button" onClick={approveForExport} disabled={!reviewConfirmed || saving || !hasDraft || dirty === false && exportApproved} className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">{saving ? 'Saving review…' : exportApproved ? 'Review approval saved' : 'Save review approval for export'}</button></section>}
+    {!hasDraft && <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Enter a research idea, choose a discipline and language, then generate the complete 18-section proposal. EYRA runs only after you choose Generate Complete Proposal.</div>}
+    {generationRun?.status === 'complete' && generationRun.milestones?.length > 0 && <section className="rounded-xl border border-primary/25 bg-primary/5 p-4" aria-label="Proposed research milestones"><h4 className="font-semibold">Proposed research milestones</h4><p className="mt-1 text-xs leading-5 text-muted-foreground">These are generated activities for review. They have not been approved or added to the project workplan.</p><ol className="mt-3 list-decimal space-y-2 pl-5 text-sm">{generationRun.milestones.map(task => <li key={task.task_key}><span className="font-medium">{task.phase}: {task.title}</span>{task.deliverable && <span className="block text-xs text-muted-foreground">Deliverable: {task.deliverable}</span>}</li>)}</ol></section>}
+    {generationRun?.status === 'complete' && <>
+      {generationRun.source_assessments?.length > 0 && <section className="rounded-xl border border-border p-4" aria-label="Selected scholarly evidence"><h4 className="font-semibold">Selected scholarly records</h4><p className="mt-1 text-xs leading-5 text-muted-foreground">EYRA performed a relevance triage from supplied metadata and available abstracts. This does not establish study quality or that a source supports each claim.</p><ul className="mt-3 space-y-3">{generationRun.source_assessments.map(assessment => {
+        const record = generationRun.candidates?.find(candidate => candidate.key === assessment.source_key)?.record;
+        const verification = generationRun.source_verifications?.find(item => item.source_key === assessment.source_key);
+        const href = record && safeResearchSourceUrl(record);
+        return <li key={assessment.source_key} className="rounded-lg bg-secondary/25 p-3 text-sm"><p className="font-medium">{href ? <a className="text-primary underline-offset-2 hover:underline" href={href} target="_blank" rel="noopener noreferrer">{record.title} <ExternalLink size={12} className="inline" aria-hidden="true" /></a> : record?.title || 'Selected project record'}</p><p className="mt-1 text-xs text-muted-foreground">{record?.authors || 'Authors unavailable'}{record?.year ? ` · ${record.year}` : ''}{record?.doi ? ` · DOI ${record.doi}` : ''}</p><p className="mt-2 text-xs"><span className="font-semibold">Why selected:</span> {assessment.reason || 'No additional rationale provided.'}</p><p className="mt-1 text-xs text-muted-foreground"><span className="font-semibold">Limit:</span> {assessment.limitation}</p><p className="mt-2 text-xs"><span className="font-semibold">DOI metadata check:</span> {verification?.status || 'Not run'}{verification?.source ? ` · ${verification.source}` : ''}. Matching metadata supports record identity only, not scientific claim support.</p>{verification?.fields?.map(field => <p key={field.label} className="mt-1 text-xs text-muted-foreground">{field.label}: {field.status}{field.status === 'mismatch' ? ` (${field.saved_value || 'unavailable'} / ${field.source_value || 'unavailable'})` : ''}</p>)}{verification?.retraction_status && verification.retraction_status !== 'No Crossref update notice listed' && <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">Crossref notice: {verification.retraction_status}. Check the publisher record.</p>}</li>;
+      })}</ul></section>}
+      {generationRun.planning?.open_questions?.length > 0 && <section className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4" aria-label="Unresolved scientific questions"><h4 className="font-semibold">Open scientific questions</h4><p className="mt-1 text-xs text-muted-foreground">These questions were not answered by the planning step and require researcher judgment or further evidence.</p><ul className="mt-2 list-disc space-y-1 pl-5 text-sm">{generationRun.planning.open_questions.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul></section>}
+    </>}
     {hasDraft && sections.length > 0 && <div className="space-y-3" aria-label="Editable research proposal draft">{PROPOSAL_SECTIONS.map(definition => {
       const section = sections.find(item => item.section_id === definition.id) || { section_id: definition.id, status: 'needs_input', claims: [] };
       return <section key={definition.id} className="rounded-xl border border-border p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><h4 className="text-base font-semibold">{definition.label}</h4><label className="text-xs text-muted-foreground">Section status<select aria-label={`${definition.label} status`} value={section.status} onChange={event => updateStatus(definition.id, event.target.value)} className="ml-2 min-h-9 rounded-lg border border-border bg-background px-2 text-xs">{PROPOSAL_STATUSES.map(status => <option key={status} value={status}>{status === 'drafted' ? 'Drafted' : status === 'not_applicable' ? 'Not applicable' : 'Needs input'}</option>)}</select></label></div>
-        {definition.id === 'bibliography' ? <ol className="mt-3 space-y-3 pl-5 text-sm leading-6">{bibliography.map(source => <li key={source.id}><textarea aria-label={`Bibliography entry for ${source.title}`} value={bibliographyEntries[source.id] ?? defaultBibliographyEntry(source)} onChange={event => { setBibliographyEntries(current => ({ ...current, [source.id]: event.target.value })); setDirty(true); setResearcherEdited(true); }} rows={2} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm leading-6" />{source.doi && <p className="text-xs text-muted-foreground">DOI: {source.doi}</p>}{safeResearchSourceUrl(source) && <a className="inline-flex min-h-8 items-center gap-1 text-xs text-primary" href={safeResearchSourceUrl(source)} target="_blank" rel="noopener noreferrer">Open verified project record <ExternalLink size={12} aria-hidden="true" /></a>}</li>)}{!bibliography.length && <li className="list-none italic text-muted-foreground">No selected scholarly records.</li>}</ol> : section.status === 'not_applicable' ? <p className="mt-2 text-sm italic text-muted-foreground">Marked not applicable. Existing draft text is preserved in case you change this status.</p> : renderClaims(section.claims, definition.id)}
+        {definition.id === 'bibliography' ? <ol className="mt-3 space-y-3 pl-5 text-sm leading-6">{bibliography.map(source => <li key={source.id}><textarea aria-label={`Bibliography entry for ${source.title}`} value={bibliographyEntries[source.id] ?? defaultBibliographyEntry(source)} onChange={event => { markResearcherEdit(); setBibliographyEntries(current => ({ ...current, [source.id]: event.target.value })); }} rows={2} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm leading-6" />{source.doi && <p className="text-xs text-muted-foreground">DOI: {source.doi}</p>}{safeResearchSourceUrl(source) && <a className="inline-flex min-h-8 items-center gap-1 text-xs text-primary" href={safeResearchSourceUrl(source)} target="_blank" rel="noopener noreferrer">Open verified project record <ExternalLink size={12} aria-hidden="true" /></a>}</li>)}{!bibliography.length && <li className="list-none italic text-muted-foreground">No selected scholarly records.</li>}</ol> : section.status === 'not_applicable' ? <p className="mt-2 text-sm italic text-muted-foreground">Marked not applicable. Existing draft text is preserved in case you change this status.</p> : renderClaims(section.claims, definition.id)}
         {definition.id === 'research_methodology' && <div className="mt-4 space-y-3 rounded-lg bg-secondary/20 p-3"><h5 className="text-sm font-semibold">Proposed methodology plan</h5>{METHODOLOGY_TOPICS.map(topic => { const field = methodology[topic.id] || { status: 'needs_input', claims: [] }; return <div key={topic.id} className="border-t border-border/70 pt-3"><div className="flex flex-wrap items-center justify-between gap-2"><h6 className="text-sm font-medium">{topic.label}</h6><label className="text-xs text-muted-foreground">Status<select aria-label={`${topic.label} status`} value={field.status} onChange={event => updateStatus('', event.target.value, topic.id)} className="ml-2 min-h-9 rounded-lg border border-border bg-background px-2">{PROPOSAL_STATUSES.map(status => <option key={status} value={status}>{status === 'drafted' ? 'Proposed' : status === 'not_applicable' ? 'Not applicable' : 'Needs input'}</option>)}</select></label></div>{field.status === 'not_applicable' ? <p className="mt-2 text-sm italic text-muted-foreground">Marked not applicable. Existing draft text is preserved.</p> : renderClaims(field.claims, '', topic.id)}</div>; })}</div>}
-        {definition.id !== 'bibliography' && <label className="mt-3 block text-xs font-medium text-muted-foreground">Researcher-authored addition<textarea value={sectionNotes[definition.id] || ''} onChange={event => { setSectionNotes(current => ({ ...current, [definition.id]: event.target.value })); setDirty(true); setResearcherEdited(true); }} rows={2} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal leading-6" placeholder="Add your own notes without replacing the generated draft" /></label>}
+        {definition.id !== 'bibliography' && <label className="mt-3 block text-xs font-medium text-muted-foreground">Researcher-authored addition<textarea value={sectionNotes[definition.id] || ''} onChange={event => { markResearcherEdit(); setSectionNotes(current => ({ ...current, [definition.id]: event.target.value })); }} rows={2} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal leading-6" placeholder="Add your own notes without replacing the generated draft" /></label>}
       </section>;
     })}</div>}
   </section>;

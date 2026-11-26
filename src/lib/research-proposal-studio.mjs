@@ -348,13 +348,15 @@ function claimsMarkdown(claims, sourceMap, bibliographyEntries) {
   });
 }
 
-export function exportResearchProposalMarkdown({ question, researchType, sections, methodologyPlan, bibliography, bibliographyEntries = {}, sectionNotes = {} }) {
+export function exportResearchProposalMarkdown({ question, researchType, discipline = '', language = 'en', sections, methodologyPlan, bibliography, bibliographyEntries = {}, sectionNotes = {}, milestones = [] }) {
   const sourceMap = new Map(bibliography.map(source => [source.id, source]));
   const byId = new Map((sections || []).map(section => [section.section_id, section]));
   const lines = [
     '# Research proposal draft', '',
     `**Research question:** ${question || 'Not specified'}`, '',
     `**Research type:** ${RESEARCH_TYPES.find(item => item.id === researchType)?.label || RESEARCH_TYPES.at(-1).label}`, '',
+    ...(discipline ? [`**Discipline:** ${discipline}`, ''] : []),
+    `**Draft language:** ${language === 'el' ? 'Greek' : 'English'}`, '',
     '> Editable scientific draft. Proposed methods and contributions require researcher evaluation. Source-ID validation establishes citation traceability, not semantic correctness. This output is not peer reviewed.', '',
   ];
   for (const definition of PROPOSAL_SECTIONS) {
@@ -382,6 +384,22 @@ export function exportResearchProposalMarkdown({ question, researchType, section
     if (section?.status !== 'not_applicable') lines.push(...claimsMarkdown(section?.claims, sourceMap, bibliographyEntries));
     if (sectionNotes[definition.id]?.trim()) lines.push(`\n**Researcher-authored addition:** ${sectionNotes[definition.id].trim()}`);
     lines.push('');
+  }
+  if (Array.isArray(milestones) && milestones.length) {
+    lines.push('## Proposed research milestones', '', '> Draft activities only. These have not been approved or added to the project workplan.', '');
+    for (const task of milestones) {
+      lines.push(`### ${task.phase || 'Research phase'} — ${task.title}`, '');
+      if (task.deliverable) lines.push(`**Deliverable:** ${task.deliverable}`, '');
+      if (task.depends_on?.length) lines.push(`**Prerequisites:** ${task.depends_on.join(', ')}`, '');
+      if (task.risk) lines.push(`**Risk:** ${task.risk}`, '');
+      if (task.evidence_summary) lines.push(`**Evidence basis (${task.evidence_kind}):** ${task.evidence_summary}`, '');
+      for (const id of task.source_ids || []) {
+        const source = sourceMap.get(String(id));
+        const url = source && safeResearchSourceUrl(source);
+        if (source) lines.push(`- Source: ${source.authors} (${source.year}). ${source.title}.${url ? ` [Open source](<${url}>)` : ''}`);
+      }
+      lines.push('');
+    }
   }
   return lines.join('\n');
 }
