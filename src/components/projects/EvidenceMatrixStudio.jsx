@@ -140,7 +140,7 @@ export default function EvidenceMatrixStudio({ project, savedPapers, onProjectSa
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Scientific Output Studio</p>
-          <h3 id="evidence-matrix-studio-title" className="mt-1 text-xl font-semibold">Evidence Matrix</h3>
+          <h3 id="evidence-matrix-studio-title" tabIndex={-1} className="mt-1 scroll-mt-4 text-xl font-semibold">Evidence Matrix</h3>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">Search scholarly indexes, add source records to this project, and ask EYRA for a preliminary source-grounded comparison. Review abstracts and citations; the matrix is an editable draft, not a substitute for full-text appraisal.</p>
         </div>
         <div className="flex shrink-0 gap-2">

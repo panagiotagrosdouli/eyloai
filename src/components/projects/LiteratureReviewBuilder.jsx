@@ -117,7 +117,7 @@ export default function LiteratureReviewBuilder({ project, savedPapers, onProjec
     <section className="space-y-5 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="literature-review-builder-title">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Scientific Output Studio · Literature Review</p>
-        <h3 id="literature-review-builder-title" className="mt-1 text-xl font-semibold">Build a source-grounded review</h3>
+        <h3 id="literature-review-builder-title" tabIndex={-1} className="mt-1 scroll-mt-4 text-xl font-semibold">Build a source-grounded review</h3>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Draft a preliminary narrative synthesis from papers already saved in this private project. EYRA receives bibliographic metadata and available abstracts; it does not verify full text.</p>
       </div>
 

@@ -40,11 +40,11 @@ test('proposal authorization includes only papers linked to the current project'
 
 test('proposal schema requires all sections, methodology topics and typed, traceable claims', () => {
   assert.deepEqual(RESEARCH_PROPOSAL_SCHEMA.required, ['sections', 'methodology_plan']);
-  assert.equal(PROPOSAL_SECTIONS.length, 18);
+  assert.equal(PROPOSAL_SECTIONS.length, 23);
   assert.equal(Object.keys(RESEARCH_PROPOSAL_SCHEMA.properties.methodology_plan.properties).length, METHODOLOGY_TOPICS.length);
   assert.deepEqual(PROPOSAL_CLAIM_KINDS, ['source_fact', 'interpretation', 'proposal', 'open_question']);
   const checked = validateResearchProposalDraft(validProposal(), [papers[0]]);
-  assert.equal(checked.sections.length, 18);
+  assert.equal(checked.sections.length, 23);
   assert.deepEqual(Object.keys(checked.methodology_plan), METHODOLOGY_TOPICS.map(topic => topic.id));
 });
 
@@ -88,6 +88,7 @@ test('prompt sends only explicitly selected project outputs and available abstra
     evidenceMatrix: { research_question: 'Question from matrix', ai_draft: { rows: [{ paper_id: 'paper-a', findings: 'Selected finding' }, { paper_id: 'paper-b', findings: 'Unselected row' }] }, annotations: { 'paper-a': { findings: 'Researcher note' } } },
     literatureReview: { research_question: 'Question from review', edited_sections: [{ section_id: 'background', claims: [{ text: 'Reviewed evidence', source_ids: ['paper-a'] }] }] },
     contextSelection: { project_objectives: true, evidence_matrix: true, literature_review: false, researcher_notes: true },
+    discipline: 'Public health', purpose: 'doctoral', language: 'Greek',
   });
   assert.match(prompt, /Measure outcome B/);
   assert.match(prompt, /Question from matrix/);
@@ -98,6 +99,9 @@ test('prompt sends only explicitly selected project outputs and available abstra
   assert.doesNotMatch(prompt, /Must not be sent/);
   assert.match(prompt, /never a completed or approved study/);
   assert.match(prompt, /bibliography section and its claims must always be empty/);
+  assert.match(prompt, /DISCIPLINE\nPublic health/);
+  assert.match(prompt, /PROPOSAL PURPOSE\ndoctoral/);
+  assert.match(prompt, /OUTPUT LANGUAGE\nGreek/);
 });
 
 test('save receipt compares the complete private project artifact independent of key order', () => {
