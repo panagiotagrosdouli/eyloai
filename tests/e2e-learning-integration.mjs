@@ -220,6 +220,8 @@ try {
       if (body.prompt.includes('GRANT PROPOSAL MODE')) {
         assert.match(body.prompt, /DIRECTLY EXTRACTED REQUIREMENTS/);
         assert.match(body.prompt, /APPLICANT INFORMATION PROVIDED BY RESEARCHER/);
+        assert.match(body.prompt, /\["Excellence","Impact","Implementation"\]/);
+        draft.call_sections = ['Excellence','Impact','Implementation'].map(section_name => ({ section_name, status: 'drafted', claims: [{ heading: section_name, text: `Draft ${section_name} content for researcher review.`, kind: 'proposal', source_ids: [] }] }));
         draft.work_packages = [{ title: 'Protocol design', objective: 'Develop the research protocol.', activities: ['Define measures with the research team.'], deliverables: ['Draft protocol.'], milestone_keys: ['review-protocol'] }];
         draft.budget_notes = ['Cost categories require researcher confirmation.'];
         draft.requirement_coverage = ['programme','funding_body','call_identifier','eligibility','deadline','scientific_scope','evaluation_criteria','required_sections','page_limits','formatting','budget_constraints','required_attachments'].map(requirement_id => ({ requirement_id, status: 'unverified', note: 'Researcher verification required.' }));
@@ -833,14 +835,18 @@ try {
   assert.equal(tables.projects[0].data.research_proposal.output_kind, 'grant_proposal');
   assert.equal(tables.projects[0].data.research_proposal.grant_context.confirmed, true);
   assert.equal(tables.projects[0].data.research_proposal.ai_draft.work_packages.length, 1);
+  assert.deepEqual(tables.projects[0].data.research_proposal.ai_draft.call_sections.map(section => section.section_name), ['Excellence','Impact','Implementation']);
   assert.equal(tables.projects[0].data.research_proposal.requirement_coverage, undefined, 'coverage remains within the saved draft version');
   assert.equal(tables.projects[0].data.research_proposal.ai_draft.requirement_coverage.length, 12);
   assert.equal(tables.projects[0].data.plan_items.length, 2, 'grant milestones and work packages do not write to the real workplan');
   const grantTitle = grantStudio.getByLabel('Title', { exact: true });
   await grantTitle.fill('Researcher-edited work package title');
+  const grantExcellence = grantStudio.getByLabel('Excellence', { exact: true });
+  await grantExcellence.fill('Researcher-edited Excellence section.');
   await grantStudio.getByRole('button', { name: 'Save to project', exact: true }).click();
   await grantStudio.getByText('Proposal saved to this private research project.', { exact: true }).waitFor();
   assert.equal(tables.projects[0].data.research_proposal.edited_work_packages[0].title, 'Researcher-edited work package title');
+  assert.equal(tables.projects[0].data.research_proposal.edited_call_sections[0].claims[0].text, 'Researcher-edited Excellence section.');
   const grantReview = grantStudio.getByRole('button', { name: 'Save review approval for export', exact: true });
   await grantStudio.getByLabel(/I reviewed the sources, claims, uncertainties/).check();
   await grantReview.click();
@@ -851,11 +857,13 @@ try {
   const grantMarkdown = await readFile(await grantDownload.path(), 'utf8');
   assert.match(grantMarkdown, /Eligibility: Public universities may apply/);
   assert.match(grantMarkdown, /Researcher-edited work package title/);
+  assert.match(grantMarkdown, /Researcher-edited Excellence section/);
   assert.match(grantMarkdown, /Requirement coverage/);
   await page.reload();
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
   assert.equal(await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByLabel('Proposal type').inputValue(), 'grant_proposal');
   assert.equal(await page.getByLabel('Title', { exact: true }).inputValue(), 'Researcher-edited work package title');
+  assert.equal(await page.getByLabel('Excellence', { exact: true }).inputValue(), 'Researcher-edited Excellence section.');
   assert.equal(await page.getByRole('button', { name: 'Export Markdown', exact: true }).isDisabled(), false, 'a saved exact-revision researcher approval survives reload');
   assert.equal(tables.projects[0].data.research_proposal.autonomous_run.output_kind, 'grant_proposal');
   console.log('PASS fixture: grant call quotes + critical confirmation → same autonomous scholarly proposal engine → editable work package → owner-scoped save/reload and approval-gated export; no workplan write.');

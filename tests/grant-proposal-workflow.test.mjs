@@ -4,7 +4,7 @@ import { PROPOSAL_SECTIONS, METHODOLOGY_TOPICS } from '../src/lib/research-propo
 import { runAutonomousProposal } from '../src/lib/autonomous-proposal-engine.mjs';
 import {
   buildGrantRequirementExtractionPrompt, grantCriticalRequirementIds, hasConfirmedCriticalGrantRequirements,
-  GRANT_REQUIREMENT_FIELDS, validateGrantProposalFields, validateGrantRequirements,
+  grantRequiredSections, GRANT_REQUIREMENT_FIELDS, validateGrantProposalFields, validateGrantRequirements,
 } from '../src/lib/grant-proposal-workflow.mjs';
 
 const callText = [
@@ -77,6 +77,7 @@ test('engine refuses unconfirmed call requirements before any provider call', as
 
 test('grant proposal fields reject invented financial amounts and incomplete coverage', () => {
   const good = {
+    call_sections: grantRequiredSections(requirements()).map(({ name }) => ({ section_name: name, status: 'needs_input', claims: [] })),
     work_packages: [{ title: 'Protocol design', objective: 'Develop a reviewable protocol', activities: ['Co-design measures'], deliverables: ['Draft protocol'], milestone_keys: ['protocol'] }],
     budget_notes: ['Budget categories require applicant confirmation.'],
     requirement_coverage: GRANT_REQUIREMENT_FIELDS.map(({ id }) => ({ requirement_id: id, status: 'unverified', note: 'Researcher review required.' })),
@@ -84,6 +85,7 @@ test('grant proposal fields reject invented financial amounts and incomplete cov
   assert.equal(validateGrantProposalFields(good, requirements()).work_packages.length, 1);
   assert.throws(() => validateGrantProposalFields({ ...good, budget_notes: ['Personnel: €100,000'] }, requirements()), /grant_budget_amount_unsupported/);
   assert.throws(() => validateGrantProposalFields({ ...good, requirement_coverage: good.requirement_coverage.slice(1) }, requirements()), /grant_requirement_coverage_invalid/);
+  assert.throws(() => validateGrantProposalFields({ ...good, call_sections: good.call_sections.slice(1) }, requirements()), /grant_call_sections_invalid/);
 });
 
 test('single autonomous engine produces resumable grant draft and never writes milestones to workplan', async () => {
@@ -97,6 +99,7 @@ test('single autonomous engine produces resumable grant draft and never writes m
   const sectionDraft = {
     sections: PROPOSAL_SECTIONS.map(({ id }) => ({ section_id: id, status: id === 'bibliography' ? 'drafted' : 'needs_input', claims: [] })),
     methodology_plan: Object.fromEntries(METHODOLOGY_TOPICS.map(({ id }) => [id, { status: 'needs_input', claims: [] }])),
+    call_sections: grantRequiredSections(requirements()).map(({ name }) => ({ section_name: name, status: 'needs_input', claims: [{ heading: name, text: `${name} needs researcher review.`, kind: 'proposal', source_ids: [] }] })),
     milestones: [{ task_key: 'protocol', phase: 'Preparation', title: 'Review protocol', deliverable: 'Researcher-reviewed protocol', due_date: '', depends_on: [], risk: 'Feasibility requires review.', researcher_notes: '', evidence_summary: '', evidence_kind: 'proposal', source_ids: [] }],
     work_packages: [{ title: 'Protocol design', objective: 'Develop a reviewable protocol', activities: ['Co-design measures'], deliverables: ['Draft protocol'], milestone_keys: ['protocol'] }],
     budget_notes: ['Budget categories require applicant confirmation.'],

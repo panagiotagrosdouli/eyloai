@@ -64,9 +64,23 @@ export const COMPLETE_PROPOSAL_SCHEMA = {
 
 export const COMPLETE_GRANT_PROPOSAL_SCHEMA = {
   ...COMPLETE_PROPOSAL_SCHEMA,
-  required: [...COMPLETE_PROPOSAL_SCHEMA.required, 'work_packages', 'budget_notes', 'requirement_coverage'],
+  required: [...COMPLETE_PROPOSAL_SCHEMA.required, 'call_sections', 'work_packages', 'budget_notes', 'requirement_coverage'],
   properties: {
     ...COMPLETE_PROPOSAL_SCHEMA.properties,
+    call_sections: { type: 'array', maxItems: 30, items: {
+      type: 'object', additionalProperties: false, required: ['section_name', 'status', 'claims'],
+      properties: {
+        section_name: { type: 'string' }, status: { type: 'string', enum: ['drafted', 'needs_input'] },
+        claims: { type: 'array', items: {
+          type: 'object', additionalProperties: false, required: ['heading', 'text', 'kind', 'source_ids'],
+          properties: {
+            heading: { type: 'string' }, text: { type: 'string' },
+            kind: { type: 'string', enum: ['source_fact', 'interpretation', 'proposal', 'open_question'] },
+            source_ids: { type: 'array', items: { type: 'string' } },
+          },
+        } },
+      },
+    } },
     work_packages: { type: 'array', minItems: 1, maxItems: 12, items: {
       type: 'object', additionalProperties: false, required: ['title', 'objective', 'activities', 'deliverables', 'milestone_keys'],
       properties: {
@@ -250,14 +264,14 @@ export function buildCompleteProposalPrompt({ idea, plan, discipline, researchTy
 
 function proposalOutput(result, papers, grantCallContext = null) {
   const allowedKeys = grantCallContext
-    ? ['sections', 'methodology_plan', 'milestones', 'work_packages', 'budget_notes', 'requirement_coverage']
+    ? ['sections', 'methodology_plan', 'milestones', 'call_sections', 'work_packages', 'budget_notes', 'requirement_coverage']
     : ['sections', 'methodology_plan', 'milestones'];
   if (!result || Object.keys(result).some(key => !allowedKeys.includes(key))
     || !Array.isArray(result.milestones)) throw new Error('draft_invalid');
   const proposal = validateResearchProposalDraft({ sections: result.sections, methodology_plan: result.methodology_plan }, papers);
   const roadmap = validateRoadmapDraft({ tasks: result.milestones }, papers);
   if (roadmap.tasks.some(task => task.due_date)) throw new Error('draft_invented_date');
-  return { ...proposal, milestones: roadmap.tasks, ...(grantCallContext ? validateGrantProposalFields(result, grantCallContext) : {}) };
+  return { ...proposal, milestones: roadmap.tasks, ...(grantCallContext ? validateGrantProposalFields(result, grantCallContext, papers) : {}) };
 }
 
 function recordsForRun(run, savedPapers, projectId) {
@@ -509,7 +523,7 @@ export async function runAutonomousProposal({
       run.proposal_draft = {
         sections: generated.sections, methodology_plan: generated.methodology_plan,
         ...(grantCallContext ? {
-          work_packages: generated.work_packages, budget_notes: generated.budget_notes,
+          call_sections: generated.call_sections, work_packages: generated.work_packages, budget_notes: generated.budget_notes,
           requirement_coverage: generated.requirement_coverage,
         } : {}),
       };

@@ -48,6 +48,7 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
   const [grantSourceName, setGrantSourceName] = useState(stored.grant_context?.source_name || 'Official funding call');
   const [applicantInformation, setApplicantInformation] = useState(stored.grant_context?.applicant_information || '');
   const [grantWorkPackages, setGrantWorkPackages] = useState(stored.edited_work_packages || stored.ai_draft?.work_packages || []);
+  const [grantCallSections, setGrantCallSections] = useState(stored.edited_call_sections || stored.ai_draft?.call_sections || []);
   const [grantBudgetNotes, setGrantBudgetNotes] = useState(stored.edited_budget_notes || stored.ai_draft?.budget_notes || []);
   const [selectedIds, setSelectedIds] = useState(() => initialIds.map(String).filter(id => linkedPapers.some(paper => String(paper.id) === id)));
   const [contextSelection, setContextSelection] = useState({
@@ -81,6 +82,8 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
   const researcherEditedRef = useRef(Boolean(stored.researcher_edited));
   const grantWorkPackagesEditedRef = useRef(Boolean(stored.edited_work_packages?.length
     && JSON.stringify(stored.edited_work_packages) !== JSON.stringify(stored.ai_draft?.work_packages)));
+  const grantCallSectionsEditedRef = useRef(Boolean(stored.edited_call_sections?.length
+    && JSON.stringify(stored.edited_call_sections) !== JSON.stringify(stored.ai_draft?.call_sections)));
   const linkedById = useMemo(() => new Map(linkedPapers.map(paper => [String(paper.id), paper])), [linkedPapers]);
   const selectedPapers = linkedPapers.filter(paper => selectedIds.includes(String(paper.id)));
   const qualityFindings = useMemo(() => reviewProposalDraft({ sections, methodologyPlan: methodology, papers: linkedPapers }), [sections, methodology, linkedPapers]);
@@ -211,6 +214,7 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
               setGrantWorkPackages(run.proposal_draft.work_packages || []);
               setGrantBudgetNotes(run.proposal_draft.budget_notes || []);
             }
+            if (!grantCallSectionsEditedRef.current) setGrantCallSections(run.proposal_draft.call_sections || []);
             setDraftRevision(Number(saved.research_proposal.draft_revision) || draftRevision + 1);
             setResearcherReview(null); setReviewConfirmed(false);
             if (!preserveEdits) {
@@ -302,6 +306,7 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
       ai_draft: aiDraft, edited_sections: sections, edited_methodology: methodology,
       output_kind: proposalMode, grant_context: proposalMode === 'grant_proposal' ? grantContext : null,
       edited_work_packages: proposalMode === 'grant_proposal' ? grantWorkPackages : [],
+      edited_call_sections: proposalMode === 'grant_proposal' ? grantCallSections : [],
       edited_budget_notes: proposalMode === 'grant_proposal' ? grantBudgetNotes : [],
       section_notes: sectionNotes, bibliography_entries: bibliographyEntries, autonomous_run: generationRun,
       researcher_edited: researcherEdited, updated_at: new Date().toISOString(),
@@ -338,6 +343,8 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
     setSections(aiDraft.sections); setMethodology(aiDraft.methodology_plan);
     grantWorkPackagesEditedRef.current = false;
     setGrantWorkPackages(aiDraft.work_packages || []); setGrantBudgetNotes(aiDraft.budget_notes || []);
+    grantCallSectionsEditedRef.current = false;
+    setGrantCallSections(aiDraft.call_sections || []);
     setResearcherEdited(false); setDirty(true);
     setMessage('Latest EYRA draft applied. Review the replaced sections before saving.');
   };
@@ -353,6 +360,7 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
       ai_draft: aiDraft, edited_sections: sections, edited_methodology: methodology,
       output_kind: proposalMode, grant_context: proposalMode === 'grant_proposal' ? grantContext : null,
       edited_work_packages: proposalMode === 'grant_proposal' ? grantWorkPackages : [],
+      edited_call_sections: proposalMode === 'grant_proposal' ? grantCallSections : [],
       edited_budget_notes: proposalMode === 'grant_proposal' ? grantBudgetNotes : [],
       section_notes: sectionNotes, bibliography_entries: bibliographyEntries, autonomous_run: generationRun,
       researcher_edited: researcherEdited, draft_revision: draftRevision,
@@ -380,7 +388,7 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
     const grantAppendix = proposalMode === 'grant_proposal' && grantContext ? `\n\n## Grant Call Provenance and Coverage\n\n${GRANT_REQUIREMENT_FIELDS.map(({ id, label }) => {
       const raw = grantContext.requirements?.[id]; const items = Array.isArray(raw) ? raw : [raw].filter(Boolean);
       return `### ${label}\n\n${items.map(item => `- **${item.classification}**: ${item.value || 'Missing'}${item.section_or_page ? ` — ${item.section_or_page}` : ''}${item.evidence_quote ? `\n  > ${item.evidence_quote}` : ''}`).join('\n')}`;
-    }).join('\n\n')}\n\n### Requirement coverage\n\n${(aiDraft?.requirement_coverage || []).map(item => `- ${item.requirement_id}: **${item.status}** — ${item.note}`).join('\n')}\n\n### Work packages\n\n${grantWorkPackages.map((item, index) => `#### ${index + 1}. ${item.title}\n\n${item.objective || ''}\n\n${(item.activities || []).map(value => `- Activity: ${value}`).join('\n')}\n${(item.deliverables || []).map(value => `- Deliverable: ${value}`).join('\n')}`).join('\n\n')}\n\n### Budget notes\n\n${grantBudgetNotes.map(value => `- ${value}`).join('\n')}\n\nAutomated checks do not establish scientific correctness, eligibility, or compliance with the call.` : '';
+    }).join('\n\n')}\n\n### Required call sections\n\n${grantCallSections.map(section => `#### ${section.section_name} (${section.status})\n\n${(section.claims || []).map(claim => `**${claim.heading || section.section_name}**\n\n${claim.text}${claim.source_ids?.length ? `\n\nSources: ${claim.source_ids.join(', ')}` : ''}`).join('\n\n') || 'Requires researcher input.'}`).join('\n\n')}\n\n### Requirement coverage\n\n${(aiDraft?.requirement_coverage || []).map(item => `- ${item.requirement_id}: **${item.status}** — ${item.note}`).join('\n')}\n\n### Work packages\n\n${grantWorkPackages.map((item, index) => `#### ${index + 1}. ${item.title}\n\n${item.objective || ''}\n\n${(item.activities || []).map(value => `- Activity: ${value}`).join('\n')}\n${(item.deliverables || []).map(value => `- Deliverable: ${value}`).join('\n')}`).join('\n\n')}\n\n### Budget notes\n\n${grantBudgetNotes.map(value => `- ${value}`).join('\n')}\n\nAutomated checks do not establish scientific correctness, eligibility, or compliance with the call.` : '';
     const url = URL.createObjectURL(new Blob([markdown + grantAppendix], { type: 'text/markdown;charset=utf-8' }));
     const anchor = document.createElement('a'); anchor.href = url; anchor.download = proposalMode === 'grant_proposal' ? 'grant-proposal-draft.md' : 'research-proposal-draft.md';
     document.body.append(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(url);
@@ -451,6 +459,12 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
     {hasDraft && <section className="rounded-xl border border-border p-4" aria-label="Research quality review"><h4 className="font-semibold">Research quality checks</h4><p className="mt-1 text-xs text-muted-foreground">Automated checks assess structure and source identifiers only. They are not peer review or scientific validation.</p><ul className="mt-3 space-y-2">{qualityFindings.map(finding => <li key={finding.pass} className="text-sm"><span className="font-medium">{finding.label}: {finding.status.replaceAll('_', ' ')}</span><span className="block text-xs text-muted-foreground">{finding.details}</span></li>)}</ul><label className="mt-4 flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1 size-4 accent-primary" checked={reviewConfirmed} onChange={event => setReviewConfirmed(event.target.checked)} /><span>I reviewed the sources, claims, uncertainties, methods and proposed milestones for this revision. I understand this is not independent scientific validation.</span></label><button type="button" onClick={approveForExport} disabled={!reviewConfirmed || saving || !hasDraft || dirty === false && exportApproved} className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">{saving ? 'Saving review…' : exportApproved ? 'Review approval saved' : 'Save review approval for export'}</button></section>}
     {proposalMode === 'grant_proposal' && generationRun?.status === 'complete' && <section className="space-y-4 rounded-xl border border-border p-4" aria-label="Grant proposal review">
       <div><h4 className="font-semibold">Call coverage and proposed work packages</h4><p className="mt-1 text-xs text-muted-foreground">Automated coverage is a checklist, not evidence of eligibility or call compliance. Inspect the source quotes and verify every scientific claim against the original publication.</p></div>
+      <div className="space-y-3" aria-label="Call-required proposal sections">{grantCallSections.map((section, index) => <fieldset key={`grant-section-${index}`} className="space-y-2 rounded-lg border border-border p-3"><legend className="px-1 text-sm font-semibold">{section.section_name}</legend>
+        <label className="text-xs font-medium">Section status<select value={section.status} onChange={event => { grantCallSectionsEditedRef.current = true; markResearcherEdit(); setGrantCallSections(current => current.map((row, rowIndex) => rowIndex === index ? { ...row, status: event.target.value } : row)); }} className="ml-2 min-h-9 rounded-lg border border-border bg-background px-2 text-xs"><option value="drafted">Drafted</option><option value="needs_input">Needs input</option></select></label>
+        {(section.claims || []).map((claim, claimIndex) => <label key={`${index}-${claimIndex}`} className="block text-xs font-medium">{claim.heading || section.section_name}<textarea value={claim.text} onChange={event => { grantCallSectionsEditedRef.current = true; markResearcherEdit(); setGrantCallSections(current => current.map((row, rowIndex) => rowIndex !== index ? row : ({ ...row, claims: row.claims.map((entry, entryIndex) => entryIndex === claimIndex ? { ...entry, text: event.target.value, origin: 'researcher' } : entry) }))); }} rows={4} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal" /></label>)}
+        {!section.claims?.length && <label className="block text-xs font-medium">Draft text<textarea value="" onChange={event => { grantCallSectionsEditedRef.current = true; markResearcherEdit(); setGrantCallSections(current => current.map((row, rowIndex) => rowIndex === index ? { ...row, claims: [{ heading: row.section_name, text: event.target.value, kind: 'proposal', source_ids: [], origin: 'researcher' }] } : row)); }} rows={4} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal" placeholder="Add section content or leave for researcher input." /></label>}
+        <p className="text-xs text-muted-foreground">AI draft or researcher edit · source facts and interpretations require source citations; a citation identifier does not prove claim support.</p>
+      </fieldset>)}</div>
       <ul className="space-y-2">{(aiDraft?.requirement_coverage || []).map(item => <li key={item.requirement_id} className="rounded-lg bg-secondary/30 p-3 text-sm"><span className="font-semibold">{GRANT_REQUIREMENT_FIELDS.find(field => field.id === item.requirement_id)?.label || item.requirement_id}: {item.status}</span><span className="mt-1 block text-xs text-muted-foreground">{item.note}</span></li>)}</ul>
       <div className="space-y-3">{grantWorkPackages.map((item, index) => <fieldset key={`grant-wp-${index}`} className="space-y-2 rounded-lg border border-border p-3"><legend className="px-1 text-sm font-semibold">Work package {index + 1}</legend>
         <label className="block text-xs font-medium">Title<input value={item.title} onChange={event => { grantWorkPackagesEditedRef.current = true; markResearcherEdit(); setGrantWorkPackages(current => current.map((row, rowIndex) => rowIndex === index ? { ...row, title: event.target.value } : row)); }} className="mt-1 min-h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
@@ -459,7 +473,7 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
         <label className="block text-xs font-medium">Planned deliverables<textarea value={(item.deliverables || []).join('\n')} onChange={event => { grantWorkPackagesEditedRef.current = true; markResearcherEdit(); setGrantWorkPackages(current => current.map((row, rowIndex) => rowIndex === index ? { ...row, deliverables: event.target.value.split('\n').slice(0, 20) } : row)); }} rows={3} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
       </fieldset>)}</div>
       <label className="block text-sm font-medium">Provisional budget notes (no unverified amounts)<textarea value={grantBudgetNotes.join('\n')} onChange={event => { grantWorkPackagesEditedRef.current = true; markResearcherEdit(); setGrantBudgetNotes(event.target.value.split('\n').slice(0, 30)); }} rows={3} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder="Qualitative cost categories or call constraints; add amounts only after researcher verification." /></label>
-      <p className="text-xs text-muted-foreground">Editing work packages or budget notes invalidates the saved review approval until this revision is saved and reviewed again. Milestones remain proposal content and are never added to the project workplan automatically.</p>
+      <p className="text-xs text-muted-foreground">Editing call sections, work packages or budget notes invalidates the saved review approval until this revision is saved and reviewed again. Milestones remain proposal content and are never added to the project workplan automatically.</p>
     </section>}
     {!hasDraft && <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Enter a research idea, choose a discipline and language, then generate the complete 18-section proposal. EYRA runs only after you choose Generate Complete Proposal.</div>}
     {generationRun?.status === 'complete' && generationRun.milestones?.length > 0 && <section className="rounded-xl border border-primary/25 bg-primary/5 p-4" aria-label="Proposed research milestones"><h4 className="font-semibold">Proposed research milestones</h4><p className="mt-1 text-xs leading-5 text-muted-foreground">These are generated activities for review. They have not been approved or added to the project workplan.</p><ol className="mt-3 list-decimal space-y-2 pl-5 text-sm">{generationRun.milestones.map(task => <li key={task.task_key}><span className="font-medium">{task.phase}: {task.title}</span>{task.deliverable && <span className="block text-xs text-muted-foreground">Deliverable: {task.deliverable}</span>}</li>)}</ol></section>}
