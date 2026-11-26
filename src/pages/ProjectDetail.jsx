@@ -685,6 +685,7 @@ Rules:
             key={`${id}-research-proposal`}
             project={project}
             savedPapers={savedPapers}
+          onPapersChanged={setSavedPapers}
             onProjectSaved={saved => setProject(previous => ({ ...previous, ...saved }))}
           />
           <ResearchMethodologyStudio

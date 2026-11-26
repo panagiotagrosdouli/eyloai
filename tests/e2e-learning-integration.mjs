@@ -151,7 +151,7 @@ try {
       assert.ok(sourceId, 'proposal prompt must include a saved source identifier');
       assert.ok(body.prompt.includes('Researcher-edited synthesis.'), 'explicitly selected Literature Review context must be available');
       assert.ok(body.prompt.includes('Researcher-checked finding'), 'selected Evidence Matrix context must be available');
-      const sectionIds = ['research_title','abstract','background','problem_statement','scientific_rationale','research_objectives','research_questions','hypotheses','literature_context','research_methodology','study_design','data_collection','data_analysis_plan','ethical_considerations','expected_contributions','research_limitations','research_timeline','bibliography'];
+      const sectionIds = ['research_title','abstract','background','problem_statement','research_gap','scientific_rationale','research_objectives','research_questions','hypotheses','literature_context','conceptual_framework','research_methodology','study_design','sampling_and_data_sources','data_collection','data_analysis_plan','ethical_considerations','data_management_reproducibility','expected_contributions','research_limitations','risk_management','research_timeline','bibliography'];
       const sections = sectionIds.map((section_id, index) => ({
         section_id, status: section_id === 'bibliography' ? 'drafted' : 'needs_input',
         claims: section_id === 'background' ? [{ heading: 'Available abstract evidence', text: 'The selected abstract reports a controlled intervention.', kind: 'source_fact', source_ids: [sourceId] }]
@@ -629,26 +629,28 @@ try {
   // Proposal Studio reuses the selected source and the explicitly selected, saved upstream artifacts.
   await page.getByLabel('Researcher-authored matrix notes', { exact: true }).check();
   await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByLabel('Literature Review', { exact: true }).check();
-  const proposalQuestion = page.locator('label').filter({ hasText: 'Proposal research question' }).locator('textarea');
+  const proposalQuestion = page.locator('label').filter({ hasText: 'Research topic or question' }).locator('textarea');
   assert.equal(await proposalQuestion.inputValue(), question);
-  await page.getByRole('button', { name: 'Generate proposal', exact: true }).click();
+  await page.getByLabel('Scientific discipline', { exact: true }).fill('Public health');
+  await page.getByRole('button', { name: 'Generate Complete Proposal', exact: true }).click();
   const proposalBackground = page.getByLabel('Background statement 1', { exact: true });
   await proposalBackground.waitFor();
   await proposalBackground.fill('Researcher-edited proposal evidence note.');
-  await page.getByRole('button', { name: 'Generate proposal', exact: true }).click();
-  await page.getByText(/Your edits remain intact/).waitFor();
+  await page.getByRole('button', { name: 'Generate Complete Proposal', exact: true }).click();
+  await page.getByText(/proposal draft is ready for your review/i).waitFor();
   assert.equal(await proposalBackground.inputValue(), 'Researcher-edited proposal evidence note.', 'regeneration must preserve researcher edits');
   assert.equal(await page.getByRole('heading', { name: 'Research Title', exact: true }).count(), 1);
   assert.equal(await page.getByRole('heading', { name: 'Bibliography', exact: true }).count(), 1);
   assert.ok(await page.locator('a[href="https://doi.org/10.5555/eylo-matrix-fixture"]').count() > 0, 'proposal sources must link to the saved scholarly record');
+  await page.getByRole('button', { name: 'Mark review complete and enable export', exact: true }).click();
   await page.locator('section[aria-labelledby="research-proposal-builder-title"]').getByRole('button', { name: 'Save to project', exact: true }).click();
   await page.getByText('Proposal saved to this private research project.', { exact: true }).waitFor();
-  assert.equal(tables.projects[0].data.research_proposal.edited_sections.length, 18);
+  assert.equal(tables.projects[0].data.research_proposal.edited_sections.length, 23);
   assert.equal(tables.projects[0].data.research_proposal.edited_sections.find(section => section.section_id === 'background').claims[0].text, 'Researcher-edited proposal evidence note.');
   assert.deepEqual(tables.projects[0].data.research_proposal.selected_paper_ids, [tables.saved_papers[0].id]);
   await page.reload();
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
-  assert.equal(await page.locator('label').filter({ hasText: 'Proposal research question' }).locator('textarea').inputValue(), question);
+  assert.equal(await page.locator('label').filter({ hasText: 'Research topic or question' }).locator('textarea').inputValue(), question);
   assert.equal(await page.getByLabel('Background statement 1', { exact: true }).inputValue(), 'Researcher-edited proposal evidence note.');
   const methodologySection = page.locator('section[aria-labelledby="research-methodology-studio-title"]');
   const methodologyQuestion = methodologySection.locator('label').filter({ hasText: 'Methodology research question' }).locator('textarea');
