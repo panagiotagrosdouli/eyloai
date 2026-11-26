@@ -10,9 +10,16 @@ test('research workflow exposes only project-saved outputs as progress', () => {
     research_methodology: {},
     plan_items: [{ id: 'task-1', title: 'Review protocol' }],
   });
-  assert.equal(progress.savedCount, 3);
-  assert.equal(progress.total, 5);
-  assert.deepEqual(progress.stages.map(stage => stage.status), ['Saved', 'Not started', 'Saved', 'Not started', 'Plan saved']);
+  assert.equal(progress.savedCount, 2);
+  assert.equal(progress.total, 4);
+  assert.deepEqual(progress.stages.map(stage => stage.status), ['Saved', 'Not started', 'Saved', 'Not started', 'Approval + workplan save required']);
+});
+
+test('a saved general workplan is not misreported as a saved roadmap', () => {
+  const progress = getResearchWorkflowProgress({ plan_items: [{ id: 'existing', title: 'Existing task' }] });
+  assert.equal(progress.savedCount, 0);
+  assert.equal(progress.stages.at(-1).saved, false);
+  assert.equal(progress.stages.at(-1).status, 'Approval + workplan save required');
 });
 
 test('empty, malformed and session-only data does not appear as saved project progress', () => {
@@ -21,5 +28,6 @@ test('empty, malformed and session-only data does not appear as saved project pr
     research_methodology: 'draft in memory', plan_items: [],
   });
   assert.equal(progress.savedCount, 0);
+  assert.equal(progress.total, 4);
   assert.equal(progress.stages.every(stage => !stage.saved), true);
 });

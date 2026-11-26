@@ -11,9 +11,9 @@ export default function ResearchWorkflowNavigation({ project }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-sm font-semibold">Research workflow</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">{savedCount} of {total} stages have saved project content</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{savedCount} of {total} research drafts saved</p>
         </div>
-        <div className="h-1.5 w-28 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-label="Saved research workflow stages" aria-valuemin={0} aria-valuemax={total} aria-valuenow={savedCount}>
+        <div className="h-1.5 w-28 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-label="Saved research draft progress" aria-valuemin={0} aria-valuemax={total} aria-valuenow={savedCount}>
           <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
         </div>
       </div>
@@ -32,6 +32,7 @@ export default function ResearchWorkflowNavigation({ project }) {
           </li>
         ))}
       </ol>
+      <p className="mt-2 text-xs leading-5 text-muted-foreground">Roadmap tasks enter the project only after researcher approval and a separate workplan save.</p>
     </nav>
   );
 }

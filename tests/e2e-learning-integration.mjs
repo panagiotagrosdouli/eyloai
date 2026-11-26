@@ -547,9 +547,26 @@ try {
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
   const researchWorkflow = page.getByRole('navigation', { name: 'Research workflow stages', exact: true });
   assert.equal(await researchWorkflow.getByRole('link').count(), 5, 'the Evidence tab must provide one navigation entry for every research stage');
-  assert.equal(await researchWorkflow.getByRole('progressbar', { name: 'Saved research workflow stages', exact: true }).count(), 1);
+  assert.equal(await researchWorkflow.getByRole('progressbar', { name: 'Saved research draft progress', exact: true }).count(), 1);
+  assert.match(await researchWorkflow.innerText(), /Roadmap tasks enter the project only after researcher approval and a separate workplan save/);
+  const workflowLinks = researchWorkflow.getByRole('link');
+  const secondWorkflowHref = await workflowLinks.nth(1).getAttribute('href');
+  await workflowLinks.first().focus();
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('href')), secondWorkflowHref, 'keyboard focus must move to the next workflow stage');
+  await page.setViewportSize({ width: 390, height: 844 });
+  const workflowScroller = researchWorkflow.locator('ol');
+  const mobileNavigation = await workflowScroller.evaluate(element => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+    overflowX: getComputedStyle(element).overflowX,
+  }));
+  assert.ok(mobileNavigation.scrollWidth > mobileNavigation.clientWidth, 'mobile workflow stages should scroll within the navigation instead of widening the page');
+  assert.equal(mobileNavigation.overflowX, 'auto');
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'mobile workflow navigation must not cause page overflow');
   await researchWorkflow.getByRole('link', { name: /Research Proposal:/ }).click();
   assert.equal(new URL(page.url()).hash, '#research-proposal-builder-title', 'workflow navigation must jump to the selected stage');
+  await page.setViewportSize({ width: 1280, height: 900 });
   const question = 'Do randomized interventions improve clinical outcomes?';
   await page.getByLabel('Research question', { exact: true }).fill(question);
   await page.getByRole('button', { name: 'Search scholarly sources', exact: true }).click();
