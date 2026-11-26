@@ -1,3 +1,5 @@
+import { safeResearchSourceUrl } from './research-source-url.mjs';
+
 export const PROPOSAL_SECTIONS = [
   { id: 'research_title', label: 'Research Title' },
   { id: 'abstract', label: 'Abstract' },
@@ -128,16 +130,26 @@ function selectedReviewContext(review, selectedIds) {
   };
 }
 
-function projectObjectiveContext(project) {
+function projectObjectiveContext(project, selectedIds, includeResearcherNotes) {
   const objectives = [project?.goal, project?.objectives, project?.milestones]
     .flatMap(value => Array.isArray(value) ? value : [value])
     .filter(value => typeof value === 'string' && value.trim())
     .map(value => value.trim().slice(0, 2000));
+  const allowed = new Set(selectedIds.map(String));
   const plan = Array.isArray(project?.plan_items) ? project.plan_items.slice(0, 30).map(item => ({
     title: String(item.title || '').slice(0, 300),
     description: String(item.description || '').slice(0, 1200),
+    phase: String(item.phase || '').slice(0, 120),
     deliverable: String(item.deliverable || '').slice(0, 600),
+    due_date: String(item.due_date || ''),
     status: String(item.status || ''),
+    ...(includeResearcherNotes ? {
+      risk: String(item.risk || '').slice(0, 1200),
+      researcher_notes: String(item.researcher_notes || '').slice(0, 2000),
+      evidence_summary: String(item.evidence_summary || '').slice(0, 3000),
+      evidence_kind: String(item.evidence_kind || ''),
+      source_ids: (Array.isArray(item.source_ids) ? item.source_ids.map(String) : []).filter(id => allowed.has(id)),
+    } : {}),
   })) : [];
   return { project_title: String(project?.title || ''), objectives, plan_items: plan };
 }
@@ -170,13 +182,35 @@ function selectedProposalContext(proposal, selectedIds, includeResearcherNotes) 
   };
 }
 
+function selectedMethodologyContext(methodology, selectedIds, includeResearcherNotes) {
+  if (!methodology || typeof methodology !== 'object') return null;
+  const allowed = new Set(selectedIds.map(String));
+  const topics = Object.fromEntries(Object.entries(methodology.edited_topics || {}).map(([id, topic]) => [id, {
+    status: String(topic?.status || ''),
+    implementation_state: String(topic?.implementation_state || 'proposed'),
+    claims: (Array.isArray(topic?.claims) ? topic.claims : []).filter(claim => {
+      const ids = (claim.source_ids || []).map(String);
+      return ids.length === 0 || ids.every(sourceId => allowed.has(sourceId));
+    }).map(claim => ({ heading: String(claim.heading || ''), text: String(claim.text || '').slice(0, 4000), source_ids: (claim.source_ids || []).map(String), kind: String(claim.kind || '') })),
+  }]));
+  return {
+    research_question: String(methodology.research_question || ''),
+    discipline: String(methodology.discipline || ''),
+    topics,
+    researcher_authored_notes: includeResearcherNotes && methodology.topic_notes && typeof methodology.topic_notes === 'object'
+      ? Object.fromEntries(Object.entries(methodology.topic_notes).filter(([, value]) => typeof value === 'string' && value.trim()).map(([id, value]) => [id, value.slice(0, 3000)]))
+      : {},
+  };
+}
+
 export function buildAuthorizedResearchContext({ papers, project, evidenceMatrix, literatureReview, contextSelection }) {
   const selectedIds = (papers || []).map(paper => String(paper.id));
   return {
-    project_objectives: contextSelection?.project_objectives ? projectObjectiveContext(project) : null,
+    project_objectives: contextSelection?.project_objectives ? projectObjectiveContext(project, selectedIds, contextSelection?.researcher_notes === true) : null,
     evidence_matrix: contextSelection?.evidence_matrix ? selectedMatrixContext(evidenceMatrix, selectedIds, contextSelection?.researcher_notes === true) : null,
     literature_review: contextSelection?.literature_review ? selectedReviewContext(literatureReview, selectedIds) : null,
     research_proposal: contextSelection?.research_proposal ? selectedProposalContext(project?.research_proposal, selectedIds, contextSelection?.researcher_notes === true) : null,
+    research_methodology: contextSelection?.research_methodology ? selectedMethodologyContext(project?.research_methodology, selectedIds, contextSelection?.researcher_notes === true) : null,
     researcher_notes_included: contextSelection?.researcher_notes === true,
     selected_scholarly_records: selectedRecordContext(papers || []),
   };
@@ -292,18 +326,10 @@ export function defaultBibliographyEntry(source) {
   return `${source.authors} (${source.year}). ${source.title}. ${source.source}.`;
 }
 
-function safeExternalSourceUrl(source) {
-  try {
-    const url = new URL(source.url);
-    if (url.protocol === 'https:' && !url.username && !url.password) return url.href;
-  } catch { /* use DOI only when its shape is valid */ }
-  return /^10\.\d{4,9}\/[-._;()/:A-Z0-9]+$/i.test(source.doi || '') ? `https://doi.org/${source.doi}` : '';
-}
-
 function citationLinks(ids, sourceMap, entries) {
   return ids.map(id => sourceMap.get(String(id))).filter(Boolean).map(source => {
     const label = entries[source.id] || defaultBibliographyEntry(source);
-    const url = safeExternalSourceUrl(source);
+    const url = safeResearchSourceUrl(source);
     return url ? `[${label.replaceAll('[', '\\[').replaceAll(']', '\\]')}](<${url}>)` : label;
   });
 }
@@ -331,7 +357,7 @@ export function exportResearchProposalMarkdown({ question, researchType, section
     if (definition.id === 'bibliography') {
       for (const source of bibliography) {
         const entry = bibliographyEntries[source.id] || defaultBibliographyEntry(source);
-        const url = safeExternalSourceUrl(source);
+        const url = safeResearchSourceUrl(source);
         lines.push(`- ${url ? `[${entry}](<${url}>)` : entry}${source.doi ? ` DOI: ${source.doi}.` : ''}`);
       }
       if (!bibliography.length) lines.push('_No selected scholarly records._');
