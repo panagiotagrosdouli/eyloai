@@ -6,7 +6,7 @@
   "records": [
     {
       "id": "PMID:38351140",
-      "title": "Street trees provide an opportunity to mitigate urban heat and reduce risk of high heat exposure",
+      "title": "Street trees provide an opportunity to mitigate urban heat and reduce risk of high heat exposure.",
       "authors": ["Ettinger AK", "Bratman GN", "Carey M", "Hebert R", "Hill O", "Kett H", "Levin P", "Murphy-Williams M", "Wyse L"],
       "journal": "Scientific Reports",
       "year": 2024,
@@ -21,7 +21,7 @@
     },
     {
       "id": "PMID:34815395",
-      "title": "The role of urban trees in reducing land surface temperatures in European cities",
+      "title": "The role of urban trees in reducing land surface temperatures in European cities.",
       "authors": ["Schwaab J", "Meier R", "Mussetti G", "Seneviratne S", "Bürgi C", "Davin EL"],
       "journal": "Nature Communications",
       "year": 2021,
@@ -36,7 +36,7 @@
     },
     {
       "id": "PMID:30910972",
-      "title": "Scale-dependent interactions between tree canopy cover and impervious surfaces reduce daytime urban heat during summer",
+      "title": "Scale-dependent interactions between tree canopy cover and impervious surfaces reduce daytime urban heat during summer.",
       "authors": ["Ziter CD", "Pedersen EJ", "Kucharik CJ", "Turner MG"],
       "journal": "Proceedings of the National Academy of Sciences of the United States of America",
       "year": 2019,
