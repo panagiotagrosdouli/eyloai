@@ -35,7 +35,7 @@ Two distinct pseudonymous reviewer IDs per factual claim and per dimension are r
     node --test tests/scientific-evaluation.test.mjs
     node scripts/evaluate-scientific-workflow.mjs evaluate tests/fixtures/scientific-evaluation/public-reference-packet.json
 
-The reference packet deliberately exits nonzero, as it has not been reviewed. A real, consented packet may be evaluated locally and the **aggregate-only** report written to a new file with the optional third argument. Avoid committing private review text. CLI output contains counts, codes and statuses only, not claim text, source URLs or reviewer rationale.
+The CLI additionally binds each review packet's commit_sha to the actual checked-out Git HEAD. The sample reference packet pins the historical main revision and therefore deliberately exits nonzero on any other checkout, even before human review. Do not silently rewrite the sample to pretend evidence exists. A real reviewer must freeze their exact evaluated revision and its corresponding source packet. A real, consented packet may be evaluated locally and the **aggregate-only** report written to a new file with the optional third argument. Avoid committing private review text. CLI output contains counts, codes and statuses only, not claim text, source URLs or reviewer rationale.
 
 The final machine status is either BLOCKED_INVALID, BLOCKED_UNREVIEWED or REVIEW_DATA_COMPLETE_PENDING_INDEPENDENT_ACCEPTANCE. Even the latter **never authorizes a production release**, does not replace human adjudication, and does not satisfy hosted Auth/RLS, Storage, real EYRA, privacy, billing, migration or owner sign-off gates.
 

@@ -42,7 +42,7 @@ const validUrl = value => {
  * Returns only aggregate identifiers and counts; no confidential claim text,
  * reviewer rationale, DOI, access token or source URL is echoed to stdout.
  */
-export function evaluateScientificPacket(packet) {
+export function evaluateScientificPacket(packet, { expectedCommit } = {}) {
   const errors = [];
   const warnings = [];
   const fail = code => errors.push(code);
@@ -50,6 +50,7 @@ export function evaluateScientificPacket(packet) {
     return { valid: false, gate: 'BLOCKED', errors: ['invalid_schema_version'], warnings: [], totals: null };
   }
   if (!/^[a-f0-9]{40}$/i.test(string(packet.commit_sha))) fail('invalid_exact_commit_sha');
+  if (expectedCommit !== undefined && (!/^[a-f0-9]{40}$/i.test(string(expectedCommit)) || String(packet.commit_sha).toLowerCase() !== String(expectedCommit).toLowerCase())) fail('evaluation_commit_does_not_match_reviewed_code');
   if (!recordId(packet.evaluation_id)) fail('invalid_evaluation_id');
   const records = Array.isArray(packet.records) ? packet.records : [];
   const claims = Array.isArray(packet.claims) ? packet.claims : [];

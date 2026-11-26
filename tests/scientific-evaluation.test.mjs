@@ -18,6 +18,15 @@ test('real publication reference packet remains unjudged and never grants releas
   assert.equal(result.totals.claims, 0);
 });
 
+test('review packet cannot be reused for another exact code revision', () => {
+  const packet = make();
+  const wrongRevision = evaluateScientificPacket(packet, { expectedCommit: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' });
+  assert.equal(wrongRevision.valid, false);
+  assert.ok(wrongRevision.errors.includes('evaluation_commit_does_not_match_reviewed_code'));
+  const sameRevision = evaluateScientificPacket(packet, { expectedCommit: packet.commit_sha });
+  assert.equal(sameRevision.gate, 'BLOCKED_UNREVIEWED');
+});
+
 test('unrecognized and fabricated citation IDs fail closed', () => {
   const packet = make();
   packet.claims.push({ id: 'claim-1', kind: 'factual', text: 'Synthetic test claim', source_ids: ['nonexistent-doi-record'] });
