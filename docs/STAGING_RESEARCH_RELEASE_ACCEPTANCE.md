@@ -15,6 +15,11 @@ Before any hosted acceptance, the owner must identify and approve one active Sup
 
 Run `node scripts/verify-staging-config.mjs` before building. It is a configuration guard only; it does not verify hosted Auth, RLS, Storage, or provider behavior.
 
+### Storage write authorization — additional fail-closed binding
+
+Before running executable Storage acceptance, the owner must identify the exact Vercel Preview deployment URL and commit SHA, independently verify both in the Vercel dashboard, and provide matching EYLO_STORAGE_APPROVED_PREVIEW_URL / VERCEL_URL and EYLO_STORAGE_APPROVED_PREVIEW_SHA / VERCEL_GIT_COMMIT_SHA. The runner refuses to construct network clients on mismatch. The production alias eyloai.vercel.app is not an acceptable Preview identity.
+
+Set EYLO_STORAGE_TEST_A_INBOX_AUTHORIZED=YES and EYLO_STORAGE_TEST_B_INBOX_AUTHORIZED=YES only after approving the actual disposable inboxes. EYLO_STORAGE_APPROVED_CLEANUP_SCOPE=generated-fixtures-only restricts the approval to records created by this run. Two matching environment strings are NOT independent evidence of a live Preview deployment: the operator must also record and inspect the actual Vercel deployment ID, URL, SHA and environment before supplying any ephemeral-write permission.
 ## 2. Non-destructive migration-history reconciliation
 
 Do this read-only sequence before deciding whether any DDL is needed:
