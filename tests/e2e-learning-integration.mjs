@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 30090)
-Total output lines: 1455
-
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
@@ -759,7 +756,12 @@ try {
   const grantMarkdown = await readFile(await grantMarkdownDownload.path(), 'utf8');
   assert.match(grantMarkdown, /Researcher-edited grant summary/);
   assert.match(grantMarkdown, /call-line-1/);
-  assert.ma…90 tokens truncated…unzipSync(await readFile(await grantDocxDownload.path()));
+  assert.match(grantMarkdown, /## Bibliography/);
+  const grantDocxDownloadEvent = page.waitForEvent('download');
+  await reloadedGrant.getByRole('button', { name: 'Export DOCX', exact: true }).click();
+  const grantDocxDownload = await grantDocxDownloadEvent;
+  assert.equal(grantDocxDownload.suggestedFilename(), 'grant-proposal-draft.docx');
+  const grantDocxFiles = unzipSync(await readFile(await grantDocxDownload.path()));
   const grantDocxXml = strFromU8(grantDocxFiles['word/document.xml']);
   assert.match(grantDocxXml, /Researcher-edited grant summary/);
   assert.match(grantDocxXml, /Bibliography/);
