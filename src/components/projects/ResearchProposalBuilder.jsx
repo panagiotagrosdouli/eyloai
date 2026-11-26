@@ -10,6 +10,10 @@ import { verifyCitation } from '@/lib/citation-verification.mjs';
 import { reviewProposalDraft } from '@/lib/proposal-quality-review.mjs';
 import { persistAutonomousProposalCheckpoint } from '@/lib/autonomous-proposal-checkpoint.mjs';
 import {
+  buildGrantRequirementExtractionPrompt, grantCriticalRequirementIds, GRANT_REQUIREMENT_FIELDS, GRANT_REQUIREMENTS_SCHEMA,
+  hasConfirmedCriticalGrantRequirements, validateGrantRequirements,
+} from '@/lib/grant-proposal-workflow.mjs';
+import {
   autonomousProposalErrorMessage, autonomousProposalProgress, PROPOSAL_DISCIPLINES, PROPOSAL_LANGUAGES,
   runAutonomousProposal,
 } from '@/lib/autonomous-proposal-engine.mjs';
@@ -38,6 +42,14 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
   const [researchType, setResearchType] = useState(stored.research_type || 'other');
   const [discipline, setDiscipline] = useState(stored.discipline || 'interdisciplinary');
   const [language, setLanguage] = useState(stored.language || 'en');
+  const [proposalMode, setProposalMode] = useState(stored.output_kind === 'grant_proposal' ? 'grant_proposal' : 'academic_proposal');
+  const [grantContext, setGrantContext] = useState(stored.grant_context || null);
+  const [grantSourceText, setGrantSourceText] = useState(stored.grant_context?.source_text || '');
+  const [grantSourceName, setGrantSourceName] = useState(stored.grant_context?.source_name || 'Official funding call');
+  const [applicantInformation, setApplicantInformation] = useState(stored.grant_context?.applicant_information || '');
+  const [grantWorkPackages, setGrantWorkPackages] = useState(stored.edited_work_packages || stored.ai_draft?.work_packages || []);
+  const [grantCallSections, setGrantCallSections] = useState(stored.edited_call_sections || stored.ai_draft?.call_sections || []);
+  const [grantBudgetNotes, setGrantBudgetNotes] = useState(stored.edited_budget_notes || stored.ai_draft?.budget_notes || []);
   const [selectedIds, setSelectedIds] = useState(() => initialIds.map(String).filter(id => linkedPapers.some(paper => String(paper.id) === id)));
   const [contextSelection, setContextSelection] = useState({
     project_objectives: stored.context_selection?.project_objectives ?? true,
@@ -55,6 +67,7 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
     ? { ...stored.autonomous_run, status: 'paused', error_code: 'page_reloaded' }
     : stored.autonomous_run || null);
   const [generating, setGenerating] = useState(false);
+  const [extractingCall, setExtractingCall] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -67,6 +80,10 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
   const accountIdRef = useRef(user?.id ? String(user.id) : '');
   const localEditRevisionRef = useRef(0);
   const researcherEditedRef = useRef(Boolean(stored.researcher_edited));
+  const grantWorkPackagesEditedRef = useRef(Boolean(stored.edited_work_packages?.length
+    && JSON.stringify(stored.edited_work_packages) !== JSON.stringify(stored.ai_draft?.work_packages)));
+  const grantCallSectionsEditedRef = useRef(Boolean(stored.edited_call_sections?.length
+    && JSON.stringify(stored.edited_call_sections) !== JSON.stringify(stored.ai_draft?.call_sections)));
   const linkedById = useMemo(() => new Map(linkedPapers.map(paper => [String(paper.id), paper])), [linkedPapers]);
   const selectedPapers = linkedPapers.filter(paper => selectedIds.includes(String(paper.id)));
   const qualityFindings = useMemo(() => reviewProposalDraft({ sections, methodologyPlan: methodology, papers: linkedPapers }), [sections, methodology, linkedPapers]);
@@ -124,6 +141,9 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
     const idea = question.trim();
     if (idea.length < 8) { setError('Describe the research idea in at least 8 characters.'); return; }
     if (!discipline || !language) { setError('Choose a discipline and output language before generation.'); return; }
+    if (proposalMode === 'grant_proposal' && !hasConfirmedCriticalGrantRequirements(grantContext)) {
+      setError('Extract and review the official call requirements, then confirm each critical requirement before generation.'); return;
+    }
     const controller = new AbortController(); controllerRef.current = controller; setGenerating(true);
     let accountAtStart = '';
     const assertSameAccount = async () => {
@@ -139,6 +159,7 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
       await assertSameAccount();
       await runAutonomousProposal({
         idea, discipline, researchType, language, project: projectRef.current, savedPapers,
+        grantCallContext: proposalMode === 'grant_proposal' ? grantContext : null,
         contextSelection, resumeRun: resume ? generationRun : null,
         invoke: request => base44.integrations.Core.InvokeLLM(request),
         search: ({ query, limit, signal }) => searchAllPapersWithStatus(query, { limit, signal }),
@@ -160,6 +181,8 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
             createArtifact: previous => ({
               ...previous,
               autonomous_run: run,
+              output_kind: run.output_kind || 'academic_proposal',
+              ...(run.grant_call ? { grant_context: run.grant_call } : {}),
               updated_at: new Date().toISOString(),
               draft_revision: run.status === 'complete' ? Math.max(Number(previous.draft_revision) || 0, draftRevision) + 1 : (previous.draft_revision ?? draftRevision),
               researcher_review: run.status === 'complete' ? null : previous.researcher_review,
@@ -185,10 +208,15 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
           if (!hasProposalSaveReceipt(saved, currentProject.id, artifact)) throw Object.assign(new Error('unverified'), { code: 'CHECKPOINT_UNVERIFIED' });
           projectRef.current = saved; onProjectSaved(saved); setGenerationRun(run);
           if (run.status === 'complete') {
+            const preserveEdits = researcherEditedRef.current || localEditRevisionRef.current !== revisionAtStart;
             setAiDraft(run.proposal_draft); setGenerationRun(run);
+            if (!grantWorkPackagesEditedRef.current) {
+              setGrantWorkPackages(run.proposal_draft.work_packages || []);
+              setGrantBudgetNotes(run.proposal_draft.budget_notes || []);
+            }
+            if (!grantCallSectionsEditedRef.current) setGrantCallSections(run.proposal_draft.call_sections || []);
             setDraftRevision(Number(saved.research_proposal.draft_revision) || draftRevision + 1);
             setResearcherReview(null); setReviewConfirmed(false);
-            const preserveEdits = researcherEditedRef.current || localEditRevisionRef.current !== revisionAtStart;
             if (!preserveEdits) {
               setQuestion(run.planning.research_question); setSelectedIds(run.selected_paper_ids);
               setSections(run.proposal_draft.sections); setMethodology(run.proposal_draft.methodology_plan);
@@ -210,6 +238,64 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
     } finally { if (controllerRef.current === controller) controllerRef.current = null; setGenerating(false); }
   };
 
+  const saveGrantContext = async context => {
+    const currentProject = projectRef.current;
+    const nextRevision = Math.max(draftRevision, Number(currentProject.research_proposal?.draft_revision) || 0) + 1;
+    const proposal = { ...(currentProject.research_proposal || {}), output_kind: 'grant_proposal', grant_context: context, draft_revision: nextRevision, researcher_review: null, updated_at: new Date().toISOString() };
+    const saved = await base44.entities.Project.updateIfUnchanged(currentProject.id, { research_proposal: proposal }, currentProject.updated_date);
+    if (!hasProposalSaveReceipt(saved, currentProject.id, proposal)) throw new Error('unverified');
+    projectRef.current = saved; onProjectSaved(saved); setGrantContext(context);
+    setDraftRevision(nextRevision); setResearcherReview(null); setReviewConfirmed(false); setDirty(true);
+    return saved;
+  };
+
+  const extractGrantCall = async () => {
+    if (grantSourceText.trim().length < 80) { setError('Add at least 80 characters from the official call document.'); return; }
+    setError(''); setMessage(''); setExtractingCall(true); setGenerating(true);
+    try {
+      const accountAtStart = String(userRef.current?.id || '');
+      await getUsableSession({ required: true, validate: true, expectedUserId: accountAtStart });
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: buildGrantRequirementExtractionPrompt({ documentName: grantSourceName, sourceText: grantSourceText }),
+        response_json_schema: GRANT_REQUIREMENTS_SCHEMA,
+      });
+      const requirements = validateGrantRequirements(response, grantSourceText);
+      const context = {
+        schema_version: 1, source_name: grantSourceName.trim().slice(0, 240), source_text: grantSourceText.slice(0, 30000),
+        requirements, applicant_information: applicantInformation.slice(0, 6000), confirmed: false,
+        confirmed_requirement_ids: [], extracted_at: new Date().toISOString(),
+      };
+      await getUsableSession({ required: true, validate: true, expectedUserId: accountAtStart });
+      await saveGrantContext(context);
+      setMessage('Call requirements extracted with source quotes and saved for researcher review. No proposal has been generated.');
+    } catch (failure) {
+      setError(failure?.code === 'ENTITY_CONFLICT' ? 'This project changed in another session. Reload before saving call intake.' : 'Call extraction or its source-quote check failed. Review the document text and try again.');
+    } finally { setExtractingCall(false); setGenerating(false); }
+  };
+
+  const confirmGrantRequirements = async () => {
+    if (!grantContext) return;
+    const required = grantCriticalRequirementIds(grantContext.requirements);
+    if (!required.length || required.some(id => !grantContext.confirmed_requirement_ids?.includes(id))) {
+      setError('Review and confirm each critical requirement, including any marked missing, before drafting.'); return;
+    }
+    setError(''); setMessage(''); setSaving(true);
+    try {
+      const context = { ...grantContext, applicant_information: applicantInformation.slice(0, 6000), confirmed: true, confirmed_at: new Date().toISOString() };
+      await saveGrantContext(context);
+      setMessage('Critical call requirements saved as researcher-reviewed. This is not a funding eligibility determination.');
+    } catch (failure) {
+      setError(failure?.code === 'ENTITY_CONFLICT' ? 'The project changed in another session. Reload and review the call before confirming.' : 'The call review could not be verified as saved.');
+    } finally { setSaving(false); }
+  };
+
+  const toggleGrantRequirement = id => setGrantContext(current => ({
+    ...current, confirmed: false, confirmed_at: null,
+    confirmed_requirement_ids: current.confirmed_requirement_ids?.includes(id)
+      ? current.confirmed_requirement_ids.filter(value => value !== id)
+      : [...(current.confirmed_requirement_ids || []), id],
+  }));
+
   const save = async () => {
     if (saving || !hasDraft) return;
     setSaving(true); setError(''); setMessage('');
@@ -218,6 +304,10 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
       research_question: question.trim().slice(0, 1200), research_type: researchType, discipline, language,
       selected_paper_ids: selectedIds.filter(id => linkedById.has(id)), context_selection: contextSelection,
       ai_draft: aiDraft, edited_sections: sections, edited_methodology: methodology,
+      output_kind: proposalMode, grant_context: proposalMode === 'grant_proposal' ? grantContext : null,
+      edited_work_packages: proposalMode === 'grant_proposal' ? grantWorkPackages : [],
+      edited_call_sections: proposalMode === 'grant_proposal' ? grantCallSections : [],
+      edited_budget_notes: proposalMode === 'grant_proposal' ? grantBudgetNotes : [],
       section_notes: sectionNotes, bibliography_entries: bibliographyEntries, autonomous_run: generationRun,
       researcher_edited: researcherEdited, updated_at: new Date().toISOString(),
       quality_findings: qualityFindings,
@@ -250,7 +340,12 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
 
   const applyLatest = () => {
     markResearcherEdit(); researcherEditedRef.current = false;
-    setSections(aiDraft.sections); setMethodology(aiDraft.methodology_plan); setResearcherEdited(false); setDirty(true);
+    setSections(aiDraft.sections); setMethodology(aiDraft.methodology_plan);
+    grantWorkPackagesEditedRef.current = false;
+    setGrantWorkPackages(aiDraft.work_packages || []); setGrantBudgetNotes(aiDraft.budget_notes || []);
+    grantCallSectionsEditedRef.current = false;
+    setGrantCallSections(aiDraft.call_sections || []);
+    setResearcherEdited(false); setDirty(true);
     setMessage('Latest EYRA draft applied. Review the replaced sections before saving.');
   };
 
@@ -263,6 +358,10 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
       research_question: question.trim().slice(0, 1200), research_type: researchType, discipline, language,
       selected_paper_ids: selectedIds.filter(id => linkedById.has(id)), context_selection: contextSelection,
       ai_draft: aiDraft, edited_sections: sections, edited_methodology: methodology,
+      output_kind: proposalMode, grant_context: proposalMode === 'grant_proposal' ? grantContext : null,
+      edited_work_packages: proposalMode === 'grant_proposal' ? grantWorkPackages : [],
+      edited_call_sections: proposalMode === 'grant_proposal' ? grantCallSections : [],
+      edited_budget_notes: proposalMode === 'grant_proposal' ? grantBudgetNotes : [],
       section_notes: sectionNotes, bibliography_entries: bibliographyEntries, autonomous_run: generationRun,
       researcher_edited: researcherEdited, draft_revision: draftRevision,
       quality_findings: qualityFindings,
@@ -286,8 +385,12 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
       language, sections, methodologyPlan: methodology, bibliography, bibliographyEntries, sectionNotes,
       milestones: generationRun?.milestones || [],
     });
-    const url = URL.createObjectURL(new Blob([markdown], { type: 'text/markdown;charset=utf-8' }));
-    const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'research-proposal-draft.md';
+    const grantAppendix = proposalMode === 'grant_proposal' && grantContext ? `\n\n## Grant Call Provenance and Coverage\n\n${GRANT_REQUIREMENT_FIELDS.map(({ id, label }) => {
+      const raw = grantContext.requirements?.[id]; const items = Array.isArray(raw) ? raw : [raw].filter(Boolean);
+      return `### ${label}\n\n${items.map(item => `- **${item.classification}**: ${item.value || 'Missing'}${item.section_or_page ? ` — ${item.section_or_page}` : ''}${item.evidence_quote ? `\n  > ${item.evidence_quote}` : ''}`).join('\n')}`;
+    }).join('\n\n')}\n\n### Required call sections\n\n${grantCallSections.map(section => `#### ${section.section_name} (${section.status})\n\n${(section.claims || []).map(claim => `**${claim.heading || section.section_name}**\n\n${claim.text}${claim.source_ids?.length ? `\n\nSources: ${claim.source_ids.join(', ')}` : ''}`).join('\n\n') || 'Requires researcher input.'}`).join('\n\n')}\n\n### Requirement coverage\n\n${(aiDraft?.requirement_coverage || []).map(item => `- ${item.requirement_id}: **${item.status}** — ${item.note}`).join('\n')}\n\n### Work packages\n\n${grantWorkPackages.map((item, index) => `#### ${index + 1}. ${item.title}\n\n${item.objective || ''}\n\n${(item.activities || []).map(value => `- Activity: ${value}`).join('\n')}\n${(item.deliverables || []).map(value => `- Deliverable: ${value}`).join('\n')}`).join('\n\n')}\n\n### Budget notes\n\n${grantBudgetNotes.map(value => `- ${value}`).join('\n')}\n\nAutomated checks do not establish scientific correctness, eligibility, or compliance with the call.` : '';
+    const url = URL.createObjectURL(new Blob([markdown + grantAppendix], { type: 'text/markdown;charset=utf-8' }));
+    const anchor = document.createElement('a'); anchor.href = url; anchor.download = proposalMode === 'grant_proposal' ? 'grant-proposal-draft.md' : 'research-proposal-draft.md';
     document.body.append(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(url);
   };
 
@@ -301,10 +404,30 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
 
   return <section className="space-y-5 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-labelledby="research-proposal-builder-title">
     <header>
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Scientific Output Studio · Research Proposal</p>
-      <h3 id="research-proposal-builder-title" className="mt-1 text-xl font-semibold">Build a research proposal</h3>
-      <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Start from a research idea. EYRA searches scholarly indexes, selects project-linked records and drafts a complete proposal for your review. It can use bibliographic metadata and available abstracts; full text is not assumed.</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Scientific Output Studio · {proposalMode === 'grant_proposal' ? 'Grant Proposal' : 'Research Proposal'}</p>
+      <h3 id="research-proposal-builder-title" className="mt-1 text-xl font-semibold">Build a {proposalMode === 'grant_proposal' ? 'call-grounded grant proposal' : 'research proposal'}</h3>
+      <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{proposalMode === 'grant_proposal' ? 'Review a funding call’s source-backed requirements, confirm the critical items and then use the existing scholarly proposal workflow to create an editable grant draft.' : 'Start from a research idea. EYRA searches scholarly indexes, selects project-linked records and drafts a complete proposal for your review. It can use bibliographic metadata and available abstracts; full text is not assumed.'}</p>
     </header>
+    <label className="block max-w-md text-sm font-medium">Proposal type<select value={proposalMode} onChange={event => { markDraftRevision(); setProposalMode(event.target.value); }} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2"><option value="academic_proposal">Research Proposal</option><option value="grant_proposal">Grant Proposal</option></select></label>
+    {proposalMode === 'grant_proposal' && <section className="space-y-4 rounded-xl border border-primary/25 bg-primary/5 p-4" aria-label="Funding call intake">
+      <div><h4 className="font-semibold">1. Official call intake</h4><p className="mt-1 text-xs leading-5 text-muted-foreground">Paste official call text or upload a plain-text/Markdown copy. Extraction is limited to that supplied text. PDF and Word files are not currently parsed in this workflow.</p></div>
+      <label className="block text-sm font-medium">Call document name<input disabled={generating} value={grantSourceName} onChange={event => { markDraftRevision(); setGrantSourceName(event.target.value); setGrantContext(null); }} maxLength={240} className="mt-1 min-h-10 w-full rounded-lg border border-border bg-background px-3 py-2 disabled:opacity-60" /></label>
+      <label className="block text-sm font-medium">Official call text<textarea disabled={generating} value={grantSourceText} onChange={event => { markDraftRevision(); setGrantSourceText(event.target.value); setGrantContext(null); }} maxLength={30000} rows={8} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm leading-6 disabled:opacity-60" placeholder="Paste the relevant official call text, including headings and page markers when available." /></label>
+      <label className="inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-border px-3 text-sm font-medium">Upload .txt or .md<input disabled={generating} type="file" accept=".txt,.md,text/plain,text/markdown" className="sr-only" onChange={async event => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 30000) { setError('Call text files are limited to 30 KB for this intake.'); return; } const text = await file.text(); markDraftRevision(); setGrantSourceName(file.name); setGrantSourceText(text); setGrantContext(null); }} /></label>
+      <label className="block text-sm font-medium">Applicant and institutional information supplied by you<textarea disabled={generating} value={applicantInformation} onChange={event => { markDraftRevision(); setApplicantInformation(event.target.value); setGrantContext(current => current ? { ...current, confirmed: false } : null); }} maxLength={6000} rows={3} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm leading-6 disabled:opacity-60" placeholder="Provide only facts you can confirm, such as institution type, team roles or facilities. Leave unknown facts blank." /></label>
+      <button type="button" onClick={extractGrantCall} disabled={generating || grantSourceText.trim().length < 80} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-foreground px-4 text-sm font-semibold text-background disabled:opacity-50">{extractingCall ? <Loader2 size={15} className="animate-spin" aria-hidden="true" /> : null}{extractingCall ? 'Extracting call requirements…' : 'Extract call requirements'}</button>
+      {grantContext?.requirements && <div className="space-y-3 rounded-lg border border-border bg-background p-3">
+        <p className="text-sm font-semibold">2. Inspect provenance and confirm critical requirements</p>
+        <p className="text-xs text-muted-foreground">Quotes are checked against the supplied document text. A matching quote establishes provenance only; it does not establish that an interpretation is correct or that the applicant is eligible.</p>
+        {Object.entries(grantContext.requirements).map(([id, raw]) => {
+          const items = Array.isArray(raw) ? raw : [raw];
+          const field = GRANT_REQUIREMENT_FIELDS.find(item => item.id === id);
+          return <div key={id} className="rounded-lg bg-secondary/30 p-3"><h5 className="text-sm font-semibold">{field?.label || id}</h5>{items.map((item, index) => <div key={`${id}-${index}`} className="mt-2 text-xs"><p><span className="font-semibold">{item.classification.replaceAll('_', ' ')}:</span> {item.value || 'No fact extracted from the supplied text.'}</p>{item.section_or_page && <p className="mt-1 text-muted-foreground">Location: {item.section_or_page}</p>}{item.evidence_quote && <blockquote className="mt-1 border-l-2 border-primary/50 pl-2 text-muted-foreground">{item.evidence_quote}</blockquote>}</div>)}{field?.critical && <label className="mt-3 flex min-h-9 items-start gap-2 text-xs"><input type="checkbox" className="mt-0.5 size-4 accent-primary" checked={grantContext.confirmed_requirement_ids?.includes(id) || false} onChange={() => toggleGrantRequirement(id)} />I reviewed this requirement or its missing status.</label>}</div>;
+        })}
+        <button type="button" onClick={confirmGrantRequirements} disabled={saving || !grantCriticalRequirementIds(grantContext.requirements).every(id => grantContext.confirmed_requirement_ids?.includes(id))} className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">{saving ? 'Saving confirmation…' : grantContext.confirmed ? 'Critical requirements confirmed' : 'Save critical requirement review'}</button>
+        <p className="text-xs text-muted-foreground">Confirmation records that you reviewed these extracted items. It is not a funding eligibility determination or legal review.</p>
+      </div>}
+    </section>}
     <div className="grid gap-4 lg:grid-cols-2">
       <label className="block text-sm font-medium">Research idea<textarea value={question} onChange={event => { markDraftRevision(); setQuestion(event.target.value); }} maxLength={1200} rows={3} className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm leading-6" placeholder="What scientific problem would you like to investigate?" /></label>
       <label className="block text-sm font-medium">Discipline<select value={discipline} onChange={event => { markDraftRevision(); setDiscipline(event.target.value); }} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm">{PROPOSAL_DISCIPLINES.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
@@ -318,9 +441,9 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
       {[['project_objectives','Project objectives and plan'],['evidence_matrix','Evidence Matrix'],['literature_review','Literature Review'],['researcher_notes','Researcher-authored matrix notes']].map(([key,label]) => <label key={key} className="flex min-h-10 items-start gap-2 text-sm"><input className="mt-1 size-4 accent-primary" type="checkbox" checked={Boolean(contextSelection[key])} onChange={() => toggleContext(key)} />{label}</label>)}
     </div><p className="mt-2 text-xs text-muted-foreground">Only selected papers and selected project outputs are sent to EYRA. Source facts and interpretations require citations; proposed methods and contributions are not validated outcomes.</p></fieldset>
     <div className="flex flex-wrap gap-2">
-      <button type="button" onClick={() => generateCompleteProposal(false)} disabled={generating || question.trim().length < 8} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60">{generating ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />}{generating ? 'Generating complete proposal…' : 'Generate Complete Proposal'}</button>
-      {generating && <button type="button" onClick={() => controllerRef.current?.abort()} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold">Cancel generation</button>}
-      {generationRun && ['failed', 'paused'].includes(generationRun.status) && <button type="button" onClick={() => generateCompleteProposal(true)} disabled={generating || question.trim() !== generationRun.idea || discipline !== generationRun.discipline || researchType !== (generationRun.research_type || 'other') || language !== generationRun.language} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-50">Resume saved run</button>}
+      <button type="button" onClick={() => generateCompleteProposal(false)} disabled={generating || question.trim().length < 8} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60">{generating ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />}{extractingCall ? 'Extracting official call…' : generating ? 'Generating complete proposal…' : 'Generate Complete Proposal'}</button>
+      {generating && controllerRef.current && <button type="button" onClick={() => controllerRef.current?.abort()} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold">Cancel generation</button>}
+      {generationRun && ['failed', 'paused'].includes(generationRun.status) && <button type="button" onClick={() => generateCompleteProposal(true)} disabled={generating || question.trim() !== generationRun.idea || discipline !== generationRun.discipline || researchType !== (generationRun.research_type || 'other') || language !== generationRun.language || (generationRun.output_kind || 'academic_proposal') !== proposalMode || (proposalMode === 'grant_proposal' && !hasConfirmedCriticalGrantRequirements(grantContext))} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-50">Resume saved run</button>}
       <button type="button" onClick={save} disabled={saving || !hasDraft} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-60">{saving ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Save size={16} aria-hidden="true" />}{saving ? 'Saving…' : 'Save to project'}</button>
       <button type="button" onClick={exportMarkdown} disabled={!hasDraft || !exportApproved} title={exportApproved ? 'Export researcher-approved revision' : 'Save and approve this exact revision before export'} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-60"><Download size={16} aria-hidden="true" />Export Markdown</button>
       {researcherEdited && aiDraft && <button type="button" onClick={applyLatest} className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold">Apply latest draft</button>}
@@ -334,6 +457,24 @@ export default function ResearchProposalBuilder({ project, savedPapers, onProjec
     <p className="text-xs leading-5 text-muted-foreground">Editable scientific draft requiring researcher evaluation; not peer reviewed. Citation validation checks selected source IDs, not whether each claim is semantically supported. Where full text is unavailable, EYRA can use only metadata and available abstracts.</p>
     {message && <p role="status" className="rounded-lg bg-secondary px-3 py-2 text-sm">{message}</p>}{error && <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">{error}</p>}
     {hasDraft && <section className="rounded-xl border border-border p-4" aria-label="Research quality review"><h4 className="font-semibold">Research quality checks</h4><p className="mt-1 text-xs text-muted-foreground">Automated checks assess structure and source identifiers only. They are not peer review or scientific validation.</p><ul className="mt-3 space-y-2">{qualityFindings.map(finding => <li key={finding.pass} className="text-sm"><span className="font-medium">{finding.label}: {finding.status.replaceAll('_', ' ')}</span><span className="block text-xs text-muted-foreground">{finding.details}</span></li>)}</ul><label className="mt-4 flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1 size-4 accent-primary" checked={reviewConfirmed} onChange={event => setReviewConfirmed(event.target.checked)} /><span>I reviewed the sources, claims, uncertainties, methods and proposed milestones for this revision. I understand this is not independent scientific validation.</span></label><button type="button" onClick={approveForExport} disabled={!reviewConfirmed || saving || !hasDraft || dirty === false && exportApproved} className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">{saving ? 'Saving review…' : exportApproved ? 'Review approval saved' : 'Save review approval for export'}</button></section>}
+    {proposalMode === 'grant_proposal' && generationRun?.status === 'complete' && <section className="space-y-4 rounded-xl border border-border p-4" aria-label="Grant proposal review">
+      <div><h4 className="font-semibold">Call coverage and proposed work packages</h4><p className="mt-1 text-xs text-muted-foreground">Automated coverage is a checklist, not evidence of eligibility or call compliance. Inspect the source quotes and verify every scientific claim against the original publication.</p></div>
+      <div className="space-y-3" aria-label="Call-required proposal sections">{grantCallSections.map((section, index) => <fieldset key={`grant-section-${index}`} className="space-y-2 rounded-lg border border-border p-3"><legend className="px-1 text-sm font-semibold">{section.section_name}</legend>
+        <label className="text-xs font-medium">Section status<select value={section.status} onChange={event => { grantCallSectionsEditedRef.current = true; markResearcherEdit(); setGrantCallSections(current => current.map((row, rowIndex) => rowIndex === index ? { ...row, status: event.target.value } : row)); }} className="ml-2 min-h-9 rounded-lg border border-border bg-background px-2 text-xs"><option value="drafted">Drafted</option><option value="needs_input">Needs input</option></select></label>
+        {(section.claims || []).map((claim, claimIndex) => <label key={`${index}-${claimIndex}`} className="block text-xs font-medium">{claim.heading || section.section_name}<textarea value={claim.text} onChange={event => { grantCallSectionsEditedRef.current = true; markResearcherEdit(); setGrantCallSections(current => current.map((row, rowIndex) => rowIndex !== index ? row : ({ ...row, claims: row.claims.map((entry, entryIndex) => entryIndex === claimIndex ? { ...entry, text: event.target.value, origin: 'researcher' } : entry) }))); }} rows={4} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal" /></label>)}
+        {!section.claims?.length && <label className="block text-xs font-medium">Draft text<textarea value="" onChange={event => { grantCallSectionsEditedRef.current = true; markResearcherEdit(); setGrantCallSections(current => current.map((row, rowIndex) => rowIndex === index ? { ...row, claims: [{ heading: row.section_name, text: event.target.value, kind: 'proposal', source_ids: [], origin: 'researcher' }] } : row)); }} rows={4} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal" placeholder="Add section content or leave for researcher input." /></label>}
+        <p className="text-xs text-muted-foreground">AI draft or researcher edit · source facts and interpretations require source citations; a citation identifier does not prove claim support.</p>
+      </fieldset>)}</div>
+      <ul className="space-y-2">{(aiDraft?.requirement_coverage || []).map(item => <li key={item.requirement_id} className="rounded-lg bg-secondary/30 p-3 text-sm"><span className="font-semibold">{GRANT_REQUIREMENT_FIELDS.find(field => field.id === item.requirement_id)?.label || item.requirement_id}: {item.status}</span><span className="mt-1 block text-xs text-muted-foreground">{item.note}</span></li>)}</ul>
+      <div className="space-y-3">{grantWorkPackages.map((item, index) => <fieldset key={`grant-wp-${index}`} className="space-y-2 rounded-lg border border-border p-3"><legend className="px-1 text-sm font-semibold">Work package {index + 1}</legend>
+        <label className="block text-xs font-medium">Title<input value={item.title} onChange={event => { grantWorkPackagesEditedRef.current = true; markResearcherEdit(); setGrantWorkPackages(current => current.map((row, rowIndex) => rowIndex === index ? { ...row, title: event.target.value } : row)); }} className="mt-1 min-h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
+        <label className="block text-xs font-medium">Objective<textarea value={item.objective || ''} onChange={event => { grantWorkPackagesEditedRef.current = true; markResearcherEdit(); setGrantWorkPackages(current => current.map((row, rowIndex) => rowIndex === index ? { ...row, objective: event.target.value } : row)); }} rows={2} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
+        <label className="block text-xs font-medium">Activities<textarea value={(item.activities || []).join('\n')} onChange={event => { grantWorkPackagesEditedRef.current = true; markResearcherEdit(); setGrantWorkPackages(current => current.map((row, rowIndex) => rowIndex === index ? { ...row, activities: event.target.value.split('\n').slice(0, 20) } : row)); }} rows={3} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
+        <label className="block text-xs font-medium">Planned deliverables<textarea value={(item.deliverables || []).join('\n')} onChange={event => { grantWorkPackagesEditedRef.current = true; markResearcherEdit(); setGrantWorkPackages(current => current.map((row, rowIndex) => rowIndex === index ? { ...row, deliverables: event.target.value.split('\n').slice(0, 20) } : row)); }} rows={3} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" /></label>
+      </fieldset>)}</div>
+      <label className="block text-sm font-medium">Provisional budget notes (no unverified amounts)<textarea value={grantBudgetNotes.join('\n')} onChange={event => { grantWorkPackagesEditedRef.current = true; markResearcherEdit(); setGrantBudgetNotes(event.target.value.split('\n').slice(0, 30)); }} rows={3} className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder="Qualitative cost categories or call constraints; add amounts only after researcher verification." /></label>
+      <p className="text-xs text-muted-foreground">Editing call sections, work packages or budget notes invalidates the saved review approval until this revision is saved and reviewed again. Milestones remain proposal content and are never added to the project workplan automatically.</p>
+    </section>}
     {!hasDraft && <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">Enter a research idea, choose a discipline and language, then generate the complete 18-section proposal. EYRA runs only after you choose Generate Complete Proposal.</div>}
     {generationRun?.status === 'complete' && generationRun.milestones?.length > 0 && <section className="rounded-xl border border-primary/25 bg-primary/5 p-4" aria-label="Proposed research milestones"><h4 className="font-semibold">Proposed research milestones</h4><p className="mt-1 text-xs leading-5 text-muted-foreground">These are generated activities for review. They have not been approved or added to the project workplan.</p><ol className="mt-3 list-decimal space-y-2 pl-5 text-sm">{generationRun.milestones.map(task => <li key={task.task_key}><span className="font-medium">{task.phase}: {task.title}</span>{task.deliverable && <span className="block text-xs text-muted-foreground">Deliverable: {task.deliverable}</span>}</li>)}</ol></section>}
     {generationRun?.status === 'complete' && <>
