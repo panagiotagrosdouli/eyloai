@@ -153,7 +153,7 @@ try {
       const recordsMatch = body.prompt.match(/SELECTED PROJECT SCHOLARLY RECORDS\n([\s\S]*?)\n\nReturn exactly one section/);
       assert.ok(recordsMatch, 'grant drafting must receive selected project scholarly records');
       const [record] = JSON.parse(recordsMatch[1]);
-      const requirementsMatch = body.prompt.match(/CALL REQUIREMENTS WITH LINE-LEVEL PROVENANCE\n([\s\S]*?)\n\nUNCONFIRMED INFORMATION/);
+      const requirementsMatch = body.prompt.match(/CALL REQUIREMENTS WITH LINE-LEVEL PROVENANCE\n([\s\S]*?)\n\nUNTRUSTED DOCUMENT EVIDENCE:/);
       assert.ok(requirementsMatch, 'grant drafting must retain documented call requirement provenance');
       const requirements = JSON.parse(requirementsMatch[1]);
       const sectionsMatch = body.prompt.match(/RESEARCHER-CONFIRMED PROPOSAL HEADINGS\n([\s\S]*?)\n\nPROJECT IDEA/);
