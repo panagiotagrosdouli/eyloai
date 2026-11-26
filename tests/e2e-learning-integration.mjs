@@ -762,7 +762,7 @@ try {
   await grantSection.locator('input[type="file"]').setInputFiles({ name: 'instructions-fixture.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer: callDocx });
   await grantSection.getByText('instructions-fixture.docx', { exact: true }).waitFor();
   const callTxt = 'Institutional information: Applicant organization must confirm local eligibility.';
-  const callMarkdown = '# Required attachments\\nApplicants must supply institutional letters.';
+  const callMarkdown = '# Required attachments\nApplicants must supply institutional letters.';
   await grantSection.locator('input[type="file"]').setInputFiles({ name: 'applicant-fixture.txt', mimeType: 'text/plain', buffer: Buffer.from(callTxt) });
   await grantSection.getByText('applicant-fixture.txt', { exact: true }).waitFor();
   await grantSection.locator('input[type="file"]').setInputFiles({ name: 'annex-fixture.md', mimeType: 'text/markdown', buffer: Buffer.from(callMarkdown) });
