@@ -1,7 +1,11 @@
+Warning: truncated output (original token count: 30090)
+Total output lines: 1455
+
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile } from 'node:fs/promises';
+import { strFromU8, unzipSync } from 'fflate';
 import { chromium } from 'playwright';
 import { WORKSPACE_EXPORT_TABLES } from '../src/lib/workspace-export.mjs';
 
@@ -141,6 +145,17 @@ try {
         selected_source_keys: [selected.source_key],
         assessments: [{ source_key: selected.source_key, reason: 'The title and available abstract match the research question.', limitation: 'Abstract metadata does not establish causal support or study quality.' }],
       } });
+    }
+    if (body.prompt?.includes('Draft an editable grant proposal for the supplied official call')) {
+      const recordsMatch = body.prompt.match(/SELECTED PROJECT SCHOLARLY RECORDS\n([\s\S]*?)\n\nReturn exactly one section/);
+      assert.ok(recordsMatch, 'grant drafting must receive selected project scholarly records');
+      const [record] = JSON.parse(recordsMatch[1]);
+      const requirementsMatch = body.prompt.match(/CALL REQUIREMENTS WITH LINE-LEVEL PROVENANCE\n([\s\S]*?)\n\nUNCONFIRMED INFORMATION/);
+      assert.ok(requirementsMatch, 'grant drafting must retain documented call requirement provenance');
+      const requirements = JSON.parse(requirementsMatch[1]);
+      const sectionsMatch = body.prompt.match(/RESEARCHER-CONFIRMED PROPOSAL HEADINGS\n([\s\S]*?)\n\nPROJECT IDEA/);
+      const headings = JSON.parse(sectionsMatch[1]);
+      return json(route, { data: { sections: headings.map((heading, index) => ({ heading, content: `Proposed grant section ${heading}.`, requirement_ids: requirements.map(item => item.id), source_ids: index === 0 ? [record.id] : [], status: 'drafted' })), work_packages: [{ code: 'WP1', title: 'Protocol planning', objective: 'Plan the proposed study protocol.', activities: ['Draft the protocol'], deliverables: ['Protocol draft'], milestones: ['Researcher review'], partner_name: '' }], budget_lines: [] } });
     }
     if (body.prompt?.includes('Create a preliminary evidence matrix')) {
       const sourceJson = body.prompt.split('RECORDS:\n').at(-1);
@@ -706,6 +721,50 @@ try {
   await page.getByRole('button', { name: 'Evidence', exact: true }).click();
   assert.equal(await page.locator('label').filter({ hasText: 'Research idea' }).locator('textarea').inputValue(), question);
   assert.equal(await page.getByLabel('Background statement 1', { exact: true }).inputValue(), 'Researcher-edited proposal evidence note.');
+  const grantSection = page.locator('section[aria-labelledby="grant-proposal-builder-title"]');
+  await grantSection.getByLabel('Official call title').fill('Fixture Research Funding Call');
+  await grantSection.getByLabel('Official call HTTPS URL').fill('https://funding.example.org/calls/fixture');
+  await grantSection.getByLabel('Call text or documented excerpts').fill([
+    'Eligibility: Applicants must meet the listed eligibility criteria.',
+    'Submission deadline: Applicants must submit by 30 June 2026.',
+    'Budget: Maximum funding is €100,000.',
+    'Template: Applicants must use the official proposal template and page limit.',
+    'Consortium: Applicants must include an eligible consortium partner.',
+  ].join('\n'));
+  await grantSection.getByLabel('Project idea').fill('Study community heat adaptation using longitudinal observations.');
+  await grantSection.getByLabel('Proposal headings copied from this call').fill('Project summary\nResearch methods');
+  for (const checkbox of await grantSection.getByLabel(/Applicants must|Submission deadline|Maximum funding|official proposal template|eligible consortium partner/).all()) await checkbox.check();
+  await grantSection.getByRole('button', { name: 'Generate Complete Grant Proposal', exact: true }).click();
+  await grantSection.getByLabel('Grant section Project summary').waitFor();
+  await grantSection.getByText('Bibliography', { exact: true }).waitFor();
+  assert.ok(await grantSection.getByRole('link', { name: 'Inspect source' }).count() > 0, 'grant scholarly records must expose source inspection links');
+  assert.equal(tables.projects[0].data.grant_proposal.autonomous_run.status, 'complete');
+  assert.equal(tables.projects[0].data.grant_proposal.call_requirements.length, 5, 'grant checkpoint must preserve each call line and provenance');
+  assert.match(tables.projects[0].data.grant_proposal.draft.work_packages[0].status, /provisional/);
+  assert.equal(tables.projects[0].data.plan_items?.length || 0, 0, 'grant work packages must not enter the project workplan automatically');
+  await grantSection.getByLabel('Grant section Project summary').fill('Researcher-edited grant summary.');
+  await grantSection.getByRole('button', { name: 'Save draft', exact: true }).click();
+  await page.getByText('Grant draft saved to this private research project.', { exact: true }).waitFor();
+  assert.equal(tables.projects[0].data.grant_proposal.edited_sections[0].content, 'Researcher-edited grant summary.');
+  await page.reload();
+  await page.getByRole('button', { name: 'Evidence', exact: true }).click();
+  const reloadedGrant = page.locator('section[aria-labelledby="grant-proposal-builder-title"]');
+  assert.equal(await reloadedGrant.getByLabel('Grant section Project summary').inputValue(), 'Researcher-edited grant summary.');
+  assert.equal(await reloadedGrant.getByRole('button', { name: 'Export Markdown', exact: true }).isDisabled(), true, 'export remains gated until exact-revision researcher approval');
+  await reloadedGrant.getByRole('button', { name: 'Mark researcher review complete', exact: true }).click();
+  await page.getByText(/Researcher review state saved/).waitFor();
+  const grantMarkdownDownloadEvent = page.waitForEvent('download');
+  await reloadedGrant.getByRole('button', { name: 'Export Markdown', exact: true }).click();
+  const grantMarkdownDownload = await grantMarkdownDownloadEvent;
+  const grantMarkdown = await readFile(await grantMarkdownDownload.path(), 'utf8');
+  assert.match(grantMarkdown, /Researcher-edited grant summary/);
+  assert.match(grantMarkdown, /call-line-1/);
+  assert.ma…90 tokens truncated…unzipSync(await readFile(await grantDocxDownload.path()));
+  const grantDocxXml = strFromU8(grantDocxFiles['word/document.xml']);
+  assert.match(grantDocxXml, /Researcher-edited grant summary/);
+  assert.match(grantDocxXml, /Bibliography/);
+  assert.match(grantDocxXml, /Call requirements and provenance/);
+  console.log('PASS fixture: grant call provenance, source review, draft persistence, researcher edits, exact-revision export approval and Markdown/DOCX file contents.');
   const methodologySection = page.locator('section[aria-labelledby="research-methodology-studio-title"]');
   const methodologyQuestion = methodologySection.locator('label').filter({ hasText: 'Methodology research question' }).locator('textarea');
   assert.equal(await methodologyQuestion.inputValue(), question, 'methodology must reuse the saved project question');
