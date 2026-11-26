@@ -770,8 +770,8 @@ try {
   await grantSection.locator('input[type="file"]').setInputFiles({ name: 'annex-fixture.md', mimeType: 'text/markdown', buffer: Buffer.from(callMarkdown) });
   await grantSection.getByText('annex-fixture.md', { exact: true }).waitFor();
   const documentedRequirements = grantSection.locator('section[aria-label="Documented call requirements"]');
-  await documentedRequirements.getByText(/call-fixture\.pdf · page 1/).waitFor();
-  await documentedRequirements.getByText(/instructions-fixture\.docx · section Required attachments/).waitFor();
+  await documentedRequirements.getByText(/call-fixture\.pdf · page 1/).first().waitFor();
+  await documentedRequirements.getByText(/instructions-fixture\.docx · section Required attachments/).first().waitFor();
   await grantSection.getByLabel('Extracted or researcher-entered call text').waitFor();
   await grantSection.getByLabel('Project idea').fill('Study community heat adaptation using longitudinal observations.');
   await grantSection.getByLabel('Proposal headings copied from this call').fill('Project summary\nResearch methods');
