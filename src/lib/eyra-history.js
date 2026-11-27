@@ -51,11 +51,22 @@ export async function deleteEyraConversation(id, expectedVersion) {
   const { data, error } = await client.from('eyra_conversations').delete().eq('user_id', owner).eq('id', id).eq('version', expectedVersion).select('id');
   if (error || data?.length !== 1 || data[0].id !== id) throw new Error('Deletion was not confirmed. Reload saved conversations before retrying.');
 }
-export async function loadEyraConversation(id) {
+export async function loadEyraConversation(id, signal) {
+  // Both reads belong to a single UI restore. A Clear or account switch must
+  // be able to cancel them before an outdated transcript is committed.
+  signal?.throwIfAborted();
   const { client, owner } = await authenticatedClient();
-  const { data: thread, error } = await client.from('eyra_conversations').select('id,title,version,updated_date').eq('user_id', owner).eq('id', id).single();
+  signal?.throwIfAborted();
+  const { data: thread, error } = await client.from('eyra_conversations')
+    .select('id,title,version,updated_date').eq('user_id', owner).eq('id', id)
+    .abortSignal(signal || new AbortController().signal).single();
+  signal?.throwIfAborted();
   if (error || !thread) throw new Error('Conversation not found.');
-  const { data: rows, error: messagesError } = await client.from('eyra_messages').select('role,content,sources,created_date').eq('user_id', owner).eq('conversation_id', id).order('sequence_number', { ascending: false }).limit(30);
+  const { data: rows, error: messagesError } = await client.from('eyra_messages')
+    .select('role,content,sources,created_date').eq('user_id', owner).eq('conversation_id', id)
+    .order('sequence_number', { ascending: false }).limit(30)
+    .abortSignal(signal || new AbortController().signal);
+  signal?.throwIfAborted();
   if (messagesError) throw new Error('Conversation messages could not be loaded.');
   return { ...thread, messages: restoreEyraConversationMessages(Array.isArray(rows) ? rows.slice().reverse() : rows) };
 }
