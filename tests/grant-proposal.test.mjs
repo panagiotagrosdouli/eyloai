@@ -62,6 +62,10 @@ test('grant requirement classification distinguishes direct text, researcher-con
   assert.equal(missing.classification, 'MISSING');
   assert.throws(() => classifyGrantRequirement({ sourceQuote: 'Funding body awards €1 million.', sourceLines }), /match supplied call material/);
   assert.equal(validateGrantRequirementProvenance([inferred], sourceLines), true);
+  const inferredCall = { ...call, requirements: [{ ...call.requirements[0], classification: 'INFERRED', interpretation: 'Researcher interpretation requiring full-call confirmation.', confirmation_status: 'unconfirmed' }] };
+  const options = { call: inferredCall, idea: 'A sufficiently detailed project idea for scientific review.', discipline: 'Science', sectionHeadings: ['Summary'], confirmedMissingInformation: call.missing_information.map(item => item.id), selectedPaperIds: ['paper-1'] };
+  assert.throws(() => validateGrantProposalInputs(options), /Confirm or correct/);
+  assert.doesNotThrow(() => validateGrantProposalInputs({ ...options, confirmedRequirementIds: [inferredCall.requirements[0].id] }));
 });
 
 test('conflicting eligibility stays unresolved until researcher attests full-call resolution', () => {
