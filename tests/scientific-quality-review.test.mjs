@@ -4,10 +4,10 @@ import { collectScientificReviewItems, SCIENTIFIC_ARTIFACTS, updateScientificRev
 
 test('review discovery connects all five saved research artifact types without manufacturing assessments', () => {
   const project = {
-    evidence_matrix: { ai_draft: { rows: [{ claim: 'Claim from matrix', paper_id: 'paper-1', evidence_scope: 'abstract_only' }] } },
-    literature_review: { sections: [{ content: 'Review claim', source_ids: ['paper-1'] }] },
-    research_proposal: { draft: { sections: [{ content: 'Proposal claim', source_ids: ['paper-2'] }] } },
-    research_methodology: { sections: [{ content: 'Method claim', source_ids: ['paper-3'] }] },
+    evidence_matrix: { ai_draft: { rows: [{ study_design: 'Not reported in the available record.', dataset: 'Not reported in the available record.', findings: 'Claim from matrix', limitations: 'Not reported in the available record.', paper_id: 'paper-1', evidence_scope: 'abstract_only' }] } },
+    literature_review: { ai_draft: { sections: [{ claims: [{ text: 'Review claim', source_ids: ['paper-1'] }] }] } },
+    research_proposal: { draft: { sections: [{ claims: [{ text: 'Proposal claim', source_ids: ['paper-2'] }] }] } },
+    research_methodology: { edited_topics: { methods: { claims: [{ text: 'Method claim', source_ids: ['paper-3'] }] } } },
     grant_proposal: { edited_sections: [{ content: 'Grant claim', source_ids: ['paper-4'] }] },
   };
   const rows = collectScientificReviewItems(project);
@@ -18,12 +18,15 @@ test('review discovery connects all five saved research artifact types without m
 });
 
 test('review annotations remain project-scoped data and require a valid semantic assessment label', () => {
-  const project = { id: 'project-owner-a', scientific_quality_review: {}, research_proposal: { sections: [{ content: 'A saved claim', source_ids: ['paper-a'] }] } };
+  const project = { id: 'project-owner-a', scientific_quality_review: {}, research_proposal: { sections: [{ claims: [{ text: 'A saved claim', source_ids: ['paper-a'] }] }] } };
   const [claim] = collectScientificReviewItems(project);
   const updated = updateScientificReview(project, claim.id, { assessment: 'partially_supported', annotation: 'Inspected the abstract only.', limitation: 'Full text unavailable.' }, { now: '2026-01-01T00:00:00.000Z' });
   assert.equal(updated[claim.id].assessment, 'partially_supported');
   assert.deepEqual(updated[claim.id].source_ids, ['paper-a']);
   assert.equal(updated[claim.id].reviewed_at, '2026-01-01T00:00:00.000Z');
+  assert.throws(() => updateScientificReview(project, claim.id, { assessment: 'supported_by_inspected_evidence' }), /requires recorded inspection/);
+  const inspected = updateScientificReview(project, claim.id, { assessment: 'supported_by_inspected_evidence', evidence_scope: 'abstract_only' });
+  assert.equal(inspected[claim.id].evidence_scope, 'abstract_only');
   assert.throws(() => updateScientificReview(project, claim.id, { assessment: 'peer_review_passed' }), /supported scientific review state/);
   assert.throws(() => updateScientificReview(project, 'another-project-claim', { assessment: 'unsupported' }), /no longer present/);
 });

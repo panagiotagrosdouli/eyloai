@@ -17,11 +17,27 @@ const stableId = (kind, value, index) => {
   return `${kind}:${(hash >>> 0).toString(16)}`;
 };
 
-function claimRows(artifact) {
+function claimRows(artifact, artifactKey) {
   if (!artifact || typeof artifact !== 'object') return [];
-  if (Array.isArray(artifact.ai_draft?.rows)) return artifact.ai_draft.rows.map(row => ({ text: text(row.claim || row.finding || row.summary || row.rationale || row.research_gap), sources: sourceIds(row.source_ids || [row.paper_id]), scope: row.evidence_scope || 'metadata_only' }));
-  const sections = artifact.edited_sections || artifact.draft?.sections || artifact.sections || artifact.review?.sections;
-  if (Array.isArray(sections)) return sections.map(section => ({ text: text(section.content || section.text || section.summary), sources: sourceIds(section.source_ids || section.source_ids_used || section.citations), scope: section.evidence_scope || 'metadata_only' }));
+  if (artifactKey === 'evidence_matrix' && Array.isArray(artifact.ai_draft?.rows)) {
+    return artifact.ai_draft.rows.flatMap(row => ['study_design', 'dataset', 'findings', 'limitations'].map(field => ({
+      text: text(row[field]), sources: sourceIds([row.paper_id]), scope: row.evidence_scope || 'metadata_only',
+    })).filter(item => item.text && !/^not reported in the available record\.?$/i.test(item.text)));
+  }
+  if (artifactKey === 'research_methodology') {
+    const topics = artifact.edited_topics || artifact.ai_draft?.topics || {};
+    return Object.values(topics).flatMap(topic => Array.isArray(topic?.claims) ? topic.claims.map(claim => ({ text: text(claim.text), sources: sourceIds(claim.source_ids), scope: claim.evidence_scope || 'metadata_only' })) : []);
+  }
+  if (artifactKey === 'research_proposal') {
+    const collections = [artifact.edited_sections || artifact.ai_draft?.sections || artifact.draft?.sections || artifact.sections, artifact.edited_methodology || artifact.ai_draft?.methodology_plan];
+    return collections.flatMap(collection => Array.isArray(collection)
+      ? collection.flatMap(section => Array.isArray(section?.claims) ? section.claims.map(claim => ({ text: text(claim.text), sources: sourceIds(claim.source_ids), scope: claim.evidence_scope || 'metadata_only' })) : [])
+      : collection && typeof collection === 'object' ? Object.values(collection).flatMap(section => Array.isArray(section?.claims) ? section.claims.map(claim => ({ text: text(claim.text), sources: sourceIds(claim.source_ids), scope: claim.evidence_scope || 'metadata_only' })) : []) : []);
+  }
+  const sections = artifact.edited_sections || artifact.ai_draft?.sections || artifact.draft?.sections || artifact.sections || artifact.review?.sections;
+  if (Array.isArray(sections)) return sections.flatMap(section => Array.isArray(section.claims)
+    ? section.claims.map(claim => ({ text: text(claim.text), sources: sourceIds(claim.source_ids), scope: claim.evidence_scope || 'metadata_only' }))
+    : [{ text: text(section.content || section.text || section.summary), sources: sourceIds(section.source_ids || section.source_ids_used || section.citations), scope: section.evidence_scope || 'metadata_only' }]);
   if (Array.isArray(artifact.rows)) return artifact.rows.map(row => ({ text: text(row.claim || row.finding || row.statement || row.summary), sources: sourceIds(row.source_ids || [row.paper_id]), scope: row.evidence_scope || 'metadata_only' }));
   return [];
 }
@@ -30,7 +46,7 @@ function claimRows(artifact) {
 export function collectScientificReviewItems(project = {}) {
   const saved = project.scientific_quality_review && typeof project.scientific_quality_review === 'object' ? project.scientific_quality_review : {};
   return SCIENTIFIC_ARTIFACTS.flatMap(({ key, label }) => {
-    const rows = claimRows(project[key]);
+    const rows = claimRows(project[key], key);
     return rows.filter(row => row.text).map((row, index) => {
       const id = stableId(key, row.text, index);
       const review = saved[id] || {};
@@ -57,6 +73,9 @@ export function updateScientificReview(project, itemId, update, { now = new Date
   if (!item) throw new Error('The reviewed research claim is no longer present. Reload before saving.');
   const assessment = String(update?.assessment || item.assessment);
   if (!CLAIM_SUPPORT_LABELS.includes(assessment)) throw new Error('Choose a supported scientific review state.');
+  const evidenceScope = String(update?.evidence_scope || item.evidence_scope);
+  if (!EVIDENCE_SCOPES.includes(evidenceScope)) throw new Error('Choose a valid evidence access state.');
+  if (assessment === 'supported_by_inspected_evidence' && !['abstract_only', 'full_text', 'official_call'].includes(evidenceScope)) throw new Error('A supported assessment requires recorded inspection of an abstract, full text or official call.');
   const current = project.scientific_quality_review && typeof project.scientific_quality_review === 'object' ? project.scientific_quality_review : {};
   return {
     ...current,
@@ -67,7 +86,7 @@ export function updateScientificReview(project, itemId, update, { now = new Date
       reviewed_at: assessment === 'not_yet_reviewed' ? '' : now,
       artifact_key: item.artifact_key,
       source_ids: item.source_ids,
-      evidence_scope: item.evidence_scope,
+      evidence_scope: evidenceScope,
     },
   };
 }

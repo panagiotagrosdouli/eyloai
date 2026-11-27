@@ -724,6 +724,7 @@ Rules:
           <ScientificQualityReview
             key={`${id}-scientific-quality-review`}
             project={project}
+            savedPapers={savedPapers}
             onProjectSaved={saved => setProject(previous => ({ ...previous, ...saved }))}
           />
           {savedPapers.length ? savedPapers.map(paper => (

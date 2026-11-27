@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { AlertTriangle, Save } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { CLAIM_SUPPORT_LABELS } from '@/lib/scientific-evaluation.mjs';
+import { CLAIM_SUPPORT_LABELS, EVIDENCE_SCOPES } from '@/lib/scientific-evaluation.mjs';
 import { collectScientificReviewItems, updateScientificReview } from '@/lib/scientific-quality-review.mjs';
+import { safeResearchSourceUrl } from '@/lib/research-source-url.mjs';
 
 const labels = {
   supported_by_inspected_evidence: 'Supported by inspected evidence',
@@ -16,8 +17,9 @@ const errorText = error => error?.code === 'ENTITY_CONFLICT'
   ? 'This project changed elsewhere. Your review remains in the editor; reload the project before saving.'
   : error?.message || 'The scientific review could not be saved.';
 
-export default function ScientificQualityReview({ project, onProjectSaved }) {
+export default function ScientificQualityReview({ project, savedPapers = [], onProjectSaved }) {
   const items = useMemo(() => collectScientificReviewItems(project), [project]);
+  const projectSources = useMemo(() => new Map(savedPapers.filter(paper => paper.project_id === project.id).map(paper => [String(paper.id), paper])), [project.id, savedPapers]);
   const [edits, setEdits] = useState({});
   const [savingId, setSavingId] = useState('');
   const [message, setMessage] = useState('');
@@ -45,8 +47,13 @@ export default function ScientificQualityReview({ project, onProjectSaved }) {
       return <article key={item.id} className="space-y-3 rounded-xl border border-border p-3 sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{item.artifact_label}</span><span className="rounded-full bg-secondary px-2.5 py-1 text-xs">{item.evidence_scope.replaceAll('_', ' ')}</span></div>
         <p className="whitespace-pre-wrap text-sm leading-6">{item.claim}</p>
-        <p className="text-xs text-muted-foreground">Source references: {item.source_ids.length ? item.source_ids.join(', ') : 'none recorded'} · Evidence access: {item.evidence_scope.replaceAll('_', ' ')}</p>
+        <div className="space-y-1 text-xs text-muted-foreground"><p>Source references:</p>{item.source_ids.length ? item.source_ids.map(sourceId => {
+          const paper = projectSources.get(sourceId);
+          const href = paper ? safeResearchSourceUrl(paper) : '';
+          return <p key={sourceId} className="break-words">{paper ? <>{href ? <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-2 hover:underline">{paper.title || sourceId} · inspect record</a> : paper.title || sourceId}</> : <span className="text-amber-800 dark:text-amber-200">{sourceId} · source record unavailable in this project</span>}</p>;
+        }) : <p>none recorded</p>}</div>
         {item.automated_findings.length > 0 && <ul className="space-y-1 rounded-lg bg-amber-500/5 p-3 text-xs text-amber-900 dark:text-amber-100">{item.automated_findings.map(finding => <li key={finding} className="flex gap-2"><AlertTriangle size={14} className="mt-0.5 shrink-0" />{finding}</li>)}</ul>}
+        <label className="block text-sm font-medium">Evidence inspected by reviewer<select className="mt-1 min-h-11 w-full rounded-lg border border-border bg-background px-3" value={value.evidence_scope || item.evidence_scope} onChange={event => setEdits(previous => ({ ...previous, [item.id]: { ...value, evidence_scope: event.target.value } }))}>{EVIDENCE_SCOPES.map(scope => <option key={scope} value={scope}>{scope.replaceAll('_', ' ')}</option>)}</select></label>
         <label className="block text-sm font-medium">Reviewer assessment<select className="mt-1 min-h-11 w-full rounded-lg border border-border bg-background px-3" value={value.assessment} onChange={event => setEdits(previous => ({ ...previous, [item.id]: { ...value, assessment: event.target.value } }))}>{CLAIM_SUPPORT_LABELS.map(option => <option key={option} value={option}>{labels[option]}</option>)}</select></label>
         <label className="block text-sm font-medium">Researcher annotation<textarea className="mt-1 min-h-20 w-full rounded-lg border border-border bg-background px-3 py-2" maxLength={2000} value={value.annotation || ''} onChange={event => setEdits(previous => ({ ...previous, [item.id]: { ...value, annotation: event.target.value } }))} placeholder="Record the evidence inspected, reasoning, or reviewer note." /></label>
         <label className="block text-sm font-medium">Scientific limitation<textarea className="mt-1 min-h-16 w-full rounded-lg border border-border bg-background px-3 py-2" maxLength={1000} value={value.limitation || ''} onChange={event => setEdits(previous => ({ ...previous, [item.id]: { ...value, limitation: event.target.value } }))} placeholder="For example: abstract only, inaccessible full text, or conflicting findings." /></label>
