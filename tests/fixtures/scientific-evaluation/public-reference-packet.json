@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "notice": "UNJUDGED REFERENCE PACKET. No AI outputs or expert ratings have been evaluated. Metadata manually transcribed from the linked publisher/NCBI references; cross-service metadata validation remains required.",
+  "evaluation_id": "eylo-public-reference-unjudged-v1",
+  "commit_sha": "ffc79b8d4dac82cef5c3f98b12f6a2a328442ef1",
+  "records": [
+    {
+      "id": "ioannidis-2005",
+      "doi": "10.1371/journal.pmed.0020124",
+      "title": "Why Most Published Research Findings Are False",
+      "year": 2005,
+      "primary_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1182327/",
+      "metadata_crosschecked": false,
+      "correction_doi": "10.1371/journal.pmed.1004085"
+    },
+    {
+      "id": "ioannidis-2022-correction",
+      "doi": "10.1371/journal.pmed.1004085",
+      "title": "Correction: Why Most Published Research Findings Are False",
+      "year": 2022,
+      "primary_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9410711/",
+      "metadata_crosschecked": false
+    }
+  ],
+  "claims": [],
+  "claim_reviews": [],
+  "dimension_reviews": []
+}

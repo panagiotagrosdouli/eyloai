@@ -15,7 +15,7 @@ function reviewedFixture() {
       assertions: Object.fromEntries(assertions.map(assertion => [assertion, true])),
       supabase_ref: target.supabase_ref, vercel_project_id: target.vercel_project_id,
       test_user_ids: ['00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002'],
-      metrics: { queries: 5, covered_queries: 5, human_reviewed_queries: 5 }, test_mode: true, livemode: false,
+      metrics: { queries: 5, covered_queries: 5, human_reviewed_queries: 5, factual_claims: 5, independently_reviewed_claims: 5, abstract_only_distinguished: true }, expert_reviewer_ids: ['expert-fixture-one', 'expert-fixture-two'], expert_adjudication_complete: true, test_mode: true, livemode: false,
     }])) };
 }
 const evaluate = input => evaluateReleaseReadiness(input, { expectedCommit: commit, now });
@@ -56,6 +56,21 @@ test('the current 3/5 retrieval coverage or missing human review cannot be relab
   input.checks.research.metrics.covered_queries = 5; input.checks.research.metrics.human_reviewed_queries = 0;
   assert.equal(evaluate(input).decision, 'NO-GO');
 });
+test('scientific quality cannot pass on bibliographic retrieval scores alone', () => {
+  const input = reviewedFixture();
+  input.checks.scientific_quality.expert_reviewer_ids = ['expert-fixture-one'];
+  assert.equal(evaluate(input).decision, 'NO-GO');
+  input.checks.scientific_quality.expert_reviewer_ids = ['expert-fixture-one', 'expert-fixture-two'];
+  input.checks.scientific_quality.metrics.abstract_only_distinguished = false;
+  assert.equal(evaluate(input).decision, 'NO-GO');
+  input.checks.scientific_quality.metrics.abstract_only_distinguished = true;
+  input.checks.scientific_quality.metrics.independently_reviewed_claims = 3;
+  assert.equal(evaluate(input).decision, 'NO-GO');
+  input.checks.scientific_quality.metrics.independently_reviewed_claims = 5;
+  input.checks.scientific_quality.expert_adjudication_complete = false;
+  assert.equal(evaluate(input).decision, 'NO-GO');
+});
+
 test('live Stripe mode and deletion without revoked sessions are rejected despite PASS labels', () => {
   const input = reviewedFixture(); input.checks.stripe.livemode = true;
   assert.equal(evaluate(input).decision, 'NO-GO');

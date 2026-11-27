@@ -13,6 +13,7 @@ export const RELEASE_CHECKS = Object.freeze([
   ['projects', 'hosted-staging', ['workplans_persist', 'stale_writes_rejected', 'exact_project_scope']],
   ['eyra', 'hosted-staging', ['authenticated_responses_api', 'stream_completion_and_cancel', 'private_history_and_export', 'explicit_write_permission', 'destructive_confirmation', 'provider_failures_and_budgets']],
   ['research', 'live-and-human', ['real_sources_only', 'partial_source_disclosure', 'human_relevance_review']],
+  ['scientific_quality', 'live-and-human', ['bibliographic_accuracy_reviewed', 'semantic_claim_support_reviewed', 'research_question_coherence_reviewed', 'methodological_fit_reviewed', 'internal_consistency_reviewed', 'uncertainty_disclosure_reviewed', 'ethics_reproducibility_reviewed', 'grant_requirements_coverage_reviewed', 'abstract_only_distinguished', 'independent_adjudication_recorded']],
   ['funding', 'hosted-staging', ['official_source_fidelity', 'project_scoped_drafts']],
   ['stripe', 'hosted-staging', ['test_checkout_webhook_entitlements', 'renewal_cancel_failed_payment', 'duplicate_event_safety']],
   ['livekit', 'hosted-staging', ['two_user_media', 'unauthorized_join_denied', 'reconnection_and_leave']],
@@ -59,6 +60,21 @@ export function evaluateReleaseReadiness(input, { expectedCommit, now = Date.now
     if (id === 'research') {
       const metrics = report?.metrics;
       if (!Number.isSafeInteger(metrics?.queries) || metrics.queries < 5 || metrics.covered_queries !== metrics.queries || !Number.isSafeInteger(metrics.human_reviewed_queries) || metrics.human_reviewed_queries < metrics.queries) reasons.push('All five or more research queries require sufficient source coverage and independent human relevance review.');
+    }
+    if (id === 'scientific_quality') {
+      const reviewers = report?.expert_reviewer_ids;
+      if (!Array.isArray(reviewers) || reviewers.length < 2
+        || reviewers.some(value => typeof value !== 'string' || !/^[a-z0-9_-]{3,64}$/i.test(value))
+        || new Set(reviewers).size < 2) {
+        reasons.push('At least two distinct pseudonymous domain expert reviewers must independently evaluate the science.');
+      }
+      const metrics = report?.metrics;
+      if (!Number.isSafeInteger(metrics?.factual_claims) || metrics.factual_claims < 1
+        || metrics.independently_reviewed_claims !== metrics.factual_claims) {
+        reasons.push('Every factual claim in the review sample requires independently recorded expert judgments.');
+      }
+      if (metrics?.abstract_only_distinguished !== true) reasons.push('Abstract-only inspection must be distinguished from full-text verification.');
+      if (report?.expert_adjudication_complete !== true) reasons.push('Independent scientific disagreements require human adjudication and sign-off.');
     }
     if (id === 'stripe' && (report?.test_mode !== true || report?.livemode !== false)) reasons.push('Stripe acceptance must use test mode; live payments are not authorized by this gate.');
     return { id, required_scope: scope, status: reasons.length ? 'BLOCKED' : 'VERIFIED', reasons };
