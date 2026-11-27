@@ -6,7 +6,6 @@ export const RESEARCH_ARTIFACT_KINDS = Object.freeze([
 ]);
 
 const text = value => String(value ?? '').trim();
-const normalize = value => text(value).replace(/\s+/g, ' ').toLowerCase();
 const isObject = value => Boolean(value && typeof value === 'object' && !Array.isArray(value));
 const claimRecord = (id, section, value, ids, kind) => ({
   id, section, text: text(value), source_ids: [...new Set((Array.isArray(ids) ? ids : []).map(String))], kind,
