@@ -20,7 +20,7 @@ test('review discovery connects all five saved research artifact types without m
 test('review annotations remain project-scoped data and require a valid semantic assessment label', () => {
   const project = { id: 'project-owner-a', scientific_quality_review: {}, research_proposal: { sections: [{ claims: [{ text: 'A saved claim', source_ids: ['paper-a'] }] }] } };
   const [claim] = collectScientificReviewItems(project);
-  const updated = updateScientificReview(project, claim.id, { assessment: 'partially_supported', annotation: 'Inspected the abstract only.', limitation: 'Full text unavailable.' }, { now: '2026-01-01T00:00:00.000Z' });
+  const updated = updateScientificReview(project, claim.id, { assessment: 'partially_supported', evidence_scope: 'abstract_only', annotation: 'Inspected the abstract only.', limitation: 'Full text unavailable.' }, { now: '2026-01-01T00:00:00.000Z' });
   assert.equal(updated[claim.id].assessment, 'partially_supported');
   assert.deepEqual(updated[claim.id].source_ids, ['paper-a']);
   assert.equal(updated[claim.id].reviewed_at, '2026-01-01T00:00:00.000Z');
@@ -29,6 +29,16 @@ test('review annotations remain project-scoped data and require a valid semantic
   assert.equal(inspected[claim.id].evidence_scope, 'abstract_only');
   assert.throws(() => updateScientificReview(project, claim.id, { assessment: 'peer_review_passed' }), /supported scientific review state/);
   assert.throws(() => updateScientificReview(project, 'another-project-claim', { assessment: 'unsupported' }), /no longer present/);
+});
+
+test('saving one claim review preserves existing review records for other artifacts', () => {
+  const previous = { assessment: 'not_yet_reviewed', annotation: 'Keep this separate project note.' };
+  const project = { scientific_quality_review: { 'other-artifact:record': previous }, literature_review: { ai_draft: { sections: [{ claims: [{ text: 'A second claim', source_ids: ['paper-b'] }] }] } } };
+  const [claim] = collectScientificReviewItems(project);
+  assert.throws(() => updateScientificReview(project, claim.id, { assessment: 'unsupported' }), /requires recorded inspection/);
+  const result = updateScientificReview(project, claim.id, { assessment: 'unsupported', evidence_scope: 'abstract_only', annotation: 'Inspected the available abstract; it does not support this claim.' });
+  assert.deepEqual(result['other-artifact:record'], previous);
+  assert.equal(result[claim.id].assessment, 'unsupported');
 });
 
 test('saving a structural citation link never creates an automated support verdict', () => {

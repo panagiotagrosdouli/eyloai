@@ -66,6 +66,10 @@ test('grant requirement classification distinguishes direct text, researcher-con
   const options = { call: inferredCall, idea: 'A sufficiently detailed project idea for scientific review.', discipline: 'Science', sectionHeadings: ['Summary'], confirmedMissingInformation: call.missing_information.map(item => item.id), selectedPaperIds: ['paper-1'] };
   assert.throws(() => validateGrantProposalInputs(options), /Confirm or correct/);
   assert.doesNotThrow(() => validateGrantProposalInputs({ ...options, confirmedRequirementIds: [inferredCall.requirements[0].id] }));
+  const inferredPrompt = buildGrantProposalPrompt({ call: { ...inferredCall, requirements: inferredCall.requirements.map(item => ({ ...item, confirmation_status: 'confirmed' })) }, idea: options.idea, discipline: options.discipline, sections: ['Summary'], papers: [] });
+  assert.match(inferredPrompt, /INFERRED means researcher-proposed interpretation, never an official rule/);
+  assert.match(inferredPrompt, /Researcher interpretation requiring full-call confirmation/);
+  assert.match(inferredPrompt, /"confirmation_status":"confirmed"/);
 });
 
 test('conflicting eligibility stays unresolved until researcher attests full-call resolution', () => {

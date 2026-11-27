@@ -75,7 +75,10 @@ export function updateScientificReview(project, itemId, update, { now = new Date
   if (!CLAIM_SUPPORT_LABELS.includes(assessment)) throw new Error('Choose a supported scientific review state.');
   const evidenceScope = String(update?.evidence_scope || item.evidence_scope);
   if (!EVIDENCE_SCOPES.includes(evidenceScope)) throw new Error('Choose a valid evidence access state.');
-  if (assessment === 'supported_by_inspected_evidence' && !['abstract_only', 'full_text', 'official_call'].includes(evidenceScope)) throw new Error('A supported assessment requires recorded inspection of an abstract, full text or official call.');
+  if (['supported_by_inspected_evidence', 'partially_supported', 'unsupported', 'contradicted'].includes(assessment)
+    && !['abstract_only', 'full_text', 'official_call'].includes(evidenceScope)) {
+    throw new Error('A semantic verdict requires recorded inspection of an abstract, full text or official call.');
+  }
   const current = project.scientific_quality_review && typeof project.scientific_quality_review === 'object' ? project.scientific_quality_review : {};
   return {
     ...current,

@@ -153,7 +153,7 @@ export default function GrantProposalBuilder({ project, savedPapers = [], onProj
           return savedPaper;
         },
         draftSchema: /** @type {any} */ (GRANT_PROPOSAL_SCHEMA),
-        draftPrompt: ({ selectedPapers: records, plan }) => buildGrantProposalPrompt({ call, idea, discipline: PROPOSAL_DISCIPLINES.find(item => item.id === discipline)?.label || 'Interdisciplinary', language: PROPOSAL_LANGUAGES.find(item => item.id === language)?.label || 'English', sections: validated.sectionHeadings, papers: records, budgetFigures, researcherSuppliedFacts: researcherFacts, plan }),
+        draftPrompt: ({ selectedPapers: records, plan }) => buildGrantProposalPrompt({ call: { ...call, requirements: call.requirements.map(item => ({ ...item, confirmation_status: confirmedRequirementIds.includes(item.id) ? 'confirmed' : 'unconfirmed' })) }, idea, discipline: PROPOSAL_DISCIPLINES.find(item => item.id === discipline)?.label || 'Interdisciplinary', language: PROPOSAL_LANGUAGES.find(item => item.id === language)?.label || 'English', sections: validated.sectionHeadings, papers: records, budgetFigures, researcherSuppliedFacts: researcherFacts, plan }),
         validateDraft: (response, { records }) => validateGrantProposalDraft(response, { sectionHeadings: validated.sectionHeadings, requirements: call.requirements, selectedPaperIds: records.map(item => String(item.id)), budgetFigures, researcherSuppliedFacts: researcherFacts }),
         checkpoint, onProgress: run => setWorkflowRun(run), signal: controller.signal,
       });
