@@ -42,7 +42,7 @@ const validUrl = value => {
  * Returns only aggregate identifiers and counts; no confidential claim text,
  * reviewer rationale, DOI, access token or source URL is echoed to stdout.
  */
-export function evaluateScientificPacket(packet, { expectedCommit } = {}) {
+export function evaluateScientificPacket(packet, /** @type {{expectedCommit?: string}} */ { expectedCommit } = {}) {
   const errors = [];
   const warnings = [];
   const fail = code => errors.push(code);
