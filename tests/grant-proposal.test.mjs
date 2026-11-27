@@ -40,6 +40,65 @@ test('uploaded document line metadata becomes requirement provenance without inv
   assert.equal(documentCall.requirements[0].line, 3);
 });
 
+test('official IMREG call text that excludes milestones suppresses them in prompts, validation and exports', async () => {
+  const sourceUrl = 'https://ec.europa.eu/info/funding-tenders/opportunities/docs/2021-2027/imreg/wp-call/2026/call-fiche_imreg-2026-infome_en.pdf';
+  const requirementText = 'Milestones are not applicable for IMREG calls.';
+  const officialCall = extractGrantCallRequirements({
+    title: 'Call: IMREG-2026-INFOME — Support for information measures relating to the EU Cohesion policy for 2026',
+    sourceUrl,
+    text: requirementText,
+    sourceLines: [{ text: requirementText, page: 13, section: '10. Legal and financial set-up of the Grant Agreements', source_document_id: 'imreg-2026-call', source_document_name: 'call-fiche_imreg-2026-infome_en.pdf' }],
+  });
+  const requirement = officialCall.requirements[0];
+  assert.equal(requirement.quote, requirementText);
+  assert.equal(requirement.page, 13);
+  assert.equal(requirement.section, '10. Legal and financial set-up of the Grant Agreements');
+  const confirmedRequirementIds = [requirement.id];
+  const prompt = buildGrantProposalPrompt({ call: officialCall, confirmedRequirementIds, idea: 'Plan a public information measure on EU Cohesion policy.', discipline: 'Public communication', sections: ['Project design'], papers: [] });
+  assert.match(prompt, /A researcher-confirmed call requirement says milestones are not applicable/);
+  assert.match(prompt, /leave every work-package milestones array empty and return an empty timeline/i);
+
+  const options = { sectionHeadings: ['Summary', 'Methods'], requirements: officialCall.requirements, confirmedRequirementIds, selectedPaperIds: ['paper-1'], budgetFigures: [{ id: 'budget1', amount_text: '€5,000' }] };
+  const inconsistentDraft = validDraft();
+  inconsistentDraft.sections[0].requirement_ids = [requirement.id];
+  inconsistentDraft.sections[1].requirement_ids = [];
+  assert.throws(() => validateGrantProposalDraft(inconsistentDraft, options), /confirmed call says milestones are not applicable/);
+  const compliantDraft = validDraft();
+  compliantDraft.sections[0].requirement_ids = [requirement.id];
+  compliantDraft.sections[1].requirement_ids = [];
+  compliantDraft.work_packages[0].milestones = [];
+  compliantDraft.timeline = [];
+  const checked = validateGrantProposalDraft(compliantDraft, options);
+  const artifact = { call_source: { title: officialCall.source_title, url: sourceUrl }, call_requirements: officialCall.requirements, confirmed_requirement_ids: confirmedRequirementIds, draft: checked, edited_sections: checked.sections, bibliography: [] };
+  const markdown = exportGrantProposalMarkdown(artifact);
+  assert.match(markdown, /Milestones and a separate timeline are omitted/);
+  assert.doesNotMatch(markdown, /Provisional work packages, milestones and deliverables/);
+  assert.doesNotMatch(markdown, /Provisional project timeline/);
+  const docx = await createGrantProposalDocx(artifact);
+  const files = unzipSync(new Uint8Array(await docx.arrayBuffer()));
+  const documentXml = strFromU8(files['word/document.xml']);
+  assert.match(documentXml, /Provisional work packages and deliverables/);
+  assert.match(documentXml, /Milestones and a separate timeline are omitted/);
+  assert.doesNotMatch(documentXml, /Provisional work packages, milestones and deliverables/);
+  assert.doesNotMatch(documentXml, /Provisional project timeline/);
+});
+
+test('official call budget figures must quote the supplied source and cannot substitute the call-wide budget', () => {
+  const sourceUrl = 'https://ec.europa.eu/info/funding-tenders/opportunities/docs/2021-2027/imreg/wp-call/2026/call-fiche_imreg-2026-infome_en.pdf';
+  const lines = [
+    { text: 'The estimated available call budget is EUR 3 500 000.', page: 6, section: '3. Available budget', source_document_id: 'imreg-2026-call', source_document_name: 'call-fiche_imreg-2026-infome_en.pdf' },
+    { text: 'Project budgets (maximum grant amount) are expected to be around EUR 200 000 per project.', page: 9, section: '6. Eligibility', source_document_id: 'imreg-2026-call', source_document_name: 'call-fiche_imreg-2026-infome_en.pdf' },
+  ];
+  const officialCall = extractGrantCallRequirements({ title: 'IMREG-2026-INFOME', sourceUrl, text: lines.map(item => item.text).join('\n'), sourceLines: lines });
+  const ids = officialCall.requirements.map(item => item.id);
+  const base = { call: officialCall, idea: 'Plan public information measures about Cohesion policy.', discipline: 'Public communication', sectionHeadings: ['Project design'], confirmedRequirementIds: ids, confirmedMissingInformation: officialCall.missing_information.map(item => item.id), selectedPaperIds: ['paper-1'] };
+  const perProject = { id: 'project-grant', category: 'Expected per-project grant amount', amount_text: 'EUR 200 000', source_quote: lines[1].text, source_url: sourceUrl };
+  assert.doesNotThrow(() => validateGrantProposalInputs({ ...base, budgetFigures: [perProject] }));
+  assert.throws(() => validateGrantProposalInputs({ ...base, budgetFigures: [{ ...perProject, source_quote: 'The grant maximum is EUR 200 000 per project.' }] }), /quote must appear verbatim/);
+  assert.throws(() => validateGrantProposalInputs({ ...base, budgetFigures: [{ ...perProject, amount_text: 'EUR 3 500 000' }] }), /amount must occur exactly within its source quote/);
+  assert.equal(officialCall.requirements.find(item => item.page === 6)?.quote, lines[0].text);
+});
+
 test('grant inputs require researcher confirmation, call-specific headings, evidence and budget provenance', () => {
   const ids = call.requirements.map(item => item.id);
   assert.throws(() => validateGrantProposalInputs({ call, idea: 'Study community heat response', discipline: 'Public health', sectionHeadings: ['Summary'], confirmedRequirementIds: [], confirmedMissingInformation: call.missing_information.map(item => item.id), selectedPaperIds: ['paper-1'] }), /Confirm or correct/);
