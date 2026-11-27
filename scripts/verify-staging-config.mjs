@@ -1,6 +1,7 @@
 import { pathToFileURL } from 'node:url';
 
-const FORBIDDEN = new Set(['kbzjngpzxpniaumlupaa', 'umzrggayitzfgrrofjnw']);
+// Read-only connector inventory, 2026-11-27: production EYLO, legacy forbidden ref, and inactive unrelated job project.
+const FORBIDDEN = new Set(['kbzjngpzxpniaumlupaa', 'umzrggayitzfgrrofjnw', 'eqgukmgmmbpxjstleipe']);
 export function verifyStagingConfig(env) {
   const ref = String(env.EYLO_STAGING_SUPABASE_REF || '').trim();
   const errors = [];
