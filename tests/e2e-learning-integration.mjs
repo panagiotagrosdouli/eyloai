@@ -838,6 +838,13 @@ try {
   await reloadedGrant.getByRole('button', { name: 'Mark researcher review complete', exact: true }).click();
   await page.getByText(/Researcher review state saved/).waitFor();
   assert.equal(await reloadedGrant.getByRole('button', { name: 'Export Markdown', exact: true }).isDisabled(), false, 'the changed exact revision requires and accepts a new approval');
+  await reloadedGrant.getByLabel('Researcher interpretation (optional; not an official call rule)').first().fill('Fixture interpretation edited after approval.');
+  assert.equal(await reloadedGrant.getByRole('button', { name: 'Export Markdown', exact: true }).isDisabled(), true, 'changing a requirement interpretation invalidates export approval');
+  await reloadedGrant.getByRole('button', { name: 'Save draft', exact: true }).click();
+  await page.getByText('Grant draft saved to this private research project.', { exact: true }).waitFor();
+  await reloadedGrant.getByRole('button', { name: 'Mark researcher review complete', exact: true }).click();
+  await page.getByText(/Researcher review state saved/).waitFor();
+  assert.equal(await reloadedGrant.getByRole('button', { name: 'Export Markdown', exact: true }).isDisabled(), false, 'edited requirement interpretation requires a new researcher approval');
 
   const scientificReview = page.locator('section[aria-labelledby="scientific-quality-review-title"]');
   await scientificReview.getByText('Grant Proposal', { exact: true }).first().waitFor();
