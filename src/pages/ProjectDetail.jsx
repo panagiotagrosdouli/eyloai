@@ -26,6 +26,7 @@ import GrantProposalBuilder from '@/components/projects/GrantProposalBuilder';
 import ResearchMethodologyStudio from '@/components/projects/ResearchMethodologyStudio';
 import ResearchRoadmapStudio from '@/components/projects/ResearchRoadmapStudio';
 import ResearchWorkflowNavigation from '@/components/projects/ResearchWorkflowNavigation';
+import ScientificQualityReview from '@/components/projects/ScientificQualityReview';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
@@ -719,6 +720,11 @@ Rules:
               setActiveTab('timeline');
               return true;
             }}
+          />
+          <ScientificQualityReview
+            key={`${id}-scientific-quality-review`}
+            project={project}
+            onProjectSaved={saved => setProject(previous => ({ ...previous, ...saved }))}
           />
           {savedPapers.length ? savedPapers.map(paper => (
             <article key={paper.id} className="rounded-xl border border-border bg-card p-4 sm:p-5">

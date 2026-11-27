@@ -68,12 +68,16 @@ Before reviewing outputs, two domain researchers should agree on the rating rubr
 
 Rate each factual or interpretive claim against its cited source:
 
-| Rating | Meaning |
+| Claim-level verdict | Meaning |
 |---|---|
-| Supported | The selected source directly supports the claim at the stated scope. |
-| Partly supported | Some wording is supported, but scope, certainty, population, method, or result is overstated or incomplete. |
-| Unsupported | The cited source does not support the claim, or the available record is insufficient to assess it. |
-| Not a source claim | The text is clearly labeled as a proposal, open question, or researcher-authored content. |
+| Supported by inspected evidence | The material actually inspected directly supports the precisely scoped claim; record whether it was abstract or full text. |
+| Partially supported | Some wording is supported, but scope, population, certainty, design or result is incomplete or overstated. |
+| Unsupported | The inspected material is sufficient to judge the claim but does not provide the stated support. |
+| Contradicted | Inspected evidence states an incompatible result; explain the contradiction and source location. |
+| Insufficient accessible source material | The accessible material cannot establish support or contradiction; never relabel missing full text as unsupported. |
+| Not yet reviewed | No independent scientific judgment has been completed. |
+
+Identify proposed work and open research questions separately as **not a factual source claim**; this is a claim-type classification, not a seventh semantic evidence verdict. Metadata/DOI resolution verifies bibliographic identity only and cannot earn a support verdict. Abstract-only review must be separately reported as abstract-only; it cannot be described as full-text verification. Inspect publisher correction or retraction notices when relevant and record both source version and inspection locator. Use `src/lib/scientific-evaluation.mjs` and `docs/scientific-evaluation-runbook.md` for the fail-closed, eight-dimension offline evaluation packet.
 
 Also record citation-to-record match, whether uncertainty is appropriately stated, whether the text implies unavailable full-text review, whether a proposal is presented as an observed result, and whether methods fit the stated question and discipline. Review bibliography metadata and DOI/URL resolution separately from semantic claim support.
 
