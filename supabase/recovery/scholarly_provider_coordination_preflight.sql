@@ -95,7 +95,8 @@ reports as (
 ),
 function_reports as (
  select jsonb_build_object('name',function_name,'identity_arguments',identity_args,
-  'status',case when jsonb_array_length(other_overloads)>0 then 'INCOMPATIBLE_NAME_HAS_UNEXPECTED_OVERLOADS'\n   when function_oid is null then 'MISSING'
+  'status',case when jsonb_array_length(other_overloads)>0 then 'INCOMPATIBLE_NAME_HAS_UNEXPECTED_OVERLOADS'
+   when function_oid is null then 'MISSING'
    when actual_result<>result_type or prosecdef is distinct from true
     or empty_search_path is distinct from true or owner_name in ('anon','authenticated','service_role')
     or pronargdefaults<>default_arg_count or service_execute is distinct from true
