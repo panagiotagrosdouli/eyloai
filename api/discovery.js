@@ -172,6 +172,7 @@ export default async function handler(request, response) {
 
   const url = buildProviderUrl(provider, query, limit, sort, page, provider === 'openalex_authors' ? country : '', exactDoi);
   if (!url) return response.status(400).json({ error: 'Provider configuration is invalid.' });
+  const providerGapMs = providerMinimumGap(provider, query);
 
   // Hosted Vercel traffic requires the one shared atomic quota. Local read-only
   // provider diagnostics do not impersonate a deployed quota service.
@@ -205,7 +206,7 @@ export default async function handler(request, response) {
         'user-agent': 'EYLO scholarly discovery proxy',
         ...providerHeaders(provider),
       },
-    }, { retryWithoutHeader: true, baseDelayMs: providerMinimumGap(provider), maxAttempts: 3 });
+    }, { retryWithoutHeader: true, baseDelayMs: providerGapMs, maxAttempts: 3 });
 
     const body = await readBoundedScholarlyResponse(upstream);
     // A source outage or bot challenge can answer HTTP 200 with an HTML page.
@@ -222,7 +223,7 @@ export default async function handler(request, response) {
       return { status: 502, body: Buffer.from(JSON.stringify({ error: 'Scholarly source returned an invalid response.', code: 'INVALID_SOURCE_RESPONSE' })), invalid: true, cacheable: false };
     }
     return { status: upstream.status, body, retryAfter: upstream.headers.get('retry-after'), cacheable: upstream.ok };
-    }, { signal: controller.signal });
+    }, { signal: controller.signal, minGapMs: providerGapMs });
     if (outcome.invalid) {
       response.setHeader('Cache-Control', 'no-store');
       response.setHeader('X-Content-Type-Options', 'nosniff');

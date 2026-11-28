@@ -39,6 +39,7 @@
     "test:e2e:landing": "node tests/e2e-company-landing.mjs",
     "test:e2e:discovery-gateway": "node tests/e2e-discovery-gateway.mjs",
     "db:review-plan": "node scripts/review-migration-plan.mjs",
+    "db:reconcile-manifest": "node scripts/verify-supabase-reconciliation-manifest.mjs",
     "test:e2e:ux": "node tests/e2e-eylo-2030.mjs"
   },
   "dependencies": {

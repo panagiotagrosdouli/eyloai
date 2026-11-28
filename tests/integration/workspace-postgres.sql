@@ -2,9 +2,15 @@
 create function pg_temp.assert(ok boolean, message text) returns void language plpgsql as $$
 begin if ok is distinct from true then raise exception 'Assertion failed: %', message; end if; end $$;
 insert into auth.users values ('00000000-0000-0000-0000-000000000001'), ('00000000-0000-0000-0000-000000000002');
+insert into meetings (id, user_id, data) values
+  ('40000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', '{"title":"Private meeting"}');
+insert into meeting_participants (meeting_id, owner_user_id, invited_email, user_id, role, status, invited_by) values
+  ('40000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'owner@example.test', '00000000-0000-0000-0000-000000000001', 'host', 'accepted', '00000000-0000-0000-0000-000000000001'),
+  ('40000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'invitee@example.test', '00000000-0000-0000-0000-000000000002', 'participant', 'accepted', '00000000-0000-0000-0000-000000000001');
 
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
+select pg_temp.assert((select count(*) = 2 from meeting_participants), 'meeting owner reads participant list');
 insert into projects (id, user_id, data) values ('10000000-0000-0000-0000-000000000001', auth.uid(), '{"title":"Alpha project", "plan_items":[], "decision_records":[]}');
 insert into notes (id, user_id, data) values ('30000000-0000-0000-0000-000000000001', auth.uid(), '{"title":"Alpha note", "content":"Private evidence", "project_id":"10000000-0000-0000-0000-000000000001"}');
 update notes set data = data || '{"content":"Revised private evidence"}' where id = '30000000-0000-0000-0000-000000000001';
@@ -25,6 +31,8 @@ select pg_temp.assert((select count(*) >= 6 from activity_events), 'transactiona
 
 -- The same authenticated database role with a different JWT identity sees no A records.
 set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000002';
+select pg_temp.assert((select count(*) = 1 from meeting_participants where user_id = auth.uid()), 'invited participant reads only own membership');
+select pg_temp.assert((select count(*) = 0 from meeting_participants where user_id = '00000000-0000-0000-0000-000000000001'), 'invited participant cannot read another member row');
 do $$ declare t text; n bigint; begin
   foreach t in array array['projects','notes','note_versions','life_tasks','life_goals','study_flashcard_decks','calendar_events','activity_events','eylo_files','eylo_file_versions'] loop
     execute format('select count(*) from public.%I', t) into n;

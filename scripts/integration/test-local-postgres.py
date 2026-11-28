@@ -6,6 +6,7 @@ This checks actual PostgreSQL policies/triggers, not Supabase Auth/Storage servi
 import os
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import time
 import uuid
@@ -16,6 +17,8 @@ DOCKER = ['docker', '--host=unix:///var/run/docker.sock']
 ENV = {k: v for k, v in os.environ.items() if k not in ('DOCKER_HOST', 'DOCKER_CONTEXT', 'DOCKER_TLS', 'DOCKER_TLS_VERIFY', 'DOCKER_CERT_PATH')}
 NAME = 'eylo-sql-test-' + uuid.uuid4().hex[:10]
 IMAGE = 'postgres:17.6-bookworm'
+if shutil.which(DOCKER[0]) is None:
+    raise SystemExit('Disposable PostgreSQL tests require Docker; no database was started.')
 # One reviewed manifest drives the actual local replay and read-only safety audit.
 MIGRATIONS = json.loads((ROOT / 'supabase/migration-review-plan.json').read_text())['canonical_local_order']
 PLAN_REVIEW = json.loads(subprocess.check_output(

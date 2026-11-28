@@ -6,6 +6,10 @@
   "bridge_applied_separately": "20261115190203_bridge_legacy_workspace_schema.sql",
   "migrations": [
     {
+      "file": "20261110_native_video_meetings.sql",
+      "sha256": "36bf1d7df1925f8dddc4a8791db385181ae5686e28e2b8a8d310908421cbfced"
+    },
+    {
       "file": "20261115191510_workspace_timestamp_support.sql",
       "sha256": "5dba26b99255a3d38d5c0cccb7a57bce7f2b3a89134eed360d7a9682888a12db"
     },
@@ -80,6 +84,14 @@
     {
       "file": "20261115181809_time_tracker_pause_resume.sql",
       "sha256": "fb7c2a4883311062dfe1d8e2b1c604a4000fe2b290156c08596c9e6b11b425e8"
+    },
+    {
+      "file": "20261128122000_learning_lesson_progress_policy_qualification.sql",
+      "sha256": "503cbfd822fbcda4bbe5d9ac2141760cec810098fe0795a3960b3622500923a2"
+    },
+    {
+      "file": "20261128134000_index_uncovered_foreign_keys.sql",
+      "sha256": "a34db2f2548cdd32d2d0042ca056314f67ec067d74449d757f30085c86861620"
     }
   ],
   "excluded": {

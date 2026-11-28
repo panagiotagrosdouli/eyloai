@@ -6,7 +6,7 @@ import { verifyStagingConfig } from '../scripts/verify-staging-config.mjs';
 const valid = { EYLO_ENVIRONMENT:'staging', VERCEL_ENV:'preview', EYLO_STAGING_SUPABASE_REF:'abcdefghijklmnopqrst', EYLO_STAGING_CONFIRMED_REF:'abcdefghijklmnopqrst', VITE_SUPABASE_URL:'https://abcdefghijklmnopqrst.supabase.co', VITE_SUPABASE_ANON_KEY:'sb_publishable_fixture', VITE_SUPABASE_USE_PROXY:'false' };
 test('staging preparation rejects live, unrelated, mismatched and unconfirmed targets and server keys',()=>{
   assert.equal(verifyStagingConfig(valid).ok,true);
-  for(const ref of ['kbzjngpzxpniaumlupaa','umzrggayitzfgrrofjnw']) assert.equal(verifyStagingConfig({...valid,EYLO_STAGING_SUPABASE_REF:ref,EYLO_STAGING_CONFIRMED_REF:ref,VITE_SUPABASE_URL:`https://${ref}.supabase.co`}).ok,false);
+  for(const ref of ['kbzjngpzxpniaumlupaa','umzrggayitzfgrrofjnw','eqgukmgmmbpxjstleipe']) assert.equal(verifyStagingConfig({...valid,EYLO_STAGING_SUPABASE_REF:ref,EYLO_STAGING_CONFIRMED_REF:ref,VITE_SUPABASE_URL:`https://${ref}.supabase.co`}).ok,false);
   for(const patch of [{EYLO_STAGING_CONFIRMED_REF:''},{VERCEL_ENV:'production'},{VITE_SUPABASE_USE_PROXY:'true'},{VITE_SUPABASE_ANON_KEY:'sb_secret_forbidden'},{VITE_SUPABASE_URL:'https://other.supabase.co'}])assert.equal(verifyStagingConfig({...valid,...patch}).ok,false);
 });
 test('staging deployment configuration has no production Supabase rewrite or automatic cron',()=>{
