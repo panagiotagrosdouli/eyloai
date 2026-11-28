@@ -17,7 +17,7 @@ for (const key of ['SUPABASE_ACCESS_TOKEN', 'SUPABASE_PROJECT_REF', 'SUPABASE_DB
   if (process.env[key]) throw new Error(`Remote Supabase variable ${key} is forbidden in this test.`);
 }
 const manifest = JSON.parse(await (await import('node:fs/promises')).readFile(`${process.env.LOCAL_SUPABASE_PROJECT_DIR}/reviewed-migration-replay.json`, 'utf8'));
-assert.equal(manifest.length, 30, 'reviewed canonical migration count changed');
+assert.equal(manifest.length, 31, 'reviewed canonical migration count changed');
 
 // API-handler calls use a fake staging-shaped host only so the existing staging guard is exercised.
 // All network access, including that alias, is rewritten to the local stack; all other hosts are rejected.
@@ -100,17 +100,49 @@ try {
   assert.ok(buckets.some(bucket => bucket.name === 'eylo-files'), 'Storage API must expose the private application bucket to its service client');
   console.log('PASS: local Supabase Auth, PostgREST and Storage endpoints are live on loopback.');
 
-  const requiredTables = [
-    'eyra_conversations', 'eyra_messages', 'eyra_agent_runs', 'eyra_agent_actions',
-    'grant_applications', 'meeting_participants', 'eylo_directory', 'eylo_teams',
-    'eylo_team_invites', 'eylo_team_members', 'eylo_connections', 'eylo_community_posts',
-    'eylo_peer_submissions', 'eylo_peer_reviews', 'eylo_feedback', 'eylo_api_tokens',
-    'eylo_api_token_events',
-  ];
-  for (const table of requiredTables) {
-    checkResult(`Required table ${table}`, await admin.from(table).select('*').limit(0));
-  }
-  console.log(`PASS: all ${requiredTables.length} required tables are exposed through local PostgREST.`);
+  const coordinationClients = Array.from({ length: 8 }, () => createClient(baseUrl, secretKey, clientOptions));
+  const sharedQuotaHash = createHash('sha256').update(randomUUID()).digest('hex');
+  const sharedQuotas = await Promise.all(coordinationClients.map(client => client.rpc('consume_discovery_rate_limit', {
+    p_subject_hash: sharedQuotaHash, p_limit: 3, p_window_seconds: 600,
+  })));
+  const quotaResults = sharedQuotas.map((result, index) => checkResult(`Distributed quota instance ${index + 1}`, result)[0]);
+  assert.equal(quotaResults.filter(result => result.allowed).length, 3, 'all simulated instances must share one atomic quota');
+  assert.equal(quotaResults.filter(result => !result.allowed).length, 5);
+
+  const reservations = await Promise.all(coordinationClients.map(client => client.rpc('reserve_scholarly_provider_slot', {
+    p_provider: 'europe_pmc', p_min_interval_ms: 0, p_max_concurrent: 1, p_lease_seconds: 45,
+  })));
+  const reservationResults = reservations.map((result, index) => checkResult(`Provider lease instance ${index + 1}`, result)[0]);
+  const acquired = reservationResults.filter(result => result.allowed);
+  assert.equal(acquired.length, 1, 'independent instances must serialize a provider slot atomically');
+  assert.equal(reservationResults.filter(result => result.status === 'concurrency_limited').length, 7);
+  checkResult('Provider lease release', await admin.rpc('finish_scholarly_provider_request', {
+    p_provider: 'europe_pmc', p_lease_id: acquired[0].lease_id, p_status: 200, p_retry_after_seconds: 0,
+  }));
+  const limitedProvider = checkResult('Provider Retry-After lease', await admin.rpc('reserve_scholarly_provider_slot', {
+    p_provider: 'crossref', p_min_interval_ms: 0, p_max_concurrent: 1, p_lease_seconds: 45,
+  }))[0];
+  assert.equal(limitedProvider.allowed, true);
+  checkResult('Provider 429 cooldown', await admin.rpc('finish_scholarly_provider_request', {
+    p_provider: 'crossref', p_lease_id: limitedProvider.lease_id, p_status: 429, p_retry_after_seconds: 12,
+  }));
+  const cooldown = checkResult('Shared Retry-After cooldown read', await coordinationClients[0].rpc('reserve_scholarly_provider_slot', {
+    p_provider: 'crossref', p_min_interval_ms: 0, p_max_concurrent: 1, p_lease_seconds: 45,
+  }))[0];
+  assert.equal(cooldown.allowed, false);
+  assert.equal(cooldown.status, 'cooldown');
+  assert.ok(cooldown.retry_after_seconds >= 1 && cooldown.retry_after_seconds <= 12);
+  const coordinationCacheKey = createHash('sha256').update(randomUUID()).digest('hex');
+  checkResult('Shared provider cache write', await admin.rpc('write_scholarly_provider_cache', {
+    p_cache_key: coordinationCacheKey, p_provider: 'europe_pmc', p_body: '{"synthetic":true}',
+    p_content_type: 'application/json', p_ttl_seconds: 1,
+  }));
+  const sharedCache = checkResult('Shared provider cache read', await coordinationClients[0].rpc('read_scholarly_provider_cache', { p_cache_key: coordinationCacheKey }));
+  assert.equal(sharedCache[0]?.body, '{"synthetic":true}');
+  await new Promise(resolve => setTimeout(resolve, 1_100));
+  const expiredCache = checkResult('Shared provider cache expiry', await coordinationClients[1].rpc('read_scholarly_provider_cache', { p_cache_key: coordinationCacheKey }));
+  assert.deepEqual(expiredCache, []);
+  console.log('PASS: eight independent serverless simulations share atomic quotas, provider leases and expiring cache entries.');
 
   // Signup creates two genuinely distinct Auth users; confirm them through the local admin API only if local email confirmation is enabled.
   const signupA = checkResult('Account A signup', await userA.auth.signUp({ email: emailA, password: passA }));
@@ -137,6 +169,18 @@ try {
   assert.equal(checkResult('Logged-out session', await restored.auth.getSession()).session, null);
   assert.equal(checkResult('Account B remains signed in', await userB.auth.getUser()).user.id, idB);
   console.log('PASS: two-account signup, login, refresh, session restoration, logout and account switching.');
+
+  const requiredTables = [
+    'eyra_conversations', 'eyra_messages', 'eyra_agent_runs', 'eyra_agent_actions',
+    'grant_applications', 'meeting_participants', 'eylo_directory', 'eylo_teams',
+    'eylo_team_invites', 'eylo_team_members', 'eylo_connections', 'eylo_community_posts',
+    'eylo_peer_submissions', 'eylo_peer_reviews', 'eylo_feedback', 'eylo_api_tokens',
+    'eylo_api_token_events',
+  ];
+  for (const table of requiredTables) {
+    checkResult(`Required owner-visible table ${table}`, await userA.from(table).select('*').limit(0));
+  }
+  console.log(`PASS: all ${requiredTables.length} required tables are available to an authenticated account through PostgREST.`);
 
   const projectA = checkResult('Account A project create', await userA.from('projects')
     .insert({ user_id: idA, data: { title: 'Synthetic Account A project', marker: 'only-a' } })

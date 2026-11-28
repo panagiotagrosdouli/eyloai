@@ -118,6 +118,9 @@ try:
     print('PASS: research budget and thesis canonical project/Note persistence, unrelated-data preservation, stale-save rejection and outsider isolation.', flush=True)
     sql((ROOT / 'tests/integration/complete-products-postgres.sql').read_text())
     print('PASS: new product canonical actions/replays, team consent/role revocation, peer review privacy, feedback trusted-role checks, personal token scopes and publishing budgets.', flush=True)
+    if not bundle_replay:
+        sql((ROOT / 'tests/integration/api-token-events-postgres.sql').read_text())
+        print('PASS: personal API token creation/revocation audit persistence, owner isolation, no credential fields and client write denial.', flush=True)
     sql((ROOT / 'tests/integration/research-catalog-postgres.sql').read_text())
     print('PASS: Research Data Lab catalog metadata bounds, fingerprint uniqueness, anonymous denial and two-account RLS isolation.', flush=True)
     if not bundle_replay:

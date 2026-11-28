@@ -231,10 +231,14 @@ test('allowed Vercel request receives shared quota before provider response', as
   const originalFetch = globalThis.fetch;
   const requests = [];
   globalThis.fetch = async (url) => {
-    requests.push(String(url));
-    if (String(url).includes('/rpc/consume_discovery_rate_limit')) {
+    const address = String(url);
+    requests.push(address);
+    if (address.includes('/rpc/consume_discovery_rate_limit')) {
       return Response.json([{ allowed: true, remaining: 119, retry_after_seconds: 300 }]);
     }
+    if (address.includes('/rpc/read_scholarly_provider_cache')) return Response.json([]);
+    if (address.includes('/rpc/reserve_scholarly_provider_slot')) return Response.json([{ allowed: true, status: 'acquired', retry_after_seconds: 0, lease_id: '00000000-0000-4000-8000-000000000001' }]);
+    if (address.includes('/rpc/write_scholarly_provider_cache') || address.includes('/rpc/finish_scholarly_provider_request')) return Response.json(true);
     return new Response(JSON.stringify({ results: [] }), { status: 200, headers: { 'content-type': 'application/json' } });
   };
   t.after(() => {
@@ -251,7 +255,11 @@ test('allowed Vercel request receives shared quota before provider response', as
   assert.equal(response.headers['x-ratelimit-limit'], undefined);
   assert.equal(response.headers['x-ratelimit-remaining'], undefined,
     'shared successful provider responses must not cache one client’s quota metadata');
-  assert.equal(requests.length, 2);
+  assert.equal(requests.length, 6);
   assert.match(requests[0], /rpc\/consume_discovery_rate_limit$/);
-  assert.match(requests[1], /^https:\/\/api\.openalex\.org\/works\?/);
+  assert.match(requests[1], /rpc\/read_scholarly_provider_cache$/);
+  assert.match(requests[2], /rpc\/reserve_scholarly_provider_slot$/);
+  assert.match(requests[3], /^https:\/\/api\.openalex\.org\/works\?/);
+  assert.match(requests[4], /rpc\/write_scholarly_provider_cache$/);
+  assert.match(requests[5], /rpc\/finish_scholarly_provider_request$/);
 });

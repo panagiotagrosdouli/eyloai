@@ -32,7 +32,8 @@
     "20261115233000_eyra_agent_runs.sql",
     "20261128122000_learning_lesson_progress_policy_qualification.sql",
     "20261128134000_index_uncovered_foreign_keys.sql",
-    "20261128141000_eylo_api_token_events.sql"
+    "20261128141000_eylo_api_token_events.sql",
+    "20261128145000_scholarly_provider_coordination.sql"
   ],
   "files": [
     {
@@ -250,6 +251,12 @@
       "sha256": "07383da3a48bfd0ba12804424c76d597bf5638fc9daab37a86003a013fe1bfb3",
       "classification": "canonical-local-replay",
       "reason": "Owner-scoped personal-token audit events with no credential material; validated in complete disposable Supabase and PostgreSQL two-account checks."
+    },
+    {
+      "name": "20261128145000_scholarly_provider_coordination.sql",
+      "sha256": "2c8e1aaba1b98e3ef9f7c3fff33630f18bc04bf060cbea446768b2d6344c8563",
+      "classification": "canonical-local-replay",
+      "reason": "Shared provider-specific pacing, concurrency leases, Retry-After cooldowns, failure circuit state, and hashed-key expiring response cache; no query text is persisted."
     }
   ]
 }

@@ -25,6 +25,12 @@
       "sha256": "07383da3a48bfd0ba12804424c76d597bf5638fc9daab37a86003a013fe1bfb3",
       "applied_to_observed_project": false,
       "reason": "Additive token audit table required by the 17-table application schema contract; local-only migration validation pending and never authorized for hosted application."
+    },
+    {
+      "name": "20261128145000_scholarly_provider_coordination.sql",
+      "sha256": "2c8e1aaba1b98e3ef9f7c3fff33630f18bc04bf060cbea446768b2d6344c8563",
+      "applied_to_observed_project": false,
+      "reason": "Zero-additional-cost distributed provider coordination and cache; replay and concurrency acceptance are local-only and never authorize hosted or production application."
     }
   ],
   "applied_migration_versions": [

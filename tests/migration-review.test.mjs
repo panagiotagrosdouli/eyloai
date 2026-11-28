@@ -92,6 +92,26 @@ test("personal API token audit migration stores no credential material and is ow
   assert.match(source, /after insert on public\.eylo_api_tokens/i);
   assert.match(source, /after update of revoked_at on public\.eylo_api_tokens/i);
 });
+test("provider coordination migration shares atomic leases and cache while hiding research queries", () => {
+  const source = readFileSync(
+    new URL("../supabase/migrations/20261128145000_scholarly_provider_coordination.sql", import.meta.url),
+    "utf8",
+  );
+  for (const table of ['scholarly_provider_state', 'scholarly_provider_leases', 'scholarly_response_cache']) {
+    assert.match(source, new RegExp(`create table public\\.${table}`, 'i'));
+    assert.match(source, new RegExp(`alter table public\\.${table} enable row level security`, 'i'));
+  }
+  for (const rpc of ['reserve_scholarly_provider_slot', 'finish_scholarly_provider_request', 'read_scholarly_provider_cache', 'write_scholarly_provider_cache']) {
+    assert.match(source, new RegExp(`create function public\\.${rpc}`, 'i'));
+    assert.match(source, new RegExp(`public\\.${rpc}\\([\\s\\S]*?to service_role`, 'i'));
+  }
+  assert.match(source, /expires_at timestamptz not null/);
+  assert.match(source, /cooldown_until timestamptz not null/);
+  assert.match(source, /consecutive_failures integer not null/);
+  assert.match(source, /pg_advisory_xact_lock/);
+  assert.match(source, /if cache_rows > 10000 then/);
+  assert.doesNotMatch(source, /query text|research_query/i);
+});
 test("changed SQL and new unreviewed files fail manifest verification", () => {
   const name = plan.canonical_local_order[0];
   assert.equal(
