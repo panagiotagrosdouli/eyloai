@@ -6,6 +6,19 @@
 
 **Working branch:** `codex/eylo-phase-ii-migration-reconciliation-20261128`
 
+### Exact-head CI and preview follow-up — 28 November 2026
+
+| Checkpoint | Result | Evidence and limit |
+|---|---|---|
+| Source revision | VERIFIED | Policy-correction source head: `ac0d87895f4b166e23f1ef84a4880b247ab9cf47` on PR #631. |
+| Product Quality | PASS | GitHub Actions run `46143802155` completed successfully on that exact source head, including product workflow/browser suites and discovery gateway/partial retrieval coverage. |
+| EYRA PostgreSQL preflight | PASS IN DISPOSABLE CI DATABASE | GitHub Actions run `46143802101` completed successfully on that exact source head; it executed migrations and negative RLS/grant controls in a disposable PostgreSQL instance. It is not staging or production validation. |
+| Vercel preview | READY; ACCESS RESTRICTED | Preview deployment `dpl_2NmAKkzAV2eAQNHun9Yh1CbKZHoX` was built from the same source head. Vercel SSO protected the preview, so authenticated hosted acceptance was not performed. |
+| Release gate | NO-GO | Re-run of `npm run release:readiness` at the exact source head recorded `NO-GO`. Staging identity, two-account hosted auth/isolation, privacy deletion, operations, and human/legal evidence remain unrecorded. |
+
+The local `npm run check` remains PASS (1,344 tests; typecheck, lint, build and bundle budget). Production remains on `main` SHA `20da2b2943479909de75c8b8ad5ccdd1fdfb31c3`; no production or database settings were changed. Discovery on production returned 24 papers from three of five indexes; OpenAlex and Semantic Scholar reported HTTP 429 and the UI disclosed partial retrieval. The current exact-head checks validate the policy correction in CI, but do not establish hosted acceptance or release authorization.
+
+
 **Revalidated candidate:** PR #630 exact head `8983a3c774c9a24b1859eaa0a5cd0f7d3a8e02bb` (ready for review; not merged). Exact-head Build run `46138731826`, EYLO Quality Gate `46138731804`, Product quality `46138731812` and Vercel preview `dpl_CWoEDK2jCDtXiTapGyfkc9pRD7ra` passed. Local `npm run check` passed on this SHA after a clean `npm ci`: imports, both TypeScript projects, ESLint, 1,340 Node tests, Vite build and chunk budget. This is source/CI evidence only; production remains NO-GO.
 
 **Live migration reconciliation:** Read-only inventory on 2026-11-28 reconfirmed 19 applied migration versions, 34 public tables with RLS enabled, 18 exact historical SQL fingerprints and one known divergent `security_hardening` fingerprint from the 2026-11-20 statement snapshot. The reproducible snapshot and local verification are [supabase-reconciliation-2026-11-28.json](release/supabase-reconciliation-2026-11-28.json) and `npm run db:reconcile-manifest`. Missing EYRA conversation/run tables, grant applications, meeting participants and ten collaboration/product tables remain. The available Supabase branch reports `MIGRATIONS_FAILED`; no disposable local PostgreSQL runtime is installed and no staging migrations were applied. Production and the unrelated inactive job project were untouched.
