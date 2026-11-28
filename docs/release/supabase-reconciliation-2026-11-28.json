@@ -31,6 +31,12 @@
       "sha256": "aefd33f4589ec8201245e95611e11294de455cc745c6f082b2687c5166e69d53",
       "applied_to_observed_project": false,
       "reason": "Zero-additional-cost distributed provider coordination and cache; replay and concurrency acceptance are local-only and never authorize hosted or production application."
+    },
+    {
+      "name": "20261128152000_auth_account_cascade_privileges.sql",
+      "sha256": "f900665cde3f37f3c13a318e2929f0af4248ed07ff45987d24d30957d729df4e",
+      "applied_to_observed_project": false,
+      "reason": "Narrow Auth deletion cascade privileges; local Auth/PostgreSQL acceptance only and no hosted or production application authorization."
     }
   ],
   "applied_migration_versions": [
