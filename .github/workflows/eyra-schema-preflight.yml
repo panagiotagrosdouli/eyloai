@@ -11,6 +11,7 @@ on:
       - 'scripts/integration/prepare-local-supabase-project.mjs'
       - 'scripts/integration/export-local-supabase-env.mjs'
       - 'scripts/integration/test-local-supabase.mjs'
+      - 'scripts/integration/print-local-auth-failure.mjs'
       - 'tests/scholarly-provider-coordination.test.mjs'
       - 'api/discovery.js'
       - 'server/scholarly-provider-coordination.mjs'
@@ -82,6 +83,15 @@ jobs:
         run: node scripts/integration/export-local-supabase-env.mjs
       - name: Exercise real local Auth, PostgREST, Storage, RLS, export, and deletion
         run: node scripts/integration/test-local-supabase.mjs
+      - name: Print sanitized disposable Auth/PostgreSQL failure context
+        if: failure()
+        shell: bash
+        run: |
+          set +e
+          while IFS= read -r container; do
+            [ -n "$container" ] || continue
+            docker logs --since 10m "$container" 2>&1
+          done < <(docker ps -a --format '{{.Names}}' | grep -E 'supabase_(auth|db)_' || true) | node scripts/integration/print-local-auth-failure.mjs
       - name: Stop and remove the disposable Supabase stack
         if: always()
         shell: bash
