@@ -29,6 +29,12 @@
   "remote_public_tables_with_rls_enabled": 34,
   "rls_policy_observations": {
     "public_discovery_rate_limits": "RLS enabled, no client policy; intended service-only table",
+    "learning_lesson_progress": {
+      "policy_expression_observed": "l.course_id = l.course_id",
+      "cause": "The unqualified course_id in the migration subquery resolves to the inner learning_lessons relation.",
+      "validated_composite_foreign_key": true,
+      "impact": "No current cross-owner bypass established: the validated composite foreign key enforces lesson/course/user consistency. The redundant RLS predicate should be explicitly qualified in a forward-only migration and tested before application."
+    },
     "storage_eylo_files": {
       "read_insert_delete_owner_policies": true,
       "update_policy": false,
