@@ -12,6 +12,20 @@
 
 ## 28 November Phase II continuation
 
+### Execution update — exact PR #631 head `a860247d0c1cf03bfaf03ac0eb3608fbec3df642`
+
+| Checkpoint | Result | Evidence and limit |
+|---|---|---|
+| Clean local install and quality suite | PASS | In a fresh shallow checkout of `codex/eylo-phase-ii-migration-reconciliation-20261128`, `npm ci` installed the lockfile's 618 packages and `npm run check` exited 0: local imports, both TypeScript projects, ESLint, the complete Node test suite, Vite production build and configured bundle ceiling passed on the exact PR head. The build emitted its expected advisory for large optional chunks; no source files were changed during this run. |
+| Migration snapshot and local plan | PASS LOCALLY; REMOTE BLOCKED | `npm run db:reconcile-manifest` verified 33 migration files and 19 historical SQL fingerprints (18 exact, one recorded divergence). `npm run db:review-plan` verified a local-only plan with 26 selected and seven excluded migrations, but explicitly reports `remote_application_authorized=false` and `remote_history_verified=false`; legacy timestamp/history hazards remain. No migration was applied. |
+| Release readiness and configuration | NO-GO / INCOMPLETE | `npm run release:readiness` returned `NO-GO` for this exact SHA, with production unauthorized and hosted identity, staging, preview, privacy, UX, operations and human review evidence missing. `npm run config:check` reports required server/provider settings absent in this local environment; it printed no secret values and made no network requests. |
+| Current production identity | VERIFIED | Vercel deployment `dpl_B9dSu4itqxXuajZhHUjkWhxQEdEz` and public `/release.json` both identify production `main` at `20da2b2943479909de75c8b8ad5ccdd1fdfb31c3`. This production SHA differs from PR #631; hosted observations below are not acceptance of the PR candidate. |
+| Public discovery browser journey | PARTIALLY BROWSER-VERIFIED ON PRODUCTION | On `https://eyloai.vercel.app/discover`, the homepage preview tabs switched between Discover and EYRA, and the Climate change adaptation example opened a real source-linked search. The page returned 24 deduplicated papers from three of five indexes, four institutions and no researcher profiles. It explicitly identified OpenAlex and Semantic Scholar HTTP 429 rate limits and exposed partial retrieval; this is a transparent external-provider limitation, not a verified search defect. Search retry, export, save, authentication and protected workflows were not exercised. |
+| Local Playwright browser | BLOCKED; alternatives investigated | `npx playwright install chromium` was attempted from the official Playwright installer but its CDN returned HTTP 403 `Site Unavailable` on all retries. `/usr/bin/chromium` exists as a wrapper, but no runnable Chromium binary is installed. The hosted public journey was still exercised in the cloud browser; local Chromium and database-backed browser E2E remain unverified. |
+| Exact-head GitHub checks | INCOMPLETE | The workflow-run query for this SHA currently returns Product quality = success. The commit's combined status currently exposes Vercel = success. Build and EYLO Quality Gate have not yet been observed on this exact head; the PR remains open. Do not infer hosted browser, PostgreSQL, RLS or release acceptance from the local suite or the Product quality check. |
+
+No application code, production deployment, credentials, hosted database, billing, or user data were changed by this execution update.
+
 | Workstream | State | Evidence and next action |
 |---|---|---|
 | PR #630 independent source review | REVIEWED; no merge recommendation | Inspected all 17 changed files, grant provenance and budget checks, scientific evaluation/review semantics, release manifest gates, staging safeguards and save/export flows. No source-level defect was confirmed in this patch. Scientific scoring remains explicitly non-automated; no scientific correctness or hosted acceptance is inferred from CI. PR #630 remains open and unmerged. |
