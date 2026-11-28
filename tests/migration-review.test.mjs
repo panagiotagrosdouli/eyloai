@@ -76,6 +76,22 @@ test("foreign-key index migration covers every observed advisor finding", () => 
   }
   assert.doesNotMatch(source, /drop index/i);
 });
+test("personal API token audit migration stores no credential material and is owner-read-only", () => {
+  const source = readFileSync(
+    new URL("../supabase/migrations/20261128141000_eylo_api_token_events.sql", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /create table public\.eylo_api_token_events/i);
+  assert.match(source, /user_id uuid not null references auth\.users\(id\) on delete cascade/i);
+  assert.match(source, /action in \('created', 'revoked'\)/i);
+  assert.doesNotMatch(source, /\b(token_hash|raw_token|secret_key)\b/i);
+  assert.match(source, /enable row level security/i);
+  assert.match(source, /for select to authenticated using \(user_id = auth\.uid\(\)\)/i);
+  assert.match(source, /revoke all on public\.eylo_api_token_events from public, anon, authenticated, service_role/i);
+  assert.match(source, /grant select on public\.eylo_api_token_events to authenticated, service_role/i);
+  assert.match(source, /after insert on public\.eylo_api_tokens/i);
+  assert.match(source, /after update of revoked_at on public\.eylo_api_tokens/i);
+});
 test("changed SQL and new unreviewed files fail manifest verification", () => {
   const name = plan.canonical_local_order[0];
   assert.equal(

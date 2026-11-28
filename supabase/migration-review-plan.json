@@ -31,7 +31,8 @@
     "20261115181809_time_tracker_pause_resume.sql",
     "20261115233000_eyra_agent_runs.sql",
     "20261128122000_learning_lesson_progress_policy_qualification.sql",
-    "20261128134000_index_uncovered_foreign_keys.sql"
+    "20261128134000_index_uncovered_foreign_keys.sql",
+    "20261128141000_eylo_api_token_events.sql"
   ],
   "files": [
     {
@@ -243,6 +244,12 @@
       "sha256": "a34db2f2548cdd32d2d0042ca056314f67ec067d74449d757f30085c86861620",
       "classification": "canonical-local-replay",
       "reason": "Additive coverage for the 13 read-only advisor foreign-key gaps; disposable PostgreSQL replay only, no remote application approval."
+    },
+    {
+      "name": "20261128141000_eylo_api_token_events.sql",
+      "sha256": "07383da3a48bfd0ba12804424c76d597bf5638fc9daab37a86003a013fe1bfb3",
+      "classification": "canonical-local-replay",
+      "reason": "Owner-scoped personal-token audit events with no credential material; validated in complete disposable Supabase and PostgreSQL two-account checks."
     }
   ]
 }

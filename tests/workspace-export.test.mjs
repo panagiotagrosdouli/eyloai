@@ -153,9 +153,9 @@ test('a foreign canonical EYRA message aborts export before any file can be emit
 });
 
 
-test('exports all ten authored collaboration collections, directory primary key and multiple pages', async () => {
+test('exports authored collaboration and token-audit collections, directory primary key and multiple pages', async () => {
   const tables = WORKSPACE_EXPORT_TABLES.filter(table => table.startsWith('eylo_') && !['eylo_files', 'eylo_file_versions'].includes(table));
-  assert.equal(tables.length, 10);
+  assert.equal(tables.length, 11);
   const data = Object.fromEntries(tables.map(table => [table, [1, 2, 3].map(i => row(table, i))]));
   data.eylo_directory = [{ user_id: owner, display_name: 'My profile', visible: false }];
   data.eylo_api_tokens[0].token_hash = 'never-export-digest';
@@ -168,7 +168,7 @@ test('exports all ten authored collaboration collections, directory primary key 
 });
 
 test('RLS-visible foreign collaborative rows and missing directory identity abort the entire export', async () => {
-  for (const table of ['eylo_teams','eylo_team_invites','eylo_connections','eylo_community_posts','eylo_peer_submissions','eylo_peer_reviews','eylo_feedback','eylo_api_tokens','eylo_team_members','eylo_directory']) {
+  for (const table of ['eylo_teams','eylo_team_invites','eylo_connections','eylo_community_posts','eylo_peer_submissions','eylo_peer_reviews','eylo_feedback','eylo_api_tokens','eylo_api_token_events','eylo_team_members','eylo_directory']) {
     const data = {[table]: [{id: 'foreign', user_id: 'another-owner'}]};
     await assert.rejects(collectWorkspaceExport({userId: owner, fetchPage: makeFetcher(data).fetchPage}), /ownership/);
   }

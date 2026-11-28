@@ -19,6 +19,12 @@
       "sha256": "a34db2f2548cdd32d2d0042ca056314f67ec067d74449d757f30085c86861620",
       "applied_to_observed_project": false,
       "reason": "Additive indexes for all 13 observed unindexed foreign keys; requires disposable PostgreSQL regression and isolated staging validation before any hosted application."
+    },
+    {
+      "name": "20261128141000_eylo_api_token_events.sql",
+      "sha256": "07383da3a48bfd0ba12804424c76d597bf5638fc9daab37a86003a013fe1bfb3",
+      "applied_to_observed_project": false,
+      "reason": "Additive token audit table required by the 17-table application schema contract; local-only migration validation pending and never authorized for hosted application."
     }
   ],
   "applied_migration_versions": [
