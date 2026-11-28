@@ -4,7 +4,7 @@
 
 **Repository baseline:** `20da2b2943479909de75c8b8ad5ccdd1fdfb31c3` (main after merged PR #626)
 
-**Working branch:** `codex/eylo-phase3-learning-rls-20261128` (integrated PR #632 targeting `main`; includes validated work from #630 and #631)
+**Working branch:** PR #632 integrated release candidate targeting `main`; includes validated work from #630 and #631. Revalidated current remote head before continuation: `a3224d6e6ff6f24d1b75e292720b4c26f8d124d2`.
 
 ## Final commercial readiness directive — 28 November 2026
 
@@ -19,6 +19,18 @@
 | Candidate and CI | EXACT-HEAD CI AND PREVIEW PASS; HOSTED GATES BLOCKED | PR #632 is the integrated candidate against `main`, source head `ea98c5715ccc344ababb9abda4fcd5135921b50e`; it includes validated #630 science/grant safeguards, #631 provider/schema work and #632 RLS repair. Exact-head Product Quality [46150599747](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46150599747), Build [46150599781](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46150599781), EYLO Quality Gate [46150599751](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46150599751), disposable PostgreSQL preflight [46150599731](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46150599731), and Vercel passed. Preview `dpl_58U6ksrD1RsBzk5sJczq4KdNgA8P` is READY and anonymous root returned HTTP 200. Authenticated hosted acceptance remains blocked by absent isolated staging. No production schema/deployment changed. |
 
 The recommendation is **NO-GO for commercial/public launch; proceed only with authorized internal development**. This record is a concrete handoff; it does not upgrade launch status or establish actual unit economics.
+
+### Integrated candidate continuation — 28 November 2026
+
+| Item | Result | Evidence and limit |
+|---|---|---|
+| Candidate revalidation | VERIFIED | PR #632 targets `main`; observed current head before edits was `a3224d6e6ff6f24d1b75e292720b4c26f8d124d2`. It retains validated work from #630/#631/#632. Build [46151129124](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46151129124), EYLO Quality Gate [46151129176](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46151129176), and disposable PostgreSQL [46151129132](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46151129132) passed on that head; Product Quality [46151129137](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46151129137) was still running when rechecked. |
+| Full local Supabase acceptance | IMPLEMENTED; EXACT-HEAD CI PENDING | Added an isolated Supabase CLI stack workflow and a harness that copies the reviewed 29-migration canonical replay into a temporary project without touching repository migration history or any hosted database. The configured local services are PostgreSQL 17, Auth, PostgREST, Storage and Realtime; Studio, analytics, SMTP and Edge Runtime are disabled. Real Auth identities and PostgREST calls exercise the 41 current workspace export tables plus core EYRA, file, meeting and server-only schema; two-user owner isolation, fresh-session persistence, Storage object access, metadata/bytes and atomic discovery quota are checked. EYRA capability/API checks confirm AI is unavailable without a configured provider key, with no fabricated response or billable provider call. No test assistant response or publication claim is inserted. The local workspace does not have Docker or the Supabase CLI, so only the CI runner can execute this stack. |
+| Environment configuration | MANIFEST VALID; SERVICE KEYS ABSENT | Added a machine-readable classification of 70 variables, covering `.env.example`, application source references, staging acceptance and platform-provided values. Validation refuses secret-like `VITE_` names without printing values. This validates classification and naming; it does not supply or verify Vercel Preview secrets. Staging still requires an owner-confirmed isolated Supabase project and branch-scoped Preview values. |
+| Local validation | PASS; HOSTED/LOCAL-STACK GATES PENDING | `npm run config:manifest`, three manifest regression tests, TOML parsing, JavaScript syntax checks, `git diff --check`, and full `npm run check` passed: imports, both TypeScript projects, lint, 1,351/1,351 tests, production build, and chunk ceiling. `db:review-plan` reports 29 selected/six excluded with remote application unauthorized; `db:reconcile-manifest` reports 35 local migration files, two pending, 18 exact historical fingerprints and one known divergence. The full Supabase CLI stack cannot run in this workspace because Docker and the CLI are absent; exact-head GitHub execution remains required. |
+| Hosted and release status | NO-GO | No production Supabase project or unrelated `job` project was touched; no paid plan, production migration, deployment, live payment, or real credentials were used. The local Supabase acceptance workflow still must pass on the updated candidate. Human scientific review, counsel, hosted staging, backups/restore and operational alert delivery remain external acceptance gates. |
+
+The Supabase CLI workflow uses a temporary project built only from the explicitly reviewed local migration manifest because blindly replaying the historical migration directory would include six currently excluded legacy migrations. A successful run will prove the curated fresh-schema path against local Auth/API/Storage services; it will not establish hosted migration compatibility, production health, or hosted two-account acceptance.
 
 ### Current staging-owner decision
 

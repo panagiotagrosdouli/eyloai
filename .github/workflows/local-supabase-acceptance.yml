@@ -1,0 +1,57 @@
+name: Full local Supabase acceptance
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/local-supabase-acceptance.yml'
+      - 'config/environment-manifest.json'
+      - 'server/environment-manifest.mjs'
+      - 'scripts/check-environment-manifest.mjs'
+      - 'scripts/run-local-supabase-acceptance.mjs'
+      - 'supabase/config.toml'
+      - 'supabase/migrations/**'
+      - 'supabase/migration-review-plan.json'
+      - 'src/lib/workspace-export.mjs'
+      - 'tests/environment-manifest.test.mjs'
+      - 'tests/integration/supabase-two-account.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: local-supabase-acceptance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  local-supabase-auth-rls-storage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out reviewed candidate
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install application dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install the pinned Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: 2.99.0
+
+      - name: Validate the fail-closed environment manifest
+        run: npm run config:manifest
+
+      - name: Boot isolated Supabase services and test two-account persistence
+        run: npm run test:supabase:local
