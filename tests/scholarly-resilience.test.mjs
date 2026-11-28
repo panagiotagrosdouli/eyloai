@@ -1,9 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createScholarlyResilience } from '../server/scholarly-resilience.mjs';
+import { createScholarlyResilience, providerMinimumGap } from '../server/scholarly-resilience.mjs';
 import { fetchWithScholarlyBackoff } from '../src/lib/scholarly-provider-backoff.mjs';
 
 const success = text => ({ status: 200, body: Buffer.from(text), cacheable: true });
+test('provider request gaps respect OpenAlex and Crossref public/polite pool limits', () => {
+  assert.equal(providerMinimumGap('openalex_works', 'climate adaptation'), 100);
+  assert.equal(providerMinimumGap('openalex_works', 'alpha AND beta AND gamma AND delta AND epsilon AND zeta AND eta'), 1000);
+  assert.equal(providerMinimumGap('crossref', 'climate adaptation', {}), 1000);
+  assert.equal(providerMinimumGap('crossref', 'climate adaptation', { RESEARCH_CONTACT_EMAIL: 'research@example.org' }), 334);
+  assert.equal(providerMinimumGap('semantic_scholar', 'climate adaptation'), 1000);
+  assert.equal(providerMinimumGap('arxiv', 'climate adaptation'), 3000);
+});
+
 test('coalesces identical requests, caches validated success, expires and bounds stored bytes', async () => {
   let clock = 0; let calls = 0; let release;
   const resilience = createScholarlyResilience({ now: () => clock, sleep: async ms => { clock += ms; }, maxEntries: 1, maxBytes: 4, ttlMs: 100 });
@@ -32,6 +41,24 @@ test('429 opens a provider-specific cooldown and does not fabricate an empty suc
   assert.equal((await resilience.execute('semantic_scholar', 'two', async () => success('recovered'))).status, 200);
 });
 
+test('normalizes an HTTP-date Retry-After into a bounded seconds value', async () => {
+  let clock=0; let calls=0;
+  const resilience=createScholarlyResilience({now:()=>clock,sleep:async ms=>{clock+=ms;}});
+  const date=new Date(5_000).toUTCString();
+  const first=await resilience.execute('crossref','date-retry',async()=>{
+    calls++;
+    return {status:429,body:Buffer.from('limited'),retryAfter:date};
+  });
+  assert.equal(first.retryAfter,'5');
+  const cooldown=await resilience.execute('crossref','different-query',async()=>{
+    calls++;
+    return success('must not run during cooldown');
+  });
+  assert.equal(calls,1);
+  assert.equal(cooldown.status,429);
+  assert.equal(cooldown.retryAfter,'5');
+});
+
 test('three transient failures open a circuit, successful probe closes it, and errors are not cached', async () => {
   let clock = 0; let calls = 0;
   const resilience = createScholarlyResilience({ now: () => clock, sleep: async ms => { clock += ms; } });
@@ -54,17 +81,19 @@ test('throttles different queries and rejects work rather than building an unbou
   assert.deepEqual(waits,[1000]);
 });
 
-test('server opt-in retries an unheaded 503 once with bounded exponential-backoff seed; never retries an unheaded 429', async () => {
+test('server opt-in retries an unheaded 503 once with bounded exponential backoff; never retries an unheaded 429', async () => {
   let calls=0; const waits=[];
-  const result=await fetchWithScholarlyBackoff('https://example.org',{}, {retryWithoutHeader:true,baseDelayMs:750,fetchImpl:async()=> ++calls===1?new Response('failure',{status:503}):new Response('real'),sleep:async ms=>waits.push(ms)});
+  const result=await fetchWithScholarlyBackoff('https://example.org',{}, {retryWithoutHeader:true,baseDelayMs:750,random:()=>1,fetchImpl:async()=> ++calls===1?new Response('failure',{status:503}):new Response('real'),sleep:async ms=>waits.push(ms)});
   assert.equal(result.status,200);assert.equal(calls,2);assert.deepEqual(waits,[750]);
   calls=0;
   await fetchWithScholarlyBackoff('https://example.org',{}, {retryWithoutHeader:true,fetchImpl:async()=>{calls++;return new Response('limited',{status:429});}});
   assert.equal(calls,1);
 });
 
-test('server retry budget caps exponential retries at three upstream attempts', async () => {
+test('server retry budget applies bounded equal jitter and caps exponential retries at three upstream attempts', async () => {
   let calls=0; const waits=[];
-  await fetchWithScholarlyBackoff('https://example.org',{}, {retryWithoutHeader:true,maxAttempts:99,baseDelayMs:500,fetchImpl:async()=>{calls++;return new Response('down',{status:503});},sleep:async ms=>waits.push(ms)});
-  assert.equal(calls,3);assert.deepEqual(waits,[500,1000]);
+  const samples=[0,1];
+  await fetchWithScholarlyBackoff('https://example.org',{}, {retryWithoutHeader:true,maxAttempts:99,baseDelayMs:500,random:()=>samples.shift(),fetchImpl:async()=>{calls++;return new Response('down',{status:503});},sleep:async ms=>waits.push(ms)});
+  assert.equal(calls,3);assert.deepEqual(waits,[250,1000]);
+  assert.ok(waits.every(delay=>delay>=250&&delay<=1500));
 });

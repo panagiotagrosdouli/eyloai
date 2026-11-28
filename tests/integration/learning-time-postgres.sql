@@ -1,6 +1,20 @@
 -- Execute actual timer, quiz grading and course RPCs against the canonical workspace.
 create function pg_temp.check_learning(ok boolean, message text) returns void language plpgsql as $$
 begin if ok is distinct from true then raise exception 'Learning assertion failed: %', message; end if; end $$;
+do $$ declare expected text[] := array[
+  'eylo_file_versions_parent_owner_fk_idx', 'eylo_files_project_fk_idx',
+  'learning_courses_source_note_fk_idx', 'learning_progress_assessment_fk_idx',
+  'learning_progress_lesson_course_user_fk_idx', 'learning_lessons_course_user_fk_idx',
+  'learning_lessons_quiz_fk_idx', 'quiz_attempts_learning_lesson_fk_idx',
+  'quiz_attempts_quiz_user_fk_idx', 'quiz_questions_quiz_user_fk_idx',
+  'quizzes_source_note_fk_idx', 'time_entries_life_task_fk_idx', 'time_entries_project_fk_idx'
+]; actual integer; begin
+  select count(*) into actual from pg_indexes
+   where schemaname = 'public' and indexname = any(expected);
+  if actual <> cardinality(expected) then
+    raise exception 'Expected 13 foreign-key coverage indexes; found %', actual;
+  end if;
+end $$;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
 do $$ declare check_expression text; begin

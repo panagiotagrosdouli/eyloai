@@ -13,13 +13,34 @@
       "sha256": "503cbfd822fbcda4bbe5d9ac2141760cec810098fe0795a3960b3622500923a2",
       "applied_to_observed_project": false,
       "reason": "Forward-only RLS policy qualification fix; requires disposable PostgreSQL regression and isolated staging acceptance before any hosted application."
+    },
+    {
+      "name": "20261128134000_index_uncovered_foreign_keys.sql",
+      "sha256": "a34db2f2548cdd32d2d0042ca056314f67ec067d74449d757f30085c86861620",
+      "applied_to_observed_project": false,
+      "reason": "Additive indexes for all 13 observed unindexed foreign keys; requires disposable PostgreSQL regression and isolated staging validation before any hosted application."
     }
   ],
   "applied_migration_versions": [
-    "20260817083110", "20260817083217", "20260817083616", "20260817083711", "20260817083904",
-    "20261115185428", "20261115191303", "20261115192654", "20261115192808", "20261115193737",
-    "20261115194119", "20261115194121", "20261115194124", "20261115194126", "20261115194209",
-    "20261115194212", "20261115194215", "20261115194217", "20261115194359"
+    "20260817083110",
+    "20260817083217",
+    "20260817083616",
+    "20260817083711",
+    "20260817083904",
+    "20261115185428",
+    "20261115191303",
+    "20261115192654",
+    "20261115192808",
+    "20261115193737",
+    "20261115194119",
+    "20261115194121",
+    "20261115194124",
+    "20261115194126",
+    "20261115194209",
+    "20261115194212",
+    "20261115194215",
+    "20261115194217",
+    "20261115194359"
   ],
   "prior_sql_fingerprint_manifest": "supabase-applied-sql-fingerprints-2026-11-20.json",
   "prior_fingerprint_results": {
@@ -50,19 +71,39 @@
     }
   },
   "confirmed_missing_feature_tables": [
-    "eyra_conversations", "eyra_messages", "eyra_agent_runs", "eyra_agent_actions",
-    "grant_applications", "meeting_participants"
+    "eyra_conversations",
+    "eyra_messages",
+    "eyra_agent_runs",
+    "eyra_agent_actions",
+    "grant_applications",
+    "meeting_participants"
   ],
   "other_missing_product_tables": [
-    "eylo_directory", "eylo_teams", "eylo_team_invites", "eylo_team_members", "eylo_connections",
-    "eylo_community_posts", "eylo_peer_reviews", "eylo_feedback", "eylo_api_tokens", "eylo_api_token_events"
+    "eylo_directory",
+    "eylo_teams",
+    "eylo_team_invites",
+    "eylo_team_members",
+    "eylo_connections",
+    "eylo_community_posts",
+    "eylo_peer_reviews",
+    "eylo_feedback",
+    "eylo_api_tokens",
+    "eylo_api_token_events"
   ],
   "missing_foreign_key_indexes": [
-    "eylo_file_versions_parent_owner_fk", "eylo_files_project_id_fkey", "learning_courses_source_note_id_fkey",
-    "learning_lesson_progress_assessment_attempt_id_fkey", "learning_lesson_progress_lesson_id_course_id_user_id_fkey",
-    "learning_lessons_course_id_user_id_fkey", "learning_lessons_quiz_id_fkey", "quiz_attempts_learning_lesson_id_fkey",
-    "quiz_attempts_quiz_id_user_id_fkey", "quiz_questions_quiz_id_user_id_fkey", "quizzes_source_note_id_fkey",
-    "time_entries_life_task_id_fkey", "time_entries_project_id_fkey"
+    "eylo_file_versions_parent_owner_fk",
+    "eylo_files_project_id_fkey",
+    "learning_courses_source_note_id_fkey",
+    "learning_lesson_progress_assessment_attempt_id_fkey",
+    "learning_lesson_progress_lesson_id_course_id_user_id_fkey",
+    "learning_lessons_course_id_user_id_fkey",
+    "learning_lessons_quiz_id_fkey",
+    "quiz_attempts_learning_lesson_id_fkey",
+    "quiz_attempts_quiz_id_user_id_fkey",
+    "quiz_questions_quiz_id_user_id_fkey",
+    "quizzes_source_note_id_fkey",
+    "time_entries_life_task_id_fkey",
+    "time_entries_project_id_fkey"
   ],
   "security_advisories": [
     "auth_leaked_password_protection: disabled",
