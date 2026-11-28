@@ -93,6 +93,15 @@ try:
                 raise RuntimeError('Unreviewed restoration source: ' + row['file'])
             sql(source.read_text())
             print('RESTORATION source applied locally:', row['file'], flush=True)
+        recovery = json.loads((ROOT / 'docs/release/manifests/scholarly-provider-production-recovery-2026-11-28.json').read_text())
+        coordination = next((row for row in recovery['candidate_migrations'] if row['file'] == '20261128145000_scholarly_provider_coordination.sql'), None)
+        if recovery.get('production_application_authorized') is not False or coordination is None:
+            raise RuntimeError('Pinned scholarly coordination recovery candidate is missing or not explicitly non-production.')
+        source = ROOT / 'supabase/migrations' / coordination['file']
+        if hashlib.sha256(source.read_bytes()).hexdigest() != coordination['sha256']:
+            raise RuntimeError('Pinned scholarly coordination migration fingerprint changed.')
+        sql(source.read_text())
+        print('RECOVERY candidate applied locally from the SHA-pinned read-only manifest:', coordination['file'], flush=True)
     else:
         for name in MIGRATIONS:
             sql((ROOT / 'supabase/migrations' / name).read_text())
