@@ -83,15 +83,6 @@ jobs:
       - name: Start the complete disposable Supabase stack
         working-directory: ${{ runner.temp }}/eyloai-local-supabase
         run: supabase start
-      - name: Verify shared scholarly provider coordination and private RPC boundary
-        working-directory: ${{ runner.temp }}/eyloai-local-supabase
-        shell: bash
-        run: |
-          set -euo pipefail
-          db_container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -n 1)"
-          test -n "$db_container"
-          docker exec -i "$db_container" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f - \
-            < "$GITHUB_WORKSPACE/tests/integration/scholarly-provider-coordination-postgres.sql"
       - name: Apply and verify Auth cascade grants after Auth role bootstrap
         working-directory: ${{ runner.temp }}/eyloai-local-supabase
         run: |
@@ -108,6 +99,15 @@ jobs:
         run: node scripts/integration/export-local-supabase-env.mjs
       - name: Execute exact scholarly coordination recovery and PostgREST acceptance
         run: node scripts/integration/test-scholarly-provider-recovery.mjs "$RUNNER_TEMP/eyloai-local-supabase"
+      - name: Verify shared scholarly provider coordination and private RPC boundary
+        working-directory: ${{ runner.temp }}/eyloai-local-supabase
+        shell: bash
+        run: |
+          set -euo pipefail
+          db_container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -n 1)"
+          test -n "$db_container"
+          docker exec -i "$db_container" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f - \
+            < "$GITHUB_WORKSPACE/tests/integration/scholarly-provider-coordination-postgres.sql"
       - name: Exercise real local Auth, PostgREST, Storage, RLS, export, and deletion
         run: node scripts/integration/test-local-supabase.mjs
       - name: Print sanitized disposable Auth/PostgreSQL failure context
