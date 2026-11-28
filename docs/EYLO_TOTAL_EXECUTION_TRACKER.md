@@ -4,18 +4,18 @@
 
 **Repository baseline:** `a12533fa4c39405cdbbaf245455ab0e2bbbd7ace` (main after PR #637; repository-owner merges only)
 
-**Working branch:** `codex/eylo-local-supabase-stack-20261128` (post-merge follow-up commit; PR #640 has since been merged remotely; no production deployment or hosted migration)
+**Working branch:** `codex/eylo-local-supabase-stack-20261128` (post-merge follow-up; PR #640 has since been merged remotely; this task made no production changes)
 
 ## Current production and staging evidence — 28 November 2026
 
 | Checkpoint | State | Evidence and limit |
 |---|---|---|
-| Production deployment | HOSTED_VERIFIED; RELEASE NO-GO | Vercel deployment `dpl_9roHjxRTLWfWfKARUnEzFsgzmrbX` is READY at exact main SHA `a12533fa4c39405cdbbaf245455ab0e2bbbd7ace`, alias `eyloai.vercel.app`. Read-only `/`, `/discover` and `/login` returned HTTP 200; this is not authenticated workflow acceptance. |
+| Production deployment | READY AFTER EXTERNAL MERGE; RELEASE NO-GO | After PR #640 was merged remotely, Vercel created production deployment `dpl_2g4yE6XtaDUC3ju3PNdnEMp2VLVX` at main SHA `84dac94257c879a7afa79fab8b8289aca7e6317f`; it reports READY. The merge/deployment were not initiated by this task. No authenticated product acceptance was performed against it. |
 | PR preview deployment | READY at current recorded head | Vercel deployment `dpl_549EYYL3qkMQvFxBLW8HY5HyWy7g` is READY for `20fde1931c24f54576fd2b631896068f3da738f7`. The preceding `993df372` preview lookup was affected by a build-rate-limit error; the later exact-head deployment completed without quota bypass, plan change, or purchase. |
 | Production Supabase | BLOCKED BY 16 MISSING TABLES | Read-only inventory confirms 19 applied migration versions and 34 public tables, all listed with RLS. Missing: eyra_conversations, eyra_messages, eyra_agent_runs, eyra_agent_actions, grant_applications, meeting_participants, eylo_directory, eylo_teams, eylo_team_invites, eylo_team_members, eylo_connections, eylo_community_posts, eylo_peer_reviews, eylo_feedback, eylo_api_tokens, eylo_api_token_events. No migration was applied. |
 | Billing and AI capability | OBSERVED | Production `/api/capabilities` returns `ai=true` and `billing=false`; billing remains disabled. Missing database tables still make durable EYRA persistence unavailable. |
 | Hosted staging | BLOCKED BY FREE PROJECT CAP | Supabase rejected the authorized `eyloai-staging` create request in `panagiotagrosdouli's Org` / eu-north-1 at the Free two-project limit. `eyloai` is active; unrelated `job` remains inactive and untouched. Owner action: Supabase Dashboard → organization → Projects → New project in an isolated free-capacity organization/provider, or separately authorize paid capacity. No purchase is authorized. |
-| Consolidated acceptance candidate | MERGED INTO MAIN; PRODUCTION RELEASE NO-GO | PR #640 was merged remotely at 2026-11-28 17:53:51 UTC as merge commit `84dac94257c879a7afa79fab8b8289aca7e6317f`, after its exact-head checks passed. This merge was not performed by this task. Production remains on the prior deployment and hosted verification/release remain blocked. |
+| Consolidated acceptance candidate | MERGED INTO MAIN; PRODUCTION RELEASE NO-GO | PR #640 was merged remotely at 2026-11-28 17:53:51 UTC as merge commit `84dac94257c879a7afa79fab8b8289aca7e6317f`, after its exact-head checks passed. This task did not merge it. Main Build `46172914752` and Product Quality `46172914792` passed on the merge commit; GitHub Pages deploy run `46172914645` passed. Vercel then produced the READY production deployment above. Hosted acceptance and release approval remain blocked. |
 | Post-merge research follow-up | LOCAL CHECK PASS; EXACT-HEAD CI/PREVIEW PENDING | The existing development branch now contains the grant-plan-context implementation and tracker restoration. Local `npm run check` passed on the same source tree (1,364 tests). GitHub Actions has no run for current branch SHA `04b670bd2c7569eca122643eb7f65815a2116ebc`; Vercel has no deployment for it. No new PR was opened. |
 
 ## Final consolidation verification — 28 November 2026
@@ -68,7 +68,7 @@ The disposable stack replayed the reviewed migration order and verified privileg
 
 These branches are not part of the #640 candidate, so their functionality is not counted as release-ready here.
 
-**Release decision: NO-GO.** The production deployment remains at main SHA `a12533fa4c39405cdbbaf245455ab0e2bbbd7ace`; its Supabase project is missing the 16 application tables listed above. No production migration, merge, deployment, AI request, live billing action, purchase or change to the unrelated `job` project occurred.
+**Release decision: NO-GO.** Main is at `84dac94257c879a7afa79fab8b8289aca7e6317f` and Vercel reports its production deployment READY. The merge and resulting automated deployment happened remotely and were not performed by this task. The Supabase project remains missing the 16 application tables listed above. This task applied no production migration, sent no live AI request, changed no billing, bought no infrastructure and did not touch the unrelated `job` project.
 
 **Owner actions:** provide an isolated free-capacity Supabase organization/project (the connected Free organization is at its two-project cap); configure preview to that isolated project; complete hosted two-account/provider/EYRA/export/deletion acceptance; establish and verify production backup/restore and approve the forward-only migration rollout; configure authorized OpenAI/Stripe test-mode access; enable main protection with required independent review and checks; obtain human scientific, accessibility, privacy/legal and pilot sign-off. Paid infrastructure and production changes remain unauthorized.
 
