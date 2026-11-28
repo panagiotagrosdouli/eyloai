@@ -38,6 +38,7 @@ delete process.env.VERCEL_ENV;
 
 const originalFetch = globalThis.fetch;
 let rewrittenApiCalls = 0;
+const failedLocalRequests = [];
 globalThis.fetch = (input, init) => {
   const requestUrl = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
   if (requestUrl.hostname === `${fakeRef}.supabase.co`) {
@@ -52,8 +53,15 @@ globalThis.fetch = (input, init) => {
     // semantics stay identical to the Supabase SDK's successful calls.
     return originalFetch(input, init);
   }
-  if (input instanceof Request) return originalFetch(new Request(requestUrl, input), init);
-  return originalFetch(requestUrl, init);
+  const request = input instanceof Request ? new Request(requestUrl, input) : requestUrl;
+  return originalFetch(request, init).then(response => {
+    if (!response.ok) {
+      const path = requestUrl.pathname.replace(/\/auth\/v1\/admin\/users\/[0-9a-f-]+/i, '/auth/v1/admin/users/{id}');
+      failedLocalRequests.push({ method: init?.method || (input instanceof Request ? input.method : 'GET'), path, status: response.status });
+      if (failedLocalRequests.length > 12) failedLocalRequests.shift();
+    }
+    return response;
+  });
 };
 
 const clientOptions = { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } };
@@ -302,7 +310,7 @@ try {
   for (let attempt = 0; attempt < 5; attempt++) {
     completed = await callDeletion('POST', { action: 'resume', receipt_token: begin.body.receipt_token });
     if (completed.code === 200 && completed.body.phase === 'complete') break;
-    assert.equal(completed.code, 202, `deletion resume status ${completed.code}: ${completed.body?.error || 'unknown'}`);
+    assert.equal(completed.code, 202, `deletion resume status ${completed.code}: ${completed.body?.error || 'unknown'}; bounded upstream failures: ${JSON.stringify(failedLocalRequests.slice(-6))}`);
   }
   assert.equal(completed?.code, 200);
   assert.equal(completed.body.phase, 'complete');
