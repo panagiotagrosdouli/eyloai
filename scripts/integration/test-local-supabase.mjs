@@ -1,9 +1,14 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 import { collectWorkspaceExport, fetchWorkspaceExportPage } from '../../src/lib/workspace-export.mjs';
 import systemHandler from '../../api/system.js';
 
+const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 const baseUrl = process.env.LOCAL_SUPABASE_URL;
 const publishableKey = process.env.LOCAL_SUPABASE_PUBLISHABLE_KEY;
 const secretKey = process.env.LOCAL_SUPABASE_SECRET_KEY;
@@ -17,7 +22,9 @@ for (const key of ['SUPABASE_ACCESS_TOKEN', 'SUPABASE_PROJECT_REF', 'SUPABASE_DB
   if (process.env[key]) throw new Error(`Remote Supabase variable ${key} is forbidden in this test.`);
 }
 const manifest = JSON.parse(await (await import('node:fs/promises')).readFile(`${process.env.LOCAL_SUPABASE_PROJECT_DIR}/reviewed-migration-replay.json`, 'utf8'));
-assert.equal(manifest.length, 33, 'reviewed canonical migration count changed');
+const migrationPlan = JSON.parse(await (await import('node:fs/promises')).readFile('supabase/migration-review-plan.json', 'utf8'));
+assert.deepEqual(manifest.map(entry => entry.source), migrationPlan.canonical_local_order,
+  'reviewed canonical migration replay no longer matches its SHA-pinned plan');
 
 // API-handler calls use a fake staging-shaped host only so the existing staging guard is exercised.
 // All network access, including that alias, is rewritten to the local stack; all other hosts are rejected.
@@ -93,6 +100,24 @@ let objectB;
 function checkResult(label, result) {
   if (result.error) throw new Error(`${label}: ${result.error.message || result.error.code || 'request failed'}`);
   return result.data;
+}
+function inspectDeletedAccountRows(userId) {
+  assert.match(userId, /^[0-9a-f-]{36}$/i, 'database verification accepts only a generated UUID');
+  const projectName = path.basename(process.env.LOCAL_SUPABASE_PROJECT_DIR);
+  const databaseContainer = `supabase_db_${projectName}`;
+  const query = `select
+    (select count(*) from public.projects where user_id = '${userId}'::uuid)::text || '|' ||
+    (select count(*) from public.study_flashcard_decks where user_id = '${userId}'::uuid)::text || '|' ||
+    (select count(*) from public.eyra_conversations where user_id = '${userId}'::uuid)::text || '|' ||
+    (select count(*) from public.eylo_api_token_events where user_id = '${userId}'::uuid)::text || '|' ||
+    (select count(*) from storage.objects object_row where
+      coalesce(to_jsonb(object_row)->>'owner_id', '') = '${userId}' or
+      (object_row.bucket_id = 'eylo-files' and split_part(object_row.name, '/', 1) = '${userId}'));`;
+  const output = execFileSync('docker', [
+    'exec', databaseContainer, 'psql', '-U', 'postgres', '-qAt', '-v', 'ON_ERROR_STOP=1', '-c', query,
+  ], { encoding: 'utf8' }).trim();
+  const counts = output.split('|').map(value => Number(value));
+  assert.deepEqual(counts, [0, 0, 0, 0, 0], 'all owner rows and Storage metadata must be removed');
 }
 function mockResponse() {
   return {
@@ -232,6 +257,20 @@ try {
     .select('id,user_id,data').single());
   assert.equal(projectA.user_id, idA);
   assert.equal(projectB.user_id, idB);
+  const flashcardDeckA = checkResult('Account A project-linked flashcard deck create', await userA.from('study_flashcard_decks')
+    .insert({ user_id: idA, data: { title: 'Synthetic deletion acceptance deck', project_id: projectA.id, cards: [] } })
+    .select('id,user_id,data').single());
+  assert.equal(flashcardDeckA.user_id, idA);
+  assert.equal(flashcardDeckA.data.project_id, projectA.id);
+  const unlinkProjectB = checkResult('Account B project for unlink regression', await userB.from('projects')
+    .insert({ user_id: idB, data: { title: 'Synthetic unlink regression project' } })
+    .select('id,user_id').single());
+  const flashcardDeckB = checkResult('Account B project-linked flashcard deck create', await userB.from('study_flashcard_decks')
+    .insert({ user_id: idB, data: { title: 'Synthetic unlink regression deck', project_id: unlinkProjectB.id, cards: [] } })
+    .select('id,user_id,data').single());
+  checkResult('Account B owner project delete', await userB.from('projects').delete().eq('id', unlinkProjectB.id));
+  assert.equal(checkResult('Ordinary project deletion preserves and unlinks the deck', await userB.from('study_flashcard_decks')
+    .select('data').eq('id', flashcardDeckB.id).single()).data.project_id, null);
   const hiddenProject = checkResult('Cross-account project read', await userB.from('projects').select('id').eq('id', projectA.id));
   assert.deepEqual(hiddenProject, []);
   const hiddenUpdate = checkResult('Cross-account project update', await userB.from('projects').update({ data: { title: 'forged' } }).eq('id', projectA.id).select('id'));
@@ -276,6 +315,47 @@ try {
   assert.equal(messages.length, 2);
   assert.deepEqual(checkResult('Cross-account conversation read', await userB.from('eyra_conversations').select('id').eq('id', conversationId)), []);
   console.log('PASS: EYRA snapshot RPC persistence, ordered messages and cross-account conversation isolation.');
+
+  const runId = randomUUID();
+  checkResult('EYRA run ledger seed', await admin.from('eyra_agent_runs').insert({
+    id: runId,
+    user_id: idA,
+    request_id: randomUUID(),
+    request_hash: createHash('sha256').update(randomUUID()).digest('hex'),
+    input_preview: 'Synthetic local acceptance run',
+  }));
+  checkResult('EYRA action ledger seed', await admin.from('eyra_agent_actions').insert({
+    run_id: runId,
+    user_id: idA,
+    call_id: 'acceptance-read-only-search',
+    tool_name: 'research_search',
+    arguments_hash: createHash('sha256').update('synthetic query').digest('hex'),
+    status: 'succeeded',
+    outcome: { result_count: 0, synthetic: true },
+    finished_at: new Date().toISOString(),
+  }));
+  const runLoginA = checkResult('Account A fresh login for EYRA run API', await makeClient().auth.signInWithPassword({ email: emailA, password: passA }));
+  const runLoginB = checkResult('Account B fresh login for EYRA run API', await makeClient().auth.signInWithPassword({ email: emailB, password: passB }));
+  assert.equal(runLoginA.user.id, idA);
+  assert.equal(runLoginB.user.id, idB);
+  const runApi = spawnSync(process.execPath, ['scripts/integration/test-local-eyra-runs-api.mjs'], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    timeout: 30_000,
+    env: {
+      ...process.env,
+      API_URL: baseUrl,
+      ANON_KEY: publishableKey,
+      SERVICE_ROLE_KEY: secretKey,
+      EYLO_TEST_TOKEN_A: runLoginA.session.access_token,
+      EYLO_TEST_TOKEN_B: runLoginB.session.access_token,
+      EYLO_TEST_USER_A: idA,
+      EYLO_TEST_RUN_ID: runId,
+    },
+  });
+  assert.equal(runApi.status, 0, `EYRA run API acceptance failed: ${(runApi.stderr || runApi.stdout || '').slice(-1600)}`);
+  assert.match(runApi.stdout, /PASS: EYRA production API handler/);
+  console.log('PASS: EYRA run API list/detail/cancel/delete and cross-account denial against local Auth/PostgREST.');
 
   objectA = `${idA}/acceptance-${randomUUID()}.txt`;
   objectB = `${idB}/acceptance-${randomUUID()}.txt`;
@@ -328,9 +408,7 @@ try {
   assert.equal(completed.body.phase, 'complete');
   const deletedUser = await admin.auth.admin.getUserById(idA);
   assert.ok(deletedUser.error, 'deleted Auth account must be absent');
-  assert.deepEqual(checkResult('Deleted account project cleanup', await admin.from('projects').select('id').eq('user_id', idA)), []);
-  assert.deepEqual(checkResult('Deleted account conversation cleanup', await admin.from('eyra_conversations').select('id').eq('user_id', idA)), []);
-  assert.deepEqual(checkResult('Deleted account token audit cleanup', await admin.from('eylo_api_token_events').select('id').eq('user_id', idA)), []);
+  inspectDeletedAccountRows(idA);
   assert.deepEqual(checkResult('Deleted account Storage cleanup', await admin.storage.from('eylo-files').list(idA)), []);
   assert.equal(checkResult('Other Auth account retained', await admin.auth.admin.getUserById(idB)).user.id, idB);
   assert.equal(checkResult('Other account project retained', await userB.from('projects').select('id').eq('id', projectB.id).single()).id, projectB.id);

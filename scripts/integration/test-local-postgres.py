@@ -103,6 +103,7 @@ try:
                 print('PASS: legacy content/timestamps/trigger states preserved, bidirectional writes, canonical profile upsert and unchanged RLS isolation.', flush=True)
         sql("alter table storage.objects alter column owner_id type uuid using nullif(owner_id, '')::uuid; alter table storage.objects add constraint storage_objects_owner_auth_user_fk foreign key (owner_id) references auth.users(id) on delete set null;")
         sql((ROOT / 'supabase/migrations/20261128152000_auth_account_cascade_privileges.sql').read_text())
+        sql((ROOT / 'supabase/migrations/20261128170000_auth_account_cascade_key_reads.sql').read_text())
         sql((ROOT / 'tests/integration/account-deletion-auth-privileges-postgres.sql').read_text())
         print('PASS: Auth cascade role has only graph-scoped DELETE and FK-column UPDATE privileges, including Storage owner metadata.', flush=True)
     sql((ROOT / 'tests/integration/workspace-postgres.sql').read_text())

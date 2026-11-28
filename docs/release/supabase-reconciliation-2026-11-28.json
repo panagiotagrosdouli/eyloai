@@ -40,9 +40,15 @@
     },
     {
       "name": "20261128170000_auth_account_cascade_key_reads.sql",
-      "sha256": "f6229b3625ea61c4af5062c084db0c0f196a59c01c648d3712a8b0ab4e356e50",
+      "sha256": "bf23606c098324c0ea8ab8207371dcff81b2cfa03f9b293432a8f70ab87b1ab6",
       "applied_to_observed_project": false,
       "reason": "Column-scoped Auth cascade key reads required by local Auth account deletion; local acceptance only, never authorizes hosted or production application."
+    },
+    {
+      "name": "20261128180000_auth_cascade_skip_project_unlink.sql",
+      "sha256": "270aa3a1ccc8f044c892d198d49bae9998c68ab8f6012ee730ff0b390cafd48f",
+      "applied_to_observed_project": false,
+      "reason": "Prevents invoker project-unlink triggers from requiring extra Auth write grants during user deletion; local acceptance only, no hosted or production application authorization."
     }
   ],
   "applied_migration_versions": [

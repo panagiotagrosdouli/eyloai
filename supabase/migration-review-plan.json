@@ -35,7 +35,8 @@
     "20261128141000_eylo_api_token_events.sql",
     "20261128145000_scholarly_provider_coordination.sql",
     "20261128152000_auth_account_cascade_privileges.sql",
-    "20261128170000_auth_account_cascade_key_reads.sql"
+    "20261128170000_auth_account_cascade_key_reads.sql",
+    "20261128180000_auth_cascade_skip_project_unlink.sql"
   ],
   "files": [
     {
@@ -268,9 +269,15 @@
     },
     {
       "name": "20261128170000_auth_account_cascade_key_reads.sql",
-      "sha256": "f6229b3625ea61c4af5062c084db0c0f196a59c01c648d3712a8b0ab4e356e50",
+      "sha256": "bf23606c098324c0ea8ab8207371dcff81b2cfa03f9b293432a8f70ab87b1ab6",
       "classification": "canonical-local-replay",
       "reason": "Column-only SELECT privileges for Auth FK cascade key checks; disposable Supabase acceptance only, no remote application approval."
+    },
+    {
+      "name": "20261128180000_auth_cascade_skip_project_unlink.sql",
+      "sha256": "270aa3a1ccc8f044c892d198d49bae9998c68ab8f6012ee730ff0b390cafd48f",
+      "classification": "canonical-local-replay",
+      "reason": "Skip redundant project-linked record updates during Auth account cascades without broadening Auth write grants; local-only acceptance."
     }
   ]
 }

@@ -70,3 +70,11 @@ test('Flashcards UI persists decks and answers through conflict-safe authorized 
   assert.match(app, /path="\/flashcards" element=\{<Flashcards \/>\}/);
   assert.match(layout, /path: '\/flashcards'/);
 });
+
+
+test('Auth account deletion skips redundant project-unlink writes across linked user tables', () => {
+  const migration = readFileSync(new URL('../supabase/migrations/20261128180000_auth_cascade_skip_project_unlink.sql', import.meta.url), 'utf8');
+  assert.equal((migration.match(/if current_user = 'supabase_auth_admin' then/g) ?? []).length, 4);
+  assert.equal((migration.match(/security invoker/g) ?? []).length, 4);
+  assert.match(migration, /unlink_deleted_project_flashcard_decks/);
+});
