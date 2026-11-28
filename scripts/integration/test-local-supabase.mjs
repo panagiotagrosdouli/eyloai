@@ -39,7 +39,7 @@ delete process.env.VERCEL_ENV;
 const originalFetch = globalThis.fetch;
 let rewrittenApiCalls = 0;
 globalThis.fetch = (input, init) => {
-  const requestUrl = new URL(typeof input === 'string' ? input : input.url);
+  const requestUrl = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
   if (requestUrl.hostname === `${fakeRef}.supabase.co`) {
     requestUrl.protocol = 'http:';
     requestUrl.hostname = local.hostname;
@@ -47,6 +47,10 @@ globalThis.fetch = (input, init) => {
     rewrittenApiCalls++;
   } else if (requestUrl.protocol !== 'http:' || !['127.0.0.1', 'localhost', '::1'].includes(requestUrl.hostname)) {
     throw new Error(`Blocked non-local network request to ${requestUrl.hostname}.`);
+  } else {
+    // Preserve the original local Fetch input/Request so native header and body
+    // semantics stay identical to the Supabase SDK's successful calls.
+    return originalFetch(input, init);
   }
   if (input instanceof Request) return originalFetch(new Request(requestUrl, input), init);
   return originalFetch(requestUrl, init);
@@ -289,7 +293,7 @@ try {
     headers: { apikey: publishableKey, authorization: `Bearer ${refreshed.session.access_token}` },
   });
   const authError = authBeforeDeletion.ok ? null : await authBeforeDeletion.json().catch(() => ({}));
-  assert.equal(authBeforeDeletion.status, 200, `refreshed account remains authenticated before deletion: ${authBeforeDeletion.status} ${authError?.code || authError?.msg || authError?.message || 'no provider detail'}`);
+  assert.equal(authBeforeDeletion.status, 200, `refreshed account remains authenticated before deletion: ${authBeforeDeletion.status} ${JSON.stringify(authError).slice(0, 300)}`);
   const begin = await callDeletion('POST', { action: 'begin', confirmation: 'DELETE MY EYLO ACCOUNT', password: passA }, refreshed.session.access_token);
   assert.equal(begin.code, 202, `deletion begin status ${begin.code}: ${begin.body?.error || 'unknown'}`);
   let completed = null;
