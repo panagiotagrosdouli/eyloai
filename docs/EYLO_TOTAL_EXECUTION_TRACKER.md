@@ -4,7 +4,7 @@
 
 **Repository baseline:** `20da2b2943479909de75c8b8ad5ccdd1fdfb31c3` (main after merged PR #626)
 
-**Working branch:** `codex/eylo-phase3-learning-rls-20261128` (stacked on PR #631)
+**Working branch:** `codex/eylo-phase3-learning-rls-20261128` (integrated PR #632 targeting `main`; includes validated work from #630 and #631)
 
 ## Final commercial readiness directive — 28 November 2026
 
@@ -16,7 +16,7 @@
 | Economics | ASSUMPTION MODEL ONLY | No measured token distribution or infrastructure/support invoice exists. The report records operation estimates and 10/100/1,000/10,000-user arithmetic using a clearly labeled published-rate proxy; replace with aggregate usage and actual invoices before pricing decisions. |
 | Operational / disaster recovery | NOT ACCEPTED | Source health endpoints exist, but centralized alert coverage, backup restoration, retention enforcement and recovery time objectives are not proven. Test restore only in an authorized isolated environment. |
 | Legal, pilot and scientific review | NOT COMPLETED | A nonpublishable counsel-review scaffold now covers the requested policy topics with unresolved owner/legal placeholders; no complete policy or approval is claimed. No external pilot, human citation/claim ratings or researcher endorsement exists. Existing research evaluation/pilot runbooks remain the execution templates. |
-| Candidate and CI | PR #632 active; hosted release gates remain open | Candidate source head `d38f6390ab2be24e107caaa64b20b36dccccc97d` passed Product Quality [46146535949](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46146535949) and disposable PostgreSQL preflight [46146535931](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46146535931); Vercel preview reported READY and Supabase Preview was skipped. The current local merge includes #631 head `94443804c054cf217ee27da5c59d7fc8809e41ca`, preserving the 13 FK-index checks and #632 ownership assertions. `npm run check` passes locally (1,348 tests); migration manifest is 35 files/two pending, with 29 selected and six excluded. The merged exact-head CI/preflight are pending. No remote schema or production action. |
+| Candidate and CI | PASS on integrated exact head; hosted gates remain open | PR #632 is the single release candidate against `main`, head `0273f6908bf9dd3bc1e477f1aaed63db6f48bd23`; includes #630 science/grant safeguards, #631 provider/schema changes and #632 learning RLS correction. Product Quality run [46149060332](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46149060332), disposable PostgreSQL preflight [46149060375](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46149060375), and Vercel check all passed on exact head. Vercel deployment `dpl_53x5piKujV7XfdpX3xtgRJdwSCbx` is READY; anonymous root returned HTTP 200. Hosted authenticated flows were not exercised because staging is blocked. No production migration or deployment occurred. |
 
 The recommendation is **NO-GO for commercial/public launch; proceed only with authorized internal development**. This record is a concrete handoff; it does not upgrade launch status or establish actual unit economics.
 
