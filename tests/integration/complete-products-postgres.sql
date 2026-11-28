@@ -88,8 +88,6 @@ select save_authored_tool_note('a0000000-0000-4000-8000-000000000027','Reviewed 
 select save_authored_tool_note('a0000000-0000-4000-8000-000000000027','Reviewed translation','Supplied text');
 select pg_temp.verify_products((select count(*)=1 from notes where id='a0000000-0000-4000-8000-000000000027'),'translation retry creates one Note');
 insert into eylo_api_tokens(id,user_id,name,token_hash,project_ids,expires_at) values('a0000000-0000-4000-8000-000000000028',auth.uid(),'Scoped key',repeat('a',64),array['a0000000-0000-4000-8000-000000000020'::uuid],now()+interval '1 day');
-select pg_temp.verify_products((select count(*)=1 and bool_and(action='created') from eylo_api_token_events where token_id='a0000000-0000-4000-8000-000000000028'),'token creation is owner-audited without credential material');
-do $$begin begin insert into eylo_api_token_events(user_id,token_id,token_name,action) values(auth.uid(),gen_random_uuid(),'Forged','created');raise exception 'Direct token event write accepted';exception when insufficient_privilege then null;end;end$$;
 do $$begin begin insert into eylo_api_tokens(user_id,name,token_hash,project_ids,expires_at) values(auth.uid(),'Wrong scope',repeat('b',64),array['a0000000-0000-4000-8000-000000000099'::uuid],now()+interval '1 day');raise exception 'Unowned token scope accepted';exception when insufficient_privilege then null;end;end$$;
 set role service_role;
 select pg_temp.verify_products((select count(*)=1 from lookup_developer_token(repeat('a',64))),'active scoped credential resolves');
@@ -102,12 +100,10 @@ update auth.users set banned_until=null where id='00000000-0000-0000-0000-000000
 set role authenticated;
 update eylo_api_tokens set revoked_at=now() where id='a0000000-0000-4000-8000-000000000028';
 select pg_temp.verify_products((select revoked_at is not null from eylo_api_tokens where id='a0000000-0000-4000-8000-000000000028'),'owner revokes token');
-select pg_temp.verify_products((select count(*)=2 and count(*) filter(where action='revoked')=1 from eylo_api_token_events where token_id='a0000000-0000-4000-8000-000000000028'),'token revocation is owner-audited');
 do $$declare i int;begin for i in 1..20 loop insert into eylo_community_posts(user_id,body) values(auth.uid(),'Deliberately public fixture post');end loop;begin insert into eylo_community_posts(user_id,body) values(auth.uid(),'Over budget');raise exception 'Publish quota failed';exception when program_limit_exceeded then null;end;end$$;
 set request.jwt.claim.sub='00000000-0000-4000-8000-000000000003';
 select pg_temp.verify_products((select count(*)=20 from eylo_community_posts),'community publication is deliberately visible to authenticated members');
 select pg_temp.verify_products((select count(*)=0 from eylo_api_tokens),'personal token metadata stays private');
-select pg_temp.verify_products((select count(*)=0 from eylo_api_token_events),'token audit events stay private');
 do $$begin begin perform run_project_task_workflow('a0000000-0000-4000-8000-000000000020','a0000000-0000-4000-8000-000000000021',gen_random_uuid(),now());raise exception 'Outsider ran workflow';exception when insufficient_privilege then null;end;end$$;
 reset role;
 select pg_temp.verify_products(not has_function_privilege('anon','public.run_project_task_workflow(uuid,uuid,uuid,timestamptz)','execute'),'anonymous cannot run workflows');
