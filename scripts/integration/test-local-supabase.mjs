@@ -289,12 +289,14 @@ try {
   const deletionStatus = await callDeletion('GET');
   assert.equal(deletionStatus.code, 200);
   assert.equal(deletionStatus.body.available, true);
+  const deletionLoginA = checkResult('Account A re-login for privacy deletion', await userA.auth.signInWithPassword({ email: emailA, password: passA }));
+  assert.equal(deletionLoginA.user.id, idA);
   const authBeforeDeletion = await fetch(`${baseUrl}/auth/v1/user`, {
-    headers: { apikey: publishableKey, authorization: `Bearer ${refreshed.session.access_token}` },
+    headers: { apikey: publishableKey, authorization: `Bearer ${deletionLoginA.session.access_token}` },
   });
   const authError = authBeforeDeletion.ok ? null : await authBeforeDeletion.json().catch(() => ({}));
   assert.equal(authBeforeDeletion.status, 200, `refreshed account remains authenticated before deletion: ${authBeforeDeletion.status} ${JSON.stringify(authError).slice(0, 300)}`);
-  const begin = await callDeletion('POST', { action: 'begin', confirmation: 'DELETE MY EYLO ACCOUNT', password: passA }, refreshed.session.access_token);
+  const begin = await callDeletion('POST', { action: 'begin', confirmation: 'DELETE MY EYLO ACCOUNT', password: passA }, deletionLoginA.session.access_token);
   assert.equal(begin.code, 202, `deletion begin status ${begin.code}: ${begin.body?.error || 'unknown'}`);
   let completed = null;
   for (let attempt = 0; attempt < 5; attempt++) {
