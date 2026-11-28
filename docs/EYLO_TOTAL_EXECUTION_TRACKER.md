@@ -370,3 +370,5 @@ Do not duplicate these reports under new names. They remain the detailed audits 
 | Backup/restore | NOT VERIFIED | No backup was inspected, created, or restored. Runbook requires a recorded verified restore point and isolated restore test before any production DDL. |
 | Production repair and scholarly acceptance | NOT AUTHORIZED / NOT RUN | No production DDL, migration ledger edits, provider calls, quota changes, or Vercel deployment occurred. Real source results and DOI validation remain blocked pending isolated replay and separately authorized production migration. |
 
+
+| Recovery package exact-head checks | PASS ON `cb760b69722adf50297da7572bf75b80b613df45` | Build `46181043672`, EYLO Quality Gate `46181043618` (including disposable PostgreSQL workspace/RLS), and Product Quality `46181043607` passed after rerunning the cancelled Product Quality job on this settled head. Vercel preview status passed. This is not evidence of a healthy isolated Supabase migration replay, hosted production schema repair, or real scholarly-source response. |
