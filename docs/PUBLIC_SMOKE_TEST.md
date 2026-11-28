@@ -9,3 +9,12 @@ EYLO_EXPECTED_GIT_SHA="$(git rev-parse HEAD)" node scripts/smoke-public.mjs http
 The script checks the landing page, manifest, robots policy, public discovery and authentication route shells, and capability response. With a reviewed Git SHA, it requires both the manifest and the server deployment endpoint to identify that commit. The GitHub Actions workflow requires this SHA when dispatched. Running the script without a SHA checks route availability only. Redirects are not followed, including authentication and deployment-protection redirects. HTTPS is required except for localhost. No credentials are needed or accepted in the URL.
 
 **A pass is not a launch approval.** Confirm the exact deployment commit on Vercel and complete all authentication, two-user Supabase RLS, evidence quality, billing, privacy, backup, monitoring and rollback checks in [LAUNCH_READINESS_GATE.md](./LAUNCH_READINESS_GATE.md). Never paste or commit secrets. A protected preview must be tested with an appropriately authorized browser or deployment mechanism; do not bypass protection in this script.
+# Release scope without product payments
+
+For the owner's explicit scope of all features except payments, use:
+
+```bash
+node scripts/probe-release-target.mjs https://eyloai.vercel.app --without-billing
+```
+
+The exact reviewed commit defaults to the current checkout HEAD. Reports name required and excluded capabilities. This option excludes only billing from required public configuration; it does not enable or change billing, skip AI/contact, waive discovery/provenance checks, accept malformed capabilities or certify hosted private workflows. Without the option, billing remains required. Scheduled monitoring and institution analytics still require separate acceptance; this narrow probe does not cover them.
