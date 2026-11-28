@@ -166,7 +166,14 @@ export function validateGrantProposalInputs(options = {}) {
 
 /** @param {Record<string, any>} options */
 export function buildGrantProposalPrompt(options = {}) {
-  const { call, idea, discipline, language = 'English', sections, papers, budgetFigures = [], researcherSuppliedFacts = '', confirmedRequirementIds = [] } = options;
+  const { call, idea, discipline, language = 'English', sections, papers, budgetFigures = [], researcherSuppliedFacts = '', confirmedRequirementIds = [], plan = null } = options;
+  const planningContext = plan && typeof plan === 'object' ? {
+    research_question: String(plan.research_question || '').slice(0, 1200),
+    search_query: String(plan.search_query || '').slice(0, 500),
+    unresolved_questions: Array.isArray(plan.unresolved_questions)
+      ? plan.unresolved_questions.slice(0, 8).map(question => String(question).slice(0, 400))
+      : [],
+  } : null;
   const milestonesNotApplicable = confirmedMilestonesNotApplicable(call.requirements, confirmedRequirementIds);
   const planningInstruction = milestonesNotApplicable
     ? 'A researcher-confirmed call requirement says milestones are not applicable. Leave every work-package milestones array empty and return an empty timeline; do not add milestones or timeline entries.'
@@ -190,13 +197,16 @@ ${JSON.stringify(sections)}
 PROJECT IDEA AND DISCIPLINE
 ${JSON.stringify({ idea, discipline, language, researcherSuppliedFacts: String(researcherSuppliedFacts).slice(0, 6000) })}
 
+PRELIMINARY RESEARCH PLAN: CONTEXT ONLY, NOT EVIDENCE OR AN OFFICIAL CALL REQUIREMENT
+${JSON.stringify(planningContext)}
+
 SUPPLIED BUDGET FIGURES (use exact amount_text and figure_id only)
 ${JSON.stringify(budgetFigures)}
 
 SELECTED PROJECT SCHOLARLY RECORDS
 ${JSON.stringify(papers.map(paper => ({ id: String(paper.id), title: paper.title || '', authors: paper.authors || '', year: paper.year || '', doi: paper.doi || '', url: paper.url || '', abstract: String(paper.summary || '').slice(0, 1800) })))}
 
-Return exactly one section for each confirmed heading, with requirement_ids and scholarly source_ids. Build distinct provisional work packages with activities and deliverables; ${planningInstruction} Include a risk register with blank owner unless supplied. Leave partner_name blank unless an explicitly researcher-supplied fact names that partner. Include budget line categories only when relevant; do not invent amount values.`;
+Return exactly one section for each confirmed heading, with requirement_ids and scholarly source_ids. Build distinct provisional work packages with activities, deliverables and milestones, plus a dependency-aware provisional timeline with relative sequence labels only when call requirements permit milestones; ${planningInstruction} Include a risk register with blank owner unless supplied. Leave partner_name blank unless an explicitly researcher-supplied fact names that partner. Include budget line categories only when relevant; do not invent amount values.`;
 }
 
 /** @param {Record<string, any>} options */
