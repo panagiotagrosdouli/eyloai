@@ -25,6 +25,8 @@ test('provider scopes are stable, opaque and distinct from client IP quota scope
   assert.match(first, /^[a-f0-9]{64}$/);
   assert.equal(makeDiscoveryProviderSubject('semantic_scholar', env.SUPABASE_SERVICE_ROLE_KEY), first);
   assert.notEqual(makeDiscoveryProviderSubject('openalex_works', env.SUPABASE_SERVICE_ROLE_KEY), first);
+  assert.equal(makeDiscoveryProviderSubject('openalex_authors', env.SUPABASE_SERVICE_ROLE_KEY), makeDiscoveryProviderSubject('openalex_works', env.SUPABASE_SERVICE_ROLE_KEY),
+    'OpenAlex API surfaces share one upstream quota scope');
   assert.notEqual(first, 'semantic_scholar');
   assert.notEqual(first, '203.0.113.1');
   assert.equal(makeDiscoveryProviderSubject('../invalid', env.SUPABASE_SERVICE_ROLE_KEY), '');

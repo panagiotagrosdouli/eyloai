@@ -40,7 +40,8 @@ export function makeDiscoveryProviderSubject(provider, serviceRoleKey) {
   const name = String(provider || '').trim();
   const key = String(serviceRoleKey || '').trim();
   if (!/^[a-z0-9_]{1,64}$/.test(name) || !key) return '';
-  return createHmac('sha256', key).update(`eylo-discovery-provider:v1:${name}`).digest('hex');
+  const scope = name.startsWith('openalex_') ? 'openalex' : name;
+  return createHmac('sha256', key).update(`eylo-discovery-provider:v1:${scope}`).digest('hex');
 }
 
 export async function consumeDiscoveryQuota(request, {
