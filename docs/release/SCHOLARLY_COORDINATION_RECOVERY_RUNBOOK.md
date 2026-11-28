@@ -32,4 +32,13 @@ Other historical application tables require a separate dependency and migration-
 
 ## Production boundary
 
-No production change is authorized by this package. Any production DDL requires separate explicit owner approval naming the target, exact migration and version, verified backup restore point, and recovery window. Apply only the reviewed migration after isolated staging validation and a fresh read-only preflight. Never use `migration repair` as a substitute for applying DDL, and do not use broad replay to resolve an isolated missing object.
+No production change is authorized by this package. Any production DDL requires separate explicit owner approval naming the target, exact migration and version, verified backup restore point, and recovery window.
+
+### One-migration operation reserved for that approval
+
+1. Verify the approval identifies this exact file, version, and SHA-256. Confirm the isolated staging replay and restore rehearsal passed.
+2. Take a fresh read-only preflight immediately before the window. Proceed only when the version and all seven expected objects are absent and no conflicting object exists. Stop on any partial, recorded, or incompatible state.
+3. Use the owner's approved migration executor to apply only this file in one transaction and record its version through the same migration mechanism. If the executor would replay other pending migrations or cannot isolate this file, stop and reconcile the plan first.
+4. Re-run the read-only preflight. Require the exact version, three tables, four RPC signatures, RLS, grants, and function security checks to pass. If the DDL transaction or postflight fails, stop; do not retry over a partial state.
+
+Never use `migration repair` as a substitute for applying DDL, run a general migration-directory replay, modify prior migration history, drop existing objects, or create test rows in production. If the platform's executor cannot atomically apply and record this single migration, the owner must approve a separate, reviewed ledger-reconciliation procedure after the DDL and catalog checks succeed.
