@@ -38,10 +38,12 @@ delete process.env.VERCEL_ENV;
 
 const originalFetch = globalThis.fetch;
 let rewrittenApiCalls = 0;
-const failedLocalRequests = [];
+const deletionAuthTrace = [];
 globalThis.fetch = (input, init) => {
   const requestUrl = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url);
+  let stagingApiCall = false;
   if (requestUrl.hostname === `${fakeRef}.supabase.co`) {
+    stagingApiCall = true;
     requestUrl.protocol = 'http:';
     requestUrl.hostname = local.hostname;
     requestUrl.port = local.port;
@@ -53,12 +55,22 @@ globalThis.fetch = (input, init) => {
     // semantics stay identical to the Supabase SDK's successful calls.
     return originalFetch(input, init);
   }
-  const request = input instanceof Request ? new Request(requestUrl, input) : requestUrl;
-  return originalFetch(request, init).then(response => {
-    if (!response.ok) {
-      const path = requestUrl.pathname.replace(/\/auth\/v1\/admin\/users\/[0-9a-f-]+/i, '/auth/v1/admin/users/{id}');
-      failedLocalRequests.push({ method: init?.method || (input instanceof Request ? input.method : 'GET'), path, status: response.status });
-      if (failedLocalRequests.length > 12) failedLocalRequests.shift();
+  const forwarded = input instanceof Request ? new Request(requestUrl, input) : requestUrl;
+  return originalFetch(forwarded, init).then(response => {
+    if (stagingApiCall && (requestUrl.pathname.startsWith('/auth/v1/admin/users/') || requestUrl.pathname === '/auth/v1/logout')) {
+      const method = init?.method || (input instanceof Request ? input.method : 'GET');
+      if (response.status >= 400) {
+        return response.clone().json().catch(() => ({})).then(body => {
+          const code = typeof body?.code === 'string' ? body.code : typeof body?.error_code === 'string' ? body.error_code : '';
+          const message = typeof body?.msg === 'string' ? body.msg : typeof body?.message === 'string' ? body.message : typeof body?.error === 'string' ? body.error : '';
+          const safeMessage = message.slice(0, 120).replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]').replace(/[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}/gi, '[id]');
+          const safePath = requestUrl.pathname.replace(/\/auth\/v1\/admin\/users\/[0-9a-f-]+/i, '/auth/v1/admin/users/{id}');
+          deletionAuthTrace.push(`${method}:${safePath}:${response.status}:${code}:${safeMessage}`);
+          return response;
+        });
+      }
+      const safePath = requestUrl.pathname.replace(/\/auth\/v1\/admin\/users\/[0-9a-f-]+/i, '/auth/v1/admin/users/{id}');
+      deletionAuthTrace.push(`${method}:${safePath}:${response.status}`);
     }
     return response;
   });
@@ -310,7 +322,7 @@ try {
   for (let attempt = 0; attempt < 5; attempt++) {
     completed = await callDeletion('POST', { action: 'resume', receipt_token: begin.body.receipt_token });
     if (completed.code === 200 && completed.body.phase === 'complete') break;
-    assert.equal(completed.code, 202, `deletion resume status ${completed.code}: ${completed.body?.error || 'unknown'}; bounded upstream failures: ${JSON.stringify(failedLocalRequests.slice(-6))}`);
+    assert.equal(completed.code, 202, `deletion resume status ${completed.code}: ${completed.body?.error || 'unknown'}; Auth admin statuses ${deletionAuthTrace.join(',') || 'none'}`);
   }
   assert.equal(completed?.code, 200);
   assert.equal(completed.body.phase, 'complete');
