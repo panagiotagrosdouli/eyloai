@@ -35,7 +35,7 @@ This is the working implementation register for the master EYLO platform brief. 
 
 ## Priority 3 — Advanced research workflows
 
-- [x] Knowledge Graph — **Implemented and hosted-CI verified on main:** protected interactive graph from saved publications, researchers, and projects; factual links have source provenance, inferred shared-topic links are labeled, and filters, navigation, zoom/pan, and an accessible relationship list are available. Legacy metadata completeness and live cross-user isolation remain unverified.
+- [x] Knowledge Graph — **Implemented on main; hosted-CI verified, with partial scope:** the graph draws from saved papers, researchers and projects; uses available OpenAlex authorship, affiliation, topic and in-library citation metadata; links factual edges to sources; labels inferred topic links; and supports filters, navigation, zoom/pan and an accessible relationship list. Expansion beyond saved metadata, metadata completeness, and live cross-user/RLS acceptance remain open.
 - [ ] Literature Review Builder — **Not implemented as an editable, source-grounded drafting workflow.**
 - [ ] EYRA Peer Review Simulator — **Not implemented.**
 - [ ] Research Data Lab — **Partial:** current main supports bounded, browser-only CSV analysis and formula-safe summary export. Data stays session-only; mobile/browser and accessible chart acceptance remain open.
@@ -75,3 +75,14 @@ This is the working implementation register for the master EYLO platform brief. 
 ## Continuation rule
 
 Update this file after each verified focused change. Preserve blocked status when external project access, real human judgments, consent, or production configuration is unavailable. Do not convert planned work into completion claims.
+
+
+## Latest continuation checkpoint — 2026-11-10
+
+- Idea Vault browser recovery regression is fixed in merged PR [#306](https://github.com/panagiotagrosdouli/eyloai/pull/306), merge commit `cccfa6e9e5b71b3d0bb12e2634f42e064969b60f`. Its Build, EYLO Quality Gate, and Product quality workflows passed. The browser scenario verifies a controlled 503, the truthful visible error state, explicit retry, and isolated test-double CRUD; it does not verify live Supabase behavior or RLS.
+- The recovery test keeps the first failure active until the explicit user retry and matches the exact title while requiring an explanatory detail. A one-shot mock was nondeterministic because a repeated request could succeed before the UI assertion.
+- Source-backed Knowledge Graph shipped in PR [#307](https://github.com/panagiotagrosdouli/eyloai/pull/307), merge commit `d83205120f94c9cf4ae06ef8359830eade96660a`. Hosted Build, EYLO Quality Gate, and Product quality passed. Coverage is the saved collection and available source metadata; the broader graph requirements remain partial.
+- Diagnostic PR #308 was closed without merge after PR #306 resolved the failure; no application behavior changed in #308.
+- The Vercel status is failing because the linked account reached its daily deployment limit; this is not a successful preview or production verification. Exact Vercel project/deployed SHA and intended Supabase project identity, migrations, RLS isolation, and live auth/email remain unverified. No production changes were made.
+- Team Planner researcher saving is implemented in open PR [#311](https://github.com/panagiotagrosdouli/eyloai/pull/311). Hosted Build, EYLO Quality Gate, and Product quality browser checks passed on head `967bcff7e11ff02bf712409d28c2446fae77018d`; the new flow uses isolated auth and provider/database test doubles. Production RLS and cross-user isolation are still unverified.
+- Local Playwright execution in this workspace was blocked by Chromium socket restrictions; use the hosted browser workflow for browser verification. The passing #306 browser run is the actual hosted evidence for the corrected Idea Vault path.
