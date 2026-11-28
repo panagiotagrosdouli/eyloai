@@ -97,7 +97,7 @@ function_reports as (
     or anon_execute is distinct from false or authenticated_execute is distinct from false
     or public_execute is distinct from false then 'INCOMPATIBLE'
    else 'SIGNATURE_SECURITY_GRANTS_COMPATIBLE_BODY_REVIEW_REQUIRED' end,
-  'expected_result',result_type,'actual_result',actual_result,
+  'expected_result',result_type,'actual_result',actual_result,'other_overloads',other_overloads,
   'security_definer',prosecdef,'empty_search_path',empty_search_path,'owner',owner_name,
   'default_argument_count',pronargdefaults,'service_role_execute',service_execute,
   'anon_execute',anon_execute,'authenticated_execute',authenticated_execute,'public_execute',public_execute
