@@ -334,6 +334,10 @@ try {
     outcome: { result_count: 0, synthetic: true },
     finished_at: new Date().toISOString(),
   }));
+  const runLoginA = checkResult('Account A fresh login for EYRA run API', await makeClient().auth.signInWithPassword({ email: emailA, password: passA }));
+  const runLoginB = checkResult('Account B fresh login for EYRA run API', await makeClient().auth.signInWithPassword({ email: emailB, password: passB }));
+  assert.equal(runLoginA.user.id, idA);
+  assert.equal(runLoginB.user.id, idB);
   const runApi = spawnSync(process.execPath, ['scripts/integration/test-local-eyra-runs-api.mjs'], {
     cwd: repoRoot,
     encoding: 'utf8',
@@ -343,8 +347,8 @@ try {
       API_URL: baseUrl,
       ANON_KEY: publishableKey,
       SERVICE_ROLE_KEY: secretKey,
-      EYLO_TEST_TOKEN_A: refreshed.session.access_token,
-      EYLO_TEST_TOKEN_B: loginB.session.access_token,
+      EYLO_TEST_TOKEN_A: runLoginA.session.access_token,
+      EYLO_TEST_TOKEN_B: runLoginB.session.access_token,
       EYLO_TEST_USER_A: idA,
       EYLO_TEST_RUN_ID: runId,
     },
