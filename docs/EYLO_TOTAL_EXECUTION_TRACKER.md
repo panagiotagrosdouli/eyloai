@@ -338,3 +338,16 @@ Do not duplicate these reports under new names. They remain the detailed audits 
 5. Have the Supabase owner enable leaked-password protection, then retest Auth and Security Advisor.
 6. Have the repository owner enforce main branch review/check rules and confirm the rule blocks an intentionally failing PR.
 7. Keep contact, live payments, external pilot, and schema rollout disabled until their existing owner/legal gates pass.
+
+
+## 28 November follow-up — grant plan provenance and exact-head acceptance
+
+| Checkpoint | Result | Evidence and limit |
+|---|---|---|
+| Current main and branch preservation | VERIFIED | Latest main advanced to `c795c22447ee7f15d6c46ca3d9caf8c61bd7bfa3` through PR #642. PR #643 is based on that exact main and contains only the grant prompt and regression-test changes. The reported short local SHA `7cfa6368` could not be fetched; commit `9b284b7a` is available as tracker history, while its parent integration in PR #642 already brought the saved-plan context into main. |
+| Grant research-plan handoff | EXACT-HEAD CHECKS PASS | PR #643 head `c1fbfd15c509a5f7bf91f6cf2d184a43440c7795` maps the schema's canonical `open_questions` into a bounded prompt context, retains a bounded legacy-field fallback, labels plan text untrusted/non-evidentiary, and excludes arbitrary plan fields. Existing proposal validation restricts output citation IDs to confirmed selected scholarly records. |
+| Build, Quality Gate and Product Quality | PASS | Exact-head Build `46176736611`, EYLO Quality Gate `46176736656`, and Product Quality `46176736634` all completed successfully on PR #643 head `c1fbfd15c509a5f7bf91f6cf2d184a43440c7795`. Product Quality's browser/product steps all passed. The change adds no SQL, so no separate migration-workflow run was triggered. No shell execution environment was available for local tests. |
+| Vercel preview | BLOCKED BY FREE DAILY BUILD LIMIT | No preview deployment exists for the exact PR #643 head. Vercel returned the `api-deployments-free-per-day` limit; no retry, quota bypass, plan change or purchase was attempted. |
+| Production scholarly discovery 503 | ROOT CAUSE CONFIRMED; LIVE SERVICE UNREPAIRED | Read-only production catalog/log evidence recorded above shows the coordination-cache RPCs and three tables are absent; `read_scholarly_provider_cache` returns 404 before any index provider request. Migration `20261128145000_scholarly_provider_coordination.sql` exists in main and passed disposable local replay, but is absent from production migration history and is non-idempotent. Reconcile isolated schema/history/backup and stage the migration before seeking separate production authorization; keep quota enforcement fail-closed. |
+| Hosted acceptance and release | BLOCKED / NO-GO | Disposable Supabase and CI/browser checks do not establish hosted Auth, provider, EYRA, Storage, export, deletion, backup/restore, or production acceptance. No hosted or production migration/deployment, live billing, or private pilot was performed. |
+
