@@ -2,7 +2,10 @@
 create function pg_temp.check_learning(ok boolean, message text) returns void language plpgsql as $$
 begin if ok is distinct from true then raise exception 'Learning assertion failed: %', message; end if; end $$;
 create temporary table learning_progress_test_fixture (key text primary key, id uuid not null);
-grant usage on schema pg_temp to authenticated, anon;
+do $$ declare temp_schema name; begin
+  select nspname into temp_schema from pg_namespace where oid = pg_my_temp_schema();
+  execute format('grant usage on schema %I to authenticated, anon', temp_schema);
+end $$;
 grant select, insert on pg_temp.learning_progress_test_fixture to authenticated, anon;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
