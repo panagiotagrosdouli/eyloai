@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-11-28",
+  "project_ref": "kbzjngpzxpniaumlupaa",
+  "observation_mode": "read_only",
+  "reproduction_sql": "supabase-reconciliation-readonly.sql",
+  "local_verifier": "scripts/verify-supabase-reconciliation-manifest.mjs",
+  "production_changes_made": false,
+  "local_migration_files": 33,
+  "applied_migration_versions": [
+    "20260817083110", "20260817083217", "20260817083616", "20260817083711", "20260817083904",
+    "20261115185428", "20261115191303", "20261115192654", "20261115192808", "20261115193737",
+    "20261115194119", "20261115194121", "20261115194124", "20261115194126", "20261115194209",
+    "20261115194212", "20261115194215", "20261115194217", "20261115194359"
+  ],
+  "prior_sql_fingerprint_manifest": "supabase-applied-sql-fingerprints-2026-11-20.json",
+  "prior_fingerprint_results": {
+    "exact_sql_matches": 18,
+    "divergent_sql_matches": 1,
+    "divergence": {
+      "version": "20260817083616",
+      "migration": "security_hardening",
+      "remote_profile_owner_expression": "auth.uid() = id",
+      "local_profile_owner_expression": "auth.uid() = user_id",
+      "known_replay_hazard": "local historical migration references user_id before bridge_legacy_workspace_schema adds it"
+    }
+  },
+  "remote_public_table_count": 34,
+  "remote_public_tables_with_rls_enabled": 34,
+  "rls_policy_observations": {
+    "public_discovery_rate_limits": "RLS enabled, no client policy; intended service-only table",
+    "storage_eylo_files": {
+      "read_insert_delete_owner_policies": true,
+      "update_policy": false,
+      "current_upload_mode": "unique immutable object paths, upsert=false"
+    }
+  },
+  "confirmed_missing_feature_tables": [
+    "eyra_conversations", "eyra_messages", "eyra_agent_runs", "eyra_agent_actions",
+    "grant_applications", "meeting_participants"
+  ],
+  "other_missing_product_tables": [
+    "eylo_directory", "eylo_teams", "eylo_team_invites", "eylo_team_members", "eylo_connections",
+    "eylo_community_posts", "eylo_peer_reviews", "eylo_feedback", "eylo_api_tokens", "eylo_api_token_events"
+  ],
+  "missing_foreign_key_indexes": [
+    "eylo_file_versions_parent_owner_fk", "eylo_files_project_id_fkey", "learning_courses_source_note_id_fkey",
+    "learning_lesson_progress_assessment_attempt_id_fkey", "learning_lesson_progress_lesson_id_course_id_user_id_fkey",
+    "learning_lessons_course_id_user_id_fkey", "learning_lessons_quiz_id_fkey", "quiz_attempts_learning_lesson_id_fkey",
+    "quiz_attempts_quiz_id_user_id_fkey", "quiz_questions_quiz_id_user_id_fkey", "quizzes_source_note_id_fkey",
+    "time_entries_life_task_id_fkey", "time_entries_project_id_fkey"
+  ],
+  "security_advisories": [
+    "auth_leaked_password_protection: disabled",
+    "discovery_rate_limits: RLS enabled with no policy (server-only, informational advisor finding)"
+  ],
+  "staging": {
+    "available_branch_count": 1,
+    "branch_status": "MIGRATIONS_FAILED",
+    "reported_failure": "Remote migration versions not found in local migrations directory",
+    "isolated_disposable_postgres_available": false,
+    "disposable_database_validation": "BLOCKED"
+  },
+  "release_decision": "NO-GO",
+  "limitations": [
+    "Applied migration SQL fingerprints are the read-only 2026-11-20 snapshot; live version inventory was rechecked 2026-11-28.",
+    "Schema catalog inventory, RLS, storage policies, grants, indexes and advisors were read-only observations; no hosted two-account access test was run.",
+    "The Supabase free organization and the unrelated inactive job project were not changed; no infrastructure was created and no charges were incurred."
+  ]
+}

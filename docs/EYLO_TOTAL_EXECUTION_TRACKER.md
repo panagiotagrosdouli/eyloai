@@ -1,10 +1,30 @@
+Warning: truncated output (original token count: 5217)
+Total output lines: 138
+
 # EYLO total execution tracker
 
 **Updated:** 28 November 2026 (Europe/Athens)
 
 **Repository baseline:** `20da2b2943479909de75c8b8ad5ccdd1fdfb31c3` (main after merged PR #626)
 
-**Working branch:** `codex/eylo-integrated-release-candidate-20261128`
+**Working branch:** `codex/eylo-phase-ii-migration-reconciliation-20261128`
+
+**Revalidated candidate:** PR #630 exact head `8983a3c774c9a24b1859eaa0a5cd0f7d3a8e02bb` (ready for review; not merged). Exact-head Build run `46138731826`, EYLO Quality Gate `46138731804`, Product quality `46138731812` and Vercel preview `dpl_CWoEDK2jCDtXiTapGyfkc9pRD7ra` passed. Local `npm run check` passed on this SHA after a clean `npm ci`: imports, both TypeScript projects, ESLint, 1,340 Node tests, Vite build and chunk budget. This is source/CI evidence only; production remains NO-GO.
+
+**Live migration reconciliation:** Read-only inventory on 2026-11-28 reconfirmed 19 applied migration versions, 34 public tables with RLS enabled, 18 exact historical SQL fingerprints and one known divergent `security_hardening` fingerprint from the 2026-11-20 statement snapshot. The reproducible snapshot and local verification are [supabase-reconciliation-2026-11-28.json](release/supabase-reconciliation-2026-11-28.json) and `npm run db:reconcile-manifest`. Missing EYRA conversation/run tables, grant applications, meeting participants and ten collaboration/product tables remain. The available Supabase branch reports `MIGRATIONS_FAILED`; no disposable local PostgreSQL runtime is installed and no staging migrations were applied. Production and the unrelated inactive job project were untouched.
+
+## 28 November Phase II continuation
+
+| Workstream | State | Evidence and next action |
+|---|---|---|
+| PR #630 independent source review | REVIEWED; no merge recommendation | Inspected all 17 changed files, grant provenance and budget checks, scientific evaluation/review semantics, release manifest gates, staging safeguards and save/export flows. No source-level defect was confirmed in this patch. Scientific scoring remains explicitly non-automated; no scientific correctness or hosted acceptance is inferred from CI. PR #630 remains open and unmerged. |
+| Migration reconciliation | SNAPSHOT IMPLEMENTED; hosted repair BLOCKED | Added a read-only SQL catalog recipe and snapshot manifest, plus a verifier that checks all 33 local migration files, 19 historic SQL fingerprints, version inventory and fail-closed release state. `npm run db:reconcile-manifest` PASS: 18 exact, one known divergence. No disposable local PostgreSQL executable/container exists; hosted branch is migration-failed. Owner must provide isolated disposable PostgreSQL/Supabase and migration-history/backup evidence before candidate SQL can be safely validated. |
+| RLS and Storage review | PARTIALLY REVIEWED; HOSTED TWO-ACCOUNT TEST BLOCKED | Production catalog snapshot: all 34 public tables have RLS enabled. `discovery_rate_limits` has no client policy and is marked service-only; private `eylo-files` bucket has owner read/insert/delete policies consistent with immutable unique-path uploads (`upsert:false`). Security advisor reports leaked-password protection disabled. Performance advisor reports 13 unindexed foreign keys. Owner must enable leaked-password protection and supply two disposable authenticated accounts plus isolated staging for read/write/delete/storage/cache tests. |
+| Local verification | AUTOMATED_TESTS_PASSED | Clean `npm ci`, then `npm run check`: 1,342 tests passed; imports, typecheck, lint, build and chunk budget passed. `npm run db:reconcile-manifest` passed. Browser learning E2E was attempted and BLOCKED: Playwright's pinned Chromium binary is absent; `/usr/bin/chromium` is a wrapper whose `/usr/lib/chromium/chromium` target is missing. |
+| OpenAI and Stripe readiness | BLOCKED; NO LIVE CALLS | `npm run config:check` reports absent Supabase/OpenAI credentials and Stripe secret, webhook secret and price IDs; no secret values were printed. No provider calls or Stripe requests were made. Owner must configure preview-only keys and test-mode Stripe identifiers, then authorize bounded acceptance within a cost cap. |
+| Staging and database tests | BLOCKED | `npm run db:review-plan` confirms a local-only plan with no plan issues, but 26 candidate migrations and seven exclusions do not establish remote history or replay safety. No staging migration, production mutation, account creation, deletion fixture, paid infrastructure or live payment was used. |
+
+Production remains **NO-GO**. The local SQL catalog recipe is descriptive and read-only; its results are a dated snapshot and must be rerun on an owner-authorized isolated target before operational acceptance.
 
 This file is the current execution index. It does not promote a feature to staging or production verified. The canonical feature-by-feature inventory is [PRODUCT_IMPLEMENTATION_TRACKER.md](PRODUCT_IMPLEMENTATION_TRACKER.md): it contains 77 individually numbered existing product modules, their implementation descriptions, tests and remaining acceptance. All 77 are currently marked **PARTIAL**. The route-level inventory and audit is [FULL_SITE_FUNCTIONAL_AUDIT.md](FULL_SITE_FUNCTIONAL_AUDIT.md). Preserve those detailed inventories rather than maintaining a second, divergent copy here.
 
@@ -35,18 +55,7 @@ No production settings, data, migrations, billing, credentials, or deployment we
 
 ### Required release blockers
 
-- Isolated Supabase staging and migration-history reconciliation.
-- Auth, persistence, and two-user RLS verification on staging; local fixtures do not prove hosted authorization.
-- Storage security and cross-user access verification.
-- Authenticated real-provider EYRA acceptance and scientific review of generated analyses.
-- Stripe test-mode billing lifecycle verification.
-- Owner approval after reviewing exact-commit hosted evidence.
-
-Production remains **NO-GO**. No live data, billing state, database, staging migration, or production deployment was changed in this execution.
-
-## Current release decision
-
-**NO-GO for commercial launch, private external pilots, live billing, or production schema changes.** The Vercel production deployment is READY and its source SHA matches the repository baseline, but a public read-only smoke request to scholarly discovery returned HTTP 429. Contact and billing are disabled. Staging identity, hosted two-account acceptance, migration-history reconciliation, and owner/legal review remain outstanding.
+- …217 tokens truncated…returned HTTP 429. Contact and billing are disabled. Staging identity, hosted two-account acceptance, migration-history reconciliation, and owner/legal review remain outstanding.
 
 ## This execution increment
 
