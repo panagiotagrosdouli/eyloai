@@ -52,6 +52,11 @@ begin
     raise exception 'Auth cascade role received privileges beyond DELETE';
   end if;
 end
+  if has_column_privilege('supabase_auth_admin', 'storage.objects', 'name', 'UPDATE')
+     or has_table_privilege('supabase_auth_admin', 'storage.objects', 'SELECT')
+     or has_table_privilege('supabase_auth_admin', 'storage.objects', 'INSERT') then
+    raise exception 'Auth role received unrelated Storage privileges';
+  end if;
 $$;
   if has_column_privilege('supabase_auth_admin', 'storage.objects', 'name', 'UPDATE')
      or has_table_privilege('supabase_auth_admin', 'storage.objects', 'SELECT')
