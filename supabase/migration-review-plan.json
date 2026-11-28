@@ -28,7 +28,8 @@
     "20261115090000_research_dataset_catalog.sql",
     "20261114063216_account_deletion_lifecycle.sql",
     "20261115181809_time_tracker_pause_resume.sql",
-    "20261115233000_eyra_agent_runs.sql"
+    "20261115233000_eyra_agent_runs.sql",
+    "20261122103000_workspace_foreign_key_indexes.sql"
   ],
   "files": [
     {
@@ -228,6 +229,12 @@
       "sha256": "99914aa4650382600f1c66513a3e0fe903a8d66385d4c7a9ee55837e7bd9aeee",
       "classification": "canonical-local-replay",
       "reason": "Owner-scoped execution ledger for idempotent run identity and once-only tool action reservations; validated on disposable PostgreSQL only. No remote migration approval."
+    },
+    {
+      "name": "20261122103000_workspace_foreign_key_indexes.sql",
+      "sha256": "6916ad9dc648d864e7999f5fdbe4001eefde92676843d3eb6783bca54a603903",
+      "classification": "canonical-local-replay",
+      "reason": "Additive supporting indexes for the 13 live Supabase foreign-key performance findings; disposable PostgreSQL replay only, no hosted migration authorization."
     }
   ]
 }
