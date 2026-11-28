@@ -229,3 +229,10 @@ Do not duplicate these reports under new names. They remain the detailed audits 
 5. Have the Supabase owner enable leaked-password protection, then retest Auth and Security Advisor.
 6. Have the repository owner enforce main branch review/check rules and confirm the rule blocks an intentionally failing PR.
 7. Keep contact, live payments, external pilot, and schema rollout disabled until their existing owner/legal gates pass.
+
+
+## Disposable full Supabase acceptance — implementation status
+
+A separate pull request adds a complete Supabase CLI configuration and a loopback-only CI acceptance job. It replays the explicitly local canonical migration order into the CLI PostgreSQL instance, provisions two synthetic Auth users, signs in through Auth, exercises EYRA conversation snapshot/PostgREST persistence and service-only run/action writes, and verifies private Storage ownership and cleanup. The test rejects any API or database target other than the local CLI ports. It uses no production credentials, hosted project, paid service, or external provider.
+
+**Status: IMPLEMENTED IN SOURCE; HOSTED CI ACCEPTANCE PENDING.** The repository's existing bare-PostgreSQL integration fixture remains in place. The new workflow is intended to provide genuine local Auth/PostgREST/Storage evidence; results must be taken from its exact-head GitHub check before recording it as passed. It does not validate OpenAI provider calls, hosted authentication, app server API routes, or production migration compatibility. No production schema was changed.
