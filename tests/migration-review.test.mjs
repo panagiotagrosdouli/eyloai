@@ -137,7 +137,7 @@ test("Auth cascade key-read migration grants SELECT only on foreign-key columns"
   assert.match(source, /with recursive cascade_tables/i);
   assert.match(source, /confrelid = 'auth\.users'::regclass/i);
   assert.match(source, /foreign_key\.conkey/);
-  assert.match(source, /grant select \(%s\) on table %s to supabase_auth_admin/i);
+  assert.match(source, /grant select \(%I\) on table %s to supabase_auth_admin/i);
   assert.match(source, /grant usage on schema public, storage to supabase_auth_admin/i);
   assert.doesNotMatch(source, /grant select on table|grant all|grant create/i);
 });

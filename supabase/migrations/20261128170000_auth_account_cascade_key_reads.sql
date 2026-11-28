@@ -29,8 +29,8 @@ begin
         and child_constraint.confdeltype = 'c'
         and child_constraint.connamespace in ('public'::regnamespace, 'storage'::regnamespace)
     )
-    select foreign_key.conrelid::regclass as table_name,
-      string_agg(format('%I', column_info.attname), ', ' order by key_column.ordinality) as columns
+    select distinct foreign_key.conrelid::regclass as table_name,
+      column_info.attname as column_name
     from pg_catalog.pg_constraint as foreign_key
     join pg_catalog.unnest(foreign_key.conkey) with ordinality as key_column(attnum, ordinality) on true
     join pg_catalog.pg_attribute as column_info
@@ -39,9 +39,8 @@ begin
       and foreign_key.connamespace in ('public'::regnamespace, 'storage'::regnamespace)
       and (foreign_key.confrelid = 'auth.users'::regclass
         or foreign_key.confrelid in (select table_oid from cascade_tables))
-    group by foreign_key.conrelid
   loop
-    execute format('grant select (%s) on table %s to supabase_auth_admin', select_target.columns, select_target.table_name);
+    execute format('grant select (%I) on table %s to supabase_auth_admin', select_target.column_name, select_target.table_name);
   end loop;
 end
 $$;
