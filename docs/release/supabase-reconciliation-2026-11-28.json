@@ -28,7 +28,7 @@
     },
     {
       "name": "20261128145000_scholarly_provider_coordination.sql",
-      "sha256": "2c8e1aaba1b98e3ef9f7c3fff33630f18bc04bf060cbea446768b2d6344c8563",
+      "sha256": "b03cd317dc85bada3fdc7d2fb05d94ba6bfed835014a5f19e6913a5c92ce737c",
       "applied_to_observed_project": false,
       "reason": "Zero-additional-cost distributed provider coordination and cache; replay and concurrency acceptance are local-only and never authorize hosted or production application."
     }

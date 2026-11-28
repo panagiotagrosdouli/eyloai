@@ -11,6 +11,7 @@ create table public.scholarly_provider_state (
 create table public.scholarly_provider_leases (
   provider text not null references public.scholarly_provider_state(provider) on delete cascade,
   lease_id uuid not null,
+  cache_key text not null check (cache_key ~ '^[a-f0-9]{64}$'),
   expires_at timestamptz not null,
   primary key (provider, lease_id)
 );
@@ -36,6 +37,7 @@ revoke all on public.scholarly_provider_state, public.scholarly_provider_leases,
 
 create function public.reserve_scholarly_provider_slot(
   p_provider text,
+  p_cache_key text,
   p_min_interval_ms integer,
   p_max_concurrent integer,
   p_lease_seconds integer
@@ -51,8 +53,9 @@ declare
   now_at timestamptz := clock_timestamp();
   new_lease uuid;
 begin
-  if p_provider is null or p_min_interval_ms is null or p_max_concurrent is null or p_lease_seconds is null
+  if p_provider is null or p_cache_key is null or p_min_interval_ms is null or p_max_concurrent is null or p_lease_seconds is null
     or p_provider not in ('openalex','semantic_scholar','arxiv','europe_pmc','crossref')
+    or p_cache_key !~ '^[a-f0-9]{64}$'
     or p_min_interval_ms not between 0 and 60000
     or p_max_concurrent not between 1 and 20
     or p_lease_seconds not between 5 and 120 then
@@ -71,6 +74,11 @@ begin
     return query select false, 'cooldown', greatest(1, ceil(extract(epoch from state.cooldown_until-now_at))::integer), null::uuid;
     return;
   end if;
+  if exists(select 1 from public.scholarly_provider_leases l
+      where l.provider=p_provider and l.cache_key=p_cache_key and l.expires_at>now_at) then
+    return query select false, 'deduplicated', 1, null::uuid;
+    return;
+  end if;
   if state.next_request_at > now_at then
     return query select false, 'rate_limited', greatest(1, ceil(extract(epoch from state.next_request_at-now_at))::integer), null::uuid;
     return;
@@ -81,8 +89,8 @@ begin
   end if;
 
   new_lease := gen_random_uuid();
-  insert into public.scholarly_provider_leases(provider, lease_id, expires_at)
-    values (p_provider, new_lease, now_at + make_interval(secs => p_lease_seconds));
+  insert into public.scholarly_provider_leases(provider, lease_id, cache_key, expires_at)
+    values (p_provider, new_lease, p_cache_key, now_at + make_interval(secs => p_lease_seconds));
   update public.scholarly_provider_state s set
     next_request_at = now_at + make_interval(secs => p_min_interval_ms::double precision / 1000),
     updated_at = now_at
@@ -193,12 +201,12 @@ begin
 end;
 $$;
 
-revoke all on function public.reserve_scholarly_provider_slot(text,integer,integer,integer),
+revoke all on function public.reserve_scholarly_provider_slot(text,text,integer,integer,integer),
   public.finish_scholarly_provider_request(text,uuid,integer,integer),
   public.read_scholarly_provider_cache(text),
   public.write_scholarly_provider_cache(text,text,text,text,integer)
   from public, anon, authenticated;
-grant execute on function public.reserve_scholarly_provider_slot(text,integer,integer,integer),
+grant execute on function public.reserve_scholarly_provider_slot(text,text,integer,integer,integer),
   public.finish_scholarly_provider_request(text,uuid,integer,integer),
   public.read_scholarly_provider_cache(text),
   public.write_scholarly_provider_cache(text,text,text,text,integer)

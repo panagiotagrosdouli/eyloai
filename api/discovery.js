@@ -23,6 +23,22 @@ const MAX_LIMIT = 30;
 // arXiv may take close to ten seconds to answer from the production region.
 const UPSTREAM_TIMEOUT_MS = 15_000;
 
+function abortableDelay(ms, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) return reject(signal.reason);
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', abort);
+      resolve();
+    }, ms);
+    const abort = () => {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', abort);
+      reject(signal.reason);
+    };
+    signal.addEventListener('abort', abort, { once: true });
+  });
+}
+
 function boundedLimit(value, fallback = 10) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
@@ -212,11 +228,19 @@ export default async function handler(request, response) {
       if (shared) return { status: 200, body: Buffer.from(shared.body), contentType: shared.contentType, cacheable: false, cache: 'SHARED_HIT' };
       reservation = await scholarlyProviderCoordinator.reserve({
         provider: providerGroup,
+        cacheKey: sharedCacheKey,
         minIntervalMs: providerGapMs,
         maxConcurrent: 1,
         leaseSeconds: 45,
       });
       if (!reservation.allowed) {
+        if (reservation.status === 'deduplicated') {
+          for (let attempt = 0; attempt < 5; attempt++) {
+            await abortableDelay(200, controller.signal);
+            const shared = await scholarlyProviderCoordinator.readCache(sharedCacheKey);
+            if (shared) return { status: 200, body: Buffer.from(shared.body), contentType: shared.contentType, cacheable: false, cache: 'SHARED_HIT' };
+          }
+        }
         const retry = Math.max(1, reservation.retry_after_seconds || 1);
         return {
           status: 429,

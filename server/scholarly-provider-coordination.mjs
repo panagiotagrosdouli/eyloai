@@ -67,12 +67,13 @@ export function createScholarlyProviderCoordinator({ env = process.env, fetchImp
       return { body: record.body, contentType: record.content_type };
     },
 
-    async reserve({ provider, minIntervalMs, maxConcurrent = 1, leaseSeconds = 45 }) {
-      if (!PROVIDERS.has(provider) || !Number.isInteger(minIntervalMs) || minIntervalMs < 0 || minIntervalMs > 60_000) {
+    async reserve({ provider, cacheKey, minIntervalMs, maxConcurrent = 1, leaseSeconds = 45 }) {
+      if (!PROVIDERS.has(provider) || !/^[a-f0-9]{64}$/.test(cacheKey) || !Number.isInteger(minIntervalMs) || minIntervalMs < 0 || minIntervalMs > 60_000) {
         throw new ProviderCoordinationError('reservation_input');
       }
       const result = await rpc('reserve_scholarly_provider_slot', {
         p_provider: provider,
+        p_cache_key: cacheKey,
         p_min_interval_ms: minIntervalMs,
         p_max_concurrent: maxConcurrent,
         p_lease_seconds: leaseSeconds,

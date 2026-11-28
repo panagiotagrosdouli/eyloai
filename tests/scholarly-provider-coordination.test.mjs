@@ -49,7 +49,7 @@ test('coordinator uses server credentials, bounds cache values and validates sha
   });
   const key = 'a'.repeat(64);
   assert.equal(await coordinator.readCache(key), null);
-  assert.equal((await coordinator.reserve({ provider: 'arxiv', minIntervalMs: 3000 })).allowed, true);
+  assert.equal((await coordinator.reserve({ provider: 'arxiv', cacheKey: key, minIntervalMs: 3000 })).allowed, true);
   assert.equal(await coordinator.finish({ provider: 'arxiv', leaseId: '00000000-0000-4000-8000-000000000001', status: 200 }), true);
   assert.equal(await coordinator.writeCache({ cacheKey: key, provider: 'arxiv', body: '<feed/>', contentType: 'application/atom+xml', ttlSeconds: 60 }), true);
   assert.ok(calls.every(call => call.options.headers.apikey === 'local-service-role-test-key'));
@@ -116,6 +116,40 @@ test('Vercel discovery serves a shared cached result without acquiring a provide
     assert.equal(res.statusCode, 200);
     assert.equal(res.headers['x-eylo-cache'], 'SHARED_HIT');
     assert.deepEqual(calls, ['consume_discovery_rate_limit', 'read_scholarly_provider_cache']);
+  } finally {
+    globalThis.fetch = originalFetch;
+    for (const [key, value] of Object.entries(originalEnv)) value === undefined ? delete process.env[key] : process.env[key] = value;
+  }
+});
+
+test('Vercel duplicate requests wait briefly for the shared result instead of contacting the provider again', async () => {
+  const originalFetch = globalThis.fetch;
+  const originalEnv = { VERCEL: process.env.VERCEL, VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY };
+  const calls = [];
+  Object.assign(process.env, env());
+  scholarlyResilience.reset();
+  globalThis.fetch = async input => {
+    const url = new URL(typeof input === 'string' ? input : input.url);
+    const name = rpcName(input);
+    calls.push(name);
+    if (name === 'consume_discovery_rate_limit') return Response.json([{ allowed: true, remaining: 8, retry_after_seconds: 0 }]);
+    if (name === 'reserve_scholarly_provider_slot') return Response.json([{ allowed: false, status: 'deduplicated', retry_after_seconds: 1, lease_id: null }]);
+    if (name === 'read_scholarly_provider_cache') {
+      const reads = calls.filter(call => call === name).length;
+      return reads < 3 ? Response.json([]) : Response.json([{ body: '{"results":[{"id":"https://openalex.org/W3","title":"Deduplicated paper"}]}', content_type: 'application/json' }]);
+    }
+    if (url.hostname === 'api.openalex.org') throw new Error('duplicate request must not call the provider');
+    throw new Error(`unexpected request ${url.pathname}`);
+  };
+  try {
+    const res = response();
+    await handler({ method: 'GET', headers: { 'x-vercel-forwarded-for': '198.51.100.9' }, query: { provider: 'openalex_works', q: 'deduplication topic' } }, res);
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.headers['x-eylo-cache'], 'SHARED_HIT');
+    assert.deepEqual(calls, [
+      'consume_discovery_rate_limit', 'read_scholarly_provider_cache',
+      'reserve_scholarly_provider_slot', 'read_scholarly_provider_cache', 'read_scholarly_provider_cache',
+    ]);
   } finally {
     globalThis.fetch = originalFetch;
     for (const [key, value] of Object.entries(originalEnv)) value === undefined ? delete process.env[key] : process.env[key] = value;

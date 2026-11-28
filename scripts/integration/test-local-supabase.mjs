@@ -21,8 +21,9 @@ assert.equal(manifest.length, 31, 'reviewed canonical migration count changed');
 
 // API-handler calls use a fake staging-shaped host only so the existing staging guard is exercised.
 // All network access, including that alias, is rewritten to the local stack; all other hosts are rejected.
-const fakeRef = 'eyloteststaging00001';
+const fakeRef = 'eyloteststagingabcde';
 assert.equal(fakeRef.length, 20);
+assert.match(fakeRef, /^[a-z]{20}$/);
 process.env.EYLO_STAGING_SUPABASE_REF = fakeRef;
 process.env.EYLO_STAGING_CONFIRMED_REF = fakeRef;
 process.env.VITE_SUPABASE_URL = `https://${fakeRef}.supabase.co`;
@@ -109,8 +110,9 @@ try {
   assert.equal(quotaResults.filter(result => result.allowed).length, 3, 'all simulated instances must share one atomic quota');
   assert.equal(quotaResults.filter(result => !result.allowed).length, 5);
 
-  const reservations = await Promise.all(coordinationClients.map(client => client.rpc('reserve_scholarly_provider_slot', {
-    p_provider: 'europe_pmc', p_min_interval_ms: 0, p_max_concurrent: 1, p_lease_seconds: 45,
+  const distinctCacheKeys = coordinationClients.map((_, index) => createHash('sha256').update(`instance-${index}-${randomUUID()}`).digest('hex'));
+  const reservations = await Promise.all(coordinationClients.map((client, index) => client.rpc('reserve_scholarly_provider_slot', {
+    p_provider: 'europe_pmc', p_cache_key: distinctCacheKeys[index], p_min_interval_ms: 0, p_max_concurrent: 1, p_lease_seconds: 45,
   })));
   const reservationResults = reservations.map((result, index) => checkResult(`Provider lease instance ${index + 1}`, result)[0]);
   const acquired = reservationResults.filter(result => result.allowed);
@@ -119,15 +121,31 @@ try {
   checkResult('Provider lease release', await admin.rpc('finish_scholarly_provider_request', {
     p_provider: 'europe_pmc', p_lease_id: acquired[0].lease_id, p_status: 200, p_retry_after_seconds: 0,
   }));
+  const dedupeKey = createHash('sha256').update(randomUUID()).digest('hex');
+  const leaderLease = checkResult('Provider deduplication leader', await coordinationClients[0].rpc('reserve_scholarly_provider_slot', {
+    p_provider: 'arxiv', p_cache_key: dedupeKey, p_min_interval_ms: 0, p_max_concurrent: 1, p_lease_seconds: 45,
+  }))[0];
+  assert.equal(leaderLease.allowed, true);
+  const duplicateLease = checkResult('Provider deduplication follower', await coordinationClients[1].rpc('reserve_scholarly_provider_slot', {
+    p_provider: 'arxiv', p_cache_key: dedupeKey, p_min_interval_ms: 0, p_max_concurrent: 1, p_lease_seconds: 45,
+  }))[0];
+  assert.equal(duplicateLease.allowed, false);
+  assert.equal(duplicateLease.status, 'deduplicated');
+  checkResult('Deduplicated provider cache write', await admin.rpc('write_scholarly_provider_cache', {
+    p_cache_key: dedupeKey, p_provider: 'arxiv', p_body: '<feed/>', p_content_type: 'application/atom+xml', p_ttl_seconds: 60,
+  }));
+  checkResult('Deduplication leader lease release', await admin.rpc('finish_scholarly_provider_request', {
+    p_provider: 'arxiv', p_lease_id: leaderLease.lease_id, p_status: 200, p_retry_after_seconds: 0,
+  }));
   const limitedProvider = checkResult('Provider Retry-After lease', await admin.rpc('reserve_scholarly_provider_slot', {
-    p_provider: 'crossref', p_min_interval_ms: 0, p_max_concurrent: 1, p_lease_seconds: 45,
+    p_provider: 'crossref', p_cache_key: createHash('sha256').update(randomUUID()).digest('hex'), p_min_interval_ms: 0, p_max_concurrent: 1, p_lease_seconds: 45,
   }))[0];
   assert.equal(limitedProvider.allowed, true);
   checkResult('Provider 429 cooldown', await admin.rpc('finish_scholarly_provider_request', {
     p_provider: 'crossref', p_lease_id: limitedProvider.lease_id, p_status: 429, p_retry_after_seconds: 12,
   }));
   const cooldown = checkResult('Shared Retry-After cooldown read', await coordinationClients[0].rpc('reserve_scholarly_provider_slot', {
-    p_provider: 'crossref', p_min_interval_ms: 0, p_max_concurrent: 1, p_lease_seconds: 45,
+    p_provider: 'crossref', p_cache_key: createHash('sha256').update(randomUUID()).digest('hex'), p_min_interval_ms: 0, p_max_concurrent: 1, p_lease_seconds: 45,
   }))[0];
   assert.equal(cooldown.allowed, false);
   assert.equal(cooldown.status, 'cooldown');
