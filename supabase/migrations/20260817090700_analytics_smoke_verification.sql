@@ -6,7 +6,10 @@ declare
   requester uuid;
   result jsonb;
 begin
-  select id into requester from public.profiles order by created_at asc limit 1;
+  select user_id into requester
+    from public.profiles
+   order by created_date asc
+   limit 1;
   if requester is null then
     return;
   end if;
