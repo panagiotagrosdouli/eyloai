@@ -38,7 +38,8 @@ table_inventory as (
    from pg_indexes ix where ix.schemaname='public' and ix.tablename=e.table_name),'[]'::jsonb) actual_index_names,
   coalesce((select jsonb_agg(jsonb_build_object('name',ix.indexname,'definition',ix.indexdef) order by ix.indexname)
    from pg_indexes ix where ix.schemaname='public' and ix.tablename=e.table_name),'[]'::jsonb) indexes,
-  coalesce((select jsonb_agg(jsonb_build_object('policy',p.policyname,'roles',p.roles,'command',p.cmd,'using',p.qual,'with_check',p.with_check) order by p.policyname) from pg_policies p where p.schemaname='public' and p.tablename=e.table_name),'[]'::jsonb) policies,\n  coalesce((select jsonb_agg(r.rolname order by r.rolname) from pg_roles r
+  coalesce((select jsonb_agg(jsonb_build_object('policy',p.policyname,'roles',p.roles,'command',p.cmd,'using',p.qual,'with_check',p.with_check) order by p.policyname) from pg_policies p where p.schemaname='public' and p.tablename=e.table_name),'[]'::jsonb) policies,
+  coalesce((select jsonb_agg(r.rolname order by r.rolname) from pg_roles r
    where r.rolname in ('anon','authenticated','service_role')
     and has_table_privilege(r.rolname,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')),'[]'::jsonb) direct_granted_roles,
   coalesce((select bool_or(x.grantee=0) from aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) x),false) public_has_table_grant
