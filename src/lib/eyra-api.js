@@ -670,7 +670,7 @@ export async function searchAllPapersWithStatus(query, options = {}) {
     status: result.status === 'fulfilled' ? 'available' : 'unavailable',
     count: result.status === 'fulfilled' ? result.value.length : 0,
     error_status: result.status === 'rejected' ? httpStatusFromError(result.reason) : null,
-    error_code: result.status === 'rejected' && ['DISCOVERY_RATE_LIMIT_UNAVAILABLE', 'DISCOVERY_RATE_LIMITED'].includes(result.reason?.code) ? result.reason.code : null,
+    error_code: result.status === 'rejected' && ['DISCOVERY_RATE_LIMIT_UNAVAILABLE', 'PROVIDER_COORDINATION_UNAVAILABLE', 'DISCOVERY_RATE_LIMITED'].includes(result.reason?.code) ? result.reason.code : null,
   }));
   const sources = settled.map((result, sourceIndex) => result.status === 'fulfilled'
     ? result.value.map((item, itemIndex) => ({
