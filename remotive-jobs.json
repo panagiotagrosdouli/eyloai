@@ -1,7 +1,7 @@
 {
   "source": "Remotive",
   "source_url": "https://remotive.com/remote-jobs/api",
-  "retrieved_at": "2026-11-27T15:03:30.840Z",
+  "retrieved_at": "2026-11-28T14:11:20.635Z",
   "provider_delay_hours": 24,
   "items": [
     {
@@ -227,20 +227,6 @@
       "deadline": "",
       "source": "Remotive",
       "source_url": "https://remotive.com/remote-jobs/software-development/full-stack-developer-2091165"
-    },
-    {
-      "id": "remotive-2091135",
-      "title": "Senior Back-end Developerusa",
-      "organization": "Lemon.io",
-      "country": "Europe, USA, Canada, Australia, Singapore, Mexico, Saudi Arabia",
-      "description": "Lemon.io helps companies in the US and Europe hire experienced engineers, from funded startups to teams like Klarna, Retool, and Pinterest. We’ve been doing this since 2015, and more than 1,500 companies have hired engineers through us. Currently, we have a few open positions from our client, an AI-native cloud company. AI teams use its platform to run inference on open-source models, fine-tune them and rent large GPU clusters. The fleet is set to grow about 10×; the team won't. That's where you come in. Who they’re looking for : Site Reliability Engineer, Senior Back-end Developer with Golang, Senior Back-end Developer with Python, AI Infrastructure Engineer, Distributed Storage Engineer, DevOps. Requirements for Senior Back-end Developers with Golang 5+ years of commercial experience with Golang 2+ years of commercial experience with Kubernetes 1+ year of experience in AI-assisted coding Experience with distributed systems Requirements for Senior Back-end Developers with Python 5+ years of commercial experience with Python 2+ years of commercial experience with Linux 2+ years of commercial experience with Kubernetes 1+ year of experience in AI-assisted coding Experience with dist",
-      "salary": "",
-      "category": "Software Development",
-      "job_type": "full_time",
-      "published_at": "2026-10-27T12:56:13",
-      "deadline": "",
-      "source": "Remotive",
-      "source_url": "https://remotive.com/remote-jobs/software-development/senior-back-end-developerusa-2091135"
     }
   ]
 }
