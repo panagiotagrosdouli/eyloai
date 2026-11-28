@@ -43,19 +43,16 @@ begin
     execute format('grant select (%I) on table %s to supabase_auth_admin', select_target.column_name, select_target.table_name);
   end loop;
 
-  -- Storage's owner FK exists on some local/hosted schema versions and is
-  -- absent on others. Keep its compatibility grant conditional on the actual
-  -- catalog relationship, rather than granting a speculative read.
+  -- Supabase Storage versions differ in whether owner_id is backed by a
+  -- declared FK. The Auth deletion and storage cleanup paths both need this
+  -- one ownership key, so grant only that column when it exists.
   if to_regclass('storage.objects') is not null and exists (
     select 1
-    from pg_catalog.pg_constraint as owner_fk
-    join pg_catalog.unnest(owner_fk.conkey) as key_column(attnum) on true
-    join pg_catalog.pg_attribute as owner_column
-      on owner_column.attrelid = owner_fk.conrelid and owner_column.attnum = key_column.attnum
-    where owner_fk.contype = 'f'
-      and owner_fk.conrelid = 'storage.objects'::regclass
-      and owner_fk.confrelid = 'auth.users'::regclass
+    from pg_catalog.pg_attribute as owner_column
+    where owner_column.attrelid = 'storage.objects'::regclass
       and owner_column.attname = 'owner_id'
+      and owner_column.attnum > 0
+      and not owner_column.attisdropped
   ) then
     execute 'grant select (owner_id) on table storage.objects to supabase_auth_admin';
   end if;

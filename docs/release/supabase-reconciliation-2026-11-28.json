@@ -40,7 +40,7 @@
     },
     {
       "name": "20261128170000_auth_account_cascade_key_reads.sql",
-      "sha256": "f6229b3625ea61c4af5062c084db0c0f196a59c01c648d3712a8b0ab4e356e50",
+      "sha256": "bf23606c098324c0ea8ab8207371dcff81b2cfa03f9b293432a8f70ab87b1ab6",
       "applied_to_observed_project": false,
       "reason": "Column-scoped Auth cascade key reads required by local Auth account deletion; local acceptance only, never authorizes hosted or production application."
     },
