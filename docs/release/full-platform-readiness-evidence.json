@@ -1,0 +1,447 @@
+{
+  "schema_version": 1,
+  "scope": "full-platform-77",
+  "commit": null,
+  "description": "Default NOT_RUN. This file contains no acceptance evidence and cannot approve launch.",
+  "site": {
+    "status": "NOT_RUN",
+    "scope": "hosted-staging",
+    "coverage": {
+      "public_routes_expected": null,
+      "public_routes_tested": 0,
+      "private_routes_expected": null,
+      "private_routes_tested": 0,
+      "interactive_controls_expected": null,
+      "interactive_controls_tested": 0
+    },
+    "assertions": {},
+    "tested_public_routes": [],
+    "tested_private_routes": []
+  },
+  "additional_inventory_review": {
+    "status": "NOT_RUN",
+    "scope": "hosted-staging",
+    "assertions": {}
+  },
+  "products": {
+    "1": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "2": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "3": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "4": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "5": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "6": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "7": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "8": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "9": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "10": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "11": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "12": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "13": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "14": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "15": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "16": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "17": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "18": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "19": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "20": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "21": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "22": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "23": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "24": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "25": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "26": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "27": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "28": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "29": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "30": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "31": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "32": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "33": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "34": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "35": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "36": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "37": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "38": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "39": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "40": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "41": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "42": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "43": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "44": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "45": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "46": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "47": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "48": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "49": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "50": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "51": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "52": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "53": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "54": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "55": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "56": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "57": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "58": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "59": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "60": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "61": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "62": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "63": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "64": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "65": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "66": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "67": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "68": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "69": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "70": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "71": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "72": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "73": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "74": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "75": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "76": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "77": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    }
+  },
+  "additional_features": {},
+  "workflows": {
+    "research_to_deliverable": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "document_roundtrip": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "study_to_progress": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "opportunity_to_application": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    },
+    "team_to_meeting": {
+      "status": "NOT_RUN",
+      "scope": "hosted-staging",
+      "assertions": {}
+    }
+  },
+  "schema": {
+    "status": "NOT_RUN",
+    "scope": "hosted-staging",
+    "tables": [],
+    "assertions": {}
+  }
+}
