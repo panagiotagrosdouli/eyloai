@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "migration": {
+    "file": "20261128145000_scholarly_provider_coordination.sql",
+    "version": "20261128145000",
+    "sha256": "aefd33f4589ec8201245e95611e11294de455cc745c6f082b2687c5166e69d53"
+  },
+  "scope": "Disposable scholarly-provider coordination acceptance only.",
+  "production_ddl_authorized": false,
+  "required_checks": [
+    "exact migration fingerprint",
+    "read-only catalog preflight",
+    "transaction interruption rollback",
+    "RLS and role grants",
+    "cache and lease behavior",
+    "concurrency, rate limit, and cooldown behavior",
+    "synthetic backup and restore"
+  ]
+}

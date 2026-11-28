@@ -18,6 +18,9 @@ on:
       - 'server/scholarly-resilience.mjs'
       - 'tests/eyra-schema-readiness.test.mjs'
       - 'tests/integration/account-deletion-auth-privileges-postgres.sql'
+      - 'tests/integration/scholarly-provider-coordination-postgres.sql'
+      - 'scripts/integration/test-scholarly-provider-recovery.mjs'
+      - 'supabase/recovery/scholarly_provider_coordination_preflight.sql'
       - 'api/system.js'
       - 'server/account-deletion.js'
       - 'server/supabase-config.mjs'
@@ -76,7 +79,7 @@ jobs:
           printf 'LOCAL_SUPABASE_PROJECT_DIR=%s\n' "$local_project" >> "$GITHUB_ENV"
           cd "$local_project"
           supabase init
-          node "$GITHUB_WORKSPACE/scripts/integration/prepare-local-supabase-project.mjs" "$local_project"
+          node "$GITHUB_WORKSPACE/scripts/integration/prepare-local-supabase-project.mjs" "$local_project" --defer-scholarly-coordination
       - name: Start the complete disposable Supabase stack
         working-directory: ${{ runner.temp }}/eyloai-local-supabase
         run: supabase start
@@ -84,11 +87,18 @@ jobs:
         working-directory: ${{ runner.temp }}/eyloai-local-supabase
         run: |
           set -euo pipefail
-          supabase db query --file "$GITHUB_WORKSPACE/supabase/migrations/20261128152000_auth_account_cascade_privileges.sql" --output json
-          supabase db query --file "$GITHUB_WORKSPACE/supabase/migrations/20261128170000_auth_account_cascade_key_reads.sql" --output json
-          supabase db query --file "$GITHUB_WORKSPACE/tests/integration/account-deletion-auth-privileges-postgres.sql" --output json
+          db_container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -n 1)"
+          test -n "$db_container"
+          for sql_file in \
+            "$GITHUB_WORKSPACE/supabase/migrations/20261128152000_auth_account_cascade_privileges.sql" \
+            "$GITHUB_WORKSPACE/supabase/migrations/20261128170000_auth_account_cascade_key_reads.sql" \
+            "$GITHUB_WORKSPACE/tests/integration/account-deletion-auth-privileges-postgres.sql"; do
+            docker exec -i "$db_container" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f - < "$sql_file"
+          done
       - name: Export local-only service endpoints without printing generated keys
         run: node scripts/integration/export-local-supabase-env.mjs
+      - name: Execute exact scholarly recovery and PostgREST acceptance
+        run: node scripts/integration/test-scholarly-provider-recovery.mjs "$RUNNER_TEMP/eyloai-local-supabase"
       - name: Exercise real local Auth, PostgREST, Storage, RLS, export, and deletion
         run: node scripts/integration/test-local-supabase.mjs
       - name: Print sanitized disposable Auth/PostgreSQL failure context
