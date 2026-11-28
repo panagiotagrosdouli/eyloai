@@ -352,8 +352,9 @@ requireSuccess(await admin.rpc('write_scholarly_provider_cache', {
   p_cache_key: durableCacheKey, p_provider: 'crossref', p_body: '{"backup":"synthetic"}',
   p_content_type: 'application/json', p_ttl_seconds: 3600,
 }), 'Backup cache seed');
+const backupLeaseCacheKey = key('backup-lease');
 const backupLease = row(requireSuccess(await admin.rpc('reserve_scholarly_provider_slot', {
-  p_provider: 'crossref', p_cache_key: key('backup-lease'), p_min_interval_ms: 0, p_max_concurrent: 2, p_lease_seconds: 45,
+  p_provider: 'crossref', p_cache_key: backupLeaseCacheKey, p_min_interval_ms: 0, p_max_concurrent: 2, p_lease_seconds: 45,
 }), 'Backup lease seed'));
 const dump = execFileSync('docker', [
   'exec', dbContainer, 'pg_dump', '-U', 'postgres', '-d', 'postgres', '--data-only', '--column-inserts',
@@ -368,7 +369,7 @@ psql(dump, { singleTransaction: true });
 const restoredCache = row(requireSuccess(await admin.rpc('read_scholarly_provider_cache', { p_cache_key: durableCacheKey }), 'Restored cache read'));
 assert.equal(restoredCache.body, '{"backup":"synthetic"}');
 const restoredLease = row(requireSuccess(await admin.rpc('reserve_scholarly_provider_slot', {
-  p_provider: 'crossref', p_cache_key: key('backup-lease'), p_min_interval_ms: 0, p_max_concurrent: 2, p_lease_seconds: 45,
+  p_provider: 'crossref', p_cache_key: backupLeaseCacheKey, p_min_interval_ms: 0, p_max_concurrent: 2, p_lease_seconds: 45,
 }), 'Restored lease dedupe'));
 assert.equal(restoredLease.status, 'deduplicated');
 requireSuccess(await admin.rpc('finish_scholarly_provider_request', {
