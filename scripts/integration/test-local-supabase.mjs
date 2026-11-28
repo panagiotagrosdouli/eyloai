@@ -343,7 +343,7 @@ try {
       API_URL: baseUrl,
       ANON_KEY: publishableKey,
       SERVICE_ROLE_KEY: secretKey,
-      EYLO_TEST_TOKEN_A: loginA.session.access_token,
+      EYLO_TEST_TOKEN_A: refreshed.session.access_token,
       EYLO_TEST_TOKEN_B: loginB.session.access_token,
       EYLO_TEST_USER_A: idA,
       EYLO_TEST_RUN_ID: runId,
