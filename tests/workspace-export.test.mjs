@@ -199,7 +199,7 @@ test('unavailable optional schema tables are reported as missing, never as empty
       : { data: table === 'projects' ? [row('projects', 1)] : [], error: null },
   });
   assert.equal(response.completeness, 'partial-optional-collections-unavailable');
-  assert.deepEqual([...response.unavailable_collections].sort(), [...OPTIONAL_WORKSPACE_EXPORT_TABLES].sort());
+  assert.deepEqual(response.unavailable_collections, OPTIONAL_WORKSPACE_EXPORT_TABLES);
   for (const table of optional) {
     assert.equal(response.collections[table], null, table);
     assert.equal(response.record_counts[table], null, table);
