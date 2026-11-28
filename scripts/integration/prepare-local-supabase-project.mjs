@@ -37,8 +37,15 @@ await mkdir(migrationDir, { recursive: true });
 for (const entry of await readdir(migrationDir)) {
   if (entry.endsWith('.sql')) await rm(path.join(migrationDir, entry), { force: true });
 }
+const deferredCoordination = process.argv.includes('--defer-scholarly-coordination')
+  ? '20261128145000_scholarly_provider_coordination.sql'
+  : null;
+if (deferredCoordination && !plan.canonical_local_order.includes(deferredCoordination)) {
+  throw new Error('The reviewed provider-coordination migration is not in the canonical local plan.');
+}
+const replayOrder = plan.canonical_local_order.filter(name => name !== deferredCoordination);
 const applied = [];
-for (const [index, name] of plan.canonical_local_order.entries()) {
+for (const [index, name] of replayOrder.entries()) {
   const source = path.join(repoRoot, 'supabase/migrations', name);
   const sql = await readFile(source);
   const digest = createHash('sha256').update(sql).digest('hex');
@@ -51,4 +58,4 @@ for (const [index, name] of plan.canonical_local_order.entries()) {
   applied.push({ source: name, version, sha256: digest });
 }
 await writeFile(path.join(project, 'reviewed-migration-replay.json'), `${JSON.stringify(applied, null, 2)}\n`);
-console.log(`Prepared ${applied.length} SHA-verified canonical migrations in a disposable CLI project.`);
+console.log(`Prepared ${applied.length} SHA-verified canonical migrations in a disposable CLI project${deferredCoordination ? ' with provider coordination deferred for recovery acceptance' : ''}.`);
