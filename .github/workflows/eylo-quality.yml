@@ -68,7 +68,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          set -a\n          eval "$(supabase status -o env)"\n          set +a
+          set -a
+          eval "$(supabase status -o env)"
+          set +a
           python3 scripts/integration/test-local-supabase-stack.py
       - name: Stop disposable local Supabase stack
         if: always()
