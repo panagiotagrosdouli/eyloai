@@ -17,7 +17,7 @@ for (const key of ['SUPABASE_ACCESS_TOKEN', 'SUPABASE_PROJECT_REF', 'SUPABASE_DB
   if (process.env[key]) throw new Error(`Remote Supabase variable ${key} is forbidden in this test.`);
 }
 const manifest = JSON.parse(await (await import('node:fs/promises')).readFile(`${process.env.LOCAL_SUPABASE_PROJECT_DIR}/reviewed-migration-replay.json`, 'utf8'));
-assert.equal(manifest.length, 32, 'reviewed canonical migration count changed');
+assert.equal(manifest.length, 33, 'reviewed canonical migration count changed');
 
 // API-handler calls use a fake staging-shaped host only so the existing staging guard is exercised.
 // All network access, including that alias, is rewritten to the local stack; all other hosts are rejected.

@@ -34,9 +34,15 @@
     },
     {
       "name": "20261128152000_auth_account_cascade_privileges.sql",
-      "sha256": "e9dba2227d9876abfb91adf031e9dfb18ab13e563932aeebddcdd5fd72b16858",
+      "sha256": "f900665cde3f37f3c13a318e2929f0af4248ed07ff45987d24d30957d729df4e",
       "applied_to_observed_project": false,
-      "reason": "Narrow Auth-internal FK-cascade privileges for disposable account deletion; local-only and never applied to the observed project."
+      "reason": "Narrow Auth deletion cascade privileges; local Auth/PostgreSQL acceptance only and no hosted or production application authorization."
+    },
+    {
+      "name": "20261128170000_auth_account_cascade_key_reads.sql",
+      "sha256": "abe5f64b6576fc50da8b1a1c5370e2592cad645deaea020ac0e93c1f17be9550",
+      "applied_to_observed_project": false,
+      "reason": "Column-scoped Auth cascade key reads required by local Auth account deletion; local acceptance only, never authorizes hosted or production application."
     }
   ],
   "applied_migration_versions": [

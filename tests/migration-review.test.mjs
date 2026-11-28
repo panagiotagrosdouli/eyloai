@@ -129,6 +129,17 @@ test("Auth deletion role receives only DELETE on the recursive user cascade grap
   assert.match(source, /grant update \(%s\) on table %s to supabase_auth_admin/i);
   assert.doesNotMatch(source, /grant (?:all|select|insert) on table|grant update on table/i);
 });
+test("Auth cascade key-read migration grants SELECT only on foreign-key columns", () => {
+  const source = readFileSync(
+    new URL("../supabase/migrations/20261128170000_auth_account_cascade_key_reads.sql", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /with recursive cascade_tables/i);
+  assert.match(source, /confrelid = 'auth\.users'::regclass/i);
+  assert.match(source, /foreign_key\.conkey/);
+  assert.match(source, /grant select \(%s\) on table %s to supabase_auth_admin/i);
+  assert.doesNotMatch(source, /grant select on table|grant all/i);
+});
 test("changed SQL and new unreviewed files fail manifest verification", () => {
   const name = plan.canonical_local_order[0];
   assert.equal(
