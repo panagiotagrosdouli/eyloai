@@ -6,9 +6,21 @@
 
 **Working branch:** `codex/eylo-phase-ii-migration-reconciliation-20261128`
 
+### Zero-cost full local Supabase continuation — 28 November 2026
+
+**Baseline:** PR #631 SHA `83abe9a021a17758476b35b2496450cf71b435ed`. No paid service, project, or production target is used.
+
+| Checkpoint | Result | Evidence and limit |
+|---|---|---|
+| Local container runtime | UNAVAILABLE IN THIS WORKSPACE | `docker`, `podman`, and `supabase` CLI are not installed here. The unrelated job project remains untouched. |
+| GitHub-hosted full stack | IMPLEMENTED; EXACT-HEAD CI PENDING | Added a zero-cost GitHub Actions job using pinned Supabase CLI 3.4.0 and the complete default local stack (no services excluded). It initializes an unlinked temporary project under `RUNNER_TEMP`, SHA-verifies the 29 reviewed canonical migrations, and gives them unique synthetic versions so duplicate historical timestamps preserve reviewed replay order. Six hazardous legacy migrations remain explicitly excluded from this clean baseline and require separate compatibility investigation. |
+| Production-connect guard | IMPLEMENTED; CI VALIDATION PENDING | The setup job supplies no remote project ref, access token, or DB password. A separate env exporter accepts only loopback URLs. The acceptance script rejects any non-local fetch and maps only a fake staging-shaped hostname to loopback so the unchanged application staging gate and deletion API are exercised against the local stack. |
+| Two-account acceptance | IMPLEMENTED; CI VALIDATION PENDING | The new script runs genuine local Auth signup/login, refresh/session restoration/logout/account switching, PostgREST project and EYRA persistence, cross-account read/update/delete checks, Storage object isolation, the real workspace export helper, and the account-deletion API with reauthentication, storage cleanup and Auth cascade. It uses generated local credentials and synthetic identities only. |
+| Local verification | STATIC CHECKS PASS; DOCKER RUN PENDING | `npm run check` passed after the workflow/script changes: 1,347 tests plus imports, both TypeScript projects, lint, build and bundle ceiling. The three new integration scripts pass `node --check` and ESLint. They cannot run against the full stack until the new GitHub job executes because this workspace has no container runtime. |
+
 ### Hosted-capacity, provider-reliability, and schema follow-up — 28 November 2026
 
-**Current candidate:** `aa66d73945a602c3f40b3eb7f96b78464586cdaa` on PR #631. PR remains open and unmerged.
+**Implementation candidate:** `aa66d73945a602c3f40b3eb7f96b78464586cdaa`; the latest tracker-only PR head was `83abe9a021a17758476b35b2496450cf71b435ed`. PR remains open and unmerged.
 
 | Checkpoint | Result | Evidence and limit |
 |---|---|---|
