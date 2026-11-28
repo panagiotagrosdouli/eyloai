@@ -169,6 +169,24 @@ test('grant prompt binds requirements to supplied lines and disallows invented f
   assert.match(prompt, /leave amount_text and figure_id empty/);
 });
 
+test('grant proposal uses the saved EYRA research plan as context, never as evidence', () => {
+  const prompt = buildGrantProposalPrompt({
+    call,
+    idea: 'Study community heat response',
+    discipline: 'Public health',
+    sections: ['Summary'],
+    papers: [],
+    plan: {
+      research_question: 'Which cooling interventions reduce heat exposure?',
+      search_query: 'community cooling heat exposure interventions',
+      unresolved_questions: ['How durable are the effects?'],
+    },
+  });
+  assert.match(prompt, /PRELIMINARY RESEARCH PLAN: CONTEXT ONLY, NOT EVIDENCE OR AN OFFICIAL CALL REQUIREMENT/);
+  assert.match(prompt, /Which cooling interventions reduce heat exposure/);
+  assert.match(prompt, /How durable are the effects/);
+});
+
 test('grant prompt treats uploaded quotes as untrusted evidence and includes document provenance only', () => {
   const sourcedCall = extractGrantCallRequirements({
     title: 'Research call', sourceUrl: 'https://funding.example.org/call',
