@@ -22,7 +22,9 @@ assert(['127.0.0.1', 'localhost', '::1'].includes(target.hostname) && target.por
   'Refusing non-loopback Supabase target');
 
 process.env.VITE_SUPABASE_URL = 'https://eylo-local-integration.supabase.co';
+process.env.SUPABASE_PUBLISHABLE_KEY = anonKey;
 process.env.SUPABASE_ANON_KEY = anonKey;
+process.env.SUPABASE_SECRET_KEY = serviceKey;
 process.env.SUPABASE_SERVICE_ROLE_KEY = serviceKey;
 process.env.EYRA_DURABLE_RUNS_ENABLED = 'true';
 
