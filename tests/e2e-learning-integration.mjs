@@ -838,6 +838,28 @@ try {
   await reloadedGrant.getByRole('button', { name: 'Mark researcher review complete', exact: true }).click();
   await page.getByText(/Researcher review state saved/).waitFor();
   assert.equal(await reloadedGrant.getByRole('button', { name: 'Export Markdown', exact: true }).isDisabled(), false, 'the changed exact revision requires and accepts a new approval');
+  await reloadedGrant.getByLabel('Researcher interpretation (optional; not an official call rule)').first().fill('Fixture interpretation edited after approval.');
+  assert.equal(await reloadedGrant.getByRole('button', { name: 'Export Markdown', exact: true }).isDisabled(), true, 'changing a requirement interpretation invalidates export approval');
+  await reloadedGrant.getByRole('button', { name: 'Save draft', exact: true }).click();
+  await page.getByText('Grant draft saved to this private research project.', { exact: true }).waitFor();
+  await reloadedGrant.getByRole('button', { name: 'Mark researcher review complete', exact: true }).click();
+  await page.getByText(/Researcher review state saved/).waitFor();
+  assert.equal(await reloadedGrant.getByRole('button', { name: 'Export Markdown', exact: true }).isDisabled(), false, 'edited requirement interpretation requires a new researcher approval');
+
+  const scientificReview = page.locator('section[aria-labelledby="scientific-quality-review-title"]');
+  await scientificReview.getByText('Grant Proposal', { exact: true }).first().waitFor();
+  const assessmentSelect = scientificReview.getByLabel('Reviewer assessment').first();
+  assert.equal(await assessmentSelect.inputValue(), 'not_yet_reviewed', 'saved proposal claims begin unreviewed');
+  await scientificReview.getByLabel('Evidence inspected by reviewer').first().selectOption('abstract_only');
+  await assessmentSelect.selectOption('insufficient_accessible_source_material');
+  await scientificReview.getByLabel('Researcher annotation').first().fill('Browser fixture annotation; no human scientific assessment was performed.');
+  await scientificReview.getByLabel('Scientific limitation').first().fill('Evidence access has not been independently assessed.');
+  await scientificReview.getByRole('button', { name: 'Save assessment', exact: true }).first().click();
+  await scientificReview.getByText('Research assessment saved to this private project.', { exact: true }).waitFor();
+  const savedAssessment = Object.values(tables.projects[0].data.scientific_quality_review || {}).find(item => item.annotation.includes('Browser fixture annotation'));
+  assert.equal(savedAssessment?.assessment, 'insufficient_accessible_source_material');
+  assert.deepEqual(savedAssessment?.source_ids, tables.projects[0].data.grant_proposal.selected_paper_ids.map(String));
+  assert.equal(savedAssessment?.evidence_scope, 'abstract_only');
 
   const papersBeforeGrantThrottle = tables.saved_papers.length;
   grantDraftResponseMode = 'rate_limit_once';

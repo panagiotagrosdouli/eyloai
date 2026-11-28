@@ -1,12 +1,26 @@
 # EYLO total execution tracker
 
-**Updated:** 25 November 2026 (Europe/Athens)
+**Updated:** 28 November 2026 (Europe/Athens)
 
-**Repository baseline:** `b5cbc7522a9bc1884138b6aa94e6ff26d549c1b7` (main after merged PR #607)
+**Repository baseline:** `20da2b2943479909de75c8b8ad5ccdd1fdfb31c3` (main after merged PR #626)
 
-**Working branch:** `codex/evidence-matrix-studio-20261125`
+**Working branch:** `codex/eylo-integrated-release-candidate-20261128`
 
 This file is the current execution index. It does not promote a feature to staging or production verified. The canonical feature-by-feature inventory is [PRODUCT_IMPLEMENTATION_TRACKER.md](PRODUCT_IMPLEMENTATION_TRACKER.md): it contains 77 individually numbered existing product modules, their implementation descriptions, tests and remaining acceptance. All 77 are currently marked **PARTIAL**. The route-level inventory and audit is [FULL_SITE_FUNCTIONAL_AUDIT.md](FULL_SITE_FUNCTIONAL_AUDIT.md). Preserve those detailed inventories rather than maintaining a second, divergent copy here.
+
+## 28 November integration checkpoint
+
+| Checkpoint | Result | Evidence and limit |
+|---|---|---|
+| Current repository and deployment | VERIFIED | `main` is `20da2b2943479909de75c8b8ad5ccdd1fdfb31c3`. Vercel production deployment `dpl_B9dSu4itqxXuajZhHUjkWhxQEdEz` is READY and reports the same source SHA. This proves deployment identity, not end-to-end feature behavior. |
+| PR #627 | INTEGRATED LOCALLY | Exact head `7c2243f56577ed7cff3a8525373389283b5427b6`; Build, EYLO Quality Gate and Product quality passed. Integration conflicts in `scientific-evaluation.mjs` and `ProjectDetail.jsx` were resolved by retaining both the existing evaluation panel and the new claim-level review. |
+| PR #628 | INTEGRATED LOCALLY; EXACT-HEAD CI INCOMPLETE | Exact head `702ff379f7f262909651149cafd9adae57f1b256`; Product quality and Vercel preview checks passed, but Build and EYLO Quality Gate were not present on that exact head. Its grant changes overlapped #627, so the integration retains line-level provenance and adds the confirmed no-milestones/timeline rule, exact budget quote checks, and Markdown/DOCX enforcement. |
+| PR #629 | INTEGRATED LOCALLY | Exact head `29c6dcb2155cddfded94ba8589b41ae702e94d70`; Build, EYLO Quality Gate and Product quality passed. Its manifest remains specifically a frozen historical record for #626, not evidence for this newer candidate. |
+| Baseline local checks | PASS | `npm ci` installed 618 locked packages. `npm run check` passed on the unmodified `main`: imports, both TypeScript projects, ESLint, 1,326 tests and Vite build/bundle budget. This is local baseline evidence only. |
+| Candidate local checks | PASS LOCALLY | On the integrated worktree, `npm run check` passed imports, both TypeScript projects, ESLint, all 1,340 tests and the production build/bundle budget. One merged grant-provenance fixture exposed missing fallback line numbers; validation now uses the same non-empty line positions as extraction. The check is local evidence, not exact-head hosted CI. |
+| Release gate | NO-GO | The readiness gate requires exact-commit CI evidence and hosted staging, privacy, UX, operations, and human/legal acceptance. Local success does not satisfy those gates. |
+
+No production settings, data, migrations, billing, credentials, or deployment were changed. No PR was merged to `main` by this checkpoint.
 
 ## 25 November research output execution
 

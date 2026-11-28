@@ -2,6 +2,7 @@ import {
   AlignmentType, Document, Footer, HeadingLevel, Packer, Paragraph,
   Table, TableCell, TableRow, TextRun, WidthType,
 } from 'docx';
+import { confirmedMilestonesNotApplicable } from './grant-proposal.mjs';
 
 const cell = (value, bold = false, width = 20) => new TableCell({
   width: { size: width, type: WidthType.PERCENTAGE },
@@ -64,19 +65,28 @@ export async function createGrantProposalDocx(artifact = {}) {
       children.push(new Paragraph({ text: `${authors}${year}. ${source.title || 'Title unavailable'}.${doi}${url}`, bullet: { level: 0 } }));
     }
   } else children.push(new Paragraph({ text: '[No bibliography records were saved with this draft.]' }));
-  children.push(new Paragraph({ text: 'Provisional work packages, milestones and deliverables', heading: HeadingLevel.HEADING_1 }));
+  const milestonesNotApplicable = confirmedMilestonesNotApplicable(requirements, artifact.confirmed_requirement_ids || []);
+  children.push(new Paragraph({ text: milestonesNotApplicable ? 'Provisional work packages and deliverables' : 'Provisional work packages, milestones and deliverables', heading: HeadingLevel.HEADING_1 }));
   children.push(new Paragraph({ text: 'These are proposed planning elements. They do not record existing partner commitments or completed work.' }));
-  if (workPackages.length) children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, columnWidths: [1500, 2400, 2800, 2500, 1800], rows: [
-    row(['WP', 'Objective and activities', 'Deliverables', 'Milestones', 'Partner (unconfirmed)'], [12, 23, 23, 24, 18]),
-    ...workPackages.map(item => row([`${item.code || ''} ${item.title || ''}`, `${item.objective || ''}\n${(item.activities || []).join('\n')}`, (item.deliverables || []).join('\n'), (item.milestones || []).join('\n'), item.partner_name || '[Researcher input required]'], [12, 23, 23, 24, 18]))
-  ] }));
-  children.push(new Paragraph({ text: 'Provisional project timeline', heading: HeadingLevel.HEADING_1 }));
-  children.push(new Paragraph({ text: 'Relative sequence only; no calendar dates are inferred. Review dependencies and timing with the project team.' }));
   const timeline = artifact.draft?.timeline || [];
-  if (timeline.length) children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, columnWidths: [1700, 2200, 2900, 2400, 1800], rows: [
-    row(['Sequence', 'Work package', 'Milestone', 'Dependency', 'Status']),
-    ...timeline.map(item => row([item.sequence || 'Researcher input required', item.work_package_code || 'Researcher mapping required', item.milestone, item.dependency || 'None supplied', 'Provisional'])),
-  ] }));
+  if (milestonesNotApplicable) {
+    if (workPackages.length) children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, columnWidths: [1600, 3000, 3000, 2400], rows: [
+      row(['WP', 'Objective and activities', 'Deliverables', 'Partner (unconfirmed)'], [16, 30, 30, 24]),
+      ...workPackages.map(item => row([`${item.code || ''} ${item.title || ''}`, `${item.objective || ''}\n${(item.activities || []).join('\n')}`, (item.deliverables || []).join('\n'), item.partner_name || '[Researcher input required]'], [16, 30, 30, 24]))
+    ] }));
+    children.push(new Paragraph({ text: 'Milestones and a separate timeline are omitted because a researcher-confirmed call requirement states that milestones are not applicable.' }));
+  } else {
+    if (workPackages.length) children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, columnWidths: [1500, 2400, 2800, 2500, 1800], rows: [
+      row(['WP', 'Objective and activities', 'Deliverables', 'Milestones', 'Partner (unconfirmed)'], [12, 23, 23, 24, 18]),
+      ...workPackages.map(item => row([`${item.code || ''} ${item.title || ''}`, `${item.objective || ''}\n${(item.activities || []).join('\n')}`, (item.deliverables || []).join('\n'), (item.milestones || []).join('\n'), item.partner_name || '[Researcher input required]'], [12, 23, 23, 24, 18]))
+    ] }));
+    children.push(new Paragraph({ text: 'Provisional project timeline', heading: HeadingLevel.HEADING_1 }));
+    children.push(new Paragraph({ text: 'Relative sequence only; no calendar dates are inferred. Review dependencies and timing with the project team.' }));
+    if (timeline.length) children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, columnWidths: [1700, 2200, 2900, 2400, 1800], rows: [
+      row(['Sequence', 'Work package', 'Milestone', 'Dependency', 'Status']),
+      ...timeline.map(item => row([item.sequence || 'Researcher input required', item.work_package_code || 'Researcher mapping required', item.milestone, item.dependency || 'None supplied', 'Provisional'])),
+    ] }));
+  }
   children.push(new Paragraph({ text: 'Provisional risk register', heading: HeadingLevel.HEADING_1 }));
   const risks = artifact.draft?.risks || [];
   if (risks.length) children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, columnWidths: [2200, 1300, 1300, 3400, 2800], rows: [

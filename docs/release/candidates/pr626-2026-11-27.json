@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-11-27",
+  "source_repository": "panagiotagrosdouli/eyloai",
+  "frozen_candidate": {
+    "pull_request": 626,
+    "git_ref": "codex/eylo-scientific-safe-integration-20261127",
+    "commit_sha": "23ebb1d34aac45485a12c38ea6a4eaa47ea2e7c0",
+    "base_main_sha": "ffc79b8d4dac82cef5c3f98b12f6a2a328442ef1",
+    "lockfile": {
+      "path": "package-lock.json",
+      "git_blob_sha": "7d232c6c4f93e156dca171dda11aac019b3f90c5"
+    }
+  },
+  "workflows": [
+    {
+      "name": "Build",
+      "workflow_path": ".github/workflows/build.yml",
+      "workflow_blob_sha": "f0b1bee676ba9f0e325ab4b910e068e134c4fcac",
+      "run_id": 45934981883,
+      "result": "PASS",
+      "scope": "ci"
+    },
+    {
+      "name": "EYLO Quality Gate",
+      "workflow_path": ".github/workflows/eylo-quality.yml",
+      "workflow_blob_sha": "b2327e26258872360021c25743a743c582f76bb5",
+      "run_id": 45934981888,
+      "result": "PASS",
+      "scope": "ci"
+    },
+    {
+      "name": "Product quality",
+      "workflow_path": ".github/workflows/quality.yml",
+      "workflow_blob_sha": "0328de2bced131af57f4e8f45f2bce3b7c90d9fa",
+      "run_id": 45934981855,
+      "result": "PASS",
+      "scope": "synthetic_browser_fixtures"
+    }
+  ],
+  "preview": {
+    "vercel_team_id": "team_IUkyJtLhpTRBaUikmCSYHBDn",
+    "vercel_project_id": "prj_yiujFufSKIRnlmZUr9WG7jgf7qKL",
+    "deployment_id": "dpl_phcuEwagFKp4DZfhShpcp3WXVAD3",
+    "commit_sha": "23ebb1d34aac45485a12c38ea6a4eaa47ea2e7c0",
+    "git_ref": "codex/eylo-scientific-safe-integration-20261127",
+    "url": "https://eyloai-npqm1075s-panagiotagrosdoulis-projects.vercel.app",
+    "deployment_target": "preview",
+    "build_state": "READY",
+    "authenticated_two_account_acceptance": "NOT_RUN"
+  },
+  "production_reference": {
+    "main_sha": "ffc79b8d4dac82cef5c3f98b12f6a2a328442ef1",
+    "vercel_deployment_id": "dpl_62wpJQvwLSrKLSdxBVfJLfj9GAE7",
+    "github_pages_deploys_on_main_push": true,
+    "github_main_protected": false,
+    "github_rulesets": 0,
+    "owner_control_confirmed": false
+  },
+  "scope": [
+    "EYRA scientific safety and checkpoints",
+    "Existing canonical academic/grant proposal workflow",
+    "PDF DOCX TXT Markdown call-document intake",
+    "Project-linked scientific evaluation dashboard and unreviewed source inventory",
+    "Researcher approvals and exports",
+    "Staging preflight and release-readiness gate"
+  ],
+  "external_unmerged_changes": [
+    {
+      "pull_request": 627,
+      "reason": "Scientific quality review and grant provenance improvements are separate, not on frozen PR #626"
+    },
+    {
+      "pull_request": 628,
+      "reason": "Official-call milestone, per-project budget and quote validation fixes are separate, not on frozen PR #626"
+    }
+  ],
+  "gates": [
+    {
+      "name": "github_ci",
+      "status": "PASS",
+      "scope": "exact-head code/fixtures"
+    },
+    {
+      "name": "deployment_controls",
+      "status": "BLOCKED",
+      "scope": "owner confirmation needed"
+    },
+    {
+      "name": "isolated_staging_target",
+      "status": "BLOCKED",
+      "scope": "owner-approved project absent"
+    },
+    {
+      "name": "hosted_auth_rls_storage",
+      "status": "BLOCKED",
+      "scope": "no approved disposable accounts/writes"
+    },
+    {
+      "name": "live_eyra_openai",
+      "status": "NOT_RUN",
+      "scope": "provider budget and consent missing"
+    },
+    {
+      "name": "official_grant_document_review",
+      "status": "NOT_RUN",
+      "scope": "official-source assessment separate from synthetic fixtures"
+    },
+    {
+      "name": "privacy_deletion",
+      "status": "BLOCKED",
+      "scope": "staging prerequisites missing"
+    },
+    {
+      "name": "migration_reconciliation",
+      "status": "BLOCKED",
+      "scope": "healthy isolated migration target absent"
+    },
+    {
+      "name": "stripe_test_mode",
+      "status": "NOT_RUN",
+      "scope": "test-mode authorization absent"
+    },
+    {
+      "name": "independent_scientific_quality",
+      "status": "NOT_RUN",
+      "scope": "human review absent"
+    },
+    {
+      "name": "independent_required_reviews",
+      "status": "NOT_RUN",
+      "scope": "none recorded"
+    },
+    {
+      "name": "owner_signoff",
+      "status": "NOT_RUN",
+      "scope": "no production authorization"
+    }
+  ],
+  "decision": "NO-GO",
+  "production_authorized": false
+}
