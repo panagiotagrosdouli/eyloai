@@ -10,6 +10,17 @@
 
 **Live migration reconciliation:** Read-only inventory on 2026-11-28 reconfirmed 19 applied migration versions, 34 public tables with RLS enabled, 18 exact historical SQL fingerprints and one known divergent `security_hardening` fingerprint from the 2026-11-20 statement snapshot. The reproducible snapshot and local verification are [supabase-reconciliation-2026-11-28.json](release/supabase-reconciliation-2026-11-28.json) and `npm run db:reconcile-manifest`. Missing EYRA conversation/run tables, grant applications, meeting participants and ten collaboration/product tables remain. The available Supabase branch reports `MIGRATIONS_FAILED`; no disposable local PostgreSQL runtime is installed and no staging migrations were applied. Production and the unrelated inactive job project were untouched.
 
+## Phase III continuation — forward-only learning RLS correction
+
+| Item | Status | Implementation, files, tests and remaining limits |
+|---|---|---|
+| Learning lesson-progress RLS predicate | IMPLEMENTED; disposable PostgreSQL CI PENDING | Added `supabase/migrations/20261128120000_learning_progress_course_policy_qualification.sql`; the policy explicitly compares the referenced lesson course to the outer `learning_lesson_progress.course_id` and retains owner/assessment ownership checks. Added same-owner mismatched-course and forged-owner insert rejection plus cross-account read/insert/update/delete and anonymous access assertions in `tests/integration/learning-time-postgres.sql`. No production/staging application. Local PostgreSQL/Docker is unavailable; PR path-triggered `EYRA schema preflight (disposable PostgreSQL)` is the required execution evidence. |
+| Migration ledger | IMPLEMENTED; LOCAL VERIFIERS PASS | Added the forward-only migration to `supabase/migration-review-plan.json`, with exact SHA-256 `b673a570466164223636869b9a0bb15bb785b6890308a460b14c5ea0b2f7ce66`; updated the local migration count in `docs/release/supabase-reconciliation-2026-11-28.json` from 33 to 34 (the 19 remotely applied versions and historic fingerprints are unchanged). `npm run db:review-plan`, `npm run db:reconcile-manifest`, and `git diff --check` passed. A first test run correctly exposed the stale 33-file assertion/snapshot; both were updated to 34. |
+| Local quality | AUTOMATED_TESTS_PASSED; EXACT-HEAD CI PENDING | `npm run check` passed: import resolution, both TypeScript projects, ESLint, 1,342 Node tests, Vite production build and configured chunk ceiling. Existing large-chunk/mixed-import warnings remain. The local test runner does not execute SQL. Playwright Chromium installation was attempted; the official CDN returned HTTP 403 in this execution environment, so browser E2E is still blocked locally and must be verified by hosted CI. |
+| Git and release | NOT MERGED; PRODUCTION NO-GO | Changes are based on PR #631 head `a860247d0c1cf03bfaf03ac0eb3608fbec3df642`. No remote migration, release approval, merge, hosted account test, or production mutation has occurred. Commit and stacked PR identity will be added after publication; exact-head PostgreSQL/browser CI remains required. |
+
+**Revised current count:** This working tree contains 34 local SQL migration files, while the read-only production snapshot still records 19 applied versions. The new migration is proposed only; local manifest validity is not a database replay result. Previous entries below that call for creating this migration are superseded by the implementation above.
+
 ## 28 November Phase II continuation
 
 | Workstream | State | Evidence and next action |

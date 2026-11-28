@@ -6,7 +6,7 @@
   "reproduction_sql": "supabase-reconciliation-readonly.sql",
   "local_verifier": "scripts/verify-supabase-reconciliation-manifest.mjs",
   "production_changes_made": false,
-  "local_migration_files": 33,
+  "local_migration_files": 34,
   "applied_migration_versions": [
     "20260817083110", "20260817083217", "20260817083616", "20260817083711", "20260817083904",
     "20261115185428", "20261115191303", "20261115192654", "20261115192808", "20261115193737",

@@ -28,7 +28,8 @@
     "20261115090000_research_dataset_catalog.sql",
     "20261114063216_account_deletion_lifecycle.sql",
     "20261115181809_time_tracker_pause_resume.sql",
-    "20261115233000_eyra_agent_runs.sql"
+    "20261115233000_eyra_agent_runs.sql",
+    "20261128120000_learning_progress_course_policy_qualification.sql"
   ],
   "files": [
     {
@@ -162,6 +163,12 @@
       "sha256": "1b79e4f07b03267558d68d4459da2546cd1a7d8d7d5734b88e49869a7186dee1",
       "classification": "canonical-local-replay",
       "reason": "Actual disposable PostgreSQL replay, not hosted migration authorization."
+    },
+    {
+      "name": "20261128120000_learning_progress_course_policy_qualification.sql",
+      "sha256": "b673a570466164223636869b9a0bb15bb785b6890308a460b14c5ea0b2f7ce66",
+      "classification": "canonical-local-replay",
+      "reason": "Forward-only correction explicitly qualifies the outer course_id in the progress RLS policy; exercised against genuine disposable PostgreSQL, not hosted migration authorization."
     },
     {
       "name": "20261113090000_eyra_conversations.sql",

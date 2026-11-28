@@ -11,7 +11,7 @@ const manifest = JSON.parse(readFileSync(path, 'utf8'));
 test('read-only Supabase reconciliation snapshot matches local migration count and historical SQL fingerprints', () => {
   const result = verifySupabaseReconciliationManifest(manifest, root);
   assert.equal(result.valid, true, result.errors.join(', '));
-  assert.equal(result.local_migration_files, 33);
+  assert.equal(result.local_migration_files, 34);
   assert.equal(result.prior_fingerprints_checked, 19);
   assert.equal(result.exact_sql_matches, 18);
   assert.equal(result.known_divergences, 1);
