@@ -1,6 +1,18 @@
 do $$
 declare missing_key text;
 begin
+  if (select count(*) from pg_catalog.pg_proc as function_row
+      join pg_catalog.pg_namespace as namespace_row on namespace_row.oid = function_row.pronamespace
+      where namespace_row.nspname = 'private'
+        and function_row.proname in (
+          'unlink_deleted_project_notes',
+          'unlink_deleted_project_life_tasks',
+          'unlink_deleted_project_life_goals',
+          'unlink_deleted_project_flashcard_decks'
+        )
+        and pg_catalog.pg_get_functiondef(function_row.oid) like '%if current_user = ''supabase_auth_admin'' then%') <> 4 then
+    raise exception 'Project unlink triggers are not guarded during Auth cascade deletion';
+  end if;
   if not has_table_privilege('supabase_auth_admin', 'public.study_flashcard_decks', 'DELETE') then
     raise exception 'Auth cascade role cannot delete user-owned flashcard rows';
   end if;
