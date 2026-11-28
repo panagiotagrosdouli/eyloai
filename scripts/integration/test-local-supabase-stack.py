@@ -165,6 +165,22 @@ try:
         expected=False)
     assert status >= 400, "Authenticated clients must not write service-only ledger rows"
     print("PASS: service-only EYRA run/action writes and owner-isolated ledger reads")
+    api_test_env = os.environ.copy()
+    api_test_env.update({
+        "EYLO_TEST_TOKEN_A": token_a,
+        "EYLO_TEST_TOKEN_B": token_b,
+        "EYLO_TEST_USER_A": user_a["id"],
+        "EYLO_TEST_RUN_ID": run_id,
+    })
+    api_test = subprocess.run(
+        ["node", str(ROOT / "scripts/integration/test-local-eyra-runs-api.mjs")],
+        env=api_test_env, text=True, capture_output=True
+    )
+    if api_test.returncode:
+        print(api_test.stdout, end="")
+        print(api_test.stderr, end="")
+        raise RuntimeError("EYRA application API integration failed")
+    print(api_test.stdout.strip())
 
     object_a = user_a["id"] + "/acceptance-" + nonce + ".txt"
     object_b = user_b["id"] + "/acceptance-" + nonce + ".txt"
