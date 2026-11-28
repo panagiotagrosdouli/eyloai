@@ -370,3 +370,20 @@ Do not duplicate these reports under new names. They remain the detailed audits 
 ### Recovery release gate
 
 Keep production **NO-GO** until a dedicated disposable Supabase target is identified, production migration history and all prerequisites are reconciled, a backup restore is demonstrated, coordinator SQL and two-account authorization tests pass, and the owner separately authorizes a named production migration. After that authorization, verify genuine provider searches, shared quotas, cache and partial-provider behavior through the real browser journey. Do not infer hosted acceptance from local fixtures or CI.
+
+
+## Provider-coordination recovery package — 28 November 2026
+
+| Work item | Result | Evidence and limits |
+|---|---|---|
+| Current repository state | VERIFIED | Current `main` is `c795c22447ee7f15d6c46ca3d9caf8c61bd7bfa3`; PR #641 is open, draft, unmerged, head before this package `561c73f2632410cabc2eabb144b77ccc5892aada`. Existing discovery attribution fix and grant-context work were preserved. |
+| Migration source/dependencies | REVIEWED | Existing `supabase/migrations/20261128145000_scholarly_provider_coordination.sql` retained unchanged (blob `0a9d7a076b34ac2be77a3fc1be6422be756b9e73`). It depends on Supabase roles/public schema and PostgreSQL built-ins; no application data backfill or extra extension. Project PostgreSQL is 17.11. |
+| Read-only preflight | IMPLEMENTED AND EXECUTED | Added `supabase/recovery/scholarly_provider_coordination_preflight.sql`. It inventories migration ledger, target relations/name conflicts, column types/defaults, constraints, indexes, RLS/policies, direct table grants, exact RPC signatures/results/default args, SECURITY DEFINER/search_path/owner and execute ACLs. Executed the committed SQL against production via SELECT-only catalog inspection. |
+| Production preflight result | MISSING; SAFE CANDIDATE ONLY AFTER GATES | Version `20261128145000` absent; all three tables and all four exact RPC signatures absent; no table/view name conflicts or unexpected same-name RPC overloads; `service_role` has public schema USAGE. The preflight verdict is `SAFE_CANDIDATE_ONLY_AFTER_STAGING_AND_BACKUP`, not authorization to apply. |
+| SQL preflight defects | REPAIRED BEFORE ACCEPTANCE | Initial executions found a JSONB/array type error, an escaped newline, and an omitted RPC-overload field. The query was corrected and the final committed-file execution succeeded read-only. No database writes occurred. |
+| Recovery runbook | PREPARED | Added `docs/runbooks/scholarly-provider-coordination-recovery.md` with isolated replay gates, behavioral/security test matrix, backup/restore evidence requirements, interruption handling, forward recovery, and the exact existing migration reserved for separate owner approval. |
+| Isolated Supabase availability | BLOCKED | Connected organization is Free with no spare project slot; only project branch is marked `MIGRATIONS_FAILED`. No owner-approved free isolated target identified. Inactive unrelated `job` project was not accessed. No branch/project was created and no cost incurred. |
+| Migration behavioral tests | NOT RUN IN ISOLATED SUPABASE THIS TURN | Required cache/lease/cooldown/concurrency and positive/negative HTTP authorization sequence is specified in the runbook. Existing CI migration/RLS checks are prior disposable PostgreSQL evidence; they do not substitute for replay of this exact recovery sequence on a healthy isolated Supabase target. |
+| Backup/restore | NOT VERIFIED | No backup was inspected, created, or restored. Runbook requires a recorded verified restore point and isolated restore test before any production DDL. |
+| Production repair and scholarly acceptance | NOT AUTHORIZED / NOT RUN | No production DDL, migration ledger edits, provider calls, quotas, or Vercel deployment occurred. Real source results and DOI validation remain blocked pending isolated replay and separately authorized production migration. |
+
