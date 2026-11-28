@@ -111,6 +111,8 @@ try:
     sql((ROOT / 'tests/integration/timer-pauses-postgres.sql').read_text())
     print('PASS: persisted timer pause/resume/stop, revisions, stale writes, duplicate active prevention, pause validation and outsider/anonymous denial.', flush=True)
     sql((ROOT / 'tests/integration/discovery-quota-postgres.sql').read_text())
+    sql((ROOT / 'tests/integration/scholarly-provider-coordination-postgres.sql').read_text())
+    print('PASS: provider cache, RLS/all direct grants, exact RPC signatures, lease rate limiting/deduplication, 429 cooldown and client-role denial.', flush=True)
     sql((ROOT / 'tests/integration/funding-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/eyra-conversations-postgres.sql').read_text())
     if not bundle_replay:
@@ -194,6 +196,15 @@ try:
     if sorted(quota_outcomes) != ['f', 't']:
         raise AssertionError('Shared quota did not enforce one allowed request atomically: ' + repr(quota_outcomes))
     print('PASS: two independent PostgreSQL quota sessions allow exactly one request at a limit of one.', flush=True)
+    def concurrent_provider_slot(cache_key):
+        statement = f"set role service_role; select status from public.reserve_scholarly_provider_slot('arxiv','{cache_key * 64}',0,1,45);"
+        return subprocess.check_output([*DOCKER, 'exec', '-i', NAME, 'psql', '-U', 'postgres', '-qAt', '-v', 'ON_ERROR_STOP=1'],
+            env=ENV, input=statement, text=True).strip()
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        provider_slot_outcomes = list(pool.map(concurrent_provider_slot, ['a', 'b']))
+    if sorted(provider_slot_outcomes) != ['acquired', 'concurrency_limited']:
+        raise AssertionError('Shared provider coordination did not serialize competing leases: ' + repr(provider_slot_outcomes))
+    print('PASS: two independent provider requests produce one lease and one concurrency limit.', flush=True)
     def concurrent_snapshot(_request):
         statement = """
         begin;

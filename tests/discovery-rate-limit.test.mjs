@@ -263,3 +263,46 @@ test('allowed Vercel request receives shared quota before provider response', as
   assert.match(requests[4], /rpc\/write_scholarly_provider_cache$/);
   assert.match(requests[5], /rpc\/finish_scholarly_provider_request$/);
 });
+
+test('missing scholarly coordination RPC fails closed before any provider request', async (t) => {
+  const oldEnv = Object.fromEntries(['VERCEL', 'VITE_SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'].map(key => [key, process.env[key]]));
+  process.env.VERCEL = '1';
+  process.env.VITE_SUPABASE_URL = vercelEnv.VITE_SUPABASE_URL;
+  process.env.SUPABASE_SERVICE_ROLE_KEY = vercelEnv.SUPABASE_SERVICE_ROLE_KEY;
+  const originalFetch = globalThis.fetch;
+  const originalWarn = console.warn;
+  const requests = [];
+  const warnings = [];
+  console.warn = (...args) => warnings.push(args);
+  globalThis.fetch = async url => {
+    const address = String(url);
+    requests.push(address);
+    if (address.endsWith('/rpc/consume_discovery_rate_limit')) {
+      return Response.json([{ allowed: true, remaining: 119, retry_after_seconds: 300 }]);
+    }
+    if (address.endsWith('/rpc/read_scholarly_provider_cache')) {
+      return Response.json({ code: 'PGRST202', message: 'private PostgREST details' }, { status: 404 });
+    }
+    throw new Error(`Unexpected request: ${address}`);
+  };
+  t.after(() => {
+    console.warn = originalWarn;
+    globalThis.fetch = originalFetch;
+    for (const [key, value] of Object.entries(oldEnv)) {
+      if (value === undefined) delete process.env[key]; else process.env[key] = value;
+    }
+  });
+
+  const response = responseRecorder();
+  await handler({ method: 'GET', headers: { 'x-vercel-forwarded-for': '203.0.113.12' },
+    query: { provider: 'openalex_works', q: 'provider coordination schema mismatch regression' } }, response);
+
+  assert.equal(response.statusCode, 503);
+  assert.equal(response.payload.code, 'PROVIDER_COORDINATION_UNAVAILABLE');
+  assert.deepEqual(warnings, [['EYLO_SCHOLARLY_COORDINATION_UNAVAILABLE', { code: 'rpc' }]]);
+  assert.deepEqual(requests, [
+    `${vercelEnv.VITE_SUPABASE_URL}/rest/v1/rpc/consume_discovery_rate_limit`,
+    `${vercelEnv.VITE_SUPABASE_URL}/rest/v1/rpc/read_scholarly_provider_cache`,
+  ]);
+  assert.doesNotMatch(JSON.stringify(response.payload), /PGRST202|private PostgREST details/);
+});

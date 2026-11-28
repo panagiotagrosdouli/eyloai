@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-11-28",
+  "target_project_ref": "kbzjngpzxpniaumlupaa",
+  "target_observation_mode": "read_only",
+  "production_application_authorized": false,
+  "release_decision": "BLOCKED",
+  "evidence": {
+    "postgres_version": "17.11.0.003",
+    "applied_migration_count": 19,
+    "quota_rpc": {
+      "signature": "consume_discovery_rate_limit(p_subject_hash text, p_limit integer, p_window_seconds integer)",
+      "security_definer": true,
+      "service_role_execute": true,
+      "anon_execute": false,
+      "authenticated_execute": false
+    },
+    "present_tables": ["discovery_rate_limits"],
+    "coordinator_tables_have_rls_or_privileges": "not_applicable: all three coordinator tables are absent",
+    "lesson_progress_policy_observation": "authenticated owner policy is present; the subquery course_id comparison is tautological; validated composite FK still enforces owner/course/lesson consistency",
+    "candidate_foreign_keys": {"count": 13, "all_named_constraints_present": true, "all_13_candidate_index_names_absent": true},
+    "discovery_rate_limits": {"rls": true, "policies": 0, "anon_select": false, "authenticated_select": false, "service_role_select": true},
+    "missing_tables": [
+      "scholarly_provider_state",
+      "scholarly_provider_leases",
+      "scholarly_response_cache",
+      "eylo_api_tokens",
+      "eylo_api_token_events"
+    ],
+    "missing_functions": [
+      "read_scholarly_provider_cache(text)",
+      "write_scholarly_provider_cache(text,text,text,text,integer)",
+      "reserve_scholarly_provider_slot(text,text,integer,integer,integer)",
+      "finish_scholarly_provider_request(text,uuid,integer,integer)"
+    ],
+    "migration_history": {
+      "source_filename_versions_match_remote": false,
+      "known_sql_fingerprint_divergence": "20260817083616 security_hardening; 18 exact SQL matches, 1 known divergence",
+      "blind_replay_safe": false
+    },
+    "staging": {
+      "available": false,
+      "other_connected_project": "eqgukmgmmbpxjstleipe",
+      "other_project_status": "INACTIVE",
+      "other_project_may_be_used_as_staging": false
+    },
+    "backup_restore_drill_verified": false,
+    "runtime_503_subcode_captured": true,
+    "confirmed_runtime_failure": "Vercel logged provider-coordination code rpc for GET /api/discovery at 2026-11-28T18:16:01.995Z; Supabase logged POST /rest/v1/rpc/read_scholarly_provider_cache at 2026-11-28T18:16:01.580Z with HTTP 404 and PostgREST PGRST202; the RPC is absent from the live catalog"
+  },
+  "candidate_migrations": [
+    {
+      "order": 1,
+      "file": "20261128122000_learning_lesson_progress_policy_qualification.sql",
+      "sha256": "503cbfd822fbcda4bbe5d9ac2141760cec810098fe0795a3960b3622500923a2",
+      "operations": ["replace the named authenticated lesson-progress policy with an explicitly qualified course/user/lesson check"],
+      "expected_effect": "Make the policy's course relationship explicit while retaining the composite foreign-key integrity boundary.",
+      "prerequisites": ["learning_lesson_progress", "learning_lessons", "quiz_attempts", "auth.uid()", "private schema helpers"],
+      "production_dependency_observed": "Tables exist; migration history and policy state still require target-specific reconciliation.",
+      "destructive_data_operation": false,
+      "candidate_status": "staging_validation_required"
+    },
+    {
+      "order": 2,
+      "file": "20261128134000_index_uncovered_foreign_keys.sql",
+      "sha256": "a34db2f2548cdd32d2d0042ca056314f67ec067d74449d757f30085c86861620",
+      "operations": ["create 13 IF NOT EXISTS indexes on existing foreign-key columns"],
+      "expected_effect": "Support FK checks and owner-scoped joins without removing existing indexes or rows.",
+      "prerequisites": ["all 13 referenced tables and foreign keys exist with the expected columns"],
+      "production_dependency_observed": "Read-only catalog found all 13 named foreign-key constraints with definitions matching the candidate column lists and all 13 candidate index names absent. Recheck index coverage and column definitions immediately before any staging application.",
+      "destructive_data_operation": false,
+      "candidate_status": "staging_validation_required"
+    },
+    {
+      "order": 3,
+      "file": "20261128141000_eylo_api_token_events.sql",
+      "sha256": "07383da3a48bfd0ba12804424c76d597bf5638fc9daab37a86003a013fe1bfb3",
+      "operations": ["create owner-scoped token event table and index", "enable RLS and add owner-read/account-active policies", "revoke client/service direct table writes", "create a private trigger function and insert/revoke triggers on eylo_api_tokens"],
+      "expected_effect": "Record token creation/revocation metadata without secrets or token hashes.",
+      "prerequisites": ["auth.users", "public.eylo_api_tokens", "private.eylo_account_active()", "expected token table insert/update privileges"],
+      "production_dependency_observed": "public.eylo_api_tokens is absent; this migration cannot safely run before the prerequisite token table is reconciled or restored.",
+      "destructive_data_operation": false,
+      "candidate_status": "BLOCKED_MISSING_PREREQUISITE"
+    },
+    {
+      "order": 4,
+      "file": "20261128145000_scholarly_provider_coordination.sql",
+      "sha256": "aefd33f4589ec8201245e95611e11294de455cc745c6f082b2687c5166e69d53",
+      "operations": ["create provider state, lease, and bounded response-cache tables plus expiry indexes", "enable RLS and revoke direct table privileges", "create reserve, finish, cache-read, and cache-write SECURITY DEFINER RPCs with empty search_path", "grant only those RPC executions to service_role"],
+      "expected_effect": "Provide cross-instance provider pacing, concurrency leases, 429/5xx cooldown state, cache access, and cleanup without storing raw search queries or bypassing shared user quotas.",
+      "prerequisites": ["public schema", "service_role", "PostgreSQL gen_random_uuid()", "shared quota remains separately enforced by consume_discovery_rate_limit"],
+      "bounds": {"providers": 5, "cache_body_bytes_max": 2097152, "cache_ttl_seconds_max": 21600, "concurrent_leases_per_provider_max": 20, "lease_seconds_max": 120, "retry_after_seconds_max": 86400, "cache_rows_target_max": 10000},
+      "destructive_data_operation": false,
+      "candidate_status": "staging_validation_required"
+    },
+    {
+      "order": 5,
+      "file": "20261128152000_auth_account_cascade_privileges.sql",
+      "sha256": "e9dba2227d9876abfb91adf031e9dfb18ab13e563932aeebddcdd5fd72b16858",
+      "operations": ["grant supabase_auth_admin DELETE only across the discovered Auth cascade graph", "grant column-scoped UPDATE only for SET NULL/SET DEFAULT foreign-key columns"],
+      "expected_effect": "Allow Auth deletion cascades without table-wide access or broader writes.",
+      "prerequisites": ["supabase_auth_admin role", "reconciled auth.users foreign-key graph", "public and storage schemas"],
+      "production_dependency_observed": "Requires a target-specific graph and grant comparison; cannot infer from disposable fixture alone.",
+      "destructive_data_operation": false,
+      "candidate_status": "staging_validation_required"
+    },
+    {
+      "order": 6,
+      "file": "20261128170000_auth_account_cascade_key_reads.sql",
+      "sha256": "bf23606c098324c0ea8ab8207371dcff81b2cfa03f9b293432a8f70ab87b1ab6",
+      "operations": ["grant schema USAGE to supabase_auth_admin", "grant SELECT only on foreign-key columns in the Auth cascade graph", "grant SELECT on storage.objects.owner_id only if the column exists"],
+      "expected_effect": "Permit PostgreSQL FK cascade key checks while keeping researcher content unreadable to the Auth role.",
+      "prerequisites": ["supabase_auth_admin role", "reconciled public/storage Auth cascade graph", "storage.objects schema if present"],
+      "production_dependency_observed": "Requires target-specific role and graph review.",
+      "destructive_data_operation": false,
+      "candidate_status": "staging_validation_required"
+    },
+    {
+      "order": 7,
+      "file": "20261128180000_auth_cascade_skip_project_unlink.sql",
+      "sha256": "270aa3a1ccc8f044c892d198d49bae9998c68ab8f6012ee730ff0b390cafd48f",
+      "operations": ["replace four project-unlink trigger functions to skip redundant child-row updates only when current_user is supabase_auth_admin"],
+      "expected_effect": "Keep ordinary project unlink behavior while avoiding extra Auth-role UPDATE grants during account deletion.",
+      "prerequisites": ["private.unlink_deleted_project_notes()", "private.unlink_deleted_project_life_tasks()", "private.unlink_deleted_project_life_goals()", "private.unlink_deleted_project_flashcard_decks()", "expected triggers and child tables"],
+      "production_dependency_observed": "Exact function bodies, invoker settings, trigger bindings, and deletion graph require staging catalog review.",
+      "destructive_data_operation": false,
+      "candidate_status": "staging_validation_required"
+    }
+  ],
+  "recovery_requirements": [
+    "verified provider-native backup/snapshot and tested restore into an isolated target",
+    "bounded lock and statement timeouts with transaction-level rollback verification",
+    "recorded pre/post schema fingerprints, migration history, grants, RLS policies, and function security settings",
+    "forward repair after any writes; no table drops or stale point-in-time restore without a separate data-loss authorization"
+  ],
+  "verification": {
+    "disposable_postgres_sql": "tests/integration/scholarly-provider-coordination-postgres.sql",
+    "docker_postgres_runner": "scripts/integration/test-local-postgres.py",
+    "disposable_supabase_workflow": ".github/workflows/eyra-schema-preflight.yml",
+    "current_execution": "NOT_RUN: current runtime has no Docker, psql, or Supabase CLI",
+    "hosted_staging_acceptance": "BLOCKED: no independent staging project or two disposable Auth accounts",
+    "production_migration_execution": "NOT_AUTHORIZED"
+  }
+}

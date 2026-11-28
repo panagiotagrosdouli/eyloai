@@ -18,6 +18,7 @@ on:
       - 'server/scholarly-resilience.mjs'
       - 'tests/eyra-schema-readiness.test.mjs'
       - 'tests/integration/account-deletion-auth-privileges-postgres.sql'
+      - 'tests/integration/scholarly-provider-coordination-postgres.sql'
       - 'api/system.js'
       - 'server/account-deletion.js'
       - 'server/supabase-config.mjs'
@@ -80,6 +81,9 @@ jobs:
       - name: Start the complete disposable Supabase stack
         working-directory: ${{ runner.temp }}/eyloai-local-supabase
         run: supabase start
+      - name: Verify shared scholarly provider coordination and private RPC boundary
+        working-directory: ${{ runner.temp }}/eyloai-local-supabase
+        run: supabase db query --file "$GITHUB_WORKSPACE/tests/integration/scholarly-provider-coordination-postgres.sql" --output json
       - name: Apply and verify Auth cascade grants after Auth role bootstrap
         working-directory: ${{ runner.temp }}/eyloai-local-supabase
         run: |

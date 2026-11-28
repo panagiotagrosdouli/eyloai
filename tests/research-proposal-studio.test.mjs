@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   bibliographyForProposal,
+  buildAuthorizedResearchContext,
   buildResearchProposalPrompt,
   exportResearchProposalMarkdown,
   hasProposalSaveReceipt,
@@ -102,6 +103,24 @@ test('prompt sends only explicitly selected project outputs and available abstra
   assert.match(prompt, /DISCIPLINE\nPublic health/);
   assert.match(prompt, /PROPOSAL PURPOSE\ndoctoral/);
   assert.match(prompt, /OUTPUT LANGUAGE\nGreek/);
+});
+
+test('proposal context excludes literature claims without selected source IDs and labels metadata evidence limits', () => {
+  const context = buildAuthorizedResearchContext({
+    papers: [papers[0]],
+    literatureReview: { edited_sections: [{ section_id: 'background', claims: [
+      { text: 'Traceable selected claim', source_ids: ['paper-a'] },
+      { text: 'Uncited review claim', source_ids: [] },
+      { text: 'Claim from another source', source_ids: ['paper-b'] },
+      { text: 'Mixed source claim', source_ids: ['paper-a', 'paper-b'] },
+    ] }] },
+    contextSelection: { literature_review: true },
+  });
+  assert.deepEqual(context.literature_review.sections[0].claims.map(claim => claim.text), ['Traceable selected claim']);
+  assert.match(context.literature_review.evidence_scope, /abstract\/metadata context only/);
+  const prompt = buildResearchProposalPrompt({ papers: [papers[0]], literatureReview: { edited_sections: [] }, contextSelection: { literature_review: true } });
+  assert.match(prompt, /source ID proves record identity only/);
+  assert.match(prompt, /not semantic verification of claim support/);
 });
 
 test('save receipt compares the complete private project artifact independent of key order', () => {
