@@ -251,7 +251,9 @@ test('allowed Vercel request receives shared quota before provider response', as
   assert.equal(response.headers['x-ratelimit-limit'], undefined);
   assert.equal(response.headers['x-ratelimit-remaining'], undefined,
     'shared successful provider responses must not cache one client’s quota metadata');
-  assert.equal(requests.length, 2);
+  assert.equal(requests.length, 3);
   assert.match(requests[0], /rpc\/consume_discovery_rate_limit$/);
-  assert.match(requests[1], /^https:\/\/api\.openalex\.org\/works\?/);
+  assert.match(requests[1], /rpc\/consume_discovery_rate_limit$/,
+    'the global provider budget uses the same durable RPC with a separate opaque scope');
+  assert.match(requests[2], /^https:\/\/api\.openalex\.org\/works\?/);
 });

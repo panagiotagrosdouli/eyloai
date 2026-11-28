@@ -17,7 +17,7 @@ export function providerMinimumGap(provider, query = '', env = process.env) {
 
 export function providerSharedQuota(provider, query = '', env = process.env) {
   if (provider.startsWith('openalex_')) {
-    const booleanOperators = String(query).match(/\\b(?:AND|OR|NOT)\\b/gi)?.length || 0;
+    const booleanOperators = String(query).match(/\b(?:AND|OR|NOT)\b/gi)?.length || 0;
     return booleanOperators > 5
       ? { limit: 1, windowSeconds: 1 }
       : { limit: 10, windowSeconds: 1 };
