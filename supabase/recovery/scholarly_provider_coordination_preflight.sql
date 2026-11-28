@@ -60,7 +60,11 @@ table_checks as (
  from table_inventory t
 ),
 function_inventory as (
- select e.*,to_regprocedure(format('public.%I(%s)',e.function_name,e.identity_args)) function_oid
+ select e.*,to_regprocedure(format('public.%I(%s)',e.function_name,e.identity_args)) function_oid,
+  coalesce((select jsonb_agg(pg_get_function_identity_arguments(p2.oid) order by pg_get_function_identity_arguments(p2.oid))
+   from pg_proc p2 join pg_namespace n2 on n2.oid=p2.pronamespace
+   where n2.nspname='public' and p2.proname=e.function_name
+    and p2.oid is distinct from to_regprocedure(format('public.%I(%s)',e.function_name,e.identity_args))),'[]'::jsonb) other_overloads
  from expected_functions e
 ),
 function_checks as (
@@ -91,7 +95,7 @@ reports as (
 ),
 function_reports as (
  select jsonb_build_object('name',function_name,'identity_arguments',identity_args,
-  'status',case when function_oid is null then 'MISSING'
+  'status',case when jsonb_array_length(other_overloads)>0 then 'INCOMPATIBLE_NAME_HAS_UNEXPECTED_OVERLOADS'\n   when function_oid is null then 'MISSING'
    when actual_result<>result_type or prosecdef is distinct from true
     or empty_search_path is distinct from true or owner_name in ('anon','authenticated','service_role')
     or pronargdefaults<>default_arg_count or service_execute is distinct from true
