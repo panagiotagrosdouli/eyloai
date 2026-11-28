@@ -35,7 +35,8 @@
     "20261128141000_eylo_api_token_events.sql",
     "20261128145000_scholarly_provider_coordination.sql",
     "20261128152000_auth_account_cascade_privileges.sql",
-    "20261128170000_auth_account_cascade_key_reads.sql"
+    "20261128170000_auth_account_cascade_key_reads.sql",
+    "20261128183000_skip_flashcard_unlink_during_account_cascade.sql"
   ],
   "files": [
     {
@@ -271,6 +272,12 @@
       "sha256": "f6229b3625ea61c4af5062c084db0c0f196a59c01c648d3712a8b0ab4e356e50",
       "classification": "canonical-local-replay",
       "reason": "Column-only SELECT privileges for Auth FK cascade key checks; disposable Supabase acceptance only, no remote application approval."
+    },
+    {
+      "name": "20261128183000_skip_flashcard_unlink_during_account_cascade.sql",
+      "sha256": "28efc7488ec833476de43dbaa4bc508ed69f0af11e0947c95e6d32c78b114006",
+      "classification": "canonical-local-replay",
+      "reason": "Forward-only guard prevents Auth-account cascade from invoking an owner-only flashcard update; local account-deletion acceptance only, no hosted migration authorization."
     }
   ]
 }

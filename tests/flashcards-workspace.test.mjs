@@ -70,3 +70,13 @@ test('Flashcards UI persists decks and answers through conflict-safe authorized 
   assert.match(app, /path="\/flashcards" element=\{<Flashcards \/>\}/);
   assert.match(layout, /path: '\/flashcards'/);
 });
+
+test('account cascade cannot invoke the project-deletion flashcard unlink as Auth admin', () => {
+  const migration = readFileSync(new URL('../supabase/migrations/20261128183000_skip_flashcard_unlink_during_account_cascade.sql', import.meta.url), 'utf8');
+  assert.match(migration, /current_user\s*<>\s*'authenticated'/i);
+  assert.match(migration, /auth\.uid\(\)\) is distinct from old\.user_id/i);
+  assert.match(migration, /return old;/i);
+  assert.match(migration, /update public\.study_flashcard_decks/i);
+  assert.match(migration, /security invoker/i);
+  assert.doesNotMatch(migration, /grant execute/i);
+});

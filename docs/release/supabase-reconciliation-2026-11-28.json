@@ -43,6 +43,12 @@
       "sha256": "f6229b3625ea61c4af5062c084db0c0f196a59c01c648d3712a8b0ab4e356e50",
       "applied_to_observed_project": false,
       "reason": "Column-scoped Auth cascade key reads required by local Auth account deletion; local acceptance only, never authorizes hosted or production application."
+    },
+    {
+      "name": "20261128183000_skip_flashcard_unlink_during_account_cascade.sql",
+      "sha256": "28efc7488ec833476de43dbaa4bc508ed69f0af11e0947c95e6d32c78b114006",
+      "applied_to_observed_project": false,
+      "reason": "Forward-only project-deletion trigger guard required by the real local Auth account-deletion regression; validated in disposable Supabase only and never authorized for hosted application."
     }
   ],
   "applied_migration_versions": [

@@ -86,6 +86,7 @@ jobs:
           set -euo pipefail
           supabase db query --file "$GITHUB_WORKSPACE/supabase/migrations/20261128152000_auth_account_cascade_privileges.sql" --output json
           supabase db query --file "$GITHUB_WORKSPACE/supabase/migrations/20261128170000_auth_account_cascade_key_reads.sql" --output json
+          supabase db query --file "$GITHUB_WORKSPACE/supabase/migrations/20261128183000_skip_flashcard_unlink_during_account_cascade.sql" --output json
           supabase db query --file "$GITHUB_WORKSPACE/tests/integration/account-deletion-auth-privileges-postgres.sql" --output json
       - name: Export local-only service endpoints without printing generated keys
         run: node scripts/integration/export-local-supabase-env.mjs
