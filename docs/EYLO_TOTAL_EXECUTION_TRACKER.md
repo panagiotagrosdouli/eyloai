@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 5217)
-Total output lines: 138
-
 # EYLO total execution tracker
 
 **Updated:** 28 November 2026 (Europe/Athens)
@@ -18,7 +15,7 @@ Total output lines: 138
 | Workstream | State | Evidence and next action |
 |---|---|---|
 | PR #630 independent source review | REVIEWED; no merge recommendation | Inspected all 17 changed files, grant provenance and budget checks, scientific evaluation/review semantics, release manifest gates, staging safeguards and save/export flows. No source-level defect was confirmed in this patch. Scientific scoring remains explicitly non-automated; no scientific correctness or hosted acceptance is inferred from CI. PR #630 remains open and unmerged. |
-| Migration reconciliation | SNAPSHOT IMPLEMENTED; hosted repair BLOCKED | Added a read-only SQL catalog recipe and snapshot manifest, plus a verifier that checks all 33 local migration files, 19 historic SQL fingerprints, version inventory and fail-closed release state. `npm run db:reconcile-manifest` PASS: 18 exact, one known divergence. No disposable local PostgreSQL executable/container exists; hosted branch is migration-failed. Owner must provide isolated disposable PostgreSQL/Supabase and migration-history/backup evidence before candidate SQL can be safely validated. |
+| Migration reconciliation | SNAPSHOT IMPLEMENTED; hosted repair BLOCKED | Commit `0b403063a3989ba5d5ee3575557ea0c2ddc916ac` (PR #631). Added a read-only SQL catalog recipe and snapshot manifest, plus a verifier that checks all 33 local migration files, 19 historic SQL fingerprints, version inventory and fail-closed release state. `npm run db:reconcile-manifest` PASS: 18 exact, one known divergence. No disposable local PostgreSQL executable/container exists; hosted branch is migration-failed. Owner must provide isolated disposable PostgreSQL/Supabase and migration-history/backup evidence before candidate SQL can be safely validated. |
 | RLS and Storage review | PARTIALLY REVIEWED; HOSTED TWO-ACCOUNT TEST BLOCKED | Production catalog snapshot: all 34 public tables have RLS enabled. `discovery_rate_limits` has no client policy and is marked service-only; private `eylo-files` bucket has owner read/insert/delete policies consistent with immutable unique-path uploads (`upsert:false`). Security advisor reports leaked-password protection disabled. Performance advisor reports 13 unindexed foreign keys. Owner must enable leaked-password protection and supply two disposable authenticated accounts plus isolated staging for read/write/delete/storage/cache tests. |
 | Local verification | AUTOMATED_TESTS_PASSED | Clean `npm ci`, then `npm run check`: 1,342 tests passed; imports, typecheck, lint, build and chunk budget passed. `npm run db:reconcile-manifest` passed. Browser learning E2E was attempted and BLOCKED: Playwright's pinned Chromium binary is absent; `/usr/bin/chromium` is a wrapper whose `/usr/lib/chromium/chromium` target is missing. |
 | OpenAI and Stripe readiness | BLOCKED; NO LIVE CALLS | `npm run config:check` reports absent Supabase/OpenAI credentials and Stripe secret, webhook secret and price IDs; no secret values were printed. No provider calls or Stripe requests were made. Owner must configure preview-only keys and test-mode Stripe identifiers, then authorize bounded acceptance within a cost cap. |
@@ -55,7 +52,18 @@ No production settings, data, migrations, billing, credentials, or deployment we
 
 ### Required release blockers
 
-- …217 tokens truncated…returned HTTP 429. Contact and billing are disabled. Staging identity, hosted two-account acceptance, migration-history reconciliation, and owner/legal review remain outstanding.
+- Isolated Supabase staging and migration-history reconciliation.
+- Auth, persistence, and two-user RLS verification on staging; local fixtures do not prove hosted authorization.
+- Storage security and cross-user access verification.
+- Authenticated real-provider EYRA acceptance and scientific review of generated analyses.
+- Stripe test-mode billing lifecycle verification.
+- Owner approval after reviewing exact-commit hosted evidence.
+
+Production remains **NO-GO**. No live data, billing state, database, staging migration, or production deployment was changed in this execution.
+
+## Current release decision
+
+**NO-GO for commercial launch, private external pilots, live billing, or production schema changes.** The Vercel production deployment is READY and its source SHA matches the repository baseline, but a public read-only smoke request to scholarly discovery returned HTTP 429. Contact and billing are disabled. Staging identity, hosted two-account acceptance, migration-history reconciliation, and owner/legal review remain outstanding.
 
 ## This execution increment
 
