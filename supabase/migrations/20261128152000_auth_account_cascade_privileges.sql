@@ -28,9 +28,9 @@ begin
         and child_constraint.confdeltype = 'c'
         and child_constraint.connamespace = 'public'::regnamespace
     )
-    select distinct table_oid::regclass
+    select distinct table_oid::regclass as target_table
     from cascade_tables
-    order by table_oid::regclass::text
+    order by target_table
   loop
     execute format('grant delete on table %s to supabase_auth_admin', target_table);
   end loop;
