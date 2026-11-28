@@ -61,7 +61,14 @@ async function invoke(method, token, { id, action } = {}) {
 const authProbe = await fetch('https://eylo-local-integration.supabase.co/auth/v1/user', {
   headers: { apikey: anonKey, authorization: 'Bearer ' + tokenA }, cache: 'no-store',
 });
-assert.equal(authProbe.status, 200, `Disposable Auth token validation failed (${authProbe.status})`);
+const authDiagnostic = await authProbe.clone().json().catch(() => ({}));
+const authCode = typeof authDiagnostic.code === 'string' ? authDiagnostic.code
+  : typeof authDiagnostic.error_code === 'string' ? authDiagnostic.error_code : 'unknown';
+const authMessage = String(authDiagnostic.msg || authDiagnostic.message || authDiagnostic.error || 'unavailable')
+  .slice(0, 120).replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]')
+  .replace(/[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}/gi, '[id]');
+assert.equal(authProbe.status, 200,
+  `Disposable Auth token validation failed (${authProbe.status}, ${authCode}): ${authMessage}`);
 const listA = await invoke('GET', tokenA);
 assert.equal(listA.code, 200, JSON.stringify(listA.payload));
 assert.equal(listA.payload.runs.length, 1);
