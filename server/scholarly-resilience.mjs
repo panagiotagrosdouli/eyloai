@@ -78,7 +78,7 @@ export function createScholarlyResilience({ now = Date.now, sleep = (ms, signal)
             const item = { ...result, body: Buffer.from(result.body), expires: now() + ttlMs };
             cache.set(key, item); bytes += item.body.length;
           }
-          return { ...result, cache: 'MISS' };
+          return { ...result, cache: result.cache || 'MISS' };
         } catch (error) {
           if (!signal?.aborted && ++state.failures >= 3) { state.until = now() + 15_000; state.status = 503; }
           throw error;

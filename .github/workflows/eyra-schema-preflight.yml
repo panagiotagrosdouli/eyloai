@@ -8,7 +8,20 @@ on:
       - 'src/lib/eyra-schema-readiness.mjs'
       - 'scripts/check-eyra-schema-readiness.mjs'
       - 'scripts/integration/test-local-postgres.py'
+      - 'scripts/integration/prepare-local-supabase-project.mjs'
+      - 'scripts/integration/export-local-supabase-env.mjs'
+      - 'scripts/integration/test-local-supabase.mjs'
+      - 'scripts/integration/print-local-auth-failure.mjs'
+      - 'tests/scholarly-provider-coordination.test.mjs'
+      - 'api/discovery.js'
+      - 'server/scholarly-provider-coordination.mjs'
+      - 'server/scholarly-resilience.mjs'
       - 'tests/eyra-schema-readiness.test.mjs'
+      - 'api/system.js'
+      - 'server/account-deletion.js'
+      - 'server/supabase-config.mjs'
+      - 'src/lib/workspace-export.mjs'
+      - 'src/lib/api-cors.mjs'
       - 'supabase/migrations/**'
       - 'supabase/migration-review-plan.json'
   workflow_dispatch:
@@ -34,3 +47,62 @@ jobs:
         run: node --test tests/eyra-schema-readiness.test.mjs
       - name: Execute read-only EYRA preflight and negative RLS/grant controls in disposable PostgreSQL
         run: python3 scripts/integration/test-local-postgres.py
+
+  full-local-supabase-acceptance:
+    # GitHub-hosted runners provide disposable Docker; this job never links a hosted project.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out reviewed branch
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: 3.4.0
+      - name: Initialize isolated CLI project and prepare reviewed migration replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          local_project="$RUNNER_TEMP/eyloai-local-supabase"
+          mkdir -p "$local_project"
+          printf 'LOCAL_SUPABASE_PROJECT_DIR=%s\n' "$local_project" >> "$GITHUB_ENV"
+          cd "$local_project"
+          supabase init
+          node "$GITHUB_WORKSPACE/scripts/integration/prepare-local-supabase-project.mjs" "$local_project"
+      - name: Start the complete disposable Supabase stack
+        working-directory: ${{ runner.temp }}/eyloai-local-supabase
+        run: supabase start
+      - name: Apply and verify Auth cascade grants after Auth role bootstrap
+        working-directory: ${{ runner.temp }}/eyloai-local-supabase
+        run: |
+          set -euo pipefail
+          supabase db query --file "$GITHUB_WORKSPACE/supabase/migrations/20261128152000_auth_account_cascade_privileges.sql" --output json
+          supabase db query --file "$GITHUB_WORKSPACE/tests/integration/account-deletion-auth-privileges-postgres.sql" --output json
+      - name: Export local-only service endpoints without printing generated keys
+        run: node scripts/integration/export-local-supabase-env.mjs
+      - name: Exercise real local Auth, PostgREST, Storage, RLS, export, and deletion
+        run: node scripts/integration/test-local-supabase.mjs
+      - name: Print sanitized disposable Auth/PostgreSQL failure context
+        if: failure()
+        shell: bash
+        run: |
+          set +e
+          while IFS= read -r container; do
+            [ -n "$container" ] || continue
+            docker logs --since 10m "$container" 2>&1
+          done < <(docker ps -a --format '{{.Names}}' | grep -E 'supabase_(auth|db)_' || true) | node scripts/integration/print-local-auth-failure.mjs
+      - name: Stop and remove the disposable Supabase stack
+        if: always()
+        shell: bash
+        run: |
+          if [ -d "$RUNNER_TEMP/eyloai-local-supabase/supabase" ]; then
+            cd "$RUNNER_TEMP/eyloai-local-supabase"
+            supabase stop --no-backup || true
+          fi

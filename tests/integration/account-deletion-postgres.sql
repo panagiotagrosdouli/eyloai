@@ -68,6 +68,7 @@ do $$begin begin perform public.finish_account_deletion('b0000000-0000-4000-8000
 reset role;
 delete from auth.users where id='b0000000-0000-4000-8000-000000000001';
 select pg_temp.assert((select count(*)=0 from projects where id='b0000000-0000-4000-8000-000000000010'),'owner project cascaded');
+select pg_temp.assert((select count(*)=0 from eylo_api_token_events where user_id='b0000000-0000-4000-8000-000000000001'),'token audit events cascade with Auth identity');
 select pg_temp.assert((select count(*)=0 from eylo_directory where user_id='b0000000-0000-4000-8000-000000000001'),'directory profile removed');
 select pg_temp.assert((select count(*)=1 from eylo_peer_submissions where id='b0000000-0000-4000-8000-000000000016' and reviewer_id is null),'other author manuscript preserved and deleted reviewer detached');
 set role service_role;

@@ -30,6 +30,7 @@ BOOTSTRAP = '''
 create role anon nologin;
 create role authenticated nologin;
 create role service_role nologin bypassrls;
+create role supabase_auth_admin nologin;
 create schema auth;
 create table auth.users (id uuid primary key, raw_app_meta_data jsonb not null default '{}'::jsonb, banned_until timestamptz);
 create table auth.sessions(id uuid primary key,user_id uuid not null references auth.users(id) on delete cascade);
@@ -100,6 +101,10 @@ try:
                 sql((ROOT / 'supabase/migrations' / name).read_text())  # Idempotent replay preserves rows.
                 sql((ROOT / 'tests/integration/legacy-schema-postgres.sql').read_text())
                 print('PASS: legacy content/timestamps/trigger states preserved, bidirectional writes, canonical profile upsert and unchanged RLS isolation.', flush=True)
+        sql("alter table storage.objects alter column owner_id type uuid using nullif(owner_id, '')::uuid; alter table storage.objects add constraint storage_objects_owner_auth_user_fk foreign key (owner_id) references auth.users(id) on delete set null;")
+        sql((ROOT / 'supabase/migrations/20261128152000_auth_account_cascade_privileges.sql').read_text())
+        sql((ROOT / 'tests/integration/account-deletion-auth-privileges-postgres.sql').read_text())
+        print('PASS: Auth cascade role has only graph-scoped DELETE and FK-column UPDATE privileges, including Storage owner metadata.', flush=True)
     sql((ROOT / 'tests/integration/workspace-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/learning-time-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/timer-pauses-postgres.sql').read_text())
@@ -118,6 +123,9 @@ try:
     print('PASS: research budget and thesis canonical project/Note persistence, unrelated-data preservation, stale-save rejection and outsider isolation.', flush=True)
     sql((ROOT / 'tests/integration/complete-products-postgres.sql').read_text())
     print('PASS: new product canonical actions/replays, team consent/role revocation, peer review privacy, feedback trusted-role checks, personal token scopes and publishing budgets.', flush=True)
+    if not bundle_replay:
+        sql((ROOT / 'tests/integration/api-token-events-postgres.sql').read_text())
+        print('PASS: personal API token creation/revocation audit persistence, owner isolation, no credential fields and client write denial.', flush=True)
     sql((ROOT / 'tests/integration/research-catalog-postgres.sql').read_text())
     print('PASS: Research Data Lab catalog metadata bounds, fingerprint uniqueness, anonymous denial and two-account RLS isolation.', flush=True)
     if not bundle_replay:
@@ -131,6 +139,11 @@ try:
         raise AssertionError('Export registry contains an invalid table identifier')
     private_tables = json.loads(subprocess.check_output(['node', '--input-type=module', '-e',
         "import { PRIVATE_WORKSPACE_EXPORT_TABLES } from './src/lib/workspace-export.mjs'; process.stdout.write(JSON.stringify(PRIVATE_WORKSPACE_EXPORT_TABLES));"], cwd=ROOT, text=True))
+    if bundle_replay:
+        # The read-only hosted snapshot predates this additive table; canonical
+        # replay verifies it separately in its own migration-specific fixture.
+        export_tables = [table for table in export_tables if table != 'eylo_api_token_events']
+        private_tables = [table for table in private_tables if table != 'eylo_api_token_events']
     private_list = ','.join("'" + table + "'" for table in private_tables)
     export_list = ','.join("'" + table + "'" for table in export_tables)
     sql("""

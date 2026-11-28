@@ -6,6 +6,7 @@ import { normalizeDoi } from '../src/lib/citation-verification.mjs';
 import { validScholarlyProviderPayload } from '../src/lib/scholarly-provider-envelope.mjs';
 import { scholarlyResilience, providerMinimumGap } from '../server/scholarly-resilience.mjs';
 import { consumeDiscoveryQuota } from '../server/discovery-rate-limit.mjs';
+import { ProviderCoordinationError, scholarlyCacheKey, scholarlyProviderCoordinator, scholarlyProviderGroup } from '../server/scholarly-provider-coordination.mjs';
 
 const PROVIDERS = new Set([
   'openalex_works',
@@ -21,6 +22,22 @@ const MAX_QUERY_LENGTH = 500;
 const MAX_LIMIT = 30;
 // arXiv may take close to ten seconds to answer from the production region.
 const UPSTREAM_TIMEOUT_MS = 15_000;
+
+function abortableDelay(ms, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) return reject(signal.reason);
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', abort);
+      resolve();
+    }, ms);
+    const abort = () => {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', abort);
+      reject(signal.reason);
+    };
+    signal.addEventListener('abort', abort, { once: true });
+  });
+}
 
 function boundedLimit(value, fallback = 10) {
   const parsed = Number(value);
@@ -173,6 +190,10 @@ export default async function handler(request, response) {
   const url = buildProviderUrl(provider, query, limit, sort, page, provider === 'openalex_authors' ? country : '', exactDoi);
   if (!url) return response.status(400).json({ error: 'Provider configuration is invalid.' });
   const providerGapMs = providerMinimumGap(provider, query);
+  const providerGroup = scholarlyProviderGroup(provider);
+  const cacheIdentity = [provider, query, limit, sort, page, country, exactDoi];
+  const sharedCacheKey = scholarlyCacheKey('provider-result', cacheIdentity);
+  const distributed = process.env.VERCEL === '1';
 
   // Hosted Vercel traffic requires the one shared atomic quota. Local read-only
   // provider diagnostics do not impersonate a deployed quota service.
@@ -198,7 +219,38 @@ export default async function handler(request, response) {
 
   try {
     const outcome = await scholarlyResilience.execute(provider,
-      JSON.stringify([provider, query, limit, sort, page, country, exactDoi]), async () => {
+      JSON.stringify(cacheIdentity), async () => {
+    let reservation = null;
+    let completedStatus = 503;
+    let retryAfterSeconds = 0;
+    if (distributed) {
+      const shared = await scholarlyProviderCoordinator.readCache(sharedCacheKey);
+      if (shared) return { status: 200, body: Buffer.from(shared.body), contentType: shared.contentType, cacheable: false, cache: 'SHARED_HIT' };
+      reservation = await scholarlyProviderCoordinator.reserve({
+        provider: providerGroup,
+        cacheKey: sharedCacheKey,
+        minIntervalMs: providerGapMs,
+        maxConcurrent: 1,
+        leaseSeconds: 45,
+      });
+      if (!reservation.allowed) {
+        if (reservation.status === 'deduplicated') {
+          for (let attempt = 0; attempt < 5; attempt++) {
+            await abortableDelay(200, controller.signal);
+            const shared = await scholarlyProviderCoordinator.readCache(sharedCacheKey);
+            if (shared) return { status: 200, body: Buffer.from(shared.body), contentType: shared.contentType, cacheable: false, cache: 'SHARED_HIT' };
+          }
+        }
+        const retry = Math.max(1, reservation.retry_after_seconds || 1);
+        return {
+          status: 429,
+          body: Buffer.from(JSON.stringify({ error: 'Scholarly source is temporarily rate limited.', code: 'SOURCE_RATE_LIMITED' })),
+          retryAfter: String(retry),
+          cacheable: false,
+        };
+      }
+    }
+    try {
     const upstream = await fetchWithScholarlyBackoff(url, {
       signal: controller.signal,
       headers: {
@@ -220,9 +272,42 @@ export default async function handler(request, response) {
     const invalidSource = upstream.ok && (htmlContent
       || !validScholarlyProviderPayload(provider, body, { exactDoi }));
     if (invalidSource) {
+      completedStatus = 502;
       return { status: 502, body: Buffer.from(JSON.stringify({ error: 'Scholarly source returned an invalid response.', code: 'INVALID_SOURCE_RESPONSE' })), invalid: true, cacheable: false };
     }
-    return { status: upstream.status, body, retryAfter: upstream.headers.get('retry-after'), cacheable: upstream.ok };
+    completedStatus = upstream.status;
+    const retryAfter = upstream.headers.get('retry-after');
+    const retryValue = String(retryAfter || '').trim();
+    const retryDate = Date.parse(retryValue);
+    retryAfterSeconds = /^\d+(?:\.\d+)?$/.test(retryValue)
+      ? Math.min(86_400, Math.max(1, Math.ceil(Number(retryValue))))
+      : Number.isFinite(retryDate) ? Math.min(86_400, Math.max(1, Math.ceil((retryDate - Date.now()) / 1000))) : 0;
+    const cacheable = upstream.status === 200 && upstream.ok;
+    const contentType = provider === 'arxiv' ? 'application/atom+xml' : 'application/json';
+    if (distributed && cacheable) {
+      try {
+        await scholarlyProviderCoordinator.writeCache({
+          cacheKey: sharedCacheKey,
+          provider: providerGroup,
+          body: body.toString('utf8'),
+          contentType,
+          ttlSeconds: provider === 'openalex_authors' ? 21_600 : 300,
+        });
+      } catch {
+        console.warn('EYLO_SCHOLARLY_CACHE_WRITE_FAILED', { provider: providerGroup });
+      }
+    }
+    return { status: upstream.status, body, retryAfter, contentType, cacheable };
+    } finally {
+      if (distributed && reservation?.allowed) {
+        await scholarlyProviderCoordinator.finish({
+          provider: providerGroup,
+          leaseId: reservation.lease_id,
+          status: completedStatus,
+          retryAfterSeconds,
+        }).catch(() => console.warn('EYLO_SCHOLARLY_PROVIDER_LEASE_RELEASE_FAILED', { provider: providerGroup }));
+      }
+    }
     }, { signal: controller.signal, minGapMs: providerGapMs });
     if (outcome.invalid) {
       response.setHeader('Cache-Control', 'no-store');
@@ -251,15 +336,16 @@ export default async function handler(request, response) {
     }
     response.status(outcome.status);
     if (outcome.retryAfter) response.setHeader('Retry-After', outcome.retryAfter);
-    response.setHeader('X-EYLO-Cache', outcome.cache);
     // A compromised provider must never turn this same-origin endpoint into
     // an HTML/JavaScript page. Return only the expected scholarly media type.
     response.setHeader('X-Content-Type-Options', 'nosniff');
-    response.setHeader('Content-Type', provider === 'arxiv'
+    const contentType = outcome.contentType || (provider === 'arxiv'
       ? 'application/atom+xml; charset=utf-8'
       : 'application/json; charset=utf-8');
+    response.setHeader('Content-Type', contentType.includes(';') ? contentType : `${contentType}; charset=utf-8`);
     // Cache only successful scholarly results. A transient provider outage or
     // rate limit must never poison the shared cache for subsequent researchers.
+    response.setHeader('X-EYLO-Cache', outcome.cache || 'MISS');
     response.setHeader(
       'Cache-Control',
       outcome.status === 200 ? (provider === 'openalex_authors' ? 'public, s-maxage=21600, stale-while-revalidate=600' : 'public, s-maxage=300, stale-while-revalidate=600') : 'no-store',
@@ -268,6 +354,10 @@ export default async function handler(request, response) {
     return response.send(outcome.body);
   } catch (error) {
     response.setHeader('Cache-Control', 'no-store');
+    if (error instanceof ProviderCoordinationError) {
+      console.warn('EYLO_SCHOLARLY_COORDINATION_UNAVAILABLE', { code: error.code });
+      return response.status(503).json({ error: 'Scholarly discovery is temporarily unavailable.', code: 'PROVIDER_COORDINATION_UNAVAILABLE' });
+    }
     const timedOut = error?.name === 'AbortError' || error?.name === 'TimeoutError';
     const oversized = error instanceof ScholarlyResponseTooLargeError;
     return response.status(timedOut ? 504 : 502).json({

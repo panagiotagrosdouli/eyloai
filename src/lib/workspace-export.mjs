@@ -23,7 +23,7 @@ export const PRIVATE_WORKSPACE_EXPORT_TABLES = Object.freeze([
   'quizzes', 'quiz_questions', 'quiz_attempts',
   'learning_courses', 'learning_lessons', 'learning_enrollments', 'learning_lesson_progress',
   'eylo_files', 'eylo_file_versions', 'eyra_conversations', 'eyra_messages', 'grant_applications',
-  'research_datasets',
+  'research_datasets', 'eylo_api_token_events',
 ]);
 
 // Some features are not deployed to every database. Only these explicitly
