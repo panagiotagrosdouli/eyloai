@@ -86,6 +86,10 @@
       "sha256": "fb7c2a4883311062dfe1d8e2b1c604a4000fe2b290156c08596c9e6b11b425e8"
     },
     {
+      "file": "20261128122000_learning_lesson_progress_policy_qualification.sql",
+      "sha256": "503cbfd822fbcda4bbe5d9ac2141760cec810098fe0795a3960b3622500923a2"
+    },
+    {
       "file": "20261128134000_index_uncovered_foreign_keys.sql",
       "sha256": "a34db2f2548cdd32d2d0042ca056314f67ec067d74449d757f30085c86861620"
     }
