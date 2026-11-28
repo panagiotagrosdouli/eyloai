@@ -7,6 +7,14 @@
   "local_verifier": "scripts/verify-supabase-reconciliation-manifest.mjs",
   "production_changes_made": false,
   "local_migration_files": 33,
+  "pending_local_migrations": [
+    {
+      "name": "20261128122000_learning_lesson_progress_policy_qualification.sql",
+      "sha256": "503cbfd822fbcda4bbe5d9ac2141760cec810098fe0795a3960b3622500923a2",
+      "applied_to_observed_project": false,
+      "reason": "Forward-only RLS policy qualification fix; requires disposable PostgreSQL regression and isolated staging acceptance before any hosted application."
+    }
+  ],
   "applied_migration_versions": [
     "20260817083110", "20260817083217", "20260817083616", "20260817083711", "20260817083904",
     "20261115185428", "20261115191303", "20261115192654", "20261115192808", "20261115193737",

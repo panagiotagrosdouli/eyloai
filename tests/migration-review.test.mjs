@@ -41,6 +41,15 @@ test("legacy duplicate version IDs and nonstandard timestamps require reconcilia
     ),
   );
 });
+test("lesson progress policy migration qualifies the progress course ID in its write check", () => {
+  const source = readFileSync(
+    new URL("../supabase/migrations/20261128122000_learning_lesson_progress_policy_qualification.sql", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /l\.course_id\s*=\s*learning_lesson_progress\.course_id/);
+  assert.doesNotMatch(source, /l\.course_id\s*=\s*l\.course_id/);
+  assert.match(source, /drop policy if exists "Users manage own lesson progress"/i);
+});
 test("changed SQL and new unreviewed files fail manifest verification", () => {
   const name = plan.canonical_local_order[0];
   assert.equal(

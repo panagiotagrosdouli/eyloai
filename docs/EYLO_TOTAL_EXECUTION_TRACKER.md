@@ -26,6 +26,27 @@
 
 No application code, production deployment, credentials, hosted database, billing, or user data were changed by this execution update.
 
+### 28 November live schema recheck and forward-only policy correction
+
+| Checkpoint | Result | Evidence and limit |
+|---|---|---|
+| Supabase project and migration identity | VERIFIED READ-ONLY | Connected Supabase metadata identifies `eyloai` project `kbzjngpzxpniaumlupaa` as `ACTIVE_HEALTHY`, PostgreSQL `17.11.0.003`. Its 19 applied migration versions match the reconciliation snapshot. The only listed development branch remains `MIGRATIONS_FAILED`; it is not an accepted disposable target. |
+| Live lesson-progress policy | DEFECT CONFIRMED; NO BYPASS ESTABLISHED | Direct `pg_policy` inspection confirms the policy `WITH CHECK` contains `l.course_id = l.course_id` because the unqualified name resolves to the inner `learning_lessons` row. The validated composite FK `(lesson_id, course_id, user_id)` still enforces lesson/course/user consistency. This is a redundant and misleading policy predicate, not evidence of cross-account access. |
+| Forward-only correction | IMPLEMENTED IN SOURCE; DATABASE VALIDATION BLOCKED | Added `20261128122000_learning_lesson_progress_policy_qualification.sql`, which explicitly compares `l.course_id` with `learning_lesson_progress.course_id`, plus a catalog assertion in the disposable-PostgreSQL regression. It is marked pending and not applied to the observed project. Actual PostgreSQL validation still requires the CI disposable database runner or an approved isolated database. |
+| Live security/performance advisors | OPEN FINDINGS | Security advisor still reports leaked-password protection disabled (WARN) and the RLS-enabled service-only discovery rate-limit table with no client policy (INFO). Performance advisor reports 13 unindexed foreign keys and 39 unused indexes; the unused-index advisory alone does not justify removal. |
+| Updated local migration plan | PASS LOCALLY; REMOTE BLOCKED | `npm run db:reconcile-manifest` verifies 34 files as 33 files at observation plus one SHA-pinned pending migration; historical SQL remains 18 exact matches and one known divergence. `npm run db:review-plan` passes with 27 local replay migrations and seven exclusions, while remote history/application remain explicitly false. |
+
+Production remains NO-GO. No production migration, policy, Auth setting, data, or billing state was changed.
+
+### 28 November policy-correction batch — local verification
+
+- Added a forward-only RLS policy migration that qualifies the outer `learning_lesson_progress.course_id`; added a catalog regression to the disposable PostgreSQL learning integration and source/manifest regressions.
+- `npm run check` passed locally after the change: imports, both TypeScript projects, ESLint, **1,344 tests**, Vite build and configured chunk budget. Build warnings remain for existing optional chunks and Rollup import splitting.
+- `npm run db:reconcile-manifest` passes with 34 local migration files: the 33-file observed baseline plus one SHA-pinned pending migration; no new migration is counted as applied remotely.
+- `npm run db:review-plan` passes with 27 disposable local replay migrations and seven exclusions. It still reports remote history unverified and remote application unauthorized.
+- The disposable PostgreSQL regression was not runnable locally (`docker`, `podman`, `psql`, `postgres`, and `initdb` are absent). The policy migration remains unvalidated against a live isolated PostgreSQL engine and un-applied to production.
+- The release-readiness decision remains **NO-GO**. Exact-head hosted CI and preview results for the new correction batch must be checked after the PR branch update.
+
 | Workstream | State | Evidence and next action |
 |---|---|---|
 | PR #630 independent source review | REVIEWED; no merge recommendation | Inspected all 17 changed files, grant provenance and budget checks, scientific evaluation/review semantics, release manifest gates, staging safeguards and save/export flows. No source-level defect was confirmed in this patch. Scientific scoring remains explicitly non-automated; no scientific correctness or hosted acceptance is inferred from CI. PR #630 remains open and unmerged. |

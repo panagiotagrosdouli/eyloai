@@ -28,7 +28,8 @@
     "20261115090000_research_dataset_catalog.sql",
     "20261114063216_account_deletion_lifecycle.sql",
     "20261115181809_time_tracker_pause_resume.sql",
-    "20261115233000_eyra_agent_runs.sql"
+    "20261115233000_eyra_agent_runs.sql",
+    "20261128122000_learning_lesson_progress_policy_qualification.sql"
   ],
   "files": [
     {
@@ -228,6 +229,12 @@
       "sha256": "99914aa4650382600f1c66513a3e0fe903a8d66385d4c7a9ee55837e7bd9aeee",
       "classification": "canonical-local-replay",
       "reason": "Owner-scoped execution ledger for idempotent run identity and once-only tool action reservations; validated on disposable PostgreSQL only. No remote migration approval."
+    },
+    {
+      "name": "20261128122000_learning_lesson_progress_policy_qualification.sql",
+      "sha256": "503cbfd822fbcda4bbe5d9ac2141760cec810098fe0795a3960b3622500923a2",
+      "classification": "canonical-local-replay",
+      "reason": "Forward-only correction explicitly qualifies the owner-scoped course relationship in the lesson-progress write policy; disposable PostgreSQL validation required, no remote migration approval."
     }
   ]
 }
