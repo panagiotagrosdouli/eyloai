@@ -4,7 +4,18 @@
 
 **Repository baseline:** `a12533fa4c39405cdbbaf245455ab0e2bbbd7ace` (main after PR #637 was merged and migration-test assertion corrected)
 
-**Working branch:** `codex/eylo-cascade-repair-candidate-20261128` (local follow-up, not merged or deployed)
+**Working branch:** `codex/remote639-execution`, based on fetched PR #639 head `bb9cd08d23dcf05de2dac5a4a251caeac58e83c7`; not merged or deployed
+
+## Latest remote-head execution — 28 November 2026
+
+| Checkpoint | State | Evidence and limit |
+|---|---|---|
+| Remote PR #639 and local history | VERIFIED; NO REMOTE OVERWRITE | Fetched current `origin/codex/eylo-account-cascade-eyra-acceptance-20261128` at `bb9cd08d23dcf05de2dac5a4a251caeac58e83c7`. It contains the provider-retry correction and later Auth/EYRA changes. The earlier local provider-retry patch is equivalent; the local psql workflow edit was not in the fetched tree. Work now continues from the fetched head. |
+| Multi-statement SQL execution | REPAIRED IN CURRENT LOCAL TREE; CI RETEST REQUIRED | The remote revision made the flashcard-trigger migration a single SQL statement, removing the immediate prepared-statement failure. The workflow now also runs all post-bootstrap SQL files through `psql` in the disposable database container with `ON_ERROR_STOP`, so later multi-statement files execute reliably. The migration remains the remote single-statement version. |
+| Latest exact-head full-stack acceptance | FAILED AT EYRA RUN API AUTHENTICATION | On remote head `bb9cd08d23dcf05de2dac5a4a251caeac58e83c7`, migrations and grants applied, and acceptance passed eight-client provider coordination, two-account Auth/session lifecycle, 17 required-table visibility, project isolation, token audit isolation, and EYRA snapshot isolation. It then received HTTP 401 where the EYRA run API test expected 200. The harness had retained Account A's pre-refresh access token while using the current refreshed token elsewhere. The local fix now passes `refreshed.session.access_token`; exact-stack verification is still required. |
+| Exact-head workflow inventory | PARTIAL PASS | Build, EYLO Quality Gate, imports, verify, and disposable PostgreSQL preflight passed at `bb9cd08…`; `full-local-supabase-acceptance` failed at the stale-token assertion above. Product Quality was still running when this snapshot was written. No result is inferred for the local fixes until the next exact-head run. |
+| Local source quality after corrections | PASS; FULL-STACK TEST STILL REQUIRED | `npm run check` passed on the corrected combined tree: imports, both TypeScript projects, ESLint, 1,362/1,362 Node tests, production build and configured chunk ceiling. Migration plan and reconciliation checks pass; workflow YAML parses; Python preflight script compiles; `git diff --check` passes. Build retains existing large-chunk and mixed import warnings. These checks do not validate local Supabase Auth or Storage. |
+| Local runtime limit | BLOCKED FOR FULL-STACK REPLAY | This workspace does not provide Docker, Supabase CLI, or `psql`. The Auth/API integration failure can be addressed in code and unit checks here, but real disposable Auth, Storage, EYRA, export, and account-deletion acceptance must run in GitHub Actions. |
 
 ## Latest execution update — after PR #637 merge — 28 November 2026
 
