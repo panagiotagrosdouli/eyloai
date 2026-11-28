@@ -5,6 +5,7 @@ This checks actual PostgreSQL policies/triggers, not Supabase Auth/Storage servi
 """
 import os
 import json
+import hashlib
 from pathlib import Path
 import shutil
 import subprocess
@@ -56,6 +57,77 @@ def run(*args, **kwargs):
 def sql(text):
     run('exec', '-i', NAME, 'psql', '-U', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q', input=text, text=True)
 
+def sql_database(database, text):
+    result = subprocess.run([*DOCKER, 'exec', '-i', NAME, 'psql', '-X', '-U', 'postgres', '-d', database,
+        '-v', 'ON_ERROR_STOP=1', '-q', '-A', '-t', '-F', '|'], env=ENV, check=True,
+        input=text, text=True, capture_output=True)
+    return result.stdout.strip()
+
+def verify_scholarly_recovery_atomicity_and_restore():
+    migration_name = '20261128145000_scholarly_provider_coordination.sql'
+    review_plan = json.loads((ROOT / 'supabase/migration-review-plan.json').read_text())
+    candidate = next((row for row in review_plan['files'] if row['name'] == migration_name), None)
+    if review_plan.get('remote_application_authorized') is not False or candidate is None:
+        raise RuntimeError('The scholarly migration is not pinned for disposable-only acceptance.')
+    source = ROOT / 'supabase/migrations' / migration_name
+    migration = source.read_text()
+    if hashlib.sha256(source.read_bytes()).hexdigest() != candidate['sha256']:
+        raise RuntimeError('The scholarly coordination migration does not match the reviewed SHA-256.')
+    if 'commit;' in migration.lower():
+        raise RuntimeError('The migration cannot be rollback-tested as a single transaction.')
+
+    atomicity_db = 'eylo_coordination_atomicity'
+    restore_db = 'eylo_coordination_restore'
+    subprocess.run([*DOCKER, 'exec', NAME, 'createdb', '-U', 'postgres', atomicity_db], env=ENV, check=True)
+    sql_database(atomicity_db, '''
+      create schema supabase_migrations;
+      create table supabase_migrations.schema_migrations(version text primary key, name text not null);
+    ''')
+    interrupted = f"""
+    begin;
+    {migration}
+    insert into supabase_migrations.schema_migrations(version,name)
+      values ('20261128145000','scholarly_provider_coordination');
+    select 1 / 0;
+    commit;
+    """
+    failed = subprocess.run([*DOCKER, 'exec', '-i', NAME, 'psql', '-X', '-U', 'postgres', '-d', atomicity_db,
+        '-v', 'ON_ERROR_STOP=1', '-q'], env=ENV, input=interrupted, text=True, capture_output=True)
+    if failed.returncode == 0 or 'division by zero' not in failed.stderr.lower():
+        raise AssertionError('The injected migration interruption did not fail at the expected point.')
+    after_interruption = sql_database(atomicity_db, """
+      select count(*) from pg_class where relnamespace='public'::regnamespace
+        and relname = any(array['scholarly_provider_state','scholarly_provider_leases','scholarly_response_cache']);
+      select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public'
+        and p.proname = any(array['reserve_scholarly_provider_slot','finish_scholarly_provider_request','read_scholarly_provider_cache','write_scholarly_provider_cache']);
+      select count(*) from supabase_migrations.schema_migrations where version='20261128145000';
+    """).splitlines()
+    if after_interruption != ['0', '0', '0']:
+        raise AssertionError('Interrupted migration left schema objects or a migration-history row: ' + repr(after_interruption))
+
+    sql_database(atomicity_db, f"begin;\n{migration}\ninsert into supabase_migrations.schema_migrations(version,name) values ('20261128145000','scholarly_provider_coordination');\ncommit;")
+    preflight_sql = (ROOT / 'supabase/recovery/scholarly_provider_coordination_preflight.sql').read_text()
+    report = json.loads(sql_database(atomicity_db, preflight_sql))
+    if report['overall'] != 'RECORDED_REVIEW_FUNCTION_BODIES_AND_CATALOG_CONTRACTS':
+        raise AssertionError('Exact-version postflight failed: ' + str(report['overall']))
+    if len(report['table_objects']) != 3 or len(report['rpc_objects']) != 4:
+        raise AssertionError('The recovered schema does not contain all expected tables and RPCs.')
+
+    sql_database(atomicity_db, "set role service_role; select public.write_scholarly_provider_cache(repeat('f',64),'crossref','{\"synthetic\":true}','application/json',300); reset role;")
+    backup = subprocess.check_output([*DOCKER, 'exec', NAME, 'pg_dump', '-U', 'postgres', '-Fc', atomicity_db], env=ENV)
+    subprocess.run([*DOCKER, 'exec', NAME, 'createdb', '-U', 'postgres', '-T', 'template0', restore_db], env=ENV, check=True)
+    subprocess.run([*DOCKER, 'exec', '-i', NAME, 'pg_restore', '-U', 'postgres', '-d', restore_db],
+        env=ENV, input=backup, check=True, stdout=subprocess.DEVNULL)
+    restored = sql_database(restore_db, """
+      set role service_role;
+      select body from public.read_scholarly_provider_cache(repeat('f',64));
+      reset role;
+      select count(*) from supabase_migrations.schema_migrations where version='20261128145000';
+    """).splitlines()
+    if restored != ['{\"synthetic\":true}', '1']:
+        raise AssertionError('Disposable backup restore lost the synthetic cache record or exact migration version: ' + repr(restored))
+    print('PASS: exact migration SHA/version, interrupted-transaction rollback, read-only postflight, and synthetic database backup/restore.', flush=True)
+
 try:
     run('run', '-d', '--name', NAME, '--network', 'none', '--tmpfs', '/var/lib/postgresql/data',
         '-e', 'POSTGRES_HOST_AUTH_METHOD=trust', IMAGE, stdout=subprocess.DEVNULL)
@@ -71,6 +143,7 @@ try:
     if not ready:
         raise RuntimeError('Disposable PostgreSQL did not become ready')
     sql(BOOTSTRAP)
+    verify_scholarly_recovery_atomicity_and_restore()
     bundle_replay = os.environ.get('EYLO_SQL_RESTORATION_BUNDLE') == '1'
     legacy_replay = bundle_replay or os.environ.get('EYLO_SQL_LEGACY_SCHEMA') == '1'
     if legacy_replay:
