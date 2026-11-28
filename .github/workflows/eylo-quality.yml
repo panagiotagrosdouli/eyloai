@@ -53,7 +53,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes postgresql-client
       - name: Start isolated local Supabase stack
-        run: supabase start
+        shell: bash
+        run: |
+          set -euo pipefail
+          mv supabase/migrations /tmp/eylo-reviewed-migrations
+          mkdir supabase/migrations
+          restore_migrations() {
+            rmdir supabase/migrations
+            mv /tmp/eylo-reviewed-migrations supabase/migrations
+          }
+          trap restore_migrations EXIT
+          supabase start
       - name: Replay reviewed local migration sequence and exercise real services
         shell: bash
         run: |
