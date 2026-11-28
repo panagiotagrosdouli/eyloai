@@ -20,19 +20,23 @@ export async function inspectOpenAiLimit(response) {
   return { quotaExhausted, retryAfter };
 }
 
+// Provider payloads are untrusted, including their nested output/content shapes.
+function responseContent(openAiResponse) {
+  const output = Array.isArray(openAiResponse?.output) ? openAiResponse.output : [];
+  return output.flatMap(item => Array.isArray(item?.content) ? item.content : []);
+}
+
 export function outputText(openAiResponse) {
-  return (openAiResponse.output || [])
-    .flatMap(item => item.content || [])
-    .filter(item => item.type === 'output_text')
+  return responseContent(openAiResponse)
+    .filter(item => item && item.type === 'output_text' && typeof item.text === 'string')
     .map(item => item.text)
     .join('\n')
     .trim();
 }
 
 export function outputRefusal(openAiResponse) {
-  return (openAiResponse.output || [])
-    .flatMap(item => item.content || [])
-    .find(item => item.type === 'refusal')?.refusal;
+  return responseContent(openAiResponse)
+    .find(item => item && item.type === 'refusal' && typeof item.refusal === 'string')?.refusal;
 }
 
 const MAX_SCHEMA_DEPTH = 8;

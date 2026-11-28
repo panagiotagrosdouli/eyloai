@@ -33,6 +33,35 @@ test('extracts only output text and explicit refusal', () => {
   assert.equal(outputText({ output: [] }), '');
 });
 
+test('ignores malformed provider output envelopes and non-text content', () => {
+  const malformed = [
+    null,
+    {},
+    { output: null },
+    { output: 'not an array' },
+    { output: [null, {}, { content: 'not an array' }] },
+  ];
+  for (const payload of malformed) {
+    assert.equal(outputText(payload), '');
+    assert.equal(outputRefusal(payload), undefined);
+  }
+
+  const mixed = {
+    output: [
+      null,
+      { content: [
+        null,
+        { type: 'output_text', text: { unsafe: 'object' } },
+        { type: 'output_text', text: 'Verified text' },
+        { type: 'refusal', refusal: 404 },
+      ] },
+      { content: [{ type: 'refusal', refusal: 'Cannot comply.' }] },
+    ],
+  };
+  assert.equal(outputText(mixed), 'Verified text');
+  assert.equal(outputRefusal(mixed), 'Cannot comply.');
+});
+
 test('normalizes nested strict response schema with all object fields required', () => {
   const schema = normalizeEyraSchema({
     type: 'object', properties: {
