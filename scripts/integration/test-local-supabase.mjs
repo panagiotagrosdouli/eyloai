@@ -232,6 +232,20 @@ try {
     .select('id,user_id,data').single());
   assert.equal(projectA.user_id, idA);
   assert.equal(projectB.user_id, idB);
+  const flashcardDeckA = checkResult('Account A project-linked flashcard deck create', await userA.from('study_flashcard_decks')
+    .insert({ user_id: idA, data: { title: 'Synthetic deletion acceptance deck', project_id: projectA.id, cards: [] } })
+    .select('id,user_id,data').single());
+  assert.equal(flashcardDeckA.user_id, idA);
+  assert.equal(flashcardDeckA.data.project_id, projectA.id);
+  const unlinkProjectB = checkResult('Account B project for unlink regression', await userB.from('projects')
+    .insert({ user_id: idB, data: { title: 'Synthetic unlink regression project' } })
+    .select('id,user_id').single());
+  const flashcardDeckB = checkResult('Account B project-linked flashcard deck create', await userB.from('study_flashcard_decks')
+    .insert({ user_id: idB, data: { title: 'Synthetic unlink regression deck', project_id: unlinkProjectB.id, cards: [] } })
+    .select('id,user_id,data').single());
+  checkResult('Account B owner project delete', await userB.from('projects').delete().eq('id', unlinkProjectB.id));
+  assert.equal(checkResult('Ordinary project deletion preserves and unlinks the deck', await userB.from('study_flashcard_decks')
+    .select('data').eq('id', flashcardDeckB.id).single()).data.project_id, null);
   const hiddenProject = checkResult('Cross-account project read', await userB.from('projects').select('id').eq('id', projectA.id));
   assert.deepEqual(hiddenProject, []);
   const hiddenUpdate = checkResult('Cross-account project update', await userB.from('projects').update({ data: { title: 'forged' } }).eq('id', projectA.id).select('id'));
@@ -329,6 +343,7 @@ try {
   const deletedUser = await admin.auth.admin.getUserById(idA);
   assert.ok(deletedUser.error, 'deleted Auth account must be absent');
   assert.deepEqual(checkResult('Deleted account project cleanup', await admin.from('projects').select('id').eq('user_id', idA)), []);
+  assert.deepEqual(checkResult('Deleted account flashcard cleanup', await admin.from('study_flashcard_decks').select('id').eq('user_id', idA)), []);
   assert.deepEqual(checkResult('Deleted account conversation cleanup', await admin.from('eyra_conversations').select('id').eq('user_id', idA)), []);
   assert.deepEqual(checkResult('Deleted account token audit cleanup', await admin.from('eylo_api_token_events').select('id').eq('user_id', idA)), []);
   assert.deepEqual(checkResult('Deleted account Storage cleanup', await admin.storage.from('eylo-files').list(idA)), []);
