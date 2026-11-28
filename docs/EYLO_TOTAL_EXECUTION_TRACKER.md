@@ -14,13 +14,13 @@
 | Production Supabase | BLOCKED BY 16 MISSING TABLES | Read-only inventory confirms 19 applied migration versions and 34 public tables, all listed with RLS. Missing: eyra_conversations, eyra_messages, eyra_agent_runs, eyra_agent_actions, grant_applications, meeting_participants, eylo_directory, eylo_teams, eylo_team_invites, eylo_team_members, eylo_connections, eylo_community_posts, eylo_peer_reviews, eylo_feedback, eylo_api_tokens, eylo_api_token_events. No migration was applied. |
 | Billing and AI capability | OBSERVED | Production `/api/capabilities` returns `ai=true` and `billing=false`; billing remains disabled. Missing database tables still make durable EYRA persistence unavailable. |
 | Hosted staging | BLOCKED BY FREE PROJECT CAP | Supabase rejected the authorized `eyloai-staging` create request in `panagiotagrosdouli's Org` / eu-north-1 at the Free two-project limit. `eyloai` is active; unrelated `job` remains inactive and untouched. Owner action: Supabase Dashboard → organization → Projects → New project in an isolated free-capacity organization/provider, or separately authorize paid capacity. No purchase is authorized. |
-| Consolidated acceptance candidate | AUTOMATED_TESTS_PASSED; HOSTED VERIFICATION REQUIRED | This candidate combines Auth cascade guards for four linked child tables, real two-account Auth/Storage/export/deletion checks, and the EYRA run API owner/cross-account tests. Exact-head disposable GitHub Actions must pass before release consideration. |
+| Consolidated acceptance candidate | AUTOMATED_TESTS_PASSED; HOSTED VERIFICATION REQUIRED | PR #640 combines Auth cascade guards, real two-account Auth/Storage/export/deletion, EYRA run-API ownership and shared scholarly-provider cooldown handling. Exact-head CI passed; hosted verification and release remain blocked. |
 
 ## Final consolidation verification — 28 November 2026
 
-**Reviewed candidate:** PR #640, exact head `df1a35be9b3443e70ed19535bc1020878aafcec7`, base `a12533fa4c39405cdbbaf245455ab0e2bbbd7ace`. Draft and unmerged. PR #638's shared provider cooldown fix is integrated here and #638 is closed as superseded. #633, #635 and #636 are closed as superseded; #634 is merged.
+**Reviewed candidate:** PR #640, current head `64a26c1ec854a9021899ff624603fe7925e6710a`, base `a12533fa4c39405cdbbaf245455ab0e2bbbd7ace`. Open for review and unmerged. Implementation head `df1a35be9b3443e70ed19535bc1020878aafcec7` passed all exact-head checks; `64a26c1ec854a9021899ff624603fe7925e6710a` then passed all exact-head checks after a tracker-only update. PR #638's shared provider cooldown fix is integrated here and #638 is closed as superseded. #633, #635 and #636 are closed as superseded; #634 is merged.
 
-**Exact-head GitHub checks: PASS** — Build run `46168317939`; EYLO Quality Gate `46168317926`; disposable PostgreSQL/Supabase acceptance `46168317985`; Product Quality `46168317994`.
+**Current-head GitHub checks: PASS** — Build run `46169060772`; EYLO Quality Gate `46169060800`; disposable PostgreSQL/Supabase acceptance `46169060781`; Product Quality `46169060767`.
 
 The disposable stack replayed the reviewed migration order and verified privileges; it exercised real local Auth, PostgREST and Storage with two synthetic users. It passed account signup/login/refresh/session restoration/logout, all 17 required table accesses, project persistence and cross-account read/update/delete isolation, API token audit ownership/client write denial, EYRA conversation snapshot and ordered message persistence/isolation, production EYRA run API list/detail/cancel/delete ownership, Storage upload/download path isolation, complete owner-scoped workspace export, privacy deletion and Storage/data cleanup while preserving the second account. Network requests were restricted to loopback. Product Quality passed the distributed provider 429 regression, normalized Retry-After/cooldown handling and the existing product workflow suite. These are CI/disposable-environment results, not hosted user acceptance.
 
@@ -42,6 +42,17 @@ The disposable stack replayed the reviewed migration order and verified privileg
 | Accessibility and English/Greek localization | PARTIALLY_IMPLEMENTED | Static/product tests only | HUMAN_REVIEW_REQUIRED: screen-reader, keyboard, viewport and language acceptance |
 | Monitoring, backup and recovery | PARTIALLY_IMPLEMENTED | Operational runbooks/source checks only | BLOCKED: owner confirmation of backup retention, restore exercise, alerts and support routing |
 | Production release | BLOCKED | Exact-head candidate CI passed | RELEASE_APPROVED: NO; production deployment/migration requires separate authorization and release gates |
+
+### Open feature branches not included in PR #640
+
+| Pull request | Current review state | Evidence / required action |
+|---|---|---|
+| #627 Scientific quality and grant provenance | OPEN, mergeable=false; 73 commits behind current main | Its exact old-head Build, Quality Gate and Product Quality passed, but current-main integration has not been reviewed. Rebase onto current main, resolve conflicts, inspect the scientific/provenance changes against current schema, then rerun exact-head checks. |
+| #604, #616, #620, #628 | OPEN, based on older main and overlapping #627 paths | Do not merge independently. Compare their unique hunks against rebased #627, preserve only verified differences, then close duplicates after consolidation. |
+| #621 Grant Proposal workflow | OPEN, stale base; Product Quality failed | Determine the failed assertion on its exact head, rebase only if its Research Proposal workflow remains unique, and rerun. |
+| #619 Career feed; #602 landing browser check | OPEN and divergent from current main | Rebase only if still supported product scope; otherwise close as stale. |
+
+These branches are not part of the #640 candidate, so their functionality is not counted as release-ready here.
 
 **Release decision: NO-GO.** The production deployment remains at main SHA `a12533fa4c39405cdbbaf245455ab0e2bbbd7ace`; its Supabase project is missing the 16 application tables listed above. No production migration, merge, deployment, AI request, live billing action, purchase or change to the unrelated `job` project occurred.
 
