@@ -22,9 +22,11 @@ import PaperSummary from '@/components/eyra/PaperSummary';
 import EvidenceMatrixStudio from '@/components/projects/EvidenceMatrixStudio';
 import LiteratureReviewBuilder from '@/components/projects/LiteratureReviewBuilder';
 import ResearchProposalBuilder from '@/components/projects/ResearchProposalBuilder';
+import GrantProposalBuilder from '@/components/projects/GrantProposalBuilder';
 import ResearchMethodologyStudio from '@/components/projects/ResearchMethodologyStudio';
 import ResearchRoadmapStudio from '@/components/projects/ResearchRoadmapStudio';
 import ResearchWorkflowNavigation from '@/components/projects/ResearchWorkflowNavigation';
+import ScientificEvaluationPanel from '@/components/projects/ScientificEvaluationPanel';
 import { EyraSectionLabel } from '@/components/eyra/EyraBadge';
 import { searchAllPapers, searchOpenAlexAuthors } from '@/lib/eyra-api';
 import { searchFundingOpportunities } from '@/lib/funding-api';
@@ -688,12 +690,20 @@ Rules:
             onProjectSaved={saved => setProject(previous => ({ ...previous, ...saved }))}
             onPapersChanged={setSavedPapers}
           />
+          <GrantProposalBuilder
+            key={`${id}-grant-proposal`}
+            project={project}
+            savedPapers={savedPapers}
+            onProjectSaved={saved => setProject(previous => ({ ...previous, ...saved }))}
+            onPapersChanged={setSavedPapers}
+          />
           <ResearchMethodologyStudio
             key={`${id}-research-methodology`}
             project={project}
             savedPapers={savedPapers}
             onProjectSaved={saved => setProject(previous => ({ ...previous, ...saved }))}
           />
+          <ScientificEvaluationPanel key={id + '-scientific-evaluation'} project={project} savedPapers={savedPapers} />
           <ResearchRoadmapStudio
             key={`${id}-research-roadmap`}
             project={project}

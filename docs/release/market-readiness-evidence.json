@@ -77,6 +77,18 @@
       "reviewed_by": null,
       "assertions": {}
     },
+    "scientific_quality": {
+      "status": "NOT_RUN",
+      "scope": "live-and-human",
+      "commit": null,
+      "executed_at": null,
+      "evidence": null,
+      "reviewed_by": null,
+      "assertions": {},
+      "metrics": null,
+      "expert_reviewer_ids": null,
+      "expert_adjudication_complete": false
+    },
     "funding": {
       "status": "NOT_RUN",
       "scope": "hosted-staging",

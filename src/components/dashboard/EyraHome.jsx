@@ -99,7 +99,7 @@ export default function EyraHome({ onSearch }) {
           <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground">Academic search is separate from EYRA. Always check the original papers.</p>
             <button type="button" disabled={!eyraReady} onClick={() => window.dispatchEvent(new Event('eylo:open-eyra'))}
-              className="hidden min-h-10 items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 sm:inline-flex focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50">
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50">
               <Lightbulb size={16} aria-hidden="true" /> Ask EYRA
             </button>
           </div>

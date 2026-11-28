@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "status": "UNJUDGED_PREPARATION_FIXTURE",
+  "notice": "Public bibliographic records verified against PubMed. No generated claims, reviewer labels, researcher sessions, or scientific-quality results are included.",
+  "topic": "How do urban tree canopy effects on heat vary by measurement outcome, spatial scale, time of day, and climate context?",
+  "records": [
+    {
+      "id": "PMID:38351140",
+      "title": "Street trees provide an opportunity to mitigate urban heat and reduce risk of high heat exposure.",
+      "authors": ["Ettinger AK", "Bratman GN", "Carey M", "Hebert R", "Hill O", "Kett H", "Levin P", "Murphy-Williams M", "Wyse L"],
+      "journal": "Scientific Reports",
+      "year": 2024,
+      "volume": "14",
+      "article_number": "3266",
+      "doi": "10.1038/s41598-024-51921-y",
+      "pmid": "38351140",
+      "pmcid": "PMC10864265",
+      "registry_url": "https://pubmed.ncbi.nlm.nih.gov/38351140/",
+      "full_text_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10864265/",
+      "design_scope": "Observational field measurements of summer sidewalk air temperature and street-tree canopy in a Tacoma, Washington neighborhood; verify exact sampling and model details in the article before coding claims."
+    },
+    {
+      "id": "PMID:34815395",
+      "title": "The role of urban trees in reducing land surface temperatures in European cities.",
+      "authors": ["Schwaab J", "Meier R", "Mussetti G", "Seneviratne S", "Bürgi C", "Davin EL"],
+      "journal": "Nature Communications",
+      "year": 2021,
+      "volume": "12",
+      "article_number": "6763",
+      "doi": "10.1038/s41467-021-26768-w",
+      "pmid": "34815395",
+      "pmcid": "PMC8611034",
+      "registry_url": "https://pubmed.ncbi.nlm.nih.gov/34815395/",
+      "full_text_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8611034/",
+      "design_scope": "Remote-sensing land-surface-temperature and land-cover analysis across 293 European cities; distinguish modeled/observed surface temperature contrasts from pedestrian-level air temperature."
+    },
+    {
+      "id": "PMID:30910972",
+      "title": "Scale-dependent interactions between tree canopy cover and impervious surfaces reduce daytime urban heat during summer.",
+      "authors": ["Ziter CD", "Pedersen EJ", "Kucharik CJ", "Turner MG"],
+      "journal": "Proceedings of the National Academy of Sciences of the United States of America",
+      "year": 2019,
+      "volume": "116",
+      "issue": "15",
+      "pages": "7575-7580",
+      "doi": "10.1073/pnas.1817561116",
+      "pmid": "30910972",
+      "pmcid": "PMC6462107",
+      "registry_url": "https://pubmed.ncbi.nlm.nih.gov/30910972/",
+      "full_text_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6462107/",
+      "design_scope": "Bicycle-mounted urban air-temperature sampling across ten Madison, Wisconsin transects with land-cover measures at multiple spatial scales; inspect the paper for sampling and model limitations."
+    }
+  ],
+  "cases": [
+    {
+      "id": "discovery-and-source-inspection",
+      "stage": "Scholarly discovery",
+      "task": "Search the topic, open candidate records, and select relevant publications for a project.",
+      "review_checks": ["Each selected record resolves to its PubMed/PMC record", "Title, authors, year, DOI and PMID match the record", "Unavailable providers and metadata-only access are disclosed"]
+    },
+    {
+      "id": "evidence-matrix",
+      "stage": "Evidence Matrix",
+      "task": "Create one row per selected publication and record study setting/design, temperature outcome, spatial scale, time conditions, and stated limitations.",
+      "review_checks": ["Air temperature is distinguished from land surface temperature", "Study observations are separated from author interpretation", "Every factual row has a source link and the researcher can annotate it"]
+    },
+    {
+      "id": "literature-review",
+      "stage": "Literature Review",
+      "task": "Draft a comparative synthesis of what the three records measure and where their results may not be directly comparable.",
+      "review_checks": ["No pooled effect is invented from incompatible outcomes", "The synthesis preserves scale, city and time-of-day boundaries", "Each claim is separately rated for citation identity and semantic support"]
+    },
+    {
+      "id": "research-proposal",
+      "stage": "Research Proposal",
+      "task": "Draft a proposed study of neighborhood tree canopy and summer heat exposure, explicitly labeling unanswered questions and assumptions.",
+      "review_checks": ["Proposed aims are not presented as observed findings", "The rationale links to selected records", "Uncertainty and population/geography limits remain visible"]
+    },
+    {
+      "id": "methodology-plan",
+      "stage": "Methodology",
+      "task": "Propose a field-sampling plan that could compare canopy and impervious-surface conditions while recording relevant weather and spatial context.",
+      "review_checks": ["Methods are labeled proposed until carried out", "Each methodological claim has traceable support or is labeled as a design choice", "No results or ethics approval are fabricated"]
+    },
+    {
+      "id": "roadmap-approval",
+      "stage": "Research Roadmap",
+      "task": "Draft milestones for protocol design, site selection, measurement, analysis, and researcher review.",
+      "review_checks": ["Generation alone does not alter the project workplan", "Only researcher-selected tasks enter a draft after explicit approval", "A separate workplan save is required and visible"]
+    },
+    {
+      "id": "save-reload-export",
+      "stage": "Persistence and export",
+      "task": "Edit a researcher annotation, save, reload, export the artifact, and compare it with the saved project state.",
+      "review_checks": ["Researcher-authored text survives regeneration and reload", "Stale-version conflict preserves both the winner and recoverable local edits", "Export retains source identifiers and distinguishes AI draft from approved content"]
+    }
+  ],
+  "rating_protocol": {
+    "identity_and_traceability": "Record separately whether the citation identifier resolves and bibliographic metadata matches the selected record.",
+    "semantic_support": "Two domain researchers independently assess each factual or interpretive claim against the cited source text available to the study.",
+    "ratings": ["supported", "partly_supported", "unsupported_or_not_assessable", "not_a_source_claim"],
+    "prohibition": "Source-ID resolution is not evidence that a source supports a scientific claim. The fixture contains no reviewer judgments."
+  }
+}
