@@ -6,116 +6,206 @@
 
 **Working branch:** `codex/eylo-phase3-learning-rls-20261128` (stacked on PR #631)
 
+## Final commercial readiness directive — 28 November 2026
 
-# EYLO commercial readiness review — 28 November 2026
-
-**Decision: NO-GO for public beta, paid beta, or general commercial release.**
-
-**Highest supported launch mode: MODE A — internal development.** This is the highest status supported by evidence in this repository. CI fixtures, public read-only requests, and a protected Vercel preview do not establish authorized user testing. Move to MODE B only after the owner identifies an approved test environment and accounts; do not infer that authorization from a ready preview.
-
-This review is an implementation and evidence index, not legal advice, scientific validation, or release authorization. It records source and CI evidence separately from hosted acceptance.
-
-## Smallest coherent researcher release
-
-Keep the release to these workflows:
-
-1. Sign up, sign in, and recover an account.
-2. Create and reopen a private research project.
-3. Search scientific indexes, inspect source records, and save publications to that project.
-4. Ask EYRA questions about supplied or retrieved evidence, with source links and clear uncertainty labels.
-5. Draft a literature review, methodology, academic proposal, and grant proposal from project evidence.
-6. Review claims and call requirements, edit drafts, and export a document.
-7. Reopen the project after reload and prove that a second account cannot read or alter its data.
-
-The application contains these source workflows and extensive local/CI regression coverage. They are not yet a verified hosted product: no accepted two-account staging run, authenticated real-provider EYRA run, researcher-rated scientific packet, or end-to-end hosted persistence run is recorded. Treat the minimum release as a target, not a claim that all seven workflows have passed with researchers.
-
-### Feature availability and honest presentation
-
-| Area | Current evidence | Product treatment until acceptance |
+| Gate | Current decision | Evidence / next action |
 |---|---|---|
-| Auth, projects, evidence, research documents, proposals, evaluation and export | Implemented source paths and regression suites; hosted identity, RLS and persistence acceptance are absent | Keep behind the signed-in product; do not claim cross-account security or durable hosted acceptance |
-| Literature discovery | Production browser observation returned 24 deduplicated records from 3 of 5 indexes; OpenAlex and Semantic Scholar returned HTTP 429 and the interface disclosed partial retrieval | Say discovery can be partial; retain provider status and retry affordances; avoid accuracy or coverage claims |
-| EYRA | Provider/quota guards and source-grounding paths exist; no authenticated provider completion and independent claim review on the candidate are recorded | Clearly label as AI-assisted drafting; make no scientific-validation or accuracy claim |
-| Billing and paid entitlements | Production capability manifest has billing disabled; Stripe test lifecycle is not evidenced | Keep checkout, paid-plan activation and premium marketing unavailable |
-| Contact and support delivery | Production capability manifest has contact delivery disabled; no functioning support workflow is verified | Show a real support address/process only after an owner supplies and tests it; do not leave an enabled dead link |
-| Optional product modules | Repository inventory records 77 modules as partial | Hide or label unfinished modules; advertise only the verified core workflow |
+| Minimum researcher release | Defined as authenticated project → source discovery → private evidence → EYRA/literature/methodology/proposal drafting → export/reopen → two-account isolation | Source workflows and CI tests exist; the authenticated hosted journey is NOT RUN. Scope and status are in [EYLO_COMMERCIAL_READINESS_2026-11-28.md](release/EYLO_COMMERCIAL_READINESS_2026-11-28.md). |
+| Launch mode | MODE A — internal development; public beta and paid beta NO-GO | No authorized hosted researcher acceptance, legal review, or human scientific review is recorded. Mode B requires owner-confirmed isolated test identities and approved synthetic account writes. |
+| Billing and support | DISABLED / NOT VERIFIED | Production billing and contact delivery are disabled. No test-mode Stripe lifecycle, functioning support response or purchased infrastructure is evidenced. Do not enable payments or choose pricing. |
+| Economics | ASSUMPTION MODEL ONLY | No measured token distribution or infrastructure/support invoice exists. The report records operation estimates and 10/100/1,000/10,000-user arithmetic using a clearly labeled published-rate proxy; replace with aggregate usage and actual invoices before pricing decisions. |
+| Operational / disaster recovery | NOT ACCEPTED | Source health endpoints exist, but centralized alert coverage, backup restoration, retention enforcement and recovery time objectives are not proven. Test restore only in an authorized isolated environment. |
+| Legal, pilot and scientific review | NOT COMPLETED | A nonpublishable counsel-review scaffold now covers the requested policy topics with unresolved owner/legal placeholders; no complete policy or approval is claimed. No external pilot, human citation/claim ratings or researcher endorsement exists. Existing research evaluation/pilot runbooks remain the execution templates. |
+| Candidate and CI | PR #632 active; hosted release gates remain open | Candidate code head `d38f6390ab2be24e107caaa64b20b36dccccc97d` passed Product Quality [46146535949](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46146535949) and disposable PostgreSQL preflight [46146535931](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46146535931); Vercel preview reported READY and Supabase Preview was skipped. A documentation-only correction now restores the full tracker; its new head requires fresh exact-head checks. No merge or production action. |
 
-## Acceptance evidence available and absent
+The recommendation is **NO-GO for commercial/public launch; proceed only with authorized internal development**. This record is a concrete handoff; it does not upgrade launch status or establish actual unit economics.
 
-| Gate | Current status | Boundary / next evidence |
+### Exact-head CI and preview follow-up — 28 November 2026
+
+| Checkpoint | Result | Evidence and limit |
 |---|---|---|
-| Source and CI | Main `20da2b2943479909de75c8b8ad5ccdd1fdfb31c3` has passing Build, Product Quality and Vercel checks. PR #632 head `256ef95d347c1735340dea561c8671b23a9c6b87` passed build-and-benchmark and disposable PostgreSQL preflight. The subsequent tracker-only head `40181781947301e5705763aece3398b9abf0d080` passed disposable PostgreSQL preflight; its build-and-benchmark run was still in progress during this review. Vercel preview is READY; Supabase Preview was skipped. | Recheck all required workflows after the final candidate commit. A preview is SSO-protected. |
-| Local verification | `npm run check` passed on current main: imports, both TypeScript projects, lint, 1,326 tests, production build and bundle budget. | This is local source verification and is not the newer PR's exact-head result. |
-| Migration/RLS | PR #631 records 19 observed production migration versions, 18 exact fingerprints, one known historical divergence and a pending forward-only policy correction. PR #632 adds negative ownership checks; disposable CI PostgreSQL preflight passed. | Hosted history, staging RLS, backup evidence and production application remain separate. Never apply the pending migration to production from this report. |
-| Real researcher acceptance | NOT RUN | Use an isolated owner-confirmed staging project, two disposable accounts and synthetic data. Exercise search → save → EYRA → literature review → methodology → academic and grant proposals → export → reload → account isolation. |
-| Human scientific review | NOT RUN | Freeze the candidate and evidence packet; recruit qualified independent reviewers; report claim support, citation validity, uncertainty, methods and call compliance by dimension. |
-| Paid billing | NOT VERIFIED; DISABLED | Test-mode checkout, signed webhooks, entitlement expiry/revocation, failed payment, renewal, cancellation and billing portal. Require `test_mode=true` and `livemode=false`. |
-| Security / privacy / operations | INCOMPLETE | Resolve leaked-password protection, two-user access, data export/deletion, monitoring, backup/restore and incident response before an external pilot. |
-| Legal | NOT REVIEWED | Confirm controller identity, jurisdiction, retention, subprocessors, research rights and consumer cancellation/refunds with qualified counsel. |
+| Source revision | VERIFIED | Policy-correction source head: `ac0d87895f4b166e23f1ef84a4880b247ab9cf47` on PR #631. |
+| Product Quality | PASS | GitHub Actions run `46143802155` completed successfully on that exact source head, including product workflow/browser suites and discovery gateway/partial retrieval coverage. |
+| EYRA PostgreSQL preflight | PASS IN DISPOSABLE CI DATABASE | GitHub Actions run `46143802101` completed successfully on that exact source head; it executed migrations and negative RLS/grant controls in a disposable PostgreSQL instance. It is not staging or production validation. |
+| Vercel preview | READY; ACCESS RESTRICTED | Preview deployment `dpl_2NmAKkzAV2eAQNHun9Yh1CbKZHoX` was built from the same source head. Vercel SSO protected the preview, so authenticated hosted acceptance was not performed. |
+| Release gate | NO-GO | Re-run of `npm run release:readiness` at the exact source head recorded `NO-GO`. Staging identity, two-account hosted auth/isolation, privacy deletion, operations, and human/legal evidence remain unrecorded. |
 
-The current authorized path is **MODE A**. MODE B requires an owner-designated, synthetic-data test environment plus confirmed identity, rollback boundary, private test credentials, and explicit approval for any account or data writes. MODE C additionally requires hosted two-account acceptance, support and incident handling, legal/privacy review, and human researcher evaluation. Do not progress to public beta or paid modes while their evidence is absent.
+The local `npm run check` remains PASS (1,344 tests; typecheck, lint, build and bundle budget). Production remains on `main` SHA `20da2b2943479909de75c8b8ad5ccdd1fdfb31c3`; no production or database settings were changed. Discovery on production returned 24 papers from three of five indexes; OpenAlex and Semantic Scholar reported HTTP 429 and the UI disclosed partial retrieval. The current exact-head checks validate the policy correction in CI, but do not establish hosted acceptance or release authorization.
 
-## Reproducible, assumption-based cost model
 
-There are no measured production token counts, provider invoices, cloud invoices, support logs, or active-user cohorts in the checked-in evidence. The following is a transparent planning scenario, **not measured unit economics**.
+**Revalidated candidate:** PR #630 exact head `8983a3c774c9a24b1859eaa0a5cd0f7d3a8e02bb` (ready for review; not merged). Exact-head Build run `46138731826`, EYLO Quality Gate `46138731804`, Product quality `46138731812` and Vercel preview `dpl_CWoEDK2jCDtXiTapGyfkc9pRD7ra` passed. Local `npm run check` passed on this SHA after a clean `npm ci`: imports, both TypeScript projects, ESLint, 1,340 Node tests, Vite build and chunk budget. This is source/CI evidence only; production remains NO-GO.
 
-The API source defaults `OPENAI_MODEL` to `gpt-5.6`. The public rate reference retrieved on 28 November 2026 lists GPT-5.6 Sol at $4 per million input tokens and $20 per million output tokens. The repository's configured identifier does not prove that the deployed account is billed at this exact SKU/rate. Validate model identity and invoice rates before using these estimates for pricing. See [OpenAI API pricing](https://developers.openai.com/api/docs/pricing).
+**Live migration reconciliation:** Read-only inventory on 2026-11-28 reconfirmed 19 applied migration versions, 34 public tables with RLS enabled, 18 exact historical SQL fingerprints and one known divergent `security_hardening` fingerprint from the 2026-11-20 statement snapshot. The reproducible snapshot and local verification are [supabase-reconciliation-2026-11-28.json](release/supabase-reconciliation-2026-11-28.json) and `npm run db:reconcile-manifest`. Missing EYRA conversation/run tables, grant applications, meeting participants and ten collaboration/product tables remain. The available Supabase branch reports `MIGRATIONS_FAILED`; no disposable local PostgreSQL runtime is installed and no staging migrations were applied. Production and the unrelated inactive job project were untouched.
 
-Illustrative workload and arithmetic at that rate:
+## Phase III continuation — forward-only learning RLS correction
 
-| Operation | Assumed input / output tokens | Estimated model cost |
-|---|---:|---:|
-| Short EYRA chat | 5,000 / 1,000 | $0.04 |
-| Literature review | 40,000 / 5,000 | $0.26 |
-| Methodology draft | 20,000 / 4,000 | $0.16 |
-| Academic proposal | 30,000 / 8,000 | $0.28 |
-| Grant proposal | 40,000 / 10,000 | $0.36 |
+| Item | Status | Implementation, files, tests and remaining limits |
+|---|---|---|
+| Learning lesson-progress RLS predicate | AUTOMATED_TESTS_PASSED; HOSTED ACCEPTANCE BLOCKED | The #631 base migration `20261128122000_learning_lesson_progress_policy_qualification.sql` and its catalog assertion are retained as the only migration. PR #632 drops its earlier duplicate and adds same-owner mismatched-course/forged-owner checks plus cross-account read/insert/update/delete and anonymous denial assertions. PR #632 source head `256ef95d347c1735340dea561c8671b23a9c6b87` passed disposable PostgreSQL preflight [46145491278](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46145491278), applying the `12:20` migration and completing policy, ownership and isolation checks. Product Quality [46145491320](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46145491320) also passed on that exact head, including browser authentication/session, Library/export/navigation, learning, 22 product workflows, offline shell, landing, discovery, and deterministic relevance checks. Vercel deployment `dpl_Da5LnkLbVrx81UcVJL7eYQFdAk4P` is READY and records the same SHA. These are code/CI and preview evidence, not hosted Supabase two-account acceptance. Preview readiness and disposable PostgreSQL are not hosted staging acceptance; no hosted two-account Supabase test or production migration was performed. |
+| Migration ledger | INHERITED FROM #631; NO DUPLICATE CHILD MIGRATION | Current #631 base records 33 observed local migration files plus one SHA-pinned pending migration in `docs/release/supabase-reconciliation-2026-11-28.json`; 19 applied production versions and historic fingerprints remain unchanged. PR #632 removes its separate `12:00` migration and retains #631's single `12:20` correction. The review plan continues to disallow remote application; disposable replay and hosted history are separate gates. |
+| Local quality, dependency audit and runner | AUTOMATED_TESTS_PASSED; PRODUCT QUALITY PASSED | After combining #631 source and dropping the duplicate migration, `npm run check` passed: 1,345 Node tests, import resolution, both TypeScript projects, ESLint, Vite build and configured chunk ceiling. `npm run db:review-plan`, `npm run db:reconcile-manifest` and `git diff --check` pass (27 local replay, seven exclusions; 34 files total with one pending migration). `npm audit` and `npm audit --omit=dev` both reported zero vulnerabilities. The no-Docker runner fix/test pass; direct invocation exits before starting a database. Exact-head Product Quality [46145491320](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46145491320) and disposable SQL preflight [46145491278](https://github.com/panagiotagrosdouli/eyloai/actions/runs/46145491278) passed on `256ef95d347c1735340dea561c8671b23a9c6b87`, including the browser workflow suites. Local Playwright CDN installation remains blocked by HTTP 403; GitHub CI supplied the browser runtime. |
+| Git and release | PR #632 OPEN; SYNCED TO LATEST #631; PRODUCTION NO-GO | PR #632 is open and mergeable, stacked on PR #631 base `64f1505a84f71eea0776cdb710b5093050be8af6`; current tested head is `256ef95d347c1735340dea561c8671b23a9c6b87` (the following tracker-only refresh is rechecking exact-head CI). Exact-head Product Quality and disposable PostgreSQL preflight pass; exact-source Vercel preview is READY. `npm run release:readiness` remains NO-GO because exact-candidate hosted acceptance evidence, verified isolated staging identity, accountable review, privacy/operations and human/legal gates are absent. No production migration, production merge or live-data mutation occurred. |
 
-Example active month: 10 chats, 2 literature reviews, 1 methodology, 1 academic proposal and 0.25 grant proposals. This totals 190,000 assumed input and 34,500 output tokens, or $1.45 at the reference rate. Applying an illustrative 10% retry/overhead factor gives **$1.60 per active user-month for model tokens only**. No operations have been measured; prompt size, model choice, retries, cached input, reasoning tokens and document length can move this materially. A tenfold heavy-use pattern costs about $16 per user-month before search, storage, hosting and support.
+**Revised current count:** The current #631 source contains the 33-file observed migration baseline plus one SHA-pinned pending correction (34 local files total); the production snapshot still records 19 applied versions. The correction remains proposed and un-applied; neither manifest validity nor the prior variant's disposable replay establishes hosted acceptance.
 
-| Monthly active users | Illustrative AI token spend at $1.60 / user | Example fixed baseline* | Combined reference subtotal | Reference subtotal / active user |
-|---:|---:|---:|---:|---:|
-| 10 | $16 | $45 | $61 | $6.10 |
-| 100 | $160 | $45 | $205 | $2.05 |
-| 1,000 | $1,600 | $45 | $1,645 | $1.65 |
-| 10,000 | $16,000 | $45 | $16,045 | $1.60 |
+## 28 November Phase II continuation
 
-\* The $45 example is one Vercel Pro base at $20/month plus one Supabase Pro base at $25/month, before extra seats, usage, compute, storage, tax or add-ons. It is a published-price reference, not a verified EYLO bill, selected plan or purchase authorization. Vercel describes a $20 Pro platform fee and included usage credit; Supabase lists Pro at $25/month and daily backups with seven-day retention. See [Vercel pricing](https://vercel.com/pricing) and [Supabase pricing](https://supabase.com/pricing). No upgrade or spend was performed.
+### Execution update — exact PR #631 head `a860247d0c1cf03bfaf03ac0eb3608fbec3df642`
 
-| Cost component | Model input / evidence needed |
-|---|---|
-| AI input/output tokens | Model SKU × token counts by operation; collect aggregate counts and invoice totals without research content. Current operation counts above are assumptions. |
-| Search providers | Record calls by provider and check each commercial tier, API terms and any key quota. Crossref public REST is free; Europe PMC describes public APIs as free; Semantic Scholar's API page gives an introductory 1 request/second key limit. Those facts do not prove total commercial search cost is zero; OpenAlex and any future provider tiers must be confirmed. |
-| Database and storage | Actual Supabase plan, compute size, database/storage bytes, egress, backup retention and overages; no active billing data was available here. |
-| Hosting | Actual Vercel team plan, seats, function execution, bandwidth, analytics and overage. Public pricing is only a reference. |
-| Email | Provider plan, transactional volume and overages; no verified EYLO provider or invoice. |
-| Payment processing | `successful transactions × (regional percentage fee × amount + fixed fee)` plus applicable currency conversion, tax and dispute costs. Country, card mix and negotiated rates are unknown. |
-| Support | `tickets per active user × minutes per ticket ÷ 60 × loaded support hourly cost`; no volume or labor rate is measured. |
+| Checkpoint | Result | Evidence and limit |
+|---|---|---|
+| Clean local install and quality suite | PASS | In a fresh shallow checkout of `codex/eylo-phase-ii-migration-reconciliation-20261128`, `npm ci` installed the lockfile's 618 packages and `npm run check` exited 0: local imports, both TypeScript projects, ESLint, the complete Node test suite, Vite production build and configured bundle ceiling passed on the exact PR head. The build emitted its expected advisory for large optional chunks; no source files were changed during this run. |
+| Migration snapshot and local plan | PASS LOCALLY; REMOTE BLOCKED | `npm run db:reconcile-manifest` verified 33 migration files and 19 historical SQL fingerprints (18 exact, one recorded divergence). `npm run db:review-plan` verified a local-only plan with 26 selected and seven excluded migrations, but explicitly reports `remote_application_authorized=false` and `remote_history_verified=false`; legacy timestamp/history hazards remain. No migration was applied. |
+| Release readiness and configuration | NO-GO / INCOMPLETE | `npm run release:readiness` returned `NO-GO` for this exact SHA, with production unauthorized and hosted identity, staging, preview, privacy, UX, operations and human review evidence missing. `npm run config:check` reports required server/provider settings absent in this local environment; it printed no secret values and made no network requests. |
+| Current production identity | VERIFIED | Vercel deployment `dpl_B9dSu4itqxXuajZhHUjkWhxQEdEz` and public `/release.json` both identify production `main` at `20da2b2943479909de75c8b8ad5ccdd1fdfb31c3`. This production SHA differs from PR #631; hosted observations below are not acceptance of the PR candidate. |
+| Public discovery browser journey | PARTIALLY BROWSER-VERIFIED ON PRODUCTION | On `https://eyloai.vercel.app/discover`, the homepage preview tabs switched between Discover and EYRA, and the Climate change adaptation example opened a real source-linked search. The page returned 24 deduplicated papers from three of five indexes, four institutions and no researcher profiles. It explicitly identified OpenAlex and Semantic Scholar HTTP 429 rate limits and exposed partial retrieval; this is a transparent external-provider limitation, not a verified search defect. Search retry, export, save, authentication and protected workflows were not exercised. |
+| Local Playwright browser | BLOCKED; alternatives investigated | `npx playwright install chromium` was attempted from the official Playwright installer but its CDN returned HTTP 403 `Site Unavailable` on all retries. `/usr/bin/chromium` exists as a wrapper, but no runnable Chromium binary is installed. The hosted public journey was still exercised in the cloud browser; local Chromium and database-backed browser E2E remain unverified. |
+| Exact-head hosted checks | PARTIAL PASS | Product Quality run `46143802155` and EYRA disposable-PostgreSQL preflight run `46143802101` both completed successfully on source head `ac0d87895f4b166e23f1ef84a4880b247ab9cf47`. Vercel preview `dpl_2NmAKkzAV2eAQNHun9Yh1CbKZHoX` is READY but protected by SSO. These checks do not establish authenticated hosted acceptance, staging acceptance, or release readiness. |
 
-High-risk usage: long evidence bundles passed repeatedly to a premium model, unbounded document regeneration, retries after ambiguous completion, automated background tasks, and retrieval fan-out when several upstream services are slow. Before enabling wider access, set server-side per-account/day and per-operation quotas, hard monthly provider budgets, bounded prompts/outputs, safe idempotency, alerts at 50/75/90% of budget, and graceful exhaustion messages. Existing source code contains quota mechanisms; their current hosted configuration and effective spend caps still need acceptance.
+No application code, production deployment, credentials, hosted database, billing, or user data were changed by this execution update.
 
-## Product, operations, legal and pilot work
+### 28 November live schema recheck and forward-only policy correction
 
-- **Competitive fit:** Existing [market audit](../EYLO_COMPANY_READINESS_2026-11-21.md) maps Elicit, Consensus, Scite, ResearchRabbit, Connected Papers, Zotero, SciSpace and Overleaf. EYLO's differentiator should be a source-linked path from discovery to an editable research/project proposal. The launch-blocking gap is evidence that this path works durably, privately and credibly with actual researchers. Do not claim feature parity or superiority; validate the current comparison against competitors' official documentation before external claims.
-- **Onboarding and help:** User-type onboarding and research workflow explanations exist in source, but no measured friction study, delivered support channel, staffed response commitment or account/billing assistance workflow is verified. Pilot minimum: first project, one guided search, save one real record, run one cited EYRA task, export, report a bug, and receive a tested support reply.
-- **Observability:** API health/status and operational endpoints exist in source; no verified centralized exception dashboard, alert delivery, uptime SLO, payment-failure alert or private-content-safe production log review is recorded. Verify dashboards/alerts and remove content, tokens, email and credentials from logs.
-- **Recovery:** Supabase's published plan retention is not evidence that EYLO backups exist or can be restored. Run a point-in-time backup and restore in an isolated project, rehearse migration rollback/forward recovery, verify export restoration limits, and record owner, RPO/RTO, timestamps and hashes. Current recovery readiness is unproven.
-- **Legal drafts:** No checked-in complete Terms, Privacy, Cookie, Acceptable Use, Subscription, Cancellation/Refund, IP, Research Integrity, Retention or Subprocessor package was found. Legal review needs owner-supplied controller/contact, governing jurisdiction, service and processor inventory, retention/deletion choices, IP/licensing rules, refund practice and research-integrity boundary. Until those decisions are verified, the existing privacy/data-flow material is an engineering input, not a publishable policy.
-- **Scientific evaluation:** Use the existing [scientific evaluation runbook](../scientific-evaluation-runbook.md) and [pilot protocol](../RESEARCH_VALIDATION_AND_PILOT.md). They require real references, independent reviewers and explicitly distinguish citation identity from claim support. No human scores, endorsements or validity claims are available.
-- **Pilot process:** Do not invite anyone from this change. A future closed pilot needs opt-in consent, a named support owner, synthetic or consented research content, a bug channel, incident escalation, an evaluation questionnaire and published stop criteria. Pilot success should require no critical privacy/security defects, successful end-to-end task completion, reliable project restoration and independently reviewed source/claim quality.
+| Checkpoint | Result | Evidence and limit |
+|---|---|---|
+| Supabase project and migration identity | VERIFIED READ-ONLY | Connected Supabase metadata identifies `eyloai` project `kbzjngpzxpniaumlupaa` as `ACTIVE_HEALTHY`, PostgreSQL `17.11.0.003`. Its 19 applied migration versions match the reconciliation snapshot. The only listed development branch remains `MIGRATIONS_FAILED`; it is not an accepted disposable target. |
+| Live lesson-progress policy | DEFECT CONFIRMED; NO BYPASS ESTABLISHED | Direct `pg_policy` inspection confirms the policy `WITH CHECK` contains `l.course_id = l.course_id` because the unqualified name resolves to the inner `learning_lessons` row. The validated composite FK `(lesson_id, course_id, user_id)` still enforces lesson/course/user consistency. This is a redundant and misleading policy predicate, not evidence of cross-account access. |
+| Forward-only correction | IMPLEMENTED IN SOURCE; DATABASE VALIDATION BLOCKED | Added `20261128122000_learning_lesson_progress_policy_qualification.sql`, which explicitly compares `l.course_id` with `learning_lesson_progress.course_id`, plus a catalog assertion in the disposable-PostgreSQL regression. It is marked pending and not applied to the observed project. Actual PostgreSQL validation still requires the CI disposable database runner or an approved isolated database. |
+| Live security/performance advisors | OPEN FINDINGS | Security advisor still reports leaked-password protection disabled (WARN) and the RLS-enabled service-only discovery rate-limit table with no client policy (INFO). Performance advisor reports 13 unindexed foreign keys and 39 unused indexes; the unused-index advisory alone does not justify removal. |
+| Updated local migration plan | PASS LOCALLY; REMOTE BLOCKED | `npm run db:reconcile-manifest` verifies 34 files as 33 files at observation plus one SHA-pinned pending migration; historical SQL remains 18 exact matches and one known divergence. `npm run db:review-plan` passes with 27 local replay migrations and seven exclusions, while remote history/application remain explicitly false. |
 
-## Exact owner actions to reach the next mode
+Production remains NO-GO. No production migration, policy, Auth setting, data, or billing state was changed.
 
-1. Confirm authorized owners and exact isolated Supabase/Vercel staging identities; configure preview-only credentials and two disposable accounts through secure settings.
-2. Reconcile staging migration history; rehearse the pending correction in disposable PostgreSQL and approved staging only. Provide backup and rollback evidence before any staged schema write.
-3. Complete hosted two-account Auth, project/paper persistence, Storage, EYRA and export/reload acceptance; prove account B cannot read, update or delete account A's data.
-4. Resolve the production Auth leaked-password setting with the Supabase owner; run an authorized Security Advisor recheck.
-5. Verify provider model SKU, aggregate cost telemetry, quotas and hard spend caps; run real-provider acceptance only with an approved cap.
-6. Run the frozen multi-discipline retrieval and claim-level scientific evaluation with independent researchers; record actual ratings and disagreements.
-7. Verify Stripe entirely in test mode or keep it disabled. Do not choose prices or alter live billing from this report.
-8. Have qualified counsel and the owner review the legal decisions above; verify support, monitoring, incident response and isolated restore.
-9. Freeze one candidate SHA, pass every exact-head CI and hosted gate, and obtain explicit release-owner approval before any merge, promotion or production migration.
+### 28 November policy-correction batch — local verification
 
-## Scope and exclusions
+- Added a forward-only RLS policy migration that qualifies the outer `learning_lesson_progress.course_id`; added a catalog regression to the disposable PostgreSQL learning integration and source/manifest regressions.
+- `npm run check` passed locally after the change: imports, both TypeScript projects, ESLint, **1,344 tests**, Vite build and configured chunk budget. Build warnings remain for existing optional chunks and Rollup import splitting.
+- `npm run db:reconcile-manifest` passes with 34 local migration files: the 33-file observed baseline plus one SHA-pinned pending migration; no new migration is counted as applied remotely.
+- `npm run db:review-plan` passes with 27 disposable local replay migrations and seven exclusions. It still reports remote history unverified and remote application unauthorized.
+- The disposable PostgreSQL regression was not runnable locally (`docker`, `podman`, `psql`, `postgres`, and `initdb` are absent). GitHub preflight run `46143802101` subsequently validated migrations and negative RLS/grant controls on exact source head `ac0d87895f4b166e23f1ef84a4880b247ab9cf47` in disposable PostgreSQL; no staging or production migration was applied.
+- The release-readiness decision remains **NO-GO**. Exact-head Product Quality and disposable PostgreSQL preflight passed; the READY Vercel preview is SSO-protected, and hosted staging/two-account acceptance remains outstanding.
 
-This report does not authorize production migration, deployment, account creation/deletion, live provider spend, billing configuration, customer contact, infrastructure purchase or claims of legal/scientific approval. The change records readiness evidence and next checks only.
+| Workstream | State | Evidence and next action |
+|---|---|---|
+| PR #630 independent source review | REVIEWED; no merge recommendation | Inspected all 17 changed files, grant provenance and budget checks, scientific evaluation/review semantics, release manifest gates, staging safeguards and save/export flows. No source-level defect was confirmed in this patch. Scientific scoring remains explicitly non-automated; no scientific correctness or hosted acceptance is inferred from CI. PR #630 remains open and unmerged. |
+| Migration reconciliation | SNAPSHOT IMPLEMENTED; hosted repair BLOCKED | Commit `0b403063a3989ba5d5ee3575557ea0c2ddc916ac` (PR #631). Added a read-only SQL catalog recipe and snapshot manifest, plus a verifier that checks all 33 local migration files, 19 historic SQL fingerprints, version inventory and fail-closed release state. `npm run db:reconcile-manifest` PASS: 18 exact, one known divergence. No disposable local PostgreSQL executable/container exists; hosted branch is migration-failed. Owner must provide isolated disposable PostgreSQL/Supabase and migration-history/backup evidence before candidate SQL can be safely validated. |
+| RLS and Storage review | PARTIALLY REVIEWED; HOSTED TWO-ACCOUNT TEST BLOCKED | Production catalog snapshot: all 34 public tables have RLS enabled. `discovery_rate_limits` has no client policy and is marked service-only; private `eylo-files` bucket has owner read/insert/delete policies consistent with immutable unique-path uploads (`upsert:false`). Found a tautological `learning_lesson_progress` policy predicate (`l.course_id = l.course_id`); its validated composite FK currently enforces the intended lesson/course/user pairing, so no cross-owner bypass is established. Add a forward-only qualified-policy migration and local PostgreSQL regression before applying. Security advisor reports leaked-password protection disabled; performance advisor reports 13 unindexed foreign keys. Owner must enable leaked-password protection and supply disposable PostgreSQL plus two authenticated staging accounts for read/write/delete/storage/cache tests. |
+| Local verification | AUTOMATED_TESTS_PASSED | Clean `npm ci`, then `npm run check`: 1,342 tests passed; imports, typecheck, lint, build and chunk budget passed. `npm run db:reconcile-manifest` passed. Browser learning E2E was attempted and BLOCKED: Playwright's pinned Chromium binary is absent; `/usr/bin/chromium` is a wrapper whose `/usr/lib/chromium/chromium` target is missing. |
+| OpenAI and Stripe readiness | BLOCKED; NO LIVE CALLS | `npm run config:check` reports absent Supabase/OpenAI credentials and Stripe secret, webhook secret and price IDs; no secret values were printed. No provider calls or Stripe requests were made. Owner must configure preview-only keys and test-mode Stripe identifiers, then authorize bounded acceptance within a cost cap. |
+| Staging and database tests | BLOCKED | `npm run db:review-plan` confirms a local-only plan with no plan issues, but 26 candidate migrations and seven exclusions do not establish remote history or replay safety. No staging migration, production mutation, account creation, deletion fixture, paid infrastructure or live payment was used. |
+
+Production remains **NO-GO**. The local SQL catalog recipe is descriptive and read-only; its results are a dated snapshot and must be rerun on an owner-authorized isolated target before operational acceptance.
+
+This file is the current execution index. It does not promote a feature to staging or production verified. The canonical feature-by-feature inventory is [PRODUCT_IMPLEMENTATION_TRACKER.md](PRODUCT_IMPLEMENTATION_TRACKER.md): it contains 77 individually numbered existing product modules, their implementation descriptions, tests and remaining acceptance. All 77 are currently marked **PARTIAL**. The route-level inventory and audit is [FULL_SITE_FUNCTIONAL_AUDIT.md](FULL_SITE_FUNCTIONAL_AUDIT.md). Preserve those detailed inventories rather than maintaining a second, divergent copy here.
+
+## 28 November integration checkpoint
+
+| Checkpoint | Result | Evidence and limit |
+|---|---|---|
+| Current repository and deployment | VERIFIED | `main` is `20da2b2943479909de75c8b8ad5ccdd1fdfb31c3`. Vercel production deployment `dpl_B9dSu4itqxXuajZhHUjkWhxQEdEz` is READY and reports the same source SHA. This proves deployment identity, not end-to-end feature behavior. |
+| PR #627 | INTEGRATED LOCALLY | Exact head `7c2243f56577ed7cff3a8525373389283b5427b6`; Build, EYLO Quality Gate and Product quality passed. Integration conflicts in `scientific-evaluation.mjs` and `ProjectDetail.jsx` were resolved by retaining both the existing evaluation panel and the new claim-level review. |
+| PR #628 | INTEGRATED LOCALLY; EXACT-HEAD CI INCOMPLETE | Exact head `702ff379f7f262909651149cafd9adae57f1b256`; Product quality and Vercel preview checks passed, but Build and EYLO Quality Gate were not present on that exact head. Its grant changes overlapped #627, so the integration retains line-level provenance and adds the confirmed no-milestones/timeline rule, exact budget quote checks, and Markdown/DOCX enforcement. |
+| PR #629 | INTEGRATED LOCALLY | Exact head `29c6dcb2155cddfded94ba8589b41ae702e94d70`; Build, EYLO Quality Gate and Product quality passed. Its manifest remains specifically a frozen historical record for #626, not evidence for this newer candidate. |
+| Baseline local checks | PASS | `npm ci` installed 618 locked packages. `npm run check` passed on the unmodified `main`: imports, both TypeScript projects, ESLint, 1,326 tests and Vite build/bundle budget. This is local baseline evidence only. |
+| Candidate local checks | PASS LOCALLY | On the integrated worktree, `npm run check` passed imports, both TypeScript projects, ESLint, all 1,340 tests and the production build/bundle budget. One merged grant-provenance fixture exposed missing fallback line numbers; validation now uses the same non-empty line positions as extraction. The check is local evidence, not exact-head hosted CI. |
+| Release gate | NO-GO | The readiness gate requires exact-commit CI evidence and hosted staging, privacy, UX, operations, and human/legal acceptance. Local success does not satisfy those gates. |
+
+No production settings, data, migrations, billing, credentials, or deployment were changed. No PR was merged to `main` by this checkpoint.
+
+## 25 November research output execution
+
+| Checkpoint | Result | Evidence and limit |
+|---|---|---|
+| PR #604 review | REVIEWED; SYNCHRONIZED; still draft | Verified stale-history cancellation, transcript reset guards, UUID write receipts, safe tool errors, regression coverage, and the responsive EYRA entry point. Synchronized after PR #607 with current main `b5cbc7522a9bc1884138b6aa94e6ff26d549c1b7`; merge commit `76c10b18e37c246e4f1d4b3e32edb00de4cd2630`. Exact pre-sync head `7be312a40813c0b8ae6395cf69d328dc90638159` had successful Build, EYLO Quality Gate, and Product quality workflows; new synchronized-head results must be checked separately. No merge or deployment performed. |
+| Evidence Matrix Studio | IMPLEMENTED LOCALLY | Project Evidence now supports an entered research question, real scholarly-index retrieval, adding source records to the private project Library, selecting only project-linked records, EYRA structured analysis of those records, editable AI draft fields kept separate from researcher notes, verified source links, CSV export, and explicit project save/reopen. Matrix JSON is written using the existing owner-scoped, version-checked Project API; this does not establish hosted RLS acceptance. |
+| Scientific integrity and accessibility tests | PASS LOCALLY | New tests cover selected-source prompt scope, rejection of fabricated/duplicate/missing source IDs and malformed rows, citation/link provenance in CSV, and spreadsheet formula escaping. Source-level accessibility tests cover labels, status/error announcements, safe links, responsive classes, and native keyboard-operable controls. |
+| `npm run check` | PASS LOCALLY | Imports, both TypeScript projects, ESLint, all Node tests, production build, and bundle budget passed for the local working tree. It is not hosted CI evidence. |
+| Browser E2E | BLOCKED BY EXECUTION ENVIRONMENT | The learning-browser E2E now includes search → project link → EYRA analysis → editable matrix save/reopen → CSV export at a 390px viewport. It could not launch because Playwright's Chromium executable is missing. The fixture test is not a hosted-browser or two-user RLS result. |
+| `npm run release:readiness` | NO-GO | Readiness checks remain blocked on exact-commit CI evidence and the hosted staging/privacy/UX/operations/owner-review evidence. This workflow is not release authorization. |
+
+### Required release blockers
+
+- Isolated Supabase staging and migration-history reconciliation.
+- Auth, persistence, and two-user RLS verification on staging; local fixtures do not prove hosted authorization.
+- Storage security and cross-user access verification.
+- Authenticated real-provider EYRA acceptance and scientific review of generated analyses.
+- Stripe test-mode billing lifecycle verification.
+- Owner approval after reviewing exact-commit hosted evidence.
+
+Production remains **NO-GO**. No live data, billing state, database, staging migration, or production deployment was changed in this execution.
+
+## Current release decision
+
+**NO-GO for commercial launch, private external pilots, live billing, or production schema changes.** The Vercel production deployment is READY and its source SHA matches the repository baseline, but a public read-only smoke request to scholarly discovery returned HTTP 429. Contact and billing are disabled. Staging identity, hosted two-account acceptance, migration-history reconciliation, and owner/legal review remain outstanding.
+
+## This execution increment
+
+| ID | Feature / outcome | State | Evidence and next action |
+|---|---|---|---|
+| P0-01 | Public production source provenance | PRODUCTION VERIFIED (metadata and public GET only) | Vercel returned READY deployment `dpl_Af3vmLQDRc8gHXs8D1EAVN6wmaqF` on `eyloai.vercel.app`, source SHA `c7b331454d54ca72486a799994c13ca7cbec4aeb`. Public `/release.json`, `/api/deployment-status`, and `/api/capabilities` each returned HTTP 200 and both manifests reported that SHA. This proves release identity, not private workflows. |
+| P0-02 | Scholarly discovery smoke | FAILED on observed production request | Public `openalex_works` smoke query returned HTTP 429. The deployed endpoint response was not retained in the probe report, so the exact upstream/quota subcause is unconfirmed. The local proxy change in this branch now sanitizes provider failures and emits stable codes; deploy and repeat one controlled request after review. |
+| P0-03 | Authentication, account isolation and private persistence | BLOCKED | No authorized staging URL or disposable signed-in browser state is configured. Run the documented two-account acceptance only against isolated staging. |
+| P0-04 | Migration history / database rollout | BLOCKED | `npm run db:review-plan` verified the local manifest (26 selected, 7 excluded, no local-plan issues) but reports remote history unverified and legacy timestamp risks. Reconcile hosted history and schema with the owner; do not apply SQL. |
+| P0-05 | EYRA live generation and scientific quality | PARTIAL / NOT STAGING VERIFIED | Public capability reports `ai: true`, which is configuration evidence only. No authenticated provider completion, claim-source review, or durable action was executed. |
+| P0-06 | Production security settings | BLOCKED | The latest hosted review records leaked-password protection disabled. It requires a Supabase administrator change and Security Advisor recheck. No production Auth setting was modified. |
+| P0-07 | Release governance | BLOCKED | The latest hosted review records `main` unprotected. This GitHub integration returned 403 for the branch-protection endpoint, so current rules could not be independently re-read here. An owner must configure required checks/review and verify enforcement. |
+| P1-01 | Provider failure handling | IMPLEMENTED LOCALLY | `api/discovery.js` now returns generic, uncached provider errors with stable codes and a bounded numeric `Retry-After`, rather than relaying untrusted provider error bodies. Regression tests cover redaction and 429 behavior. Not deployed. |
+| P1-02 | Public release probe diagnostics | IMPLEMENTED LOCALLY | `src/lib/deployment-probe.mjs` recognizes safe source error codes, including provider rate limiting, without retaining raw response bodies. Not deployed. |
+| P1-03 | Full local code quality | LOCALLY VERIFIED | `npm run check` passed after the changes: import check, both TypeScript projects, ESLint, all Node tests, Vite production build and bundle budget. The build emits existing large-chunk and mixed dynamic/static Supabase import warnings; it remains under the configured regression ceiling. |
+| P1-04 | Browser acceptance | BLOCKED BY EXECUTION ENVIRONMENT | `test:e2e:ux` requires `EYLO_E2E_BASE_URL` and an authorized `EYLO_E2E_STORAGE_STATE`. The landing and discovery-gateway tests could not find the Playwright Chromium executable. Careers could not launch `/usr/bin/chromium` because the sandbox denies its process socket (`Operation not permitted`). Product browser E2E also lacked Playwright Chromium. These are not product test passes or product failures. |
+| P2-01 | Local deployment configuration | BLOCKED / NOT CONFIGURED IN THIS WORKSPACE | `npm run config:check` reported the Supabase server keys, OpenAI, Resend and Stripe environment settings absent. This is a local environment diagnostic; no secret values were read or changed. |
+| P2-02 | Billing/contact operations | DISABLED | Public capabilities report `contact: false` and `billing: false`. Live payment or contact delivery was not attempted. |
+
+## Feature inventory and integration map
+
+The 77 product rows in `PRODUCT_IMPLEMENTATION_TRACKER.md` remain the per-feature execution records. The following repository artifacts are the source inventories for the other requested system classes:
+
+| Inventory | Source of truth | Current verification boundary |
+|---|---|---|
+| Frontend routes and screens | `src/App.jsx`, `docs/FULL_SITE_FUNCTIONAL_AUDIT.md`, `docs/eylo-2030-screen-inventory.md` | Static route/source inspection; authenticated browser acceptance incomplete |
+| Components and interactive workflows | `src/components/`, `src/pages/`, product rows in `docs/PRODUCT_IMPLEMENTATION_TRACKER.md` | Source and fixture tests; no full control-by-control hosted acceptance |
+| API endpoints and server services | `api/`, `server/`, `supabase/functions/` | Unit/API fixture coverage in `tests/`; hosted provider/auth behavior partial |
+| Tables, migrations and policies | `supabase/migrations/`, `docs/PRODUCTION_RLS_VERIFICATION_CHECKLIST.md`, `docs/EYRA_HOSTED_SCHEMA_PREFLIGHT.md` | Local SQL review and fixtures; hosted schema history and two-account acceptance blocked |
+| External providers and AI tools | `api/discovery.js`, `api/eyra.js`, `src/lib/product-registry.mjs`, `docs/EYRA_TOOL_REGISTRY.md` | Local contract tests; real provider reliability and authenticated EYRA completion unverified |
+| Billing, flags and environment dependencies | `api/billing.js`, `api/stripe-webhook.js`, `server/capabilities.js`, `.env.example` | Local gate tests; live Stripe remains disabled and staging credentials absent |
+| CI/CD and deployments | `.github/workflows/`, `vercel.json`, Vercel deployment metadata | Local `npm run check` passed; production SHA confirmed; branch rules and hosted functional behavior remain open |
+
+For the detailed lifecycle dependency map and safety boundaries, reuse [INTEGRATED_EYLO_EYRA_AUDIT_2026-11-18.md](INTEGRATED_EYLO_EYRA_AUDIT_2026-11-18.md), [PRIVACY_DATA_FLOW.md](PRIVACY_DATA_FLOW.md), [EYRA_AGENT_ARCHITECTURE.md](EYRA_AGENT_ARCHITECTURE.md), and [EYRA_ACTION_PERMISSION_MATRIX.md](EYRA_ACTION_PERMISSION_MATRIX.md).
+
+## Verification record
+
+| Check | Result | Notes |
+|---|---|---|
+| `npm ci` | PASS | Installed locked dependencies; no tracked lockfile change. |
+| `npm run check` (baseline) | PASS | 1,220 tests passed before this increment. |
+| `npm run check` (after changes) | PASS | Includes the new regression test; no failing test, typecheck, lint or build step. |
+| `npm run db:review-plan` | PASS, local-only | Local migration plan is internally consistent; not a remote migration authorization. |
+| `npm run release:readiness` | NO-GO | Evidence file does not establish current-commit staging, privacy, UX, operations or legal acceptance. |
+| `npm run release:probe` | PROBE FAILED | Provenance passed; discovery returned HTTP 429; contact and billing configuration are false. Probe is read-only except for one normal discovery-quota request. |
+| `npm run config:check` | CONFIGURATION INCOMPLETE | Workspace has no service credentials. |
+| Browser E2E | BLOCKED | Missing authorized storage state and unavailable/blocked browser runtime as detailed above. |
+
+## Existing report equivalents
+
+Do not duplicate these reports under new names. They remain the detailed audits for the corresponding areas:
+
+- Architecture: [INTEGRATED_EYLO_EYRA_AUDIT_2026-11-18.md](INTEGRATED_EYLO_EYRA_AUDIT_2026-11-18.md), [EYRA_AGENT_ARCHITECTURE.md](EYRA_AGENT_ARCHITECTURE.md)
+- Feature verification: [FULL_SITE_FUNCTIONAL_AUDIT.md](FULL_SITE_FUNCTIONAL_AUDIT.md), [PRODUCT_IMPLEMENTATION_TRACKER.md](PRODUCT_IMPLEMENTATION_TRACKER.md)
+- EYRA verification: [EYRA_PRODUCT_VERIFICATION_REPORT.md](EYRA_PRODUCT_VERIFICATION_REPORT.md), [EYRA_2030_EVIDENCE_RELEASE_GATE.md](EYRA_2030_EVIDENCE_RELEASE_GATE.md)
+- Security: [AUTHENTICATION_SECURITY_AUDIT.md](AUTHENTICATION_SECURITY_AUDIT.md), [PRODUCTION_RLS_VERIFICATION_CHECKLIST.md](PRODUCTION_RLS_VERIFICATION_CHECKLIST.md)
+- Database: [LEGACY_SCHEMA_REPAIR.md](LEGACY_SCHEMA_REPAIR.md), [EYRA_HOSTED_SCHEMA_PREFLIGHT.md](EYRA_HOSTED_SCHEMA_PREFLIGHT.md)
+- Scientific evaluation: [DISCOVERY_EVALUATION.md](DISCOVERY_EVALUATION.md), [quality/eylo-scientific-production-audit.md](quality/eylo-scientific-production-audit.md)
+- Billing: [LAUNCH_READINESS_GATE.md](LAUNCH_READINESS_GATE.md), `api/billing.js` and its sandbox tests
+- UX/accessibility: [PRODUCT_UX_AUDIT.md](PRODUCT_UX_AUDIT.md), [eylo-2030-usability-protocol.md](eylo-2030-usability-protocol.md)
+- Operations/release: [EYLO_HOSTED_GATE_REVIEW_2026-11-21.md](EYLO_HOSTED_GATE_REVIEW_2026-11-21.md), [LAUNCH_READINESS_GATE.md](LAUNCH_READINESS_GATE.md)
+- Company readiness: [EYLO_COMPANY_READINESS_2026-11-21.md](EYLO_COMPANY_READINESS_2026-11-21.md), [RESEARCH_VALIDATION_AND_PILOT.md](RESEARCH_VALIDATION_AND_PILOT.md)
+
+## Next tasks
+
+1. Review and merge the local provider-error hardening through the repository's normal PR checks.
+2. Deploy that reviewed commit only through the existing release process; rerun the public probe once and retain the safe source code/status.
+3. Obtain isolated staging Supabase identity, two disposable accounts, and an authorized browser storage state; execute auth, data isolation, Library, Project, EYRA, file, mobile and recovery workflows.
+4. Reconcile remote migration versions against reviewed SQL and actual schema without changing production history.
+5. Have the Supabase owner enable leaked-password protection, then retest Auth and Security Advisor.
+6. Have the repository owner enforce main branch review/check rules and confirm the rule blocks an intentionally failing PR.
+7. Keep contact, live payments, external pilot, and schema rollout disabled until their existing owner/legal gates pass.
