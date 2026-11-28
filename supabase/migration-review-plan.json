@@ -261,9 +261,9 @@
     },
     {
       "name": "20261128152000_auth_account_cascade_privileges.sql",
-      "sha256": "f900665cde3f37f3c13a318e2929f0af4248ed07ff45987d24d30957d729df4e",
+      "sha256": "e9dba2227d9876abfb91adf031e9dfb18ab13e563932aeebddcdd5fd72b16858",
       "classification": "canonical-local-replay",
-      "reason": "Grants Auth's internal deletion role only the DELETE privilege on public tables reachable by user cascade; no remote application approval is conveyed."
+      "reason": "Minimal supabase_auth_admin DELETE and FK-column UPDATE grants over public/storage Auth-user cascade edges; candidate-only and never applied to an observed hosted project."
     }
   ]
 }
