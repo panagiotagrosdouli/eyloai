@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 import { collectWorkspaceExport, fetchWorkspaceExportPage } from '../../src/lib/workspace-export.mjs';
 import systemHandler from '../../api/system.js';
 
+const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 const baseUrl = process.env.LOCAL_SUPABASE_URL;
 const publishableKey = process.env.LOCAL_SUPABASE_PUBLISHABLE_KEY;
 const secretKey = process.env.LOCAL_SUPABASE_SECRET_KEY;
@@ -312,6 +315,43 @@ try {
   assert.equal(messages.length, 2);
   assert.deepEqual(checkResult('Cross-account conversation read', await userB.from('eyra_conversations').select('id').eq('id', conversationId)), []);
   console.log('PASS: EYRA snapshot RPC persistence, ordered messages and cross-account conversation isolation.');
+
+  const runId = randomUUID();
+  checkResult('EYRA run ledger seed', await admin.from('eyra_agent_runs').insert({
+    id: runId,
+    user_id: idA,
+    request_id: randomUUID(),
+    request_hash: createHash('sha256').update(randomUUID()).digest('hex'),
+    input_preview: 'Synthetic local acceptance run',
+  }));
+  checkResult('EYRA action ledger seed', await admin.from('eyra_agent_actions').insert({
+    run_id: runId,
+    user_id: idA,
+    call_id: 'acceptance-read-only-search',
+    tool_name: 'research_search',
+    arguments_hash: createHash('sha256').update('synthetic query').digest('hex'),
+    status: 'succeeded',
+    outcome: { result_count: 0, synthetic: true },
+    finished_at: new Date().toISOString(),
+  }));
+  const runApi = spawnSync(process.execPath, ['scripts/integration/test-local-eyra-runs-api.mjs'], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    timeout: 30_000,
+    env: {
+      ...process.env,
+      API_URL: baseUrl,
+      ANON_KEY: publishableKey,
+      SERVICE_ROLE_KEY: secretKey,
+      EYLO_TEST_TOKEN_A: loginA.session.access_token,
+      EYLO_TEST_TOKEN_B: loginB.session.access_token,
+      EYLO_TEST_USER_A: idA,
+      EYLO_TEST_RUN_ID: runId,
+    },
+  });
+  assert.equal(runApi.status, 0, `EYRA run API acceptance failed: ${(runApi.stderr || runApi.stdout || '').slice(-1600)}`);
+  assert.match(runApi.stdout, /PASS: EYRA production API handler/);
+  console.log('PASS: EYRA run API list/detail/cancel/delete and cross-account denial against local Auth/PostgREST.');
 
   objectA = `${idA}/acceptance-${randomUUID()}.txt`;
   objectB = `${idB}/acceptance-${randomUUID()}.txt`;

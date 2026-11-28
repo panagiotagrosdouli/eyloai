@@ -6,6 +6,17 @@
 
 **Working branch:** `codex/eylo-local-supabase-stack-20261128` (continuation on current `main`; not merged or deployed)
 
+## Current production and staging evidence — 28 November 2026
+
+| Checkpoint | State | Evidence and limit |
+|---|---|---|
+| Production deployment | HOSTED_VERIFIED; RELEASE NO-GO | Vercel deployment `dpl_9roHjxRTLWfWfKARUnEzFsgzmrbX` is READY at exact main SHA `a12533fa4c39405cdbbaf245455ab0e2bbbd7ace`, alias `eyloai.vercel.app`. Read-only `/`, `/discover` and `/login` returned HTTP 200; this is not authenticated workflow acceptance. |
+| Production Supabase | BLOCKED BY 16 MISSING TABLES | Read-only inventory confirms 19 applied migration versions and 34 public tables, all listed with RLS. Missing: eyra_conversations, eyra_messages, eyra_agent_runs, eyra_agent_actions, grant_applications, meeting_participants, eylo_directory, eylo_teams, eylo_team_invites, eylo_team_members, eylo_connections, eylo_community_posts, eylo_peer_reviews, eylo_feedback, eylo_api_tokens, eylo_api_token_events. No migration was applied. |
+| Billing and AI capability | OBSERVED | Production `/api/capabilities` returns `ai=true` and `billing=false`; billing remains disabled. Missing database tables still make durable EYRA persistence unavailable. |
+| Hosted staging | BLOCKED BY FREE PROJECT CAP | Supabase rejected the authorized `eyloai-staging` create request in `panagiotagrosdouli's Org` / eu-north-1 at the Free two-project limit. `eyloai` is active; unrelated `job` remains inactive and untouched. Owner action: Supabase Dashboard → organization → Projects → New project in an isolated free-capacity organization/provider, or separately authorize paid capacity. No purchase is authorized. |
+| Consolidated acceptance candidate | IMPLEMENTED; EXACT-HEAD RUN REQUIRED | This candidate combines Auth cascade guards for four linked child tables, real two-account Auth/Storage/export/deletion checks, and the EYRA run API owner/cross-account tests. Exact-head disposable GitHub Actions must pass before release consideration. |
+
+Historical rows below retain prior evidence; current status above supersedes stale checkpoints.
 ## Full local Supabase acceptance continuation — 28 November 2026
 
 | Checkpoint | State | Evidence and limit |
