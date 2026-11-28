@@ -9,6 +9,19 @@ end $$;
 grant select, insert on pg_temp.learning_progress_test_fixture to authenticated, anon;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
+do $$ declare check_expression text; begin
+  select pg_get_expr(p.polwithcheck, p.polrelid)
+    into check_expression
+    from pg_policy p
+   where p.polname = 'Users manage own lesson progress'
+     and p.polrelid = 'public.learning_lesson_progress'::regclass;
+  perform pg_temp.check_learning(
+    check_expression is not null
+      and check_expression ~ 'l[.]course_id = learning_lesson_progress[.]course_id'
+      and check_expression !~ 'l[.]course_id = l[.]course_id',
+    'lesson progress write policy explicitly compares lesson and progress course IDs'
+  );
+end $$;
 insert into time_entries (user_id, description, project_id, life_task_id, started_at)
 values (auth.uid(), 'Canonical task timer', '10000000-0000-0000-0000-000000000001', (select id from life_tasks limit 1), now() - interval '1 hour');
 do $$ begin
