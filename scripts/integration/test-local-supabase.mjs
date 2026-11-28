@@ -288,7 +288,8 @@ try {
   const authBeforeDeletion = await fetch(`${baseUrl}/auth/v1/user`, {
     headers: { apikey: publishableKey, authorization: `Bearer ${refreshed.session.access_token}` },
   });
-  assert.equal(authBeforeDeletion.status, 200, `refreshed account remains authenticated before deletion: ${authBeforeDeletion.status}`);
+  const authError = authBeforeDeletion.ok ? null : await authBeforeDeletion.json().catch(() => ({}));
+  assert.equal(authBeforeDeletion.status, 200, `refreshed account remains authenticated before deletion: ${authBeforeDeletion.status} ${authError?.code || authError?.msg || authError?.message || 'no provider detail'}`);
   const begin = await callDeletion('POST', { action: 'begin', confirmation: 'DELETE MY EYLO ACCOUNT', password: passA }, refreshed.session.access_token);
   assert.equal(begin.code, 202, `deletion begin status ${begin.code}: ${begin.body?.error || 'unknown'}`);
   let completed = null;
