@@ -35,7 +35,7 @@ export const OPTIONAL_WORKSPACE_EXPORT_TABLES = Object.freeze([
   'eylo_directory', 'eylo_teams', 'eylo_team_invites',
   'eylo_team_members', 'eylo_connections', 'eylo_community_posts',
   'eylo_peer_submissions', 'eylo_peer_reviews', 'eylo_feedback',
-  'eylo_api_tokens',
+  'eylo_api_tokens', 'eylo_api_token_events',
 ]);
 
 function unavailableOptionalCollection(table, error) {

@@ -3,6 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { collectWorkspaceExport, fetchWorkspaceExportPage } from '../../src/lib/workspace-export.mjs';
 import systemHandler from '../../api/system.js';
+import eyraHandler from '../../api/eyra.js';
 
 const baseUrl = process.env.LOCAL_SUPABASE_URL;
 const publishableKey = process.env.LOCAL_SUPABASE_PUBLISHABLE_KEY;
@@ -34,6 +35,7 @@ process.env.EYLO_PRIVACY_DELETION_ENABLED = 'true';
 process.env.EYLO_PRIVACY_WORKER_SECRET = 'local-only-deletion-worker-secret-32-bytes-min';
 delete process.env.STRIPE_SECRET_KEY;
 delete process.env.STRIPE_WEBHOOK_SECRET;
+delete process.env.OPENAI_API_KEY;
 delete process.env.VERCEL_ENV;
 
 const originalFetch = globalThis.fetch;
@@ -191,6 +193,24 @@ try {
   assert.equal(checkResult('Logged-out session', await restored.auth.getSession()).session, null);
   assert.equal(checkResult('Account B remains signed in', await userB.auth.getUser()).user.id, idB);
   console.log('PASS: two-account signup, login, refresh, session restoration, logout and account switching.');
+
+  const accountAAfterSwitch = checkResult('Account A login after local session switch', await userA.auth.signInWithPassword({ email: emailA, password: passA }));
+  assert.equal(accountAAfterSwitch.user.id, idA);
+  assert.ok(accountAAfterSwitch.session?.access_token);
+  const capabilities = mockResponse();
+  await systemHandler({ method: 'GET', query: { endpoint: 'capabilities' }, headers: {} }, capabilities);
+  assert.equal(capabilities.code, 200);
+  assert.equal(capabilities.body?.ai, false, 'AI availability must be false when the provider credential is absent');
+  const eyraNoProvider = mockResponse();
+  await eyraHandler({
+    method: 'POST',
+    headers: { authorization: `Bearer ${accountAAfterSwitch.session.access_token}` },
+    body: { prompt: 'Disposable provider availability check; do not generate an answer.' },
+  }, eyraNoProvider);
+  assert.equal(eyraNoProvider.code, 503);
+  assert.equal(eyraNoProvider.body?.code, 'OPENAI_NOT_CONFIGURED');
+  assert.equal(eyraNoProvider.body?.text, undefined, 'EYRA must not return a fabricated response');
+  console.log('PASS: EYRA API authenticated against local Auth and reported unavailable without fabricating an AI answer.');
 
   const requiredTables = [
     'eyra_conversations', 'eyra_messages', 'eyra_agent_runs', 'eyra_agent_actions',

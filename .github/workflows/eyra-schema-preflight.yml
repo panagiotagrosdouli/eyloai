@@ -61,6 +61,8 @@ jobs:
           cache: npm
       - name: Install pinned dependencies
         run: npm ci --no-audit --no-fund
+      - name: Validate classified configuration and public-secret boundaries
+        run: npm run config:manifest
       - name: Install pinned Supabase CLI
         uses: supabase/setup-cli@v3
         with:
