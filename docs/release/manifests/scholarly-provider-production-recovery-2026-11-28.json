@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "scope": "sha-pinned scholarly coordination candidate for disposable replay only",
+  "production_application_authorized": false,
+  "candidate_migrations": [
+    {
+      "file": "20261128145000_scholarly_provider_coordination.sql",
+      "sha256": "aefd33f4589ec8201245e95611e11294de455cc745c6f082b2687c5166e69d53",
+      "classification": "disposable-replay-only",
+      "reason": "Validate the existing non-idempotent provider coordination migration on disposable PostgreSQL; production remains separately unauthorized."
+    }
+  ]
+}

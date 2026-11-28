@@ -17,6 +17,18 @@ test("gateway health codes are allowlisted and HTTP-bound without reflecting ups
   assert.equal(error.code, "DISCOVERY_RATE_LIMIT_UNAVAILABLE");
   assert.equal(error.status, 503);
   assert.equal(error.message.includes("secret"), false);
+  const coordinatorError = await discoveryGatewayError(
+    new Response(
+      JSON.stringify({
+        code: "PROVIDER_COORDINATION_UNAVAILABLE",
+        error: "private database detail",
+      }),
+      { status: 503, headers: { "content-type": "application/json" } },
+    ),
+  );
+  assert.equal(coordinatorError.code, "PROVIDER_COORDINATION_UNAVAILABLE");
+  assert.equal(coordinatorError.status, 503);
+  assert.equal(coordinatorError.message.includes("database"), false);
   const wrongStatus = await discoveryGatewayError(
     new Response('{"code":"DISCOVERY_RATE_LIMIT_UNAVAILABLE"}', {
       status: 401,
@@ -86,6 +98,25 @@ test("search reports a failed EYLO gateway separately from provider health and n
       formatUnavailableSource(result.source_status[0]),
       /OpenAlex is temporarily unavailable/,
     );
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
+
+test("provider-coordination outage is retained as an EYLO gateway failure for all paper indexes", async () => {
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(
+    JSON.stringify({ code: "PROVIDER_COORDINATION_UNAVAILABLE", error: "private database detail" }),
+    { status: 503, headers: { "content-type": "application/json" } },
+  );
+  try {
+    const result = await searchAllPapersWithStatus("sleep learning", { proxyBaseUrl: "https://gateway.example" });
+    assert.equal(result.papers.length, 0);
+    assert.equal(result.available_source_count, 0);
+    assert.equal(result.unavailable_source_count, 5);
+    assert.ok(result.source_status.every(source => source.error_code === "PROVIDER_COORDINATION_UNAVAILABLE" && source.error_status === 503));
+    assert.match(formatUnavailableSource(result.source_status[0]), /through EYLO’s research connection/);
+    assert.doesNotMatch(formatUnavailableSource(result.source_status[0]), /temporarily unavailable \(HTTP 503\)/);
   } finally {
     globalThis.fetch = previousFetch;
   }

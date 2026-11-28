@@ -123,9 +123,10 @@ try {
       status: phase === "limited" ? 429 : 503,
       contentType: "application/json",
       body: JSON.stringify({
-        code:
-          phase === "limited"
-            ? "DISCOVERY_RATE_LIMITED"
+        code: phase === "limited"
+          ? "DISCOVERY_RATE_LIMITED"
+          : phase === "coordination"
+            ? "PROVIDER_COORDINATION_UNAVAILABLE"
             : "DISCOVERY_RATE_LIMIT_UNAVAILABLE",
         error: "Private upstream information must not be displayed",
       }),
@@ -140,6 +141,17 @@ try {
       .getByText(/The scholarly paper indexes are temporarily unavailable/)
       .count(),
     0,
+  );
+  assert.equal(await page.getByText(/Private upstream information/).count(), 0);
+  phase = "coordination";
+  await page.reload();
+  await page
+    .getByText(/EYLO’s research connection is temporarily unavailable/)
+    .waitFor();
+  assert.equal(
+    await page.getByText(/The scholarly paper indexes are temporarily unavailable/).count(),
+    0,
+    "a shared provider-coordination outage must be attributed to EYLO's connection, not to the source indexes",
   );
   assert.equal(await page.getByText(/Private upstream information/).count(), 0);
   // A direct ?q= link still searches immediately, but visitors can now

@@ -119,6 +119,64 @@ function inspectDeletedAccountRows(userId) {
   const counts = output.split('|').map(value => Number(value));
   assert.deepEqual(counts, [0, 0, 0, 0, 0], 'all owner rows and Storage metadata must be removed');
 }
+function inspectScholarlyCoordinationBoundary() {
+  const projectName = path.basename(process.env.LOCAL_SUPABASE_PROJECT_DIR);
+  const databaseContainer = `supabase_db_${projectName}`;
+  const query = `select json_build_object(
+    'tables', (
+      select json_agg(json_build_object(
+        'name', c.relname,
+        'rls', c.relrowsecurity,
+        'policies', (select count(*) from pg_policies p where p.schemaname = 'public' and p.tablename = c.relname),
+        'privileged_roles', (
+          select coalesce(json_agg(json_build_object('role', r.rolname, 'privilege', privilege)), '[]'::json)
+          from pg_roles r
+          cross join unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER']::text[]) privilege
+          where r.rolname = any(array['anon','authenticated','service_role'])
+            and has_table_privilege(r.rolname, c.oid, privilege)
+        )
+      ) order by c.relname)
+      from pg_class c join pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = 'public' and c.relkind in ('r','p')
+        and c.relname = any(array['scholarly_provider_state','scholarly_provider_leases','scholarly_response_cache'])
+    ),
+    'functions', (
+      select json_agg(json_build_object(
+        'name', p.proname,
+        'security_definer', p.prosecdef,
+        'anon_execute', has_function_privilege('anon', p.oid, 'EXECUTE'),
+        'authenticated_execute', has_function_privilege('authenticated', p.oid, 'EXECUTE'),
+        'service_role_execute', has_function_privilege('service_role', p.oid, 'EXECUTE')
+      ) order by p.proname)
+      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'public' and p.proname = any(array[
+        'reserve_scholarly_provider_slot', 'finish_scholarly_provider_request',
+        'read_scholarly_provider_cache', 'write_scholarly_provider_cache'
+      ])
+    )
+  )::text;`;
+  const output = execFileSync('docker', [
+    'exec', databaseContainer, 'psql', '-U', 'postgres', '-qAt', '-v', 'ON_ERROR_STOP=1', '-c', query,
+  ], { encoding: 'utf8' }).trim();
+  const boundary = JSON.parse(output);
+  assert.deepEqual(
+    boundary.tables.map(table => table.name).sort(),
+    ['scholarly_provider_leases', 'scholarly_provider_state', 'scholarly_response_cache'],
+    'the complete scholarly coordination schema must exist in the disposable database',
+  );
+  for (const table of boundary.tables) {
+    assert.equal(table.rls, true, `${table.name} must have RLS enabled`);
+    assert.equal(table.policies, 0, `${table.name} must expose no direct row policies`);
+    assert.deepEqual(table.privileged_roles, [], `${table.name} must have no direct table privileges for API roles`);
+  }
+  assert.equal(boundary.functions.length, 4, 'all four scholarly coordination RPCs must exist');
+  for (const routine of boundary.functions) {
+    assert.equal(routine.security_definer, true, `${routine.name} must be SECURITY DEFINER`);
+    assert.equal(routine.anon_execute, false, `${routine.name} must not be executable by anon`);
+    assert.equal(routine.authenticated_execute, false, `${routine.name} must not be executable by authenticated users`);
+    assert.equal(routine.service_role_execute, true, `${routine.name} must be executable by service_role`);
+  }
+}
 function mockResponse() {
   return {
     code: 200, headers: {}, body: null,
@@ -151,6 +209,8 @@ try {
   console.log('PASS: local Supabase Auth, PostgREST and Storage endpoints are live on loopback.');
 
   const coordinationClients = Array.from({ length: 8 }, () => createClient(baseUrl, secretKey, clientOptions));
+  inspectScholarlyCoordinationBoundary();
+  console.log('PASS: scholarly coordination tables have RLS and no direct API-role grants; SECURITY DEFINER RPCs are service_role-only.');
   const sharedQuotaHash = createHash('sha256').update(randomUUID()).digest('hex');
   const sharedQuotas = await Promise.all(coordinationClients.map(client => client.rpc('consume_discovery_rate_limit', {
     p_subject_hash: sharedQuotaHash, p_limit: 3, p_window_seconds: 600,

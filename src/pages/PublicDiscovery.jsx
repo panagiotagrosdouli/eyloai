@@ -190,7 +190,7 @@ export default function PublicDiscovery() {
       setData(nextData);
       if (!totalRecords) {
         const paperStatuses = nextSourceStatus.filter(source => PAPER_INDEX_SOURCE_IDS.includes(source.id));
-        if (paperStatuses.length === PAPER_INDEX_SOURCE_IDS.length && paperStatuses.every(source => 'error_code' in source && source.error_code === 'DISCOVERY_RATE_LIMIT_UNAVAILABLE')) {
+        if (paperStatuses.length === PAPER_INDEX_SOURCE_IDS.length && paperStatuses.every(source => 'error_code' in source && ['DISCOVERY_RATE_LIMIT_UNAVAILABLE', 'PROVIDER_COORDINATION_UNAVAILABLE'].includes(source.error_code))) {
           setError('EYLO’s research connection is temporarily unavailable. Please try again later. This does not establish that the scholarly sources themselves are unavailable.');
         } else if (paperStatuses.length === PAPER_INDEX_SOURCE_IDS.length && paperStatuses.every(source => 'error_code' in source && source.error_code === 'DISCOVERY_RATE_LIMITED')) {
           setError('EYLO’s search request limit has been reached. Please wait before retrying.');
