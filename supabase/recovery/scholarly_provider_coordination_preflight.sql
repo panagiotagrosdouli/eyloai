@@ -26,7 +26,7 @@ expected_functions(function_name, identity_args, result_type, default_arg_count)
  ('write_scholarly_provider_cache','text, text, text, text, integer','boolean',0)
 ),
 table_inventory as (
- select e.*,c.oid,c.relrowsecurity,c.relforcerowsecurity,
+ select e.*,c.oid,c.relkind,c.relrowsecurity,c.relforcerowsecurity,
   coalesce((select jsonb_object_agg(a.attname,jsonb_build_object(
    'type',format_type(a.atttypid,a.atttypmod),'not_null',a.attnotnull,
    'default',pg_get_expr(d.adbin,d.adrelid)) order by a.attnum)
@@ -38,12 +38,12 @@ table_inventory as (
    from pg_indexes ix where ix.schemaname='public' and ix.tablename=e.table_name),'[]'::jsonb) actual_index_names,
   coalesce((select jsonb_agg(jsonb_build_object('name',ix.indexname,'definition',ix.indexdef) order by ix.indexname)
    from pg_indexes ix where ix.schemaname='public' and ix.tablename=e.table_name),'[]'::jsonb) indexes,
-  coalesce((select jsonb_agg(r.rolname order by r.rolname) from pg_roles r
+  coalesce((select jsonb_agg(jsonb_build_object('policy',p.policyname,'roles',p.roles,'command',p.cmd,'using',p.qual,'with_check',p.with_check) order by p.policyname) from pg_policies p where p.schemaname='public' and p.tablename=e.table_name),'[]'::jsonb) policies,\n  coalesce((select jsonb_agg(r.rolname order by r.rolname) from pg_roles r
    where r.rolname in ('anon','authenticated','service_role')
     and has_table_privilege(r.rolname,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')),'[]'::jsonb) direct_granted_roles,
   coalesce((select bool_or(x.grantee=0) from aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) x),false) public_has_table_grant
  from expected_tables e
- left join pg_class c on c.relnamespace='public'::regnamespace and c.relname=e.table_name and c.relkind='r'
+ left join pg_class c on c.relnamespace='public'::regnamespace and c.relname=e.table_name
 ),
 table_checks as (
  select t.*,
@@ -78,11 +78,11 @@ reports as (
  select jsonb_build_object('name',table_name,
   'status',case when oid is null then 'MISSING'
    when jsonb_array_length(type_mismatches)>0 or jsonb_array_length(extra_columns)>0 or relrowsecurity is distinct from true
-    or jsonb_array_length(direct_granted_roles)>0 or public_has_table_grant then 'INCOMPATIBLE'
+    or jsonb_array_length(direct_granted_roles)>0 or public_has_table_grant or jsonb_array_length(policies)>0 then 'INCOMPATIBLE'
    when jsonb_array_length(missing_columns)>0 or jsonb_array_length(missing_constraints)>0 or jsonb_array_length(missing_indexes)>0 then 'PARTIAL'
    else 'PRESENT_REQUIRES_DEFINITION_REVIEW' end,
   'missing_columns',missing_columns,'type_mismatches',type_mismatches,'extra_columns',extra_columns,
-  'columns_and_defaults',actual_columns,'rls_enabled',relrowsecurity,'force_rls',relforcerowsecurity,
+  'relation_kind',relkind,'columns_and_defaults',actual_columns,'rls_enabled',relrowsecurity,'force_rls',relforcerowsecurity,'policies',policies,
   'missing_constraint_names',missing_constraints,'constraint_definitions',constraints,
   'missing_index_names',missing_indexes,'indexes',indexes,
   'roles_with_direct_table_privileges',direct_granted_roles,'public_has_table_grant',public_has_table_grant
