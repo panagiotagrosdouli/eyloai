@@ -10,6 +10,10 @@ begin
     raise exception 'Supabase Auth database role is unavailable';
   end if;
 
+  -- FK actions resolve relation names in application schemas. USAGE reveals
+  -- no table contents and CREATE remains explicitly ungranted.
+  execute 'grant usage on schema public, storage to supabase_auth_admin';
+
   for select_target in
     with recursive cascade_tables(table_oid) as (
       select constraint_row.conrelid

@@ -268,7 +268,7 @@
     },
     {
       "name": "20261128170000_auth_account_cascade_key_reads.sql",
-      "sha256": "abe5f64b6576fc50da8b1a1c5370e2592cad645deaea020ac0e93c1f17be9550",
+      "sha256": "3adc70558e34b5d0f60f4f37624a93c7f45d9047e8ed501cf6957702a017c324",
       "classification": "canonical-local-replay",
       "reason": "Column-only SELECT privileges for Auth FK cascade key checks; disposable Supabase acceptance only, no remote application approval."
     }

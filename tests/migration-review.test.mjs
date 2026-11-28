@@ -138,7 +138,8 @@ test("Auth cascade key-read migration grants SELECT only on foreign-key columns"
   assert.match(source, /confrelid = 'auth\.users'::regclass/i);
   assert.match(source, /foreign_key\.conkey/);
   assert.match(source, /grant select \(%s\) on table %s to supabase_auth_admin/i);
-  assert.doesNotMatch(source, /grant select on table|grant all/i);
+  assert.match(source, /grant usage on schema public, storage to supabase_auth_admin/i);
+  assert.doesNotMatch(source, /grant select on table|grant all|grant create/i);
 });
 test("changed SQL and new unreviewed files fail manifest verification", () => {
   const name = plan.canonical_local_order[0];

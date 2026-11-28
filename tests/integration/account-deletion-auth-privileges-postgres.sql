@@ -10,6 +10,12 @@ begin
   if not has_table_privilege('supabase_auth_admin', 'public.eyra_messages', 'DELETE') then
     raise exception 'Auth cascade role cannot delete nested EYRA rows';
   end if;
+  if not has_schema_privilege('supabase_auth_admin', 'public', 'USAGE')
+     or not has_schema_privilege('supabase_auth_admin', 'storage', 'USAGE')
+     or has_schema_privilege('supabase_auth_admin', 'public', 'CREATE')
+     or has_schema_privilege('supabase_auth_admin', 'storage', 'CREATE') then
+    raise exception 'Auth role needs only schema usage for cascade FK resolution';
+  end if;
   select format('%s.%I', foreign_key.conrelid::regclass, column_info.attname)
   into missing_key
   from pg_catalog.pg_constraint as foreign_key
