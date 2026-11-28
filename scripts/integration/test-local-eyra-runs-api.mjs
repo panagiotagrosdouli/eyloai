@@ -24,6 +24,7 @@ assert(['127.0.0.1', 'localhost', '::1'].includes(target.hostname) && target.por
 process.env.VITE_SUPABASE_URL = 'https://eylo-local-integration.supabase.co';
 process.env.SUPABASE_PUBLISHABLE_KEY = anonKey;
 process.env.SUPABASE_ANON_KEY = anonKey;
+process.env.VITE_SUPABASE_ANON_KEY = anonKey;
 process.env.SUPABASE_SECRET_KEY = serviceKey;
 process.env.SUPABASE_SERVICE_ROLE_KEY = serviceKey;
 process.env.EYRA_DURABLE_RUNS_ENABLED = 'true';
@@ -57,8 +58,12 @@ async function invoke(method, token, { id, action } = {}) {
   return response;
 }
 
+const authProbe = await fetch('https://eylo-local-integration.supabase.co/auth/v1/user', {
+  headers: { apikey: anonKey, authorization: 'Bearer ' + tokenA }, cache: 'no-store',
+});
+assert.equal(authProbe.status, 200, `Disposable Auth token validation failed (${authProbe.status})`);
 const listA = await invoke('GET', tokenA);
-assert.equal(listA.code, 200);
+assert.equal(listA.code, 200, JSON.stringify(listA.payload));
 assert.equal(listA.payload.runs.length, 1);
 assert.equal(listA.payload.runs[0].id, runId);
 const detailA = await invoke('GET', tokenA, { id: runId });
