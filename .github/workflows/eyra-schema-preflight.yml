@@ -17,6 +17,7 @@ on:
       - 'server/scholarly-provider-coordination.mjs'
       - 'server/scholarly-resilience.mjs'
       - 'tests/eyra-schema-readiness.test.mjs'
+      - 'tests/integration/account-deletion-auth-privileges-postgres.sql'
       - 'api/system.js'
       - 'server/account-deletion.js'
       - 'server/supabase-config.mjs'
