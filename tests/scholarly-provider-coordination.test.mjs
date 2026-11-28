@@ -155,3 +155,39 @@ test('Vercel duplicate requests wait briefly for the shared result instead of co
     for (const [key, value] of Object.entries(originalEnv)) value === undefined ? delete process.env[key] : process.env[key] = value;
   }
 });
+
+
+test('hosted provider lease performs one upstream attempt and publishes normalized cooldown', async () => {
+  const originalFetch = globalThis.fetch;
+  const originalEnv = { VERCEL: process.env.VERCEL, VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY };
+  Object.assign(process.env, env());
+  scholarlyResilience.reset();
+  let upstreamCalls = 0;
+  let completion;
+  globalThis.fetch = async (input, options) => {
+    const url = new URL(typeof input === 'string' ? input : input.url);
+    if (url.hostname === 'api.openalex.org') {
+      upstreamCalls++;
+      return new Response('{}', { status: 429, headers: { 'Retry-After': '0.5' } });
+    }
+    const name = rpcName(input);
+    if (name === 'consume_discovery_rate_limit') return Response.json([{ allowed: true, remaining: 9, retry_after_seconds: 0 }]);
+    if (name === 'read_scholarly_provider_cache') return Response.json([]);
+    if (name === 'reserve_scholarly_provider_slot') return Response.json([{ allowed: true, status: 'acquired', retry_after_seconds: 0, lease_id: '00000000-0000-4000-8000-000000000001' }]);
+    if (name === 'finish_scholarly_provider_request') { completion = JSON.parse(options.body); return Response.json(true); }
+    throw new Error('unexpected request ' + name);
+  };
+  try {
+    const res = response();
+    await handler({ method: 'GET', headers: { 'x-vercel-forwarded-for': '198.51.100.10' }, query: { provider: 'openalex_works', q: 'synthetic cooldown regression' } }, res);
+    assert.equal(upstreamCalls, 1);
+    assert.equal(res.statusCode, 429);
+    assert.equal(res.headers['retry-after'], '1');
+    assert.equal(completion.p_status, 429);
+    assert.equal(completion.p_retry_after_seconds, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+    scholarlyResilience.reset();
+    for (const [key, value] of Object.entries(originalEnv)) value === undefined ? delete process.env[key] : process.env[key] = value;
+  }
+});

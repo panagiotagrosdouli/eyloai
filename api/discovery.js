@@ -258,7 +258,7 @@ export default async function handler(request, response) {
         'user-agent': 'EYLO scholarly discovery proxy',
         ...providerHeaders(provider),
       },
-    }, { retryWithoutHeader: true, baseDelayMs: providerGapMs, maxAttempts: 3 });
+    }, { retryWithoutHeader: !distributed, baseDelayMs: providerGapMs, maxAttempts: distributed ? 1 : 3 });
 
     const body = await readBoundedScholarlyResponse(upstream);
     // A source outage or bot challenge can answer HTTP 200 with an HTML page.
@@ -297,7 +297,7 @@ export default async function handler(request, response) {
         console.warn('EYLO_SCHOLARLY_CACHE_WRITE_FAILED', { provider: providerGroup });
       }
     }
-    return { status: upstream.status, body, retryAfter, contentType, cacheable };
+    return { status: upstream.status, body, retryAfter: retryAfterSeconds > 0 ? String(retryAfterSeconds) : null, contentType, cacheable };
     } finally {
       if (distributed && reservation?.allowed) {
         await scholarlyProviderCoordinator.finish({
