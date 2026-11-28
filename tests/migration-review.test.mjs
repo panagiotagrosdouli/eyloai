@@ -139,9 +139,19 @@ test("Auth cascade key-read migration grants SELECT only on foreign-key columns"
   assert.match(source, /foreign_key\.conkey/);
   assert.match(source, /grant select \(%I\) on table %s to supabase_auth_admin/i);
   assert.match(source, /grant usage on schema public, storage to supabase_auth_admin/i);
-  assert.match(source, /grant select \\(owner_id\\) on table storage\\.objects to supabase_auth_admin/i);
-  assert.match(source, /owner_fk\\.confrelid = 'auth\\.users'::regclass/i);
+  assert.match(source, /execute 'grant select \(owner_id\) on table storage\.objects to supabase_auth_admin'/i);
+  assert.match(source, /owner_fk[.]confrelid = 'auth[.]users'::regclass/i);
   assert.doesNotMatch(source, /grant select on table|grant all|grant create/i);
+});
+test("Auth deletion skips only redundant project-unlink updates", () => {
+  const source = readFileSync(
+    new URL("../supabase/migrations/20261128180000_auth_cascade_skip_project_unlink.sql", import.meta.url),
+    "utf8",
+  );
+  assert.equal((source.match(/if current_user = 'supabase_auth_admin' then/g) ?? []).length, 4);
+  assert.equal((source.match(/security invoker/g) ?? []).length, 4);
+  assert.match(source, /unlink_deleted_project_flashcard_decks/);
+  assert.doesNotMatch(source, /grant (?:all|update|delete)|security definer/i);
 });
 test("changed SQL and new unreviewed files fail manifest verification", () => {
   const name = plan.canonical_local_order[0];
