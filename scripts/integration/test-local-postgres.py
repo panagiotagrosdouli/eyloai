@@ -30,6 +30,7 @@ BOOTSTRAP = '''
 create role anon nologin;
 create role authenticated nologin;
 create role service_role nologin bypassrls;
+create role supabase_auth_admin nologin;
 create schema auth;
 create table auth.users (id uuid primary key, raw_app_meta_data jsonb not null default '{}'::jsonb, banned_until timestamptz);
 create table auth.sessions(id uuid primary key,user_id uuid not null references auth.users(id) on delete cascade);
@@ -100,6 +101,8 @@ try:
                 sql((ROOT / 'supabase/migrations' / name).read_text())  # Idempotent replay preserves rows.
                 sql((ROOT / 'tests/integration/legacy-schema-postgres.sql').read_text())
                 print('PASS: legacy content/timestamps/trigger states preserved, bidirectional writes, canonical profile upsert and unchanged RLS isolation.', flush=True)
+        sql((ROOT / 'tests/integration/account-deletion-auth-privileges-postgres.sql').read_text())
+        print('PASS: Auth cascade role has only required DELETE privileges on user-owned cascade tables.', flush=True)
     sql((ROOT / 'tests/integration/workspace-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/learning-time-postgres.sql').read_text())
     sql((ROOT / 'tests/integration/timer-pauses-postgres.sql').read_text())

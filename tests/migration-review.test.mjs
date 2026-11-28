@@ -115,6 +115,20 @@ test("provider coordination migration shares atomic leases and cache while hidin
   assert.match(source, /if cache_rows > 10000 then/);
   assert.doesNotMatch(source, /query text|research_query/i);
 });
+test("Auth deletion role receives only DELETE on the recursive user cascade graph", () => {
+  const source = readFileSync(
+    new URL("../supabase/migrations/20261128152000_auth_account_cascade_privileges.sql", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /with recursive cascade_tables/i);
+  assert.match(source, /confrelid = 'auth\.users'::regclass/i);
+  assert.match(source, /confdeltype = 'c'/i);
+  assert.match(source, /connamespace = 'public'::regnamespace/i);
+  assert.match(source, /grant delete on table %s to supabase_auth_admin/i);
+  assert.match(source, /confdeltype = 'n'/i);
+  assert.match(source, /grant update \(%s\) on table %s to supabase_auth_admin/i);
+  assert.doesNotMatch(source, /grant (?:all|select|insert) on table|grant update on table/i);
+});
 test("changed SQL and new unreviewed files fail manifest verification", () => {
   const name = plan.canonical_local_order[0];
   assert.equal(
