@@ -285,8 +285,12 @@ try {
   const deletionStatus = await callDeletion('GET');
   assert.equal(deletionStatus.code, 200);
   assert.equal(deletionStatus.body.available, true);
+  const authBeforeDeletion = await fetch(`${baseUrl}/auth/v1/user`, {
+    headers: { apikey: publishableKey, authorization: `Bearer ${refreshed.session.access_token}` },
+  });
+  assert.equal(authBeforeDeletion.status, 200, `refreshed account remains authenticated before deletion: ${authBeforeDeletion.status}`);
   const begin = await callDeletion('POST', { action: 'begin', confirmation: 'DELETE MY EYLO ACCOUNT', password: passA }, refreshed.session.access_token);
-  assert.equal(begin.code, 202, `deletion begin status ${begin.code}`);
+  assert.equal(begin.code, 202, `deletion begin status ${begin.code}: ${begin.body?.error || 'unknown'}`);
   let completed = null;
   for (let attempt = 0; attempt < 5; attempt++) {
     completed = await callDeletion('POST', { action: 'resume', receipt_token: begin.body.receipt_token });

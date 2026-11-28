@@ -134,6 +134,11 @@ try:
         raise AssertionError('Export registry contains an invalid table identifier')
     private_tables = json.loads(subprocess.check_output(['node', '--input-type=module', '-e',
         "import { PRIVATE_WORKSPACE_EXPORT_TABLES } from './src/lib/workspace-export.mjs'; process.stdout.write(JSON.stringify(PRIVATE_WORKSPACE_EXPORT_TABLES));"], cwd=ROOT, text=True))
+    if bundle_replay:
+        # The read-only hosted snapshot predates this additive table; canonical
+        # replay verifies it separately in its own migration-specific fixture.
+        export_tables = [table for table in export_tables if table != 'eylo_api_token_events']
+        private_tables = [table for table in private_tables if table != 'eylo_api_token_events']
     private_list = ','.join("'" + table + "'" for table in private_tables)
     export_list = ','.join("'" + table + "'" for table in export_tables)
     sql("""

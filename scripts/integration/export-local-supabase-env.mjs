@@ -23,6 +23,11 @@ if (parsed.protocol !== 'http:' || !['127.0.0.1', 'localhost', '::1'].includes(p
 if (process.env.SUPABASE_ACCESS_TOKEN || process.env.SUPABASE_PROJECT_REF || process.env.SUPABASE_DB_PASSWORD) {
   throw new Error('Remote Supabase credentials/refs must not be present in the local acceptance job.');
 }
+// Runner step summaries can display exported environment values. Register the
+// disposable local keys and connection string with the Actions masker first.
+for (const value of [publishable, secret, values.get('DB_URL')].filter(Boolean)) {
+  console.log(`::add-mask::${value}`);
+}
 const lines = [
   `LOCAL_SUPABASE_URL=${apiUrl}`,
   `LOCAL_SUPABASE_PUBLISHABLE_KEY=${publishable}`,
