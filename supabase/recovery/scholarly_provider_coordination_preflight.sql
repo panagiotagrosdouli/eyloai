@@ -78,7 +78,7 @@ reports as (
  select jsonb_build_object('name',table_name,
   'status',case when oid is null then 'MISSING'
    when jsonb_array_length(type_mismatches)>0 or jsonb_array_length(extra_columns)>0 or relrowsecurity is distinct from true
-    or cardinality(direct_granted_roles)>0 or public_has_table_grant then 'INCOMPATIBLE'
+    or jsonb_array_length(direct_granted_roles)>0 or public_has_table_grant then 'INCOMPATIBLE'
    when jsonb_array_length(missing_columns)>0 or jsonb_array_length(missing_constraints)>0 or jsonb_array_length(missing_indexes)>0 then 'PARTIAL'
    else 'PRESENT_REQUIRES_DEFINITION_REVIEW' end,
   'missing_columns',missing_columns,'type_mismatches',type_mismatches,'extra_columns',extra_columns,
