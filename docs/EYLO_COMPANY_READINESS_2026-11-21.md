@@ -1,4 +1,6 @@
-# EYLO company readiness | 21 November 2026
+# EYLO company readiness | 22 November 2026
+
+_Assessment sections A–I retain their 21 November review; sections J–K were added on 22 November. This update does not revalidate the earlier business, pricing, legal or customer assumptions._
 
 ## A. Company readiness
 
@@ -94,3 +96,36 @@ The existing public `/start` guide links directly to pricing availability and co
 ## I. Launch decision
 
 **NO-GO for commercial launch and private external pilots today.** Require current deployment provenance, secure hosted auth and two-account persistence, a verified support channel, restoration and deletion evidence, accessible completion of the core research task, accurate public claims and approved data handling. A paid launch additionally requires concrete procurement signals, verified costs, legal terms, and explicitly approved payment, webhook, entitlement, cancellation and refund acceptance. Internal public-data testing and consented discovery interviews can proceed through approved channels.
+
+
+## J. Evidence-safe investor pitch outline
+
+This is a draft narrative structure, not a claim of traction or an investment offer. Keep the claims below tied to measured evidence and update the evidence slide before sharing externally.
+
+1. **Mission:** EYLO — From Evidence to Action. Help researchers carry verified scholarly sources into organized research work.
+2. **Problem hypothesis:** Literature discovery, source checking and project decisions are split across tools; measure the time and rework cost in real researcher interviews before quantifying this problem.
+3. **Product:** Show the intended source-to-workspace journey: search, open the original record, inspect evidence, save a source, link it to a project, and reopen/export it. Present EYRA's synthesis and proposed writes as AI-assisted and subject to source review and user approval.
+4. **Who it serves first:** Test PhD/postdoctoral champions and small research groups with a recurring literature-to-project task and a reachable PI/lab budget owner. This is an ICP hypothesis, not an acquired-customer profile.
+5. **Why EYLO may be distinct:** Test whether source provenance plus continuity from a paper to a project decision is more useful than stand-alone search, chat or reference storage. Use the shared task comparison in section B; do not claim superiority without blinded comparative results.
+6. **Business model:** Test individual and team packaging, free exploration, and monthly versus annual commitment. Set no externally validated price until willingness-to-pay interviews and measured AI/provider/support costs are available.
+7. **Evidence today:** The public discovery gateway returned one OpenAlex record; repository Build, Product quality and EYLO Quality Gate passed on the reviewed PR head. Hosted account isolation, EYRA durable persistence, human-judged scientific quality and customer demand remain unverified. State the current NO-GO gate plainly.
+8. **Validation plan:** Recruit consenting researchers; observe real tasks using public or approved data; measure task completion, time, source verification, seven-day return and concrete buying signals. Do not imply that the planned cohort already exists.
+9. **Risks and mitigations:** Resolve recoverability and staging first; prove two-account isolation and EYRA persistence; measure evidence support and cost; complete privacy/legal/support review before an external pilot.
+10. **Ask and use of funds:** Leave amount and investor terms blank until the owner supplies a real budget and financing strategy. If funding is pursued, allocate against the verified plan: staging/recovery and security, scientific evaluation, pilot support, and measured infrastructure. No revenue, valuation, customer count or partnership claim is asserted here.
+
+## K. Operational responsibility matrix
+
+Named owners have not been assigned in the reviewed repository. The matrix identifies roles that must be assigned before a pilot or paid launch; it is not a delegation of legal authority.
+
+| Work area | Responsible role | Decision or approval boundary | Current state |
+|---|---|---|---|
+| Product scope and release gates | Founder/product owner | Approves product claims, pilot scope and release decision | Role identified; named owner evidence not recorded |
+| Application and integrations | Engineering lead | Implements, reviews, tests and records technical changes | Repository code and CI exist; local owner/checkout not supplied in this execution |
+| Database recovery and migration | Engineering lead with database operator | Verifies backup/restore and staging; production DDL waits for recovery evidence and explicit rollout review | Recovery evidence missing; production migration blocked |
+| Scientific evaluation | Independent scientific reviewer | Reviews source-to-claim support, relevance judgments and limitations | Reviewer and human-judged results not recorded |
+| Privacy, security and legal | Privacy/security owner with qualified counsel | Reviews data handling, retention, notices, processor terms and jurisdiction-specific obligations | Owner, review and approval not recorded |
+| Billing and finance | Finance owner with founder | Verifies actual costs, taxes, pricing, test billing and refunds; separately approves any live payment activation | Costs and pricing are illustrative; billing disabled |
+| Customer support and incidents | Named support/on-call owner | Owns response channel, triage, deletion requests and incident escalation | Contact/support capability disabled; owner not recorded |
+| Pilot operations | Pilot lead | Obtains consent, limits collection, handles participant exit/deletion and records task outcomes | Pilot not started; no participants claimed |
+
+**Pricing test rule:** Present at least two clearly labeled experimental offers to qualified buyers, record role, task, budget authority and commitment evidence, and compare individual versus team packaging. Do not change production pricing or activate checkout from interview feedback alone; require verified unit costs, legal review, test-mode billing acceptance and explicit owner approval.
