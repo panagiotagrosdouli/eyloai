@@ -13,6 +13,8 @@ on:
       - 'scripts/integration/test-local-supabase.mjs'
       - 'scripts/integration/print-local-auth-failure.mjs'
       - 'tests/scholarly-provider-coordination.test.mjs'
+      - 'scripts/integration/test-scholarly-provider-recovery.mjs'
+      - 'supabase/recovery/scholarly_provider_coordination_preflight.sql'
       - 'api/discovery.js'
       - 'server/scholarly-provider-coordination.mjs'
       - 'server/scholarly-resilience.mjs'
@@ -76,7 +78,7 @@ jobs:
           printf 'LOCAL_SUPABASE_PROJECT_DIR=%s\n' "$local_project" >> "$GITHUB_ENV"
           cd "$local_project"
           supabase init
-          node "$GITHUB_WORKSPACE/scripts/integration/prepare-local-supabase-project.mjs" "$local_project"
+          node "$GITHUB_WORKSPACE/scripts/integration/prepare-local-supabase-project.mjs" "$local_project" --defer-scholarly-coordination
       - name: Start the complete disposable Supabase stack
         working-directory: ${{ runner.temp }}/eyloai-local-supabase
         run: supabase start
@@ -89,6 +91,8 @@ jobs:
           supabase db query --file "$GITHUB_WORKSPACE/tests/integration/account-deletion-auth-privileges-postgres.sql" --output json
       - name: Export local-only service endpoints without printing generated keys
         run: node scripts/integration/export-local-supabase-env.mjs
+      - name: Execute exact scholarly coordination recovery and PostgREST acceptance
+        run: node scripts/integration/test-scholarly-provider-recovery.mjs "$RUNNER_TEMP/eyloai-local-supabase"
       - name: Exercise real local Auth, PostgREST, Storage, RLS, export, and deletion
         run: node scripts/integration/test-local-supabase.mjs
       - name: Print sanitized disposable Auth/PostgreSQL failure context
