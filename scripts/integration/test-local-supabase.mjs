@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 import { collectWorkspaceExport, fetchWorkspaceExportPage } from '../../src/lib/workspace-export.mjs';
 import systemHandler from '../../api/system.js';
@@ -95,6 +97,24 @@ let objectB;
 function checkResult(label, result) {
   if (result.error) throw new Error(`${label}: ${result.error.message || result.error.code || 'request failed'}`);
   return result.data;
+}
+function inspectDeletedAccountRows(userId) {
+  assert.match(userId, /^[0-9a-f-]{36}$/i, 'database verification accepts only a generated UUID');
+  const projectName = path.basename(process.env.LOCAL_SUPABASE_PROJECT_DIR);
+  const databaseContainer = `supabase_db_${projectName}`;
+  const query = `select
+    (select count(*) from public.projects where user_id = '${userId}'::uuid)::text || '|' ||
+    (select count(*) from public.study_flashcard_decks where user_id = '${userId}'::uuid)::text || '|' ||
+    (select count(*) from public.eyra_conversations where user_id = '${userId}'::uuid)::text || '|' ||
+    (select count(*) from public.eylo_api_token_events where user_id = '${userId}'::uuid)::text || '|' ||
+    (select count(*) from storage.objects object_row where
+      coalesce(to_jsonb(object_row)->>'owner_id', '') = '${userId}' or
+      (object_row.bucket_id = 'eylo-files' and split_part(object_row.name, '/', 1) = '${userId}'));`;
+  const output = execFileSync('docker', [
+    'exec', databaseContainer, 'psql', '-U', 'postgres', '-qAt', '-v', 'ON_ERROR_STOP=1', '-c', query,
+  ], { encoding: 'utf8' }).trim();
+  const counts = output.split('|').map(value => Number(value));
+  assert.deepEqual(counts, [0, 0, 0, 0, 0], 'all owner rows and Storage metadata must be removed');
 }
 function mockResponse() {
   return {
@@ -344,10 +364,7 @@ try {
   assert.equal(completed.body.phase, 'complete');
   const deletedUser = await admin.auth.admin.getUserById(idA);
   assert.ok(deletedUser.error, 'deleted Auth account must be absent');
-  assert.deepEqual(checkResult('Deleted account project cleanup', await admin.from('projects').select('id').eq('user_id', idA)), []);
-  assert.deepEqual(checkResult('Deleted account flashcard cleanup', await admin.from('study_flashcard_decks').select('id').eq('user_id', idA)), []);
-  assert.deepEqual(checkResult('Deleted account conversation cleanup', await admin.from('eyra_conversations').select('id').eq('user_id', idA)), []);
-  assert.deepEqual(checkResult('Deleted account token audit cleanup', await admin.from('eylo_api_token_events').select('id').eq('user_id', idA)), []);
+  inspectDeletedAccountRows(idA);
   assert.deepEqual(checkResult('Deleted account Storage cleanup', await admin.storage.from('eylo-files').list(idA)), []);
   assert.equal(checkResult('Other Auth account retained', await admin.auth.admin.getUserById(idB)).user.id, idB);
   assert.equal(checkResult('Other account project retained', await userB.from('projects').select('id').eq('id', projectB.id).single()).id, projectB.id);
