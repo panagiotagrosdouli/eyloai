@@ -115,7 +115,8 @@ def verify_scholarly_recovery_atomicity_and_restore():
     sql_database(atomicity_db, "set role service_role; select public.write_scholarly_provider_cache(repeat('f',64),'crossref','{\"synthetic\":true}','application/json',300); reset role;")
     backup = subprocess.check_output([*DOCKER, 'exec', NAME, 'pg_dump', '-U', 'postgres', '-Fc', atomicity_db], env=ENV)
     subprocess.run([*DOCKER, 'exec', NAME, 'createdb', '-U', 'postgres', restore_db], env=ENV, check=True)
-    subprocess.run([*DOCKER, 'exec', '-i', NAME, 'pg_restore', '-U', 'postgres', '-d', restore_db, '-'],
+    # pg_restore reads the custom archive from stdin when no filename is given.
+    subprocess.run([*DOCKER, 'exec', '-i', NAME, 'pg_restore', '-U', 'postgres', '-d', restore_db],
         env=ENV, input=backup, check=True, stdout=subprocess.DEVNULL)
     restored = sql_database(restore_db, """
       set role service_role;
