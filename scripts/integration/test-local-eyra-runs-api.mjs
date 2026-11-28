@@ -30,6 +30,12 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = serviceKey;
 process.env.EYRA_DURABLE_RUNS_ENABLED = 'true';
 
 const nativeFetch = globalThis.fetch;
+const authProbe = await nativeFetch(apiUrl + '/auth/v1/user', {
+  headers: { apikey: anonKey, authorization: 'Bearer ' + tokenA },
+  cache: 'no-store',
+});
+assert.equal(authProbe.status, 200,
+  'Disposable local Auth must accept the exact API key and access token given to the production handler');
 globalThis.fetch = (input, init) => {
   const remote = new URL(String(input));
   assert.equal(remote.protocol, 'https:');
