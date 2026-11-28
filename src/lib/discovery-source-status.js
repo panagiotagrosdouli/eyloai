@@ -24,7 +24,7 @@ export function httpStatusFromError(error) {
 
 export function formatUnavailableSource(source) {
   const label = String(source?.label || 'Research source');
-  if (source?.error_code === 'DISCOVERY_RATE_LIMIT_UNAVAILABLE') return `${label} could not be reached through EYLO’s research connection`;
+  if (['DISCOVERY_RATE_LIMIT_UNAVAILABLE', 'PROVIDER_COORDINATION_UNAVAILABLE'].includes(source?.error_code)) return `${label} could not be reached through EYLO’s research connection`;
   if (source?.error_code === 'DISCOVERY_RATE_LIMITED') return `${label} was not requested because EYLO’s search limit was reached`;
   const status = Number(source?.error_status);
   if (status === 429) return `${label} is rate limited (HTTP 429)`;
