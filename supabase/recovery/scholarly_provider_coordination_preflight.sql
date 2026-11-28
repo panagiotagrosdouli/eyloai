@@ -118,7 +118,8 @@ select jsonb_pretty(jsonb_build_object(
  'overall',case
   when not (select recorded from migration_recorded)
    and (select bool_and(oid is null) from table_inventory)
-   and (select bool_and(function_oid is null) from function_inventory)
+   and (select bool_and(function_oid is null and jsonb_array_length(other_overloads)=0) from function_inventory)
+   and has_schema_privilege('service_role','public','USAGE')
    then 'SAFE_CANDIDATE_ONLY_AFTER_STAGING_AND_BACKUP'
   when (select recorded from migration_recorded)
    and (select bool_and(status='PRESENT_REQUIRES_DEFINITION_REVIEW') from (select obj->>'status' status from reports) x)
