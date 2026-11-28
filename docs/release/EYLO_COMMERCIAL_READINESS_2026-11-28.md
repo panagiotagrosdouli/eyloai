@@ -97,10 +97,10 @@ High-risk usage: long evidence bundles passed repeatedly to a premium model, unb
 
 ## Exact owner actions to reach the next mode
 
-1. Confirm authorized owners and exact isolated Supabase/Vercel staging identities; configure preview-only credentials and two disposable accounts through secure settings.
+1. Confirm owner authority and the exact staging target. The latest read-only inventory says the only connected EYLO database is production and the existing branch is `MIGRATIONS_FAILED`; neither qualifies as staging. An owner may separately approve creating an `eylo-staging` Free project in the existing organization (quoted at $0/month) and configure preview-only credentials plus two disposable accounts. No project was created here.
 2. Reconcile staging migration history; rehearse the pending correction in disposable PostgreSQL and approved staging only. Provide backup and rollback evidence before any staged schema write.
 3. Complete hosted two-account Auth, project/paper persistence, Storage, EYRA and export/reload acceptance; prove account B cannot read, update or delete account A's data.
-4. Resolve the production Auth leaked-password setting with the Supabase owner; run an authorized Security Advisor recheck.
+4. Resolve the leaked-password Auth gate with the Supabase owner. The connected org is Free and the latest tracker says the setting requires a separately approved Pro plan (quoted at $25/month entry pricing, with possible extra project compute). Do not upgrade without billing-owner approval; run an authorized Security Advisor recheck if approved.
 5. Verify provider model SKU, aggregate cost telemetry, quotas and hard spend caps; run real-provider acceptance only with an approved cap.
 6. Run the frozen multi-discipline retrieval and claim-level scientific evaluation with independent researchers; record actual ratings and disagreements.
 7. Verify Stripe entirely in test mode or keep it disabled. Do not choose prices or alter live billing from this report.

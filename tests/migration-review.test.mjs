@@ -50,6 +50,32 @@ test("lesson progress policy migration qualifies the progress course ID in its w
   assert.doesNotMatch(source, /l\.course_id\s*=\s*l\.course_id/);
   assert.match(source, /drop policy if exists "Users manage own lesson progress"/i);
 });
+test("foreign-key index migration covers every observed advisor finding", () => {
+  const source = readFileSync(
+    new URL("../supabase/migrations/20261128134000_index_uncovered_foreign_keys.sql", import.meta.url),
+    "utf8",
+  );
+  const expected = [
+    ["eylo_file_versions_parent_owner_fk_idx", "eylo_file_versions", "file_id, user_id"],
+    ["eylo_files_project_fk_idx", "eylo_files", "project_id"],
+    ["learning_courses_source_note_fk_idx", "learning_courses", "source_note_id"],
+    ["learning_progress_assessment_fk_idx", "learning_lesson_progress", "assessment_attempt_id"],
+    ["learning_progress_lesson_course_user_fk_idx", "learning_lesson_progress", "lesson_id, course_id, user_id"],
+    ["learning_lessons_course_user_fk_idx", "learning_lessons", "course_id, user_id"],
+    ["learning_lessons_quiz_fk_idx", "learning_lessons", "quiz_id"],
+    ["quiz_attempts_learning_lesson_fk_idx", "quiz_attempts", "learning_lesson_id"],
+    ["quiz_attempts_quiz_user_fk_idx", "quiz_attempts", "quiz_id, user_id"],
+    ["quiz_questions_quiz_user_fk_idx", "quiz_questions", "quiz_id, user_id"],
+    ["quizzes_source_note_fk_idx", "quizzes", "source_note_id"],
+    ["time_entries_life_task_fk_idx", "time_entries", "life_task_id"],
+    ["time_entries_project_fk_idx", "time_entries", "project_id"],
+  ];
+  assert.equal(source.match(/create index if not exists/gi)?.length, expected.length);
+  for (const [index, table, columns] of expected) {
+    assert.match(source, new RegExp(`create index if not exists ${index}\\s+on public\\.${table} \\(${columns}\\)`, "i"));
+  }
+  assert.doesNotMatch(source, /drop index/i);
+});
 test("changed SQL and new unreviewed files fail manifest verification", () => {
   const name = plan.canonical_local_order[0];
   assert.equal(

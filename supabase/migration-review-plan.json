@@ -6,6 +6,7 @@
     "20261115190203_bridge_legacy_workspace_schema.sql",
     "20260803_eylo_core_entities.sql",
     "20261115191510_workspace_timestamp_support.sql",
+    "20261110_native_video_meetings.sql",
     "20260803_eylo_monitoring_entities.sql",
     "20260811053718_production_billing_entitlements.sql",
     "20261112154425_private_notes.sql",
@@ -29,7 +30,8 @@
     "20261114063216_account_deletion_lifecycle.sql",
     "20261115181809_time_tracker_pause_resume.sql",
     "20261115233000_eyra_agent_runs.sql",
-    "20261128122000_learning_lesson_progress_policy_qualification.sql"
+    "20261128122000_learning_lesson_progress_policy_qualification.sql",
+    "20261128134000_index_uncovered_foreign_keys.sql"
   ],
   "files": [
     {
@@ -89,8 +91,8 @@
     {
       "name": "20261110_native_video_meetings.sql",
       "sha256": "36bf1d7df1925f8dddc4a8791db385181ae5686e28e2b8a8d310908421cbfced",
-      "classification": "excluded-pending-review",
-      "reason": "Native media/invitation schema is outside the21-migration local replay and requires separate hosted media acceptance."
+      "classification": "canonical-local-replay",
+      "reason": "Native meeting participant schema and read-isolation policies are validated in disposable PostgreSQL; live media acceptance remains a separate hosted gate."
     },
     {
       "name": "20261112090000_project_scoped_grant_applications.sql",
@@ -235,6 +237,12 @@
       "sha256": "503cbfd822fbcda4bbe5d9ac2141760cec810098fe0795a3960b3622500923a2",
       "classification": "canonical-local-replay",
       "reason": "Forward-only correction explicitly qualifies the owner-scoped course relationship in the lesson-progress write policy; disposable PostgreSQL validation required, no remote migration approval."
+    },
+    {
+      "name": "20261128134000_index_uncovered_foreign_keys.sql",
+      "sha256": "a34db2f2548cdd32d2d0042ca056314f67ec067d74449d757f30085c86861620",
+      "classification": "canonical-local-replay",
+      "reason": "Additive coverage for the 13 read-only advisor foreign-key gaps; disposable PostgreSQL replay only, no remote application approval."
     }
   ]
 }

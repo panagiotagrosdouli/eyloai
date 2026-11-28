@@ -7,6 +7,20 @@ do $$ declare temp_schema name; begin
   execute format('grant usage on schema %I to authenticated, anon', temp_schema);
 end $$;
 grant select, insert on pg_temp.learning_progress_test_fixture to authenticated, anon;
+do $$ declare expected text[] := array[
+  'eylo_file_versions_parent_owner_fk_idx', 'eylo_files_project_fk_idx',
+  'learning_courses_source_note_fk_idx', 'learning_progress_assessment_fk_idx',
+  'learning_progress_lesson_course_user_fk_idx', 'learning_lessons_course_user_fk_idx',
+  'learning_lessons_quiz_fk_idx', 'quiz_attempts_learning_lesson_fk_idx',
+  'quiz_attempts_quiz_user_fk_idx', 'quiz_questions_quiz_user_fk_idx',
+  'quizzes_source_note_fk_idx', 'time_entries_life_task_fk_idx', 'time_entries_project_fk_idx'
+]; actual integer; begin
+  select count(*) into actual from pg_indexes
+   where schemaname = 'public' and indexname = any(expected);
+  if actual <> cardinality(expected) then
+    raise exception 'Expected 13 foreign-key coverage indexes; found %', actual;
+  end if;
+end $$;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-000000000001';
 do $$ declare check_expression text; begin
