@@ -36,6 +36,7 @@ let grantDraftResponseMode = 'normal';
 let grantDraftRequestStartedResolve;
 let scholarlyDiscoveryCalls = 0;
 let failNextTimerTransition = true;
+let timerRpcRequests = 0;
 let interruptSnapshotSave = true;
 let snapshotWrites = 0;
 let roadmapMode = 'normal';
@@ -267,6 +268,7 @@ try {
     if (url.pathname.includes('/auth/v1/user')) return json(route, fixtureUser);
     if (url.pathname.includes('/rest/v1/rpc/')) {
       const name = url.pathname.split('/').at(-1);
+      if (name === 'transition_time_entry') timerRpcRequests += 1;
       if (name === 'transition_time_entry' && failNextTimerTransition) {
         failNextTimerTransition = false;
         return route.fulfill({ status: 503, headers, contentType: 'application/json', body: JSON.stringify({ message: 'Timer service unavailable' }) });
@@ -290,7 +292,7 @@ try {
     if (request.method() !== 'GET') {
       if (request.method() === 'POST') {
         const payload = request.postDataJSON(); assert.equal(payload.user_id, user.id);
-        const row = { ...payload, id: randomUUID(), created_at: now(), updated_at: now(), ...(table === 'life_tasks' ? { created_date: now(), updated_date: now() } : {}) };
+        const row = { ...payload, id: randomUUID(), created_at: now(), updated_at: now(), ...(table === 'life_tasks' ? { created_date: now(), updated_date: now() } : {}), ...(table === 'time_entries' ? { pause_intervals: [], timer_revision: 0 } : {}) };
         tables[table].push(row); rows = [row];
       } else {
         assert.equal(url.searchParams.get('user_id'), `eq.${user.id}`, 'writes must be owner filtered');
@@ -384,6 +386,20 @@ try {
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export all CSV' }).click();
   assert.equal((await download).suggestedFilename(), 'eylo-time-entries.csv');
+  const savedTimerRows = structuredClone(tables.time_entries);
+  const legacyTimer = { id: randomUUID(), user_id: user.id, description: 'Legacy database timer', started_at: new Date(Date.now() - 60000).toISOString(), updated_at: now(), ended_at: null };
+  tables.time_entries.push(legacyTimer);
+  await page.reload();
+  await page.getByRole('button', { name: 'Stop timer', exact: true }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Pause timer', exact: true }).isDisabled(), true);
+  const rpcRequestsBeforeLegacyStop = timerRpcRequests;
+  await page.getByRole('button', { name: 'Stop timer', exact: true }).click();
+  await page.getByText(/Timer stopped after/).waitFor();
+  assert.ok(legacyTimer.ended_at);
+  assert.equal(timerRpcRequests, rpcRequestsBeforeLegacyStop, 'legacy stop must not depend on the optional pause RPC');
+  tables.time_entries = savedTimerRows;
+  console.log('PASS fixture: an unmigrated database timer remains stoppable without the pause RPC.');
+
   await page.getByLabel('Report from', { exact: true }).fill('2026-11-14');
   await page.getByLabel('Report through', { exact: true }).fill('2026-11-13');
   await page.getByRole('alert').filter({ hasText: 'Report end date must be on or after its start date.' }).waitFor();
@@ -399,7 +415,7 @@ try {
     id: randomUUID(), user_id: user.id, description: `History entry ${index}`,
     started_at: '2026-11-14T10:00:00Z', ended_at: '2026-11-14T10:01:00Z',
   }));
-  tables.time_entries.push({ id: randomUUID(), user_id: user.id, description: 'Recovered old timer', started_at: '2026-11-01T09:00:00Z', ended_at: null });
+  tables.time_entries.push({ id: randomUUID(), user_id: user.id, description: 'Recovered old timer', pause_intervals: [], timer_revision: 0, started_at: '2026-11-01T09:00:00Z', ended_at: null });
   await page.reload();
   await page.getByRole('button', { name: 'Stop timer', exact: true }).waitFor();
   await page.getByText('Showing 50 of 1002 loaded entries').waitFor();
