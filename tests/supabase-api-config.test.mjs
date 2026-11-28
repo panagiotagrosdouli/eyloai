@@ -44,3 +44,32 @@ test('serverless Supabase configuration accepts an explicit project and separate
   assert.equal(config.hasPublicConfig, true);
   assert.equal(config.hasServerConfig, true);
 });
+
+test('the explicit test profile accepts only the fixed loopback Supabase CLI endpoint', () => {
+  const testConfig = readSupabaseApiConfig({
+    EYLO_ENVIRONMENT: 'test',
+    VITE_SUPABASE_URL: 'http://127.0.0.1:54321',
+    VITE_SUPABASE_ANON_KEY: 'local-publishable-fixture',
+    SUPABASE_SECRET_KEY: 'local-secret-fixture',
+  });
+  assert.equal(testConfig.hasPublicConfig, true);
+  assert.equal(testConfig.hasServerConfig, true);
+
+  for (const patch of [
+    { EYLO_ENVIRONMENT: 'production' },
+    { EYLO_ENVIRONMENT: 'test', VITE_SUPABASE_URL: 'http://localhost:54321' },
+    { EYLO_ENVIRONMENT: 'test', VITE_SUPABASE_URL: 'http://127.0.0.1:54322' },
+    { EYLO_ENVIRONMENT: 'test', VITE_SUPABASE_URL: 'https://127.0.0.1:54321' },
+    { EYLO_ENVIRONMENT: 'test', VITE_SUPABASE_URL: 'http://127.0.0.1:54321/other' },
+  ]) {
+    const config = readSupabaseApiConfig({
+      EYLO_ENVIRONMENT: 'test',
+      VITE_SUPABASE_URL: 'http://127.0.0.1:54321',
+      VITE_SUPABASE_ANON_KEY: 'local-publishable-fixture',
+      SUPABASE_SECRET_KEY: 'local-secret-fixture',
+      ...patch,
+    });
+    assert.equal(config.hasPublicConfig, false);
+    assert.equal(config.hasServerConfig, false);
+  }
+});

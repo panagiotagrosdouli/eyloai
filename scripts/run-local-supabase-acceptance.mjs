@@ -73,6 +73,7 @@ try {
     timeout: 5 * 60 * 1000,
     env: {
       ...process.env,
+      EYLO_ENVIRONMENT: 'test',
       VITE_SUPABASE_URL: localUrl,
       VITE_SUPABASE_ANON_KEY: publicKey,
       SUPABASE_URL: localUrl,

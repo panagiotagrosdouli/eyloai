@@ -20,7 +20,7 @@ export function readSupabaseApiConfig(env = process.env) {
   let validUrl = false;
   try {
     const parsed = new URL(url);
-    validUrl = parsed.protocol === 'https:'
+    const officialProject = parsed.protocol === 'https:'
       && parsed.hostname.endsWith('.supabase.co')
       && !parsed.username
       && !parsed.password
@@ -28,6 +28,19 @@ export function readSupabaseApiConfig(env = process.env) {
       && parsed.pathname === '/'
       && !parsed.search
       && !parsed.hash;
+    // The disposable CLI stack is intentionally reachable only under the
+    // explicit test profile and on its fixed loopback endpoint. Deployed
+    // profiles continue to require the official HTTPS Supabase project host.
+    const isolatedLocalTest = env.EYLO_ENVIRONMENT === 'test'
+      && parsed.protocol === 'http:'
+      && parsed.hostname === '127.0.0.1'
+      && parsed.port === '54321'
+      && !parsed.username
+      && !parsed.password
+      && parsed.pathname === '/'
+      && !parsed.search
+      && !parsed.hash;
+    validUrl = officialProject || isolatedLocalTest;
   } catch {
     // Missing and invalid configuration both fail closed.
   }
