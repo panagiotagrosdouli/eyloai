@@ -110,6 +110,7 @@ test("provider coordination migration shares atomic leases and cache while hidin
   assert.match(source, /consecutive_failures integer not null/);
   assert.match(source, /cache_key text not null check \(cache_key ~ '\^\[a-f0-9\]\{64\}\$'\)/);
   assert.match(source, /return query select false, 'deduplicated'/);
+  assert.match(source, /select \* into state from public\.scholarly_provider_state[\s\S]*?for update;[\s\S]*?now_at := clock_timestamp\(\);/i);
   assert.match(source, /pg_advisory_xact_lock/);
   assert.match(source, /if cache_rows > 10000 then/);
   assert.doesNotMatch(source, /query text|research_query/i);

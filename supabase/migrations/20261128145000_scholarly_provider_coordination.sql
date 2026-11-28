@@ -50,7 +50,7 @@ as $$
 declare
   state public.scholarly_provider_state;
   active_count integer;
-  now_at timestamptz := clock_timestamp();
+  now_at timestamptz;
   new_lease uuid;
 begin
   if p_provider is null or p_cache_key is null or p_min_interval_ms is null or p_max_concurrent is null or p_lease_seconds is null
@@ -65,6 +65,10 @@ begin
     on conflict (provider) do nothing;
   select * into state from public.scholarly_provider_state s
     where s.provider = p_provider for update;
+  -- Sample time only after acquiring the per-provider lock. A timestamp taken
+  -- before lock wait can make serialized zero-spacing reservations appear to
+  -- violate the interval after the previous transaction has already committed.
+  now_at := clock_timestamp();
   delete from public.scholarly_provider_leases l
     where l.provider = p_provider and l.expires_at <= now_at;
   select count(*) into active_count from public.scholarly_provider_leases l
