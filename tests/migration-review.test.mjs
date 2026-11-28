@@ -123,9 +123,9 @@ test("Auth deletion role receives only DELETE on the recursive user cascade grap
   assert.match(source, /with recursive cascade_tables/i);
   assert.match(source, /confrelid = 'auth\.users'::regclass/i);
   assert.match(source, /confdeltype = 'c'/i);
-  assert.match(source, /connamespace in \\('public'::regnamespace,\\s*'storage'::regnamespace\\)/i);
+  assert.match(source, /connamespace in \('public'::regnamespace,\s*'storage'::regnamespace\)/i);
   assert.match(source, /grant delete on table %s to supabase_auth_admin/i);
-  assert.match(source, /confdeltype in \\('n', 'd'\\)/i);
+  assert.match(source, /confdeltype in \('n', 'd'\)/i);
   assert.match(source, /grant update \(%s\) on table %s to supabase_auth_admin/i);
   assert.doesNotMatch(source, /grant (?:all|select|insert) on table|grant update on table/i);
 });
