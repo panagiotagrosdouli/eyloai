@@ -15,6 +15,23 @@ export function providerMinimumGap(provider, query = '', env = process.env) {
   return GAPS[provider] ?? 100;
 }
 
+export function providerSharedQuota(provider, query = '', env = process.env) {
+  if (provider.startsWith('openalex_')) {
+    const booleanOperators = String(query).match(/\\b(?:AND|OR|NOT)\\b/gi)?.length || 0;
+    return booleanOperators > 5
+      ? { limit: 1, windowSeconds: 1 }
+      : { limit: 10, windowSeconds: 1 };
+  }
+  if (provider === 'crossref') {
+    const email = String(env.RESEARCH_CONTACT_EMAIL || env.VITE_RESEARCH_CONTACT_EMAIL || '').trim();
+    return email ? { limit: 3, windowSeconds: 1 } : { limit: 1, windowSeconds: 1 };
+  }
+  if (provider === 'arxiv') return { limit: 1, windowSeconds: 3 };
+  if (provider === 'europe_pmc') return { limit: 10, windowSeconds: 1 };
+  if (provider === 'semantic_scholar') return { limit: 1, windowSeconds: 1 };
+  return null;
+}
+
 function boundedRetryAfterSeconds(value, now) {
   const raw = String(value || '').trim();
   const seconds = /^\d+(?:\.\d+)?$/.test(raw)

@@ -36,12 +36,20 @@ export function makeDiscoveryRateLimitSubject(ip, serviceRoleKey) {
   return createHmac('sha256', key).update(`eylo-discovery-ip:v1:${normalizedIp}`).digest('hex');
 }
 
+export function makeDiscoveryProviderSubject(provider, serviceRoleKey) {
+  const name = String(provider || '').trim();
+  const key = String(serviceRoleKey || '').trim();
+  if (!/^[a-z0-9_]{1,64}$/.test(name) || !key) return '';
+  return createHmac('sha256', key).update(`eylo-discovery-provider:v1:${name}`).digest('hex');
+}
+
 export async function consumeDiscoveryQuota(request, {
   env = process.env,
   fetchImpl = globalThis.fetch,
   limit = DISCOVERY_RATE_LIMIT.limit,
   windowSeconds = DISCOVERY_RATE_LIMIT.windowSeconds,
   onUnavailable = (_diagnostic) => {},
+  subjectHash: requestedSubjectHash = '',
 } = {}) {
   // Only fixed classifications and HTTP status reach operator logs. Never pass
   // IPs, hashes, keys, request URLs, response bodies or exception messages.
@@ -55,9 +63,12 @@ export async function consumeDiscoveryQuota(request, {
   if (!config.hasServerConfig) return unavailable('missing_server_configuration');
   if (typeof fetchImpl !== 'function') return unavailable('fetch_unavailable');
 
-  const ip = getTrustedDiscoveryClientIp(request, env);
-  const subjectHash = makeDiscoveryRateLimitSubject(ip, serviceRoleKey);
-  if (!subjectHash) return unavailable('missing_trusted_client_ip');
+  if (requestedSubjectHash && !/^[a-f0-9]{64}$/.test(requestedSubjectHash)) {
+    return unavailable('invalid_subject_hash');
+  }
+  const ip = requestedSubjectHash ? '' : getTrustedDiscoveryClientIp(request, env);
+  const subjectHash = requestedSubjectHash || makeDiscoveryRateLimitSubject(ip, serviceRoleKey);
+  if (!subjectHash) return unavailable(requestedSubjectHash ? 'invalid_subject_hash' : 'missing_trusted_client_ip');
 
   try {
     // Transient 502/503/504 responses may come from an overloaded gateway.
@@ -112,4 +123,17 @@ export async function consumeDiscoveryQuota(request, {
     return unavailable(error?.name === 'TimeoutError' || error?.name === 'AbortError'
       ? 'rpc_timeout' : 'rpc_network_error');
   }
+}
+
+export async function consumeSharedProviderQuota(provider, request, options = {}) {
+  const env = options.env || process.env;
+  const config = readSupabaseApiConfig(env);
+  if (!config.hasServerConfig) return { status: 'unavailable' };
+  const subjectHash = makeDiscoveryProviderSubject(provider, config.serverKey);
+  if (!subjectHash) return { status: 'unavailable' };
+  return consumeDiscoveryQuota(request, {
+    ...options,
+    env,
+    subjectHash,
+  });
 }

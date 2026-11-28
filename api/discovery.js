@@ -4,8 +4,8 @@ import { fetchWithScholarlyBackoff } from '../src/lib/scholarly-provider-backoff
 import { readBoundedScholarlyResponse, ScholarlyResponseTooLargeError } from '../src/lib/discovery-response-limit.mjs';
 import { normalizeDoi } from '../src/lib/citation-verification.mjs';
 import { validScholarlyProviderPayload } from '../src/lib/scholarly-provider-envelope.mjs';
-import { scholarlyResilience, providerMinimumGap } from '../server/scholarly-resilience.mjs';
-import { consumeDiscoveryQuota } from '../server/discovery-rate-limit.mjs';
+import { scholarlyResilience, providerMinimumGap, providerSharedQuota } from '../server/scholarly-resilience.mjs';
+import { consumeDiscoveryQuota, consumeSharedProviderQuota } from '../server/discovery-rate-limit.mjs';
 
 const PROVIDERS = new Set([
   'openalex_works',
@@ -199,6 +199,45 @@ export default async function handler(request, response) {
   try {
     const outcome = await scholarlyResilience.execute(provider,
       JSON.stringify([provider, query, limit, sort, page, country, exactDoi]), async () => {
+    if (process.env.VERCEL === '1') {
+      const sharedPolicy = providerSharedQuota(provider, query);
+      if (sharedPolicy) {
+        const sharedQuota = await consumeSharedProviderQuota(provider, request, {
+          ...sharedPolicy,
+          onUnavailable: diagnostic => console.warn('EYLO_PROVIDER_QUOTA_UNAVAILABLE', {
+            provider,
+            ...diagnostic,
+          }),
+        });
+        if (sharedQuota.status !== 'available') {
+          return {
+            status: 503,
+            error: 'Shared scholarly provider quota is unavailable.',
+            code: 'DISCOVERY_RATE_LIMIT_UNAVAILABLE',
+            body: Buffer.from(JSON.stringify({
+              error: 'Shared scholarly provider quota is unavailable.',
+              code: 'DISCOVERY_RATE_LIMIT_UNAVAILABLE',
+            })),
+            cacheable: false,
+          };
+        }
+        if (!sharedQuota.allowed) {
+          const retryAfter = String(Math.max(1, sharedQuota.retryAfterSeconds));
+          return {
+            status: 429,
+            error: 'Shared scholarly provider limit reached. Retry after the indicated delay.',
+            code: 'SOURCE_RATE_LIMITED',
+            retryAfter,
+            body: Buffer.from(JSON.stringify({
+              error: 'Shared scholarly provider limit reached.',
+              code: 'SOURCE_RATE_LIMITED',
+            })),
+            cacheable: false,
+          };
+        }
+      }
+    }
+
     const upstream = await fetchWithScholarlyBackoff(url, {
       signal: controller.signal,
       headers: {
@@ -241,12 +280,12 @@ export default async function handler(request, response) {
       if (Number.isInteger(retryAfterSeconds) && retryAfterSeconds >= 1 && retryAfterSeconds <= 86_400) {
         response.setHeader('Retry-After', String(retryAfterSeconds));
       }
-      const code = outcome.status === 429
+      const code = outcome.code || (outcome.status === 429
         ? 'SOURCE_RATE_LIMITED'
-        : outcome.status >= 500 ? 'SOURCE_UNAVAILABLE' : 'SOURCE_REQUEST_FAILED';
-      const error = outcome.status === 429
+        : outcome.status >= 500 ? 'SOURCE_UNAVAILABLE' : 'SOURCE_REQUEST_FAILED');
+      const error = outcome.error || (outcome.status === 429
         ? 'Scholarly source is rate limited.'
-        : outcome.status >= 500 ? 'Scholarly source is temporarily unavailable.' : 'Scholarly source rejected the request.';
+        : outcome.status >= 500 ? 'Scholarly source is temporarily unavailable.' : 'Scholarly source rejected the request.');
       return response.status(outcome.status).json({ error, code });
     }
     response.status(outcome.status);
